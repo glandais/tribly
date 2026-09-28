@@ -18,12 +18,14 @@ Must-have for public launch. Focus on first impressions and core UX.
 
 ### Discoverability
 - [x] SEO/robots.txt — Phase 1 complete (static meta)
-- [ ] SSR/Dynamic meta — Future: migrate to Next.js for full SEO
+  - [ ] llms.txt
+- [X] SSR/Dynamic meta — shipped without Next.js: Express server-side rendering of the React app
+      (`frontend/SSR.md`) and per-page Open Graph/Twitter tags (`frontend/LINK_PREVIEW.md`)
 - [ ] Dynamic sitemap.xml — Requires backend endpoint
-- [ ] Share URL (Social + Strava) — Viral loop
+- [ ] Share URL (Social) — Viral loop
 
 ### Core Features (In Progress)
-- [X] Slug changes with redirects — Already started per git status
+- [X] Slug changes with redirects
 
 ---
 
@@ -48,7 +50,7 @@ Drive engagement and reduce friction for organizers.
   - [X] Use image asset endpoint in display
   - [X] Allow any image format (heic, ...)
   - [ ] Drag/drop image support
-- [ ] Tags on Ride, Post, Trip, Route, Ad — Filtering/discovery
+- [ ] Tags on Ride, Post, Trip, Route, Ad — Filtering/discovery (one tag set per type)
 
 ---
 
@@ -86,12 +88,13 @@ Requires significant architecture work. Spike before committing.
 
 ### Notifications
 - [ ] Versatile notification system
-  - **In progress** — design in docs/plans/2026-09-18-notifications.md, state in its ledger
-  - Event types
-  - Team/user preferences
-  - Dispatchers: webhook, email, in-app
-  - Mobile push: **live in production since 2026-09-21** (FCM, Android + iOS); store review of
-    build 1.0.0+52 pending. Next: phase 5 of the plan (J-1 reminder, team webhook, daily digest)
+  - **Phases 1 to 5 in production since 2026-09-21** — design in
+    docs/plans/2026-09-18-notifications.md, state in its ledger
+  - Event types, team/user preferences, in-app inbox, team webhook, daily digest
+  - Mobile push: **live in production since 2026-09-21** (FCM, Android + iOS)
+  - Web push: merged into `develop` on 2026-09-28, waits for the `FCM_WEB_*` production settings
+  - E-mail channel: built, **off in production** by product decision (2026-09-21)
+  - What's left is in docs/NEXT.md §8.3
 
 ### Administration
 - [X] System admin panel
@@ -99,12 +102,15 @@ Requires significant architecture work. Spike before committing.
   - Promote/demote admins
   - Recover deleted items
   - [ ] Configure legal pages
+  - [ ] Manage system images
 
 ### Multi-Tenancy
 - [ ] Team custom domains
-  - User linked to a domain
-  - SQL-level domain filtering
-  - SPIKE NEEDED: Estimate 2-4 weeks
+  - [X] User linked to a domain
+  - [X] SQL-level domain filtering
+  - [X] Domain alias pinned to a team (V20, `AdminDomainAliasService`): a platform admin serves one
+        team on its own hostname
+  - [ ] Dedicated mobile/Garmin/Karoo app for a team with its own domain
 
 ---
 
@@ -134,5 +140,5 @@ Validated interest required before prioritization.
 ## Tech Debt / Hygiene
 Run alongside feature work.
 
-- [ ] Schedule orphan asset deletion (>24h without entity)
+- [X] Schedule orphan asset deletion (>24h without entity) — `AssetCleanupScheduler`, daily
 - [ ] Markdown asset reference cleanup

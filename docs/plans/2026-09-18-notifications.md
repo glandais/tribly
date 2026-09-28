@@ -1,8 +1,11 @@
 # Notifications évènementielles
 
-> Écrit le 18 septembre 2026. **Plan actif.** L'avancement, phase par phase, est tenu dans le
-> ledger dédié : [`2026-09-18-notifications-ledger.md`](2026-09-18-notifications-ledger.md). Ce
-> document porte la conception et ses arbitrages ; le ledger porte l'état.
+> Écrit le 18 septembre 2026. **Phases 1 à 5 en production depuis le 21 septembre 2026** ; le Web
+> Push est dans `develop` depuis le 28 septembre. Les trois points encore ouverts (recette du
+> webhook, `FCM_WEB_*` en production, décision sur l'e-mail) sont repris au §8.3 de
+> [`docs/NEXT.md`](../NEXT.md). L'avancement, phase par phase, est tenu dans le ledger dédié :
+> [`2026-09-18-notifications-ledger.md`](2026-09-18-notifications-ledger.md). Ce document porte la
+> conception et ses arbitrages ; le ledger porte l'état.
 
 Reprend et remplace deux entrées ouvertes : le « Versatile notification system » de
 [`BACKLOG.md`](../../BACKLOG.md) (P3) et le §4.2 « Notifications push » de
@@ -134,8 +137,8 @@ d'où « membres de l'équipe » sans autre filtre. Un brouillon n'est jamais no
 | `IN_APP` | phase 1 | **Toujours actif, non configurable.** La ligne `notifications` *est* l'entrée de la boîte de réception. Les préférences ne gouvernent que les canaux qui interrompent. |
 | `EMAIL` | phase 1, **désactivé par défaut** | `pedalons.notifications.email.enabled`. Un seul gabarit générique `notification` (fr/en) — voir §6. |
 | `PUSH` | phase 4, **en production depuis le 21 septembre 2026** | FCM (Android + iOS via APNs). Table `push_devices`, enregistrement du jeton, purge sur `UNREGISTERED`. Disponible seulement avec `PEDALONS_PUSH_ENABLED=true` *et* un compte de service lisible. |
-| `PUSH`, plateforme `WEB` | branche `feat/pwa` | Le Web Push n'est **pas un canal de plus** : le navigateur est un appareil `push_devices` de plateforme `WEB`, servi par le même FCM (message *data only*, affiché par `frontend/public/sw.js`). Proposé seulement si `ConfigDto.webPush` est rempli : canal disponible *et* `FCM_WEB_*` configurés (app web Firebase du même projet). Sur iOS, n'existe que pour le site installé sur l'écran d'accueil (16.4+). |
-| Webhook d'équipe, résumé | plus tard | Le webhook n'est pas un canal *par destinataire* : il se branchera à l'étage 2, sur l'évènement. |
+| `PUSH`, plateforme `WEB` | dans `develop` depuis le 28 septembre 2026, `FCM_WEB_*` à renseigner en production | Le Web Push n'est **pas un canal de plus** : le navigateur est un appareil `push_devices` de plateforme `WEB`, servi par le même FCM (message *data only*, affiché par `frontend/public/sw.js`). Proposé seulement si `ConfigDto.webPush` est rempli : canal disponible *et* `FCM_WEB_*` configurés (app web Firebase du même projet). Sur iOS, n'existe que pour le site installé sur l'écran d'accueil (16.4+). |
+| Webhook d'équipe, résumé | phase 5 (§12) | Le webhook n'est pas un canal *par destinataire* : il se branche à l'étage 2, sur l'évènement. |
 
 Un canal n'est proposé (dans les préférences) et n'engendre de livraisons que s'il est **disponible**
 côté serveur : implémenté *et* activé par configuration. Un environnement sans compte de service FCM
@@ -143,14 +146,16 @@ côté serveur : implémenté *et* activé par configuration. Un environnement s
 
 ## 6. E-mail : un gabarit générique
 
-Les e-mails existants ont chacun leur gabarit Brevo (un ID par langue) doublé d'un miroir Qute. À six
-types aujourd'hui, et davantage demain, ce serait 2 × N gabarits Brevo maintenus à la main. Les
+À l'écriture, les e-mails existants avaient chacun leur gabarit Brevo (un ID par langue) doublé d'un
+miroir Qute. À six types, et davantage demain, ce serait 2 × N gabarits maintenus à la main. Les
 notifications utilisent donc **un seul** gabarit, `notification`, dont les paramètres sont déjà
 rendus : `title`, `body`, `ctaLabel`, `ctaUrl`, `appName`, `recipientName`, `preferencesUrl`. Le
 texte propre à chaque type vit dans `texts_{fr,en}.properties`, côté serveur, en un seul endroit.
 
-Conséquence d'exploitation : **deux gabarits Brevo à créer** (fr, en) et leurs IDs à renseigner dans
-`pedalons.email.brevo.templates.notification.{fr,en}` avant d'activer le canal en production.
+Depuis le 22 septembre 2026, Brevo est remplacé par le relais SMTP de Scaleway Transactional Email :
+les gabarits Qute de `backend/src/main/resources/templates/mail/` (`notification.{fr,en}` et
+`notification-digest.{fr,en}`, en `.html` et `.txt`) sont ceux qui partent, et il n'y a plus aucun
+gabarit à créer ni d'identifiant à renseigner hors du dépôt avant d'activer le canal.
 
 Pourquoi le canal est désactivé par défaut : une base locale issue de la migration biketeam contient
 des milliers d'adresses réelles, et la première sortie publiée en production écrirait à toute une
@@ -270,8 +275,8 @@ la sortie où l'on va demain.
 Un réglage par membre (`notification_settings.email_digest`), faux par défaut. Coché, les livraisons
 `EMAIL` des types non urgents sont créées avec `digest = true` et échues au prochain **7 h** du fuseau
 du destinataire ; l'envoi ordinaire les ignore, et un tick du résumé (toutes les 15 min) les réclame
-**par destinataire** pour en faire un seul e-mail (`notification-digest`, Qute fr/en ; deux gabarits
-Brevo à créer avant d'activer l'e-mail en production). Un résumé qui échoue est rejoué en bloc.
+**par destinataire** pour en faire un seul e-mail (`notification-digest`, Qute fr/en — les gabarits
+Brevo prévus à l'écriture n'ont plus d'objet depuis le passage au relais SMTP de Scaleway TEM, §6). Un résumé qui échoue est rejoué en bloc.
 Les types urgents partent tout de suite même en mode résumé : l'annulation d'une sortie du lendemain
 matin arriverait après le départ.
 

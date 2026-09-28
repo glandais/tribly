@@ -172,7 +172,7 @@ routes:
     mobile: true
     deeplink: true
     webFallback: profile
-  # Users the current user blocked (docs/plans/2026-09-24-signalement.md). Mobile-only: the web
+  # Users the current user blocked (docs/plans/archive/2026-09-24-signalement.md). Mobile-only: the web
   # shows them as a section of the profile page. No deeplink: no web page answers this URL.
   - id: blockedUsers
     path:

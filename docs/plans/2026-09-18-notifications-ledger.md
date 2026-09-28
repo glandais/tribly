@@ -4,14 +4,23 @@ Conception : [`2026-09-18-notifications.md`](2026-09-18-notifications.md). Ce fi
 ce qui est fait, ce qui ne l'est pas, ce qui a été vérifié et comment. On le met à jour à chaque
 passe, en tête de la phase concernée ; une case ne se coche que vérifiée.
 
-- Branche : `feat/notifications` · worktree `../tribly.worktrees/feat/notifications`
+- Branche : `feat/notifications` · worktree `../tribly.worktrees/feat/notifications` — fusionnée dans
+  `develop`, comme le Web Push (`feat/pwa`, 28 septembre 2026)
 - Contrat : **3.4.0 → 3.5.0** (six endpoints ajoutés), puis **3.5.0 → 3.6.0** (deux de plus pour les
   appareils push), puis **3.7.0 → 3.8.0** (phase 5) — rien retiré
 - Migrations : **V37** `notifications`, **V38** `notification event backoff` — appliquées sans heurt
   sur la base locale restaurée (schéma 36 → 38) le 20 septembre 2026 ; **V39** `push_devices`,
   écrite le 20 septembre 2026, ☑ appliquée sur une base locale neuve le 21 septembre 2026
 
-**État au 21 septembre 2026 : push et phase 5 en production.** Serveur à jour en staging et en
+**État au 29 septembre 2026** : phases 1 à 5 en production, Web Push fusionné dans `develop`. Trois
+points restent ouverts, repris au §8.3 de [`docs/NEXT.md`](../NEXT.md) : la recette du webhook
+contre de vrais Slack, Discord et Mattermost ; l'app web Firebase et `FCM_WEB_*` en production ; la
+décision produit sur l'e-mail, coupé en production. Depuis le 22 septembre 2026, les e-mails partent
+par le relais SMTP de Scaleway TEM et non plus par Brevo : les gabarits Brevo cités plus bas
+(16 à 19) n'ont plus cours, ce sont les gabarits Qute de `templates/mail/` qui partent. La stack
+locale lit ses e-mails dans mailpit, qui a remplacé Mailhog le 28 septembre 2026.
+
+**État au 21 septembre 2026 (conservé tel quel) : push et phase 5 en production.** Serveur à jour en staging et en
 prod, `PEDALONS_PUSH_ENABLED=true` en prod ; build mobile `1.0.0+53` (phase 5) poussée en test sur les
 deux stores ; formulaire Play envoyé pour examen. Restent la publication des stores et la recette du
 webhook contre de vrais Slack, Discord et Mattermost ; l'e-mail reste coupé, par décision.
@@ -507,7 +516,8 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
 ### Reste à faire
 - ☑ Déployé et testé en staging (21 septembre 2026), V40 comprise
 - ☑ Déployé et testé en production (21 septembre 2026)
-- ☑ Brevo : gabarits `notification-digest` créés le 21 septembre 2026
+- ☑ Brevo : gabarits `notification-digest` créés le 21 septembre 2026 *(sans objet depuis le passage
+  au relais SMTP de Scaleway TEM le 22 septembre : ce sont les gabarits Qute qui partent)*
   (`pedalons-notification-digest-fr` **18**, `pedalons-notification-digest-en` **19**, actifs, sujet
   `{{ params.subject }}`, même émetteur et même mise en page que 16/17), recopiés des gabarits Qute
   avec une boucle `{% for item in params.items %}` ; ids renseignés en `%prod`. Vérifiés par un
@@ -521,7 +531,8 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
 
 ## Hors pipeline, à ne pas oublier
 
-- ☑ **Brevo** : gabarit `notification` créé le 21 septembre 2026 (`pedalons-notification-fr` **16**,
+- ☑ **Brevo** *(sans objet depuis le passage au relais SMTP de Scaleway TEM le 22 septembre 2026 :
+  ce sont les gabarits Qute de `templates/mail/` qui partent)* : gabarit `notification` créé le 21 septembre 2026 (`pedalons-notification-fr` **16**,
   `pedalons-notification-en` **17**, actifs, sujet `{{ params.subject }}`, émetteur
   `Pédalons ! <contact@pedalons.fr>`), rendu depuis les gabarits Qute du repli SMTP
   (`templates/mail/notification.{fr,en}.html`, `base` aplati dedans — Brevo n'a pas d'`include`) et
@@ -546,12 +557,13 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
 | Date | Passe | Notes |
 |---|---|---|
 | 2026-09-18 | Phase 1 | Conception, socle backend, contrat 3.5.0, clients régénérés. Découverte en cours de route : la migration biketeam passe par les services producteurs → mode muet ajouté. Tests verts, commité. |
+| 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |
 | 2026-09-20 | Phase 3 | Mobile livré : cloche, écran, matrice, deeplink. Deux filets du dépôt ont demandé leur entrée (`_deepLinkHierarchies`, `internalRouteTemplates`) — c'est leur raison d'être. « Tout marquer lu » a été redérivé des lignes visibles en plus du compteur global, qui est muet hors session. |
 | 2026-09-20 | Phase 2 | Web livré : cloche, page, libellés fr/en, matrice de préférences, ancre des e-mails. Deux défauts trouvés en recette et corrigés sur place : le fragment `#notifications` n'amenait nulle part, et la section masquée laissait un double séparateur. |
 | 2026-09-20 | Recette locale | Essai manuel de bout en bout sur la base restaurée : publication, fan-out, inbox, préférences, annulation, e-mail Mailhog, cascade. Rien à corriger. Relevé au passage, **hors notifications** : `POST /api/teams/{slug}/rides` lève une NPE 500 quand `media.assets` est `{}` (`AssetService.updateAssets` déréférence `images()` nul) — le client web envoie toujours des listes, donc invisible depuis l'application. |
 | 2026-09-20 | Phase 4 | Push côté serveur : `push_devices` (V39), deux endpoints, `PushNotificationSender` et `FcmClient` (FCM HTTP v1 sans dépendance nouvelle — `smallrye-jwt-build` signe l'assertion). Le canal reste indisponible faute de compte de service, ce qui est exactement le filet de §5 : rien n'est mis en file. Contrat 3.6.0, clients régénérés. Le mobile et les préalables console restent à faire. |
-| 2026-09-21 | Brevo | Gabarit `notification` créé (16 fr, 17 en) et ids renseignés en `%prod`. Reste la décision produit : `PEDALONS_NOTIFICATIONS_EMAIL_ENABLED=true`. |
 | 2026-09-20 | Préalables push | Console faite : projet Firebase `pedalons-9e595` (Analytics et Gemini coupés), apps Android et Apple `fr.pedalons.mobile`, compte de service vérifié hors application (jeton minté, `messages:send` répond 400 `INVALID_ARGUMENT` sur un faux jeton), clé APNs Sandbox & Production créée et capacité *Push Notifications* activée sur l'App ID — ce qui invalide le profil de provisionnement iOS existant. Les fichiers vivent dans `~/Documents/pedalons/firebase/`, hors dépôt. |
+| 2026-09-21 | Brevo | Gabarit `notification` créé (16 fr, 17 en) et ids renseignés en `%prod`. Reste la décision produit : `PEDALONS_NOTIFICATIONS_EMAIL_ENABLED=true`. |
 | 2026-09-21 | Phase 4 bis | Push côté mobile : `firebase_messaging` derrière une `PushGateway` (seule couche qui connaît Firebase, ce qui rend les tests possibles), enregistrement du jeton et désinscription à la déconnexion, canal Android et icône de barre d'état, tap qui marque lu et ouvre `data.path` par le tuyau des liens web. L'autorisation se demande depuis la boîte de réception et jamais au lancement. Deux surprises de build : `flutter_local_notifications` exige la desugarisation des bibliothèques du cœur, et l'icône de notification ne pouvait pas être celle du lanceur (le système n'en garde que l'alpha). 560 tests verts ; déclarations de confidentialité reprises, politique et formulaires des stores encore à faire. |
 | 2026-09-21 | Recette push iOS | iPhone 13 Pro Max, build release signée développement. Premier plan et arrière-plan OK du premier coup. App tuée : tap perdu quand `content-available` avait déjà réveillé l'app — le plugin garde alors le message pour un second `getInitialMessage()`. Corrigé côté app (nouvel appel au retour au premier plan) et côté serveur (`content-available` retiré). Relevé aussi : deux `POST /api/push-devices` concurrents au lancement (session + `onTokenRefresh`), l'un en 500 sur le verrou optimiste — `register` est devenu un upsert natif `ON CONFLICT (token) DO UPDATE`. |
 | 2026-09-21 | Recette push Android | Pixel 6a contre un backend local : jeton enregistré, bannière et tap OK au premier plan, en arrière-plan et application tuée. Rien à corriger dans le code. En chemin : `minio/minio` n'est plus tiré depuis Docker Hub (même tag pris sur `quay.io/minio/minio`), et `postgis/postgis:17-3.5-alpine` n'existe pas en arm64 (tiré en amd64). Reste l'iPhone. |
@@ -567,4 +579,3 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
 | 2026-09-21 | Staging | Phase 5 déployée et testée en staging (V40 appliquée). Gabarits Brevo du résumé créés (18, 19) et vérifiés par envoi réel. |
 | 2026-09-21 | Production | Phase 5 déployée et testée en production. Build mobile `1.0.0+53` poussée en test sur les deux stores. |
 | 2026-09-28 | Web Push | Branche `feat/pwa` : site installable (manifest par domaine servi par `server.js`, service worker sans cache) et push dans le navigateur par FCM, plateforme `WEB` (pas de migration, `platform` est un `varchar`). Message web *data only* — le service worker affiche titre et corps, un bloc `notification` l'aurait doublé. Config Firebase web publique dans `ConfigDto.webPush` (API 5.4.0), `null` tant que `FCM_WEB_*` manque. Désinscription du navigateur à la déconnexion. Reste : créer l'app web dans le projet `pedalons-9e595` et sa clé VAPID, renseigner `FCM_WEB_*`, recette Chrome Android, desktop et iPhone installé. |
-| 2026-09-18 | Revue | Clé de dédup rendue par les évènements `SKIPPED`/`FAILED` ; recul avant nouvelle tentative d'un évènement (V38, `next_attempt_at`) ; récupération des bloqués toutes les 5 min, livraisons bloquées sans tentative restante → `FAILED`. |

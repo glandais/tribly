@@ -1,6 +1,15 @@
 # Audit Pedalons — Fevrier 2026
 
 > **Mise à jour : 1er avril 2026** — Vérification de chaque point sur le codebase actuel. Statut : ✅ Corrigé | ⚠️ Partiel | *(sans annotation)* = Ouvert
+>
+> **Mise à jour partielle : 29 septembre 2026** — statuts rafraîchis pour les lignes revérifiées dans
+> le code ce jour-là (backups, tests frontend et mobile, SSR, staging, déconnexion Garmin, image
+> frontend, BACKLOG_old…) ; les autres gardent leur statut d'avril, et les comptages de fin de
+> document ne sont pas recalculés. Restent ouverts, entre autres : rate limiting de
+> `/api/device/oauth/complete`, `maximum-scale=1.0`, URL Garmin en dur, `MainActivity.kt` Karoo,
+> `forwardedHeaders.insecure`, pipeline CD, healthchecks. La sécurité applicative est désormais
+> suivie dans [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) (septembre 2026) ; ce document reste la
+> référence pour l'infrastructure, la CI/CD et la qualité des modules.
 
 ## Resume executif
 
@@ -12,9 +21,9 @@ Pedalons est une plateforme multi-tenant mature pour equipes cyclistes, comprena
 |---|--------|-----------|----------|--------|--------|
 | 1 | **Securiser l'endpoint `/api/device/oauth/complete`** — actuellement sans authentification, permet l'usurpation d'identite | Securite | CRITIQUE | S | ✅ |
 | 2 | **Activer le CI sur `develop`** — actuellement sur branche `tmp`, zero validation automatique | Infra | CRITIQUE | S | ✅ |
-| 3 | **Mettre en place les backups PostgreSQL et MinIO** — aucun backup, perte de donnees possible | Infra | CRITIQUE | M | |
-| 4 | **Ajouter des tests frontend** — 0 tests malgre Vitest installe | Frontend | CRITIQUE | L | ⚠️ |
-| 5 | **Ajouter des tests mobile** — 0 tests, pas meme de repertoire test/ | Mobile | CRITIQUE | M | |
+| 3 | **Mettre en place les backups PostgreSQL et MinIO** — aucun backup, perte de donnees possible | Infra | CRITIQUE | M | ✅ |
+| 4 | **Ajouter des tests frontend** — 0 tests malgre Vitest installe | Frontend | CRITIQUE | L | ✅ |
+| 5 | **Ajouter des tests mobile** — 0 tests, pas meme de repertoire test/ | Mobile | CRITIQUE | M | ✅ |
 | 6 | **Corriger le bug `TeamEntityType.AD` hardcode dans `updateSlug()`** — slug redirects ne fonctionnent pas pour les non-ads | Backend | CRITIQUE | S | ✅ |
 | 7 | **Ajouter rate limiting sur `/api/device/oauth/complete`** — brute force possible sur les user codes | Securite | CRITIQUE | S | |
 | 8 | **Creer un pipeline CD** — aucun deploiement automatise, images tagguees `:latest` | Infra | CRITIQUE | L | |
@@ -93,8 +102,8 @@ React 19, TypeScript 5.9, Vite 7, Mantine 8, ~97 composants TSX. 1 test fictif (
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
 | F1 | `maximum-scale=1.0` dans viewport — bloque le zoom, violation WCAG 2.1 | Critique | S | `index.html:8` | |
-| F2 | 0 tests reels malgre Vitest + testing-library installes (1 test fictif present) | Critique | L | `src/**/*.test.ts(x)` | ⚠️ |
-| F3 | Configuration Vitest manquante (pas de vitest.config.ts) | Critique | S | `vite.config.ts` ou nouveau fichier | |
+| F2 | 0 tests reels malgre Vitest + testing-library installes (1 test fictif present) | Critique | L | `src/**/*.test.ts(x)` | ✅ (sept. 2026 : 21 fichiers Vitest, plus une suite e2e Playwright de 33 specs dans `frontend/e2e/`, lancee en local seulement) |
+| F3 | Configuration Vitest manquante (pas de vitest.config.ts) | Critique | S | `vite.config.ts` ou nouveau fichier | ✅ (bloc `test` de `vite.config.ts`) |
 | F4 | Cle i18n `common.back` inexistante dans LoginPage (devrait etre `actions.back`) | Critique | S | `LoginPage.tsx:385,440` | ✅ |
 | F5 | FullCalendar 7.0.0-beta.6 — API instable, pas de support prod | Important | M | `package.json` | ✅ |
 | F6 | Pas de titres de page dynamiques (titre statique partout) | Important | M | Toutes les pages | ✅ |
@@ -104,7 +113,7 @@ React 19, TypeScript 5.9, Vite 7, Mantine 8, ~97 composants TSX. 1 test fictif (
 | F10 | Message validation Zod hardcode en anglais | Important | S | `RideEditor.tsx:42` | ✅ |
 | F11 | Liens `/terms` et `/privacy` vers pages inexistantes | Important | M | `LoginPage.tsx:280-281` | ✅ |
 | F12 | Sitemap.xml manquant | Important | M | Backend endpoint | |
-| F13 | Pas de SSR = SEO limite pour les bots | Important | XL | Migration architecturale | |
+| F13 | Pas de SSR = SEO limite pour les bots | Important | XL | Migration architecturale | ✅ (SSR Express, `frontend/SSR.md`) |
 | F14 | `dayjs` utilise uniquement dans `i18n/index.ts` | Mineur | S | `package.json` | ⚠️ |
 | F15 | 8 cles `_many` manquantes en EN (coherence structurelle) | Mineur | S | `en/common.json` | ✅ |
 
@@ -127,7 +136,7 @@ Flutter, Dart 3.10+, Riverpod 3, GoRouter 17. 8 features (auth, home, teams, rid
 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
-| M1 | 0 tests — pas meme de repertoire `test/` | Critique | M | Nouveau `mobile/test/` | |
+| M1 | 0 tests — pas meme de repertoire `test/` | Critique | M | Nouveau `mobile/test/` | ✅ (sept. 2026 : 77 fichiers dans `mobile/test/`, plus `mobile/patrol_test/`) |
 | M2 | Memory leak — stream subscription non dispose dans `_DeepLinkHandler` | Critique | S | `main.dart:60` | ✅ |
 | M3 | `rules.md` recommande ValueNotifier mais le code utilise Riverpod — contradiction | Important | S | `rules.md` | ⚠️ |
 | M4 | Dependances inutilisees : `hooks_riverpod` (flutter_hooks retire, riverpod_generator reste en dev dep) | Important | S | `pubspec.yaml` | ⚠️ |
@@ -135,8 +144,8 @@ Flutter, Dart 3.10+, Riverpod 3, GoRouter 17. 8 features (auth, home, teams, rid
 | M6 | Widgets dupliques (`_RideCard`, `_StatItem`, `_formatDate`) | Important | M | `home_page.dart`, `team_detail_page.dart` | ✅ |
 | M7 | Couleurs hardcodees (`Colors.green/blue/red`) | Important | S | `verify_email_page.dart`, `ride_detail_page.dart`, etc. | ✅ |
 | M8 | Pas de renderer Markdown pour les descriptions | Important | M | `ride_detail_page.dart`, `route_detail_page.dart` | ✅ |
-| M9 | Feature parity manquante : Posts, Comments, Publications feed | Important | XL | Nouveaux features | |
-| M10 | 6 TODOs non implementes (discover teams, delete account, notifications) | Important | L | `profile_page.dart`, `teams_page.dart` | |
+| M9 | Feature parity manquante : Posts, Comments, Publications feed | Important | XL | Nouveaux features | ✅ (`features/posts`, `comments`, `feed`) |
+| M10 | 6 TODOs non implementes (discover teams, delete account, notifications) | Important | L | `profile_page.dart`, `teams_page.dart` | ✅ |
 | M11 | Lint rules trop minimales (`analysis_options.yaml`) | Moyen | S | `analysis_options.yaml` | |
 | M12 | `debugPrint` au lieu de `dart:developer.log` | Mineur | S | `main.dart` | ✅ |
 | M13 | Pas de gestion offline | Mineur | XL | Transversal | |
@@ -159,7 +168,7 @@ Extension Kotlin/Compose pour Hammerhead Karoo. Package `fr.pedalons.karoo`. 7 f
 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
-| K1 | `MainActivity.kt` monolithique (1535 lignes) — toute l'UI + logique | Critique | M | `MainActivity.kt` | |
+| K1 | `MainActivity.kt` monolithique (1535 lignes ; 1625 au 29 septembre 2026) — toute l'UI + logique | Critique | M | `MainActivity.kt` | |
 | K2 | Aucun test, pas de repertoire test | Critique | M | Nouveau `src/test/` | |
 | K3 | Pas de ViewModel — tout l'etat dans `remember`, perdu a la recreation | Critique | L | `MainActivity.kt` | |
 | K4 | Compose BOM 2024.09.02 — plus d'un an de retard | Important | S | `libs.versions.toml` | ✅ |
@@ -193,7 +202,7 @@ App Connect IQ Monkey C pour GPS Edge Garmin. 15 fichiers source, 1838 lignes. 1
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
 | G1 | URL production hardcodee `https://www.pedalons.fr` — bloque le multi-tenant | Critique | M | `ApiClient.mc:12` | |
-| G2 | Pas de fonctionnalite de deconnexion | Critique | S | `HomeMenuDelegate.mc`, `AuthManager.mc` | |
+| G2 | Pas de fonctionnalite de deconnexion | Critique | S | `HomeMenuDelegate.mc`, `AuthManager.mc` | ✅ |
 | G3 | Documentation CLAUDE.md incorrecte : `/api/garmin/routes` vs `/api/device/routes` | Critique | S | `garmin-app/CLAUDE.md` | |
 | G4 | `loadResource()` appele dans `onUpdate()` — performances | Important | S | `RouteDetailView.mc`, `FormatUtils.mc` | |
 | G5 | AM/PM hardcodes au lieu d'utiliser les strings i18n | Important | S | `FormatUtils.mc:105-106` | ⚠️ |
@@ -204,7 +213,7 @@ App Connect IQ Monkey C pour GPS Edge Garmin. 15 fichiers source, 1838 lignes. 1
 | G10 | Collision potentielle sur `_tokenCallback` (refresh vs poll) | Important | S | `ApiClient.mc` | |
 | G11 | Code debug commente (`System.println`) | Mineur | S | `ApiClient.mc`, `AuthManager.mc`, `PedalonsApp.mc` | |
 | G12 | 4 strings non utilisees (Back, Logout, AM, PM) | Mineur | S | `resources/strings.xml` | |
-| G13 | BUILD.md liste 7 devices, manifest en a 13 | Mineur | S | `BUILD.md` | |
+| G13 | BUILD.md liste 7 devices, manifest en a 13 | Mineur | S | `BUILD.md` | ✅ (fusionne dans `garmin-app/README.md` le 29 septembre 2026 : 13 appareils) |
 
 ---
 
@@ -225,7 +234,7 @@ Docker Compose avec 9 services (prod) / 6 services (dev). GitHub Actions CI sur 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
 | I1 | CI desactivee sur `develop` — branches ciblees = `['tmp']` | Critique | S | `ci.yml` | ✅ |
-| I2 | Aucun backup PostgreSQL ni MinIO | Critique | M | Scripts cron | |
+| I2 | Aucun backup PostgreSQL ni MinIO | Critique | M | Scripts cron | ✅ (`scripts/backup.sh`, `scripts/restore.sh`, procedure dans `docs/operations.md`) |
 | I3 | Aucun pipeline CD — images poussees manuellement | Critique | L | Nouveau `cd.yml` | |
 | I4 | Tag `:latest` sur images backend/frontend — pas de rollback | Critique | S | `docker-compose.yml` | |
 | I5 | Pas de healthchecks Docker (sauf PostgreSQL) | Critique | M | `docker-compose.yml` | ⚠️ |
@@ -234,8 +243,8 @@ Docker Compose avec 9 services (prod) / 6 services (dev). GitHub Actions CI sur 
 | I8 | Tests frontend commentes dans le CI | Important | S | `ci.yml` | ✅ |
 | I9 | Version Node CI (24) vs Dockerfile frontend (25.8.1) — mismatch | Important | S | `ci.yml` | |
 | I10 | `forwardedHeaders.insecure=true` sur Traefik | Important | S | `docker-compose.yml` | |
-| I11 | Frontend Dockerfile : `pnpm install` sans `--frozen-lockfile` | Important | S | `frontend/Dockerfile` | ⚠️ |
-| I12 | Image nginx tierce `steebchen/nginx-spa:stable` | Important | M | `frontend/Dockerfile` | |
+| I11 | Frontend Dockerfile : `pnpm install` sans `--frozen-lockfile` | Important | S | `frontend/Dockerfile` | ✅ |
+| I12 | Image nginx tierce `steebchen/nginx-spa:stable` | Important | M | `frontend/Dockerfile` | ✅ (plus de nginx : image `node`, `server.js`) |
 | I13 | Access logs Traefik non persistes (volume manquant) | Important | S | `docker-compose.yml` | |
 | I14 | Aucune limite de ressources sur les containers | Important | S | `docker-compose.yml` | |
 | I15 | VCL Varnish minimale (pas de purge, grace, ban) | Important | M | `varnish.vcl` | |
@@ -307,10 +316,10 @@ Documentation dispersee entre CLAUDE.md (racine + 4 sous-projets), README.md, PR
 | D4 | PRODUCT_SHEET.md : "Soft delete for data preservation" — retire par V9 | Critique | S | `PRODUCT_SHEET.md` | ✅ |
 | D5 | CLAUDE.md racine : "magic link" encore present, Quarkus 3.30 au lieu de 3.31 | Important | M | `CLAUDE.md` | ⚠️ |
 | D6 | PRODUCT_SHEET.md : Roadmap liste mobile/Garmin/calendar comme "potentiel" — ils existent | Important | M | `PRODUCT_SHEET.md` | ✅ |
-| D7 | garmin-app/BUILD.md : API 3.2.0 vs manifest 3.3.0, 7 devices vs 13 | Important | S | `BUILD.md` | ⚠️ |
+| D7 | garmin-app/BUILD.md : API 3.2.0 vs manifest 3.3.0, 7 devices vs 13 | Important | S | `BUILD.md` | ✅ (fusionne dans `garmin-app/README.md` le 29 septembre 2026 : API 3.3.0, 13 appareils) |
 | D8 | garmin-app/CLAUDE.md : endpoints `/api/garmin/routes` vs `/api/device/routes` | Important | S | `garmin-app/CLAUDE.md` | |
 | D9 | CLAUDE.md racine : arborescence Karoo dit `fr.pedalons.karoo` et `PedalonsExtension.kt` — c'est `fr.pedalons` et `PedalonsExtension.kt` | Important | S | `CLAUDE.md` | ✅ |
-| D10 | BACKLOG_old.md redondant avec BACKLOG.md — peut etre supprime | Mineur | S | `BACKLOG_old.md` | |
+| D10 | BACKLOG_old.md redondant avec BACKLOG.md — peut etre supprime | Mineur | S | `BACKLOG_old.md` | ✅ (supprime le 29 septembre 2026) |
 | D11 | Guide de deploiement manquant | Mineur | M | Documentation | |
 
 ---
@@ -354,16 +363,16 @@ Les deux clients partagent des problemes communs :
 | 3 | Changer `branches: ['tmp']` en `['develop']` dans `ci.yml` | Infra | ✅ |
 | 4 | Corriger le bug `TeamEntityType.AD` dans `TeamEntityService.updateSlug()` | Backend | ✅ |
 | 5 | Retirer `maximum-scale=1.0` de `index.html` | Frontend | |
-| 6 | Corriger la cle i18n `common.back` → `actions.back` dans LoginPage | Frontend | |
-| 7 | Corriger "Groupe" hardcode et validation Zod non traduite dans RideEditor | Frontend | |
-| 8 | Corriger le memory leak stream subscription dans `main.dart` (mobile) | Mobile | |
+| 6 | Corriger la cle i18n `common.back` → `actions.back` dans LoginPage | Frontend | ✅ |
+| 7 | Corriger "Groupe" hardcode et validation Zod non traduite dans RideEditor | Frontend | ✅ |
+| 8 | Corriger le memory leak stream subscription dans `main.dart` (mobile) | Mobile | ✅ |
 | 9 | Corriger les documentations (README, BACKLOG, PRODUCT_SHEET, rules.md) | Docs | ⚠️ |
 
 ### P1 — Court terme (1-4 semaines)
 
 | # | Action | Composant |
 |---|--------|-----------|
-| 10 | Mettre en place les backups PostgreSQL et MinIO | Infra |
+| 10 | Mettre en place les backups PostgreSQL et MinIO | Infra | ✅ |
 | 11 | Ajouter des healthchecks Docker a tous les services | Infra |
 | 12 | Creer le pipeline CD (build, tag, push images) | Infra |
 | 13 | Ajouter `quarkus-micrometer-registry-prometheus` | Backend |
@@ -372,13 +381,13 @@ Les deux clients partagent des problemes communs :
 | 16 | Retirer `@Transactional` des Resources | Backend |
 | 17 | Passer les logs 4xx en WARN dans GlobalExceptionMapper | Backend | ✅ |
 | 18 | Cacher le User dans `PedalonsQueryContext` | Backend |
-| 19 | Ajouter des tests frontend Phase 1 (utils, hooks, stores) | Frontend |
-| 20 | Ajouter des tests mobile Phase 1 (AuthNotifier, interceptor, repos) | Mobile |
+| 19 | Ajouter des tests frontend Phase 1 (utils, hooks, stores) | Frontend | ✅ |
+| 20 | Ajouter des tests mobile Phase 1 (AuthNotifier, interceptor, repos) | Mobile | ✅ |
 | 21 | Supprimer les dependances inutilisees (mobile : hooks_riverpod) | Mobile |
-| 22 | Internationaliser les labels de navigation mobile | Mobile |
+| 22 | Internationaliser les labels de navigation mobile | Mobile | ✅ |
 | 23 | Ajouter filtre domainId a `findActiveById` et passkey queries | Securite |
-| 24 | Implementer le logout dans l'app Garmin | Garmin |
-| 25 | Configurer `trustedIPs` Traefik et `--frozen-lockfile` pnpm dans Dockerfile | Infra |
+| 24 | Implementer le logout dans l'app Garmin | Garmin | ✅ |
+| 25 | Configurer `trustedIPs` Traefik et `--frozen-lockfile` pnpm dans Dockerfile | Infra | ⚠️ (`--frozen-lockfile` fait ; Traefik toujours en `forwardedHeaders.insecure`) |
 
 ### P2 — Moyen terme (1-3 mois)
 
@@ -387,14 +396,14 @@ Les deux clients partagent des problemes communs :
 | 26 | Refactorer `MainActivity.kt` Karoo (extraire screens, ajouter ViewModel) | Karoo |
 | 27 | Mettre a jour les dependances Karoo (core-ktx) | Karoo |
 | 28 | Rendre l'URL Garmin configurable (Properties Connect IQ) | Garmin |
-| 29 | Ajouter des titres de page dynamiques (frontend) | Frontend |
+| 29 | Ajouter des titres de page dynamiques (frontend) | Frontend | ✅ |
 | 30 | Ajouter skip-to-content et aria-labels manquants | Frontend |
-| 31 | Ajouter `loading="lazy"` sur les images | Frontend |
+| 31 | Ajouter `loading="lazy"` sur les images | Frontend | ✅ |
 | 32 | Ajouter JOIN FETCH / entity graphs pour les listings | Backend |
-| 33 | Extraire le traitement fichier/S3 hors transaction GPX | Backend |
+| 33 | Extraire le traitement fichier/S3 hors transaction GPX | Backend | ✅ |
 | 34 | Migrer l'etat OAuth en DB/Redis | Backend | ✅ |
-| 35 | Ajouter renderer Markdown dans le mobile | Mobile |
-| 36 | Extraire widgets dupliques dans le mobile | Mobile |
+| 35 | Ajouter renderer Markdown dans le mobile | Mobile | ✅ |
+| 36 | Extraire widgets dupliques dans le mobile | Mobile | ✅ |
 | 37 | Generer un sitemap.xml dynamique | Frontend/Backend |
 | 38 | Securiser imgproxy (KEY/SALT) | Infra |
 | 39 | Enrichir la config VCL Varnish | Infra |
@@ -408,21 +417,21 @@ Les deux clients partagent des problemes communs :
 
 | # | Action | Composant |
 |---|--------|-----------|
-| 45 | Feature parity mobile : Posts, Comments, Publications feed | Mobile |
+| 45 | Feature parity mobile : Posts, Comments, Publications feed | Mobile | ✅ |
 | 46 | Gestion offline mobile | Mobile |
-| 47 | SSR/SSG pour le SEO | Frontend |
-| 48 | Environnement staging | Infra |
+| 47 | SSR/SSG pour le SEO | Frontend | ✅ |
+| 48 | Environnement staging | Infra | ✅ |
 | 49 | Monitoring complet (Prometheus + Grafana + alerting) | Infra |
 | 50 | Logging centralise (JSON structure, ELK/Loki) | Infra |
 | 51 | Rate limiting global HTTP | Infra |
-| 52 | Pre-rendering meta tags OG dynamiques | Frontend |
+| 52 | Pre-rendering meta tags OG dynamiques | Frontend | ✅ |
 | 53 | Pagination des routes Karoo | Karoo/Backend |
 | 54 | Tests frontend Phase 2-3 (composants, pages) | Frontend |
 | 55 | Tests mobile Phase 2-3 (widgets, integration) | Mobile |
 
 ---
 
-## Comptage par severite (avril 2026)
+## Comptage par severite (avril 2026, non recalcule en septembre)
 
 ### Problemes restants ouverts ou partiels
 
@@ -443,3 +452,4 @@ Les deux clients partagent des problemes communs :
 | Securite | S1, S14 | @RolesAllowed sur /complete, Apache Tika pour validation uploads |
 | Frontend | F5 | FullCalendar retire |
 | Documentation | D2, D3, D4, D6, D9 | rules.md Riverpod, BACKLOG corrige, PRODUCT_SHEET corrige |
+| Septembre 2026 | I2, I11, I12, F2, F3, F13, M1, M9, M10, G2, D10 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, image frontend sur `node`, BACKLOG_old supprime ; staging en service |

@@ -8,11 +8,14 @@ Ne pas rouvrir un arbitrage listé ici sans lire sa justification. Plusieurs son
 des tests gardent (`groupLeader_isNotTheRideCreator`, `…QueryCountTest`, les deux `grep` de revue de
 `core/pdl`).
 
-| Plan | Objet | État vérifié le 27 juillet 2026 |
+| Plan | Objet | État vérifié |
 |---|---|---|
-| [`2026-07-26-mobile-v2-implementation.md`](2026-07-26-mobile-v2-implementation.md) | Refonte de l'app Flutter : thème, bibliothèque `core/pdl`, coquille à 5 onglets, 12 écrans | **Terminé** — 116 tâches ☑, aucune ☐. `flutter analyze` propre, 480 tests verts, les 5 invariants de revue tiennent (§ci-dessous) |
-| [`2026-07-26-web-portage-mobile-v2.md`](2026-07-26-web-portage-mobile-v2.md) | Portage vers React des seules idées de la v2 mobile qui corrigent une faiblesse du site | **Terminé sauf 3 tâches** — T3.5 abandonnée (prémisse fausse, argumentée sur place), T5.4 partielle (trombinoscope public bloqué par une décision de sécurité), T5.5 optionnelle jamais ouverte. Les trois sont reportées dans `NEXT.md` |
-| [`2026-07-26-api-v2-livraison-et-suites.md`](2026-07-26-api-v2-livraison-et-suites.md) | Ce que les contrats 1.3.0 → 1.5.0 ont apporté, et les 4 chantiers d'infrastructure non livrés | **Document de référence** — la partie « livré » fait toujours foi ; son §4 (push, curseur, cache/images, carte multi-entités) est repris dans `NEXT.md`. **Stale sur un point** : le contrat est en **1.6.0** (1.5.1 = mode compact qui rogne les assets ; 1.6.0 = `teamSlug` sur `GET /api/users/search`, pour le sélecteur de meneur), le document s'arrête à 1.5.0 |
+| [`2026-07-26-mobile-v2-implementation.md`](2026-07-26-mobile-v2-implementation.md) | Refonte de l'app Flutter : thème, bibliothèque `core/pdl`, coquille à 5 onglets, 12 écrans | **Terminé** (27 juillet 2026) — 116 tâches ☑, aucune ☐. `flutter analyze` propre, 480 tests verts, les 5 invariants de revue tiennent (§ci-dessous) |
+| [`2026-07-26-web-portage-mobile-v2.md`](2026-07-26-web-portage-mobile-v2.md) | Portage vers React des seules idées de la v2 mobile qui corrigent une faiblesse du site | **Terminé sauf 3 tâches** (27 juillet 2026) — T3.5 abandonnée (prémisse fausse, argumentée sur place), T5.4 partielle (trombinoscope public bloqué par une décision de sécurité), T5.5 optionnelle. Les trois sont reportées dans `NEXT.md`, qui donne depuis T5.5 livrée (juillet 2026) et T5.4 débloquée en `3.0.0`, sauf la page web publique |
+| [`2026-07-26-api-v2-livraison-et-suites.md`](2026-07-26-api-v2-livraison-et-suites.md) | Ce que les contrats 1.3.0 → 1.5.0 ont apporté, et les 4 chantiers d'infrastructure non livrés | **Document de référence** — la partie « livré » fait toujours foi ; son §4 (push, curseur, cache/images, carte multi-entités) est repris dans `NEXT.md`. **S'arrête volontairement à 1.5.0** (note en tête du document) : le contrat est en **5.6.0** au 29 septembre 2026, la suite est dans `NEXT.md` et l'historique git |
+| [`2026-07-31-navbuttons.md`](2026-07-31-navbuttons.md) | Instruction et livraison de la refonte sémantique de `NavButtons` (web) : liens et non `tablist`, mesures prises dans le navigateur | **Livré** le 31 juillet 2026 (lots A, B, C). L'anneau de focus (lot D) reste ouvert dans `NEXT.md` §3.4 ; les deux autres restes du §7 (`/equipes/{slug}/admin/parametres` en SSR direct, préférence de langue) ont été corrigés le 25 septembre 2026 et sont gardés par `frontend/e2e/team-misc.e2e.ts` |
+| [`2026-09-24-signalement.md`](2026-09-24-signalement.md) | Signalement, blocage et filtre de publication exigés par la directive App Store 1.2 | **Livré** le 24 septembre 2026 (V41). Les quatre défauts mineurs restants sont dans `NEXT.md` §8.2 |
+| [`2026-09-27-e2e-coverage-audit.md`](2026-09-27-e2e-coverage-audit.md) | Audit de couverture e2e Playwright, plan P0/P1/P2, suivi des 54 défauts trouvés (était `frontend/E2E_COVERAGE_AUDIT.md`) | **Exécuté** le 28 septembre 2026 : P0, P1 et P2 écrits, sauf le canal e-mail. Le point 40 (hydratation #418) et les idées P2 non écrites sont dans `NEXT.md` §8.4 |
 
 ## Les invariants vérifiés du plan mobile
 
@@ -32,9 +35,15 @@ grep -rn "TeamShell" lib                                   # seuls des commentai
 ## Ce qui n'est *pas* archivé
 
 [`../2026-02-14-project-audit.md`](../2026-02-14-project-audit.md) reste dans `docs/plans/` : son
-plan d'action a encore des lignes ouvertes (backups PostgreSQL/MinIO, rate limiting sur
-`/api/device/oauth/complete`, pipeline CD, `maximum-scale=1.0` du viewport). Il n'a pas été relu
-dans cette passe — son dernier contrôle datait du 1er avril 2026.
+plan d'action a encore des lignes ouvertes (rate limiting sur `/api/device/oauth/complete`, pipeline
+CD, `maximum-scale=1.0` du viewport, healthchecks…). Ses statuts ont été rafraîchis en partie le 29
+septembre 2026 ; les backups, notamment, existent. La sécurité applicative est suivie à part, dans
+[`docs/SECURITY_AUDIT.md`](../../SECURITY_AUDIT.md) (septembre 2026).
+
+Les plans de [notifications](../2026-09-18-notifications.md) (et son ledger) et de
+[migration biketeam en direct](../2026-09-22-biketeam-live-migration.md) restent aussi dans
+`docs/plans/` : le premier a encore trois points ouverts (repris dans `NEXT.md` §8.3), le second
+est le contrat en vigueur avec biketeam.
 
 [`../../audit-ux/`](../../audit-ux/) reste également en place : c'est l'**entrant** de design (brief,
 analyse page par page, charte, 65 captures) et il documente l'état d'avant la v2. Il ne décrit pas

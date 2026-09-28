@@ -33,7 +33,7 @@ import { stack } from './support/stack'
 import { entityCard } from './support/ui'
 
 /**
- * Multi-tenancy (E2E_COVERAGE_AUDIT.md, P1): one stack, several sites. The backend resolves the
+ * Multi-tenancy (docs/plans/archive/2026-09-27-e2e-coverage-audit.md, P1): one stack, several sites. The backend resolves the
  * tenant from the request's host (`DomainResolver`: `X-Forwarded-Host`, then `Host`) and every
  * query filters on it; the SSR server renders each document inside its own `AsyncLocalStorage`
  * store (`entry-server.tsx`), so the per-request config — the site's name, its WebAuthn RP ID, the

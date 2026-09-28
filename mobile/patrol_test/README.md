@@ -99,7 +99,7 @@ the rest of the run.
 
 ## Coverage
 
-Transposed from the P0 of [`frontend/E2E_COVERAGE_AUDIT.md`](../../frontend/E2E_COVERAGE_AUDIT.md)
+Transposed from the P0 of [`docs/plans/archive/2026-09-27-e2e-coverage-audit.md`](../../docs/plans/archive/2026-09-27-e2e-coverage-audit.md)
 to what the app does — it reads and takes part, it doesn't edit, and it has no server rendering:
 
 | Audit P0 | Test |

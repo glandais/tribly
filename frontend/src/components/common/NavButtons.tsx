@@ -30,7 +30,7 @@ const FADE = 28
  * history. Hence a `nav` landmark with `aria-current="page"` and plain tab order, and deliberately
  * not a `tablist` with arrow-key roving focus — the ARIA tab pattern promises panels swapped in
  * place, which would be a lie here, and roving focus would break the tab order users expect from a
- * list of links. See ../../../docs/plans/2026-07-31-navbuttons.md.
+ * list of links. See ../../../docs/plans/archive/2026-07-31-navbuttons.md.
  */
 export function NavButtons({ items, currentId, label }: NavButtonsProps) {
   const viewportRef = useRef<HTMLDivElement>(null)

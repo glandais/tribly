@@ -9,7 +9,7 @@ import { newRoute, newTrip, routePath, tripPath, windingTrack } from './support/
 import { hydrated, pageHydrated, watchToasts } from './support/ui'
 
 /**
- * A 500 is not a « not found », and a 404 is read once (E2E_COVERAGE_AUDIT.md, P1).
+ * A 500 is not a « not found », and a 404 is read once (docs/plans/archive/2026-09-27-e2e-coverage-audit.md, P1).
  *
  * `QueryStateBoundary` tells three outcomes of a detail query apart: a recoverable error (5xx,
  * network) renders « Chargement impossible » with « Réessayer »; a 404 renders the page's own

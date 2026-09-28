@@ -16,7 +16,7 @@ import { ogTags, ssrOutlet } from './support/ssr'
 import { entityCard, pageHydrated, watchHydration } from './support/ui'
 
 /**
- * A dedicated hostname pinned to one team (E2E_COVERAGE_AUDIT.md, P1): `pin-e2e.localhost`, an
+ * A dedicated hostname pinned to one team (docs/plans/archive/2026-09-27-e2e-coverage-audit.md, P1): `pin-e2e.localhost`, an
  * alias of `localhost` pinned to the team « Pin E2E » (support/domains.ts, created on first use).
  *
  * The app keeps working on its usual router paths (`/equipes/pin-e2e/sorties/x`) while the browser

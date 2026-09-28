@@ -1,60 +1,21 @@
 # La suite — ce qui reste après la v2
 
 Écrit le 27 juillet 2026, au moment où la v2 mobile est terminée et le portage web livré à trois
-tâches près. Ce fichier remplace les feuilles de route des plans archivés : ceux-ci gardent le
+tâches près, et tenu à jour depuis (dernière relecture d'ensemble : 29 septembre 2026). Ce fichier remplace les feuilles de route des plans archivés : ceux-ci gardent le
 **pourquoi** des décisions, celui-ci porte le **reste à faire**.
 
 Rien ici ne bloque quoi que ce soit. C'est la propriété qui compte : la v2 est livrable en l'état,
 et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de réparer une panne.
 
-Sources : [`plans/archive/`](plans/archive/) (les trois plans du 26 juillet, avec leur §4/§5),
+Sources : [`plans/archive/`](plans/archive/) (les trois plans du 26 juillet, avec leur §4/§5, et
+les plans exécutés depuis),
 [`audit-ux/BRIEF.md`](audit-ux/BRIEF.md) (l'entrant de design),
 [`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md) (audit d'infrastructure,
-encore ouvert).
+encore ouvert), [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) (audit de sécurité de septembre 2026).
 
-**Contrat d'API au moment d'écrire : `3.0.0`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au 29 septembre 2026 : `5.6.0`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
-
----
-
-## A classifier
-
-L'anneau de focus est à 2,74:1 en thème sombre, sous le seuil de 3,0 de SC 1.4.11. Il vient de lib/theme.ts et vaut pour tout le site — le corriger ici en ferait une PR d'un autre périmètre.
-
-**Signaler un problème → issues GitHub (API 4.6.0) — suites possibles, non faites :**
-
-- **Mise en service** : créer le dépôt privé (`PEDALONS_FEEDBACK_GITHUB_REPO`), ses labels
-  (`feedback`, `bug`, `suggestion`, `crash`, `web`, `android`, `ios`, un par domaine) et le PAT
-  (`PEDALONS_FEEDBACK_GITHUB_TOKEN`, Issues read & write sur ce seul dépôt). Sans eux, tout attend en
-  base (`github_status = PENDING`) et part au premier tick une fois configuré.
-- **Piles web illisibles** : le bundle est minifié et l'empreinte ne garde que le nom du chunk. Pour
-  symboliser, construire avec `VITE_BUILD_SOURCEMAP=true` et **ne pas** servir les `.map` (les
-  archiver avec l'image), puis automatiser la symbolisation côté serveur.
-- **Côté mobile**, si le build release passe à `--obfuscate`, conserver les `--split-debug-info` par
-  build, sans quoi les piles Dart deviennent inexploitables et l'empreinte change à chaque version.
-- **Plantages natifs** (Kotlin/Swift) : non couverts, seuls les handlers Dart remontent.
-- **Boucler avec le membre** : le prévenir quand l'issue de son signalement est fermée (webhook
-  GitHub → notification), joindre une capture d'écran, corréler avec les logs serveur par request-id.
-- **Visiteurs non connectés** : ni signalement ni remontée automatique (l'endpoint exige une
-  session). Une erreur sur la page de connexion n'arrive donc que par e-mail.
-
-**Modération (branche `signalement`) — quatre défauts mineurs, notés sans être corrigés :**
-
-- **File plateforme regroupée par (type, id) seulement** (`ModerationService`) : un membre signalé
-  dans deux équipes devient une seule carte, étiquetée avec la première équipe, et une seule décision
-  clôt les signalements des deux. Regrouper par (type, id, équipe).
-- **Signalements orphelins après suppression** : `REMOVE_CONTENT` sur une publication laisse
-  `OPEN` les signalements de ses commentaires, qui pointent alors vers un contenu supprimé. Les clore
-  en même temps.
-- **Seuil de masquage sous concurrence** (`ReportService`) : le nombre de signalants est compté
-  dans la transaction de chaque signalement. Deux signalements validés au même instant peuvent
-  chacun voir 2 signalants, et le contenu n'est pas masqué avant un 4e. Verrouiller la ligne du
-  contenu (`SELECT … FOR UPDATE`) avant de compter.
-- **Notification de signalements fusionnés** (`NotificationRecipientResolver`) : une rafale de
-  signalements donne une seule notification qui ne connaît que le premier. Seul ce premier signalant
-  est exclu des destinataires, et un organisateur qui vient de signaler est donc notifié de son propre
-  signalement.
 
 ---
 
@@ -62,7 +23,7 @@ L'anneau de focus est à 2,74:1 en thème sombre, sous le seuil de 3,0 de SC 1.4
 
 Rien de ce qui suit n'est couvert par les tests automatisés — soit parce que c'est du rendu, soit
 parce que ça dépend d'un vrai fournisseur (mail, tuiles, GPS), soit parce que c'est un comportement
-de première ouverture. `flutter analyze` est propre, les **480 tests mobiles** et le
+de première ouverture. `flutter analyze` est propre, les tests mobiles (`mobile/check.sh`) et le
 `pnpm check` du web passent : ce qui suit est ce qu'ils ne peuvent pas dire.
 
 **Sauf le web (§1.2), automatisé le 25 septembre 2026** par une suite Playwright qui tourne contre
@@ -224,7 +185,7 @@ recette à la main aurait encore à regarder.
 
 - [ ] **Démarrage réel du backend** — les tests utilisent `drop-and-create` et ne passent pas par
       Flyway : un test vert ne prouve **pas** que les migrations s'appliquent sur une base existante.
-      Attendre `Migrating schema … to version 34` au moins une fois, puis contrôler que
+      Attendre `Migrating schema … to version 45` au moins une fois, puis contrôler que
       `ad_contacts` existe, que `users.contactable_by_members` est nullable et que
       `ride_groups.leader_id` est nullable avec une FK en `ON DELETE SET NULL` (surtout pas
       `CASCADE`) et son index partiel. Les commandes exactes sont au §5.1 du
@@ -259,20 +220,16 @@ recette à la main aurait encore à regarder.
 
 ## 2. Reprises immédiates, petites et sans décision à prendre
 
-| # | Quoi | Où | Taille |
-|---|---|---|---|
-| ~~2.1~~ | ~~`GET /api/teams/{teamSlug}/classifieds/count`~~ — **fait (contrat `2.3.0`)** : `AdService.countAds` / `AdResource.countAds`, symétrique des quatre autres `…/count`, réutilise `AdQuery`/`countMatching` | backend | S |
-| ~~2.2~~ | ~~Déclarer `Retry-After` dans le contrat sur les réponses **429** des autres endpoints à quota~~ — **fait (contrat `2.3.1`)** : seul `POST /api/users/me/export` manquait le header, ajouté sur `UserResource.requestExport`. Le mutator axios (`axiosInstance.ts`) le lisait déjà de façon générique sur l'objet `Response` brut, donc aucun changement frontend n'était nécessaire | contrat | S |
-| ~~2.3~~ | ~~Mettre à jour le document d'API archivé, ou le laisser tel quel en assumant qu'il s'arrête à 1.5.0~~ — **tranché : laissé tel quel**, avec une note explicite ajoutée en tête renvoyant vers `NEXT.md`/git pour tout ce qui a suivi (1.5.1, 1.6.0, 2.0.0…). Le doc garde le *pourquoi* de la livraison qu'il décrit, pas l'état courant du contrat — le tenir à jour en ferait un second changelog à maintenir en double de `NEXT.md` | `docs/plans/archive/` | S |
-| ~~2.4~~ | ~~`SlugService.RESERVED_SLUGS` (`bulk`, `count`, `bounds`, `tiles` pour `ROUTE` ; `reorder` pour `TEAM_PAGE`) n'empêche que les **nouvelles** écritures~~ — **vérifié le 31 juillet 2026, rien trouvé** : sur `pedalons-prod-postgres` (table unique `team_entities`, héritage single-table, `entity_type=2` pour `ROUTE` / `entity_type=4` pour `TEAM_PAGE`), 0 route sur 2 699 et 0 page d'équipe sur 2 porte un de ces slugs. Pas de renommage/backfill à faire | base de données (lecture seule) | S |
-
-- ~~**Supprimer l'ancien import biketeam**~~ — **fait le 2026-09-28** : `BiketeamReader`,
-  `LegacyJdbcBiketeamSource`, `BiketeamMigrationRunner`/`Config`, la datasource `biketeam`, le
-  service `backend-restore`, `scripts/biketeam_fetch.sh`/`biketeam_restore.sh` et les sections de
-  `MIGRATE_BIKETEAM.md` qui les décrivaient. Seule la migration en direct reste
-  ([plan](plans/2026-09-22-biketeam-live-migration.md)). Aucune migration Flyway :
-  `biketeam_migration_map` sert encore au direct, et ses lignes `USER`, `USER_TEAM`, `COMMENT`,
-  `…_PARTICIPATION` écrites par l'import restent en base, inertes.
+Faits, et retirés de cette section (le détail est dans l'historique git de ce fichier) : **2.1** le
+compteur `GET /api/teams/{teamSlug}/classifieds/count` (contrat `2.3.0`) ; **2.2** `Retry-After`
+déclaré sur le 429 de `POST /api/users/me/export` (contrat `2.3.1`) ; **2.3** le document d'API
+archivé, laissé tel quel à `1.5.0` avec une note de tête ; **2.4** les slugs réservés
+(`SlugService.RESERVED_SLUGS`) — vérifié le 31 juillet 2026 sur la base de production, aucune route
+ni page d'équipe n'en portait, pas de backfill. **L'ancien import biketeam** a été supprimé le
+2026-09-28 : seule la migration en direct reste
+([plan](plans/2026-09-22-biketeam-live-migration.md)) ; `biketeam_migration_map` sert encore au
+direct, et ses lignes `USER`, `USER_TEAM`, `COMMENT`, `…_PARTICIPATION` écrites par l'import restent
+en base, inertes.
 
 - **Purge physique des équipes à la corbeille** (reset de migration biketeam) — chantier séparé. Un
   `reset` de la migration en direct met l'équipe Pédalons à la corbeille et libère son slug
@@ -377,7 +334,7 @@ web le faisait déjà. Voir §4.5. Ne pas rouvrir : le sujet est clos dans les d
 
 ### 3.4 ~~Refonte sémantique de `NavButtons`~~ — instruit **et livré** le 31 juillet 2026
 
-**[`plans/2026-07-31-navbuttons.md`](plans/2026-07-31-navbuttons.md)** (mesures prises dans le
+**[`plans/archive/2026-07-31-navbuttons.md`](plans/archive/2026-07-31-navbuttons.md)** (mesures prises dans le
 navigateur, pas déduites du code). La prémisse de cette ligne était fausse et le chantier s'est
 re-taillé.
 
@@ -433,12 +390,13 @@ le mobile — la cohabitation ci-dessus est ce qui rend la bascule possible.
 > **Livré — push activé en production le 21 septembre 2026.** Repris le 18 septembre 2026 par
 > [`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md), où le push est devenu un
 > canal d'un pipeline commun (boîte de réception, e-mail, push) ; état dans le
-> [ledger](plans/2026-09-18-notifications-ledger.md), phases 4 et 4 bis. Restent la revue des stores
-> (build `1.0.0+52`) et, en phase 5, le rappel J-1 — le texte ci-dessous est l'analyse d'origine.
+> [ledger](plans/2026-09-18-notifications-ledger.md), phases 4 et 4 bis. La phase 5 (dont le rappel
+> J-1) est en production depuis le même jour. Ce qui reste est au §8.3 — le texte ci-dessous est
+> l'analyse d'origine.
 >
-> **Web Push** (branche `feat/pwa`, 28 septembre 2026) : le site s'installe comme une application et
-> reçoit le push par le même FCM (plateforme `WEB`). Reste à créer l'app web Firebase et renseigner
-> `FCM_WEB_*` — voir le ledger.
+> **Web Push** (fusionné dans `develop` le 28 septembre 2026) : le site s'installe comme une
+> application et reçoit le push par le même FCM (plateforme `WEB`). Reste à créer l'app web Firebase
+> et renseigner `FCM_WEB_*` en production — §8.3.
 
 Le seul mécanisme qui ramène un membre sans qu'il ouvre l'app. Trois déclencheurs : rappel J-1,
 annulation de sortie, réponse à un commentaire. Six endpoints, deux ou trois entités, une migration.
@@ -550,10 +508,10 @@ Beaucoup sont des ajouts d'un champ — le rapport valeur/effort y est bon.
 | 11 | Commentaires d'étape | 25 | Section absente, renvoi vers le voyage |
 | 12 | Participants paginés et cherchables côté serveur | 24, 34 | Liste complète embarquée, recherche client, pas de pied « N sur M » |
 | 13 | Tri sur `GET /api/teams` | 34 | Mention « triées par nombre de membres » retirée |
-| 14 | `SocialIdentityDto.externalUsername`, `logoUrl` de service GPS | 33 | Avatar-lettre et « Lié le *date* » |
+| 14 | `logoUrl` de service GPS (`GpsServiceConnectionDto`) — `SocialIdentityDto.externalUsername` n'a plus d'objet : la connexion Strava a été retirée (API `5.0.0`) | 33 | Nom du service et « Connecté le *date* », sans logo |
 | 15 | `Team.timezone` ou dates zonées au contrat | 22, 24, 25 | Fuseau de l'appareil, parité web |
 | 16 | Statut `TERMINÉE` dans l'enum `Status` | 11, 12, 22 | Dérivé client de `dateTime < now`, centralisé dans `RideDto.isPast` |
-| 17 | `?format=polyline` sur la géométrie de parcours | — | `?points=` couvre le besoin ; ~÷4 sur le poids, au prix d'un décodeur Dart. **À rouvrir seulement sur une mesure réelle** |
+| 17 | `?format=polyline` sur la géométrie de parcours | — | La géométrie stockée est déjà allégée à l'import (§4.5 : 681 points et 65 Ko pour le parcours médian) ; ~÷4 sur le poids, au prix d'un décodeur Dart. **À rouvrir seulement sur une mesure réelle** |
 | 18 | Voyage comme événement multi-jour au calendrier (`CalendarEventType`) | 22 | Les étapes y sont, le voyage en tant qu'objet non |
 | 19 | `GET /api/search?q&types=&limit` unifié | — | Plus aucune recherche transverse : `GET /api/users/search` a été **supprimé** en `3.0.0` (voir §3.1). La seule recherche de personnes est celle du trombinoscope d'une équipe |
 | 20 | Pagination du calendrier | 22 | Fenêtre fixe −30 j / +180 j, non paginée |
@@ -590,16 +548,105 @@ sont des invariants que le code garde.
 
 ---
 
-## 7. Le backlog produit et l'audit d'infrastructure
+## 7. Le backlog produit et les audits
 
-Ce fichier ne couvre que les suites de la v2. Deux autres sources restent ouvertes et n'ont pas été
-relues dans cette passe :
+Ce fichier ne couvre que les suites de la v2 et des chantiers qui l'ont suivie. Trois autres sources
+restent ouvertes :
 
 - [`BACKLOG.md`](../BACKLOG.md) — la roadmap produit (P0 → Icebox). Y figurent notamment le statut
   « Terminée » sur les sorties et voyages (qui recoupe le point 16 du §5 ci-dessus) et le système de
-  notifications versatile (qui recoupe le §4.2).
+  notifications (qui recoupe le §4.2 et le §8.3).
 - [`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md) — audit d'infrastructure,
-  dernier contrôle le 1er avril 2026. Ses lignes critiques encore ouvertes : backups PostgreSQL et
-  MinIO, rate limiting sur `/api/device/oauth/complete`, pipeline CD, `maximum-scale=1.0` du
-  viewport, tests frontend. Pour ces derniers, une suite e2e existe depuis le 25 septembre 2026
-  (`frontend/e2e/`, §1.2), mais elle ne tourne qu'en local : aucune CI ne la lance.
+  CI/CD et qualité des modules, statuts rafraîchis le 29 septembre 2026. Ses lignes critiques encore
+  ouvertes : rate limiting sur `/api/device/oauth/complete`, pipeline CD, `maximum-scale=1.0` du
+  viewport, healthchecks Docker partiels, `forwardedHeaders.insecure` sur Traefik, URL de
+  production en dur dans l'app Garmin, `MainActivity.kt` monolithique côté Karoo. Les backups
+  PostgreSQL et MinIO existent (`scripts/backup.sh`, `scripts/restore.sh`). Côté tests frontend,
+  une suite e2e existe depuis le 25 septembre 2026 (`frontend/e2e/`, §1.2), mais elle ne tourne
+  qu'en local : aucune CI ne la lance.
+- [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) — audit de sécurité de septembre 2026 ; il fait foi pour
+  les vulnérabilités, l'audit de février pour l'infrastructure.
+
+---
+
+## 8. Suites des chantiers de septembre 2026
+
+### 8.1 Signaler un problème → issues GitHub (API 4.6.0) — suites possibles, non faites
+
+- **Mise en service** : créer le dépôt privé (`PEDALONS_FEEDBACK_GITHUB_REPO`), ses labels
+  (`feedback`, `bug`, `suggestion`, `crash`, `web`, `android`, `ios`, un par domaine) et le PAT
+  (`PEDALONS_FEEDBACK_GITHUB_TOKEN`, Issues read & write sur ce seul dépôt). Sans eux, tout attend en
+  base (`github_status = PENDING`) et part au premier tick une fois configuré.
+- **Piles web illisibles** : le bundle est minifié et l'empreinte ne garde que le nom du chunk. Pour
+  symboliser, construire avec `VITE_BUILD_SOURCEMAP=true` et **ne pas** servir les `.map` (les
+  archiver avec l'image), puis automatiser la symbolisation côté serveur.
+- **Côté mobile**, si le build release passe à `--obfuscate`, conserver les `--split-debug-info` par
+  build, sans quoi les piles Dart deviennent inexploitables et l'empreinte change à chaque version.
+- **Plantages natifs** (Kotlin/Swift) : non couverts, seuls les handlers Dart remontent.
+- **Boucler avec le membre** : le prévenir quand l'issue de son signalement est fermée (webhook
+  GitHub → notification), joindre une capture d'écran, corréler avec les logs serveur par request-id.
+- **Visiteurs non connectés** : ni signalement ni remontée automatique (l'endpoint exige une
+  session). Une erreur sur la page de connexion n'arrive donc que par e-mail.
+
+### 8.2 Modération — quatre défauts mineurs, notés sans être corrigés
+
+Livrée le 24 septembre 2026 ([spécification archivée](plans/archive/2026-09-24-signalement.md)).
+
+- **File plateforme regroupée par (type, id) seulement** (`ModerationService`) : un membre signalé
+  dans deux équipes devient une seule carte, étiquetée avec la première équipe, et une seule décision
+  clôt les signalements des deux. Regrouper par (type, id, équipe).
+- **Signalements orphelins après suppression** : `REMOVE_CONTENT` sur une publication laisse
+  `OPEN` les signalements de ses commentaires, qui pointent alors vers un contenu supprimé. Les clore
+  en même temps.
+- **Seuil de masquage sous concurrence** (`ReportService`) : le nombre de signalants est compté
+  dans la transaction de chaque signalement. Deux signalements validés au même instant peuvent
+  chacun voir 2 signalants, et le contenu n'est pas masqué avant un 4e. Verrouiller la ligne du
+  contenu (`SELECT … FOR UPDATE`) avant de compter.
+- **Notification de signalements fusionnés** (`NotificationRecipientResolver`) : une rafale de
+  signalements donne une seule notification qui ne connaît que le premier. Seul ce premier signalant
+  est exclu des destinataires, et un organisateur qui vient de signaler est donc notifié de son propre
+  signalement.
+
+### 8.3 Notifications — ce qui reste
+
+Les phases 1 à 5 de [`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md) sont en
+production ; l'état détaillé est dans son [ledger](plans/2026-09-18-notifications-ledger.md).
+Restent trois points, dont aucun n'est du code :
+
+- **Recette du webhook d'équipe** contre un vrai Slack, un vrai Discord et un vrai Mattermost
+  (bouton « Envoyer un test ») — vérifier au passage qu'un `@channel` dans un nom de sortie ne
+  notifie personne sur Mattermost.
+- **Web Push en production** : créer l'app web dans le projet Firebase `pedalons-9e595` et sa clé
+  VAPID, renseigner `FCM_WEB_*`, puis recetter sur Chrome Android, sur desktop et sur un iPhone où
+  le site est installé. Tant que `FCM_WEB_*` manque, `ConfigDto.webPush` vaut `null` et le site ne
+  propose rien.
+- **Décision produit sur l'e-mail** : `PEDALONS_NOTIFICATIONS_EMAIL_ENABLED` reste à `false` en
+  production (décision du 21 septembre 2026, « pas pour le moment »). L'activer, c'est écrire aux
+  équipes entières, en connaissant les défauts (annulations, voyages publiés).
+
+### 8.4 Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
+
+L'audit ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md)) est exécuté : P0, P1 et P2
+écrits, 54 défauts relevés, tous corrigés ou tranchés sauf un.
+
+- **Point 40 — erreur d'hydratation React #418 (texte), intermittente**, sur `/equipes/{slug}` en
+  membre, sur mobile. Vue une fois pendant la validation des P0 (`team-misc.e2e.ts`), non reproduite
+  en 4 répétitions ; cause inconnue. À surveiller.
+- **Le canal e-mail des notifications** n'a pas de test e2e : il est coupé en production comme sur
+  la stack e2e (§8.3).
+- **Idées de la liste « P2 (à planifier) » qui n'ont pas été retenues** parmi les 21 tests P2
+  écrits — quelques-unes peuvent être couvertes au passage par une autre spec, à vérifier avant de
+  les écrire :
+  - Sorties : modale des participants avec le meneur marqué ; publication programmée dans le passé
+    refusée ; calendrier au-delà de la fenêtre préchargée ; recherche dans les modèles.
+  - Articles et voyages : commentaire d'un compte supprimé ; modale des participants d'un voyage ;
+    étape d'une équipe dont le module est coupé.
+  - Parcours : « cul-de-sac » (`RouteDeadEnd`) ; unités impériales dans les filtres ; bouton plein
+    écran et retour ; « Enregistrer comme parcours » limité aux équipes éligibles ; carte d'équipe
+    sans fuite des tuiles TEAM ; hub GPX face à un fichier illisible.
+  - Équipe : promotion en ADMIN et filtre par rôle ; page publique, suppression et restauration
+    d'une page, plafond de 3 (les pages supprimées comptent-elles ?).
+  - Annonces : brouillon d'autrui introuvable par son URL ; défauts du formulaire (DRAFT par
+    défaut, Annuler) ; signalement puis redirection.
+  - Transverse : navigation mobile (tiroir, entrée Admin selon le rôle, fil d'Ariane « Plus ») ;
+    restauration du défilement au retour.

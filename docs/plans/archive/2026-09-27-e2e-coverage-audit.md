@@ -1,5 +1,12 @@
 # Audit de la couverture e2e du frontend Pédalons
 
+> Archivé le 29 septembre 2026 ; était `frontend/E2E_COVERAGE_AUDIT.md`. Les chemins cités
+> (`src/…`, `support/…`, `*.e2e.ts`) sont relatifs à `frontend/` et `frontend/e2e/`. Les §1 et §4
+> décrivent l'état d'avant l'exécution (20 specs, mailhog, helpers « à ajouter » qui existent
+> depuis) ; l'état courant de la suite est dans [`frontend/e2e/README.md`](../../../frontend/e2e/README.md).
+> Ce qui reste ouvert — le point 40 et les idées P2 non écrites — est reporté dans
+> [`docs/NEXT.md`](../../NEXT.md).
+
 ## 1. Couverture actuelle
 
 Le socle est solide. Les 20 specs Playwright tournent sur la vraie stack (`tribly-e2e`), en desktop et en mobile. Chaque test crée ses propres données. On y trouve un balayage contractuel de toutes les routes web du contrat (`routes-render.e2e.ts`), des contrôles SSR et d'hydratation poussés (`ssr-session`, `team-misc`), et des vérifications au pixel pour les cartes (`route-maps`, `ads-browse`). Les mails sont vérifiés dans mailhog, dont l'absence de fuite d'adresse (`ad-contact`).

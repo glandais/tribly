@@ -25,7 +25,7 @@
 > [`BRANDING.md`](../../../BRANDING.md).
 
 Document de référence pour la production de maquettes. Toutes les valeurs sont extraites du code réel :
-`BRANDING.md`, `frontend/src/lib/theme.ts` (thème Mantine 8), `frontend/src/index.css`,
+`BRANDING.md`, `frontend/src/lib/theme.ts` (thème Mantine 9), `frontend/src/index.css`,
 `frontend/src/components/**`, `mobile/lib/core/theme/*.dart` (thème Flutter Material 3),
 `frontend/src/locales/fr/common.json`.
 
@@ -90,7 +90,7 @@ dépôt s'appelle `tribly`, ce n'est pas un nom de marque).
 
 ### 3.1 Jetons sémantiques — mode clair et mode sombre
 
-Valeurs exactes issues de Mantine 8 avec `primaryColor: 'primary'` (→ indigo) et
+Valeurs exactes issues de Mantine 9 (palettes par défaut inchangées depuis Mantine 8) avec `primaryColor: 'primary'` (→ indigo) et
 `autoContrast: true`, `luminanceThreshold: 0.3`.
 
 | Rôle | Clair | Sombre | Jeton Mantine |
@@ -224,7 +224,7 @@ pente calculée) : `hsl(210, 86%, 62%)`.
 | Contexte | Famille |
 |---|---|
 | Web | `Inter, system-ui, Avenir, Helvetica, Arial, sans-serif` |
-| Mobile Flutter | `Inter` via `google_fonts` (`GoogleFonts.interTextTheme`) |
+| Mobile Flutter | `Inter` embarquée dans l'app (`mobile/assets/fonts/inter/`, graisses 400 à 700, déclarée dans `pubspec.yaml`) — plus de `google_fonts` |
 | Monospace | Pile monospace système (dénivelés, coordonnées, extraits techniques) |
 
 Réglages de rendu appliqués globalement : `font-synthesis: none`,

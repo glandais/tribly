@@ -221,7 +221,7 @@ test.describe('hydration, JavaScript enabled', () => {
 })
 
 /**
- * E2E_COVERAGE_AUDIT.md, P0 #9 — a members-only (TEAM) team leaks nothing into the server document.
+ * docs/plans/archive/2026-09-27-e2e-coverage-audit.md, P0 #9 — a members-only (TEAM) team leaks nothing into the server document.
  * An unfurl crawler or a search engine reads the raw HTML with no session, and a signed-in
  * non-member gets the same HTML rendered for them: neither may find the team's name, its
  * description, nor the name or text of anything it holds — in the markup, in the dehydrated

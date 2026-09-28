@@ -10,7 +10,7 @@ import { newRoute, windingTrack } from './support/routes'
 import { entityCard, escapeRegExp, hydrated } from './support/ui'
 
 /**
- * E2E_COVERAGE_AUDIT.md, P1 « Filtres portés par l'URL et cohérents avec le SSR » — a list's
+ * docs/plans/archive/2026-09-27-e2e-coverage-audit.md, P1 « Filtres portés par l'URL et cohérents avec le SSR » — a list's
  * filters live in its query string (frontend/URL_FILTERS.md), and the route's prefetch reads that
  * query string through the page's own schema (frontend/SSR-data-loading.md). So a filtered link:
  *

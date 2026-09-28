@@ -1,17 +1,27 @@
 # Migration biketeam → Pédalons, équipe par équipe et en direct
 
-> Écrit le 22 septembre 2026. **Plan actif.** Ce document est le **contrat** entre trois
-> implémenteurs qui travaillent en parallèle sans se parler : *tribly backend*, *tribly frontend*
-> (worktree `tribly.worktrees/biketeam-live-migration`, branche `feat/biketeam-live-migration`) et
-> *biketeam* (worktree `biketeam.worktrees/pedalons-migration`, branche `feat/pedalons-migration`).
+> Écrit le 22 septembre 2026. **Implémenté et fusionné** des deux côtés (V43, suite e2e du 25
+> septembre 2026) ; l'ancien import par dump a été **supprimé le 28 septembre 2026**. Ce document
+> est le **contrat** entre trois implémenteurs qui travaillaient en parallèle sans se parler :
+> *tribly backend*, *tribly frontend* (à l'écriture : worktree
+> `tribly.worktrees/biketeam-live-migration`, branche `feat/biketeam-live-migration`) et *biketeam*
+> (worktree `biketeam.worktrees/pedalons-migration`, branche `feat/pedalons-migration`).
 > Tout ce qui traverse une frontière (jeton, en-tête, JSON, URL, code d'erreur) est fixé ici au
 > champ près ; ce qui n'en traverse pas est laissé à l'implémenteur. Quand le code et ce document
 > divergent sur un point de contrat, c'est ce document qui a raison jusqu'à ce qu'il soit amendé.
+>
+> **Ce qui fait foi et ce qui est historique.** Le contrat, ce sont les sections qui décrivent ce
+> qui traverse la frontière — §0 à §6, §8.4, §9, §10 et les décisions du §13 — telles qu'amendées
+> par les « Écarts d'implémentation » datés en fin de document. Le §7 et les §8.1 à §8.3 décrivent
+> l'implémentation Pédalons telle qu'elle était prévue : le code fait foi. Le §11 (dépréciation de
+> l'ancien import) et le §12 (découpage des tâches) sont exécutés et ne restent que comme
+> historique.
 
-Remplace, à terme, la procédure de [`MIGRATE_BIKETEAM.md`](../../MIGRATE_BIKETEAM.md) (dump +
-dossier de données + `backend-restore`). Les **règles de correspondance** qu'il documente (ordre des
-groupes et étapes, dates et fuseaux, visibilité, logo factice, FAQ, empreinte des GPX) restent
-vraies et sont reprises telles quelles — seule la façon d'obtenir les données change.
+A remplacé la procédure par dump de [`MIGRATE_BIKETEAM.md`](../../MIGRATE_BIKETEAM.md) (dump +
+dossier de données + `backend-restore`), supprimée le 28 septembre 2026 : ce fichier est désormais
+le guide d'exploitation de la migration en direct. Les **règles de correspondance** qu'il documente
+(ordre des groupes et étapes, dates et fuseaux, visibilité, logo factice, FAQ, empreinte des GPX)
+restent vraies et sont reprises telles quelles — seule la façon d'obtenir les données a changé.
 
 ---
 
@@ -23,13 +33,13 @@ vraies et sont reprises telles quelles — seule la façon d'obtenir les donnée
 | Identité Pédalons | Redirection + confirmation : jeton de demande **signé par biketeam** → page Pédalons → connexion si besoin → confirmation → **grant** à usage unique → retour sur biketeam. |
 | Déclenchement | Appel M2M biketeam → Pédalons, secret partagé, `{requestId, grant, teamId, dryRun, reset}`. Asynchrone : Pédalons répond un `jobId`, biketeam interroge le statut. |
 | Récupération | **API d'export M2M côté biketeam** : un instantané JSON de l'équipe + un endpoint de fichiers. Pas de connexion directe à la base, pas de montage de fichiers. |
-| Réutilisation | Le mapping de `BiketeamMigrationService` est conservé ; `BiketeamReader` (SQL) est abstrait derrière une interface `BiketeamSource`, dont l'instantané HTTP est une seconde implémentation. |
+| Réutilisation | Le mapping de `BiketeamMigrationService` est conservé ; `BiketeamReader` (SQL) est abstrait derrière une interface `BiketeamSource`, dont l'instantané HTTP est une seconde implémentation. Depuis la suppression de l'ancien import (28 septembre 2026), l'instantané est la seule. |
 | Personnes | **Rien** : ni utilisateurs, ni adhésions, ni participations, ni commentaires, ni inscriptions, ni notes (évaluations) ni favoris de parcours. Le compte Pédalons qui a confirmé devient ADMIN de l'équipe et `createdBy` de tout. |
 | Cible | Le domaine Pédalons sur lequel l'utilisateur a confirmé. Slug de l'équipe = identifiant biketeam (comme aujourd'hui). |
 | Bascule | **Manuelle** : un définitif réussi ne bascule pas seul ; l'admin clique « Basculer vers Pédalons » après lecture du bilan. biketeam enregistre alors la table d'URL renvoyée par Pédalons et redirige toutes les pages et téléchargements de l'équipe (code configurable, **302** par défaut, 301 une fois stabilisé), repli sur la page d'équipe Pédalons ; `/api/` répond `410` JSON. L'équipe biketeam devient lecture seule, rien n'y est supprimé. |
 | Essai (`dryRun`) | Migration **réelle** dans Pédalons, sans bascule. Rejouable. |
 | `reset` | Met l'équipe Pédalons à la corbeille (suppression logique + slug libéré) avant de migrer — **uniquement** si elle provient de ce `teamId` biketeam. Jamais une équipe native. |
-| Ancien import | Déprécié, marqué `REMOVE-WITH-LEGACY-BIKETEAM-IMPORT` partout, rien de supprimé maintenant. |
+| Ancien import | Déprécié le 22 septembre 2026 et marqué partout (§11), puis **supprimé le 28 septembre 2026**. |
 
 ---
 
@@ -774,6 +784,10 @@ n'est supprimée (historique d'audit, volumétrie négligeable).
 
 ### 7.2 Une source, deux implémentations
 
+> Historique pour ce qui touche à l'ancien import : `BiketeamReader`, `LegacyJdbcBiketeamSource`,
+> `PeopleData` et le `run()` legacy ont été supprimés le 28 septembre 2026.
+> `SnapshotBiketeamSource` est aujourd'hui la seule implémentation de `BiketeamSource`.
+
 Le mapping (1 800 lignes, dont toutes les subtilités de `MIGRATE_BIKETEAM.md`) est **conservé** ; on
 change sa source de données.
 
@@ -986,7 +1000,7 @@ toujours une erreur. Clé de demande non décodable ou < 32 octets : échec du d
 statut, réclamation, reprise), `BiketeamLiveMigrationWorker`, `BiketeamExportClient`,
 `SnapshotBiketeamSource` + `snapshot/*` (records Jackson de §6.2), `BiketeamMigrationUrls`.
 `fr.pedalons.service.migration` : `BiketeamModel`, `BiketeamSource`, `SourceFile`,
-`LegacyJdbcBiketeamSource`. `fr.pedalons.service.security` : `BiketeamM2MFilter` +
+`LegacyJdbcBiketeamSource` (supprimée avec l'ancien import). `fr.pedalons.service.security` : `BiketeamM2MFilter` +
 `annotation/BiketeamM2M`. `fr.pedalons.api.migration` : `BiketeamMigrationResource` (public),
 `BiketeamMigrationInternalResource` (M2M). `fr.pedalons.dto.migration` : DTO de §4 et §5.
 
@@ -1249,6 +1263,11 @@ accepté parce que ces URL visent `localhost`.
 
 ## 11. Déprécier l'ancien import
 
+> **Historique — exécuté.** L'ancien import a été supprimé le 28 septembre 2026 (`d93fd3af`) :
+> chaque élément marqué ci-dessous est parti, et le marqueur ne subsiste plus que dans ce document.
+> La procédure est conservée pour mémoire ; l'entrée de `docs/NEXT.md` qu'elle prévoyait a été
+> ajoutée puis close.
+
 Marqueur unique, **grep-able** : `REMOVE-WITH-LEGACY-BIKETEAM-IMPORT`. Il figure sur **chaque**
 élément à supprimer, en commentaire dans la syntaxe du fichier (`//`, `#`, `<!-- -->`), suivi d'une
 courte raison. En Java, en plus, `@Deprecated(forRemoval = true, since = "4.5.0")` sur les classes et
@@ -1266,11 +1285,11 @@ méthodes. Rien n'est supprimé maintenant ; le legacy doit continuer à compile
 | 8 | `scripts/biketeam_fetch.sh`, `scripts/biketeam_restore.sh` | marqueur en tête + ligne « DEPRECATED » dans l'aide |
 | 9 | `scripts/restore.sh` (commentaire citant `biketeam_restore.sh`, l. ~175) | marqueur (réécrire le commentaire) |
 | 10 | `MIGRATE_BIKETEAM.md` : bandeau en tête renvoyant à ce plan ; sections *Reset*, *Backup data*, *Restore the dump*, *Run the migration*, *Which teams get migrated*, *Members without an email*, *Verified emails and passwords*, *Running the migration from dev mode*, *Configuration* marquées une à une. Les sections de règles (*Replaying*, *Known failures*, *Ordering*, *Visibility*, *Dates*, *Team pages*, *Team logos*) **restent** : elles décrivent aussi le chemin direct | marqueurs `<!-- … -->` par section |
-| 11 | `README.md` : mention de la migration biketeam dans « Running the full stack locally » (l. ~273) et de `biketeam_restore.sh` (l. ~660) | marqueur |
+| 11 | ~~`README.md` : mention de la migration biketeam dans « Running the full stack locally » et de `biketeam_restore.sh`~~ (retirées avec l'import par dump, `d93fd3af`) | marqueur |
 | 12 | ~~`.env.example` : commentaire de `SOCIAL_PLACEHOLDER_EMAIL_DOMAIN`~~ (variable retirée avec la connexion Strava) (« must match the biketeam migration's… » — la variable reste, les comptes importés existent) | marqueur sur le commentaire |
 | 13 | `service/bootstrap/BootstrapService.java` (javadoc l. ~52, « the biketeam migration relies on… ») | marqueur |
 | 14 | L'entrée de `docs/NEXT.md` ci-dessous | marquée elle aussi |
-| 15 | `SECURITY_AUDIT.md` : ligne L12 (`scripts/biketeam_fetch.sh`) | marqueur dans la dernière cellule |
+| 15 | ~~`SECURITY_AUDIT.md` : ligne L12 (`scripts/biketeam_fetch.sh`)~~ (retirée avec l'import par dump, `d93fd3af` ; l'audit est depuis dans `docs/SECURITY_AUDIT.md`) | marqueur dans la dernière cellule |
 | 16 | `BiketeamMigrationService.ensureTargetTeam` (réutilisation aveugle de toute équipe au slug, legacy seul ; le direct passe par `ensureLiveTargetTeam`) | méthode dépréciée + marqueur |
 
 **Non marqués**, et c'est voulu : `BiketeamMigrationMap`, son dépôt, `V21`/`V22` (partagés avec le
@@ -1280,23 +1299,18 @@ avec la connexion Strava, API 5.0.0) ; la phrase de `CLAUDE.md` et
 du README sur les milliers d'adresses réelles d'une base importée (reste vraie tant que ces bases
 existent).
 
-Entrée à ajouter dans [`docs/NEXT.md`](../NEXT.md), §2 « Reprises immédiates » :
-
-```markdown
-- **Supprimer l'ancien import biketeam** <!-- REMOVE-WITH-LEGACY-BIKETEAM-IMPORT -->
-  (dump `biketeam_import` + dossier de données + service `backend-restore`), remplacé par la
-  migration en direct ([plan](plans/2026-09-22-biketeam-live-migration.md)). **Quand** : une fois la
-  dernière équipe biketeam basculée, ou décision de ne plus jamais rejouer un dump. **Comment** :
-  `git grep -n REMOVE-WITH-LEGACY-BIKETEAM-IMPORT`, supprimer chaque élément marqué (fichiers entiers,
-  méthodes, blocs de configuration, sections de doc), puis compiler et vérifier que
-  `git grep -n -i "biketeam_import\|backend-restore\|BiketeamReader\|biketeam_fetch\|biketeam_restore" -- ':!docs/plans'`
-  ne rend plus rien (les plans datés gardent leur historique). Aucune
-  migration Flyway à écrire : `biketeam_migration_map` sert encore au direct.
-```
+L'entrée prévue pour [`docs/NEXT.md`](../NEXT.md), §2 « Reprises immédiates », disait quand
+supprimer (la dernière équipe basculée, ou la décision de ne plus rejouer de dump) et comment
+(`git grep` du marqueur, puis vérifier qu'aucune mention de `biketeam_import`, `backend-restore`,
+`BiketeamReader`, `biketeam_fetch` ou `biketeam_restore` ne subsiste hors des plans datés, sans
+migration Flyway : `biketeam_migration_map` sert encore au direct). C'est ce qui a été fait le 28
+septembre 2026.
 
 ---
 
 ## 12. Découpage des tâches
+
+> Historique — exécuté. Le découpage d'origine entre les trois implémenteurs.
 
 Chaque implémenteur ne s'appuie que sur ce document. Personne ne commite.
 

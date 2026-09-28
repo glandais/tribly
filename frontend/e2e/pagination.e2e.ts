@@ -24,7 +24,7 @@ import { gpxOf, windingTrack } from './support/routes'
 import { entityCard, hydrated } from './support/ui'
 
 /**
- * E2E_COVERAGE_AUDIT.md, P1 « Pagination » — the page lives in the query string (`p`, zero-based)
+ * docs/plans/archive/2026-09-27-e2e-coverage-audit.md, P1 « Pagination » — the page lives in the query string (`p`, zero-based)
  * on every list, the same way on the server and in the browser (frontend/URL_FILTERS.md):
  *
  * - `?p=1` is server-rendered as the second page, and the browser reads no list again after
