@@ -53,6 +53,8 @@ class UserServiceTest extends AbstractBaseTest {
     dataCleaner.cleanAll();
     domain = dataService.getOrCreateDefaultDomain();
     domainResolver.setDomainForTest(domain);
+    // A real access token always names the domain that issued it, and is refused anywhere else.
+    when(jwt.getClaim("domainId")).thenReturn(TsidUtils.toString(domain.getId()));
   }
 
   // ==================== Get User DTO ====================
