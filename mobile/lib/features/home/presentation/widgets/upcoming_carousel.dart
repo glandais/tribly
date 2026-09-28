@@ -16,6 +16,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../rides/presentation/pages/ride_detail_page.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/upcoming_provider.dart';
+import '../../../../keys.dart';
 
 /// Largeur d'une carte de carrousel.
 const double _kCardWidth = 280;
@@ -81,7 +82,10 @@ class UpcomingCarousel extends ConsumerWidget {
                   const SizedBox(width: PdlSpacing.feedGap),
               itemBuilder: (BuildContext context, int index) => SizedBox(
                 width: _kCardWidth,
-                child: _UpcomingCard(publication: items[index]),
+                child: _UpcomingCard(
+                  key: keys.home.upcomingCard(items[index].slug),
+                  publication: items[index],
+                ),
               ),
             ),
           ),
@@ -92,7 +96,7 @@ class UpcomingCarousel extends ConsumerWidget {
 }
 
 class _UpcomingCard extends ConsumerWidget {
-  const _UpcomingCard({required this.publication});
+  const _UpcomingCard({super.key, required this.publication});
 
   final PublicationDto publication;
 
@@ -148,6 +152,7 @@ class _UpcomingCard extends ConsumerWidget {
       ],
       action: switch (action) {
         UpcomingAction.registered => PdlBadge(
+          key: keys.home.upcomingRegisteredBadge(r.slug),
           label: 'rides.registered'.tr(),
           tone: PdlDerivedTones.registered(c),
           icon: PdlIcons.check,
@@ -162,6 +167,7 @@ class _UpcomingCard extends ConsumerWidget {
           enabled: false,
         ),
         UpcomingAction.join => PdlButton(
+          key: keys.home.upcomingJoinButton(r.slug),
           label: 'rides.groupJoin'.tr(),
           size: PdlButtonSize.sm,
           pill: true,
@@ -174,6 +180,7 @@ class _UpcomingCard extends ConsumerWidget {
           ),
         ),
         UpcomingAction.chooseGroup => PdlButton(
+          key: keys.home.upcomingChooseGroupButton(r.slug),
           label: 'home.chooseGroup'.tr(),
           variant: PdlButtonVariant.outline,
           size: PdlButtonSize.sm,

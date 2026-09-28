@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/paths.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../keys.dart';
 import '../../providers/auth_provider.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
@@ -83,6 +84,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
         const SizedBox(height: 16),
         Text(
           'auth.forgotPassword.sent.title'.tr(),
+          key: keys.login.forgotSentState,
           style: theme.textTheme.headlineSmall,
           textAlign: TextAlign.center,
         ),
@@ -123,6 +125,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           ),
           const SizedBox(height: 32),
           TextFormField(
+            key: keys.login.forgotEmailField,
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             autofillHints: const [AutofillHints.email],
@@ -143,6 +146,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           ),
           const SizedBox(height: 24),
           FilledButton(
+            key: keys.login.forgotSubmitButton,
             onPressed: _isLoading ? null : _handleSubmit,
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),

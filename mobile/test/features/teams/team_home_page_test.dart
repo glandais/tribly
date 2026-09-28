@@ -37,8 +37,20 @@ class _StubTeamRepository implements TeamRepository {
   /// Bloque l'appel jusqu'à ce que le test le libère.
   Completer<void>? gate;
 
+  /// Retient la lecture de l'équipe **sous son slug actuel** : ouverte par un
+  /// ancien slug, la page la relit sous le nouveau.
+  Completer<void>? currentSlugGate;
+
+  final List<String> reads = <String>[];
+
   @override
-  Future<TeamDetailDto> getTeam(String slug) async => team;
+  Future<TeamDetailDto> getTeam(String slug) async {
+    reads.add(slug);
+    if (slug == team.slug && currentSlugGate != null) {
+      await currentSlugGate!.future;
+    }
+    return team;
+  }
 
   @override
   Future<List<TeamDetailDto>> getMyTeams() async =>
@@ -113,6 +125,7 @@ void main() {
     required _StubTeamRepository repository,
     TeamSectionKind section = TeamSectionKind.about,
     Brightness brightness = Brightness.light,
+    String? slug,
   }) async {
     tester.view.physicalSize = const Size(1200, 2400);
     tester.view.devicePixelRatio = 1;
@@ -126,7 +139,10 @@ void main() {
         ],
         child: MaterialApp(
           theme: PedalonsTheme.build(brightness),
-          home: TeamHomePage(teamSlug: repository.team.slug, section: section),
+          home: TeamHomePage(
+            teamSlug: slug ?? repository.team.slug,
+            section: section,
+          ),
         ),
       ),
     );
@@ -272,6 +288,28 @@ void main() {
       await settle(tester);
       expect(repository.leaves, 0);
     });
+
+    testWidgets(
+      'ouverte par un ancien slug, la page ne propose rien à un membre avant '
+      'de connaître son adhésion, puis « Quitter »',
+      (WidgetTester tester) async {
+        final _StubTeamRepository repository = _StubTeamRepository(
+          fixtureTeam(role: 'MEMBER', joinable: false),
+        )..currentSlugGate = Completer<void>();
+        await openTeam(tester, repository: repository, slug: 'ancien-slug');
+
+        // Le slug actuel est encore en lecture : ni « Sur invitation » ni
+        // « Rejoindre » à un membre.
+        expect(repository.reads, <String>['ancien-slug', 'n-peloton']);
+        expect(find.text('Sur invitation'), findsNothing);
+        expect(find.text('Rejoindre'), findsNothing);
+
+        repository.currentSlugGate!.complete();
+        await settle(tester);
+        expect(find.text('Quitter'), findsOneWidget);
+        expect(find.text('Sur invitation'), findsNothing);
+      },
+    );
   });
 
   testWidgets('le mode sombre rend le même écran', (WidgetTester tester) async {

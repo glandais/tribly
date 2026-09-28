@@ -20,6 +20,7 @@ import '../../../routes/presentation/widgets/embedded_route_sheet.dart';
 import '../../../routes/providers/route_detail_provider.dart';
 import '../../providers/trip_detail_provider.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
+import '../../../../keys.dart';
 
 /// L'écran 25 — une étape de voyage.
 ///
@@ -174,6 +175,7 @@ class _StageDetailContent extends ConsumerWidget {
     final int current = stages.indexOf(stage);
 
     return PdlStageRail(
+      key: keys.trip.stageRail,
       selectedIndex: current + 1,
       items: <PdlStageRailItem>[
         PdlStageRailItem(label: 'trips.stage.overview'.tr()),
@@ -225,13 +227,14 @@ class _StageDetailContent extends ConsumerWidget {
             onTap: () => _openTrip(context),
           ),
           const SizedBox(height: 2),
-          Text(stage.name, style: t.screenTitle),
+          Text(stage.name, key: keys.trip.stageTitle, style: t.screenTitle),
           const SizedBox(height: PdlSpacing.chipGap),
           Wrap(
             spacing: PdlSpacing.badgeGap,
             runSpacing: PdlSpacing.badgeGap,
             children: <Widget>[
               PdlBadge(
+                key: keys.trip.stagePosition,
                 label: 'trips.stage.numberOf'.tr(
                   namedArgs: <String, String>{
                     'index': '${stage.stageIndex}',

@@ -87,15 +87,18 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                   horizontal: PdlSpacing.section,
                 ),
                 child: PdlSegmented<bool>(
+                  key: keys.notifications.filter,
                   value: _unreadOnly,
                   onChanged: (bool value) =>
                       setState(() => _unreadOnly = value),
                   segments: <PdlSegment<bool>>[
                     PdlSegment<bool>(
+                      key: keys.notifications.filterAll,
                       value: false,
                       label: 'notifications.filter.all'.tr(),
                     ),
                     PdlSegment<bool>(
+                      key: keys.notifications.filterUnread,
                       value: true,
                       label: 'notifications.filter.unread'.tr(),
                     ),
@@ -113,8 +116,13 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   }
 
   Future<void> _markAllRead(NotificationsNotifier notifier) async {
+    final bool otherFilter = !_unreadOnly;
     try {
       await notifier.markAllRead();
+      if (!mounted) return;
+      // L'autre filtre a sa propre instance : s'il vit encore, ses lignes
+      // disent « non lue » à tort. Il sera relu à son prochain affichage.
+      ref.invalidate(notificationsProvider(otherFilter));
       await ref.read(unreadNotificationCountProvider.notifier).refresh();
     } catch (error, stackTrace) {
       if (!mounted) return;
@@ -221,6 +229,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 40),
             child: PdlEmptyState(
+              key: _unreadOnly ? keys.notifications.unreadEmptyState : null,
               variant: PdlEmptyVariant.empty,
               icon: PdlIcons.notificationsOff,
               title: _unreadOnly
@@ -232,6 +241,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
               actions: _unreadOnly
                   ? <Widget>[
                       PdlButton(
+                        key: keys.notifications.showAllButton,
                         label: 'notifications.filter.all'.tr(),
                         variant: PdlButtonVariant.outline,
                         size: PdlButtonSize.sm,

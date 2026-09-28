@@ -142,6 +142,7 @@ class RideGroupCard extends StatelessWidget {
       onPressed: onLeave,
     ),
     RideGroupAction.full => PdlButton(
+      key: keys.ride.groupFullButton(group.id),
       label: 'rides.groupFull'.tr(),
       size: PdlButtonSize.sm,
       variant: PdlButtonVariant.outline,

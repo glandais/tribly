@@ -309,6 +309,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
           // Contour rouge, **jamais un aplat** : un aplat rouge pleine largeur
           // se touche par réflexe, et celui-ci ne se défait pas.
           PdlButton(
+            key: keys.profile.deleteAccountButton,
             label: 'profile.account.delete'.tr(),
             variant: PdlButtonVariant.danger,
             fullWidth: true,
@@ -329,6 +330,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
           if (_blockingTeams case final List<String> blocking) ...<Widget>[
             const SizedBox(height: PdlSpacing.chipGap),
             PdlBanner(
+              key: keys.profile.deletionBlockedBanner,
               tone: PdlBannerTone.danger,
               title: 'profile.account.blockedTitle'.tr(),
               message: 'profile.account.blocked'.plural(

@@ -1,11 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show KeepAliveLink;
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../api/generated/export.dart';
 import '../../../core/utils/api_error_handler.dart';
 import '../data/ride_repository.dart';
+import 'participation_changes.dart';
 import 'ride_detail_provider.dart';
 
 /// Pourquoi une inscription a échoué, à la granularité que le bandeau rend.
@@ -143,7 +145,8 @@ final rideRegistrationProvider = StateNotifierProvider.autoDispose
 /// 2. mutation optimiste locale ;
 /// 3. `joinGroup` / `leaveGroup` — **un seul appel**, jamais une boucle sur
 ///    tous les groupes ;
-/// 4. succès → invalidation du détail partagé, donc de l'accueil qui le lit ;
+/// 4. succès → invalidation du détail partagé, puis
+///    [notifyParticipationChanged] pour l'accueil, le profil et le calendrier ;
 /// 5. échec → **rétablissement complet** de l'état d'avant, puis bandeau.
 ///
 /// Aucun `showSnackBar` : le lot 2 en interdit l'usage dans `features/rides`.
@@ -199,13 +202,23 @@ class RideRegistrationController extends StateNotifier<RideRegistrationState> {
       clearFailure: true,
     );
 
+    // L'écran peut se fermer pendant l'appel : le contrôleur reste en vie
+    // jusqu'à la réponse, sans quoi les vues dérivées ne seraient pas
+    // prévenues d'une inscription pourtant faite.
+    final KeepAliveLink alive = _ref.keepAlive();
     try {
       // (3) Un appel.
       await _repository.joinGroup(_key.teamSlug, _key.rideSlug, groupId);
-      // (4) Le détail partagé redevient la source ; l'accueil, qui lit le même
-      // provider, se met à jour du même coup.
+      // (4) Le détail partagé redevient la source, et toutes les vues qui
+      // dérivent de mes participations (accueil, profil, calendrier) sont
+      // prévenues : elles ne lisent pas ce détail-ci.
       state = state.copyWith(clearPending: true);
       _ref.invalidate(rideDetailProvider(_key));
+      notifyParticipationChanged(
+        _ref,
+        publicationId: ride.id,
+        registered: true,
+      );
     } catch (error, stackTrace) {
       // (5) Rétablissement **complet** avant d'expliquer : le bouton doit
       // revenir à « Rejoindre », sans quoi l'utilisateur lit un état qui n'a
@@ -216,6 +229,8 @@ class RideRegistrationController extends StateNotifier<RideRegistrationState> {
         error: error,
         stackTrace: stackTrace,
       );
+    } finally {
+      alive.close();
     }
   }
 
@@ -233,10 +248,16 @@ class RideRegistrationController extends StateNotifier<RideRegistrationState> {
       clearFailure: true,
     );
 
+    final KeepAliveLink alive = _ref.keepAlive();
     try {
       await _repository.leaveGroup(_key.teamSlug, _key.rideSlug, groupId);
       state = state.copyWith(clearPending: true);
       _ref.invalidate(rideDetailProvider(_key));
+      notifyParticipationChanged(
+        _ref,
+        publicationId: ride.id,
+        registered: false,
+      );
     } catch (error, stackTrace) {
       _fail(
         previous: ride,
@@ -244,6 +265,8 @@ class RideRegistrationController extends StateNotifier<RideRegistrationState> {
         error: error,
         stackTrace: stackTrace,
       );
+    } finally {
+      alive.close();
     }
   }
 
@@ -285,6 +308,12 @@ class RideRegistrationController extends StateNotifier<RideRegistrationState> {
     // L'état affiché ne reflète peut-être plus le serveur — un groupe devenu
     // complet vient précisément de le périmer. On le redemande.
     _ref.invalidate(rideDetailProvider(_key));
+    // Déjà inscrit : l'inscription existe côté serveur sans que l'app l'ait
+    // su (faite ailleurs). Les vues dérivées sont aussi périmées que ce
+    // détail-ci, et ce qu'on croyait savoir de cette sortie ne tient plus.
+    if (resolved.code == 'ALREADY_REGISTERED') {
+      notifyParticipationChanged(_ref, publicationId: previous.id);
+    }
   }
 
   RideGroupDto? _groupById(RideDto ride, String id) {

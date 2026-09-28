@@ -21,7 +21,7 @@ class _StubRepository implements NotificationsRepository {
   _StubRepository(this.items, {this.unread = 0});
 
   final List<NotificationDto> items;
-  final int unread;
+  int unread;
   final List<String> markedRead = <String>[];
   bool markedAll = false;
 
@@ -47,7 +47,13 @@ class _StubRepository implements NotificationsRepository {
   Future<void> markRead(String id) async => markedRead.add(id);
 
   @override
-  Future<void> markAllRead() async => markedAll = true;
+  Future<void> markAllRead() async {
+    markedAll = true;
+    for (int i = 0; i < items.length; i++) {
+      items[i] = items[i].copyWith(read: true);
+    }
+    unread = 0;
+  }
 
   @override
   Future<NotificationPreferencesDto> preferences() async =>
@@ -315,5 +321,34 @@ void main() {
       ).path(),
       '/equipes',
     );
+  });
+
+  testWidgets('« Tout marquer lu » sous « Non lues » vide la liste', (
+    WidgetTester tester,
+  ) async {
+    final _StubRepository repository = _StubRepository(<NotificationDto>[
+      _notification(id: 'a', subjectName: 'Sortie A'),
+      _notification(id: 'b', subjectName: 'Sortie B', read: true),
+    ], unread: 1);
+    await open(tester, repository);
+    expect(find.text('Sortie A'), findsOneWidget);
+    expect(find.text('Sortie B'), findsOneWidget);
+
+    await tester.tap(find.text('Non lues'));
+    for (int i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 10));
+    }
+    expect(find.text('Sortie A'), findsOneWidget);
+    expect(find.text('Sortie B'), findsNothing);
+
+    await tester.tap(find.bySemanticsLabel('Tout marquer lu'));
+    for (int i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 10));
+    }
+
+    expect(repository.markedAll, isTrue);
+    expect(find.text('Sortie A'), findsNothing);
+    expect(find.text('Aucune notification non lue'), findsOneWidget);
+    expect(find.bySemanticsLabel('Tout marquer lu'), findsNothing);
   });
 }

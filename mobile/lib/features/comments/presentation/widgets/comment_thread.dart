@@ -166,6 +166,7 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
     final List<CommentDto> replies = _notifier.repliesOf(comment);
 
     return Column(
+      key: keys.comments.thread(comment.id),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         _comment(comment, viewer),
@@ -267,6 +268,7 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: PdlButton(
+                    key: keys.comments.replyButton(comment.id),
                     label: 'comments.reply'.tr(),
                     variant: PdlButtonVariant.text,
                     size: PdlButtonSize.sm,
@@ -293,6 +295,7 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: Row(
+              key: keys.comments.replyingToBanner,
               children: <Widget>[
                 Expanded(
                   child: Text(
@@ -307,6 +310,7 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
                   ),
                 ),
                 PdlButton(
+                  key: keys.comments.cancelReplyButton,
                   label: 'common.cancel'.tr(),
                   variant: PdlButtonVariant.text,
                   size: PdlButtonSize.sm,
@@ -324,6 +328,7 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
               // une zone de saisie multiligne, et le tordre en composeur
               // coûterait plus cher que ces six lignes.
               child: TextField(
+                key: keys.comments.composerField,
                 controller: _composer,
                 focusNode: _focus,
                 minLines: 2,
@@ -337,6 +342,7 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
             ),
             const SizedBox(width: PdlSpacing.chipGap),
             PdlButton(
+              key: keys.comments.sendButton,
               label: 'comments.send'.tr(),
               loadingLabel: 'comments.sending'.tr(),
               loading: _posting,

@@ -8,6 +8,7 @@ import 'package:dio/dio.dart';
 import '../../../../config/paths.dart';
 import '../../../../config/router.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../keys.dart';
 import '../../providers/auth_provider.dart';
 
 class ResetPasswordPage extends ConsumerStatefulWidget {
@@ -105,6 +106,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
         const SizedBox(height: 16),
         Text(
           'auth.resetPassword.error.title'.tr(),
+          key: keys.login.resetInvalidState,
           style: theme.textTheme.headlineSmall,
           textAlign: TextAlign.center,
         ),
@@ -118,6 +120,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
         ),
         const SizedBox(height: 24),
         FilledButton(
+          key: keys.login.resetRequestNewButton,
           onPressed: () => context.go(Paths.forgotPassword()),
           style: FilledButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -167,6 +170,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
 
           // New password
           TextFormField(
+            key: keys.login.resetPasswordField,
             controller: _passwordController,
             obscureText: true,
             autofillHints: const [AutofillHints.newPassword],
@@ -186,6 +190,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
 
           // Confirm password
           TextFormField(
+            key: keys.login.resetConfirmField,
             controller: _confirmPasswordController,
             obscureText: true,
             autofillHints: const [AutofillHints.newPassword],
@@ -204,6 +209,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
           const SizedBox(height: 24),
 
           FilledButton(
+            key: keys.login.resetSubmitButton,
             onPressed: _isLoading ? null : _handleReset,
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),

@@ -32,9 +32,14 @@ class TripKey {
 /// complète — et le contrôleur de participation le partagent. Passer d'une
 /// étape à l'autre ne recharge donc rien.
 ///
-/// Non `autoDispose`, pour la même raison que le détail d'une sortie : c'est ce
-/// partage qui a de la valeur. L'invalidation est explicite.
-final tripDetailProvider = FutureProvider.family<TripDto, TripKey>(
+/// `autoDispose`, contrairement au détail d'une sortie : ce partage n'a besoin
+/// que des écrans ouverts. L'écran 25 se pose **sur** l'écran 24 (un lien
+/// profond reconstruit la pile, `ancestorsForDeepLink`), qui garde donc le
+/// détail vivant tant qu'on passe d'une étape à l'autre ; une fois le voyage
+/// refermé, rien ne le retient. Gardé pour la vie de l'app, un voyage annulé
+/// ou modifié par l'organisateur restait affiché tel quel jusqu'au prochain
+/// lancement. Le tirer-pour-rafraîchir de l'écran 24 l'invalide aussi.
+final tripDetailProvider = FutureProvider.autoDispose.family<TripDto, TripKey>(
   (Ref ref, TripKey key) =>
       ref.watch(tripRepositoryProvider).getTrip(key.teamSlug, key.tripSlug),
 );

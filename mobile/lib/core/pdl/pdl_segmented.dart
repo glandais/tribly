@@ -7,9 +7,15 @@ import '../theme/pdl_typography.dart';
 /// Une position d'un [PdlSegmented].
 @immutable
 class PdlSegment<T> {
-  const PdlSegment({required this.value, required this.label, this.icon});
+  const PdlSegment({
+    required this.value,
+    required this.label,
+    this.icon,
+    this.key,
+  });
 
   final T value;
+  final Key? key;
   final String label;
   final IconData? icon;
 }
@@ -62,6 +68,7 @@ class PdlSegmented<T> extends StatelessWidget {
             if (i > 0) const SizedBox(width: 3),
             Expanded(
               child: _Segment<T>(
+                key: segments[i].key,
                 segment: segments[i],
                 selected: segments[i].value == value,
                 onTap: () => onChanged(segments[i].value),
@@ -82,6 +89,7 @@ class PdlSegmented<T> extends StatelessWidget {
 
 class _Segment<T> extends StatelessWidget {
   const _Segment({
+    super.key,
     required this.segment,
     required this.selected,
     required this.onTap,

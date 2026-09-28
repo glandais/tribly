@@ -3,12 +3,14 @@ import 'features/ads/keys.dart';
 import 'features/auth/keys.dart';
 import 'features/comments/keys.dart';
 import 'features/device/keys.dart';
+import 'features/home/keys.dart';
 import 'features/moderation/keys.dart';
 import 'features/notifications/keys.dart';
 import 'features/posts/keys.dart';
 import 'features/profile/keys.dart';
 import 'features/rides/keys.dart';
 import 'features/teams/keys.dart';
+import 'features/trips/keys.dart';
 
 /// Les clés des widgets que les tests de bout en bout (`patrol_test/`)
 /// trouvent. Une clé n'existe ici que si un widget la porte.
@@ -28,4 +30,6 @@ class Keys {
   final moderation = ModerationKeys();
   final notifications = NotificationsKeys();
   final device = DeviceVerifyKeys();
+  final home = HomeKeys();
+  final trip = TripDetailKeys();
 }

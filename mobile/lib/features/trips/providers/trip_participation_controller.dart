@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show KeepAliveLink;
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../api/generated/export.dart';
 import '../../../core/utils/api_error_handler.dart';
+import '../../rides/providers/participation_changes.dart';
 import '../data/trip_repository.dart';
 import 'trip_detail_provider.dart';
 
@@ -54,7 +56,8 @@ class TripParticipationState {
   );
 }
 
-/// `autoDispose` : lié à l'écran ouvert. Le détail, lui, survit.
+/// `autoDispose` : lié à l'écran ouvert, comme le détail (`tripDetailProvider`), que l'écran
+/// garde en vie tant qu'il est ouvert.
 final tripParticipationProvider = StateNotifierProvider.autoDispose
     .family<TripParticipationController, TripParticipationState, TripKey>((
       Ref ref,
@@ -72,7 +75,8 @@ final tripParticipationProvider = StateNotifierProvider.autoDispose
     });
 
 /// La séquence de participation : bascule optimiste, un appel, invalidation du
-/// détail partagé, rétablissement complet puis bandeau en cas d'échec.
+/// détail partagé et des vues dérivées ([notifyParticipationChanged]),
+/// rétablissement complet puis bandeau en cas d'échec.
 ///
 /// **`registered` fait foi.** La v1 déduisait la participation en cherchant
 /// l'utilisateur courant dans `participants[]` — une liste vide sans droit de
@@ -113,6 +117,8 @@ class TripParticipationController
       clearFailure: true,
     );
 
+    // L'écran peut se fermer pendant l'appel : voir RideRegistrationController.
+    final KeepAliveLink alive = _ref.keepAlive();
     try {
       if (join) {
         await _repository.joinTrip(_key.teamSlug, _key.tripSlug);
@@ -121,6 +127,13 @@ class TripParticipationController
       }
       state = state.copyWith(pending: false);
       _ref.invalidate(tripDetailProvider(_key));
+      // Un voyage remonte aussi dans « À venir », dans le compteur du profil
+      // et au calendrier (ses étapes) : mêmes vues dérivées qu'une sortie.
+      notifyParticipationChanged(
+        _ref,
+        publicationId: trip.id,
+        registered: join,
+      );
     } catch (error, stackTrace) {
       final ApiError resolved = resolveApiError(error, stackTrace);
       state = TripParticipationState(
@@ -136,6 +149,14 @@ class TripParticipationController
         ),
       );
       _ref.invalidate(tripDetailProvider(_key));
+      // Déjà dans l'état visé côté serveur : l'app ne le savait pas, ses vues
+      // dérivées non plus.
+      if (resolved.code == 'ALREADY_REGISTERED' ||
+          resolved.code == 'NOT_REGISTERED') {
+        notifyParticipationChanged(_ref, publicationId: trip.id);
+      }
+    } finally {
+      alive.close();
     }
   }
 

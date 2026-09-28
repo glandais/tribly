@@ -41,7 +41,11 @@ Future<bool> confirmDestructive(
             PdlSpacing.section,
             0,
           ),
-          child: Text(message, style: t.sub),
+          child: Text(
+            message,
+            key: keys.profile.confirmDestructiveMessage,
+            style: t.sub,
+          ),
         ),
         footer: SafeArea(
           top: false,

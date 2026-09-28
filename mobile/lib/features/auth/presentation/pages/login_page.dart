@@ -221,6 +221,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       children: [
         if (_errorMessage != null) ...[
           Card(
+            key: keys.login.loginError,
             color: theme.colorScheme.errorContainer,
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -296,6 +297,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
+                    key: keys.login.forgotPasswordButton,
                     onPressed: () => context.push(Paths.forgotPassword()),
                     child: Text('auth.forgotPassword.title'.tr()),
                   ),
@@ -345,6 +347,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
         const SizedBox(height: 24),
         TextButton(
+          key: keys.login.showRegisterButton,
           onPressed: () => setState(() => _mode = _Mode.register),
           child: Text('auth.register'.tr()),
         ),
@@ -377,6 +380,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextFormField(
+                  key: keys.login.registerEmailField,
                   controller: _regEmailController,
                   keyboardType: TextInputType.emailAddress,
                   autofillHints: const [
@@ -400,6 +404,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  key: keys.login.registerDisplayNameField,
                   controller: _regDisplayNameController,
                   autofillHints: const [AutofillHints.name],
                   decoration: InputDecoration(
@@ -422,6 +427,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  key: keys.login.registerPasswordField,
                   controller: _regPasswordController,
                   obscureText: true,
                   autofillHints: const [AutofillHints.newPassword],
@@ -439,6 +445,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  key: keys.login.registerConfirmField,
                   controller: _regConfirmPasswordController,
                   obscureText: true,
                   autofillHints: const [AutofillHints.newPassword],
@@ -458,6 +465,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 _termsField(),
                 const SizedBox(height: 24),
                 FilledButton(
+                  key: keys.login.registerSubmitButton,
                   onPressed: _isLoading ? null : _handleRegister,
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -500,6 +508,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CheckboxListTile(
+            key: keys.login.termsCheckbox,
             value: _acceptTerms,
             onChanged: _isLoading
                 ? null
@@ -513,6 +522,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             subtitle: field.hasError
                 ? Text(
                     field.errorText!,
+                    key: keys.login.termsError,
                     style: t.xs.copyWith(color: c.dangerOnSoft),
                   )
                 : null,

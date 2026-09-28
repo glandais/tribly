@@ -17,15 +17,30 @@ class NextRide {
   final RideGroupDto? group;
 }
 
-/// L'identité de la prochaine sortie à laquelle je participe.
+/// « Ma prochaine sortie », détail du groupe compris.
 ///
-/// `GET /api/users/me/participations` est **l'endpoint qui rend ce bloc
-/// possible** : sans lui, il faudrait parcourir toutes les équipes et toutes
-/// leurs sorties pour retrouver celle où l'on est inscrit.
+/// Deux appels, **dans un seul provider** :
 ///
-/// `size: 1` : on ne veut que la plus proche. `view: COMPACT` : la ligne suffit
-/// pour identifier la sortie, le détail suit.
-final _nextParticipationProvider = FutureProvider<RideDto?>((Ref ref) async {
+/// 1. `GET /api/users/me/participations` — **l'endpoint qui rend ce bloc
+///    possible** : sans lui, il faudrait parcourir toutes les équipes et toutes
+///    leurs sorties pour retrouver celle où l'on est inscrit. `size: 1` : on ne
+///    veut que la plus proche ; `view: COMPACT` : la ligne suffit pour
+///    identifier la sortie, le détail suit.
+/// 2. **Un seul `getRide`**, qui passe par [rideDetailProvider] : taper « Voir
+///    la sortie » n'entraîne donc aucun rechargement, l'écran 12 lit la même
+///    entrée de cache.
+///
+/// L'identité de la sortie n'est **pas** mise en cache à part : elle l'a été,
+/// dans un provider privé que rien ne pouvait invalider — ni le pull-to-refresh
+/// de l'accueil (qui reconstruisait ce provider-ci en relisant l'ancienne
+/// identité), ni une inscription. Invalider [nextRideProvider] suffit
+/// désormais à tout reprendre ; c'est ce que fait
+/// `notifyParticipationChanged`.
+///
+/// Un échec **masque le bloc** sans propager d'erreur : l'accueil est
+/// consultable sans lui, et le brief refuse qu'un enrichissement casse un
+/// écran.
+final nextRideProvider = FutureProvider<NextRide?>((Ref ref) async {
   final PublicationListResponse response = await ref
       .watch(usersClientProvider)
       .listMyParticipations(
@@ -35,27 +50,15 @@ final _nextParticipationProvider = FutureProvider<RideDto?>((Ref ref) async {
         view: ListViewMode.compact,
       );
 
+  RideDto? summary;
   for (final PublicationDto publication in response.publications) {
     // Les voyages remontent aussi dans les participations ; ce bloc-ci parle
     // de sorties. Le carrousel « À venir » montre les deux.
     if (publication is PublicationDtoRide) {
-      return _asRide(publication);
+      summary = _asRide(publication);
+      break;
     }
   }
-  return null;
-});
-
-/// « Ma prochaine sortie », détail du groupe compris.
-///
-/// **Un seul `getRide` de plus**, et il passe par [rideDetailProvider] : taper
-/// « Voir la sortie » n'entraîne donc aucun rechargement, l'écran 12 lit la
-/// même entrée de cache. C'est la raison d'être du partage de ce provider.
-///
-/// Un échec **masque le bloc** sans propager d'erreur : l'accueil est
-/// consultable sans lui, et le brief refuse qu'un enrichissement casse un
-/// écran.
-final nextRideProvider = FutureProvider<NextRide?>((Ref ref) async {
-  final RideDto? summary = await ref.watch(_nextParticipationProvider.future);
   if (summary == null) return null;
 
   final RideDto detail = await ref.watch(

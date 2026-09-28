@@ -11,6 +11,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
+import '../../../../keys.dart';
 
 /// A team's About section: its presentation and its free pages.
 ///
@@ -83,6 +84,7 @@ class TeamAboutPage extends ConsumerWidget {
                 const SizedBox(height: 4),
                 for (int i = 0; i < pages.length; i++)
                   PdlSettingRow(
+                    key: keys.team.aboutPageRow(pages[i].slug),
                     icon: PdlIcons.page,
                     title: pages[i].title,
                     showDivider: i < pages.length - 1,

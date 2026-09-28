@@ -17,6 +17,7 @@ import '../../../rides/providers/ride_detail_provider.dart';
 import '../../../rides/providers/ride_registration_controller.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/next_ride_provider.dart';
+import '../../../../keys.dart';
 
 /// « Ma prochaine sortie » — la réponse à la question du brief : *qu'est-ce que
 /// je fais à vélo cette semaine ?*
@@ -290,6 +291,7 @@ class NextRideCard extends ConsumerWidget {
         if (groupId != null && !ride.isCancelled && !ride.isPast) ...<Widget>[
           const SizedBox(width: PdlSpacing.chipGap),
           PdlButton(
+            key: keys.home.nextRideLeaveButton,
             label: 'rides.leave'.tr(),
             loadingLabel: 'rides.leaving'.tr(),
             variant: PdlButtonVariant.outline,

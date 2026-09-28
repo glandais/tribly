@@ -4,6 +4,7 @@ import '../theme/pdl_colors.dart';
 import '../theme/pdl_tokens.dart';
 import 'pdl_app_bar.dart';
 import 'pdl_pinned_toolbar.dart';
+import 'pdl_refresh.dart';
 
 /// C8 — La coquille d'écran.
 ///
@@ -40,9 +41,15 @@ class PdlScreenScaffold extends StatelessWidget {
     this.constrainWidth = true,
     this.backgroundColor,
     this.scrollController,
+    this.onRefresh,
   }) : assert(
          slivers == null || body == null,
          'Un écran a un corps de slivers ou un corps de boîte, pas les deux.',
+       ),
+       assert(
+         onRefresh == null || slivers != null,
+         'Tirer pour rafraîchir suit le défileur de l\'écran : il demande un '
+         'corps de slivers.',
        ),
        assert(
          toolbar == null || slivers != null,
@@ -74,6 +81,12 @@ class PdlScreenScaffold extends StatelessWidget {
   final bool constrainWidth;
   final Color? backgroundColor;
   final ScrollController? scrollController;
+
+  /// Tirer pour rafraîchir ([PdlRefresh]), sur le défileur des [slivers].
+  ///
+  /// Posé **autour du défileur** et non de l'écran : l'indicateur descend alors
+  /// sous l'app bar, pas par-dessus.
+  final Future<void> Function()? onRefresh;
 
   bool get _overlayBar => appBar?.variant == PdlAppBarVariant.overlay;
 
@@ -112,6 +125,9 @@ class PdlScreenScaffold extends StatelessWidget {
                 SliverToBoxAdapter(child: SizedBox(height: bottomInset)),
               ],
             );
+            if (onRefresh != null) {
+              content = PdlRefresh(onRefresh: onRefresh!, child: content);
+            }
           } else {
             content = Padding(
               padding: EdgeInsets.only(bottom: bottomInset),

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/paths.dart';
 import '../../../../config/router.dart';
+import '../../../../keys.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/passkey_service.dart';
@@ -27,7 +28,13 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
   @override
   void initState() {
     super.initState();
-    _verifyEmail();
+    // Après la première image, jamais pendant `initState` : la vérification
+    // passe par `AuthNotifier.verifyEmail`, qui pose `isLoading` avant son
+    // premier `await` — modifier un provider pendant que l'arbre se construit
+    // est refusé par Riverpod (test/features/auth/verify_email_page_test.dart).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _verifyEmail();
+    });
   }
 
   Future<void> _verifyEmail() async {
@@ -117,11 +124,13 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                   const SizedBox(height: 16),
                   Text(
                     _errorMessage!,
+                    key: keys.login.verifyError,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: theme.colorScheme.error),
                   ),
                   const SizedBox(height: 24),
                   FilledButton(
+                    key: keys.login.verifyBackToLoginButton,
                     onPressed: () => context.go(Paths.login()),
                     child: Text('auth.verifyEmail.backToLogin'.tr()),
                   ),
@@ -135,6 +144,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                     const SizedBox(height: 24),
                     Text(
                       'auth.verifyEmail.success'.tr(),
+                      key: keys.login.verifySuccess,
                       style: theme.textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 16),
@@ -171,6 +181,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                             ),
                             const SizedBox(height: 8),
                             TextButton(
+                              key: keys.login.verifyLaterButton,
                               onPressed: () => goAfterSignIn(ref),
                               child: Text('common.later'.tr()),
                             ),
@@ -187,6 +198,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                     const SizedBox(height: 24),
                     Text(
                       'auth.verifyEmail.success'.tr(),
+                      key: keys.login.verifySuccess,
                       style: theme.textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 16),
@@ -196,6 +208,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                     ),
                     const SizedBox(height: 24),
                     FilledButton(
+                      key: keys.login.verifyContinueButton,
                       onPressed: () => goAfterSignIn(ref),
                       child: Text('common.continue'.tr()),
                     ),

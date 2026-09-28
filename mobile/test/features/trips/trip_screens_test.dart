@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pedalons/api/generated/export.dart';
@@ -28,11 +29,15 @@ import 'trip_fixtures.dart';
 class _StubTripRepository implements TripRepository {
   _StubTripRepository(this.trip, {this.neverCompletes = false});
 
-  final TripDto trip;
+  /// Ce que le serveur rend **maintenant** : un test peut le changer entre
+  /// deux lectures, comme un organisateur qui annule le voyage.
+  TripDto trip;
   final bool neverCompletes;
+  int reads = 0;
 
   @override
   Future<TripDto> getTrip(String teamSlug, String tripSlug) {
+    reads++;
     if (neverCompletes) return Completer<TripDto>().future;
     return Future<TripDto>.value(trip);
   }
@@ -99,12 +104,13 @@ void main() {
     bool member = true,
     bool loading = false,
     Brightness brightness = Brightness.light,
+    _StubTripRepository? repository,
   }) {
     return ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         tripRepositoryProvider.overrideWithValue(
-          _StubTripRepository(trip, neverCompletes: loading),
+          repository ?? _StubTripRepository(trip, neverCompletes: loading),
         ),
         teamRepositoryProvider.overrideWithValue(
           _StubTeamRepository(member: member),
@@ -197,6 +203,83 @@ void main() {
       );
       expect(find.text('Rejoindre'), findsNothing);
       expect(find.byType(PdlActionBar), findsNothing);
+    });
+
+    testWidgets(
+      'tirer pour rafraîchir relit le voyage : l\'annulation apparaît',
+      (WidgetTester tester) async {
+        final TripDto trip = fixtureTrip();
+        final _StubTripRepository repository = _StubTripRepository(trip);
+        await tester.pumpWidget(
+          app(
+            trip,
+            repository: repository,
+            home: TripDetailPage(teamSlug: trip.team.slug, tripSlug: trip.slug),
+          ),
+        );
+        for (int i = 0; i < 4; i++) {
+          await tester.pump(const Duration(milliseconds: 10));
+        }
+        expect(find.byType(PdlActionBar), findsOneWidget);
+        expect(repository.reads, 1);
+        // La secousse de `PdlRefresh` passe par le canal de plate-forme : sans
+        // réponse, le rafraîchissement l'attendrait indéfiniment.
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          (MethodCall call) async => null,
+        );
+        addTearDown(
+          () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+            SystemChannels.platform,
+            null,
+          ),
+        );
+
+        repository.trip = fixtureTrip(status: 'CANCELLED');
+        // Depuis le titre : le milieu de l'écran est la carte, qui garde ses
+        // gestes pour elle.
+        await tester.fling(find.text(trip.name), const Offset(0, 400), 1000);
+        for (int i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+
+        expect(repository.reads, 2);
+        expect(
+          find.textContaining('Voyage annulé.', findRichText: true),
+          findsOneWidget,
+        );
+        expect(find.byType(PdlActionBar), findsNothing);
+      },
+    );
+
+    testWidgets('refermé, le voyage n\'est pas gardé : rouvert, il est relu', (
+      WidgetTester tester,
+    ) async {
+      final TripDto trip = fixtureTrip();
+      final _StubTripRepository repository = _StubTripRepository(trip);
+      Future<void> mount(Widget home) async {
+        await tester.pumpWidget(app(trip, repository: repository, home: home));
+        for (int i = 0; i < 4; i++) {
+          await tester.pump(const Duration(milliseconds: 10));
+        }
+      }
+
+      final Widget page = TripDetailPage(
+        teamSlug: trip.team.slug,
+        tripSlug: trip.slug,
+      );
+      await mount(page);
+      expect(repository.reads, 1);
+
+      repository.trip = fixtureTrip(status: 'CANCELLED');
+      await mount(const SizedBox());
+      await mount(page);
+
+      expect(repository.reads, 2);
+      expect(
+        find.textContaining('Voyage annulé.', findRichText: true),
+        findsOneWidget,
+      );
     });
 
     testWidgets('un voyage passé n\'offre plus de participer', (

@@ -132,6 +132,9 @@ class _ParticipationsCard extends ConsumerWidget {
     }) {
       final int? count = ref.watch(participationCountProvider(upcoming)).value;
       return PdlSettingRow(
+        key: upcoming
+            ? keys.profile.participationsUpcomingRow
+            : keys.profile.participationsHistoryRow,
         icon: icon,
         title: title,
         trailing: Row(
@@ -139,6 +142,7 @@ class _ParticipationsCard extends ConsumerWidget {
           children: <Widget>[
             if (count != null)
               PdlBadge(
+                key: upcoming ? keys.profile.participationsUpcomingCount : null,
                 label: '$count',
                 size: PdlBadgeSize.lg,
                 tone: upcoming

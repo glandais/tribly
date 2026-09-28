@@ -374,10 +374,21 @@ class _TeamHeaderDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return TeamHeader(
-      team: team,
-      t: (shrinkOffset / _kExpandedBlock).clamp(0, 1),
-      topPadding: topPadding,
+    // L'enfant mesure **exactement** l'étendue que le sliver épinglé calcule
+    // de son côté (`maxExtent - scrollOffset`, bornée par le plancher), avec
+    // les mêmes opérandes : sa hauteur naturelle — barre, plus le bloc replié
+    // à `1 - t` — est une autre somme de flottants, qui tombe parfois un ulp
+    // sous la première. Le sliver prend alors une `paintExtent` plus petite
+    // que sa `layoutExtent`, et l'assertion « SliverGeometry is not valid »
+    // saute au rebond d'une page courte
+    // (test/features/teams/team_header_sliver_test.dart).
+    return SizedBox(
+      height: math.max(minExtent, maxExtent - shrinkOffset),
+      child: TeamHeader(
+        team: team,
+        t: (shrinkOffset / _kExpandedBlock).clamp(0, 1),
+        topPadding: topPadding,
+      ),
     );
   }
 

@@ -11,6 +11,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../data/invitations_repository.dart';
 import '../../providers/team_providers.dart';
+import '../../../../keys.dart';
 
 /// « Vous avez des invitations en attente », en tête de « Mes équipes ».
 ///
@@ -72,6 +73,7 @@ class _PendingInvitationsCardState
         0,
       ),
       child: PdlCard(
+        key: keys.teams.pendingInvitationsCard,
         selected: true,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -106,6 +108,9 @@ class _PendingInvitationsCardState
                     ),
                     const SizedBox(width: PdlSpacing.chipGap),
                     PdlButton(
+                      key: keys.teams.invitationAcceptButton(
+                        invitation.team.slug,
+                      ),
                       label: 'invitations.pending.accept'.tr(),
                       size: PdlButtonSize.sm,
                       loading: _accepting == invitation.id,

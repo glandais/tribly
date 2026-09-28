@@ -119,8 +119,23 @@ class NotificationsNotifier extends PagedListNotifier<NotificationDto> {
     await _repository.markRead(notification.id);
   }
 
+  /// Marque toute la boîte lue.
+  ///
+  /// La liste complète garde ses lignes, grisées sur place. La liste des non
+  /// lues, elle, n'a plus rien à montrer : garder ses lignes marquées lues
+  /// contredirait le filtre, et l'état vide « aucune non lue » n'apparaîtrait
+  /// qu'au prochain rafraîchissement. On la relit donc depuis le serveur, qui
+  /// fait foi — une notification arrivée entre-temps y reste.
+  ///
+  /// L'autre filtre est une autre instance de la famille : c'est à l'écran de
+  /// l'invalider (`NotificationsPage`), comme la pastille.
   Future<void> markAllRead() async {
     await _repository.markAllRead();
+    if (!mounted) return;
+    if (_unreadOnly) {
+      await loadFirstPage(refreshing: true);
+      return;
+    }
     state = state.copyWith(
       items: <NotificationDto>[
         for (final NotificationDto item in state.items)

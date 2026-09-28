@@ -217,6 +217,7 @@ class _TeamCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return AnimatedCard(
+      key: keys.teams.teamCard(team.slug),
       onTap: () => context.push(Paths.team(team.slug)),
       child: Padding(
         padding: const EdgeInsets.all(16),

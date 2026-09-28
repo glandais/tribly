@@ -5,15 +5,22 @@ import '../../../api/generated/export.dart';
 import '../../../core/pagination/pagination.dart';
 import '../data/profile_repository.dart';
 
-/// L'instant qui sépare « à venir » de l'historique, figé au montage.
+/// L'instant qui sépare « à venir » de l'historique, figé à la première
+/// lecture.
 ///
 /// Il est gelé volontairement : recalculer `DateTime.now()` à chaque page
 /// ferait glisser la frontière pendant la pagination, et une sortie qui
-/// commence entre deux pages apparaîtrait deux fois ou pas du tout.
+/// commence entre deux pages apparaîtrait deux fois ou pas du tout. Il n'avance
+/// que lorsqu'une participation change (`notifyParticipationChanged`), qui
+/// recharge de toute façon la liste et les compteurs.
 final participationsNowProvider = Provider<DateTime>((ref) => DateTime.now());
 
 /// Le compteur d'un des deux jeux — le `total` de l'endpoint, obtenu en
 /// demandant **une** ligne.
+///
+/// Pas d'`autoDispose` : le profil est un onglet, le compteur y reste affiché.
+/// Il ne se périme donc pas tout seul — c'est `notifyParticipationChanged` qui
+/// l'invalide après chaque inscription ou désinscription.
 final participationCountProvider = FutureProvider.family<int, bool>((
   ref,
   upcoming,

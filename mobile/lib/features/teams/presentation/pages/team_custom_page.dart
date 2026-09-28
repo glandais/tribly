@@ -13,6 +13,7 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
+import '../../../../keys.dart';
 
 /// Le contenu d'une page libre, chargé **à son ouverture** et pas avant.
 final teamPageProvider =
@@ -63,9 +64,14 @@ class TeamCustomPage extends ConsumerWidget {
             children: <Widget>[
               PdlTeamLine(label: page.team.name),
               const SizedBox(height: PdlSpacing.chipGap),
-              Text(page.title, style: context.pdlText.screenTitle),
+              Text(
+                page.title,
+                key: keys.team.customPageTitle,
+                style: context.pdlText.screenTitle,
+              ),
               const SizedBox(height: PdlSpacing.cardTight),
               MarkdownContent(
+                key: keys.team.customPageBody,
                 data: page.media.markdown,
                 images: page.media.assets.images,
               ),

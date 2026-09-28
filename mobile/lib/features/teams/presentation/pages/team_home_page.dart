@@ -59,6 +59,17 @@ class TeamHomePage extends ConsumerWidget {
       ).select((TeamMembershipState s) => s.team),
     );
 
+    // Un lien sous un **ancien slug** : l'API répond avec l'équipe sous son
+    // slug actuel. Tout ce qui est rendu dessous — le bouton d'adhésion de
+    // l'en-tête, le bandeau d'échec, les sections — lit ses providers par
+    // `team.slug`. La page passe donc elle aussi sur ce slug, pour qu'il n'y
+    // ait qu'un contrôleur d'adhésion : sinon l'en-tête en ouvrirait un second,
+    // encore en chargement, et proposerait « Sur invitation » à un membre.
+    final String? currentSlug = teamAsync.value?.slug;
+    if (currentSlug != null && currentSlug != teamSlug) {
+      return TeamHomePage(teamSlug: currentSlug, section: section);
+    }
+
     return teamAsync.when(
       data: (TeamDetailDto team) =>
           _TeamSectionScaffold(team: team, section: section),

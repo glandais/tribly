@@ -30,6 +30,7 @@ import '../widgets/trip_elevation.dart';
 import '../widgets/trip_map.dart';
 import '../widgets/trip_summary_card.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
+import '../../../../keys.dart';
 
 /// L'écran 24 — le voyage.
 ///
@@ -87,6 +88,16 @@ class _TripDetailContent extends ConsumerWidget {
     );
 
     return PdlScreenScaffold(
+      // Le détail est relu ; le contrôleur de participation l'adopte, et la
+      // page reste affichée pendant l'appel (`skipLoadingOnRefresh`). Un échec
+      // n'a pas à remonter jusqu'à l'indicateur : le détail passe en erreur et
+      // l'écran d'erreur, avec son « Réessayer », prend la place.
+      onRefresh: () async {
+        try {
+          ref.invalidate(tripDetailProvider(tripKey));
+          await ref.read(tripDetailProvider(tripKey).future);
+        } catch (_) {}
+      },
       appBar: PdlAppBar(
         // Pas de titre : le corps le porte déjà en 22/700, juste dessous,
         // avec sa ligne d'équipe et ses badges. Le répéter en 17 dans la
@@ -129,6 +140,7 @@ class _TripDetailContent extends ConsumerWidget {
         if (trip.isCancelled)
           SliverToBoxAdapter(
             child: PdlBanner(
+              key: keys.trip.cancelledBanner,
               tone: PdlBannerTone.danger,
               icon: PdlIcons.cancelled,
               title: 'trips.cancelledTitle'.tr(),
@@ -243,6 +255,7 @@ class _TripDetailContent extends ConsumerWidget {
       children: <Widget>[
         if (trip.registered)
           PdlButton(
+            key: keys.trip.leaveButton,
             label: 'trips.leave'.tr(),
             variant: PdlButtonVariant.outline,
             fullWidth: true,
@@ -252,6 +265,7 @@ class _TripDetailContent extends ConsumerWidget {
           )
         else
           PdlButton(
+            key: keys.trip.joinButton,
             label: 'trips.join'.tr(),
             fullWidth: true,
             loading: participation.pending,
@@ -321,6 +335,7 @@ class _TripDetailContent extends ConsumerWidget {
     final PdlColors c = context.pdl;
 
     return Padding(
+      key: keys.trip.participants,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -367,7 +382,7 @@ class _TripDetailContent extends ConsumerWidget {
             onTap: () => context.push(Paths.team(trip.team.slug)),
           ),
           const SizedBox(height: 2),
-          Text(trip.name, style: t.screenTitle),
+          Text(trip.name, key: keys.trip.title, style: t.screenTitle),
           const SizedBox(height: PdlSpacing.chipGap),
           Wrap(
             spacing: PdlSpacing.badgeGap,
@@ -375,6 +390,7 @@ class _TripDetailContent extends ConsumerWidget {
             children: <Widget>[
               if (trip.isPast && !trip.isCancelled)
                 PdlBadge(
+                  key: keys.trip.finishedBadge,
                   label: 'trips.finished'.tr(),
                   tone: PdlDerivedTones.done(c),
                 )
@@ -435,6 +451,7 @@ class _TripDetailContent extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: PdlSpacing.feedGap),
                 child: StageCard(
+                  key: keys.trip.stageCard(stage.slug),
                   stage: stage,
                   selected: stage.id == selected,
                   onSelect: () => select(stage.id),

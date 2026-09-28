@@ -15,6 +15,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/deleted_badge.dart';
 import '../../../posts/domain/post_neighbours.dart';
+import '../../../rides/providers/participation_changes.dart';
 
 /// Les quatre hauteurs de bandeau média de la charte, **partagées**.
 ///
@@ -256,6 +257,15 @@ class _RideBody extends ConsumerWidget {
     final PdlColors c = context.pdl;
     final DateTime? at = DateTime.tryParse(ride.dateTime)?.toLocal();
     final bool isPast = at != null && at.isBefore(DateTime.now());
+    // Une inscription faite dans l'app depuis le chargement du fil l'emporte
+    // sur la page chargée avant elle.
+    final bool registered =
+        ref.watch(
+          registrationOverridesProvider.select(
+            (Map<String, bool> m) => m[ride.id],
+          ),
+        ) ??
+        ride.registered;
 
     return _CardShell(
       onTap: () => context.push(Paths.ride(ride.team.slug, ride.slug)),
@@ -283,7 +293,7 @@ class _RideBody extends ConsumerWidget {
           PdlBadge(label: 'rides.finished'.tr(), tone: PdlDerivedTones.done(c)),
         // L'apport principal de la v2 sur les listes : savoir, sans ouvrir la
         // sortie, qu'on y est inscrit.
-        if (ride.registered)
+        if (registered)
           PdlBadge(
             label: 'rides.registered'.tr(),
             tone: PdlDerivedTones.registered(c),
@@ -387,6 +397,13 @@ class _TripBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final PdlColors c = context.pdl;
     final UnitSystem units = ref.watch(unitSystemProvider);
+    final bool registered =
+        ref.watch(
+          registrationOverridesProvider.select(
+            (Map<String, bool> m) => m[trip.id],
+          ),
+        ) ??
+        trip.registered;
     final DateTime? start = DateTime.tryParse(trip.dateTime)?.toLocal();
     final DateTime? end = trip.endDate == null
         ? null
@@ -407,7 +424,7 @@ class _TripBody extends ConsumerWidget {
           label: 'publicationType.trip'.tr(),
           tone: PublicationType.trip.tone(c),
         ),
-        if (trip.registered)
+        if (registered)
           PdlBadge(
             label: 'rides.registered'.tr(),
             tone: PdlDerivedTones.registered(c),

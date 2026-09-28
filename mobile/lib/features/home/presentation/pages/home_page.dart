@@ -17,6 +17,7 @@ import '../../providers/next_ride_provider.dart';
 import '../../providers/upcoming_provider.dart';
 import '../widgets/next_ride_card.dart';
 import '../widgets/upcoming_carousel.dart';
+import '../../../../keys.dart';
 
 /// L'accueil — « qu'est-ce que je fais à vélo cette semaine ? ».
 ///
@@ -136,8 +137,14 @@ class _NextRideSliver extends ConsumerWidget {
       data: (NextRide? value) => Padding(
         padding: const EdgeInsets.all(PdlSpacing.section),
         child: value == null
-            ? NoNextRideCard(onExplore: () => context.go(Paths.allRoutes()))
-            : NextRideCard(next: value),
+            ? NoNextRideCard(
+                key: keys.home.noNextRideCard,
+                onExplore: () => context.go(Paths.allRoutes()),
+              )
+            : NextRideCard(
+                key: keys.home.nextRideCard(value.ride.slug),
+                next: value,
+              ),
       ),
     );
   }

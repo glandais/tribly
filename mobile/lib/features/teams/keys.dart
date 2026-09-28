@@ -6,6 +6,17 @@ class _TeamsPageKey extends ValueKey<String> {
 
 class TeamsPageKeys {
   final discoverButton = const _TeamsPageKey('discoverButton');
+
+  /// La carte d'une équipe de « Mes équipes ».
+  ValueKey<String> teamCard(String teamSlug) =>
+      _TeamsPageKey('teamCard_$teamSlug');
+
+  /// « Vous avez des invitations en attente », en tête de la liste.
+  final pendingInvitationsCard = const _TeamsPageKey('pendingInvitations');
+
+  /// « Accepter », sur la ligne de l'invitation à [teamSlug].
+  ValueKey<String> invitationAcceptButton(String teamSlug) =>
+      _TeamsPageKey('invitationAccept_$teamSlug');
 }
 
 class _TeamsDiscoverKey extends ValueKey<String> {
@@ -28,4 +39,12 @@ class TeamPageKeys {
   final leaveButton = const _TeamPageKey('leaveButton');
   final inviteOnlyButton = const _TeamPageKey('inviteOnlyButton');
   final leaveConfirmButton = const _TeamPageKey('leaveConfirmButton');
+
+  /// La ligne d'une page libre, dans la section « À propos ».
+  ValueKey<String> aboutPageRow(String pageSlug) =>
+      _TeamPageKey('aboutPageRow_$pageSlug');
+
+  /// L'écran d'une page libre : son titre, son corps.
+  final customPageTitle = const _TeamPageKey('customPageTitle');
+  final customPageBody = const _TeamPageKey('customPageBody');
 }

@@ -10,6 +10,7 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../keys.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/participations_provider.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
@@ -180,7 +181,11 @@ class _MyParticipationsPageState extends ConsumerState<MyParticipationsPage> {
               const SizedBox(height: PdlSpacing.feedGap),
           itemBuilder: (BuildContext context, int index) {
             notifier.onItemBuilt(index);
-            return PublicationCard(publication: state.items[index]);
+            final PublicationDto item = state.items[index];
+            return KeyedSubtree(
+              key: keys.profile.participationCard(item.slug),
+              child: PublicationCard(publication: item),
+            );
           },
         ),
       ),

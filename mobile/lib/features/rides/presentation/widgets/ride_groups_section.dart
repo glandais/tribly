@@ -201,6 +201,7 @@ class _RideGroupsSectionState extends ConsumerState<RideGroupsSection> {
     }
 
     return PdlBanner(
+      key: keys.ride.registrationFailure,
       tone: PdlBannerTone.danger,
       title: title,
       message: failure.message,
