@@ -25,7 +25,7 @@ abstract class UsersClient {
 
   /// Download a personal data export.
   ///
-  /// Download a prepared data export archive using the token from the notification email.
+  /// Download a prepared data export archive using the token from the notification email. Only its owner, signed in, may download it.
   ///
   /// [token] - Download token from the notification email.
   @GET('/api/export/download/{token}')

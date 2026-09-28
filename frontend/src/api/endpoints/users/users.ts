@@ -47,7 +47,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 }
 
 /**
- * Download a prepared data export archive using the token from the notification email.
+ * Download a prepared data export archive using the token from the notification email. Only its owner, signed in, may download it.
  * @summary Download a personal data export
  */
 export const downloadDataExport = (
@@ -67,7 +67,7 @@ export const getDownloadDataExportQueryKey = (token: string) => {
 
 export const getDownloadDataExportQueryOptions = <
   TData = Awaited<ReturnType<typeof downloadDataExport>>,
-  TError = ErrorType<Blob>,
+  TError = ErrorType<void | Blob>,
 >(
   token: string,
   options?: {
@@ -95,11 +95,11 @@ export const getDownloadDataExportQueryOptions = <
 export type DownloadDataExportQueryResult = NonNullable<
   Awaited<ReturnType<typeof downloadDataExport>>
 >
-export type DownloadDataExportQueryError = ErrorType<Blob>
+export type DownloadDataExportQueryError = ErrorType<void | Blob>
 
 export function useDownloadDataExport<
   TData = Awaited<ReturnType<typeof downloadDataExport>>,
-  TError = ErrorType<Blob>,
+  TError = ErrorType<void | Blob>,
 >(
   token: string,
   options: {
@@ -118,7 +118,7 @@ export function useDownloadDataExport<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDownloadDataExport<
   TData = Awaited<ReturnType<typeof downloadDataExport>>,
-  TError = ErrorType<Blob>,
+  TError = ErrorType<void | Blob>,
 >(
   token: string,
   options?: {
@@ -139,7 +139,7 @@ export function useDownloadDataExport<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDownloadDataExport<
   TData = Awaited<ReturnType<typeof downloadDataExport>>,
-  TError = ErrorType<Blob>,
+  TError = ErrorType<void | Blob>,
 >(
   token: string,
   options?: {
@@ -154,7 +154,7 @@ export function useDownloadDataExport<
 
 export function useDownloadDataExport<
   TData = Awaited<ReturnType<typeof downloadDataExport>>,
-  TError = ErrorType<Blob>,
+  TError = ErrorType<void | Blob>,
 >(
   token: string,
   options?: {
@@ -177,7 +177,7 @@ export function useDownloadDataExport<
  */
 export const prefetchDownloadDataExportQuery = async <
   TData = Awaited<ReturnType<typeof downloadDataExport>>,
-  TError = ErrorType<Blob>,
+  TError = ErrorType<void | Blob>,
 >(
   queryClient: QueryClient,
   token: string,

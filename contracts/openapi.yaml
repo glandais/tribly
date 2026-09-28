@@ -7995,8 +7995,8 @@ paths:
   /api/export/download/{token}:
     get:
       summary: Download a personal data export
-      description: Download a prepared data export archive using the token from the
-        notification email.
+      description: "Download a prepared data export archive using the token from the\
+        \ notification email. Only its owner, signed in, may download it."
       operationId: downloadDataExport
       tags:
       - Users
@@ -8012,6 +8012,8 @@ paths:
           description: The export archive
           content:
             application/zip: {}
+        "303":
+          description: "No session: sent to sign in first"
         "404":
           description: "Unknown, expired or already-purged export"
           content:
@@ -15718,7 +15720,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 5.0.0
+  version: 5.1.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

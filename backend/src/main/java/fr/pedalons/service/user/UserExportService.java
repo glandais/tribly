@@ -25,6 +25,9 @@ import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -149,18 +152,33 @@ public class UserExportService {
   }
 
   /**
-   * Resolves a download token to the stored archive.
-   *
-   * <p>Anonymous by design — the token in the emailed link is the credential. Every failure mode
-   * (unknown token, expired, wrong domain, deleted user) returns the same 404, so the endpoint says
-   * nothing about which one it was.
+   * Where to send a visitor who opened a download link without a session: the sign-in page, which
+   * brings them back to the link once signed in. Null when there is a session.
    */
   @Public
+  public @Nullable URI signInFirst(String token) {
+    if (pedalonsContext.getUserNullable() != null) {
+      return null;
+    }
+    String next = URLEncoder.encode("/api/export/download/" + token, StandardCharsets.UTF_8);
+    return URI.create(domainResolver.getEffectiveBaseUrl() + "/login?next=" + next);
+  }
+
+  /**
+   * Resolves a download token to the stored archive, for its owner only.
+   *
+   * <p>Two factors: the token in the emailed link proves the mailbox, the session proves the
+   * account — a forwarded or leaked link is worth nothing to anyone else. Every failure mode
+   * (unknown token, expired, wrong domain, deleted user, someone else's export) returns the same
+   * 404, so the endpoint says nothing about which one it was.
+   */
+  @Logged
   @Transactional
   public DownloadableExport download(String token) {
     UserExport export =
         userExportRepository
             .findDownloadableByTokenHash(domainResolver.getDomainId(), TokenUtils.hashToken(token))
+            .filter(found -> found.getUser().getId().equals(pedalonsContext.getUserId()))
             .orElseThrow(NotFoundException::new);
 
     Instant expiresAt = export.getExpiresAt();

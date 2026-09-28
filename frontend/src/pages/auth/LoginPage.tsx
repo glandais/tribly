@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation, Trans } from 'react-i18next'
@@ -33,6 +33,14 @@ import { OtpLogin } from './OtpLogin'
 
 type Mode = 'login' | 'register' | 'otp'
 
+/** A same-origin absolute path, or null: never `//host` nor a full URL, so no open redirect. */
+function safeNextPath(value: string | null): string | null {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
+    return null
+  }
+  return value
+}
+
 export function LoginPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -42,9 +50,21 @@ export function LoginPage() {
   const { setAccessToken, setUser } = useAuthStore()
 
   const fromLocation = location.state?.from
-  const redirectTo = fromLocation
-    ? `${fromLocation.pathname}${fromLocation.search || ''}`
-    : paths.home()
+  // `?next=` comes from a link that is not a page of the app — the backend sends a visitor without
+  // a session there from a download link (a data export). Same-origin paths only.
+  const next = safeNextPath(new URLSearchParams(location.search).get('next'))
+  const redirectTo =
+    next ?? (fromLocation ? `${fromLocation.pathname}${fromLocation.search || ''}` : paths.home())
+  const leaving = useRef(false)
+  const goToRedirect = useCallback(() => {
+    // An API path is not a route: the browser has to load it, carrying the session cookie.
+    if (redirectTo.startsWith('/api/')) {
+      if (!leaving.current) window.location.assign(redirectTo)
+      leaving.current = true
+    } else {
+      navigate(redirectTo)
+    }
+  }, [navigate, redirectTo])
 
   const [mode, setMode] = useState<Mode>('login')
   const [isLoading, setIsLoading] = useState(false)
@@ -89,9 +109,9 @@ export function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(redirectTo)
+      goToRedirect()
     }
-  }, [isAuthenticated, navigate, redirectTo])
+  }, [isAuthenticated, goToRedirect])
 
   const handlePasskeyLogin = async () => {
     setIsLoading(true)
@@ -121,7 +141,7 @@ export function LoginPage() {
         const data = await authResponse.json()
         setAccessToken(data.accessToken)
         setUser(data.user)
-        navigate(redirectTo)
+        goToRedirect()
       } else {
         notifications.show({ message: t('auth.errors.passkeyFailed'), color: 'red' })
       }
@@ -138,7 +158,7 @@ export function LoginPage() {
   const completeLogin = (data: AuthResponse) => {
     if (data.accessToken) setAccessToken(data.accessToken)
     if (data.user) setUser(data.user)
-    navigate(redirectTo)
+    goToRedirect()
   }
 
   const handleLogin = async (values: { email: string; password: string }) => {

@@ -1,7 +1,7 @@
 import * as zod from 'zod'
 
 /**
- * Download a prepared data export archive using the token from the notification email.
+ * Download a prepared data export archive using the token from the notification email. Only its owner, signed in, may download it.
  * @summary Download a personal data export
  */
 export const DownloadDataExportParams = zod.object({

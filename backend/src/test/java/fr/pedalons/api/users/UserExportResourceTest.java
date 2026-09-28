@@ -182,11 +182,13 @@ class UserExportResourceTest extends AbstractResourceTest {
   // ----------------------------------------------------------------- download
 
   @Test
-  void download_withAValidToken_shouldReturnTheArchive() {
+  void download_withAValidTokenAndTheOwnersSession_shouldReturnTheArchive() {
     String token = readyExportWithToken(domain, user1, "zip-bytes");
 
+    // A link opened from an email client: a browser navigation, with the session cookie.
     byte[] body =
         given()
+            .cookie("refresh_token", dataService.createRefreshTokenForUser(user1))
             .when()
             .get("/api/export/download/" + token)
             .then()
@@ -199,8 +201,42 @@ class UserExportResourceTest extends AbstractResourceTest {
   }
 
   @Test
+  void download_withoutASession_shouldSendToSignInAndBack() {
+    String token = readyExportWithToken(domain, user1, "zip-bytes");
+
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/api/export/download/" + token)
+        .then()
+        .statusCode(303)
+        .header("Location", containsString("/login?next=%2Fapi%2Fexport%2Fdownload%2F" + token));
+  }
+
+  /** A forwarded or leaked link: the token alone opens nothing, even to a signed-in member. */
+  @Test
+  void download_bySomeoneElse_shouldReturn404() {
+    String token = readyExportWithToken(domain, user1, "zip-bytes");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .when()
+        .get("/api/export/download/" + token)
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
   void download_withAGarbageToken_shouldReturn404() {
-    given().when().get("/api/export/download/not-a-real-token").then().statusCode(404);
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/export/download/not-a-real-token")
+        .then()
+        .statusCode(404);
   }
 
   /**
@@ -213,9 +249,13 @@ class UserExportResourceTest extends AbstractResourceTest {
 
     Domain other = dataService.createDomain("other.localhost", "Other", "http://other.localhost");
     assertNotNull(other);
+    // Signed in there, under the same address.
+    User sameAddress = dataService.createUser(other, EMAIL1, "Same address");
 
     given()
         .header("X-Forwarded-Host", "other.localhost")
+        .auth()
+        .oauth2(jwtService.generateAccessToken(sameAddress))
         .when()
         .get("/api/export/download/" + token)
         .then()
@@ -230,7 +270,13 @@ class UserExportResourceTest extends AbstractResourceTest {
     export.setExpiresAt(Instant.now().minus(1, ChronoUnit.DAYS));
     dataService.updateUserExport(export);
 
-    given().when().get("/api/export/download/" + token).then().statusCode(404);
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/export/download/" + token)
+        .then()
+        .statusCode(404);
   }
 
   @Test
@@ -242,7 +288,13 @@ class UserExportResourceTest extends AbstractResourceTest {
     dataService.updateUserExport(export);
     userExportService.purgeExpired();
 
-    given().when().get("/api/export/download/" + token).then().statusCode(404);
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/export/download/" + token)
+        .then()
+        .statusCode(404);
   }
 
   /** Stores an archive and a READY row pointing at it, and returns the plaintext download token. */

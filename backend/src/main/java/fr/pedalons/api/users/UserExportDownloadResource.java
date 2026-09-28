@@ -10,6 +10,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import java.net.URI;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -21,9 +22,10 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 /**
  * Download endpoint for a completed GDPR data export.
  *
- * <p>{@code @PermitAll} on purpose: the link is opened straight from an email client, which carries
- * no session. The unguessable token <em>is</em> the credential — it is 32 random bytes, stored only
- * as a SHA-256 digest, scoped to the domain it was issued on, and it expires.
+ * <p>Only its owner, signed in, downloads it: the emailed token proves the mailbox, the session the
+ * account. {@code @PermitAll} only because the link is opened straight from an email client — a
+ * browser navigation, which carries the session cookie but no bearer. A visitor without a session
+ * is sent to sign in and brought back.
  */
 @Path("/api/export")
 @Tag(name = "Users", description = "User profile management operations")
@@ -39,9 +41,11 @@ public class UserExportDownloadResource {
       operationId = "downloadDataExport",
       summary = "Download a personal data export",
       description =
-          "Download a prepared data export archive using the token from the notification email.")
+          "Download a prepared data export archive using the token from the notification email."
+              + " Only its owner, signed in, may download it.")
   @APIResponses({
     @APIResponse(responseCode = "200", description = "The export archive"),
+    @APIResponse(responseCode = "303", description = "No session: sent to sign in first"),
     @APIResponse(
         responseCode = "404",
         description = "Unknown, expired or already-purged export",
@@ -51,6 +55,10 @@ public class UserExportDownloadResource {
       @Parameter(description = "Download token from the notification email", required = true)
           @PathParam("token")
           String token) {
+    URI signIn = userExportService.signInFirst(token);
+    if (signIn != null) {
+      return Response.seeOther(signIn).build();
+    }
     DownloadableExport export = userExportService.download(token);
 
     Response.ResponseBuilder response =
