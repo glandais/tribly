@@ -53,7 +53,7 @@ admin, edit, and transient utility routes carry no `meta` and unfurl with site-w
 
 | Page | `og:type` | Image (first available wins) |
 |---|---|---|
-| home / teams list | `website` | default |
+| home / teams list / apps (`/applications`) | `website` | default |
 | team detail / about | `website` | team logo → first team image → default |
 | team page | `article` | page image → team logo → default |
 | post | `article` | first post image → team logo → default |

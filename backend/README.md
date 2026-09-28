@@ -25,7 +25,7 @@ Quarkus REST API backend for the Pedalons cycling team management platform.
 
 The backing services live in the repository-root stack — `docker-compose.yml` plus the workstation
 overlay `docker-compose.local.yml`, which is what publishes the loopback ports below. See
-[Development Setup](../README.md#development-setup) for the `.env` a workstation needs.
+[Quick Start](../README.md#quick-start) for the `.env` a workstation needs.
 
 ```bash
 cd .. && docker compose up -d
@@ -58,28 +58,17 @@ The API is available at http://localhost:8080/api with Swagger UI at http://loca
 
 Quarkus dev mode provides live reload — code changes are reflected automatically on the next request.
 
-### 3. Create a domain
+### 3. The default domain
 
-The platform is multi-tenant by HTTP domain. You need at least one domain entry to use the app.
+The platform is multi-tenant by HTTP domain, and there is nothing to create by hand: on startup the
+`%dev` profile bootstraps the `localhost` domain (base URL `https://localhost:5173`) and a platform
+admin (see `BootstrapService` and `pedalons.bootstrap.*` in `application.properties`). The admin has
+no password — first login is by OTP (read the code in Mailpit, http://localhost:8025) or passkey.
 
-Open a `psql` prompt on the database started by `docker compose up -d`:
-
-```bash
-docker exec -it pedalons-dev-postgres psql -U pedalons -d pedalons
-```
-
-```sql
-INSERT INTO domains (id, domain, name, base_url, single_team, active, deleted, created_at, updated_at, version)
-VALUES (
-    (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT * 1000000 + (RANDOM() * 999999)::INT,
-    'localhost',
-    'Pedalons Dev',
-    'http://localhost:5173',
-    false, true, false, NOW(), NOW(), 0
-);
-```
-
-`id` is a TSID generated inline, not a sequence. When hand-writing UPDATEs against entity tables, also bump `version` and set `updated_at = NOW()` — Hibernate uses `version` for optimistic locking. The deployed stack uses a different container (`pedalons-postgres`) with credentials from `.env`; see [Running SQL](../README.md#running-sql) in the root README.
+Browsing through another hostname — a LAN IP, say — needs its own `domains` row: see
+[Default domain and platform admin](../README.md#default-domain-and-platform-admin) in the root
+README, and [Running SQL](../README.md#running-sql) for the psql prompt (the container is
+`${ENV_NAME}-postgres`) and the rules for hand-written UPDATEs (`version`, `updated_at`).
 
 ## Commands
 
@@ -96,7 +85,7 @@ mvn package -DskipTests                                # Build + generate OpenAP
 ### Code Coverage
 
 ```bash
-mvn test
+mvn test -Dcoverage=true -Dsurefire.forkCount=1   # instrumentation is opt-in
 # Reports generated in target/jacoco-report/ (csv, xml, html)
 
 ./scripts/coverage-report.sh                              # All classes, sorted by coverage
@@ -107,12 +96,12 @@ mvn test
 ## Project Structure
 
 ```
-src/main/java/com/pedalons/
+src/main/java/fr/pedalons/
 ├── api/               # REST resources organized by domain
 │   ├── admin/         #   Platform admin endpoints
 │   ├── auth/          #   Login, passkeys, OTP
 │   ├── device/        #   Device code flow (Karoo, Garmin)
-│   └── ...            #   rides, routes, posts, trips, teams, etc.
+│   └── ...            #   rides, routes, posts, trips, teams, ads, notifications, moderation, etc.
 ├── common/            # TsidUtils, custom exceptions, ErrorCode
 ├── domain/            # JPA entities
 │   ├── common/        #   BaseEntity, TeamEntity, Publication
@@ -128,8 +117,10 @@ src/main/java/com/pedalons/
 
 src/main/resources/
 ├── application.properties    # Configuration (dev/test/prod profiles)
-├── db/migration/             # Flyway migrations (V1–V5)
-└── keys/                     # JWT key pair (dev only)
+├── db/migration/             # Flyway migrations (V1__…, V2__…, one file per version)
+└── templates/                # Qute templates (emails)
+
+keys/                         # JWT key pair for dev and test (backend/keys/, generate-keys.sh)
 ```
 
 ## API Domains
@@ -140,10 +131,16 @@ The API covers these functional areas:
 |--------|-----------|-------------|
 | Auth | AuthResource, PasskeyResource | Login (password, OTP, passkeys), token refresh |
 | Teams | TeamResource, TeamMemberResource | Team CRUD, member management, roles |
+| Invitations | TeamInvitationResource, InvitationResource, UserInvitationResource | Team invitations |
+| Webhooks | TeamWebhookResource | Team outgoing webhooks |
+| Users | UserResource, UserBlockResource, UserExportDownloadResource | Profile, blocking, data export |
 | Rides | RideResource, RideTemplateResource | Scheduled group rides with participation |
 | Routes | RouteResource, AllRouteResource | GPX routes with tracks, waypoints, elevation |
 | Posts | PostResource | Team blog posts |
 | Trips | TripResource | Multi-day trips with stages |
+| Publications | PublicationResource, TeamPublicationResource | Cross-type publication feeds |
+| Pages | TeamPageResource | Team pages |
+| Ads | AdResource | Classified ads (blurred position, e-mail relay) |
 | Comments | Post/Ride/Route/TripCommentResource | Comments on any entity |
 | Assets | AssetResource, Download*Resource | File uploads (images, GPX) via S3 |
 | Places | PlaceResource | Named locations |
@@ -153,6 +150,11 @@ The API covers these functional areas:
 | Admin | Admin*Resource | Platform admin (domains, teams, users) |
 | Config | ConfigResource | Frontend app configuration |
 | Router | RouterResource | valhalla proxy for route computation |
+| Tiles | TileTokenResource | Short-lived tokens for vector tiles |
+| Notifications | NotificationResource, PushDeviceResource | In-app notifications, push device registration |
+| Moderation | ReportResource, TeamReportResource | Content reports |
+| Feedback | FeedbackResource | In-app feedback |
+| Migration | BiketeamMigration*Resource | Biketeam → Pédalons migration (see MIGRATE_BIKETEAM.md) |
 
 ## Configuration
 
@@ -172,6 +174,13 @@ A stack with its own `POSTGRES_*` / `MINIO_*` values needs `source ../scripts/de
 | `VALHALLA_URL` | Route engine |
 | `ENCRYPTION_KEY` | Token encryption (base64-encoded 32-byte key) |
 | `TILESERVER_URL` | Tile server for map thumbnails |
+| `QUARKUS_MAILER_*` | SMTP relay (Scaleway TEM on a server, Mailpit on a workstation) |
+| `PEDALONS_BOOTSTRAP_*` | Default domain and platform admin created on startup |
+| `FCM_PROJECT_ID`, `FCM_CREDENTIALS`, `FCM_WEB_*` | Push notifications (service account defaults to `/mnt/keys/fcm-service-account.json`) |
+
+The JWT key pair is read from `/mnt/keys` (`data/keys` mounted by `docker-compose.yml`). The
+complete, commented list is `../.env.example`; the deployment itself is described in
+[docs/operations.md](../docs/operations.md).
 
 ## Contract-First Workflow
 

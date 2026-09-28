@@ -10,7 +10,7 @@ Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX
 - **Karoo**: Kotlin, Jetpack Compose, ktor-client-karoo
 - **Garmin**: Monkey C, Connect IQ SDK
 - **API**: OpenAPI 3.1 contract-driven development
-- **Testing**: JUnit 5, REST Assured, Vitest
+- **Testing**: JUnit 5, REST Assured, Vitest, Playwright (web e2e), Patrol (mobile e2e)
 
 ## Quick Start
 
@@ -36,7 +36,7 @@ cp .env.example .env
 There is **one** `.env`, never committed, and one template for both uses. Compose reads it, and
 `docker-compose.yml` hands the whole file to the backend container through `env_file` — which is why
 anything that has no business inside the application has no business in it either (the `BACKUP_*`
-settings live in `/root/pedalons-backup.env` instead, see [Backup and restore](#backup-and-restore)).
+settings live in `/root/pedalons-backup.env` instead, see [Backup and restore](docs/operations.md#backup-and-restore)).
 
 A workstation and a deployment differ in five keys, and only those:
 
@@ -78,6 +78,12 @@ rebuild of several hours.
 
 ### 2. Install and configure mkcert
 
+Vite serves HTTPS only when it finds `frontend/localhost+2.pem` and `frontend/localhost+2-key.pem`,
+and falls back to plain HTTP otherwise. The `%dev` bootstrap domain's base URL is
+`https://localhost:5173`, which is both the WebAuthn origin of dev passkeys and the prefix of the
+links sent by email: skip the certificates and the site still loads, but passkeys and emailed links
+don't work against it.
+
 ```bash
 # Windows (chocolatey)
 choco install mkcert
@@ -99,8 +105,9 @@ Generate certificates in the frontend folder:
 
 ```bash
 cd frontend
-mkcert localhost 127.0.0.1 192.168.50.20
-# Creates localhost+2.pem and localhost+2-key.pem
+mkcert localhost 127.0.0.1 <your LAN IP>
+# Creates localhost+2.pem and localhost+2-key.pem — Vite looks for exactly these names,
+# so pass three hosts (the LAN IP is what a phone or the Garmin simulator browses with)
 ```
 
 
@@ -130,7 +137,7 @@ images — see [Running the full stack locally](#running-the-full-stack-locally)
 ```bash
 cd backend
 source ../scripts/dev-env.sh   # postgres + MinIO credentials, from the same .env the stack reads
-./mvnw quarkus:dev
+mvn quarkus:dev
 ```
 
 `dev-env.sh` exports those five values and nothing else — on purpose. Quarkus reads environment
@@ -216,59 +223,26 @@ echo 'VITE_API_TARGET=http://localhost:8080' >> frontend/.env
 
 ```
 tribly/
-├── backend/          # Quarkus backend (Java 25) — also holds the dev-services compose
-├── frontend/         # React 19 SPA (Mantine UI)
+├── backend/          # Quarkus backend (Java 25)
+├── frontend/         # React 19 + Mantine UI, server-side rendered (see frontend/SSR.md)
 ├── mobile/           # Flutter mobile app (iOS/Android)
 ├── karoo/            # Hammerhead Karoo extension (Kotlin/Compose)
 ├── garmin-app/       # Garmin Connect IQ app (Monkey C)
-├── contracts/        # OpenAPI specifications
-├── services/         # Docker service configs (valhalla, Varnish)
-├── scripts/          # Utility scripts
-├── data/             # Runtime data (segments, tileserver, keys)
+├── contracts/        # OpenAPI specification and UI routes (routes.yaml)
+├── services/         # Docker service configs (Varnish)
+├── scripts/          # Utility scripts (backup/restore, e2e, route generation, SSR audit)
+├── docs/             # Plans, roadmap (NEXT.md) and the operations runbook
+├── privacy/          # Privacy policy, terms and support pages (served by the site, bundled in the app)
+├── assets/           # Logo and icon sources (see BRANDING.md)
+├── data/             # Runtime data (keys, storage, cache, valhalla, tileserver)
 ├── docker-compose.yml         # One deployed environment (prod, staging, ...)
 ├── docker-compose.local.yml   # Workstation overlay: mailpit, the shared services, the
 │                              #   loopback ports dev mode needs. Never deployed
+├── docker-compose.e2e.yml     # End-to-end test stack (scripts/e2e.sh, .env.e2e)
 └── docker-compose.shared.yml  # Services shared by every environment on the host
 ```
 
-## Deployment
-
-A host runs **one shared stack** plus **one stack per environment**, each from its own checkout
-(`~/shared`, `~/prod`, `~/staging`) with its own `.env`. Caddy terminates TLS on the host and
-reverse-proxies each hostname to that environment's traefik, published on loopback only
-(`HTTP_PORT`: 8090 for prod, 8089 for staging).
-
-`docker-compose.shared.yml` holds the services that carry no application data and are read-only:
-`valhalla` (17 GB of OSM routing tiles) and `tileserver` (server-side raster rendering, ~1.8 GB
-resident). One instance serves every environment. It owns the `pedalons-shared` Docker network.
-
-`docker-compose.yml` holds everything that must stay isolated per environment: traefik, backend,
-frontend, postgres, minio, imgproxy and varnish. Its `backend` also joins `pedalons-shared` to reach
-the two shared services — under the same hostnames as before, since `valhalla` and `tileserver` are
-their compose service names.
-
-Start the shared stack **first**: `pedalons-shared` is declared `external` in `docker-compose.yml`, so
-an environment fails to come up until it exists.
-
-```bash
-# once per host
-cd ~/shared && docker compose -f docker-compose.shared.yml up -d
-
-# then each environment
-cd ~/prod && ./build.sh && docker compose up -d --remove-orphans
-```
-
-Two services stay per-environment on purpose, even though they look shareable:
-
-- **imgproxy/varnish** — imgproxy only takes a single global `IMGPROXY_S3_ENDPOINT`, so one instance
-  cannot serve two MinIO backends. They become shareable if and when MinIO is shared.
-- **the gpx2web cache** (`DATA_CACHE_PATH`) — since gpx2web 1.5.1 map tiles are written then renamed,
-  and only on a 2xx, but the elevation tiles next to them were not reviewed and the downloads are
-  guarded only by an in-JVM lock: don't share the directory between backends. Keep it at
-  `/mnt/cache`: pointed at `/tmp` it lives inside the container and is re-downloaded in full on every
-  restart.
-
-### Running the full stack locally
+## Running the full stack locally
 
 The same `docker-compose.yml`, on a workstation — for testing a build. Two things must differ from a deployment,
 and both live in the local `.env`:
@@ -279,9 +253,8 @@ COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml
 QUARKUS_MAILER_HOST=mailpit       # + the rest of the block in .env.example
 ```
 
-**`ENV_NAME` names the stack** — the containers, the network, the image tags `build.sh` produces,
-and the `${ENV_NAME}-minio` that `backup.sh` inspects. A local stack called `…-prod` is
-indistinguishable from the real one in `docker ps` and to the backup scripts.
+**`ENV_NAME` names the stack**: keep it `tribly-local` — why is in
+[the `.env` section](#the-env-on-a-workstation-and-on-a-server).
 
 **A local stack must not be able to send mail.** The containers run the `%prod` Quarkus profile
 wherever they run, and its only way out for mail is the SMTP relay named by `QUARKUS_MAILER_*` —
@@ -309,268 +282,16 @@ cd ~/code/tribly && ./build.sh && docker compose --profile app up -d
 the backing services alone, which is what [dev mode](#3-start-infrastructure) wants. Put
 `COMPOSE_PROFILES=app` in the `.env` if this machine mostly runs the full stack.
 
-### Redacting credentials from access logs
+## Deployment and operations
 
-Two endpoints carry a credential in the query string, because their client fetches them outside the
-authenticated HTTP stack and cannot set a header:
+A host runs one shared stack (`docker-compose.shared.yml`: valhalla and tileserver, on the
+`pedalons-shared` network) plus one `docker-compose.yml` stack per environment, behind Caddy.
+Production is backed up nightly by `scripts/backup.sh` over a restricted `rrsync` channel, and
+`scripts/restore.sh` brings an environment back from a snapshot.
 
-- `?t=` on `/api/…/tiles/{z}/{x}/{y}.mvt` — the tile token, ~15 min (see `TileTokenService`). MapLibre
-  fetches tiles itself, so this repeats on every tile: dozens of log lines per map session.
-- `?token=` on the ICS calendar feed — this one does **not** expire, so it matters more.
-
-Traefik and Caddy both log the full URI. Configure the host's Caddy access log to redact those two
-parameters. The short TTL is what makes historical tile-token lines inert, and it is the reason the
-TTL must never be raised to hours; the calendar token has no such protection.
-
-### Seeding the shared Valhalla data
-
-`~/shared/data/valhalla` is ~17 GB and takes hours to build from the `.osm.pbf`. On first start the
-container hashes the directory and skips the build if it matches — the log then says *"Jumping
-directly to the tile loading!"*, and anything mentioning a rebuild means the check failed. When an
-environment already holds a built copy, move it rather than rebuild: keep `france-latest.osm.pbf`,
-`valhalla_tiles.tar` and `file_hashes.txt` together, and note that `mv` cannot rename the
-root-owned subdirectories (`elevation_data`, `valhalla_tiles`) out of a user-owned parent — do that
-part from a root context:
-
-```bash
-docker run --rm -v /home/pedalons:/h alpine \
-  mv /h/staging/data/valhalla/elevation_data /h/shared/data/valhalla/
-```
-
-### Changing an environment's network topology
-
-Renaming or re-declaring a network makes compose (v5.3.1) drop the old one and create the new one
-*during* the run, then fail on `network X was found but has incorrect label
-com.docker.compose.network` — it labels the network with the map key but validates against the
-resolved name. The run aborts halfway and can leave a container attached to **no network**, which
-then fails with a misleading DNS error rather than an obvious one. So for any such change, do not
-rely on a single `up -d`:
-
-```bash
-docker compose down --remove-orphans   # never -v: it drops the postgres and minio volumes
-docker compose up -d
-```
-
-After an aborted run, check what a container is actually attached to before believing its logs:
-
-```bash
-docker inspect <container> --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
-docker compose up -d --force-recreate <service>
-```
-## Backup and restore
-
-`scripts/backup.sh` pushes one dated snapshot per run from a deployed environment to the backup
-host; `scripts/restore.sh` brings an environment back from one, on the same machine or a new one;
-`scripts/backup-prune.sh` expires old snapshots and runs **on the backup host**.
-
-Production is backed up nightly to `optiplex` over the WireGuard tunnel (`10.10.0.1` → `10.10.0.2`).
-
-### rsync is the only channel
-
-The receiving account's key is restricted to `command="rrsync <root>",restrict,from="10.10.0.1"`:
-it accepts an `rsync --server` invocation and refuses everything else, confined to one directory.
-A compromise of the production host therefore stops at its own backup tree — it cannot read the
-other backups on the host, and it cannot delete its own history. Three consequences run through the
-scripts, and none of them are incidental:
-
-- **the dumps are staged locally** (`/var/backups/pedalons/<env>`) before being pushed — there is no
-  remote `cat >`; the staging directory is removed at the end of the run;
-- **the previous snapshot is named explicitly** in `--link-dest`, because `rrsync` rejects any path
-  containing `..`;
-- **retention lives on the backup host** (`backup-prune.sh`, root's crontab there), not in the
-  backup script.
-
-### What a snapshot holds
-
-`<root>/<UTC timestamp>/`:
-
-| File | Contents | Why it matters |
-|------|----------|----------------|
-| `postgres.dump` | `pg_dump -Fc` of `$POSTGRES_DB` | Accounts, teams, rides, routes, posts |
-| `minio/` | The object store, verbatim | Photos, GPX files, avatars, previews |
-| `secrets.tar.gz` | `.env`, `data/keys` (JWT keys, FCM service account), `data/storage` | The JWT keys sign every session and passkey; the service account sends every push; `ENCRYPTION_KEY` decrypts the stored Karoo/Garmin tokens |
-| `MANIFEST` | Timestamp, env, git commit, image tags | Says which commit to rebuild before restoring |
-| `SHA256SUMS` | Checksums of the two archives | Verified by `restore.sh` before it destroys anything |
-| `COMPLETE` | Written last, after everything else landed | A dated directory without it is a failed run, not a backup — and the restricted key cannot delete it, so it has to be recognisable |
-
-Postgres is dumped **before** MinIO on purpose: `AssetService` uploads to S3 and only then persists
-the row, so a file landing mid-backup leaves an orphan object rather than a row pointing at a
-missing one. `pg_dump -Fc` is transactional, and MinIO renames objects into place, so neither needs
-the stack stopped.
-
-Unchanged MinIO objects are hard-linked to the previous snapshot (`rsync --link-dest`): each dated
-directory reads as a full copy but only costs its delta. Measured on production: a first snapshot
-takes ~60 s and 1.7 GB; the next takes ~18 s and near-zero disk.
-
-`.minio.sys/tmp/` is excluded: MinIO stages every write there, so rsync catches files mid-flight and
-fails the run with exit 23. The rest of `.minio.sys` is *not* excluded — without `format.json` MinIO
-does not recognise its own data. A run that still trips 23/24 (an upload landing during the backup)
-gets one more rsync pass before it is called failed.
-
-**Not** in a snapshot, and to be rebuilt by hand: the Docker images (`./build.sh` at the MANIFEST's
-commit), `data/cache` (regenerable, just slow), and the shared valhalla/tileserver data (below).
-
-### Configuration
-
-`BACKUP_*` lives in **`/root/pedalons-backup.env`**, not in `.env`: compose hands the whole `.env`
-to the backend container (`env_file`), so the destination, the key path and the Healthchecks URL
-would end up inside the application — and inside the backup of it. Override the location with
-`BACKUP_ENV_FILE`.
-
-```bash
-BACKUP_REMOTE=pedalonsbackup@10.10.0.2
-BACKUP_REMOTE_PATH=/                     # relative to the rrsync root
-BACKUP_SSH_KEY=/root/.ssh/id_pedalons_backup
-BACKUP_KEEP=30
-BACKUP_PING_URL=https://hc-ping.com/<uuid>
-```
-
-Reading the minio volume needs root, so the backup runs from root's crontab:
-
-```
-15 3 * * * cd /home/pedalons/prod && ./scripts/backup.sh >> /var/log/backup/pedalons-backup.log 2>&1
-```
-
-and on the backup host, after it — the checkout is refreshed in the same line, so the repository
-stays the single source of truth instead of a copy that quietly drifts:
-
-```
-30 4 * * * cd /opt/pedalons-scripts && { git fetch -q --depth 1 origin develop && git reset -q --hard FETCH_HEAD ; } ; ./scripts/backup-prune.sh /home/backup-pedalons 30 >> /var/log/backup/pedalons-backup-prune.log 2>&1
-```
-
-`;` rather than `&&` between the two: a failed fetch must not skip the night's pruning, it just runs
-the last version that landed. The checkout is read-only, shallow and sparse (5 MB, `scripts/` only):
-
-```bash
-git clone --depth 1 --single-branch --branch develop --no-checkout \
-  https://github.com/glandais/tribly.git /opt/pedalons-scripts
-cd /opt/pedalons-scripts && git sparse-checkout set --no-cone scripts && git checkout develop
-```
-
-The obvious shortcut — having `backup.sh` push the prune script along with the snapshot, the way
-`backup.ns3085825` copies itself into its own backup — is a trap **here**: root's crontab on the
-backup host would then execute a file the production host can overwrite, so a compromised production
-host would get root execution on the backup host at 04:30. That is exactly what the `rrsync`
-confinement exists to prevent. Pulling from the repository keeps the trust in git, where the
-deployment already places it.
-
-Both write into `/var/log/backup/`, which `scripts/pedalons-backup.logrotate` rotates daily and keeps
-for 30 days — the same directory, glob and settings the backup host already uses for its other
-backup logs, so one rule covers every machine:
-
-```bash
-mkdir -p /var/log/backup
-install -m 644 scripts/pedalons-backup.logrotate /etc/logrotate.d/backup
-logrotate -d /etc/logrotate.d/backup     # dry run
-```
-
-The scripts run with `BatchMode=yes` and never prompt, so an untrusted host key fails the run with a
-bare `Host key verification failed`. Trust it once, as the user cron runs as.
-
-`BACKUP_PING_URL` gets `/start` before the run and `/fail` (with the run log as the body) on error:
-a backup nobody watches stops existing the day it starts failing.
-
-### Setting up a new receiving account
-
-On the backup host, as root — the model is `nsbackup` in `backup.ns3085825`:
-
-```bash
-adduser --system --group --home /home/pedalonsbackup --shell /bin/bash pedalonsbackup
-mkdir -p /home/pedalonsbackup/.ssh /home/backup-pedalons
-echo 'from="10.10.0.1",restrict,command="rrsync /home/backup-pedalons" ssh-ed25519 AAAA... backup-pedalons-prod' \
-  > /home/pedalonsbackup/.ssh/authorized_keys
-chown -R pedalonsbackup:pedalonsbackup /home/pedalonsbackup /home/backup-pedalons
-chmod 700 /home/pedalonsbackup/.ssh && chmod 600 /home/pedalonsbackup/.ssh/authorized_keys
-chmod 750 /home/backup-pedalons
-```
-
-Check the restriction actually bites — this must fail:
-
-```bash
-ssh -i /root/.ssh/id_pedalons_backup pedalonsbackup@10.10.0.2 'ls /'
-# /usr/bin/rrsync error: SSH_ORIGINAL_COMMAND does not run rsync
-```
-
-### Restoring
-
-```bash
-scripts/restore.sh --list                    # complete snapshots, and failed runs marked as such
-scripts/restore.sh                           # restore the newest complete one (asks to confirm)
-scripts/restore.sh --snapshot 2026-07-24T031500Z
-```
-
-The restore pulls the snapshot to a local directory and verifies its checksums **before** touching
-anything, then runs `docker compose down -v` — it drops the current postgres and minio volumes and
-repopulates them. It refuses a snapshot with no `COMPLETE` marker, and refuses one from another
-`ENV_NAME` unless `--force`.
-
-It needs only `rsync` and `docker`, no root: objects go back through `docker cp`, which also hands
-them to the container as `root:root` — the user MinIO runs as. Writing into
-`/var/lib/docker/volumes` directly would stamp them with the restoring account's uid.
-
-On a **new host**, the order matters — you need `.env` before anything else can read its own config:
-
-```bash
-git clone <repo> ~/prod && cd ~/prod
-
-# 1. secrets first: no .env yet, so pass the coordinates in the environment
-BACKUP_REMOTE=pedalonsbackup@10.10.0.2 BACKUP_REMOTE_PATH=/ \
-BACKUP_SSH_KEY=/root/.ssh/id_pedalons_backup \
-  scripts/restore.sh --secrets-only
-
-# 2. the shared stack (see Deployment), then the images
-cd ~/shared && docker compose -f docker-compose.shared.yml up -d
-cd ~/prod && ./build.sh            # at the commit recorded in MANIFEST
-
-# 3. the data
-scripts/restore.sh
-```
-
-The script ends by printing row counts, the object count and the status of `GET /api/config`. The
-last check is manual and the one that matters: open the site and confirm an existing photo renders —
-that path goes MinIO → imgproxy → varnish, so it proves the objects came back, not just the rows.
-
-Flyway replays any migration newer than the dump on the next boot, so restoring an old snapshot
-under a recent image works; the reverse does not, which is why the MANIFEST records the commit. An
-image older than the snapshot fails at boot, in a crash loop, with:
-
-```
-FlywayValidateException: Detected applied migration not resolved locally: 26.
-```
-
-The restore itself succeeded in that case — the data is in place and the script correctly refuses to
-report success, since `/api/config` never answers 200. Rebuild at the MANIFEST's commit
-(`./build.sh`) and `docker compose up -d`; nothing needs to be restored again.
-
-#### Restore drill from another machine
-
-The restricted key only allows the production host in (`from=`), so a drill elsewhere reads the same
-store through an ordinary SSH account on the backup host — `BACKUP_REMOTE_PATH` is then the real
-path instead of `/`. `--force` is what lets a `pedalons-prod` snapshot land in a differently-named
-local environment:
-
-```bash
-cat > /tmp/drill.env <<'EOF'
-BACKUP_REMOTE=root@192.168.50.95
-BACKUP_REMOTE_PATH=/home/backup-pedalons
-EOF
-BACKUP_ENV_FILE=/tmp/drill.env scripts/restore.sh --force
-```
-
-### Cold backup of the shared stack
-
-`~/shared/data/valhalla` is ~17 GB and takes hours to rebuild from the `.osm.pbf`. It carries no
-application data, so it stays out of the nightly backup — but copying it **once** (and again
-whenever the OSM extract changes) turns a multi-hour restore into an `rsync`:
-
-```bash
-rsync -a ~/shared/data/valhalla/{france-latest.osm.pbf,valhalla_tiles.tar,file_hashes.txt} \
-      ~/shared/data/valhalla/elevation_data \
-      backup-host:/path/to/pedalons-shared/
-```
-
-See [Seeding the shared Valhalla data](#seeding-the-shared-valhalla-data) for the permission trap
-when moving those directories back.
+The runbook — deployment, access-log redaction, seeding the shared Valhalla data, network changes,
+backup configuration and restore — is in **[docs/operations.md](docs/operations.md)**. Read its
+[Deployment](docs/operations.md#deployment) section before touching networks or the compose files.
 
 ## Features
 
@@ -586,12 +307,17 @@ Users can connect GPS devices from their profile to upload routes directly to th
 **Setup:**
 
 - Set `ENCRYPTION_KEY` for secure token storage (required in production)
+- Enter each service's OAuth client id and secret for the domain, in the platform admin's domain form
+  — a service with no credentials is not offered
 
 **Usage:**
 1. Navigate to Profile > GPS Devices
 2. Click "Connect" next to your device
-3. Authorize the application via Device Code Flow (QR code or URL)
+3. Authorize the application on the service's own site (OAuth redirect, with PKCE for Garmin)
 4. On any route detail page, use "Send to Device" to upload routes
+
+The device code flow (QR code or URL) is something else: it signs in the Karoo extension and the
+Garmin Connect IQ app themselves — see [karoo/](karoo/) and [garmin-app/](garmin-app/).
 
 ## Development
 
@@ -617,7 +343,7 @@ See [APP_LINKS.md](APP_LINKS.md) for the full workflow.
 
 ```bash
 # Backend
-cd backend && ./mvnw test
+cd backend && mvn test
 
 # Frontend
 cd frontend && pnpm test
@@ -631,7 +357,7 @@ cd frontend && pnpm test
 ./format.sh mobile          # or one module: backend|frontend|mobile|karoo|garmin-app
 
 # Backend linting
-cd backend && ./mvnw checkstyle:check
+cd backend && mvn checkstyle:check
 
 # Frontend linting
 cd frontend && pnpm lint
@@ -691,7 +417,9 @@ Pedalons is multi-tenant: each domain (hostname) has isolated teams and users. T
 
 ### Bootstrapping a new deployment
 
-Domains and platform admins are managed from the admin UI (`/admin`), but a brand-new database can't reach it: you need a domain before you can register a user, and a user before anyone can be an admin. Break the cycle with SQL, once, then use the UI for everything after.
+Domains and platform admins are managed from the admin UI (`/admin`). A brand-new database reaches it without SQL: on startup the backend creates the domain and the platform admin named by `PEDALONS_BOOTSTRAP_*` (see [Bootstrapping](#bootstrapping)), which `docker-compose.yml` requires in `.env`. Log in as that admin (OTP or passkey) and use the UI for everything after.
+
+The SQL route below is for when bootstrapping is disabled (`PEDALONS_BOOTSTRAP_ENABLED=false`): you need a domain before you can register a user, and a user before anyone can be an admin. Break the cycle with SQL, once.
 
 **1. Create the first domain** (see [Running SQL](#running-sql) for how to get a `psql` prompt):
 

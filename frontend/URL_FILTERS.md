@@ -71,7 +71,7 @@ entire purpose is being shared. Verify with `scripts/ssr-audit.mjs` (a `path:` e
 Two consequences when adding a filter:
 
 - a **context-dependent default** must be resolved the same way in the prefetch as in the page.
-  `resolveMembershipDefault` in `routes.config.ts` mirrors `useMembershipDefault`, probe included,
+  `resolveMembershipDefault` in `config/prefetchHelpers.ts` mirrors `useMembershipDefault`, probe included,
   and feeds the schema factory — otherwise the URL's `role=all` would be read against a `member`
   default and produce a different key.
 - **presentation-only fields must not reach the API** on either side (`density`), which is exactly

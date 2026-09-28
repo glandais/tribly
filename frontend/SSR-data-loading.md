@@ -144,6 +144,21 @@ added to the page and forgotten in the prefetch. Don't reintroduce the exception
 | `pages/ad/adFormData.ts` | `ad-new`, `ad-edit` | the ad being edited |
 | `pages/ad/adDetailData.ts` | `ad-detail` | team + ad pair |
 | `pages/ridetemplate/rideTemplateFormData.ts` | `ride-template-new`, `ride-template-edit` | team, and the template being edited |
+| `pages/calendar/teamCalendarData.ts` | `team-calendar` | the team, then its events over `getInitialCalendarRange()` for members, and the calendar token |
+| `pages/route/routesMapData.ts` | `routes-map` | route filters from the URL, team + routes bounds |
+| `pages/trip/stageMapData.ts` | `stage-map` | team + trip, then the stage's route |
+| `pages/team/teamFormData.ts` | `teams-new` | the existence probe (`TEAM_EXISTENCE_PROBE_PARAMS`) |
+| `pages/team/teamReportsData.ts` | `team-admin-reports` | report filters from the URL |
+| `pages/device/deviceVerifyData.ts` | `device-verify-karoo`, `device-verify-garmin` | the available GPS services |
+| `pages/gpxtool/gpxPreviewListData.ts` | `gpx-tools-list` | preview-list filters from the URL, page window |
+| `pages/gpxtool/gpxPreviewFormData.ts` | `gpx-tools-edit` | the preview being edited |
+| `pages/notification/notificationListData.ts` | `notifications` | the filtered inbox page — hook only, **no prefetch** (per-user inbox, see its docblock) |
+| `pages/admin/adminDashboardData.ts` | `admin` | the platform stats |
+| `pages/admin/adminDomainsData.ts` | `admin-domains` | the default domain list |
+| `pages/admin/adminTeamsData.ts` | `admin-teams` | the domain filter options + the default team list |
+| `pages/admin/adminUsersData.ts` | `admin-users` | the domain filter options + the default user list |
+| `pages/admin/adminBetaSignupsData.ts` | `admin-beta-signups` | the default beta-signup list |
+| `pages/admin/adminReportsData.ts` | `admin-reports` | report filters from the URL |
 
 `routes.config.ts` imports exactly one generated function now — `prefetchGetTeamQuery`, for
 `teamScopedPrefetch`. Anything else it needs comes from a companion.
@@ -170,16 +185,17 @@ Write the companion first, then the route entry. Even if the screen reads one th
 that calls a generated `prefetchXxxQuery` directly is the shape this file exists to prevent — the exception
 that used to be documented here was removed on purpose.
 
-## Two known gaps, deliberately left
+## One known gap, deliberately left
 
-Neither is a page/prefetch divergence — both sides agree; they are simply things the prefetch does not
-cover. Left alone so a refactor stays a refactor; the SSR audit is what should rule on them.
+Not a page/prefetch divergence — both sides agree; it is simply something the prefetch does not
+cover. Left alone so a refactor stays a refactor; the SSR audit is what should rule on it.
 
 - The admin lists prime `someFiltersSchema.parse({})`, the **default** list, ignoring the URL's filters
-  (unlike the public lists, which go through `readUrlFilters`).
-- `ride-template-edit` renders the template but its route prefetches only the team, and `ad-edit`'s page
-  reads `useGetAdEdit` while its prefetch primes `getAd` — a different key. Both are called out in their
-  companion's docblock.
+  (unlike the public lists, which go through `readUrlFilters`). `admin-reports` and
+  `team-admin-reports` are the exception: they read the URL.
+
+The two other gaps once listed here are closed: `ride-template-edit` now prefetches the template
+(`prefetchGetTemplateQuery`), and `ad-edit` primes both `getAdEdit` and `getAd`.
 
 ## Verifying
 

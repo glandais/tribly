@@ -4,9 +4,8 @@ Flutter mobile app for the Pedalons cycling team platform.
 
 ## Prerequisites
 
-- Flutter SDK 3.10.4+
-- Dart SDK 3.10.4+
-- iOS: Xcode 15+ (for iOS development)
+- Flutter SDK whose bundled Dart satisfies `sdk: ^3.10.4` (`pubspec.yaml`)
+- iOS: a recent Xcode — the e2e scripts target an "iPhone 17 Pro Max" simulator (`tool/e2e_env.sh`)
 - Android: Android Studio with SDK 21+ (for Android development)
 
 ## Setup
@@ -14,13 +13,10 @@ Flutter mobile app for the Pedalons cycling team platform.
 ```bash
 # Install dependencies
 flutter pub get
-
-# Generate API clients and models from OpenAPI
-dart run openapi_retrofit_generator
-
-# Generate freezed/json_serializable code
-dart run build_runner build
 ```
+
+Then generate the API client and the models — see [Code Generation](#code-generation). `./check.sh`
+does both, then formats, analyzes and runs the tests.
 
 ## Development
 
@@ -149,9 +145,25 @@ Environment variables via `--dart-define`:
 | `API_BASE_URL` | `https://www.pedalons.fr` | Backend API URL |
 | `WEBAUTHN_RP_ID` | `www.pedalons.fr` | WebAuthn Relying Party ID |
 | `DEEP_LINK_HOST` | `www.pedalons.fr` | Deep link host |
+| `SCREENSHOTS` | `false` | Store-screenshot mode (see [screenshots/README.md](screenshots/README.md)) |
+| `ENABLE_FLUTTER_DRIVER` | `false` | Lets the Dart/Flutter MCP server drive the build (disables real keyboard input; see `CLAUDE.md`) |
+| `REPORT_ERRORS_IN_DEBUG` | `false` | Send error reports from a debug build too |
+
+## Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `check.sh` | Regenerate, format, analyze, test |
+| `clean.sh` | Clean both platforms, reinstall and regenerate |
+| `e2e.sh` | Patrol end-to-end tests against the e2e stack — see [patrol_test/README.md](patrol_test/README.md) |
+| `publish_test.sh` | Bump the build number, upload to TestFlight (`fastlane beta`) and to the Play internal track (`fastlane internal`) |
 
 ## Related Documentation
 
-- `CLAUDE.md` - AI assistant guidance for this codebase
-- `rules.md` - Flutter/Dart coding standards and best practices
-- `../CLAUDE.md` - Full project documentation (backend, frontend, mobile, karoo)
+- [CLAUDE.md](CLAUDE.md) - AI assistant guidance for this codebase
+- [rules.md](rules.md) - Flutter/Dart coding standards and best practices
+- [patrol_test/README.md](patrol_test/README.md) - Patrol end-to-end tests
+- [store-metadata/README.md](store-metadata/README.md) - Store listings, privacy declarations
+- [screenshots/README.md](screenshots/README.md) - Store screenshots
+- [../APP_LINKS.md](../APP_LINKS.md) - Deep links and passkeys (`.well-known` files, signing fingerprints)
+- [../CLAUDE.md](../CLAUDE.md) - Full project documentation (backend, frontend, mobile, karoo)

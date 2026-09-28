@@ -108,6 +108,35 @@ helper — reuse before writing a new one, and keep journey-only helpers in thei
   `pageAs(browser, auth)` (a second browser with the project's device — never a bare
   `browser.newContext()`), `entityCard`, `actionsMenu` / `openActionsMenu` (a detail page's
   « Options de gestion » chevron), `escapeRegExp`, `startsWith`.
+- `stack.ts` — where the e2e stack answers (`stack`, read from `.env.e2e`; `E2E_BASE_URL` /
+  `E2E_MAILPIT_URL` override it), `storageStatePath`, `seedPath`.
+- `domains.ts` — multi-tenancy: `hostHeader`, `onHost` / `hostGet` / `hostPost` / `hostPut` /
+  `hostStatus`, `registerOn` / `loginOn` / `signInOn`, `otherDomain`, `newTeamOn`, `pinnedTeam`,
+  `pinnedAlias`, `hostDocument`, `plannerSite`.
+- `ssr.ts` — the server-rendered document without a browser: `rawDocument`, `ssrOutlet`,
+  `reactQueryState` / `dehydratedQuery`, `ogTags`, `authState`, `sessionCookie`.
+- `list-pages.ts` — URL-driven list pages ([URL_FILTERS.md](../URL_FILTERS.md)): `watchListReads`,
+  `openServerRendered`, `expectInMarkup`, `expectQuery`, `nextPage`, `expectCurrentPage`.
+- `invitations.ts` — `inviteByApi`, `invitationTokenIn`, `previewInvitation`, `membershipsOf`.
+- `member-directory.ts` — `directoryTeam` (one account per role, none a platform admin),
+  `setMemberDirectory`, `listMembers`.
+- `platform-admin.ts` — the admin screens and their API: team/user/domain rows, `setPlatformRole`,
+  `toggleTeamArchived`, domain aliases (`aliasesOf`, `deleteAlias`), `gpsCredentialsOf`,
+  `scratchDomain`, `betaSignups`.
+- `moderation.ts` — `report`, `blockedBy`, `teamQueue` / `platformQueue`, `moderationWorld`,
+  `queueCard`, `queueTab`, `commentRow`.
+- `notifications.ts` — a user's inbox and preferences through the API: `listNotifications`,
+  `unreadCount`, `waitForNotification` (the dispatcher's wait), `expectNoNotification`,
+  `notificationPreferences`, `isMuted`.
+- `device.ts` — the Karoo/Garmin device code flow: `startDeviceFlow`, `verifyUserCode`,
+  `pollToken` / `pollError`, `refreshDeviceToken`, `deviceMe`, `jwtClaims`.
+- `ad-contact.ts` — the classified-ad e-mail relay: `setContactable`, `contactAuthor`, `rawAd`.
+- `scheduled-publication.ts` — scheduled posts and trips: `pickIntoEmptyPicker`, `pastPublishAt`,
+  `waitForAutoPublish`.
+- `slug-change.ts` — renaming a team, ride, route or ad URL with `SlugEditor` and the redirects kept
+  from old slugs: `slugScene`, `renameThroughApi`, `readAt`, `slugEditor`, `freshSlug`.
+- `pwa.ts` — the installable site: `waitForServiceWorker`, `cacheNames`, `manifestOf`,
+  `installPromptDouble` / `fireInstallPrompt`, `watchFirebase`.
 
 ## How sessions work
 

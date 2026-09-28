@@ -10,7 +10,9 @@ This document describes the security architecture of the Pedalons backend, inclu
 4. [Data Access Control](#data-access-control)
 5. [Permission Matrix](#permission-matrix)
 6. [Security Patterns](#security-patterns)
-7. [Developer Guidelines](#developer-guidelines)
+7. [Request Filters](#request-filters)
+8. [Moderation](#moderation)
+9. [Developer Guidelines](#developer-guidelines)
 
 ---
 
@@ -53,6 +55,7 @@ Pedalons implements a **defense-in-depth** security model with three layers:
 ### Database Authentication with JWT
 
 Authentication is handled directly by the backend using database-stored credentials. Supported authentication methods:
+- **Password** - Email + password (bcrypt), with an emailed reset link
 - **OTP** - Passwordless email-based one-time password login
 - **Passkeys/WebAuthn** - Biometric and hardware key authentication
 
@@ -71,6 +74,12 @@ The backend issues and validates JWT tokens on every request.
 | `@PermitAll` | REST | No authentication required |
 | `@Admin` | REST/Service | Checks `user.platformRole == PLATFORM_ADMIN` |
 | `@Logged` | Service | Checks authenticated user exists in `PedalonsQueryContext` |
+| `@Public` | Service | No interceptor: the explicit statement that the method needs no login |
+| `@TileTokenAuth` | REST | Name binding: only these methods accept a `?t=` tile token (see [Request Filters](#request-filters)) |
+| `@BiketeamM2M` | REST | Name binding: biketeam's shared secret, migration endpoints only |
+
+Every service method a resource calls must carry one of `@Admin` / `@CheckAccess` / `@Logged` /
+`@Public` — `ArchitectureTest` fails otherwise.
 
 Admin endpoints combine `@RolesAllowed("user")` at class level with `@Admin` at method level:
 
@@ -319,16 +328,27 @@ The `TeamEntityRepository` interface implements SQL-level security filtering for
 
 ```java
 public enum Visibility {
-    TEAM,       // Team members only
-    PUBLIC      // Anyone can see
+    TEAM,            // Team members only
+    PUBLIC_UNLISTED, // Anyone with the URL, never in a cross-team listing
+    PUBLIC           // Anyone can see, listed
 }
 ```
 
-Visibility is enforced at both entity and team level. For public access, BOTH the team AND the entity must be `PUBLIC`.
+Visibility is enforced at both entity and team level. For public access, neither the team nor the
+entity may be `TEAM`; what `PUBLIC_UNLISTED` allows depends on the request
+(`TeamEntityRepository.getPublicEntity`):
+
+- **Direct read** (by slug): team and entity may each be `PUBLIC` or `PUBLIC_UNLISTED`.
+- **Team-scoped listing** (the visitor is on that team's page): the team may be `PUBLIC_UNLISTED`,
+  but the entity must be `PUBLIC` — unlisted entities stay out of lists.
+- **Cross-team listing**: both must be `PUBLIC` — unlisted teams stay out of directories.
 
 ### SQL Filtering Logic
 
 #### Anonymous Users (not authenticated)
+
+Shown for a cross-team listing; see the visibility rules above for the other cases.
+
 ```sql
 SELECT te FROM [Entity] te WHERE
     te.team.visibility = 'PUBLIC'
@@ -504,6 +524,33 @@ case JOIN, LEAVE -> {
 
 ---
 
+## Request Filters
+
+Three JAX-RS filters run before the resource method, in `fr.pedalons.service.security`:
+
+| Filter | Applies to | What it does |
+|--------|-----------|--------------|
+| `CrossSiteRequestFilter` | Every request carrying the `refresh_token` cookie and no bearer | Rejects cross-site state-changing requests. The cookie is `SameSite=Lax` (the SSR server must read it on a document request from an external link), so this filter is the CSRF choke point for the cookie-authenticated endpoints |
+| `TileTokenFilter` | Methods annotated `@TileTokenAuth` | Turns a valid `?t=` tile token (short-lived, see `TileTokenService`) into claims `PedalonsQueryContext` picks up. MapLibre fetches tiles itself and cannot send a header |
+| `BiketeamM2MFilter` | Methods annotated `@BiketeamM2M` | Checks `X-Biketeam-Migration-Secret` (constant-time) on `/api/internal/biketeam-migration`; a bare 404 when the feature is disabled |
+
+The two name-bound filters are narrow on purpose: the token or secret authenticates only the methods
+carrying the annotation, nothing else.
+
+---
+
+## Moderation
+
+Members report content and other members (`fr.pedalons.service.moderation`). A report is filed in a team,
+and only about something the reporter can read there — anything else is a 404. The reporter stops
+seeing the target at once; at `ReportService.AUTO_HIDE_REPORTERS` (3) distinct reporters the content
+is hidden from every member but the team's moderators until one of them decides
+(`ModerationService`). Moderators are the team's organizers and admins, plus platform admins; a
+moderator never sees nor decides a report that targets them. Members can also block another user
+(`UserBlockService`).
+
+---
+
 ## Developer Guidelines
 
 ### Adding a New Entity Type
@@ -607,6 +654,6 @@ For security vulnerabilities or concerns, contact the development team directly.
 
 ---
 
-*Document Version: 1.2*
-*Last Updated: January 2026*
-*Updated: fixed Visibility enum values, added CalendarAccessChecker, added domain isolation to SQL examples*
+*Document Version: 1.3*
+*Last Updated: September 2026*
+*Updated: PUBLIC_UNLISTED visibility, password auth, `@Public` and name-bound annotations, request filters, moderation*

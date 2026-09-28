@@ -16,6 +16,9 @@ it a third time.
 node scripts/ssr-audit.mjs --url http://localhost:3000
 ```
 
+The report (`.md`, `.json` and a screenshots directory) lands in `ssr-audit-reports/` at the
+repository root, which is gitignored; `--out` puts it elsewhere.
+
 The crawl accounts' passwords come from `scripts/.env.users` (`USER1_PASSWORD=…`, one per line),
 which is **gitignored and must stay that way**. Exported environment variables still take
 precedence, so CI and one-off runs can pass them in the old way; the file only saves putting three
@@ -46,6 +49,11 @@ why `routes-ssr.yml` pins `locale: fr`: crawling the `en` path of a route that h
 makes the app redirect to its canonical URL on load, which discards the verdict.
 
 ## Last run
+
+**Not re-run since 2026-08-04** (checked 2026-09-29). Routes added to `contracts/routes.yaml` after that
+date — `notifications`, `blockedUsers`, `support`, `teamAdminReports`, `adminReports`,
+`biketeamMigration` — have never been crawled, so the lists below say
+nothing about them: re-run the crawler before trusting it.
 
 2026-08-04 07:28Z, **local production build on :3000 against the staging API** — 158 checks,
 **0 login failures**, **6 with issues** (5 prefetch, 1 console error). Verdicts: **146 covered,
@@ -82,8 +90,9 @@ page and as a `Promise.all` by `routes.config.ts` — see
 [SSR-data-loading.md](SSR-data-loading.md). Closing a gap means editing that module; a new route
 means writing one, never adding a `prefetchXxxQuery` call to `routes.config.ts`.
 
-The 7 still not measured redirect legitimately on load: `completeAccount` (×3 — the redirect *is*
-the known bug), `gpxToolsNew` (×3), `teamAdmin/user1`.
+The 7 still not measured redirect legitimately on load: `completeAccount` (×3 — an account that
+already has an email is sent home; the render loop that redirect used to cause is fixed, see
+`apps` below), `gpxToolsNew` (×3), `teamAdmin/user1`.
 
 **Every measured route reports `covered`** — public, authenticated, admin and form screens alike.
 The only queries still fetched after hydration anywhere were the two calendars', and the 09:38Z
@@ -142,7 +151,8 @@ zone is guessed — which costs the whole point of prefetching it.
   **Re-open this as a real defect if it comes back with that detail** — until then there is nothing
   actionable, only a page that renders correctly.
 - **`apps` failing for an authenticated user** — collateral from the `CompleteAccountPage` render
-  loop (fixed locally, not yet deployed). It is the route crawled right after `completeAccount`,
+  loop (fixed by `65943432`, 2026-08-03: the page now returns `<Navigate>` instead of calling
+  `navigate()` during render; not re-crawled since). It is the route crawled right after `completeAccount`,
   whose `setState` loop was still spinning when the next `goto` fired, so it inherits the
   pageerrors and a navigation timeout. Reproduced identically for `user1` and `user2` on staging,
   while `apps` is clean for `anonymous` — the failure follows the *previous route*, not the page.

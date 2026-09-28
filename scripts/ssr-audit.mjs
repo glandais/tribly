@@ -11,6 +11,8 @@
 //   node scripts/ssr-audit.mjs [--url http://host] [--config path] [--out path] [--no-skip]
 //                               [--screenshots dir] [--login-timeout ms]
 //
+// The report is written to <out>.json and <out>.md — by default
+// ssr-audit-reports/ssr-audit-report-<timestamp> at the repository root, a gitignored directory.
 // Every route/user check saves a full-page screenshot to <screenshots>/<userId>-<routeId>.png
 // (default screenshots dir: <out>-screenshots/).
 //
@@ -825,7 +827,15 @@ async function runAudit() {
   const { items, skipped } = buildWorkItems(config, contractById)
 
   const generatedAt = new Date().toISOString()
-  const outBase = opt('out', `ssr-audit-report-${generatedAt.replace(/[:.]/g, '-')}`)
+  const outBase = opt(
+    'out',
+    path.join(
+      repoRoot,
+      'ssr-audit-reports',
+      `ssr-audit-report-${generatedAt.replace(/[:.]/g, '-')}`
+    )
+  )
+  mkdirSync(path.dirname(path.resolve(outBase)), { recursive: true })
   const screenshotsDir = path.resolve(opt('screenshots', `${outBase}-screenshots`))
   mkdirSync(screenshotsDir, { recursive: true })
 

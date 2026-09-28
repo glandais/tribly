@@ -1,12 +1,12 @@
 # Pédalons Frontend
 
-React SPA for the Pédalons cycling team management platform. Built with TypeScript, React 19, Vite, and Mantine UI.
+Web client of the Pédalons cycling team management platform, server-side rendered (see [SSR.md](SSR.md)). Built with TypeScript, React 19, Vite, and Mantine UI.
 
 ## Prerequisites
 
-- Node.js 20+
-- pnpm 10+
-- An API to talk to — either the production API (default, no setup) or a local backend on `localhost:8080` (see root [README](../README.md)) with Docker infrastructure up (`docker compose up -d` from repo root)
+- Node.js 22+ (Vite 8 requires ^20.19 or >=22.12)
+- pnpm 11 — pinned by `packageManager` in `package.json`; `corepack enable` honours it
+- An API to talk to — either the staging API (default, no setup) or a local backend on `localhost:8080` (see root [README](../README.md)) with Docker infrastructure up (`docker compose up -d` from repo root)
 
 ## Getting Started
 
@@ -21,7 +21,7 @@ The dev server starts at https://localhost:5173 and proxies `/api` requests to t
 
 The dev/preview server proxies `/api` to a configurable target, controlled by the `VITE_API_TARGET` env var:
 
-- **No `.env` file** → defaults to the production API `https://www.pedalons.fr`. No backend needed locally.
+- **No `.env` file** → defaults to the staging API `https://staging.pedalons.fr`. No backend needed locally.
 - **Local backend** → copy `.env.example` to `.env` and set the target:
 
   ```bash
@@ -34,28 +34,37 @@ The proxy derives `X-Forwarded-Host` / `X-Forwarded-Proto` from the target URL s
 
 ### HTTPS Setup (required for WebAuthn/passkeys)
 
-Generate local certificates with [mkcert](https://github.com/FiloSottile/mkcert):
+Vite serves HTTPS only when it finds `localhost+2.pem` and `localhost+2-key.pem` in this folder, and
+plain HTTP otherwise. Generate them with [mkcert](https://github.com/FiloSottile/mkcert) — three
+hosts, since that is what names the files `localhost+2`:
 
 ```bash
-mkcert -install              # one time: install local CA
-mkcert localhost 127.0.0.1   # generates localhost+1.pem and localhost+1-key.pem
+mkcert -install                            # one time: install local CA
+mkcert localhost 127.0.0.1 <your LAN IP>   # generates localhost+2.pem and localhost+2-key.pem
 ```
 
 ## Scripts
 
 | Script | Description |
 |--------|-------------|
-| `pnpm dev` | Dev server with HMR |
-| `pnpm build` | TypeScript check + production build |
+| `pnpm dev` | Dev server with HMR (client-side rendering only) |
+| `pnpm dev:ssr` | SSR dev server (`node server.js`, localhost:3000) — see [SSR.md](SSR.md) |
+| `pnpm build` | Production build, client + SSR bundle (no type checking) |
+| `pnpm typecheck` | TypeScript check (`tsc -b`) |
 | `pnpm preview` | Preview production build locally |
+| `pnpm serve:ssr` | Build, then run the SSR server in production mode |
 | `pnpm generate-api` | Regenerate API client from OpenAPI contract |
 | `pnpm generate-routes` | Regenerate path builders + deeplinks from `../contracts/routes.yaml` |
-| `pnpm lint` | ESLint |
+| `pnpm generate-icons` | Regenerate PWA icons |
+| `pnpm lint` | oxlint |
 | `pnpm format` | Prettier |
 | `pnpm test` | Vitest (watch mode) |
 | `pnpm test:coverage` | Vitest with coverage report |
+| `pnpm e2e` | Playwright against the e2e stack — see [e2e/README.md](e2e/README.md) |
+| `pnpm ssr-audit` | Crawl the SSR site for defects — see [SSR-BUGS.md](SSR-BUGS.md) |
 | `pnpm i18n:lint` | Validate i18n key usage |
 | `pnpm i18n:extract` | Extract new translation keys |
+| `pnpm check` | Install, regenerate, format, typecheck, lint and build |
 
 ## API Client Generation
 
@@ -87,32 +96,14 @@ This produces React Query hooks, TypeScript DTOs, and Zod schemas in `src/api/`.
 | i18n | i18next (French default) |
 | Icons | @tabler/icons-react |
 
-## Project Structure
+## Architecture and conventions
 
-```
-src/
-├── api/              # Generated (Orval) — do not edit
-│   ├── dto/          # TypeScript types
-│   ├── endpoints/    # React Query hooks per API tag
-│   └── zod/          # Zod validation schemas
-├── components/       # Organized by domain (common/, team/, ride/, route/, post/, trip/, ...)
-├── config/           # paths.ts (re-export), paths.generated.ts (generated), locale-context.ts, routes.config.ts, appConfig.ts
-├── hooks/            # Custom React Query wrappers (useAuth, useComments, usePaginatedQuery, ...)
-├── lib/              # axiosInstance.ts (auth, error handling), apiUtils.ts
-├── locales/          # fr/ (default), en/ — single "common" namespace per language
-├── pages/            # Route-level page components
-├── store/            # Zustand stores (authStore, preferencesStore)
-├── types/            # Shared TypeScript types
-└── utils/            # Utility functions
-```
+The source layout, the routing, the stores and the rules the code follows (paths, confirmations,
+icons, i18n, forms, dates) are in [CLAUDE.md](CLAUDE.md), which is kept up to date with the code.
+Topic notes: [SSR.md](SSR.md), [SSR-data-loading.md](SSR-data-loading.md),
+[URL_FILTERS.md](URL_FILTERS.md), [LINK_PREVIEW.md](LINK_PREVIEW.md), and
+[../APP_LINKS.md](../APP_LINKS.md) for adding a route.
 
-## Key Conventions
-
-- **Navigation**: Always use `paths.xxx()` from `config/paths.ts` — never hard-code URLs. Returns the URL in the user's current locale (driven by i18next).
-- **Adding a route**: Edit `../contracts/routes.yaml`, then `pnpm generate-routes`. Register the page in `config/routes.config.ts` via `pathVariants.xxx()`. See [../APP_LINKS.md](../APP_LINKS.md).
-- **Confirmations**: Always use the `ConfirmDialog` component — never `window.confirm()` or custom modals.
-- **Icons**: Always use `@tabler/icons-react` — never inline SVGs.
-- **i18n**: French is the default language. Templated keys need type annotations: `` t(`status.${x satisfies 'DRAFT' | 'PUBLISHED'}`) ``.
-- **Config**: Runtime app config comes from the `/api/config` endpoint — no `.env` files for app config. The only `.env` var is `VITE_API_TARGET`, which just points the dev-server proxy at an API (see [API Target](#api-target)).
-- **Logos**: `TeamAvatar` (with initials fallback) vs `EntityLogo` (no fallback).
-- **Forms**: Mantine `useForm` + Zod schemas from `api/zod/`. Separate `XxxForm` component + `CreateXxxPage`/`EditXxxPage` pages.
+Runtime app config comes from the `/api/config` endpoint — no `.env` files for app config. The only
+`.env` var is `VITE_API_TARGET`, which just points the dev-server proxy at an API (see
+[API Target](#api-target)).

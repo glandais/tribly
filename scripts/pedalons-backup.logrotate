@@ -5,7 +5,7 @@
 #   logrotate -d /etc/logrotate.d/backup     # dry run
 #
 # The glob, the directory and the settings match the ones already used on the backup host for
-# ns3085825 (backup.log, backup-mongo.log), so every backup log on every machine rotates the same
+# its other backups (backup.log, backup-mongo.log), so every backup log on every machine rotates the same
 # way — and a host that already has this file needs nothing.
 #
 # create 0640 root adm: the scripts run as root, and members of `adm` can read the logs without it.

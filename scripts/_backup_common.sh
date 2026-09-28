@@ -82,7 +82,7 @@ list_snapshots() {
 # every marker comes back as plain "COMPLETE" — same name for every snapshot, and rsync only shows
 # one of them. With it, the listing carries "<snapshot>/COMPLETE".
 # The listed path is relative to the rrsync root with the restricted key ("<snapshot>/COMPLETE") but
-# absolute over a plain SSH account ("/home/backup-pedalons/<snapshot>/COMPLETE") — a restore drill
+# absolute over a plain SSH account ("<backup-root>/<snapshot>/COMPLETE") — a restore drill
 # reads the same store through the second. Hence taking the last component rather than anchoring.
 list_complete_snapshots() {
   rsync_remote --list-only -R "$(remote_url '*')/COMPLETE" 2>/dev/null \

@@ -19,7 +19,7 @@ Fichiers générés / maintenus :
 |---------|------|
 | `frontend/src/config/paths.generated.ts` | Builders TypeScript typés (+ `pathVariants`, `LOCALES`) |
 | `mobile/lib/config/paths.generated.dart` | Classe `Paths` + `PathVariants` (Dart) |
-| `frontend/public/.well-known/apple-app-site-association` | iOS Universal Links — toutes les variantes de langue |
+| `frontend/public/.well-known/apple-app-site-association` | iOS Universal Links — toutes les variantes de langue — et `webcredentials` (passkeys, voir [Passkeys](#passkeys)) |
 | `mobile/android/app/src/main/AndroidManifest.xml` | Section `<intent-filter>` entre les marqueurs `BEGIN/END generated-deeplinks` |
 
 Fichiers **non** générés mais nécessaires :
@@ -31,9 +31,9 @@ Fichiers **non** générés mais nécessaires :
 | `mobile/lib/config/paths.dart` | Re-export de `paths.generated.dart` |
 | `mobile/lib/config/locale_context.dart` | Variable globale de locale, synchronisée depuis `context.locale.languageCode` dans `app.dart` |
 | `frontend/src/config/routes.config.ts` | Déclaration des routes web avec `pathVariants.xxx()` |
-| `mobile/lib/config/router.dart` | GoRouter — enregistre toutes les variantes via `_perLocale(...)` et `_buildTeamShellTrees()`, et déclare les hiérarchies de deep link (`_deepLinkHierarchies`) |
-| `frontend/public/.well-known/assetlinks.json` | Associe le domaine au package Android (SHA256 fingerprint) |
-| `mobile/ios/Runner/Runner.entitlements` | Domaines associés iOS |
+| `mobile/lib/config/router.dart` | GoRouter — enregistre toutes les variantes via `_perLocale(...)` et `_buildTeamTrees()`, et déclare les hiérarchies de deep link (`_deepLinkHierarchies`) |
+| `frontend/public/.well-known/assetlinks.json` | Associe le domaine au package Android (SHA256 fingerprint) — App Links et passkeys |
+| `mobile/ios/Runner/Runner.entitlements` | Domaines associés iOS (`applinks:` et `webcredentials:`) |
 | `mobile/lib/main.dart` | Deep link handler (package `app_links`) |
 
 ## Ajouter ou modifier une route
@@ -60,6 +60,7 @@ Champs :
 - `web` / `mobile` : émettre un builder dans `paths.generated.ts` / `paths.generated.dart` (défauts : `web: true`, `mobile: false`)
 - `mobileName` (optionnel) : nom de méthode Dart différent de `id` (ex. `ads` → `Paths.teamAds`)
 - `deeplink` : inclure dans AASA + AndroidManifest (défaut `false`)
+- `webFallback` : pour un deeplink `web: false`, l'`id` de la route web vers laquelle un navigateur est redirigé (sans l'app, le lien universel aboutit sur le web et ne doit pas finir en 404). Ses paramètres doivent être un sous-ensemble de ceux de la route.
 
 ### 2. Régénérer
 
@@ -92,7 +93,7 @@ Le générateur :
 **Mobile** — Ajouter une `GoRoute` dans `mobile/lib/config/router.dart` :
 
 - Pour une route plate : `..._perLocale(PathVariants.xxx(), (ctx, st) => MyPage())`
-- Pour une route dans la team shell : l'ajouter dans `_teamShellTree(locale)` en dérivant le segment via `underTeam(PathVariants.xxx(':teamSlug', ...))` (qui utilise `_relativeTo`)
+- Pour une route d'équipe : l'ajouter dans `_teamTree(locale)` en dérivant le segment relatif via `_underTeam(PathVariants.xxx(':teamSlug', ...), locale, teamBase)`
 
 ### 4. Vérifier
 
@@ -158,10 +159,46 @@ Deux règles à ne pas casser :
 Une nouvelle route deeplinkable hors shell doit déclarer sa hiérarchie dans `_deepLinkHierarchies`
 (couvert par `mobile/test/deep_link_hierarchy_test.dart`).
 
+## Passkeys
+
+Les passkeys natives reposent sur les mêmes fichiers `.well-known` que les App Links : l'OS vérifie
+que l'app a le droit d'utiliser les identifiants du domaine (le Relying Party ID, `www.pedalons.fr`,
+défini par `WEBAUTHN_RP_ID` dans `mobile/lib/config/app_config.dart`).
+
+- **iOS** — `webcredentials:www.pedalons.fr` dans `Runner.entitlements`, et un bloc `webcredentials`
+  dans l'AASA, émis par `generate-routes` avec le même App ID que `applinks`.
+- **Android** — la relation `delegate_permission/common.get_login_creds` dans `assetlinks.json`, à
+  côté de `handle_all_urls`, avec les mêmes empreintes.
+
+Les deux fichiers sont servis par le frontend (`frontend/server.js`, qui force `application/json`
+pour l'AASA), pas par le backend.
+
+Contraintes des deux plateformes sur ces fichiers :
+
+- HTTPS, au chemin exact, **sans redirection**, sans authentification ;
+- `Content-Type: application/json` ;
+- Apple passe par son CDN, qui met en cache l'AASA **jusqu'à 24 h** : un changement n'est pas vu tout
+  de suite par les appareils.
+
+Dépannage :
+
+- **iOS, passkeys ou domaines associés non validés** : le cache CDN d'Apple peut se contourner en
+  développement avec le suffixe `?mode=developer` sur l'entrée des entitlements
+  (`webcredentials:www.pedalons.fr?mode=developer`, mode développeur activé sur l'appareil) ;
+  `swcutil` sur macOS aide à diagnostiquer. Tester sur un appareil réel, le simulateur a des limites.
+- **Android, « credential not found »** : vérifier que `assetlinks.json` répond et que l'empreinte
+  correspond à la clé qui a signé l'APK installé — un build debug est signé par la clé debug, dont
+  l'empreinte doit alors figurer aussi dans `assetlinks.json` à côté de la release ; outil de vérification :
+  [Asset Links Tool](https://developers.google.com/digital-asset-links/tools/generator).
+
 ## Références
 
 - [Android App Links](https://developer.android.com/training/app-links)
 - [iOS Universal Links](https://developer.apple.com/documentation/bundleresources/applinks)
+- [Apple : Supporting Associated Domains](https://developer.apple.com/documentation/xcode/supporting-associated-domains)
+- [Apple : Supporting Passkeys](https://developer.apple.com/documentation/authenticationservices/public-private_key_authentication/supporting_passkeys)
+- [Google : Digital Asset Links](https://developers.google.com/digital-asset-links)
+- [Google : Passkeys sur Android (Credential Manager)](https://developer.android.com/identity/sign-in/credential-manager)
 
 ### Empreintes de signature Android
 
@@ -174,3 +211,8 @@ keytool -list -v -keystore <release-keystore> -alias <alias>
 ```
 
 Le SHA256 doit correspondre à ce que déclare `frontend/public/.well-known/assetlinks.json`.
+
+Avec **Play App Signing**, Google re-signe l'app publiée avec sa propre clé : l'empreinte à déclarer
+pour les installations depuis le Play Store est celle de Play Console → l'app → Configuration →
+Signature de l'application (« Certificat de la clé de signature de l'application »), pas celle du
+keystore d'upload.

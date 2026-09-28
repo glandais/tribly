@@ -1,5 +1,8 @@
 # Publishing to the Karoo Extensions Library
 
+*Hammerhead information below was gathered on 2026-01-24 and has not been re-checked since —
+verify the links and the process before relying on it.*
+
 ## Current Situation
 
 There is no documented self-service submission process for the Karoo Extensions Library. Hammerhead uses a curated/partnership model.
@@ -16,7 +19,8 @@ There is no documented self-service submission process for the Karoo Extensions 
 
 - Push a tag matching `karoo.X.Y.Z` (e.g. `git tag karoo.1.2.3 && git push origin karoo.1.2.3`) —
   `.github/workflows/karoo-release.yml` builds a signed release APK and publishes it as a
-  GitHub release automatically (see [CLAUDE.md](CLAUDE.md#release))
+  GitHub release automatically; `versionCode`/`versionName` are derived from the tag, and the
+  signing keystore comes from the repository's GitHub Actions secrets
 - Users can install via the [Hammerhead Companion app](https://support.hammerhead.io/hc/en-us/articles/34676015530907-Karoo-OS-Extensions-Library) sideloading feature (Karoo 3) or ADB
 
 ### 3. Get Community Visibility

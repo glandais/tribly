@@ -12,7 +12,8 @@ file explains the *why* behind them.
 mode** (`createStaticHandler` → `handler.query()` → `StaticRouterProvider`) inside a
 per-request `AsyncLocalStorage` scope, prefetches route data into a per-request
 `QueryClient` (Orval-generated `prefetchXxxQuery` declared as `prefetch` in
-`routes.config.ts`), renders with React's **static prerender API**, and returns
+`routes.config.ts`, each wrapped into a React Router loader by `RouteGenerator.tsx`'s
+`makeLoader`), renders with React's **static prerender API**, and returns
 `{ html, dehydratedState, auth, statusCode, lang }`. `server.js` injects those into
 `index.html` (`<!--ssr-outlet-->`, `<!--ssr-state-->`, `<!--ssr-auth-->`, `<html lang>`).
 `src/entry-client.tsx` hydrates the query cache, adopts the session, seeds the app config,
@@ -259,11 +260,13 @@ Consequences of `<Navigate>` worth knowing, both benign here:
   visitor sees an empty page for one paint. React Router says so itself
   (*"`<Navigate>` must not be used on the initial render in a `<StaticRouter>`. This is a
   no-op"*).
-- A **real server-side redirect** would have to come from `handler.query()` returning a
-  `Response` (`entry-server.tsx:139` maps its `Location` back to browser space), i.e. from a
-  React Router *loader*. This app has no loaders — data comes from `prefetch` in
-  `routes.config.ts`, which has no redirect channel. Introducing one for a guard page isn't
-  worth it; know that the option doesn't exist today rather than looking for it.
+- A **real server-side redirect** comes from `handler.query()` returning a `Response`
+  (`entry-server.tsx` maps its `Location` back to browser space), i.e. from a React Router
+  *loader*. Every route with a `prefetch` has one (`makeLoader`), but it always resolves to
+  `null`: a failed prefetch must never block the render, so it is not a redirect channel. The
+  one loader that does redirect is `appOnlyFallbackRoutes()` — deeplinks only the app answers
+  (`routes.yaml`, `web: false`) get a real 302 to their web fallback. Guard pages still use
+  `<Navigate>`; moving one to a loader redirect is possible, not done.
 
 Found by `scripts/ssr-audit.mjs` on `/complete-account`; the open list is in
 [SSR-BUGS.md](SSR-BUGS.md).

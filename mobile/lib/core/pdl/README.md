@@ -200,9 +200,9 @@ grep -rn --include='*.dart' "showModalBottomSheet" mobile/lib   # seul pdl_sheet
 `PdlSheet.show()` force `useRootNavigator`, `isScrollControlled`,
 `useSafeArea` et `barrierColor` — les quatre drapeaux dont l'oubli produisait
 une feuille rendue sous la barre d'onglets et un « Trier par » écrasé à 1 pt.
-Les trois écrans qui appellent encore la fonction Material en direct
-(`route_filter_sheet`, `route_detail_page`, `profile_page`) basculent avec leur
-lot, qui les réécrit de toute façon.
+Le `grep` ne renvoie plus que `pdl_sheet.dart:90` (et des commentaires) : les
+trois écrans qui appelaient encore la fonction Material en direct
+(`route_filter_sheet`, `route_detail_page`, `profile_page`) ont basculé.
 
 Trois écarts assumés de la vague C, documentés sur place :
 
@@ -229,6 +229,36 @@ Trois écarts assumés de la vague C, documentés sur place :
   quel dans un `SliverToBoxAdapter` : il ne contraignait rien et piégeait. La
   contrainte de 600 px passe désormais par
   `PdlScreenScaffold(constrainWidth: true)`.
+
+## Hors vagues — livrés depuis
+
+Exportés par `pdl.dart` comme le reste, et soumis au même contrat (jetons,
+44 px, aucun DTO).
+
+| Widget / type | Fichier | Rôle |
+|---|---|---|
+| `PdlRefresh` | `pdl_refresh.dart` | Le « tirer pour rafraîchir » de l'app, avec une secousse (`mediumImpact`) au relâchement au-delà du seuil |
+
+**`map/` — la carte Pédalons**, sans DTO : l'écran traduit ses DTO en types
+`Pdl*` avant de les passer.
+
+| Widget / type | Fichier | Rôle |
+|---|---|---|
+| `PdlMap` | `map/pdl_map.dart` | La carte (MapLibre) |
+| `PdlMapController` · `PdlMapTrack` · `PdlMapPoint` · `PdlMapBox` · `PdlHillshade` · `PdlKmMarker` | `map/pdl_map_controller.dart` | Tracés, points, emprise, estompage, bornes kilométriques |
+| `PdlMapHero` · `PdlMapStyleOption` | `map/pdl_map_hero.dart` | La coquille d'une carte occupant une surface : voiles, plein écran, sélecteur de fond de carte |
+| `PdlMapButton` · `PdlMapButtonColumn` · `PdlMapPill` · `PdlMapFloatingCard` | `map/pdl_map_buttons.dart` | Contrôles posés sur la carte, sur voile de lisibilité |
+| `PdlMapAttribution` · `PdlMapCredit` | `map/pdl_map_attribution.dart` | Crédit des fournisseurs de tuiles |
+| `PdlMapCamera` | `map/pdl_map_camera.dart` | Position de caméra et projection Web Mercator |
+| — | `map/pdl_mass_layer.dart` | La couche de masse : tuiles vectorielles de parcours du backend (`?t=` jeton de tuiles) ; l'en-tête du fichier explique pourquoi le repli GeoJSON a disparu |
+
+**`elevation/` — le profil altimétrique**, pur Dart côté données.
+
+| Widget / type | Fichier | Rôle |
+|---|---|---|
+| `PdlElevationProfile` | `elevation/pdl_elevation_profile.dart` | Le profil, avec axe et info-bulle |
+| `ElevationSamples` · `ElevationPoint` · `ElevationBar` · `ElevationReading` | `elevation/elevation_samples.dart` | Modèle de données et agrégation |
+| `ElevationAreaPainter` · `ElevationCursorPainter` | `elevation/elevation_*_painter.dart` | Les deux couches peintes : l'aire, puis le réticule |
 
 ## Voir le rendu
 
