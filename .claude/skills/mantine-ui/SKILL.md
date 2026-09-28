@@ -13,39 +13,7 @@ Mantine v9 component library with TypeScript, dark mode, and form integration. A
 
 ## Theme Configuration
 
-```tsx
-import { MantineProvider, createTheme, virtualColor } from '@mantine/core';
-import '@mantine/core/styles.css';
-
-const theme = createTheme({
-  primaryColor: 'primary',
-  fontFamily: 'Inter, system-ui, sans-serif',
-  defaultRadius: 'md',
-  autoContrast: true,
-  luminanceThreshold: 0.3,
-  colors: {
-    primary: virtualColor({ name: 'primary', light: 'indigo', dark: 'indigo' }),
-    success: virtualColor({ name: 'success', light: 'green', dark: 'green' }),
-    warning: virtualColor({ name: 'warning', light: 'yellow', dark: 'yellow' }),
-    danger: virtualColor({ name: 'danger', light: 'red', dark: 'red' }),
-  },
-  headings: {
-    sizes: {
-      h1: { fontSize: 'clamp(1.5rem, 5vw, 2.125rem)', lineHeight: '1.2' },
-      h2: { fontSize: 'clamp(1.25rem, 4vw, 1.625rem)', lineHeight: '1.3' },
-    },
-  },
-  components: {
-    Button: { styles: { root: { minHeight: 'var(--button-min-height, 44px)' } } },
-    ActionIcon: { defaultProps: { size: 'lg' } },
-  },
-});
-
-<MantineProvider theme={theme} defaultColorScheme="auto">
-  <Notifications position="top-right" />
-  {children}
-</MantineProvider>
-```
+The theme lives in `frontend/src/lib/theme.ts` (`primaryColor: 'primary'`, virtual colors `primary`, `success`, `warning`, `danger`, responsive headings, 44px touch minimum on `Button`). `MantineProvider` and `Notifications` are set up in `frontend/src/AppProviders.tsx`. Read `theme.ts` rather than copying values from here; brand colours are in `BRANDING.md`.
 
 ## Core Components
 
@@ -168,7 +136,7 @@ const [opened, { open, close }] = useDisclosure(false);
 </Modal>
 ```
 
-**Modal sizes:** `xs`, `sm`, `md`, `lg`, `xl`, `4xl`
+**Modal sizes:** `xs`, `sm`, `md`, `lg`, `xl`, or any CSS width (`'70%'`, `800`) — there is no `4xl`
 
 **ConfirmDialog pattern** (project component):
 ```tsx
@@ -200,9 +168,10 @@ const [opened, { open, close }] = useDisclosure(false);
 <Text c="red">Error text</Text>
 <Text fw={500}>Semi-bold label</Text>
 
-// Role/status badges
-const roleBadgeColors = { ADMIN: 'grape', ORGANIZER: 'blue', MEMBER: 'gray' };
-<Badge color={roleBadgeColors[role]}>{t(`roles.${role}`)}</Badge>
+// Role/status badges: never hard-code colors, use the semantic badges
+// (components/card/common/Badge.tsx) or the maps in components/card/common/badgeColors.ts
+<RoleBadge role={role}>{t(`roles.${role}`)}</RoleBadge>
+<Badge color={ROLE_COLORS[role]}>{t(`roles.${role}`)}</Badge>
 ```
 
 ## CSS Variables
@@ -320,13 +289,16 @@ Always use i18n:
 <Button>{t('actions.save')}</Button>
 ```
 
-### 7. Hard-coded routes
-Use paths from config:
+### 7. Hard-coded routes and `Link`
+Use `paths` from `@/config/paths` (generated from `contracts/routes.yaml`, localized) and `PrefetchLink`
+(`components/common/PrefetchLink.tsx`), never `Link` from `react-router-dom`:
 ```tsx
 // ❌ BAD
-<Link to={`/teams/${slug}/rides`}>
+<Link to={`/teams/${slug}/rides/${rideSlug}`}>
 // ✅ GOOD
-<Link to={paths.teamRides(slug)}>
+<PrefetchLink to={paths.ride(slug, rideSlug)}>
+// ✅ GOOD - on Mantine polymorphic components
+<Button component={PrefetchLink} to={paths.ride(slug, rideSlug)}>
 ```
 
 ## Quick Reference

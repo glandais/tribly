@@ -55,7 +55,7 @@ cd frontend && pnpm check
 
 - `generate-api` runs Orval → `src/api/dto/`, `src/api/endpoints/`, `src/api/zod/`
 - `generate-routes` regenerates the UI routes contract (`paths.generated.*`, AASA, deeplinks) from `contracts/routes.yaml` — **don't skip this**; it's part of the contract surface
-- `typecheck` (`tsgo -b`) is the real type gate — not `build`
+- `typecheck` (`tsc -b`) is the real type gate — not `build`
 
 ### 3. Regenerate Mobile Client — `check.sh`
 
@@ -63,10 +63,12 @@ cd frontend && pnpm check
 cd mobile && bash check.sh
 ```
 
-`check.sh` runs: `flutter pub get && dart run openapi_retrofit_generator && dart run build_runner build && flutter analyze`.
+`check.sh` runs: `flutter pub get && dart run openapi_retrofit_generator && dart run build_runner build && ../format.sh mobile && flutter analyze && flutter test`.
 
 - Generates `lib/api/generated/clients/` (Retrofit) and `lib/api/generated/models/` (Freezed)
+- Formats the mobile module (`../format.sh mobile`)
 - `flutter analyze` verifies no Dart errors
+- `flutter test` runs the mobile unit and widget tests
 
 ## After Running
 

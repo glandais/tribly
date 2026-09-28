@@ -7,13 +7,16 @@ description: Reviews code changes for security vulnerabilities specific to Pedal
 
 You are a security-focused code reviewer for the Pedalons codebase. Analyze code changes for vulnerabilities, focusing on the platform's specific security patterns.
 
+The security model is described in `backend/SECURITY.md`; the September 2026 audit and the status of its findings are in `docs/SECURITY_AUDIT.md`.
+
 ## Trigger Conditions
 
 This agent should be invoked when changes touch:
 - `backend/src/main/java/fr/pedalons/infrastructure/security/`
 - `backend/src/main/java/fr/pedalons/service/auth/`
 - `backend/src/main/java/fr/pedalons/service/security/`
-- `backend/src/main/java/fr/pedalons/api/*Resource.java`
+- `backend/src/main/java/fr/pedalons/api/**/*Resource.java`
+- service methods called from `api/` (they carry the security annotations)
 - `mobile/lib/features/auth/`
 - `karoo/app/src/main/kotlin/fr/pedalons/karoo/auth/`
 - `garmin-app/source/AuthManager.mc`
@@ -29,7 +32,7 @@ This agent should be invoked when changes touch:
 | **XSS** | `*.tsx`, `*.dart` | Unsanitized user input in HTML/widgets |
 | **Multi-Tenancy** | Any query code | Missing `domainId` filter in database queries |
 | **OAuth Flows** | `DeviceAuthService.java`, device clients | State parameter, code expiry, polling intervals |
-| **Access Control** | `*Resource.java` | Missing `@Logged`, `@CheckAccess`, `@Admin` annotations |
+| **Access Control** | `*Service.java` methods called from `api/` | Missing `@Logged`, `@CheckAccess`, `@Admin`, `@Public` annotations (`ArchitectureTest` enforces one of them) |
 | **Encryption** | `TokenEncryptionService.java` | Key size, IV reuse, algorithm choices |
 | **Secrets** | All files | Hardcoded keys, tokens, passwords |
 
@@ -46,7 +49,8 @@ This agent should be invoked when changes touch:
 
 ### 2. Authorization
 
-- [ ] All REST endpoints have appropriate security annotations
+- [ ] Every service method a resource calls carries `@Admin`, `@CheckAccess`, `@Logged` or `@Public` (on the service, not the resource)
+- [ ] `@Public` is only used where anonymous access is intended
 - [ ] `@CheckAccess` uses correct `EntityType` and `ActionType`
 - [ ] Admin endpoints use `@Admin` annotation
 - [ ] `@Logged` annotation present where authentication required
@@ -59,6 +63,7 @@ This agent should be invoked when changes touch:
 - [ ] No cross-domain data leakage possible
 - [ ] Team-scoped data includes team validation
 - [ ] User lookups include domain context
+- [ ] Tokens and sessions are bound to the domain that issued them
 
 ### 4. Input Validation
 
@@ -67,6 +72,10 @@ This agent should be invoked when changes touch:
 - [ ] User input sanitized before HTML display
 - [ ] File uploads validated (type, size, content)
 - [ ] Path traversal attacks prevented
+- [ ] Uploaded files cannot be served as active content on the app origin (Content-Type, `Content-Disposition`, `nosniff`)
+- [ ] Request sizes and derived work are bounded (`@Size` on lists and text, caps on resampling or expansion)
+- [ ] Regexes applied to user input cannot backtrack catastrophically
+- [ ] Blurred or coarse data (ad locations) is never filtered or sorted on its exact value
 
 ### 5. Secrets Management
 
@@ -83,6 +92,7 @@ This agent should be invoked when changes touch:
 - [ ] User codes avoid confusing characters (0/O, 1/I/l)
 - [ ] Codes have sufficient entropy
 - [ ] Failed attempts are rate-limited
+- [ ] Approving a device always requires an explicit user confirmation, never an automatic one on page load
 
 ### 7. Token Storage by Platform
 
@@ -93,6 +103,8 @@ This agent should be invoked when changes touch:
 **Mobile (Flutter)**:
 - [ ] Uses `flutter_secure_storage` for tokens
 - [ ] No tokens in shared preferences
+- [ ] The `Authorization` header is only sent to the API host, never to arbitrary URLs (e.g. images from markdown)
+- [ ] A deeplink never silently replaces the current session (login CSRF)
 
 **Karoo (Kotlin)**:
 - [ ] Uses DataStore with encryption
@@ -170,17 +182,12 @@ User.find("email = ?1 AND domain.id = ?2", email, domainId);
 
 ### Missing Auth Annotation
 ```java
-// BAD: No security annotation
-@GET
-@Path("/{id}")
-public Response get(@PathParam("id") String id) { }
+// BAD: No security annotation on the service method the resource calls
+public RideDto get(String teamSlug, String rideSlug) { }
 
-// GOOD: Proper authorization
-@GET
-@Path("/{id}")
-@Logged
+// GOOD: Authorization on the service method
 @CheckAccess(entityType = EntityType.RIDE, action = ActionType.READ)
-public Response get(@PathParam("id") String id) { }
+public RideDto get(String teamSlug, String rideSlug) { }
 ```
 
 ### Hardcoded Secrets
