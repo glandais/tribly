@@ -4,6 +4,8 @@ import fr.pedalons.enums.NotificationChannel;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.time.Duration;
+import java.time.Instant;
 import org.jboss.logging.Logger;
 
 /** Drives stages 2 and 3 of the notification pipeline, their recovery and their housekeeping. */
@@ -12,8 +14,16 @@ public class NotificationScheduler {
 
   private static final Logger LOG = Logger.getLogger(NotificationScheduler.class);
 
-  /** Events fanned out per tick at most, so a backlog cannot starve the senders below. */
-  private static final int MAX_EVENTS_PER_TICK = 20;
+  /**
+   * How long a tick fans events out, then how long it sends on each channel. Budgets in time, not in
+   * counts: a fixed 20 events per 15 s capped the pipeline at 80 events a minute, whatever the
+   * machine — a burst (a big team, a busy thread) queued minutes behind. A backlog now drains as
+   * fast as it can within the tick, and one stage still cannot starve the next, nor one slow channel
+   * (an SMTP relay timing out) the others.
+   */
+  private static final Duration DISPATCH_BUDGET = Duration.ofSeconds(5);
+
+  private static final Duration CHANNEL_BUDGET = Duration.ofSeconds(3);
 
   @Inject NotificationDispatchService dispatchService;
   @Inject NotificationDeliveryService deliveryService;
@@ -28,7 +38,8 @@ public class NotificationScheduler {
   @Scheduled(every = "15s", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
   void tick() {
     try {
-      for (int i = 0; i < MAX_EVENTS_PER_TICK && dispatchService.dispatchOne(); i++) {
+      Instant deadline = Instant.now().plus(DISPATCH_BUDGET);
+      while (Instant.now().isBefore(deadline) && dispatchService.dispatchOne()) {
         // drain
       }
     } catch (Exception e) {
@@ -39,7 +50,10 @@ public class NotificationScheduler {
         continue; // the inbox row is the delivery
       }
       try {
-        deliveryService.sendDue(channel);
+        Instant deadline = Instant.now().plus(CHANNEL_BUDGET);
+        while (Instant.now().isBefore(deadline) && deliveryService.sendDue(channel) > 0) {
+          // drain, one batch at a time
+        }
       } catch (Exception e) {
         LOG.errorf(e, "Notification delivery tick failed on %s", channel);
       }
