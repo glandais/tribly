@@ -74,7 +74,7 @@ class TeamCustomPage extends ConsumerWidget {
             ],
           ),
         ),
-        loading: () => const Padding(
+        loading: () => const SingleChildScrollView(
           padding: EdgeInsets.all(PdlSpacing.section),
           child: PdlSkeletonCardList(count: 2),
         ),

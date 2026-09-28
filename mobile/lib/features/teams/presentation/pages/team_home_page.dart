@@ -62,7 +62,9 @@ class TeamHomePage extends ConsumerWidget {
       data: (TeamDetailDto team) =>
           _TeamSectionScaffold(team: team, section: section),
       loading: () => const _TeamChrome.bare(
-        body: Padding(
+        // Défilable : trois gabarits dépassent la hauteur d'un écran, et un
+        // gabarit qui déborde rend une bande d'erreur rayée.
+        body: SingleChildScrollView(
           padding: EdgeInsets.all(PdlSpacing.section),
           child: PdlSkeletonCardList(count: 3),
         ),
