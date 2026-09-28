@@ -32,3 +32,14 @@ export function apiErrorCode(error: unknown): string | undefined {
   if (Axios.isAxiosError(error)) return (error.response?.data as ErrorResponse | undefined)?.code
   return undefined
 }
+
+/**
+ * The HTTP status of a failed call. `axiosMutator` only wraps an error in `ApiClientError` when
+ * the body carries a `code`; a bare 404 or a non-JSON 5xx arrives as the raw axios error.
+ * Undefined when there was no response at all (network down).
+ */
+export function apiErrorStatus(error: unknown): number | undefined {
+  if (error instanceof ApiClientError) return error.status
+  if (Axios.isAxiosError(error)) return error.response?.status
+  return undefined
+}

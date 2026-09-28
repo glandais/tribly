@@ -3,7 +3,17 @@ import { Navigate, useParams } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { IconPlus, IconNews, IconChevronDown, IconSearchOff } from '@tabler/icons-react'
-import { Button, Menu, Select, Stack, Group, Title, Box, SimpleGrid } from '@mantine/core'
+import {
+  Button,
+  Container,
+  Menu,
+  Select,
+  Stack,
+  Group,
+  Title,
+  Box,
+  SimpleGrid,
+} from '@mantine/core'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
 import { TeamLayout } from '../../components/team/TeamLayout'
@@ -17,6 +27,8 @@ import { type PublicationFilterValue } from '../../hooks/filters/publicationFilt
 import { SearchInput } from '../../components/common/SearchInput'
 import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
+import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
+import { apiErrorStatus } from '@/lib/apiError'
 import { usePublicationListData } from './publicationListData'
 
 export function PublicationListPage() {
@@ -41,6 +53,23 @@ export function PublicationListPage() {
   }
 
   if (!teamData) {
+    // A team that does not exist, or that this visitor may not see, sends them to the list. A
+    // server or network failure says so and offers to retry: the team is probably still there.
+    const status = apiErrorStatus(team.error)
+    if (team.isError && (status === undefined || status >= 500)) {
+      return (
+        <Container size="xl" py="xl">
+          <QueryStateBoundary
+            isLoading={false}
+            isError
+            error={team.error}
+            onRetry={() => void team.refetch()}
+          >
+            {null}
+          </QueryStateBoundary>
+        </Container>
+      )
+    }
     return <Navigate to={paths.teams()} replace />
   }
 
