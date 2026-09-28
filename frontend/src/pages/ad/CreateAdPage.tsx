@@ -33,6 +33,11 @@ export function CreateAdPage() {
     return <Navigate to={paths.teams()} replace />
   }
 
+  // The module is off for this team: the API refuses every ad, so there is nothing to show here.
+  if (team && !team.enableAds) {
+    return <Navigate to={paths.team(team.slug)} replace />
+  }
+
   // Any member can create ads
   const canCreate = !!team.role
 

@@ -60,6 +60,11 @@ export function AdListPage() {
     return <Navigate to={paths.teams()} replace />
   }
 
+  // The module is off for this team: the API refuses every ad, so there is nothing to show here.
+  if (teamData && !teamData.enableAds) {
+    return <Navigate to={paths.team(teamData.slug)} replace />
+  }
+
   const isMember = !!teamData.role
 
   // The API refuses the list to anyone outside the team (AdAccessChecker LIST): saying there are

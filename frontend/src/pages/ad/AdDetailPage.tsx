@@ -97,6 +97,11 @@ export function AdDetailPage() {
     return <Navigate to={paths.teams()} replace />
   }
 
+  // The module is off for this team: the API refuses every ad, so there is nothing to show here.
+  if (team && !team.enableAds) {
+    return <Navigate to={paths.team(team.slug)} replace />
+  }
+
   // Ads are for the team's members: the API refuses the ad to anyone else, and that refusal is
   // not a load failure to retry. Same destination as CreateAdPage and EditAdPage.
   if (team && !team.role) {

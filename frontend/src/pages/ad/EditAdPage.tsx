@@ -34,6 +34,11 @@ export function EditAdPage() {
 
   useCanonicalPath(team && ad ? paths.adEdit(team.slug, ad.slug) : undefined)
 
+  // The module is off for this team: the API refuses every ad, so there is nothing to show here.
+  if (team && !team.enableAds) {
+    return <Navigate to={paths.team(team.slug)} replace />
+  }
+
   if (isLoadingTeam || isLoadingAd) {
     return <LoadingPage message={t('loading')} />
   }
