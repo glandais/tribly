@@ -156,4 +156,39 @@ class AdminTeamResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(401);
   }
+
+  // ==================== Archived teams ====================
+
+  @Test
+  void anArchivedTeamStaysListedAndReadable_soItCanBeRestored() {
+    String teamId = TsidUtils.toString(team1.getId());
+    given()
+        .auth()
+        .oauth2(platformAdminToken())
+        .contentType("application/json")
+        .when()
+        .post("/api/admin/teams/" + teamId + "/toggle-deleted")
+        .then()
+        .statusCode(200)
+        .body("deleted", equalTo(true));
+
+    given()
+        .auth()
+        .oauth2(platformAdminToken())
+        .queryParam("size", 100)
+        .when()
+        .get("/api/admin/teams")
+        .then()
+        .statusCode(200)
+        .body("teams.find { it.id == '" + teamId + "' }.deleted", equalTo(true));
+
+    given()
+        .auth()
+        .oauth2(platformAdminToken())
+        .when()
+        .get("/api/admin/teams/" + teamId)
+        .then()
+        .statusCode(200)
+        .body("deleted", equalTo(true));
+  }
 }

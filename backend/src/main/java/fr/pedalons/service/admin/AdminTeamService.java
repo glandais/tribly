@@ -23,14 +23,19 @@ public class AdminTeamService {
 
   @Inject UserTeamRepository userTeamRepository;
 
+  /**
+   * Every team, archived ones included: the screen marks them « Archivée » and offers to restore
+   * them — which it could never do while they were filtered out, leaving the API as the only way
+   * back.
+   */
   @Admin
   public PedalonsPage<AdminTeamDto> listTeams(@Nullable String domainId, int page, int size) {
-    String query = "deleted = false";
+    String query = "1 = 1";
     Object[] params = new Object[0];
 
     if (domainId != null) {
       Long domainIdLong = TsidUtils.toLong(domainId);
-      query = "domain.id = ?1 and deleted = false";
+      query = "domain.id = ?1";
       params = new Object[] {domainIdLong};
     }
 
@@ -52,7 +57,8 @@ public class AdminTeamService {
 
   @Admin
   public AdminTeamDto getTeam(String teamId) {
-    Team team = findTeam(teamId);
+    // An archived team is still shown to the platform admin, who may restore it.
+    Team team = findTeamIncludingDeleted(teamId);
     long memberCount = userTeamRepository.count("team.id = ?1", team.getId());
     return AdminTeamDto.from(team, memberCount);
   }
