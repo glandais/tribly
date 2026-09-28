@@ -30,16 +30,9 @@ import {
 } from '@/api/endpoints/authentication/authentication'
 import type { AuthResponse } from '@/api/dto'
 import { OtpLogin } from './OtpLogin'
+import { safeNextPath } from '@/lib/safeNextPath'
 
 type Mode = 'login' | 'register' | 'otp'
-
-/** A same-origin absolute path, or null: never `//host` nor a full URL, so no open redirect. */
-function safeNextPath(value: string | null): string | null {
-  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
-    return null
-  }
-  return value
-}
 
 export function LoginPage() {
   const { t } = useTranslation()
