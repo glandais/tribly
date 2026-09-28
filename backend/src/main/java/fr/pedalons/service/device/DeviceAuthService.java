@@ -35,7 +35,7 @@ import org.jboss.logging.Logger;
  * <ol>
  *   <li>Device calls POST /api/device/oauth/device → gets device_code + user_code
  *   <li>Device displays user_code and QR for verification_uri_complete
- *   <li>User scans QR → opens /karoo?code=ABC123 on phone
+ *   <li>User scans QR → opens /karoo?code=ABC123 (or /garmin) on phone
  *   <li>User authenticates via OTP email on frontend
  *   <li>Frontend calls POST /api/device/oauth/complete to mark code as authorized
  *   <li>Device polls POST /api/device/oauth/token until authorized
@@ -85,7 +85,7 @@ public class DeviceAuthService {
 
     // Build verification URLs
     String baseUrl = getFrontendBaseUrl();
-    String verificationUri = baseUrl + "/karoo";
+    String verificationUri = baseUrl + verificationPath(clientId);
     String verificationUriComplete = verificationUri + "?code=" + userCode;
 
     // Store device code in database
@@ -103,6 +103,15 @@ public class DeviceAuthService {
         .expiresIn(DEVICE_CODE_EXPIRY_MINUTES * 60)
         .interval(POLLING_INTERVAL_SECONDS)
         .build();
+  }
+
+  /**
+   * The page the user opens on their phone. Each device has its own: the Karoo one asks for a
+   * Hammerhead connection, which means nothing to a Garmin user. Any other client keeps /karoo, the
+   * only page there was before Garmin.
+   */
+  static String verificationPath(String clientId) {
+    return "garmin".equals(clientId) ? "/garmin" : "/karoo";
   }
 
   /**
