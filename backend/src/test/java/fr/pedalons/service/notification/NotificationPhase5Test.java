@@ -178,6 +178,60 @@ class NotificationPhase5Test extends AbstractResourceTest {
     assertFalse(notifications.notificationTypesFor(user3).contains(NotificationType.RIDE_REMINDER));
   }
 
+  // ------------------------------------------------------------------ RIDE_GROUP_REMOVED
+
+  /** The ride of {@code registered}, its only group replaced by a new one. */
+  private RideRequest withNewGroupOnly() {
+    return new RideRequest(
+        "Sortie du dimanche",
+        MediaDto.builder().build(),
+        nextWeek,
+        Status.PUBLISHED,
+        Visibility.PUBLIC,
+        null,
+        null,
+        null,
+        null,
+        List.of(new GroupRequest(null, "G2", null, null, null, null)));
+  }
+
+  @Test
+  void removingAGroup_tellsItsRiders_theirRegistrationWentWithIt() {
+    RegisteredRide registered = registeredRide(nextWeek);
+    updateRide(registered.ride().getSlug(), withNewGroupOnly());
+
+    notifications.makeEventsDue();
+    drain();
+
+    assertEquals(
+        List.of(NotificationType.RIDE_GROUP_REMOVED), notifications.notificationTypesFor(user3));
+    assertTrue(notifications.notificationTypesFor(user1).isEmpty(), "the organiser who removed it");
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .when()
+        .get("/api/notifications")
+        .then()
+        .statusCode(200)
+        .body("items[0].type", equalTo("RIDE_GROUP_REMOVED"))
+        .body("items[0].excerpt", equalTo("G1"));
+  }
+
+  @Test
+  void removingAGroupNobodyJoined_notifiesNobody() {
+    Ride ride = dataService.createRide(team1, user1, "Sortie", "sortie", nextWeek);
+    dataService.createRideGroup(user1, ride, "G1");
+    updateRide(ride.getSlug(), withNewGroupOnly());
+
+    notifications.makeEventsDue();
+    drain();
+
+    assertTrue(
+        notifications.events().stream()
+            .noneMatch(event -> event.type() == NotificationType.RIDE_GROUP_REMOVED),
+        String.valueOf(notifications.events()));
+  }
+
   // ------------------------------------------------------------------ RIDE_UPDATED
 
   @Test

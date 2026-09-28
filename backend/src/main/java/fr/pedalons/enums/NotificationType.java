@@ -36,6 +36,11 @@ public enum NotificationType {
   /** The date or the meeting point of a ride the recipient is registered to changed. */
   RIDE_UPDATED(EnumSet.of(IN_APP, EMAIL, PUSH), Audience.PERSONAL, true),
   /**
+   * The group of a ride the recipient was registered to was removed, and their registration with
+   * it. As weighty as a cancellation: they believe they ride, and no longer do.
+   */
+  RIDE_GROUP_REMOVED(EnumSet.of(IN_APP, EMAIL, PUSH), Audience.PERSONAL, true),
+  /**
    * Someone joined a ride the recipient created or leads a group of. In-app only by default: a
    * popular ride would otherwise buzz its organiser thirty times.
    */
@@ -106,6 +111,7 @@ public enum NotificationType {
           true;
       case COMMENT_REPLY,
           RIDE_REMINDER,
+          RIDE_GROUP_REMOVED,
           RIDE_JOINED,
           COMMENT_ON_MY_PUBLICATION,
           TEAM_INVITATION,

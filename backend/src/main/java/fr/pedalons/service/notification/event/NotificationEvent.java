@@ -22,6 +22,7 @@ public sealed interface NotificationEvent
         CommentReplied,
         RideReminder,
         RideUpdated,
+        RideGroupRemoved,
         RideJoined,
         CommentOnPublication,
         TeamInvited,
@@ -57,6 +58,7 @@ public sealed interface NotificationEvent
       case COMMENT_REPLY -> CommentReplied.class;
       case RIDE_REMINDER -> RideReminder.class;
       case RIDE_UPDATED -> RideUpdated.class;
+      case RIDE_GROUP_REMOVED -> RideGroupRemoved.class;
       case RIDE_JOINED -> RideJoined.class;
       case COMMENT_ON_MY_PUBLICATION -> CommentOnPublication.class;
       case TEAM_INVITATION -> TeamInvited.class;

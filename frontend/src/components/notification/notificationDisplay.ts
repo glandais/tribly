@@ -8,6 +8,7 @@ import {
   IconMessageReply,
   IconNews,
   IconRoute,
+  IconUserMinus,
   IconUserPlus,
   IconUsersPlus,
 } from '@tabler/icons-react'
@@ -37,6 +38,7 @@ const TYPE_ICONS: Record<NotificationType, TablerIcon> = {
   [NotificationType.COMMENT_REPLY]: IconMessageReply,
   [NotificationType.RIDE_REMINDER]: IconAlarm,
   [NotificationType.RIDE_UPDATED]: IconCalendarTime,
+  [NotificationType.RIDE_GROUP_REMOVED]: IconUserMinus,
   [NotificationType.RIDE_JOINED]: IconUserPlus,
   [NotificationType.COMMENT_ON_MY_PUBLICATION]: IconMessage,
   [NotificationType.TEAM_INVITATION]: IconUsersPlus,
@@ -56,6 +58,8 @@ const TYPE_COLORS: Record<NotificationType, string> = {
   [NotificationType.COMMENT_REPLY]: 'primary',
   [NotificationType.RIDE_REMINDER]: 'primary',
   [NotificationType.RIDE_UPDATED]: 'warning',
+  // The rider no longer rides: as weighty as a cancellation.
+  [NotificationType.RIDE_GROUP_REMOVED]: 'danger',
   [NotificationType.RIDE_JOINED]: 'primary',
   [NotificationType.COMMENT_ON_MY_PUBLICATION]: 'primary',
   [NotificationType.TEAM_INVITATION]: 'primary',

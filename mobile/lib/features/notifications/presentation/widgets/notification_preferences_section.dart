@@ -21,6 +21,7 @@ const List<NotificationType> _typeOrder = <NotificationType>[
   NotificationType.commentReply,
   NotificationType.rideReminder,
   NotificationType.rideUpdated,
+  NotificationType.rideGroupRemoved,
   NotificationType.rideJoined,
   NotificationType.commentOnMyPublication,
   NotificationType.teamInvitation,

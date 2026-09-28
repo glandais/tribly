@@ -34,6 +34,7 @@ import fr.pedalons.service.notification.event.ContentReported;
 import fr.pedalons.service.notification.event.NotificationEvent;
 import fr.pedalons.service.notification.event.PostPublished;
 import fr.pedalons.service.notification.event.RideCancelled;
+import fr.pedalons.service.notification.event.RideGroupRemoved;
 import fr.pedalons.service.notification.event.RideJoined;
 import fr.pedalons.service.notification.event.RidePublished;
 import fr.pedalons.service.notification.event.RideReminder;
@@ -49,6 +50,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.hibernate.Hibernate;
 import org.jspecify.annotations.Nullable;
 
@@ -147,6 +150,9 @@ public class NotificationRecipientResolver {
       case RideUpdated e ->
           live(rideRepository.findById(e.rideId()), Status.PUBLISHED, now)
               .flatMap(ride -> resolveUpdate(ride, e));
+      case RideGroupRemoved e ->
+          live(rideRepository.findById(e.rideId()), Status.PUBLISHED, now)
+              .map(ride -> resolveGroupRemoved(ride, e));
       case RideJoined e ->
           resolveJoin(rideParticipationRepository.findById(e.participationId()), now);
       case CommentOnPublication e ->
@@ -196,6 +202,30 @@ public class NotificationRecipientResolver {
             null,
             List.copyOf(changes),
             registered.recipients()));
+  }
+
+  /**
+   * The riders the removed group had, still in the team. One who registered again to another group
+   * of the ride since has already found out, and is left alone. The group's name travels as the
+   * excerpt — the group itself is gone.
+   */
+  private Resolution resolveGroupRemoved(Ride ride, RideGroupRemoved event) {
+    Set<Long> registeredAgain =
+        rideParticipationRepository.findRegisteredMemberUsers(ride.getId()).stream()
+            .map(User::getId)
+            .collect(Collectors.toSet());
+    List<User> removed =
+        event.userIds().stream()
+            .filter(id -> !registeredAgain.contains(id))
+            .map(userRepository::findById)
+            .filter(Objects::nonNull)
+            .filter(user -> !user.isDeleted())
+            .toList();
+    return Resolution.of(
+        ride,
+        NotificationSubjectType.RIDE,
+        excerpt(event.groupName()),
+        stillMembers(removed, ride.getTeam()));
   }
 
   /**

@@ -20,6 +20,7 @@ import { TimeInput } from '@mantine/dates'
 import { InstantDateTimePicker } from '@/components/common/InstantDateTimePicker'
 import { IconX } from '@tabler/icons-react'
 import { SlugEditor } from '../common/SlugEditor'
+import { ConfirmDialog } from '../common/ConfirmDialog'
 import { paths } from '@/config/paths'
 import { ReorderControls } from '../common/ReorderControls'
 import { RoutePickerModal } from '../route/RoutePickerModal'
@@ -51,6 +52,11 @@ interface RideEditorProps {
   canEditSlug?: boolean
   /** Display names of the leaders already designated, keyed by user id, for the edit form. */
   initialLeaders?: Record<string, PublicUserDto>
+  /**
+   * Riders registered to each existing group, keyed by group id, for the edit form: removing a
+   * group removes their registrations with it, which the organiser must know before saving.
+   */
+  participantCounts?: Record<string, number>
 }
 
 export function RideEditor({
@@ -66,6 +72,7 @@ export function RideEditor({
   onSlugChange,
   canEditSlug = false,
   initialLeaders,
+  participantCounts,
 }: RideEditorProps) {
   const { t } = useTranslation()
   const { config, speedToDisplay, speedFromDisplay } = useUnits()
@@ -160,8 +167,19 @@ export function RideEditor({
     })
   }
 
+  // A group with riders: confirmed first. Saving unregisters them — and notifies them.
+  const [pendingRemoval, setPendingRemoval] = useState<{ index: number; riders: number } | null>(
+    null
+  )
+
   const handleRemoveGroup = (index: number) => {
-    form.removeListItem('groups', index)
+    const groupId = groups[index]?.id
+    const riders = (groupId && participantCounts?.[groupId]) || 0
+    if (riders > 0) {
+      setPendingRemoval({ index, riders })
+    } else {
+      form.removeListItem('groups', index)
+    }
   }
 
   const handleMoveGroup = (index: number, direction: 'up' | 'down') => {
@@ -579,6 +597,20 @@ export function RideEditor({
             setPickerTarget(null)
           }}
           team={team}
+        />
+        <ConfirmDialog
+          isOpen={pendingRemoval !== null}
+          onClose={() => setPendingRemoval(null)}
+          onConfirm={() => {
+            if (pendingRemoval) form.removeListItem('groups', pendingRemoval.index)
+            setPendingRemoval(null)
+          }}
+          title={t('rides.create.form.groups.removeRegistered.title')}
+          message={t('rides.create.form.groups.removeRegistered.message', {
+            count: pendingRemoval?.riders ?? 0,
+          })}
+          confirmText={t('rides.create.form.groups.removeRegistered.confirm')}
+          variant="danger"
         />
       </Stack>
     </form>

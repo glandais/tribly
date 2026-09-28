@@ -852,6 +852,7 @@
       "POST_PUBLISHED": "{actor} a publié un article",
       "COMMENT_REPLY": "{actor} a répondu à votre commentaire",
       "RIDE_REMINDER": "Rappel : votre sortie part demain",
+      "RIDE_GROUP_REMOVED": "Votre groupe a été retiré d'une sortie",
       "RIDE_JOINED": "{actor} s'est inscrit à une sortie",
       "COMMENT_ON_MY_PUBLICATION": "{actor} a commenté votre publication",
       "TEAM_INVITATION": "{actor} vous invite à rejoindre {team}",
@@ -867,6 +868,7 @@
       "COMMENT_REPLY": "Réponse à un commentaire",
       "RIDE_REMINDER": "Rappel la veille d'une sortie",
       "RIDE_UPDATED": "Sortie modifiée",
+      "RIDE_GROUP_REMOVED": "Groupe retiré d'une sortie",
       "RIDE_JOINED": "Inscription à votre sortie",
       "COMMENT_ON_MY_PUBLICATION": "Commentaire sur votre publication",
       "TEAM_INVITATION": "Invitation dans une équipe"

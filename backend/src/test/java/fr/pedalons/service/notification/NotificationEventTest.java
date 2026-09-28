@@ -15,6 +15,7 @@ import fr.pedalons.service.notification.event.ContentReported;
 import fr.pedalons.service.notification.event.NotificationEvent;
 import fr.pedalons.service.notification.event.PostPublished;
 import fr.pedalons.service.notification.event.RideCancelled;
+import fr.pedalons.service.notification.event.RideGroupRemoved;
 import fr.pedalons.service.notification.event.RideJoined;
 import fr.pedalons.service.notification.event.RidePublished;
 import fr.pedalons.service.notification.event.RideReminder;
@@ -23,6 +24,7 @@ import fr.pedalons.service.notification.event.TeamInvited;
 import fr.pedalons.service.notification.event.TripCancelled;
 import fr.pedalons.service.notification.event.TripPublished;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,6 +48,7 @@ class NotificationEventTest {
       case COMMENT_REPLY -> new CommentReplied(42);
       case RIDE_REMINDER -> new RideReminder(42, DATE);
       case RIDE_UPDATED -> new RideUpdated(42, DATE, 7L);
+      case RIDE_GROUP_REMOVED -> new RideGroupRemoved(7, 42, "Groupe A", List.of(3L, 4L));
       case RIDE_JOINED -> new RideJoined(42);
       case COMMENT_ON_MY_PUBLICATION -> new CommentOnPublication(42);
       case TEAM_INVITATION -> new TeamInvited(42);

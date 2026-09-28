@@ -22,6 +22,8 @@ enum NotificationType {
   rideReminder('RIDE_REMINDER'),
   @JsonValue('RIDE_UPDATED')
   rideUpdated('RIDE_UPDATED'),
+  @JsonValue('RIDE_GROUP_REMOVED')
+  rideGroupRemoved('RIDE_GROUP_REMOVED'),
   @JsonValue('RIDE_JOINED')
   rideJoined('RIDE_JOINED'),
   @JsonValue('COMMENT_ON_MY_PUBLICATION')

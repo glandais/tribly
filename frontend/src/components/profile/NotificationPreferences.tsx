@@ -23,6 +23,7 @@ const TYPE_ORDER = [
   NotificationType.RIDE_PUBLISHED,
   NotificationType.RIDE_UPDATED,
   NotificationType.RIDE_CANCELLED,
+  NotificationType.RIDE_GROUP_REMOVED,
   NotificationType.RIDE_REMINDER,
   NotificationType.RIDE_JOINED,
   NotificationType.TRIP_PUBLISHED,

@@ -53,9 +53,13 @@ export function NotificationItem({ notification, onOpen, compact = false }: Noti
           )
           .join(' · ')
 
-  // The excerpt is a quoted comment — except for RIDE_JOINED, where it is the group's name.
+  // The excerpt is a quoted comment — except for a join or a removed group, where it is the group's
+  // name.
+  const namesAGroup =
+    notification.type === NotificationType.RIDE_JOINED ||
+    notification.type === NotificationType.RIDE_GROUP_REMOVED
   const excerpt =
-    notification.excerpt && notification.type === NotificationType.RIDE_JOINED
+    notification.excerpt && namesAGroup
       ? t('notifications.item.group', { group: notification.excerpt })
       : notification.excerpt
 
@@ -84,12 +88,7 @@ export function NotificationItem({ notification, onOpen, compact = false }: Noti
             </Text>
           )}
           {excerpt && (
-            <Text
-              size="xs"
-              c="dimmed"
-              fs={notification.type === NotificationType.RIDE_JOINED ? undefined : 'italic'}
-              lineClamp={2}
-            >
+            <Text size="xs" c="dimmed" fs={namesAGroup ? undefined : 'italic'} lineClamp={2}>
               {excerpt}
             </Text>
           )}

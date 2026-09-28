@@ -54,12 +54,12 @@ extension NotificationDisplay on NotificationDto {
   /// La ligne sous le sujet, ou `null` s'il n'y a rien à ajouter.
   ///
   /// L'`excerpt` est une citation — le commentaire — sauf pour une
-  /// inscription, où il porte le nom du groupe : le citer en italique tel quel
-  /// le ferait passer pour un message.
+  /// inscription ou un groupe retiré, où il porte le nom du groupe : le citer
+  /// en italique tel quel le ferait passer pour un message.
   String? detail() {
     final String? text = excerpt;
     if (text == null || text.isEmpty) return null;
-    if (typeEnum == NotificationType.rideJoined) {
+    if (_namesAGroup) {
       return 'notifications.joinedGroup'.tr(
         namedArgs: <String, String>{'group': text},
       );
@@ -68,7 +68,11 @@ extension NotificationDisplay on NotificationDto {
   }
 
   /// `true` quand [detail] est une citation, rendue en italique.
-  bool get detailIsQuote => typeEnum != NotificationType.rideJoined;
+  bool get detailIsQuote => !_namesAGroup;
+
+  bool get _namesAGroup =>
+      typeEnum == NotificationType.rideJoined ||
+      typeEnum == NotificationType.rideGroupRemoved;
 
   /// L'icône du type. Une annulation se lit comme une annulation d'un coup
   /// d'œil, quel que soit le sujet.
@@ -81,6 +85,7 @@ extension NotificationDisplay on NotificationDto {
     NotificationType.commentReply => PdlIcons.comment,
     NotificationType.rideReminder => PdlIcons.reminder,
     NotificationType.rideUpdated => PdlIcons.edit,
+    NotificationType.rideGroupRemoved => PdlIcons.personRemove,
     NotificationType.rideJoined => PdlIcons.personAdd,
     NotificationType.commentOnMyPublication => PdlIcons.comment,
     NotificationType.teamInvitation => PdlIcons.invitation,

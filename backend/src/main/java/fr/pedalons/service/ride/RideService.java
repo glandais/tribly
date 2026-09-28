@@ -32,6 +32,7 @@ import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.common.ParticipationLookup;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.notification.NotificationPublisher;
+import fr.pedalons.service.notification.event.RideGroupRemoved;
 import fr.pedalons.service.notification.event.RideJoined;
 import fr.pedalons.service.notification.event.RideUpdated;
 import fr.pedalons.service.route.RouteService;
@@ -271,6 +272,20 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
         setProperties(teamSlug, ride, existingRideGroup, groupRequest, sortOrder, user);
       }
       sortOrder++;
+    }
+    // The riders of a removed group lose their registration with it (orphanRemoval): each is told,
+    // once the ride is published — a draft has nobody registered.
+    if (ride.getStatus() == Status.PUBLISHED) {
+      for (RideGroup removed : orphanedGroups.values()) {
+        List<Long> riders =
+            removed.getParticipations().stream().map(p -> p.getUser().getId()).toList();
+        if (!riders.isEmpty()) {
+          notificationPublisher.publish(
+              new RideGroupRemoved(ride.getId(), removed.getId(), removed.getName(), riders),
+              team,
+              user);
+        }
+      }
     }
     ride.getGroups().removeAll(orphanedGroups.values());
 

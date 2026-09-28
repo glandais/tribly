@@ -106,6 +106,9 @@ export function EditRidePage() {
         teamSlug={teamSlug!}
         initialValues={initialValues}
         initialLeaders={initialLeaders}
+        participantCounts={Object.fromEntries(
+          ride.groups.map((group) => [group.id, group.countParticipants])
+        )}
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.ride(teamSlug!, rideSlug!))}
         isPending={updateMutation.isPending}

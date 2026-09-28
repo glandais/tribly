@@ -852,6 +852,7 @@
       "POST_PUBLISHED": "{actor} published a post",
       "COMMENT_REPLY": "{actor} replied to your comment",
       "RIDE_REMINDER": "Reminder: your ride starts tomorrow",
+      "RIDE_GROUP_REMOVED": "Your group was removed from a ride",
       "RIDE_JOINED": "{actor} joined a ride",
       "COMMENT_ON_MY_PUBLICATION": "{actor} commented on your publication",
       "TEAM_INVITATION": "{actor} invited you to join {team}",
@@ -867,6 +868,7 @@
       "COMMENT_REPLY": "Comment reply",
       "RIDE_REMINDER": "Reminder the day before a ride",
       "RIDE_UPDATED": "Ride changed",
+      "RIDE_GROUP_REMOVED": "Group removed from a ride",
       "RIDE_JOINED": "Someone joins your ride",
       "COMMENT_ON_MY_PUBLICATION": "Comment on your publication",
       "TEAM_INVITATION": "Team invitation"

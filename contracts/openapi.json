@@ -3074,7 +3074,7 @@
       },
       "NotificationType" : {
         "type" : "string",
-        "enum" : [ "RIDE_PUBLISHED", "RIDE_CANCELLED", "TRIP_PUBLISHED", "TRIP_CANCELLED", "POST_PUBLISHED", "COMMENT_REPLY", "RIDE_REMINDER", "RIDE_UPDATED", "RIDE_JOINED", "COMMENT_ON_MY_PUBLICATION", "TEAM_INVITATION", "CONTENT_REPORTED" ]
+        "enum" : [ "RIDE_PUBLISHED", "RIDE_CANCELLED", "TRIP_PUBLISHED", "TRIP_CANCELLED", "POST_PUBLISHED", "COMMENT_REPLY", "RIDE_REMINDER", "RIDE_UPDATED", "RIDE_GROUP_REMOVED", "RIDE_JOINED", "COMMENT_ON_MY_PUBLICATION", "TEAM_INVITATION", "CONTENT_REPORTED" ]
       },
       "OtpRequest" : {
         "description" : "OTP request",
@@ -19976,7 +19976,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "5.4.0",
+    "version" : "5.5.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {
