@@ -31,6 +31,7 @@ import fr.pedalons.service.team.response.TeamAndRole;
 import fr.pedalons.service.team.response.TeamStats;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,8 @@ public class TeamService {
   @Inject protected SlugService slugService;
 
   @Inject PedalonsQueryContext pedalonsContext;
+
+  @Inject EntityManager em;
 
   /**
    * Resolves a team by slug.
@@ -221,6 +224,9 @@ public class TeamService {
     team.setName(request.name());
     boolean isPlatformAdmin = isPlatformAdmin();
     if (team.isVisibilityEditable() || isPlatformAdmin) {
+      if (team.getVisibility() != Visibility.TEAM && request.visibility() == Visibility.TEAM) {
+        makeContentTeamOnly(team);
+      }
       team.setVisibility(request.visibility());
     } else if (request.visibility() != team.getVisibility()) {
       throw new BusinessException(INVALID_VISIBILITY);
@@ -231,6 +237,29 @@ public class TeamService {
 
     teamRepository.persist(team);
     return getTeamDetailDto(teamSlug);
+  }
+
+  /**
+   * A team going private takes its content with it. A private team only accepts team-only content
+   * (see {@code validateVisibility}): left public, a ride would stay listed and indexed as public
+   * content of a team nobody can open, and could no longer be saved as it is — every edit would be
+   * refused until someone changed its visibility by hand. Deleted content too, so that restoring it
+   * does not bring it back public. The reverse move changes nothing: making content public is a
+   * decision per item.
+   */
+  private void makeContentTeamOnly(Team team) {
+    for (String entity : List.of("TeamEntity", "RideTemplate")) {
+      em.createQuery(
+              "update "
+                  + entity
+                  + " e set e.visibility = :team where e.team.id = :teamId"
+                  + " and e.visibility <> :team")
+          .setParameter("team", Visibility.TEAM)
+          .setParameter("teamId", team.getId())
+          .executeUpdate();
+    }
+    // A managed entity the bulk update bypassed: brought in line so no later flush writes it back.
+    team.getAboutPage().setVisibility(Visibility.TEAM);
   }
 
   /** The modules a team opts into — the same on creation as on every later edit. */

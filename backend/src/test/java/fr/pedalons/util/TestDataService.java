@@ -740,6 +740,16 @@ public class TestDataService {
     return postRepository.findById(id);
   }
 
+  @Transactional
+  public Ride getRide(Long id) {
+    return rideRepository.findById(id);
+  }
+
+  @Transactional
+  public RideTemplate getRideTemplate(Long id) {
+    return rideTemplateRepository.findById(id);
+  }
+
   @Inject AssetRepository assetRepository;
   @Inject StorageService storageService;
 

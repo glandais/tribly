@@ -9,6 +9,9 @@ import fr.pedalons.common.exception.ForbiddenException;
 import fr.pedalons.common.exception.PedalonsException;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.platform.DomainAlias;
+import fr.pedalons.domain.post.Post;
+import fr.pedalons.domain.ride.Ride;
+import fr.pedalons.domain.ridetemplate.RideTemplate;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.asset.MediaDto;
@@ -26,6 +29,8 @@ import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -436,6 +441,49 @@ class TeamServiceTest extends AbstractBaseTest {
     assertEquals("Updated Name", result.name());
     assertEquals("Updated description", result.about().markdown());
     assertEquals(Visibility.TEAM, result.visibility());
+  }
+
+  @Test
+  void updateTeam_goingPrivate_makesItsContentTeamOnly() {
+    Team team = dataService.createTeam(user1, "Going Private", "going-private", Visibility.PUBLIC);
+    dataService.setTeamVisibilityEditable(team, true);
+    Team other = dataService.createTeam(user2, "Other", "other", Visibility.PUBLIC);
+    Instant when = Instant.now().plus(1, ChronoUnit.DAYS);
+    Ride ride = dataService.createRide(team, user1, "Ride", "ride", when, Visibility.PUBLIC);
+    Post deletedPost =
+        dataService.createPost(team, user1, "Unlisted", when, Visibility.PUBLIC_UNLISTED);
+    dataService.deletePost(deletedPost);
+    RideTemplate template = dataService.createRideTemplate(team, user1, "Weekly", "weekly");
+    Ride otherRide =
+        dataService.createRide(other, user2, "Other", "other", when, Visibility.PUBLIC);
+
+    queryContext.setUserForTest(user1);
+    teamService.updateTeam(team.getSlug(), requestWithVisibility("Going Private", Visibility.TEAM));
+
+    assertEquals(Visibility.TEAM, dataService.getRide(ride.getId()).getVisibility());
+    // Deleted too: restoring it must not bring it back public.
+    assertEquals(Visibility.TEAM, dataService.getPost(deletedPost.getId()).getVisibility());
+    assertEquals(Visibility.TEAM, dataService.getRideTemplate(template.getId()).getVisibility());
+    assertEquals(Visibility.PUBLIC, dataService.getRide(otherRide.getId()).getVisibility());
+  }
+
+  @Test
+  void updateTeam_goingPublic_leavesItsContentAsItIs() {
+    Team team = dataService.createTeam(user1, "Going Public", "going-public", Visibility.TEAM);
+    dataService.setTeamVisibilityEditable(team, true);
+    Instant when = Instant.now().plus(1, ChronoUnit.DAYS);
+    Ride ride = dataService.createRide(team, user1, "Ride", "ride", when, Visibility.TEAM);
+
+    queryContext.setUserForTest(user1);
+    teamService.updateTeam(
+        team.getSlug(), requestWithVisibility("Going Public", Visibility.PUBLIC));
+
+    assertEquals(Visibility.TEAM, dataService.getRide(ride.getId()).getVisibility());
+  }
+
+  private static TeamRequest requestWithVisibility(String name, Visibility visibility) {
+    return new TeamRequest(
+        name, MediaDto.builder().build(), visibility, true, true, true, true, true, false, null);
   }
 
   @Test
