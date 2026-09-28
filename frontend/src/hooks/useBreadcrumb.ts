@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { findMatchingRoute, buildBreadcrumbChain, buildRoutePath } from '../config/routeUtils'
 import { useGetTeam } from '../api/endpoints/teams/teams'
-import { useBreadcrumbData } from './useBreadcrumbData'
+import { onlyIfNotFailed, useBreadcrumbData } from './useBreadcrumbData'
 import { useHomeNavItems, useTeamNavItems } from './useNavItems'
 import type { BreadcrumbItemType, BreadcrumbSubItemType } from '../components/common/Breadcrumb'
 import { BreadcrumbLabel } from '@/config/routes.types'
@@ -31,7 +31,7 @@ export function useBreadcrumb(): UseBreadcrumbResult {
   // Shared nav-item groups feed the per-level dropdowns, so they mirror the actual tab bar
   // (auth/feature/membership gated, including dynamic pages) instead of a static list.
   const teamSlug = matchResult?.params.teamSlug
-  const { data: team } = useGetTeam(teamSlug!, { query: { enabled: !!teamSlug } })
+  const { data: team } = useGetTeam(teamSlug!, { query: { enabled: onlyIfNotFailed(!!teamSlug) } })
   const homeNavItems = useHomeNavItems()
   const teamNavItems = useTeamNavItems(team)
 
