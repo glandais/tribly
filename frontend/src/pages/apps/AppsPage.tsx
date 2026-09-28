@@ -20,12 +20,15 @@ import {
   IconMountain,
   IconExternalLink,
   IconMail,
+  IconWorldWww,
+  IconDownload,
 } from '@tabler/icons-react'
 import { signUpForBeta } from '@/api/endpoints/beta-signups/beta-signups'
+import { useInstallOffer } from '@/lib/install/useInstallOffer'
 
 const KAROO_RELEASES_URL = 'https://github.com/glandais/tribly/releases?q=karoo'
 
-type AppStatus = 'available' | 'comingSoon'
+type AppStatus = 'available' | 'comingSoon' | 'installed'
 
 function AppCard({
   icon,
@@ -48,8 +51,8 @@ function AppCard({
           {icon}
         </ThemeIcon>
         <Title order={3}>{title}</Title>
-        <Badge color={status === 'available' ? 'green' : 'gray'} w="fit-content">
-          {t(status === 'available' ? 'apps.status.available' : 'apps.status.comingSoon')}
+        <Badge color={status === 'comingSoon' ? 'gray' : 'green'} w="fit-content">
+          {t(`apps.status.${status}`)}
         </Badge>
         <Text c="dimmed" size="sm">
           {description}
@@ -57,6 +60,34 @@ function AppCard({
         {action}
       </Stack>
     </Paper>
+  )
+}
+
+/**
+ * The site itself, installed as an app. Always the site, never the store: that is the whole point
+ * of this card, for those who don't want (or can't get) the mobile app.
+ */
+function WebAppCard() {
+  const { t } = useTranslation()
+  const { offer, standalone, install } = useInstallOffer()
+  return (
+    <AppCard
+      icon={<IconWorldWww size={28} />}
+      title={t('apps.web.title')}
+      description={t('apps.web.description')}
+      status={standalone ? 'installed' : 'available'}
+      action={
+        offer ? (
+          <Button variant="light" leftSection={<IconDownload size={16} />} onClick={install}>
+            {t('install.action')}
+          </Button>
+        ) : standalone ? undefined : (
+          <Text size="xs" c="dimmed">
+            {t('apps.web.browserMenu')}
+          </Text>
+        )
+      }
+    />
   )
 }
 
@@ -91,7 +122,8 @@ export function AppsPage() {
           <Text c="dimmed">{t('apps.subtitle')}</Text>
         </Stack>
 
-        <SimpleGrid cols={{ base: 1, sm: 3 }}>
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }}>
+          <WebAppCard />
           <AppCard
             icon={<IconMountain size={28} />}
             title={t('apps.karoo.title')}

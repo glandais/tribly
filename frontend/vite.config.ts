@@ -155,6 +155,13 @@ export default defineConfig(({ mode }) => {
               return 'chart-vendor'
             }
 
+            // === FIREBASE (web push only, imported dynamically by lib/push/webPush.ts) ===
+            // On its own: in the catch-all `vendor` chunk it would ride along with whatever
+            // else shares that chunk (the login page did), instead of loading on demand.
+            if (id.includes('node_modules/firebase/') || id.includes('node_modules/@firebase/')) {
+              return 'firebase-vendor'
+            }
+
             // === I18N (check before react - react-i18next must not fall to react) ===
             if (id.includes('node_modules/i18next') || id.includes('node_modules/react-i18next/')) {
               return 'i18n-vendor'

@@ -1477,6 +1477,11 @@
           "minSupportedAppVersion" : {
             "type" : "string",
             "description" : "Oldest mobile build this server still serves, as a semver string. Null when no floor is enforced; a client older than this should tell the user to update."
+          },
+          "webPush" : {
+            "description" : "How the site subscribes a browser to push notifications. Null when the push channel is unavailable or the deployment configures no web app — the site then offers no notification on this device.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/WebPushConfigDto"
           }
         }
       },
@@ -3520,7 +3525,7 @@
       },
       "PushPlatform" : {
         "type" : "string",
-        "enum" : [ "ANDROID", "IOS" ]
+        "enum" : [ "ANDROID", "IOS", "WEB" ]
       },
       "RegisterRequest" : {
         "description" : "User registration request",
@@ -5973,6 +5978,33 @@
           },
           "name" : {
             "type" : "string"
+          }
+        }
+      },
+      "WebPushConfigDto" : {
+        "type" : "object",
+        "description" : "Firebase web configuration, for push notifications in the browser",
+        "required" : [ "apiKey", "projectId", "appId", "messagingSenderId", "vapidKey" ],
+        "properties" : {
+          "apiKey" : {
+            "type" : "string",
+            "description" : "Firebase web API key"
+          },
+          "projectId" : {
+            "type" : "string",
+            "description" : "Firebase project id, the one the server sends through"
+          },
+          "appId" : {
+            "type" : "string",
+            "description" : "Firebase web app id"
+          },
+          "messagingSenderId" : {
+            "type" : "string",
+            "description" : "FCM sender id (the project number)"
+          },
+          "vapidKey" : {
+            "type" : "string",
+            "description" : "Public VAPID key of the project's web push certificate"
           }
         }
       },
@@ -19944,7 +19976,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "5.3.0",
+    "version" : "5.4.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

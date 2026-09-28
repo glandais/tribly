@@ -4,6 +4,8 @@ import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.config.ConfigDto;
 import fr.pedalons.dto.config.MapCenterDto;
 import fr.pedalons.dto.config.MapTerrainDto;
+import fr.pedalons.dto.config.WebPushConfigDto;
+import fr.pedalons.infrastructure.push.FcmClient;
 import fr.pedalons.repository.team.TeamRepository;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.ResolvedSite;
@@ -29,6 +31,21 @@ public class ConfigService {
   @Inject MapConfig mapConfig;
 
   @Inject MapStyleService mapStyleService;
+
+  @Inject FcmClient fcm;
+
+  /** The Firebase web app's public settings: all four, or no web push. */
+  @ConfigProperty(name = "pedalons.push.web.api-key")
+  Optional<String> webApiKey;
+
+  @ConfigProperty(name = "pedalons.push.web.app-id")
+  Optional<String> webAppId;
+
+  @ConfigProperty(name = "pedalons.push.web.messaging-sender-id")
+  Optional<String> webMessagingSenderId;
+
+  @ConfigProperty(name = "pedalons.push.web.vapid-key")
+  Optional<String> webVapidKey;
 
   /**
    * Oldest mobile build this server still serves, blank when no floor is enforced.
@@ -62,7 +79,34 @@ public class ConfigService {
         mapConfig.tileServerBaseUrl(),
         defaultCenter(siteTeam.map(Team::getGeometry).orElse(null)),
         terrain(),
-        minSupportedAppVersion.filter(version -> !version.isBlank()).orElse(null));
+        minSupportedAppVersion.filter(version -> !version.isBlank()).orElse(null),
+        webPush());
+  }
+
+  /**
+   * The browser's side of the push channel, or null when a browser could not receive anything: the
+   * channel itself is off (no service account), or the web app is not configured. Handing the site a
+   * configuration the server cannot send to would register devices that never get a message.
+   */
+  private @Nullable WebPushConfigDto webPush() {
+    String projectId = fcm.projectId();
+    if (projectId == null
+        || isBlank(webApiKey)
+        || isBlank(webAppId)
+        || isBlank(webMessagingSenderId)
+        || isBlank(webVapidKey)) {
+      return null;
+    }
+    return new WebPushConfigDto(
+        webApiKey.get().trim(),
+        projectId,
+        webAppId.get().trim(),
+        webMessagingSenderId.get().trim(),
+        webVapidKey.get().trim());
+  }
+
+  private static boolean isBlank(Optional<String> value) {
+    return value.isEmpty() || value.get().isBlank();
   }
 
   /**

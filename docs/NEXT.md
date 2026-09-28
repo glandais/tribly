@@ -435,6 +435,10 @@ le mobile — la cohabitation ci-dessus est ce qui rend la bascule possible.
 > canal d'un pipeline commun (boîte de réception, e-mail, push) ; état dans le
 > [ledger](plans/2026-09-18-notifications-ledger.md), phases 4 et 4 bis. Restent la revue des stores
 > (build `1.0.0+52`) et, en phase 5, le rappel J-1 — le texte ci-dessous est l'analyse d'origine.
+>
+> **Web Push** (branche `feat/pwa`, 28 septembre 2026) : le site s'installe comme une application et
+> reçoit le push par le même FCM (plateforme `WEB`). Reste à créer l'app web Firebase et renseigner
+> `FCM_WEB_*` — voir le ledger.
 
 Le seul mécanisme qui ramène un membre sans qu'il ouvre l'app. Trois déclencheurs : rappel J-1,
 annulation de sortie, réponse à un commentaire. Six endpoints, deux ou trois entités, une migration.

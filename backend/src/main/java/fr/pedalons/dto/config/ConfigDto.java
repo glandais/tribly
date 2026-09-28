@@ -56,4 +56,11 @@ public record ConfigDto(
                 "Oldest mobile build this server still serves, as a semver string. Null when no"
                     + " floor is enforced; a client older than this should tell the user to"
                     + " update.")
-        String minSupportedAppVersion) {}
+        String minSupportedAppVersion,
+    @Nullable
+        @Schema(
+            description =
+                "How the site subscribes a browser to push notifications. Null when the push"
+                    + " channel is unavailable or the deployment configures no web app — the site"
+                    + " then offers no notification on this device.")
+        WebPushConfigDto webPush) {}

@@ -10,6 +10,14 @@
     <meta name="author" content="Pédalons" />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#228be6" />
+    <!--
+      Installable as an app. The manifest is served per domain by server.js (the app is named after
+      the site); the per-domain iOS title (apple-mobile-web-app-title) comes with the SSR head below.
+    -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
     <!--
       Per-route page title and Open Graph / Twitter tags are emitted server-side (early in HEAD,

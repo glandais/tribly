@@ -91,6 +91,18 @@ export const GetConfigResponse = zod
       .describe(
         'Oldest mobile build this server still serves, as a semver string. Null when no floor is enforced; a client older than this should tell the user to update.'
       ),
+    webPush: zod
+      .object({
+        apiKey: zod.string().describe('Firebase web API key'),
+        projectId: zod.string().describe('Firebase project id, the one the server sends through'),
+        appId: zod.string().describe('Firebase web app id'),
+        messagingSenderId: zod.string().describe('FCM sender id (the project number)'),
+        vapidKey: zod.string().describe("Public VAPID key of the project's web push certificate"),
+      })
+      .optional()
+      .describe(
+        'How the site subscribes a browser to push notifications. Null when the push channel is unavailable or the deployment configures no web app — the site then offers no notification on this device.'
+      ),
   })
   .describe('Application configuration')
 

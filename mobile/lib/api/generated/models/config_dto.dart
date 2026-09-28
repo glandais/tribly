@@ -7,6 +7,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'map_center_dto.dart';
 import 'map_style_dto.dart';
 import 'map_terrain_dto.dart';
+import 'web_push_config_dto.dart';
 
 part 'config_dto.freezed.dart';
 part 'config_dto.g.dart';
@@ -44,6 +45,9 @@ abstract class ConfigDto with _$ConfigDto {
 
     /// Oldest mobile build this server still serves, as a semver string. Null when no floor is enforced; a client older than this should tell the user to update.
     String? minSupportedAppVersion,
+
+    /// How the site subscribes a browser to push notifications. Null when the push channel is unavailable or the deployment configures no web app — the site then offers no notification on this device.
+    WebPushConfigDto? webPush,
   }) = _ConfigDto;
 
   factory ConfigDto.fromJson(Map<String, Object?> json) =>

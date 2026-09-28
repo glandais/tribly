@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { RouterProvider, createBrowserRouter, UNSAFE_createRouter } from 'react-router-dom'
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
-import { getGetConfigQueryKey } from './api/endpoints/configuration/configuration'
+import { getGetConfigQueryKey, useGetConfig } from './api/endpoints/configuration/configuration'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { FeedbackModal } from './components/feedback/FeedbackModal'
 import { buildRoutes } from './config/RouteGenerator'
@@ -10,6 +10,7 @@ import { useAuth } from './hooks/useAuth'
 import { prefetchCommonRoutes } from './lib/prefetch'
 import { installPrefetchAudit } from './lib/prefetchAudit'
 import { getPinnedHistory } from './config/pinnedHistory'
+import { refreshWebPush } from './lib/push/webPush'
 
 const isServer = typeof window === 'undefined'
 
@@ -55,6 +56,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     <>
       <ErrorBoundary>
         <AuthEffects />
+        <WebPushEffects />
         {children}
       </ErrorBoundary>
       {/* Outside the boundary: its error screen opens this modal. */}
@@ -107,6 +109,27 @@ function AuthEffects() {
       prefetchCommonRoutes()
     }
   }, [isInitialized, isLoading])
+
+  return null
+}
+
+/**
+ * Re-registers this browser's push subscription once per visit, for a member who turned it on:
+ * FCM rotates tokens, and a stale one would stop the notifications silently. Renders nothing.
+ */
+function WebPushEffects() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { data: config } = useGetConfig()
+  const webPush = config?.webPush
+  const refreshedRef = useRef(false)
+
+  useEffect(() => {
+    if (!isAuthenticated || !webPush || refreshedRef.current) return
+    refreshedRef.current = true
+    refreshWebPush(webPush).catch((error: unknown) => {
+      console.warn('Web push refresh failed', error)
+    })
+  }, [isAuthenticated, webPush])
 
   return null
 }

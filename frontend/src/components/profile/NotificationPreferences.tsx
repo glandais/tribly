@@ -10,6 +10,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { NotificationChannel, NotificationType } from '@/api/dto'
 import type { NotificationPreferencesDto } from '@/api/dto'
+import { WebPushSettings } from './WebPushSettings'
 
 /** The fragment notification e-mails link to — `NotificationLinks.PREFERENCES_PATH`, server-side. */
 const ANCHOR = 'notifications'
@@ -116,6 +117,9 @@ export function NotificationPreferences() {
             <Alert variant="light" color="blue" icon={<IconAlertCircle size={16} />}>
               {t('notifications.preferences.inAppAlwaysOn')}
             </Alert>
+
+            {/* The PUSH column reaches the member's devices; this is where a browser becomes one. */}
+            {data.channels.includes(NotificationChannel.PUSH) && <WebPushSettings />}
 
             <Table.ScrollContainer minWidth={360}>
               <Table verticalSpacing="xs">

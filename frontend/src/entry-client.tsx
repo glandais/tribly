@@ -14,6 +14,7 @@ import type { SsrAuthSnapshot } from './lib/requestContext'
 import { mapThemePreference } from './lib/theme'
 import { installConsoleCapture } from './lib/feedback/clientLog'
 import { installErrorCapture } from './lib/feedback/errorReporter'
+import { captureInstallPrompt } from './lib/install/installStore'
 import './index.css'
 
 declare global {
@@ -40,6 +41,8 @@ async function bootstrap() {
   // First, so that whatever goes wrong below is in the log of a bug report.
   installConsoleCapture()
   installErrorCapture()
+  // Before anything is awaited: Chrome can fire its install prompt before React has mounted.
+  captureInstallPrompt()
 
   // The initial client render must match the server markup, so i18n has to be ready first.
   await i18nReady
@@ -96,6 +99,24 @@ async function bootstrap() {
   } else {
     createRoot(root).render(app)
   }
+
+  registerServiceWorker()
+}
+
+/**
+ * The service worker makes the site installable and shows web push notifications. It caches
+ * nothing (see public/sw.js). Registered once the page has loaded, so it never competes with
+ * the page's own requests.
+ */
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return
+  const register = () => {
+    navigator.serviceWorker.register('/sw.js').catch((error: unknown) => {
+      console.warn('Service worker registration failed', error)
+    })
+  }
+  if (document.readyState === 'complete') register()
+  else window.addEventListener('load', register, { once: true })
 }
 
 void bootstrap()

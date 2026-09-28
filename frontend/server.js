@@ -17,6 +17,39 @@ const wellKnownDir = isProduction
   ? path.resolve(__dirname, 'dist/client/.well-known')
   : path.resolve(__dirname, 'public/.well-known')
 
+const DEFAULT_APP_NAME = 'Pédalons'
+
+/**
+ * The web app manifest. Only the name varies by domain — every tenant shares the icon set of
+ * public/ (see BRANDING.md). `id` and `start_url` are the site root: on a site pinned to one team,
+ * `/` already opens that team. Colours are the brand blue of the icon background, as theme-color
+ * in index.html.
+ */
+function webManifest(appName) {
+  const shortName = appName.length > 12 ? appName.slice(0, 12).trim() : appName
+  return {
+    id: '/',
+    name: appName,
+    short_name: shortName,
+    start_url: '/',
+    scope: '/',
+    display: 'standalone',
+    theme_color: '#228be6',
+    background_color: '#228be6',
+    icons: [
+      { src: '/pwa-64x64.png', sizes: '64x64', type: 'image/png' },
+      { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      {
+        src: '/maskable-icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+    ],
+  }
+}
+
 async function createServer() {
   const app = express()
 
@@ -71,6 +104,53 @@ async function createServer() {
         }
       }
     )
+  })
+
+  // The service worker (public/sw.js). Served by its own route so it is never cached for long:
+  // express.static below would give it 31 days, and a browser would then keep running a stale
+  // worker. Registered for the whole site, hence Service-Worker-Allowed.
+  const swFile = isProduction
+    ? path.resolve(__dirname, 'dist/client/sw.js')
+    : path.resolve(__dirname, 'public/sw.js')
+  app.get('/sw.js', (_req, res) => {
+    res.set({ 'Cache-Control': 'no-cache', 'Service-Worker-Allowed': '/' })
+    res.type('application/javascript')
+    res.sendFile(swFile, (err) => {
+      if (err && !res.headersSent) {
+        res.status(404).end()
+      }
+    })
+  })
+
+  // The web app manifest, per domain: the installed app is named after the site it was installed
+  // from (GET /api/config resolves the tenant from the forwarded host, as for every SSR request).
+  app.get('/manifest.webmanifest', async (req, res) => {
+    const host = req.headers['x-forwarded-host'] || req.headers.host
+    let appName = DEFAULT_APP_NAME
+    try {
+      const response = await fetch(`${apiTarget}/api/config`, {
+        headers: {
+          Accept: 'application/json',
+          ...(host ? { 'X-Forwarded-Host': String(host) } : {}),
+          'X-Forwarded-Proto': req.protocol,
+        },
+        signal: AbortSignal.timeout(3000),
+      })
+      if (response.ok) {
+        const config = await response.json()
+        appName = config.appName || DEFAULT_APP_NAME
+      }
+    } catch (err) {
+      // An install must not fail for want of the name: fall back to the brand.
+      console.error('[manifest] Failed to load config:', err.message)
+    }
+    res
+      .set({
+        'Content-Type': 'application/manifest+json',
+        'Cache-Control': 'public, max-age=3600',
+        Vary: 'Host, X-Forwarded-Host',
+      })
+      .send(JSON.stringify(webManifest(appName)))
   })
 
   // Everything else under /.well-known (assetlinks.json for Android App Links and

@@ -86,4 +86,11 @@ class ConfigServiceTest extends AbstractBaseTest {
     assertTrue(config.singleTeam());
     assertNull(config.pinnedTeamSlug());
   }
+
+  @Test
+  void getConfig_withoutPushChannel_offersNoWebPush() {
+    // The test profile configures no FCM service account: a browser must not be told to subscribe
+    // to a channel that could never send it anything.
+    assertNull(configService.getConfig().webPush());
+  }
 }

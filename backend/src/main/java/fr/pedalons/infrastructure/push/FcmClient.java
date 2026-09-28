@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -43,6 +44,12 @@ public class FcmClient {
   private static final Duration EXPIRY_MARGIN = Duration.ofMinutes(2);
 
   private static final Duration ASSERTION_LIFETIME = Duration.ofMinutes(60);
+
+  /**
+   * How long a browser's push service keeps a web push for a browser that is offline. A day: a ride
+   * reminder or a cancellation read later than that is noise, and the inbox still has it.
+   */
+  private static final String WEB_TTL_SECONDS = "86400";
 
   @ConfigProperty(name = "pedalons.push.enabled", defaultValue = "false")
   boolean enabled;
@@ -85,6 +92,15 @@ public class FcmClient {
   /** Whether a push can be sent right now — switched on, and with usable credentials. */
   public boolean isConfigured() {
     return account != null;
+  }
+
+  /**
+   * The Firebase project messages go through, or null when push is not configured. The web client
+   * must obtain its tokens from this same project, so {@code ConfigService} hands it to the site.
+   */
+  public @Nullable String projectId() {
+    FcmServiceAccount serviceAccount = account;
+    return serviceAccount == null ? null : serviceAccount.projectId();
   }
 
   private FcmServiceAccount parse(String raw)
@@ -138,10 +154,21 @@ public class FcmClient {
     }
   }
 
-  private static Map<String, Object> message(
+  static Map<String, Object> message(
       String token, PushPlatform platform, String title, String body, Map<String, String> data) {
     Map<String, Object> message = new HashMap<>();
     message.put("token", token);
+    if (platform == PushPlatform.WEB) {
+      // Data only: the site's service worker (frontend/public/sw.js) shows the notification itself,
+      // from the title and body carried here. A top-level notification block would make the browser
+      // — or the Firebase SDK — display it as well, and the member would see it twice.
+      Map<String, String> webData = new LinkedHashMap<>(data);
+      webData.put("title", title);
+      webData.put("body", body);
+      message.put("data", webData);
+      message.put("webpush", Map.of("headers", Map.of("Urgency", "high", "TTL", WEB_TTL_SECONDS)));
+      return message;
+    }
     message.put("notification", Map.of("title", title, "body", body));
     message.put("data", data);
     if (platform == PushPlatform.ANDROID) {

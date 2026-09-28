@@ -1,6 +1,7 @@
 import type { MapCenterDto } from './mapCenterDto.ts'
 import type { MapStyleDto } from './mapStyleDto.ts'
 import type { MapTerrainDto } from './mapTerrainDto.ts'
+import type { WebPushConfigDto } from './webPushConfigDto.ts'
 
 /**
  * Application configuration
@@ -26,4 +27,6 @@ export interface ConfigDto {
   terrain?: MapTerrainDto
   /** Oldest mobile build this server still serves, as a semver string. Null when no floor is enforced; a client older than this should tell the user to update. */
   minSupportedAppVersion?: string
+  /** How the site subscribes a browser to push notifications. Null when the push channel is unavailable or the deployment configures no web app — the site then offers no notification on this device. */
+  webPush?: WebPushConfigDto
 }

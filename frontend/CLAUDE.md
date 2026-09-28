@@ -143,6 +143,13 @@ Hard invariants — keep these when touching SSR-reachable code:
 - **Per-request isolation**: per-request `QueryClient`, per-request i18next instance (`createServerI18n`), request data threaded via `AsyncLocalStorage` (`lib/requestContext`). No module-level mutable per-request state reachable during SSR — `scripts/ssr-session-isolation.mjs` is the check that this still holds.
 - **No module-top-level browser globals** in code eagerly imported by `entry-server` (config/, lib/, i18n/, stores, Layout). Guard any `window`/`document`/`localStorage`/`navigator` at module scope with `typeof window === 'undefined'`. Inside functions/hooks/effects is fine (runs client-side only). Lazy chunks (maps/GPX) are only a concern if a public prefetched route imports them.
 
+### Installable site (PWA) and web push
+
+- **`public/sw.js` caches nothing and has no `fetch` handler — keep it that way.** The SSR HTML is per-visitor and embeds an access token; a caching worker would serve one member's page to the next. It only makes the site installable and shows web push notifications. `server.js` serves it `no-cache` on its own route (`express.static` would cache it 31 days).
+- **The manifest is per domain**: `GET /manifest.webmanifest` is built by `server.js` from `/api/config` (the installed app carries the site's name). Don't add a static `manifest.json` to `public/`.
+- Install offers (`lib/install/useInstallOffer`) and the web push status (`lib/push/webPush`) are **null/unknown on the first render** and computed in effects: they depend on the user agent, `beforeinstallprompt` and localStorage, none of which SSR knows.
+- Firebase is only ever imported dynamically, from `lib/push/webPush.ts`, and has its own chunk (`firebase-vendor` in `vite.config.ts`) so it never rides along with a page.
+
 ### Link previews (Open Graph / Twitter)
 
 Public pages unfurl into rich social/messaging cards via server-rendered OG/Twitter tags. A route declares an optional `meta(ctx)` in `routes.config.ts`; `entry-server` runs it after `prefetch`, `src/lib/seo.ts` (`buildMetaTags`) serialises the result, and `server.js` injects it at the `<!--ssr-head-->` placeholder. Because no unfurl crawler runs JavaScript, the tags **must** be in the initial HTML — this rides on SSR, not client injection.

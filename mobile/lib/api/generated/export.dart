@@ -270,6 +270,7 @@ export 'models/verify_token_request.dart';
 export 'models/version_dto.dart';
 export 'models/visibility.dart';
 export 'models/waypoint_dto.dart';
+export 'models/web_push_config_dto.dart';
 export 'models/wind_direction.dart';
 export 'models/ad_dto_location_geometry.dart';
 export 'models/ad_edit_dto_location_geometry.dart';

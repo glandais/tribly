@@ -152,6 +152,14 @@ const authStore = create<AuthStore>()((set, get) => ({
   getToken: () => get().accessToken,
 
   logout: async (options) => {
+    // While the session is still valid: unregistering the browser is an authenticated call. A
+    // shared computer must stop receiving this member's notifications once they have left.
+    try {
+      const { disableWebPush } = await import('@/lib/push/webPush')
+      await disableWebPush()
+    } catch (error) {
+      console.error('Web push unregistration failed:', error)
+    }
     try {
       await fetch('/api/auth/logout', {
         method: 'POST',

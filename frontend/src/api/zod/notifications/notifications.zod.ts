@@ -316,7 +316,7 @@ export const RegisterPushDeviceBody = zod
       .describe(
         'The FCM registration token. Registering a token already known moves it to the current user and refreshes its last-seen date.'
       ),
-    platform: zod.enum(['ANDROID', 'IOS']).describe("The device's platform"),
+    platform: zod.enum(['ANDROID', 'IOS', 'WEB']).describe("The device's platform"),
     deviceName: zod
       .string()
       .max(registerPushDeviceBodyDeviceNameMax)

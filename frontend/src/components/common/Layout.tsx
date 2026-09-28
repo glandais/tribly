@@ -29,7 +29,11 @@ import {
   IconMail,
   IconBell,
   IconMessageReport,
+  IconDownload,
 } from '@tabler/icons-react'
+import { InstallBanner } from '@/components/install/InstallBanner'
+import { InstallInstructionsModal } from '@/components/install/InstallInstructionsModal'
+import { useInstallOffer } from '@/lib/install/useInstallOffer'
 import { openFeedback } from '@/lib/feedback/feedbackStore'
 import { logEntry } from '@/lib/feedback/clientLog'
 import { useGetVersion } from '@/api/endpoints/server-version/server-version'
@@ -60,6 +64,9 @@ export function Layout() {
   const navigationType = useNavigationType()
   // Fixed for the lifetime of the running server, so fetch it once and never revalidate.
   const { data: version } = useGetVersion({ query: { staleTime: Infinity } })
+  // Null until hydrated, and whenever there is nothing to install (already installed, or a
+  // browser with neither a prompt nor home-screen instructions).
+  const { offer: installOffer, install } = useInstallOffer({ withStore: true })
 
   const showEmailBanner =
     isAuthenticated &&
@@ -171,6 +178,11 @@ export function Layout() {
                     >
                       {t('feedback.menu')}
                     </Menu.Item>
+                    {installOffer && (
+                      <Menu.Item leftSection={<IconDownload size={14} />} onClick={install}>
+                        {t('install.menu')}
+                      </Menu.Item>
+                    )}
                     {isPlatformAdmin && (
                       <Menu.Item
                         leftSection={<IconShield size={14} />}
@@ -221,6 +233,18 @@ export function Layout() {
         <Stack>
           <ColorSchemeSwitcher />
           <LanguageSwitcher />
+          {installOffer && (
+            <Button
+              variant="light"
+              leftSection={<IconDownload size={16} />}
+              onClick={() => {
+                install()
+                close()
+              }}
+            >
+              {t('install.menu')}
+            </Button>
+          )}
           <Divider />
           {isAuthenticated ? (
             <>
@@ -306,6 +330,8 @@ export function Layout() {
 
       <AppShell.Main>
         <Container size="lg" px={0}>
+          {/* One banner at a time: completing the account comes first. */}
+          {!showEmailBanner && <InstallBanner />}
           {showEmailBanner && (
             <Alert
               variant="light"
@@ -410,6 +436,7 @@ export function Layout() {
           </Group>
         </Container>
       </Box>
+      <InstallInstructionsModal />
     </AppShell>
   )
 }

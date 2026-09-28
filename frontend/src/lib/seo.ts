@@ -231,6 +231,9 @@ export function buildMetaTags(meta: RouteMeta | undefined, ctx: RouteMetaContext
     image.width ? property('og:image:width', String(image.width)) : null,
     image.height ? property('og:image:height', String(image.height)) : null,
     named('twitter:card', 'summary_large_image'),
+    // The name under the icon once the site is added to an iOS home screen (the manifest's name
+    // plays that part elsewhere).
+    named('apple-mobile-web-app-title', appName),
   ]
 
   if (type === 'article' && meta?.article) {
