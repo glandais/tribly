@@ -24,7 +24,10 @@ export default defineConfig({
     timezoneId: 'Europe/Paris',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    // Off: 'retain-on-failure' still records (ffmpeg) every test and throws the passing ones away —
+    // CPU taken from the stack the suite runs against. The trace already holds a screencast, the
+    // DOM and the network of a failure; `--video=on` brings videos back for one run.
+    video: 'off',
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },

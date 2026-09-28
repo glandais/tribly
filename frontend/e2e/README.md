@@ -27,7 +27,7 @@ From `frontend/`: `pnpm e2e` (same as `scripts/e2e.sh test`), `pnpm e2e:ui` (Pla
 `show-trace` on the `trace.zip` the failure printed.
 
 **Parallel runs need distinct output dirs.** Playwright empties its output directory (traces,
-screenshots, videos) when a run starts, so two runs sharing one wipe each other's failure traces.
+screenshots) when a run starts, so two runs sharing one wipe each other's failure traces.
 Give each its own: `E2E_OUTPUT=/tmp/e2e-mine pnpm e2e`, or `--output=/tmp/e2e-mine`.
 
 **The tests run against images, not your working tree** — rebuild (`scripts/e2e.sh build frontend`
