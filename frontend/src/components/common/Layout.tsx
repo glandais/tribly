@@ -17,6 +17,8 @@ import {
   Box,
   Alert,
   UnstyledButton,
+  Indicator,
+  Badge,
 } from '@mantine/core'
 import { useDisclosure, useHeadroom } from '@mantine/hooks'
 import {
@@ -39,6 +41,7 @@ import { useScrollRestoration } from '../../hooks/useScrollRestoration'
 import { Breadcrumb } from './Breadcrumb'
 import { ColorSchemeSwitcher } from './ColorSchemeSwitcher'
 import { NotificationBell } from '@/components/notification/NotificationBell'
+import { useUnreadNotificationCount } from '@/hooks/useNotifications'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { paths } from '@/config/paths'
 
@@ -49,6 +52,8 @@ export function Layout() {
   const isPlatformAdmin = useAuthStore(selectIsPlatformAdmin)
   const { items: breadcrumbItems, showBackLink } = useBreadcrumb()
   const [opened, { toggle, close }] = useDisclosure(false)
+  // The bell is desktop-only: below `sm` the burger and the drawer carry the unread count.
+  const unreadCount = useUnreadNotificationCount()
   const [emailBannerDismissed, setEmailBannerDismissed] = useState(false)
   const { pathname } = useLocation()
   const navigationType = useNavigationType()
@@ -192,13 +197,20 @@ export function Layout() {
             </Group>
 
             {/* Mobile burger */}
-            <Burger
-              opened={opened}
-              onClick={toggle}
+            <Indicator
               hiddenFrom="sm"
-              size="sm"
-              aria-label={opened ? t('nav.closeMenu') : t('nav.openMenu')}
-            />
+              disabled={opened || unreadCount === 0}
+              size={10}
+              color="danger"
+              offset={4}
+            >
+              <Burger
+                opened={opened}
+                onClick={toggle}
+                size="sm"
+                aria-label={opened ? t('nav.closeMenu') : t('nav.openMenu')}
+              />
+            </Indicator>
           </Group>
         </Container>
       </AppShell.Header>
@@ -231,6 +243,18 @@ export function Layout() {
                 component={PrefetchLink}
                 to={paths.notifications()}
                 onClick={close}
+                rightSection={
+                  unreadCount > 0 && (
+                    <Badge
+                      size="sm"
+                      color="danger"
+                      circle={unreadCount < 10}
+                      aria-label={t('notifications.bell.ariaLabelUnread', { count: unreadCount })}
+                    >
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Badge>
+                  )
+                }
               >
                 {t('notifications.title')}
               </Button>
