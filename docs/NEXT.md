@@ -550,7 +550,7 @@ sont des invariants que le code garde.
 
 ## 7. Le backlog produit et les audits
 
-Ce fichier ne couvre que les suites de la v2 et des chantiers qui l'ont suivie. Trois autres sources
+Ce fichier ne couvre que les suites de la v2 et des chantiers qui l'ont suivie. Quatre autres sources
 restent ouvertes :
 
 - [`BACKLOG.md`](../BACKLOG.md) — la roadmap produit (P0 → Icebox). Y figurent notamment le statut
@@ -566,6 +566,10 @@ restent ouvertes :
   qu'en local : aucune CI ne la lance.
 - [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) — audit de sécurité de septembre 2026 ; il fait foi pour
   les vulnérabilités, l'audit de février pour l'infrastructure.
+- [`privacy-policy-open-points.md`](privacy-policy-open-points.md) — ce que la politique de
+  confidentialité ne dit pas encore, ou mal, et qui demande une décision juridique : import
+  biketeam, conservation des messages d'annonce, position précise envoyée par Garmin et Karoo,
+  contenu lisible sans compte, Web Push avant son activation.
 
 ---
 
@@ -573,10 +577,9 @@ restent ouvertes :
 
 ### 8.1 Signaler un problème → issues GitHub (API 4.6.0) — suites possibles, non faites
 
-- **Mise en service** : créer le dépôt privé (`PEDALONS_FEEDBACK_GITHUB_REPO`), ses labels
-  (`feedback`, `bug`, `suggestion`, `crash`, `web`, `android`, `ios`, un par domaine) et le PAT
-  (`PEDALONS_FEEDBACK_GITHUB_TOKEN`, Issues read & write sur ce seul dépôt). Sans eux, tout attend en
-  base (`github_status = PENDING`) et part au premier tick une fois configuré.
+Le dépôt de feedback est en service en production (constaté le 29 septembre 2026).
+
+
 - **Piles web illisibles** : le bundle est minifié et l'empreinte ne garde que le nom du chunk. Pour
   symboliser, construire avec `VITE_BUILD_SOURCEMAP=true` et **ne pas** servir les `.map` (les
   archiver avec l'image), puis automatiser la symbolisation côté serveur.

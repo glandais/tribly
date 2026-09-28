@@ -308,8 +308,9 @@ côté des autres secrets du projet (keystore Android, profil iOS). Rien de tout
 - ☑ `mobile/store-metadata/data-safety.md` et `PrivacyInfo.xcprivacy` mis à jour
 - ☑ Politique de confidentialité et formulaires des deux stores (21 septembre 2026) ; le
   formulaire Play envoyé pour examen le même jour
-- ◐ Nouvelle soumission aux deux stores — build `1.0.0+52` disponible en test le 21 septembre 2026
-  (TestFlight, piste de test Play) ; reste la publication
+- ◐ Nouvelle soumission aux deux stores — en test depuis le 21 septembre 2026 (TestFlight, piste de
+  test Play) ; reste la publication. La build en test est celle du dernier commit
+  `chore(mobile): bump build number` (`mobile/publish_test.sh`) : on ne suit plus les numéros ici
 
 ## Phase 4 bis — Push, côté mobile (21 septembre 2026)
 
@@ -438,7 +439,7 @@ ailleurs. Le compte de service et la clé APNs, eux, restent dans `~/Documents/p
   **développement** (`aps-environment = development`, un seul appareil), celui de la recette sur
   iPhone. Le profil de distribution, lui, est généré par fastlane à l'archivage
   (`-allowProvisioningUpdates`, `3ac6dfa7`).
-- ◐ Nouvelle soumission aux deux stores — voir plus haut (build `1.0.0+52` en test, publication à venir).
+- ◐ Nouvelle soumission aux deux stores — voir plus haut (en test, publication à venir).
 
 ## Phase 5 — Nouveaux types, préférences par équipe, webhook, résumé (21 septembre 2026)
 
@@ -525,8 +526,9 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
   `Col & <Galibier>` est échappé une fois, pas deux
 - ☐ Recette webhook contre un vrai Slack, Discord et Mattermost (bouton « Envoyer un test ») —
   vérifier au passage qu'un `@channel` dans un nom de sortie ne notifie personne sur Mattermost
-- ◐ Build mobile `1.0.0+53` (nouveaux libellés, carte des invitations) poussée en test sur les deux
-  stores le 21 septembre 2026 ; reste la publication. La build 52 affiche les nouveaux types sans
+- ☑ Build mobile `1.0.0+53` (nouveaux libellés, carte des invitations) poussée en test sur les deux
+  stores le 21 septembre 2026 ; les suivantes l'ont remplacée (dernier commit
+  `chore(mobile): bump build number`). La publication est suivie plus haut, avec la soumission. La build 52 affiche les nouveaux types sans
   planter (`$unknown`), mais sans libellé propre
 
 ## Hors pipeline, à ne pas oublier
