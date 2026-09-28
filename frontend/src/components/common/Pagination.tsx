@@ -2,6 +2,13 @@ import { useTranslation } from 'react-i18next'
 import { Group, Text, Pagination as MantinePagination } from '@mantine/core'
 import { useResponsive } from '@/hooks/useResponsive'
 
+const CONTROL_LABELS = {
+  first: 'pagination.firstPage',
+  previous: 'pagination.previousPage',
+  next: 'pagination.nextPage',
+  last: 'pagination.lastPage',
+} as const
+
 export interface PaginationProps {
   currentPage: number
   totalPages: number
@@ -62,6 +69,10 @@ export function Pagination({
         boundaries={1}
         getItemProps={(page) => ({
           'aria-label': t('pagination.goToPage', { page }),
+        })}
+        // The arrows are icons: without this a screen reader announces four unnamed buttons.
+        getControlProps={(control) => ({
+          'aria-label': t(CONTROL_LABELS[control]),
         })}
       />
     </Group>

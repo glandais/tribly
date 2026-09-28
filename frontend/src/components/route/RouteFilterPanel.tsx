@@ -141,79 +141,67 @@ export function RouteFilterPanel({
             />
 
             {/* Hilliness Preset */}
-            <Stack gap={4}>
-              <Text size="sm" fw={500}>
-                {t('routes.list.filters.hilliness.label')}
-              </Text>
-              <Select
-                value={filters.hilliness ?? NONE_VALUE}
-                onChange={(value) =>
-                  updateFilter('hilliness', value === NONE_VALUE ? undefined : (value as Hilliness))
-                }
-                placeholder={t('routes.list.filters.hilliness.placeholder')}
-                data={[
-                  { value: NONE_VALUE, label: t('routes.list.filters.hilliness.placeholder') },
-                  ...Object.values(Hilliness).map((type) => ({
-                    value: type,
-                    label: t(
-                      `routes.list.filters.hilliness.${type satisfies 'FLAT' | 'HILLY' | 'MOUNTAINOUS'}`
-                    ),
-                  })),
-                ]}
-              />
-            </Stack>
+            <Select
+              label={t('routes.list.filters.hilliness.label')}
+              value={filters.hilliness ?? NONE_VALUE}
+              onChange={(value) =>
+                updateFilter('hilliness', value === NONE_VALUE ? undefined : (value as Hilliness))
+              }
+              placeholder={t('routes.list.filters.hilliness.placeholder')}
+              data={[
+                { value: NONE_VALUE, label: t('routes.list.filters.hilliness.placeholder') },
+                ...Object.values(Hilliness).map((type) => ({
+                  value: type,
+                  label: t(
+                    `routes.list.filters.hilliness.${type satisfies 'FLAT' | 'HILLY' | 'MOUNTAINOUS'}`
+                  ),
+                })),
+              ]}
+            />
 
             {/* Surface Type */}
-            <Stack gap={4}>
-              <Text size="sm" fw={500}>
-                {t('routes.list.filters.surfaceType.label')}
-              </Text>
-              <Select
-                value={filters.surfaceType ?? NONE_VALUE}
-                onChange={(value) =>
-                  updateFilter(
-                    'surfaceType',
-                    value === NONE_VALUE ? undefined : (value as SurfaceType)
-                  )
-                }
-                placeholder={t('routes.list.filters.surfaceType.placeholder')}
-                data={[
-                  { value: NONE_VALUE, label: t('routes.list.filters.surfaceType.placeholder') },
-                  ...Object.values(SurfaceType).map((type) => ({
-                    value: type,
-                    label: t(
-                      `routes.surfaceType.${type satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`
-                    ),
-                  })),
-                ]}
-              />
-            </Stack>
+            <Select
+              label={t('routes.list.filters.surfaceType.label')}
+              value={filters.surfaceType ?? NONE_VALUE}
+              onChange={(value) =>
+                updateFilter(
+                  'surfaceType',
+                  value === NONE_VALUE ? undefined : (value as SurfaceType)
+                )
+              }
+              placeholder={t('routes.list.filters.surfaceType.placeholder')}
+              data={[
+                { value: NONE_VALUE, label: t('routes.list.filters.surfaceType.placeholder') },
+                ...Object.values(SurfaceType).map((type) => ({
+                  value: type,
+                  label: t(
+                    `routes.surfaceType.${type satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`
+                  ),
+                })),
+              ]}
+            />
 
             {/* Wind Direction */}
-            <Stack gap={4}>
-              <Text size="sm" fw={500}>
-                {t('routes.list.filters.windDirection.label')}
-              </Text>
-              <Select
-                value={filters.windDirection ?? NONE_VALUE}
-                onChange={(value) =>
-                  updateFilter(
-                    'windDirection',
-                    value === NONE_VALUE ? undefined : (value as WindDirection)
-                  )
-                }
-                placeholder={t('routes.list.filters.windDirection.placeholder')}
-                data={[
-                  { value: NONE_VALUE, label: t('routes.list.filters.windDirection.placeholder') },
-                  ...Object.values(WindDirection).map((dir) => ({
-                    value: dir,
-                    label: t(
-                      `routes.list.filters.windDirection.${dir satisfies 'NORTH' | 'NORTH_EAST' | 'EAST' | 'SOUTH_EAST' | 'SOUTH' | 'SOUTH_WEST' | 'WEST' | 'NORTH_WEST'}`
-                    ),
-                  })),
-                ]}
-              />
-            </Stack>
+            <Select
+              label={t('routes.list.filters.windDirection.label')}
+              value={filters.windDirection ?? NONE_VALUE}
+              onChange={(value) =>
+                updateFilter(
+                  'windDirection',
+                  value === NONE_VALUE ? undefined : (value as WindDirection)
+                )
+              }
+              placeholder={t('routes.list.filters.windDirection.placeholder')}
+              data={[
+                { value: NONE_VALUE, label: t('routes.list.filters.windDirection.placeholder') },
+                ...Object.values(WindDirection).map((dir) => ({
+                  value: dir,
+                  label: t(
+                    `routes.list.filters.windDirection.${dir satisfies 'NORTH' | 'NORTH_EAST' | 'EAST' | 'SOUTH_EAST' | 'SOUTH' | 'SOUTH_WEST' | 'WEST' | 'NORTH_WEST'}`
+                  ),
+                })),
+              ]}
+            />
 
             {/* Sort Options */}
             {showSort && (
@@ -223,6 +211,7 @@ export function RouteFilterPanel({
                 </Text>
                 <Group gap="xs">
                   <Select
+                    aria-label={t('routes.list.filters.sort.label')}
                     value={filters.sortBy ?? RouteSortBy.DATE_TIME}
                     onChange={(value) => updateFilter('sortBy', value as RouteSortBy)}
                     style={{ flex: 1 }}
@@ -245,6 +234,9 @@ export function RouteFilterPanel({
                       )
                     }
                     title={t(
+                      `routes.list.filters.sort.${filters.sortDir === SortDirection.ASC ? 'ASC' : 'DESC'}`
+                    )}
+                    aria-label={t(
                       `routes.list.filters.sort.${filters.sortDir === SortDirection.ASC ? 'ASC' : 'DESC'}`
                     )}
                   >
