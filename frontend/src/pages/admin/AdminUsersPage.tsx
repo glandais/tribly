@@ -19,7 +19,11 @@ import { IconUsers, IconShieldCheck, IconShieldOff } from '@tabler/icons-react'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { SearchInput } from '@/components/common/SearchInput'
 import { Pagination } from '@/components/common/Pagination'
-import { useAssignPlatformRole } from '@/api/endpoints/admin-users/admin-users'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  getListUsersQueryKey,
+  useAssignPlatformRole,
+} from '@/api/endpoints/admin-users/admin-users'
 import { useListDomains } from '@/api/endpoints/admin-domains/admin-domains'
 import type { AdminUserDto } from '@/api/dto'
 import { useAuth } from '@/hooks/useAuth'
@@ -49,16 +53,25 @@ export function AdminUsersPage() {
   const { data: domainsData } = useListDomains(ADMIN_DOMAIN_FILTER_PARAMS)
   const { data, isLoading, error } = useAdminUsersData(filters)
   const assignRoleMutation = useAssignPlatformRole()
+  const queryClient = useQueryClient()
 
   const handleTogglePlatformAdmin = (userId: string, currentRole: string | null | undefined) => {
     const newRole = currentRole === 'PLATFORM_ADMIN' ? undefined : 'PLATFORM_ADMIN'
-    assignRoleMutation.mutate({
-      userId,
-      data: { role: newRole },
-    })
+    assignRoleMutation.mutate(
+      { userId, data: { role: newRole } },
+      { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() }) }
+    )
   }
 
   const totalPages = data ? Math.ceil(data.total / filters.size) : 0
+
+  // Tooltip and accessible name alike: the icon alone says nothing to a screen reader.
+  const roleActionLabel = (userId: string, role: string | null | undefined) =>
+    userId === currentUser?.id && role === 'PLATFORM_ADMIN'
+      ? t('admin.users.cannotRemoveOwnAdmin')
+      : role === 'PLATFORM_ADMIN'
+        ? t('admin.users.removeAdmin')
+        : t('admin.users.makeAdmin')
 
   const domainOptions =
     domainsData?.domains.map((d) => ({
@@ -152,16 +165,9 @@ export function AdminUsersPage() {
                         </Text>
                       </Table.Td>
                       <Table.Td ta="center">
-                        <Tooltip
-                          label={
-                            user.id === currentUser?.id && user.platformRole === 'PLATFORM_ADMIN'
-                              ? t('admin.users.cannotRemoveOwnAdmin')
-                              : user.platformRole === 'PLATFORM_ADMIN'
-                                ? t('admin.users.removeAdmin')
-                                : t('admin.users.makeAdmin')
-                          }
-                        >
+                        <Tooltip label={roleActionLabel(user.id, user.platformRole)}>
                           <ActionIcon
+                            aria-label={roleActionLabel(user.id, user.platformRole)}
                             variant="subtle"
                             color={user.platformRole === 'PLATFORM_ADMIN' ? 'red' : 'blue'}
                             onClick={() => handleTogglePlatformAdmin(user.id, user.platformRole)}

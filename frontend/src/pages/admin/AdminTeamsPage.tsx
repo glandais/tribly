@@ -16,7 +16,11 @@ import {
 import { IconBuildingCommunity, IconToggleLeft, IconToggleRight } from '@tabler/icons-react'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { Pagination } from '@/components/common/Pagination'
-import { useAdminToggleTeamDeleted } from '@/api/endpoints/admin-teams/admin-teams'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  getAdminListTeamsQueryKey,
+  useAdminToggleTeamDeleted,
+} from '@/api/endpoints/admin-teams/admin-teams'
 import { useListDomains } from '@/api/endpoints/admin-domains/admin-domains'
 import { useUrlFilters } from '@/hooks/useUrlFilters'
 import { useScrollToListTop } from '@/hooks/useScrollToListTop'
@@ -36,9 +40,14 @@ export function AdminTeamsPage() {
   const { data: domainsData } = useListDomains(ADMIN_DOMAIN_FILTER_PARAMS)
   const { data, isLoading, error } = useAdminTeamsData(filters)
   const toggleMutation = useAdminToggleTeamDeleted()
+  const queryClient = useQueryClient()
 
   const handleToggleDeleted = (teamId: string) => {
-    toggleMutation.mutate({ teamId })
+    toggleMutation.mutate(
+      { teamId },
+      // Every page and filter of the list: the badge and the icon follow at once.
+      { onSuccess: () => queryClient.invalidateQueries({ queryKey: getAdminListTeamsQueryKey() }) }
+    )
   }
 
   const totalPages = data ? Math.ceil(data.total / filters.size) : 0
@@ -124,6 +133,9 @@ export function AdminTeamsPage() {
                           label={team.deleted ? t('admin.teams.restore') : t('admin.teams.archive')}
                         >
                           <ActionIcon
+                            aria-label={
+                              team.deleted ? t('admin.teams.restore') : t('admin.teams.archive')
+                            }
                             variant="subtle"
                             color={team.deleted ? 'green' : 'red'}
                             onClick={() => handleToggleDeleted(team.id)}
