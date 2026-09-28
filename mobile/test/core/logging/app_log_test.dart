@@ -20,20 +20,32 @@ ErrorInterceptorHandler _handler() => _Handler();
 
 void main() {
   late Directory dir;
+  final List<AppLog> logs = <AppLog>[];
 
   setUp(() async {
     dir = await Directory.systemTemp.createTemp('app_log_test');
   });
 
   tearDown(() async {
+    // Une entrée WARN ou ERROR programme une écriture qui part après la fin
+    // d'un test synchrone : l'attendre, sans quoi elle pose son `.tmp` dans le
+    // dossier pendant qu'on le supprime (« Directory not empty »).
+    for (final AppLog log in logs) {
+      await log.flush();
+    }
+    logs.clear();
     if (await dir.exists()) await dir.delete(recursive: true);
   });
 
-  AppLog newLog({int capacity = 200}) => AppLog(
-    capacity: capacity,
-    directory: () async => dir,
-    flushDelay: Duration.zero,
-  );
+  AppLog newLog({int capacity = 200}) {
+    final AppLog log = AppLog(
+      capacity: capacity,
+      directory: () async => dir,
+      flushDelay: Duration.zero,
+    );
+    logs.add(log);
+    return log;
+  }
 
   group('tampon', () {
     test('garde les N dernières entrées, plus ancienne d\'abord', () {
