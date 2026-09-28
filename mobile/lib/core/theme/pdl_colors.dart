@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 /// Jetons de couleur de rôle de la charte Pédalons.
 ///
-/// Source de vérité : `docs/brand.md` et `pedalons.css` (les
+/// Source de vérité : `docs/BRANDING.md` et `pedalons.css` (les
 /// maquettes v2). Les valeurs claires sont toutes maquettées. Les valeurs
-/// sombres publiées par `brand.md` sont recopiées telles quelles ; celles qui
+/// sombres publiées par `BRANDING.md` sont recopiées telles quelles ; celles qui
 /// ne le sont pas — les fonds doux de badge, littéraux de `pedalons.css` —
 /// sont **dérivées** par la règle suivante, seule justification des
 /// hexadécimaux non maquettés de ce fichier :
@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 /// on-soft(sombre) = nuance 0 de la famille Mantine
 /// ```
 ///
-/// Vérifiée sur les cinq paires que `brand.md` publie :
+/// Vérifiée sur les cinq paires que `BRANDING.md` publie :
 /// `indigo-9 #364fc7 ×0,5 = #1b2864` · `green-9 #2b8a3e ×0,5 = #16451f` ·
 /// `red-9 #c92a2a ×0,5 = #651515` · `gray-9 #212529 ×0,5 = #111315` ·
 /// `yellow-9 #e67700 ×0,5 = #733c00` ; et les `on-soft` publiés (`#edf2ff`,

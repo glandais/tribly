@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Couche d'indirection du jeu d'icônes (§1.0.3-10 du plan v2).
 ///
-/// Les maquettes et `brand.md` §6 emploient le jeu **Tabler**, servi en SVG ;
+/// Les maquettes et `docs/BRANDING.md` §6 emploient le jeu **Tabler**, servi en SVG ;
 /// le brief §4.1.2 et tout le code existant emploient **Material outline**.
 /// L'arbitrage retenu pour la v2 est Material outline : l'écart ne porte que
 /// sur la graisse du trait des icônes de 11 px de badge, et ajouter

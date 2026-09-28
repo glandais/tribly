@@ -352,7 +352,7 @@ stockait ce choix.
 
 **Maquette débloquée** : `33 Profil` (segmenté Métrique/Impérial, sélecteur de thème, langue), et
 c'est ce qui rend le mode sombre pilotable — rappel : **aucune maquette ne fournit le mode sombre**,
-il devra être dérivé de `docs/brand.md`.
+il devra être dérivé de `docs/BRANDING.md`.
 
 ---
 

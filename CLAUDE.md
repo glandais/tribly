@@ -7,10 +7,10 @@ Pedalons: multi-tenant cycling team platform (rides, routes with GPX/maps, posts
 Each module has its own `CLAUDE.md` with commands, architecture, and gotchas — it loads automatically when you work with files in that directory:
 [backend/](backend/CLAUDE.md) · [frontend/](frontend/CLAUDE.md) · [mobile/](mobile/CLAUDE.md) · [karoo/](karoo/CLAUDE.md) · [garmin-app/](garmin-app/CLAUDE.md)
 
-See [docs/BRANDING.md](docs/BRANDING.md) for logo, icon assets and brand colours — **start there**: its header
-maps which of the three brand sources is authoritative over what (this file for assets and the web
-theme, `mobile/lib/core/theme/` for Flutter and the derived dark mode, `docs/brand.md`
-for the fullest charter and the French lexicon). The business colour code is semantic and shared by
+See [docs/BRANDING.md](docs/BRANDING.md) for the brand charter — logo and icon assets, palette,
+typography, components, French lexicon. **Start there**: its header maps which of the two brand
+sources is authoritative over what (that file for assets, the web theme and the written charter,
+`mobile/lib/core/theme/` for Flutter and the derived dark mode). The business colour code is semantic and shared by
 both clients: changing it in one place only makes them diverge silently.
 
 ## Where things are written down

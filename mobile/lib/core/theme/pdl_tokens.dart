@@ -141,7 +141,7 @@ abstract final class PdlMotion {
 /// Ombres de la charte (§1.1.7).
 ///
 /// **En mode sombre l'ombre ne porte pas** : c'est la bordure `#424242` qui
-/// sépare les surfaces (`brand.md` l. 278). [md] et [segThumb] rendent donc
+/// sépare les surfaces (`docs/BRANDING.md` §5.2). [md] et [segThumb] rendent donc
 /// une liste vide en sombre, et l'appelant pose une bordure à la place ;
 /// seule [sheet] est conservée dans les deux modes.
 abstract final class PdlShadows {

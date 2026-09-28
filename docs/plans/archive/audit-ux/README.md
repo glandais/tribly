@@ -8,7 +8,7 @@
 >
 > Reste utile en revanche, et sans date de péremption : la charte (le mode sombre y a été **dérivé**
 > faute de maquette) et `pedalons.css`, qui fait autorité sur les métriques des maquettes. Tous deux
-> ont été sortis de cet audit : [`docs/brand.md`](../../../brand.md) et
+> ont été sortis de cet audit : [`docs/BRANDING.md`](../../../BRANDING.md) (où elle a été fusionnée) et
 > [`docs/pedalons.css`](../../../pedalons.css).
 
 Entrant de design produit le 25 juillet 2026 pour cadrer la prochaine version de l'app mobile.
@@ -30,7 +30,7 @@ iPhone 17 Pro / iOS 27.0 (402 × 874 pt) piloté par AXe. Équipes de référenc
 | [`analyse/web-pages.md`](analyse/web-pages.md) | Structure de chaque page du site, champ par champ |
 | [`analyse/mobile-screens.md`](analyse/mobile-screens.md) | Structure de chaque écran de l'app, et ce qui manque |
 | [`analyse/api-surface.md`](analyse/api-surface.md) | Endpoints de lecture, ce que le mobile n'utilise pas, évolutions proposées |
-| [`docs/brand.md`](../../../brand.md) | Palette clair/sombre, typographie, rayons, composants signature, tokens CSS |
+| [`docs/BRANDING.md`](../../../BRANDING.md) | Palette clair/sombre, typographie, rayons, composants signature, tokens CSS |
 | [`docs/pedalons.css`](../../../pedalons.css) | Feuille de style des maquettes, copiée du projet Claude Design. Fait autorité sur les métriques contre la planche `00 Fondations` |
 | [`web/`](web/) | Descriptif des 27 captures du site (images retirées le 29 septembre 2026) ([`web/README.md`](web/README.md)) |
 | [`mobile/`](mobile/) | Descriptif des 38 captures de l'app (images retirées le 29 septembre 2026) ([`mobile/README.md`](mobile/README.md)) |

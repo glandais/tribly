@@ -47,5 +47,5 @@ est le contrat en vigueur avec biketeam.
 
 [`audit-ux/`](audit-ux/) est l'**entrant** de design (brief, analyse page par page, descriptifs
 des captures) et documente l'état d'avant la v2 ; il ne décrit pas le code actuel. Sa charte et sa
-feuille de style, toujours de référence, vivent dans [`../../brand.md`](../../brand.md) et
+feuille de style, toujours de référence, vivent dans [`../../BRANDING.md`](../../BRANDING.md) et
 [`../../pedalons.css`](../../pedalons.css).

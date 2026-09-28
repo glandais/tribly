@@ -5,7 +5,7 @@ il fusionne et arbitre trois plans partiels (fondations, écrans hero, écrans c
 parallèle, tranche leurs contradictions, dédoublonne la bibliothèque de composants et ordonne
 le tout en lots livrables. Il est autoportant : le détail visuel se lit dans
 [`docs/plans/archive/audit-ux/BRIEF.md`](audit-ux/BRIEF.md), dans
-[`docs/brand.md`](../../brand.md) et dans les planches de
+[`docs/BRANDING.md`](../../BRANDING.md) et dans les planches de
 maquettes v2 (`00 Fondations`, écrans 11 à 34), mais aucune décision n'y est déléguée.
 
 Les planches vivent dans le **projet Claude Design**
