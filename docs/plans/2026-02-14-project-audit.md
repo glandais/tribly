@@ -236,7 +236,7 @@ Docker Compose avec 9 services (prod) / 6 services (dev). GitHub Actions CI sur 
 | I1 | CI desactivee sur `develop` — branches ciblees = `['tmp']` | Critique | S | `ci.yml` | ✅ |
 | I2 | Aucun backup PostgreSQL ni MinIO | Critique | M | Scripts cron | ✅ (`scripts/backup.sh`, `scripts/restore.sh`, procedure dans `docs/operations.md`) |
 | I3 | Aucun pipeline CD — images poussees manuellement | Critique | L | Nouveau `cd.yml` | |
-| I4 | Tag `:latest` sur images backend/frontend — pas de rollback | Critique | S | `docker-compose.yml` | |
+| I4 | Tag `:latest` sur images backend/frontend — pas de rollback. Depuis, tag par environnement (`pedalons-backend:${ENV_NAME}`) : chaque build écrase la précédente, toujours pas de rollback par version | Critique | S | `docker-compose.yml`, `build.sh` | *(ouvert — prévu avec le passage à Docker Swarm)* |
 | I5 | Pas de healthchecks Docker (sauf PostgreSQL) | Critique | M | `docker-compose.yml` | ⚠️ |
 | I6 | Aucune collecte de metriques (pas de Prometheus/Micrometer) | Critique | M | `pom.xml`, config | |
 | I7 | Aucun alerting | Critique | XL | Infrastructure | |

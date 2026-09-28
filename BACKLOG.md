@@ -105,12 +105,11 @@ Requires significant architecture work. Spike before committing.
   - [ ] Manage system images
 
 ### Multi-Tenancy
-- [ ] Team custom domains
+- [X] Team custom domains
   - [X] User linked to a domain
   - [X] SQL-level domain filtering
   - [X] Domain alias pinned to a team (V20, `AdminDomainAliasService`): a platform admin serves one
         team on its own hostname
-  - [ ] Dedicated mobile/Garmin/Karoo app for a team with its own domain
 
 ---
 
@@ -132,6 +131,8 @@ Validated interest required before prioritization.
       stays out of scope
 
 ### Other
+- [ ] Dedicated mobile/Garmin/Karoo app for a team with its own domain (one store listing per
+      customer — the web side is covered by domain aliases)
 - [ ] User dedicated team (personal workspace)
 - [ ] Places improvements (currently limited to 50 items)
 

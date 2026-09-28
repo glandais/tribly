@@ -227,7 +227,8 @@ archivé, laissé tel quel à `1.5.0` avec une note de tête ; **2.4** les slugs
 (`SlugService.RESERVED_SLUGS`) — vérifié le 31 juillet 2026 sur la base de production, aucune route
 ni page d'équipe n'en portait, pas de backfill. **L'ancien import biketeam** a été supprimé le
 2026-09-28 : seule la migration en direct reste
-([plan](plans/2026-09-22-biketeam-live-migration.md)) ; `biketeam_migration_map` sert encore au
+([plan](plans/2026-09-22-biketeam-live-migration.md)), en service en staging et dont la mise en
+production attend biketeam (§10 du plan) ; `biketeam_migration_map` sert encore au
 direct, et ses lignes `USER`, `USER_TEAM`, `COMMENT`, `…_PARTICIPATION` écrites par l'import restent
 en base, inertes.
 

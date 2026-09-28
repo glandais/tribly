@@ -1,7 +1,8 @@
 # Migration biketeam → Pédalons, équipe par équipe et en direct
 
 > Écrit le 22 septembre 2026. **Implémenté et fusionné** des deux côtés (V43, suite e2e du 25
-> septembre 2026) ; l'ancien import par dump a été **supprimé le 28 septembre 2026**. Ce document
+> septembre 2026), **en service en staging** ; la mise en production attend biketeam (§10, « Ordre
+> de mise en production ») ; l'ancien import par dump a été **supprimé le 28 septembre 2026**. Ce document
 > est le **contrat** entre trois implémenteurs qui travaillaient en parallèle sans se parler :
 > *tribly backend*, *tribly frontend* (à l'écriture : worktree
 > `tribly.worktrees/biketeam-live-migration`, branche `feat/biketeam-live-migration`) et *biketeam*
@@ -11,7 +12,8 @@
 > divergent sur un point de contrat, c'est ce document qui a raison jusqu'à ce qu'il soit amendé.
 >
 > **Ce qui fait foi et ce qui est historique.** Le contrat, ce sont les sections qui décrivent ce
-> qui traverse la frontière — §0 à §6, §8.4, §9, §10 et les décisions du §13 — telles qu'amendées
+> qui traverse la frontière — §0 à §6, §8.4, §9, §10 (configuration **et** ordre de mise en production, encore à dérouler
+> en prod) et les décisions du §13 — telles qu'amendées
 > par les « Écarts d'implémentation » datés en fin de document. Le §7 et les §8.1 à §8.3 décrivent
 > l'implémentation Pédalons telle qu'elle était prévue : le code fait foi. Le §11 (dépréciation de
 > l'ancien import) et le §12 (découpage des tâches) sont exécutés et ne restent que comme
