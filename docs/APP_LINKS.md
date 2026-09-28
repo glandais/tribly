@@ -88,7 +88,7 @@ Le générateur :
 }
 ```
 
-`RouteGenerator.tsx` émet un `<Route>` React Router par variante unique.
+`buildRoutes()` (`RouteGenerator.tsx`) produit un `RouteObject` React Router par variante unique.
 
 **Mobile** — Ajouter une `GoRoute` dans `mobile/lib/config/router.dart` :
 
@@ -119,7 +119,7 @@ curl -s https://www.pedalons.fr/.well-known/apple-app-site-association | jq .
 
 Une URL dans n'importe quelle langue supportée (`en`, `fr`) est reconnue par l'app et par le deep linking. Les URLs **générées** par `Paths.xxx()` / `paths.xxx()` utilisent la locale courante de l'utilisateur :
 
-- Frontend : `i18next.language` → détecteur navigateur + préférence utilisateur
+- Frontend : locale de la requête en SSR, sinon `i18next.resolvedLanguage` (détecteur navigateur + préférence utilisateur), sinon `DEFAULT_LOCALE`
 - Mobile : `context.locale.languageCode` propagé dans `locale_context.dart` par `PedalonsApp.build()`
 
 Donc un user FR partage `/equipes/mon-club/sorties/balade-dimanche` ; un user EN reçoit le lien, l'OS ouvre l'app (AASA/manifest acceptent la variante FR), GoRouter/React Router la matche et affiche la bonne page.

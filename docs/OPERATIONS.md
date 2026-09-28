@@ -111,7 +111,8 @@ other backups on the host, and it cannot delete its own history. Three consequen
 scripts, and none of them are incidental:
 
 - **the dumps are staged locally** (`/var/backups/pedalons/<env>`) before being pushed — there is no
-  remote `cat >`; the staging directory is removed at the end of the run;
+  remote `cat >`; the staging directory is removed once the run succeeds; a failed run leaves it (dump and
+  secrets included, mode 700) until the next run wipes it on start;
 - **the previous snapshot is named explicitly** in `--link-dest`, because `rrsync` rejects any path
   containing `..`;
 - **retention lives on the backup host** (`backup-prune.sh`, root's crontab there), not in the
@@ -125,7 +126,7 @@ scripts, and none of them are incidental:
 |------|----------|----------------|
 | `postgres.dump` | `pg_dump -Fc` of `$POSTGRES_DB` | Accounts, teams, rides, routes, posts |
 | `minio/` | The object store, verbatim | Photos, GPX files, avatars, previews |
-| `secrets.tar.gz` | `.env`, `data/keys` (JWT keys, FCM service account), `data/storage` | The JWT keys sign every session and passkey; the service account sends every push; `ENCRYPTION_KEY` decrypts the stored Karoo/Garmin tokens |
+| `secrets.tar.gz` | `.env`, `data/keys` (JWT keys, FCM service account), `data/storage` | The JWT keys sign every session and passkey; the service account sends every push; `ENCRYPTION_KEY` decrypts the stored Karoo/Garmin/Wahoo tokens and the per-domain GPS client secrets |
 | `MANIFEST` | Timestamp, env, git commit, image tags | Says which commit to rebuild before restoring |
 | `SHA256SUMS` | Checksums of the two archives | Verified by `restore.sh` before it destroys anything |
 | `COMPLETE` | Written last, after everything else landed | A dated directory without it is a failed run, not a backup — and the restricted key cannot delete it, so it has to be recognisable |
@@ -158,9 +159,11 @@ would end up inside the application — and inside the backup of it. Override th
 BACKUP_REMOTE=<backup-user>@<backup-tunnel-ip>
 BACKUP_REMOTE_PATH=/                     # relative to the rrsync root
 BACKUP_SSH_KEY=/root/.ssh/id_pedalons_backup
-BACKUP_KEEP=30
 BACKUP_PING_URL=https://hc-ping.com/<uuid>
 ```
+
+Retention is not set here: it is the second argument of `backup-prune.sh` on the backup host (30 in
+the crontab below).
 
 Reading the minio volume needs root, so the backup runs from root's crontab:
 

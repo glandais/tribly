@@ -5,7 +5,7 @@ ce qui est fait, ce qui ne l'est pas, ce qui a été vérifié et comment. On le
 passe, en tête de la phase concernée ; une case ne se coche que vérifiée.
 
 - Branche : `feat/notifications` · worktree `../tribly.worktrees/feat/notifications` — fusionnée dans
-  `develop`, comme le Web Push (`feat/pwa`, 28 septembre 2026)
+  `develop`, comme le Web Push (`feat/pwa`, 28 septembre 2026, en production le 29)
 - Contrat : **3.4.0 → 3.5.0** (six endpoints ajoutés), puis **3.5.0 → 3.6.0** (deux de plus pour les
   appareils push), puis **3.7.0 → 3.8.0** (phase 5), puis **5.4.0** (Web Push, `ConfigDto.webPush`) — rien retiré
 - Migrations : **V37** `notifications`, **V38** `notification event backoff` — appliquées sans heurt
@@ -14,10 +14,10 @@ passe, en tête de la phase concernée ; une case ne se coche que vérifiée.
   **V40** `notifications_phase5`, appliquée en staging puis en production le 21 septembre 2026 (le
   Web Push n'en ajoute pas)
 
-**État au 29 septembre 2026** : phases 1 à 5 en production, Web Push fusionné dans `develop`. Trois
+**État au 29 septembre 2026** : phases 1 à 5 en production, Web Push en production et testé. Deux
 points restent ouverts, repris au §8.3 de [`docs/NEXT.md`](../NEXT.md) : la recette du webhook
-contre de vrais Slack, Discord et Mattermost ; l'app web Firebase et `FCM_WEB_*` en production ; la
-décision produit sur l'e-mail, coupé en production. Depuis le 22 septembre 2026, les e-mails partent
+contre de vrais Slack, Discord et Mattermost ; la décision produit sur l'e-mail, coupé en
+production. Depuis le 22 septembre 2026, les e-mails partent
 par le relais SMTP de Scaleway TEM et non plus par Brevo : les gabarits Brevo cités plus bas
 (16 à 19) n'ont plus cours, ce sont les gabarits Qute de `templates/mail/` qui partent. La stack
 locale lit ses e-mails dans mailpit, qui a remplacé Mailhog le 28 septembre 2026.
@@ -594,3 +594,4 @@ mvn test -Dtest='Ride*Test,Comment*Test,TeamInvitation*Test,Invitation*Test'
 | 2026-09-21 | Staging | Phase 5 déployée et testée en staging (V40 appliquée). Gabarits Brevo du résumé créés (18, 19) et vérifiés par envoi réel. |
 | 2026-09-21 | Production | Phase 5 déployée et testée en production. Build mobile `1.0.0+53` poussée en test sur les deux stores. |
 | 2026-09-28 | Web Push | Branche `feat/pwa` : site installable (manifest par domaine servi par `server.js`, service worker sans cache) et push dans le navigateur par FCM, plateforme `WEB` (pas de migration, `platform` est un `varchar`). Message web *data only* — le service worker affiche titre et corps, un bloc `notification` l'aurait doublé. Config Firebase web publique dans `ConfigDto.webPush` (API 5.4.0), `null` tant que `FCM_WEB_*` manque. Désinscription du navigateur à la déconnexion. Reste : créer l'app web dans le projet `pedalons-9e595` et sa clé VAPID, renseigner `FCM_WEB_*`, recette Chrome Android, desktop et iPhone installé. |
+| 2026-09-29 | Web Push en production | App web Firebase et `FCM_WEB_*` renseignés en production : `ConfigDto.webPush` est rempli, le site propose le push. Livré et testé en production. |

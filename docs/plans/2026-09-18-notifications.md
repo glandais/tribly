@@ -1,8 +1,8 @@
 # Notifications évènementielles
 
 > Écrit le 18 septembre 2026. **Phases 1 à 5 en production depuis le 21 septembre 2026** ; le Web
-> Push est dans `develop` depuis le 28 septembre. Les trois points encore ouverts (recette du
-> webhook, `FCM_WEB_*` en production, décision sur l'e-mail) sont repris au §8.3 de
+> Push l'est depuis le 29 septembre. Les deux points encore ouverts (recette du webhook, décision
+> sur l'e-mail) sont repris au §8.3 de
 > [`docs/NEXT.md`](../NEXT.md). L'avancement, phase par phase, est tenu dans le ledger dédié :
 > [`2026-09-18-notifications-ledger.md`](2026-09-18-notifications-ledger.md). Ce document porte la
 > conception et ses arbitrages ; le ledger porte l'état.
@@ -137,7 +137,7 @@ d'où « membres de l'équipe » sans autre filtre. Un brouillon n'est jamais no
 | `IN_APP` | phase 1 | **Toujours actif, non configurable.** La ligne `notifications` *est* l'entrée de la boîte de réception. Les préférences ne gouvernent que les canaux qui interrompent. |
 | `EMAIL` | phase 1, **désactivé par défaut** | `pedalons.notifications.email.enabled`. Un seul gabarit générique `notification` (fr/en) — voir §6. |
 | `PUSH` | phase 4, **en production depuis le 21 septembre 2026** | FCM (Android + iOS via APNs). Table `push_devices`, enregistrement du jeton, purge sur `UNREGISTERED`. Disponible seulement avec `PEDALONS_PUSH_ENABLED=true` *et* un compte de service lisible. |
-| `PUSH`, plateforme `WEB` | dans `develop` depuis le 28 septembre 2026, `FCM_WEB_*` à renseigner en production | Le Web Push n'est **pas un canal de plus** : le navigateur est un appareil `push_devices` de plateforme `WEB`, servi par le même FCM (message *data only*, affiché par `frontend/public/sw.js`). Proposé seulement si `ConfigDto.webPush` est rempli : canal disponible *et* `FCM_WEB_*` configurés (app web Firebase du même projet). Sur iOS, n'existe que pour le site installé sur l'écran d'accueil (16.4+). |
+| `PUSH`, plateforme `WEB` | **en production depuis le 29 septembre 2026** | Le Web Push n'est **pas un canal de plus** : le navigateur est un appareil `push_devices` de plateforme `WEB`, servi par le même FCM (message *data only*, affiché par `frontend/public/sw.js`). Proposé seulement si `ConfigDto.webPush` est rempli : canal disponible *et* `FCM_WEB_*` configurés (app web Firebase du même projet). Sur iOS, n'existe que pour le site installé sur l'écran d'accueil (16.4+). |
 | Webhook d'équipe, résumé | phase 5 (§12) | Le webhook n'est pas un canal *par destinataire* : il se branche à l'étage 2, sur l'évènement. |
 
 Un canal n'est proposé (dans les préférences) et n'engendre de livraisons que s'il est **disponible**

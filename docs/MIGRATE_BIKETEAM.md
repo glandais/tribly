@@ -29,7 +29,10 @@ author (`createdBy`) of everything; members join afterwards through the usual in
 for a `joinable` team, on their own. Ride groups have no leader (`RideGroupDto.leader` is null).
 
 The team lands in the domain the admin confirmed on (its parent domain, if they came through an
-alias), at slug = biketeam team id.
+alias), at the slug derived from the biketeam team id (`BiketeamTargetResolver.targetSlug`: every
+run of `_`, `.`, `-` becomes one `-`, so `mollet_qui_pique` lands at `mollet-qui-pique`; two ids
+that collapse to the same slug meet a `BIKETEAM_SLUG_CONFLICT`). The biketeam id stays the mapping
+key.
 
 | Situation at the slug | Trial / real run | With `reset` |
 |---|---|---|
@@ -200,8 +203,10 @@ into.
 
 ## Visibility
 
-Tribly gates content on two fields at once (`TeamEntityRepository.getPublicEntity`): listing needs
-`team.visibility = 'PUBLIC'` **and** `te.visibility = 'PUBLIC'`; a direct link needs both to be
+Tribly gates content on two fields at once (`TeamEntityRepository.getPublicEntity`): a cross-team
+listing needs `team.visibility = 'PUBLIC'` **and** `te.visibility = 'PUBLIC'`; the team's own pages
+list it as soon as the team is not `TEAM` (so a `PUBLIC_UNLISTED` team shows its `PUBLIC` items
+there); a direct link needs both to be
 anything other than `TEAM`.
 
 Biketeam's only per-item flag is `ride.listed_in_feed` / `trip.listed_in_feed`, which hides an item
@@ -209,7 +214,8 @@ from the team feed while a direct link still opens it — exactly `PUBLIC_UNLIST
 and ride templates have no such flag and are always listed, so they map to `PUBLIC`.
 
 Item visibility comes from the item's own flag, never from the team's unlisted-ness. Pushing the
-team's `PUBLIC_UNLISTED` down onto its content would change nothing today, but it would stick:
+team's `PUBLIC_UNLISTED` down onto its content would empty the team's own feed today (team-scoped listings still require
+`te.visibility = 'PUBLIC'`), and would stick:
 promoting that team to `PUBLIC` later would leave its whole feed hidden. A `TEAM` team clamps
 everything under it to `TEAM`, which `validateVisibility` requires anyway.
 

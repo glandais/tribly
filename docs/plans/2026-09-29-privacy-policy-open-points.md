@@ -57,12 +57,9 @@ décision. Toute modification se fait **en parité FR/EN**. Le texte est embarqu
 - **Constat** : la politique dit désormais que, dans un navigateur, les notifications passent « par
   le service push propre au navigateur ». Elle nomme FCM (Google) comme relais, mais pas
   les services push des éditeurs de navigateurs qui remettent le message (Google pour Chrome,
-  Mozilla, Apple, Microsoft), ni les transferts correspondants. Or `FCM_WEB_*` n'est pas encore en
-  production ([NEXT §8.3](../NEXT.md#83-notifications--ce-qui-reste)) : le texte décrit une fonction
-  qui n'existe pas encore.
-- **À décider** :
-  - faut-il lister ces services dans le tableau des sous-traitants et des transferts ?
-  - faut-il garder ces paragraphes, ou les retirer jusqu'à l'activation ?
+  Mozilla, Apple, Microsoft), ni les transferts correspondants. Le Web Push est en production depuis
+  le 29 septembre 2026 : la question n'est plus théorique.
+- **À décider** : faut-il lister ces services dans le tableau des sous-traitants et des transferts ?
 
 ## 6. Points mineurs
 

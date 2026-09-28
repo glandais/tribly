@@ -62,7 +62,7 @@
 | Feature | Description |
 |---------|-------------|
 | Team announcements | News and updates |
-| Rich content | Markdown, images, videos |
+| Rich content | Markdown, images, attachments |
 | Visibility options | Team-only, unlisted or public |
 
 ### Marketplace (Ads)
@@ -79,7 +79,7 @@
 - **Comments**: Threaded discussions on rides, routes, posts, trips
 - **Places directory**: Meeting points with geolocation
 - **Unified feed**: Combined publication stream across teams
-- **Notifications**: In-app inbox and mobile push, with per-type preferences; web push (site installed as an app) and the e-mail channel are built but not yet switched on in production
+- **Notifications**: In-app inbox, mobile push and web push (in the browser, or the site installed as an app), with per-type preferences; the e-mail channel is built but not yet switched on in production
 - **Moderation**: Reporting of content and members, blocking, publication filter for abusive terms
 - **Problem reports**: "Report a problem" and automatic error reports, filed as issues in a private GitHub repository
 
@@ -129,7 +129,8 @@ deleting their account.
 | Type | Usage |
 |------|-------|
 | Logo | Team branding |
-| Image/Video | Media content |
+| Image | Media content |
+| Attachment | Downloadable files (documents, videos…) |
 | GPX/FIT | Route data |
 | Thumbnail | Auto-generated previews |
 

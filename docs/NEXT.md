@@ -78,8 +78,9 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       apparaître nulle part à l'image, alors que le presse-papiers contient l'URL réelle.
 - [ ] **Fuseaux horaires (22, 24, 25)** — régler l'appareil sur `Pacific/Auckland` puis
       `America/Los_Angeles`. Une étape du lundi 17 août 2026 à 08:00 ne doit pas glisser d'un jour :
-      on cherche une **double conversion**, pas une localisation d'équipe (le contrat n'a aucun champ
-      de fuseau, la parité est celle du navigateur).
+      on cherche une **double conversion**, pas une localisation d'équipe (le contrat n'a aucun fuseau
+      d'équipe ; il porte une préférence de fuseau *utilisateur* que le web applique et que le
+      mobile ignore : le mobile suit l'appareil).
 - [ ] **Voyage et étape (24, 25)** — tracé et profil ; au-delà de 12 étapes le tracé est
       volontairement partiel.
 - [ ] **Publication (31)** — liens markdown : interne → route interne, externe → navigateur, non
@@ -196,9 +197,10 @@ recette à la main aurait encore à regarder.
       mappings JPA, qui ne savent pas exprimer un index partiel, donc c'est précisément le genre
       d'objet qu'un test vert ne prouve pas.
 - [ ] **Les tests backend sont à lancer par le propriétaire du dépôt**, jamais par Claude
-      (interdiction du projet). Le découpage par item est au §5.2 du même document. Deux classes à
-      ne jamais désactiver pour faire passer un build : `…QueryCountTest` (elles échouent si
-      quelqu'un réintroduit une requête par ligne) et `groupLeader_isNotTheRideCreator` (elle échoue
+      (interdiction du projet). Le découpage par item est au §5.2 du même document. Deux gardes à
+      ne jamais désactiver pour faire passer un build : les classes `…QueryCountTest` (elles échouent si
+      quelqu'un réintroduit une requête par ligne) et le test `groupLeader_isNotTheRideCreator` de
+      `RideGroupLeaderTest` (il échoue
       si quelqu'un réintroduit un repli sur `createdBy`).
 - [ ] **Le relais de contact en production** — les gabarits `ad-contact.{fr,en}` sont rendus par le
       backend (`templates/mail/`) et partent par le relais SMTP de Scaleway TEM comme tout le reste ;
@@ -238,6 +240,20 @@ en base, inertes.
   Chaque reset en laisse un exemplaire de plus. **Quand** : si le volume le justifie, ou avec une
   politique de rétention générale de la corbeille. Décision du 2026-09-22
   ([plan](plans/2026-09-22-biketeam-live-migration.md) §13, décision 10).
+
+Relevés le 29 septembre 2026, en vérifiant `docs/*.md` contre le code :
+
+- **Survol des cartes web sans effet** — l'ombre `md` des cartes est déclarée en `'&:hover'` dans
+  la prop `styles`, que Mantine rend en style inline : le pseudo-sélecteur est ignoré. À passer par
+  une classe CSS (module ou `classNames`) ; [`BRANDING.md`](BRANDING.md) §7.1 le note comme absent
+  d'ici là.
+- **`.env.example:143` décrit un `BACKUP_KEEP` que rien ne lit** — la rétention est le second
+  argument de `scripts/backup-prune.sh`, sur l'hôte de sauvegarde. Retirer la ligne, comme dans
+  [`OPERATIONS.md`](OPERATIONS.md).
+- **Javadoc périmée de `contentVisibility`** (`BiketeamMigrationService`) — elle dit que rabattre le
+  `PUBLIC_UNLISTED` de l'équipe sur ses contenus ne changerait rien ; en réalité le fil de l'équipe
+  se viderait, les listes limitées à l'équipe exigeant `te.visibility = 'PUBLIC'`
+  ([`MIGRATE_BIKETEAM.md`](MIGRATE_BIKETEAM.md) a été corrigé).
 
 ---
 
@@ -365,7 +381,7 @@ fondu piloté par la position de défilement, et libellés inactifs sortis du `d
 
 ## 4. Les quatre chantiers d'infrastructure d'API
 
-Aucun n'a été commencé. Le détail chiffrable — contrat, modèle, déclenchement, risques — est au §4 du
+Seul le push (§4.2) a été livré depuis ; les trois autres n'ont pas été commencés. Le détail chiffrable — contrat, modèle, déclenchement, risques — est au §4 du
 [document d'API archivé](plans/archive/2026-07-26-api-v2-livraison-et-suites.md). Résumé et ordre
 recommandé :
 
@@ -395,9 +411,9 @@ le mobile — la cohabitation ci-dessus est ce qui rend la bascule possible.
 > J-1) est en production depuis le même jour. Ce qui reste est au §8.3 — le texte ci-dessous est
 > l'analyse d'origine.
 >
-> **Web Push** (fusionné dans `develop` le 28 septembre 2026) : le site s'installe comme une
-> application et reçoit le push par le même FCM (plateforme `WEB`). Reste à créer l'app web Firebase
-> et renseigner `FCM_WEB_*` en production — §8.3.
+> **Web Push** (fusionné dans `develop` le 28 septembre 2026, en production et testé depuis le
+> 29 septembre) : le site s'installe comme une application et reçoit le push par le même FCM
+> (plateforme `WEB`).
 
 Le seul mécanisme qui ramène un membre sans qu'il ouvre l'app. Trois déclencheurs : rappel J-1,
 annulation de sortie, réponse à un commentaire. Six endpoints, deux ou trois entités, une migration.
@@ -483,9 +499,9 @@ sont les plus lourds et les nomme tous : c'est un sujet de **rate limiting**, pa
 levier si ça devient sensible est de descendre `MAX_BULK_SLUGS` vers ~15 (les appelants réels
 plafonnent à 12, `kTripTrackStageCap`), pas de réintroduire un paramètre de finesse.
 
-Côté mobile, l'écran qui paie est la **carte de masse** (`routes_mass_repository.dart`) : jusqu'à
-~120 fiches à 65 Ko médian, soit quelques mégaoctets là où c'était quelques centaines de kilooctets.
-Son levier est `PdlMassLayerController.limit`. À surveiller.
+Côté mobile, la carte de masse ne paie plus ce coût : depuis le passage aux tuiles `.mvt` (API
+2.3.0), elle ne charge plus aucune fiche de géométrie. Seuls les écrans de détail (parcours, voyage
+plafonné à 12 étapes par `kTripTrackStageCap`) lisent la géométrie complète.
 
 ---
 
@@ -510,7 +526,7 @@ Beaucoup sont des ajouts d'un champ — le rapport valeur/effort y est bon.
 | 12 | Participants paginés et cherchables côté serveur | 24, 34 | Liste complète embarquée, recherche client, pas de pied « N sur M » |
 | 13 | Tri sur `GET /api/teams` | 34 | Mention « triées par nombre de membres » retirée |
 | 14 | `logoUrl` de service GPS (`GpsServiceConnectionDto`) — `SocialIdentityDto.externalUsername` n'a plus d'objet : la connexion Strava a été retirée (API `5.0.0`) | 33 | Nom du service et « Connecté le *date* », sans logo |
-| 15 | `Team.timezone` ou dates zonées au contrat | 22, 24, 25 | Fuseau de l'appareil, parité web |
+| 15 | `Team.timezone` ou dates zonées au contrat | 22, 24, 25 | Fuseau de l'appareil ; le web applique en plus la préférence `UserDto.timezone`, que le mobile ignore |
 | 16 | Statut `TERMINÉE` dans l'enum `Status` | 11, 12, 22 | Dérivé client de `dateTime < now`, centralisé dans `RideDto.isPast` |
 | 17 | `?format=polyline` sur la géométrie de parcours | — | La géométrie stockée est déjà allégée à l'import (§4.5 : 681 points et 65 Ko pour le parcours médian) ; ~÷4 sur le poids, au prix d'un décodeur Dart. **À rouvrir seulement sur une mesure réelle** |
 | 18 | Voyage comme événement multi-jour au calendrier (`CalendarEventType`) | 22 | Les étapes y sont, le voyage en tant qu'objet non |
@@ -541,7 +557,7 @@ sont des invariants que le code garde.
 | **Minimum de 44 px sur les boutons web** | Règle **tactile** uniquement | Le web descend à 36 px au-dessus de 768 px. Ne pas prendre `pedalons.css` pour une spécification web |
 | **Jetons `--pdl-*` au web** | Non introduits | Le site a déjà la charte en thème Mantine ; une seconde couche de variables créerait deux sources de vérité |
 | **Mode sombre dérivé au web** | Sans objet | Le tableau de parité est un livrable **pour Flutter**, parce qu'aucune maquette ne fournit le sombre. Mantine l'a déjà |
-| **Jeu d'icônes Tabler côté mobile** | Material outline conservé | L'écart ne porte que sur la graisse du trait des icônes de badge de 11 px. `PdlIcons` est le **seul** fichier autorisé à nommer `Icons.*` : basculer un jour ne touchera qu'un fichier |
+| **Jeu d'icônes Tabler côté mobile** | Material outline conservé | L'écart ne porte que sur la graisse du trait des icônes de badge de 11 px. `PdlIcons` devrait être le **seul** fichier à nommer `Icons.*` (c'est tenu dans `lib/core/pdl`, pas encore ailleurs : une vingtaine de fichiers le font encore) : une fois ce ménage fait, basculer ne touchera qu'un fichier |
 | **Écran de profil public d'un membre** | Aucune maquette ne va au-delà de la liste | Les lignes du trombinoscope ne sont pas cliquables. Ne pas inventer l'écran |
 | **Édition et création de contenu au mobile** | Hors brief : la v2 est une version de consultation et de participation | Le sélecteur de meneur dans l'éditeur de groupes existe **côté web** (livré hors plan) ; l'équivalent mobile n'est pas ouvert |
 | **Contenu masqué d'un compte effacé** | Reste masqué | L'effacement supprime les signalements visant le membre, mais ne touche pas `moderationHiddenAt` sur ses sorties, parcours, posts et voyages. Ce contenu, masqué par 3 signalements, n'a plus d'entrée dans la file et reste invisible pour les membres. C'est voulu : le démasquer republierait un contenu signalé 3 fois |
@@ -570,7 +586,7 @@ restent ouvertes :
 - [`plans/2026-09-29-privacy-policy-open-points.md`](plans/2026-09-29-privacy-policy-open-points.md) — ce que la politique de
   confidentialité ne dit pas encore, ou mal, et qui demande une décision juridique : import
   biketeam, conservation des messages d'annonce, position précise envoyée par Garmin et Karoo,
-  contenu lisible sans compte, Web Push avant son activation.
+  contenu lisible sans compte, sous-traitants du Web Push.
 
 ---
 
@@ -614,16 +630,12 @@ Livrée le 24 septembre 2026 ([spécification archivée](plans/archive/2026-09-2
 ### 8.3 Notifications — ce qui reste
 
 Les phases 1 à 5 de [`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md) sont en
-production ; l'état détaillé est dans son [ledger](plans/2026-09-18-notifications-ledger.md).
-Restent trois points, dont aucun n'est du code :
+production, le Web Push aussi depuis le 29 septembre 2026 ; l'état détaillé est dans son
+[ledger](plans/2026-09-18-notifications-ledger.md). Restent deux points, dont aucun n'est du code :
 
 - **Recette du webhook d'équipe** contre un vrai Slack, un vrai Discord et un vrai Mattermost
   (bouton « Envoyer un test ») — vérifier au passage qu'un `@channel` dans un nom de sortie ne
   notifie personne sur Mattermost.
-- **Web Push en production** : créer l'app web dans le projet Firebase `pedalons-9e595` et sa clé
-  VAPID, renseigner `FCM_WEB_*`, puis recetter sur Chrome Android, sur desktop et sur un iPhone où
-  le site est installé. Tant que `FCM_WEB_*` manque, `ConfigDto.webPush` vaut `null` et le site ne
-  propose rien.
 - **Décision produit sur l'e-mail** : `PEDALONS_NOTIFICATIONS_EMAIL_ENABLED` reste à `false` en
   production (décision du 21 septembre 2026, « pas pour le moment »). L'activer, c'est écrire aux
   équipes entières, en connaissant les défauts (annulations, voyages publiés).
@@ -659,14 +671,20 @@ L'audit ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md)) est exécut
 
 Constaté le 29 septembre 2026, en fusionnant `brand.md` dans [`BRANDING.md`](BRANDING.md).
 L'association énumération → famille de couleur (`RIDE` → blue, `CANCELLED` → red, `HC` → grape…)
-est écrite à la main deux fois : `frontend/src/components/card/common/badgeColors.ts` (nom Mantine)
-et `mobile/lib/core/theme/enum_colors.dart` (paire `PdlTone`). Aucun test ne les compare ;
+est écrite à la main côté web dans `frontend/src/components/card/common/badgeColors.ts` (types,
+statuts, rôles, surfaces, visibilités ; nom Mantine), `RouteDetailView.tsx` (`getClimbCategoryColor`,
+catégories de col) et `CardImage.tsx` (dégradés de repli), et côté mobile dans
+`mobile/lib/core/theme/enum_colors.dart` (paire `PdlTone`). Aucun test ne les compare ;
 `mobile/test/core/theme/pdl_tokens_test.dart` ne fige que les hexadécimaux du mobile. Une
 divergence ne casse rien de visible, c'est justement le risque.
 
+- **Divergence déjà là** : `frontend/src/pages/ad/AdDetailPage.tsx` garde sa propre table
+  `adTypeColors` (SALE `primary`, RENTAL `grape`, WANTED `yellow`) alors que `badgeColors.ts` et
+  le §3.6 de la charte disent SALE green, RENTAL indigo, WANTED orange. À réaligner tout de suite
+  en passant par `badgeColors.ts`, sans attendre le générateur.
 - **À faire** : une source unique `contracts/brand-colors.yaml` (énumération → famille, plus les
   dégradés de repli), et un générateur sur le modèle de `pnpm generate-routes` qui produit
-  `badgeColors.generated.ts` et `enum_colors.generated.dart`. Seul le **choix de la famille** est
+  `badgeColors.generated.ts` (qui remplace les trois sources web) et `enum_colors.generated.dart`. Seul le **choix de la famille** est
   partagé ; chaque client garde sa façon de la rendre (nuances Mantine d'un côté, `c.softXxx` de
   l'autre). `BRANDING.md` §3.6 renverra alors au YAML au lieu de recopier les tableaux.
 - **Écarté** : un test qui parse les deux fichiers et vérifie qu'ils concordent — il détecte sans

@@ -92,7 +92,7 @@ Requires significant architecture work. Spike before committing.
     docs/plans/2026-09-18-notifications.md, state in its ledger
   - Event types, team/user preferences, in-app inbox, team webhook, daily digest
   - Mobile push: **live in production since 2026-09-21** (FCM, Android + iOS)
-  - Web push: merged into `develop` on 2026-09-28, waits for the `FCM_WEB_*` production settings
+  - Web push: **live in production since 2026-09-29** (installable site, same FCM, platform `WEB`)
   - E-mail channel: built, **off in production** by product decision (2026-09-21)
   - What's left is in docs/NEXT.md §8.3
 

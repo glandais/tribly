@@ -17,15 +17,20 @@ contredit, c'est `theme.ts` qui a raison — et ce fichier qu'il faut corriger.
 **Le code couleur métier est sémantique, jamais esthétique** : une couleur = un type d'entité, un
 statut, un rôle, un revêtement ou une catégorie de col. Les tableaux du §3.6 font référence ; Flutter
 mappe les mêmes énumérations dans `core/theme/enum_colors.dart`, le web dans
-`frontend/src/components/card/common/badgeColors.ts`. Un changement ici est un changement dans les
-deux, sinon les clients divergent en silence.
+`frontend/src/components/card/common/badgeColors.ts`, sauf les catégories de col
+(`getClimbCategoryColor` dans `RouteDetailView.tsx`). Un changement ici est un changement dans les
+deux, sinon les clients divergent en silence. Attention : `AdDetailPage.tsx` garde sa propre table
+`adTypeColors` (SALE `primary`, RENTAL `grape`, WANTED `yellow`), qui diverge du §3.6 et reste à
+réaligner.
 
 Trois pièges à connaître :
 
 - **Le minimum de 44 px est une règle tactile.** Le web descend volontairement à 36 px au-delà de
   48 em. Ne pas lire la feuille de style des maquettes comme une spécification web sur ce point.
 - **Ne jamais introduire les variables CSS `--pdl-*` dans le site.** Ce sont les variables du moteur
-  de maquettage ([`pedalons.css`](pedalons.css), reprises au §9). Le site exprime déjà la même
+  de maquettage (le §9 en donne le jeu complet, clair et sombre ; [`pedalons.css`](pedalons.css)
+  est le sous-ensemble en mode clair qu'ont chargé les écrans mobile v2, et fait foi sur leurs
+  métriques). Le site exprime déjà la même
   charte en thème Mantine : une seconde couche de variables créerait deux sources de vérité. Les
   classes de jetons Flutter `Pdl*` sont une autre affaire — c'est le vrai thème de l'app, et elles
   sont justes.
@@ -60,8 +65,8 @@ Trois principes :
    existe dans les deux modes ; les vignettes cartographiques elles-mêmes existent en deux versions
    (`thumbnailLight` / `thumbnailDark`).
 
-**Par défaut, le produit est en mode clair** (fond blanc, `useComputedColorScheme('light')` est le
-repli partout dans le code), mais le mode sombre est un citoyen de première classe, pas une
+**Par défaut, le produit est en mode clair** (fond blanc ; `useResolvedColorScheme`, le remplaçant de
+`useComputedColorScheme('light')` qui tient compte du SSR, retombe sur `light` partout dans le code), mais le mode sombre est un citoyen de première classe, pas une
 option dégradée.
 
 ---
@@ -311,13 +316,14 @@ clients.
 
 | Élément | Clair | Sombre |
 |---|---|---|
-| Tracé du parcours | `#228be6` | `#4dabf7` |
-| Marqueur de départ | `#40c057` | `#40c057` |
-| Marqueur d'arrivée | `#fa5252` | `#fa5252` |
-| Marqueur survolé | `#228be6` | `#228be6` |
-| Point de passage | `#fab005` | `#fab005` |
-| Événement calendrier « Sortie » | `#228be6` | `#228be6` |
-| Événement calendrier « Étape » | `#40c057` | `#40c057` |
+| Tracé du parcours (page de détail) | Coloré par la pente (voir « Profil altimétrique ») | idem |
+| Tracé de la carte multi-parcours | `#1d32a8`, `#c90808` au survol | idem |
+| Marqueur de départ | `green` nuance 6 `#40c057` | `green` nuance 8 `#2f9e44` |
+| Marqueur d'arrivée | `red` nuance 6 `#fa5252` | `red` nuance 8 `#e03131` |
+| Marqueur survolé | `blue` nuance 6 `#228be6` | `blue` nuance 8 `#1971c2` |
+| Point de passage | `yellow` nuance 6 `#fab005` | `yellow` nuance 8 `#f08c00` |
+| Événement calendrier « Sortie » | `blue`, variante `light` | `blue`, variante `light` |
+| Événement calendrier « Étape » | `green`, variante `light` | `green`, variante `light` |
 
 **Palette multi-parcours** (superposition de plusieurs tracés, dans cet ordre) :
 `#566B13`, `#1d32a8`, `#732C7B`, `#bdbd22`, `#c90808`, `#b81491`, `#628de3`, `#6dcc5c`,
@@ -397,8 +403,8 @@ logos d'entité, vignettes de carte.
 | `xl` | 32 px | Rare |
 | `xl` / pilule | 1000 px | Badges, chips de filtre, avatars (`radius="xl"`) |
 
-Le mobile Flutter arrondit les cartes et boutons à **12 px** (`BorderRadius.circular(12)`) et les
-vignettes internes à **8 px** — légèrement plus rond que le web, cohérent avec Material 3.
+Le mobile Flutter arrondit les cartes à **12 px** (`PdlRadii.card`), et seulement elles ; boutons,
+champs et vignettes internes restent à **8 px** (`PdlRadii.md`) — légèrement plus rond que le web, cohérent avec Material 3.
 
 ### 5.2 Ombres
 
@@ -433,13 +439,13 @@ icône + valeur).
 
 | Paramètre | Valeur |
 |---|---|
-| Largeur de conteneur | `Container size="lg"` — 62,5 rem / **1000 px**, centré |
+| Largeur de conteneur | `Container size="lg"` — 71,25 rem / **1140 px**, centré |
 | Hauteur d'en-tête | **56 px** en mobile, **60 px** à partir de `sm` (48 em) |
 | Tiroir de navigation mobile | 300 px de large, sous le point de rupture `sm` |
 | Hauteur minimale de bouton | **44 px** en mobile, **36 px** à partir de 48 em |
 | Taille par défaut d'`ActionIcon` | `lg` (cible tactile confortable) |
 | Notifications | Coin supérieur droit |
-| Barre de chips de filtre (mobile) | Hauteur 40 px, défilement horizontal, padding latéral 16 px |
+| Barre de chips de filtre (mobile) | Hauteur mesurée (pastille de 34 px dans une cible de 44), défilement horizontal, padding latéral 16 px |
 
 **Points de rupture** : `xs` 36 em (576 px) · `sm` 48 em (768 px) · `md` 62 em (992 px) ·
 `lg` 75 em (1200 px) · `xl` 88 em (1408 px).
@@ -447,7 +453,8 @@ Deux ruptures personnalisées existent pour les pages de détail : **64 em (1024
 la carte en colonne collante (`position: sticky` sous l'en-tête + 16 px), **90 em (1440 px)** lui
 fait occuper deux colonnes.
 
-**Densité** : moyenne. Cartes à padding 16 px, listes à 3 statistiques maximum sur une ligne,
+**Densité** : moyenne. Cartes à padding 16 px, listes à 4 statistiques maximum sur une ligne (la 4ᵉ est le
+nombre de commentaires, masqué quand l'appelant n'y a pas accès),
 titres tronqués sur une ligne (`lineClamp`), descriptions coupées à **150 caractères**. Les listes
 longues (l'équipe `n-peloton` compte 1999 membres) utilisent le défilement infini côté mobile et
 la pagination côté web — prévoir un état de squelette pour chaque type de carte.
@@ -491,9 +498,8 @@ Les maquettes doivent donc puiser dans le jeu Tabler.
 | `IconStack2` | Nombre de groupes d'une sortie, nombre d'étapes d'un voyage |
 | `IconDownload` | Téléchargement GPX / FIT |
 | `IconDeviceMobile` | Envoi vers l'appareil (Karoo, Garmin) |
-| `IconBrandStrava` | Lien Strava |
 | `IconFilter`, `IconChevronDown` / `IconChevronUp`, `IconX` | Ouverture, repli et effacement des filtres |
-| `IconWorld` / `IconLock` | Visibilité publique / réservée à l'équipe |
+| `IconEye` / `IconEyeOff` / `IconUsers` | Visibilité publique / non listée / réservée à l'équipe |
 | `IconCheck` | Inscription confirmée |
 | `IconMapSearch` | Exploration des parcours |
 | `IconArrowsMaximize` | Carte en plein écran |
@@ -523,13 +529,14 @@ Structure de haut en bas, dans un `Paper withBorder radius="md"` entièrement cl
    badge de type (Sortie, bleu), badge de statut (Publié / Brouillon / Annulé), badge de visibilité.
 5. **Ligne sociale** : groupe d'avatars circulaires des participants (26 px, chevauchement, 5
    maximum puis pastille grise `+N`), une barre de progression des places, et à droite la
-   **vignette du parcours en 160×160** (rayon 8 px, bordure 1 px `#dee2e6`).
+   **vignette du parcours en 160×160** (rayon 8 px, bordure 1 px `#ced4da` / `#424242`).
 6. **Barre de statistiques**, poussée en bas de la carte (`mt="auto"`), écart 16 px, chaque
    statistique = icône 16 px + texte 14 px atténué :
    `📅 sam. 12 avril, 09h00` · `👥 12 participants` · `🗂 3 groupes`.
 
-Au survol : `box-shadow: md` + accentuation de la bordure, transition 0,2 s. Aucun soulèvement,
-aucun agrandissement.
+Au survol : aucun effet aujourd'hui. L'ombre `md` prévue est déclarée en `'&:hover'` dans
+`styles`, que Mantine rend en style inline, donc ignorée. À rétablir par une classe CSS avant de la
+documenter comme acquise. Aucun soulèvement, aucun agrandissement.
 
 ### 7.2 Carte de parcours (`RouteCard`)
 
@@ -539,8 +546,8 @@ Plus simple et plus horizontale :
    de large — **la version claire ou sombre selon le thème actif**.
 2. Padding 16 px, lien d'équipe optionnel.
 3. Logo d'entité 40 px + titre h4 + description tronquée.
-4. **Deux statistiques seulement** : `IconMap` + distance (`68 km`), `IconArrowUp` + dénivelé
-   (`1 240 m`). Les unités suivent la préférence de l'utilisateur (métrique / impérial).
+4. **Deux statistiques, plus le nombre de commentaires quand il est visible** : `IconMap` +
+   distance (`68 km`), `IconArrowUp` + dénivelé (`1 240 m`), `IconMessageCircle` + commentaires. Les unités suivent la préférence de l'utilisateur (métrique / impérial).
 5. **Rangée de badges en bas**, écart 10 px : badge de revêtement (Route / Gravel / VTT / Mixte)
    + badge de visibilité.
 
@@ -554,12 +561,14 @@ pleine largeur puis une grille de `Select` et de plages min/max
 (`1 colonne → 2 (sm) → 3 (lg) → 4 (xl)`, gouttière 16 px). Quand au moins un filtre est actif, un
 second bouton `variant="subtle"` « Effacer » avec `IconX` apparaît à droite.
 
-**Mobile** — barre de chips horizontale de 40 px au-dessus de la liste :
-- **1ʳᵉ position, toujours** : chip d'action de tri, avec flèche haut/bas 16 px + libellé du critère.
-- Ensuite les **filtres actifs** : `InputChip` en état sélectionné, fond teinté primaire, pas de
-  coche, **croix de suppression à droite**, appui = ouverture de la feuille de filtres.
-- Enfin les **filtres disponibles non renseignés** : chip fantôme — fond transparent, bordure
-  `outlineVariant`, libellé en couleur `outline` (gris atténué).
+**Mobile** — rangée de chips (`PdlChipRow`) au-dessus de la liste, hauteur mesurée, fondu sur les
+28 derniers pixels ; chaque `PdlChip` est une pastille de 34 px dans une cible tactile de 44 :
+- **1ʳᵉ position, toujours** : chip de tri (bordure `text`), avec chevron haut/bas 16 px + libellé
+  du critère.
+- Ensuite les **filtres actifs** : fond `primarySoft`, texte `primaryOnSoft` en 600, pas de
+  coche, **croix de suppression à droite**, et **toute la pastille retire le filtre**.
+- Enfin les **filtres disponibles non renseignés** : fond transparent, bordure `border`, texte
+  `textDimmed`.
 
 Forme dans les deux cas : **pilule**, 14 px de texte, 12 px de padding horizontal.
 
@@ -572,7 +581,7 @@ sombre, texte = nuance 9 en clair / nuance 0 en sombre.
 
 Exemples rendus : `PUBLIÉ` sur `#d3f9d8` texte `#2b8a3e` · `BROUILLON` sur `#f1f3f5` texte
 `#212529` · `ANNULÉ` sur `#ffe3e3` texte `#c92a2a`.
-Une icône optionnelle de 16 px peut être placée en section gauche.
+Une icône optionnelle de 12 px peut être placée en section gauche.
 
 ### 7.5 Avatar d'équipe (`TeamAvatar`)
 
@@ -591,13 +600,16 @@ initiales maximum. En groupe : chevauchement, 5 visibles, puis une pastille gris
 
 - **Carré strict** : 80 px (`sm`), 120 px (`md`), 160 px (`lg`). Image demandée en **2× la taille
   d'affichage** pour les écrans à haute densité.
-- Rayon **8 px**, `overflow: hidden`, bordure 1 px `#dee2e6` (clair).
-- **Deux fichiers distincts, un par thème** (`thumbnailLightUrl` / `thumbnailDarkUrl`) : le fond
-  cartographique et la couleur du tracé changent avec le mode. En clair, tracé `#228be6` sur fond
-  clair ; en sombre, tracé `#4dabf7` sur fond sombre.
-- Marqueur de départ vert `#40c057`, marqueur d'arrivée rouge `#fa5252`.
-- État de chargement / absence : carré de même taille, fond `#f1f3f5`, `IconRoute` 24 px centrée
-  en `#adb5bd`.
+- Rayon **8 px**, `overflow: hidden`, bordure 1 px `#ced4da` en clair / `#424242` en sombre
+  (`--mantine-color-default-border`).
+- **Deux fichiers distincts, un par thème** (`thumbnailLightUrl` / `thumbnailDarkUrl`, fonds
+  `colorful` et `eclipse`) : seul le fond cartographique change avec le mode. Le tracé d'un
+  parcours est rouge dans les deux ; ceux d'une sortie ou d'un voyage suivent la palette
+  multi-parcours (§3.7).
+- Pas de marqueurs de départ ni d'arrivée.
+- État de chargement : carré de même taille, fond `#f8f9fa` / `#3b3b3b` (`default-hover`),
+  `IconRoute` 24 px centrée en couleur atténuée (`#868e96` / `#828282`). En l'absence de
+  vignette, rien n'est affiché.
 
 Sur la page de détail d'un parcours ou d'une sortie, la carte interactive n'est plus une vignette
 mais un panneau **collant** en colonne de droite à partir de 1024 px, sur deux colonnes à partir
@@ -608,8 +620,9 @@ de 1440 px, avec les superpositions (info-bulles, profil altimétrique) posées 
 
 Bloc listé sous la sortie, avec pour chaque groupe : nom, organisateur du groupe, compteur
 `{{current}}/{{max}} participants`, lien vers le parcours, boutons `GPX` / `FIT`. L'action varie
-selon l'état : **« Rejoindre »** (bouton plein indigo), **« Inscrit »** (état vert, avec
-« Quitter » en action secondaire), **« Complet »** (bouton désactivé). C'est le principal appel à
+selon l'état : **« Rejoindre »** (bouton plein indigo), **« Inscrit »** (badge indigo doux et
+contour indigo sur le groupe, avec « Quitter » en bouton `outline`), **« Complet »** (badge gris
+doux, sans bouton). C'est le principal appel à
 l'action du parcours membre : il doit être le seul élément plein et coloré de la zone.
 
 ---
@@ -686,7 +699,7 @@ aucune formule enthousiaste (« Génial ! », « C'est parti ! » sont hors marq
 > « Voir le parcours » · « Voir tous les participants » · « Voir tout »
 > « Masquer les filtres » · « Tous les niveaux » · « Prix à négocier »
 > « Aucun groupe défini pour cette sortie. »
-> « Ce parcours n'existe pas ou a été supprimé »
+> « Parcours introuvable » · « Le parcours que vous recherchez n'existe pas. »
 
 ---
 
@@ -766,7 +779,7 @@ production (voir l'en-tête). [`pedalons.css`](pedalons.css) en est la version c
   --pdl-space-xl: 32px;
 
   /* ---- Mise en page ---- */
-  --pdl-container-max: 1000px;      /* Container size="lg" */
+  --pdl-container-max: 1140px;      /* Container size="lg" */
   --pdl-header-height: 56px;
   --pdl-header-height-sm: 60px;
   --pdl-navbar-width: 300px;

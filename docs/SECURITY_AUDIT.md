@@ -134,7 +134,7 @@ Informationnel (ouverts) :
   - Pas d'assignation de masse de `role`, `domainId`, `teamId` ou `createdBy`.
 - **Invariants de `CLAUDE.md`** : `RideGroupDto.leader` ne retombe jamais sur `createdBy`. `AdDto` floute la position et ne porte aucun contact (le relais e-mail est rate-limité). Seul le filtre de proximité fait exception, voir M2.
 - **Parsing** :
-  - gpx2web 1.4.5 durci contre XXE et billion laughs.
+  - gpx2web durci contre XXE et billion laughs (1.4.5 à l'audit, toujours vrai en 1.5.2).
   - Clés S3 dérivées de TSID ou UUID, sans path traversal.
   - Aucun fetch d'URL fournie par un utilisateur (pas de SSRF).
   - HQL entièrement paramétré, tris par enum.
@@ -156,4 +156,4 @@ Informationnel (ouverts) :
   - Dashboard Traefik désactivé.
   - `.env` jamais versionné.
   - Staging des sauvegardes en `700`, restauration avec confirmation.
-  - Aucun keystore, `.p8` ou `google-services.json` versionné.
+  - Aucun keystore ni `.p8` versionné. `mobile/android/app/google-services.json` l'est depuis le push (commit `0bd0db44`, postérieur à l'audit) : c'est une configuration client Firebase, pas un secret serveur.
