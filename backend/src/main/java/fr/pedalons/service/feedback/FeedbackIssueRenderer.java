@@ -101,7 +101,9 @@ public class FeedbackIssueRenderer {
     return new Issue(
         "[crash][" + platform + "] " + excerpt(signature.getTitle()),
         body,
-        List.of("crash", platform));
+        // The signature spans domains; the label is the one of the occurrence shown, which tells
+        // staging from prod when both publish to the same repository.
+        List.of("crash", platform, occurrence.getDomain().getDomain()));
   }
 
   public String summary(Instant since, ErrorOccurrenceRepository.Summary summary) {

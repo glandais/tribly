@@ -225,7 +225,7 @@ class FeedbackResourceTest extends AbstractResourceTest {
     ArgumentCaptor<List<String>> labels = ArgumentCaptor.forClass(List.class);
     verify(github).createIssue(title.capture(), body.capture(), labels.capture());
     assertTrue(title.getValue().startsWith("[Bug][web] La page de la sortie"), title.getValue());
-    assertTrue(labels.getValue().containsAll(List.of("feedback", "bug", "web")));
+    assertTrue(labels.getValue().containsAll(List.of("feedback", "bug", "web", "localhost")));
     assertFalse(body.getValue().contains(EMAIL1), body.getValue());
     assertFalse(body.getValue().contains(JWT), body.getValue());
     assertFalse(body.getValue().contains("secret-invite-token"), body.getValue());
@@ -302,7 +302,9 @@ class FeedbackResourceTest extends AbstractResourceTest {
 
     worker.publishPending();
     worker.publishPending();
-    verify(github, times(1)).createIssue(contains("[crash][web]"), anyString(), anyList());
+    verify(github, times(1))
+        .createIssue(
+            contains("[crash][web]"), anyString(), eq(List.of("crash", "web", "localhost")));
     assertEquals(GithubSyncStatus.CREATED, signatures().getFirst().getGithubStatus());
   }
 
