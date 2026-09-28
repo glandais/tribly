@@ -231,7 +231,7 @@ tribly/
 ├── contracts/        # OpenAPI specification and UI routes (routes.yaml)
 ├── services/         # Docker service configs (Varnish)
 ├── scripts/          # Utility scripts (backup/restore, e2e, route generation, SSR audit)
-├── docs/             # Plans, roadmap (NEXT.md) and the operations runbook
+├── docs/             # Plans, roadmap (LEDGER_NEXT.md) and the operations runbook
 ├── privacy/          # Privacy policy, terms and support pages (served by the site, bundled in the app)
 ├── assets/           # Logo and icon sources (see docs/BRANDING.md)
 ├── data/             # Runtime data (keys, storage, cache, valhalla, tileserver)

@@ -106,7 +106,7 @@ deux en HTTPS par Internet, via les entrées publiques (pas de VPN, §3.4).
   admin plateforme biketeam (§9.6).
 - **Pas de purge physique côté Pédalons.** `reset` utilise la suppression logique déjà en place
   (`TeamService.deleteTeam`) et libère le slug ; purger les équipes à la corbeille est un autre
-  chantier (§13, décision 10 ; `docs/NEXT.md`).
+  chantier (§13, décision 10 ; `docs/LEDGER_NEXT.md`).
 
 ---
 
@@ -1282,7 +1282,7 @@ accepté parce que ces URL visent `localhost`.
 
 > **Historique — exécuté.** L'ancien import a été supprimé le 28 septembre 2026 (`d93fd3af`) :
 > chaque élément marqué ci-dessous est parti, et le marqueur ne subsiste plus que dans ce document.
-> La procédure est conservée pour mémoire ; l'entrée de `docs/NEXT.md` qu'elle prévoyait a été
+> La procédure est conservée pour mémoire ; l'entrée de `docs/LEDGER_NEXT.md` qu'elle prévoyait a été
 > ajoutée puis close.
 
 Marqueur unique, **grep-able** : `REMOVE-WITH-LEGACY-BIKETEAM-IMPORT`. Il figure sur **chaque**
@@ -1305,7 +1305,7 @@ méthodes. Rien n'est supprimé maintenant ; le legacy doit continuer à compile
 | 11 | ~~`README.md` : mention de la migration biketeam dans « Running the full stack locally » et de `biketeam_restore.sh`~~ (retirées avec l'import par dump, `d93fd3af`) | marqueur |
 | 12 | ~~`.env.example` : commentaire de `SOCIAL_PLACEHOLDER_EMAIL_DOMAIN`~~ (variable retirée avec la connexion Strava, API 5.0.0) | marqueur sur le commentaire |
 | 13 | `service/bootstrap/BootstrapService.java` (javadoc l. ~52, « the biketeam migration relies on… ») | marqueur |
-| 14 | L'entrée de `docs/NEXT.md` ci-dessous | marquée elle aussi |
+| 14 | L'entrée de `docs/LEDGER_NEXT.md` ci-dessous | marquée elle aussi |
 | 15 | ~~`SECURITY_AUDIT.md` : ligne L12 (`scripts/biketeam_fetch.sh`)~~ (retirée avec l'import par dump, `d93fd3af` ; l'audit est depuis dans `docs/SECURITY_AUDIT.md`) | marqueur dans la dernière cellule |
 | 16 | `BiketeamMigrationService.ensureTargetTeam` (réutilisation aveugle de toute équipe au slug, legacy seul ; le direct passe par `ensureLiveTargetTeam`) | méthode dépréciée + marqueur |
 
@@ -1316,7 +1316,7 @@ avec la connexion Strava, API 5.0.0) ; la phrase de `CLAUDE.md` et
 du README sur les milliers d'adresses réelles d'une base importée (reste vraie tant que ces bases
 existent).
 
-L'entrée prévue pour [`docs/NEXT.md`](../NEXT.md), §2 « Reprises immédiates », disait quand
+L'entrée prévue pour [`docs/LEDGER_NEXT.md`](../LEDGER_NEXT.md), §2 « Reprises immédiates », disait quand
 supprimer (la dernière équipe basculée, ou la décision de ne plus rejouer de dump) et comment
 (`git grep` du marqueur, puis vérifier qu'aucune mention de `biketeam_import`, `backend-restore`,
 `BiketeamReader`, `biketeam_fetch` ou `biketeam_restore` ne subsiste hors des plans datés, sans
@@ -1345,7 +1345,7 @@ Chaque implémenteur ne s'appuie que sur ce document. Personne ne commite.
    réclamation, reprise, ménage), worker (§7.1), `BiketeamExportClient`, `SnapshotBiketeamSource`,
    résolution de cible et mise au rebut (§7.3), `BiketeamMigrationUrls` et `urlMap` (§8.4).
 5. `.env.example` (§10). Rien dans `docker-compose.yml` ni `frontend/server.js` (§3.4 : pas de VPN).
-6. Dépréciation (§11) — marqueurs, `@Deprecated`, bandeau `MIGRATE_BIKETEAM.md`, entrée `NEXT.md` ;
+6. Dépréciation (§11) — marqueurs, `@Deprecated`, bandeau `MIGRATE_BIKETEAM.md`, entrée `LEDGER_NEXT.md` ;
    ajouter une ligne vers ce plan dans le tableau « Where things are written down » de `CLAUDE.md`.
 7. Bump `pedalons.api.version=4.5.0`, compétence `contract-first-api` (`regenerate.sh`) ; vérifier
    que `contracts/openapi.yaml` ne contient **aucun** `/api/biketeam-migration` ni `/api/internal`,
@@ -1434,7 +1434,7 @@ sections concernées (§0, §1, §6.2, §9.2 à §9.7) sont à jour.
 9. **Une base, plusieurs domaines** (accepté) : une équipe biketeam n'est migrée que vers un domaine
    par base Pédalons (`MIGRATED_IN_OTHER_DOMAIN`).
 10. **Reset = corbeille**, pas purge : données et fichiers S3 de l'ancienne équipe restent. La purge
-    physique des équipes à la corbeille est un chantier séparé (`docs/NEXT.md`).
+    physique des équipes à la corbeille est un chantier séparé (`docs/LEDGER_NEXT.md`).
 11. **Domaines personnalisés** (`team_configuration.domain`) : la redirection est faite par
     l'application, sur les chemins `/{teamId}/…` qu'elle reçoit. Si le proxy du domaine personnalisé
     ne réécrit pas vers ce préfixe, ce sera traité au proxy, au cas par cas.
@@ -1829,7 +1829,7 @@ fonction ponctuelle qu'aucun client autre que la page web n'appelle.
    écrit `WORKER_LOST` et un message ; un succès les efface. biketeam affiche `lastAttemptError`.
 2. **Code de redirection** (§9.4). `MIGRATE_BIKETEAM.md` annonçait des redirections « with a 301 » :
    302 par défaut, 301 via `PEDALONS_REDIRECT_STATUS` côté biketeam, et seulement après le clic
-   « Basculer vers Pédalons ». Aucune autre mention incohérente (README, `docs/NEXT.md`, ce plan).
+   « Basculer vers Pédalons ». Aucune autre mention incohérente (README, `docs/LEDGER_NEXT.md`, ce plan).
 3. **Équipe à la corbeille mise de côté** (§4.1). L'aperçu affichait `targetState = NEW` sans dire
    qu'une équipe migrée à la corbeille occupait le slug et serait mise de côté. Nouveau champ
    `trashedTeamSetAside` (nom de cette équipe, ou `null`), tiré de la même évaluation

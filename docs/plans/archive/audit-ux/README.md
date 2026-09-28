@@ -4,7 +4,7 @@
 > qui fait sa valeur : c'est l'entrant qui a produit la v2, pas une description du code actuel. La
 > v2 mobile est livrée depuis le 27 juillet 2026 et la plupart des écarts listés ici sont refermés —
 > les captures de [`mobile/`](mobile/) (images retirées depuis) ne ressemblaient plus à l'app. Pour l'état du code, lire
-> [`docs/plans/archive/`](../) ; pour la suite, [`docs/NEXT.md`](../../../NEXT.md).
+> [`docs/plans/archive/`](../) ; pour la suite, [`docs/LEDGER_NEXT.md`](../../../LEDGER_NEXT.md).
 >
 > Reste utile en revanche, et sans date de péremption : la charte (le mode sombre y a été **dérivé**
 > faute de maquette) et `pedalons.css`, qui fait autorité sur les métriques des maquettes. Tous deux

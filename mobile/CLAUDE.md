@@ -11,7 +11,7 @@ The app is at **v2** (July 2026): a rewritten design system (`core/pdl`), a sing
 for `.mvt` tiles is gone — a signed tile token (API 2.3.0) lets MapLibre fetch the real tiles, and
 the fallback was deleted rather than kept.
 
-What remains to do — and what was deliberately left out — is in **[../docs/NEXT.md](../docs/NEXT.md)**.
+What remains to do — and what was deliberately left out — is in **[../docs/LEDGER_NEXT.md](../docs/LEDGER_NEXT.md)**.
 
 ## Commands
 
@@ -245,14 +245,14 @@ final teamsClientProvider = Provider<TeamsClient>((ref) => ref.watch(apiClientPr
 - **An attachment is never handed to the browser** — `AssetDto.url` is `/api/download/{visibility}/…` and its authorisation is the *carrying* entity's, so an untokened request to a team-visible ride, ad or page is refused: `openLink` would open a tab on a 403. Fetch it with the authenticated `dioProvider` and hand the file to the system (`SharePlus`), the same path as a route's GPX export. An **image** attachment (`imageUrl != null`) is looked at *in* the app, in `PdlImageViewer` on the 1920 variant; the button then downloads the **original**, which is the one thing the viewer doesn't give
 - **No waiting list**: "full" is a terminal state. Don't wire a hardcoded `waitlisted: false`
 - **Units always go through the single formatter** driven by `UserDto.unitSystem` (`core/units/`, `core/utils/formatters.dart`) — never a hardcoded `km`
-- **Pagination is offset-based** (`PagedListNotifier`, dedup by `itemKey`). Cursor pagination isn't in the contract, and the mocked list footer ("60 members of 1,999") needs the `total` a cursor doesn't provide. See [../docs/NEXT.md](../docs/NEXT.md) §4.1 before changing this
+- **Pagination is offset-based** (`PagedListNotifier`, dedup by `itemKey`). Cursor pagination isn't in the contract, and the mocked list footer ("60 members of 1,999") needs the `total` a cursor doesn't provide. See [../docs/LEDGER_NEXT.md](../docs/LEDGER_NEXT.md) §4.1 before changing this
 - **Dates render in the device timezone**, matching the web. The contract carries no timezone field; keep formatting in one function so a future `Team.timezone` touches one file
 - **The elevation profile is derived from `tracks[].line`, and there is no endpoint for it.** Since API 2.0.0 the geometry is served exactly as stored (no `simplify`/`points`), so every coordinate carries `[lon, lat, ele, cumulativeDistance]` — everything a profile needs, at higher resolution than the removed `/elevation-profile` gave. Build it with `elevationSamplesFromLines` (`features/routes/domain/route_elevation_builder.dart`), which goes through `PolylineIndex`: that is what keeps the profile's x-axis and the map cursor on the *same* distances, including the haversine bridge between the tracks of a multi-track route. **Memoize the `ElevationSamples` in a provider** — `ElevationBarsPainter.shouldRepaint` compares by `identical`, so rebuilding it inside `build()` repaints every frame. Ask for `geometry: false` on `getRoutesBulk` when a screen names routes without drawing them
 
 ## Detailed Guidelines
 
 `lib/core/pdl/README.md` is the authority on the component library (contract, naming, what not to
-port). `../docs/NEXT.md` lists what's left and what was ruled out.
+port). `../docs/LEDGER_NEXT.md` lists what's left and what was ruled out.
 
 See `RULES.md` for the project's Flutter/Dart conventions: Riverpod patterns, generated-code
 workflow, logging, testing and accessibility. Visual design lives in `lib/core/pdl/README.md`,

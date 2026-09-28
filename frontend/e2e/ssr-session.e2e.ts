@@ -39,7 +39,7 @@ import { stack } from './support/stack'
 import { pageAs, pageHydrated, watchHydration } from './support/ui'
 
 /**
- * docs/NEXT.md §1.2 — authenticated SSR (frontend/docs/SSR.md, "Session-aware SSR"): for a document
+ * docs/LEDGER_DONE.md §1.2 — authenticated SSR (frontend/docs/SSR.md, "Session-aware SSR"): for a document
  * request carrying the refresh_token cookie, « Ma prochaine sortie », the « Inscrit » badge on the
  * feed cards and « Mes participations » are in the server HTML; without the cookie they are not;
  * and hydration adopts that markup instead of throwing it away.

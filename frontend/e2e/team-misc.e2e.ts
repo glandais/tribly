@@ -7,7 +7,7 @@ import { stack } from './support/stack'
 import { hydrated, pageHydrated, watchHydration } from './support/ui'
 
 /**
- * Three loose items of docs/NEXT.md: the team page's vertical budget (§1.2), and two notes of
+ * Three loose items of docs/LEDGER_NEXT.md: the team page's vertical budget (docs/LEDGER_DONE.md §1.2), and two notes of
  * its former « A classifier » section (entries closed on 2026-09-25) — the team settings page loaded directly through SSR, and a saved language
  * preference winning over the browser's.
  */
@@ -138,7 +138,7 @@ test.describe('saved language preference', () => {
 
   // An anonymous visitor has no backend preference: the choice lives in the `lang` cookie, which
   // the SSR server reads before Accept-Language (it used to sit in localStorage, overwritten by
-  // the detected language on every load — formerly in docs/NEXT.md « A classifier », fixed 2026-09-25).
+  // the detected language on every load — formerly in docs/LEDGER_NEXT.md « A classifier », fixed 2026-09-25).
   test('an anonymous visitor who picked English keeps it on the next visit', async ({
     context,
     page,

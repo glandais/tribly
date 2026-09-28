@@ -13,7 +13,7 @@ import {
 import { linkTokenIn, mailbox, waitForNewMail } from './support/mailpit'
 
 /**
- * E-mail invitations, docs/NEXT.md §1.2 — the organiser's screens (invite, pending list, resend,
+ * E-mail invitations, docs/LEDGER_DONE.md §1.2 — the organiser's screens (invite, pending list, resend,
  * revoke) and the invitee's (acceptance page, wrong account, replay, sign-up through the link).
  *
  * Every test builds its own owner and team: the inviter is rate-limited (20 per hour), and the

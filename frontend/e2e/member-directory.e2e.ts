@@ -3,7 +3,7 @@ import { expect, test } from './support/fixtures'
 import { directoryTeam, listMembers, setMemberDirectory } from './support/member-directory'
 
 /**
- * The member directory, role × setting (docs/NEXT.md §1.2, « Trombinoscope, la matrice rôle ×
+ * The member directory, role × setting (docs/LEDGER_DONE.md §1.2, « Trombinoscope, la matrice rôle ×
  * réglage »).
  *
  * The web has no member directory page for non-admins — the `teamMembers` route is mobile-only

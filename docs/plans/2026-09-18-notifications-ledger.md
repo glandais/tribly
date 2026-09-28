@@ -15,7 +15,7 @@ passe, en tête de la phase concernée ; une case ne se coche que vérifiée.
   Web Push n'en ajoute pas)
 
 **État au 29 septembre 2026** : phases 1 à 5 en production, Web Push en production et testé. Deux
-points restent ouverts, repris au §8.3 de [`docs/NEXT.md`](../NEXT.md) : la recette du webhook
+points restent ouverts, repris au §8.3 de [`docs/LEDGER_NEXT.md`](../LEDGER_NEXT.md) : la recette du webhook
 contre de vrais Slack, Discord et Mattermost ; la décision produit sur l'e-mail, coupé en
 production. Depuis le 22 septembre 2026, les e-mails partent
 par le relais SMTP de Scaleway TEM et non plus par Brevo : les gabarits Brevo cités plus bas
@@ -200,7 +200,7 @@ de trop dans la requête, pas un budget à relever.
 
 ## Phase 4 — Push, côté serveur (20 septembre 2026)
 
-Reprend le §4.2 de `docs/NEXT.md`. Le code est la petite partie ; les préalables console et store
+Reprend le §4.2 de `docs/LEDGER_NEXT.md` (livré depuis : `docs/LEDGER_DONE.md` §4.2). Le code est la petite partie ; les préalables console et store
 sont plus bas, et rien ne part tant qu'ils ne sont pas faits.
 
 ### Le canal

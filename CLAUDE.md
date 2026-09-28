@@ -17,7 +17,8 @@ both clients: changing it in one place only makes them diverge silently.
 
 | Question | Read |
 |---|---|
-| What's left to do, and what was deliberately ruled out | **[docs/NEXT.md](docs/NEXT.md)** — start here |
+| What's left to do, and what was deliberately ruled out | **[docs/LEDGER_NEXT.md](docs/LEDGER_NEXT.md)** — start here |
+| What was delivered, and the decisions not to undo | [docs/LEDGER_DONE.md](docs/LEDGER_DONE.md) |
 | Product roadmap (P0 → Icebox) | [docs/BACKLOG.md](docs/BACKLOG.md) |
 | Notifications (event pipeline, channels, what's left) | [docs/plans/2026-09-18-notifications.md](docs/plans/2026-09-18-notifications.md) + its ledger |
 | Why the mobile app / the site / the API look the way they do | [docs/plans/archive/](docs/plans/archive/) — executed plans, kept for their arbitrations |
@@ -27,6 +28,27 @@ both clients: changing it in one place only makes them diverge silently.
 | What the product does, for whom | [docs/PRODUCT_SHEET.md](docs/PRODUCT_SHEET.md) |
 | Biketeam → Pédalons migration, team by team, server to server over HTTPS (contract with biketeam, operations) | [docs/plans/2026-09-22-biketeam-live-migration.md](docs/plans/2026-09-22-biketeam-live-migration.md) + [docs/MIGRATE_BIKETEAM.md](docs/MIGRATE_BIKETEAM.md) |
 | The design brief the v2 came from (state *before* v2) | [docs/plans/archive/audit-ux/](docs/plans/archive/audit-ux/) |
+
+### Task workflow: `LEDGER_NEXT` → `LEDGER_DONE`
+
+The two ledgers share **the same section numbering**, so a `§x.y` reference names the same topic in
+both — code comments and plans cite them (`docs/LEDGER_DONE.md §1.2` in the e2e specs, for instance).
+
+- **Creating a task**: add it to [docs/LEDGER_NEXT.md](docs/LEDGER_NEXT.md), in the section it
+  belongs to (recette, reprises, portage, API infrastructure, API gaps, September follow-ups…), as a
+  `- [ ]` item or a bullet that names the degradation it removes, where it lives in the code, and a
+  size when known. A large task gets its own plan in `docs/plans/` and a one-paragraph entry here that
+  links to it. Something deliberately **not** done goes to §6 with its reason, never silently dropped.
+- **Resolving a task**: move the entry, in the same commit as the work, to
+  [docs/LEDGER_DONE.md](docs/LEDGER_DONE.md) under the same section number — rewritten in the past
+  tense, with the date, the API version if the contract changed, the test that covers it, and the
+  decisions that must not be undone. Leave nothing behind in `LEDGER_NEXT.md` but a one-line pointer
+  when the section still has open items (or when a stub keeps the numbering), and keep whatever part
+  is still open in `LEDGER_NEXT.md`.
+- **Never renumber** a section of either ledger: add new ones at the end. When a reference in code or
+  in a plan points at an item that moved, repoint it to `LEDGER_DONE.md`.
+- A plan in `docs/plans/` that is fully executed moves to `docs/plans/archive/` (with its row in the
+  archive README); its leftovers go to `LEDGER_NEXT.md`.
 
 Three invariants that cut across modules, each of which a plausible-looking change would break:
 

@@ -5,7 +5,7 @@
 > décrivent l'état d'avant l'exécution (20 specs, mailhog, helpers « à ajouter » qui existent
 > depuis) ; l'état courant de la suite est dans [`frontend/e2e/README.md`](../../../frontend/e2e/README.md).
 > Ce qui reste ouvert — le point 40 et les idées P2 non écrites — est reporté dans
-> [`docs/NEXT.md`](../../NEXT.md).
+> [`docs/LEDGER_NEXT.md`](../../LEDGER_NEXT.md).
 
 ## 1. Couverture actuelle
 

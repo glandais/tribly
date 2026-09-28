@@ -9,7 +9,7 @@ import { mailsTo } from './support/mailpit'
 import { hydrated, toasts, watchToasts } from './support/ui'
 
 /**
- * « Contacter le vendeur » — the classified-ad relay (docs/NEXT.md §1.2, and §1.1 « Contact du
+ * « Contacter le vendeur » — the classified-ad relay (docs/LEDGER_DONE.md §1.2, and §1.1 « Contact du
  * vendeur (32) » for the outcomes).
  *
  * The relay never discloses an address: the server mails the author with Reply-To set to the sender.
@@ -298,7 +298,7 @@ test.describe('contacting the seller of an ad', () => {
     expect(calls).toEqual([])
   })
 
-  // docs/NEXT.md §1.2: « pas de double message (l'Alert de la modale plus le toast global) ». The
+  // docs/LEDGER_DONE.md §1.2: « pas de double message (l'Alert de la modale plus le toast global) ». The
   // contact call opts out of the global error toast (skipErrorToast); before that, every failure
   // below was announced twice (fixed 2026-09-25).
   test.describe('no double message', () => {

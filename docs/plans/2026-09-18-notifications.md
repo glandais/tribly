@@ -3,13 +3,13 @@
 > Écrit le 18 septembre 2026. **Phases 1 à 5 en production depuis le 21 septembre 2026** ; le Web
 > Push l'est depuis le 29 septembre. Les deux points encore ouverts (recette du webhook, décision
 > sur l'e-mail) sont repris au §8.3 de
-> [`docs/NEXT.md`](../NEXT.md). L'avancement, phase par phase, est tenu dans le ledger dédié :
+> [`docs/LEDGER_NEXT.md`](../LEDGER_NEXT.md). L'avancement, phase par phase, est tenu dans le ledger dédié :
 > [`2026-09-18-notifications-ledger.md`](2026-09-18-notifications-ledger.md). Ce document porte la
 > conception et ses arbitrages ; le ledger porte l'état.
 
 Reprend et remplace deux entrées ouvertes : le « Versatile notification system » de
 [`BACKLOG.md`](../BACKLOG.md) (P3) et le §4.2 « Notifications push » de
-[`docs/NEXT.md`](../NEXT.md). Le push n'est plus un chantier à part : c'est un canal parmi d'autres
+[`docs/LEDGER_NEXT.md`](../LEDGER_NEXT.md). Le push n'est plus un chantier à part : c'est un canal parmi d'autres
 d'un même pipeline.
 
 ## 1. Ce qu'on veut

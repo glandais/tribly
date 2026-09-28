@@ -192,6 +192,7 @@ Public pages unfurl into rich social/messaging cards via server-rendered OG/Twit
 The July 2026 port of the mobile v2 ideas is documented in
 [`../docs/plans/archive/2026-07-26-web-portage-mobile-v2.md`](../docs/plans/archive/2026-07-26-web-portage-mobile-v2.md),
 whose §4 ("what not to port") explains why touch layouts, `--pdl-*` tokens, a derived dark mode and
-infinite scroll were all declined. What's left to do — T5.4, the member directory, delivered except
-for its public web page, and T3.5, abandoned then settled the other way, with its reasoning — is in
-[`../docs/NEXT.md`](../docs/NEXT.md); T5.5, the ads alignment on mobile, was delivered in July 2026.
+infinite scroll were all declined. What's left to do — the public web page of T5.4, the member
+directory — is in [`../docs/LEDGER_NEXT.md`](../docs/LEDGER_NEXT.md); what was delivered — the rest of
+T5.4, T5.5 (the ads alignment on mobile) and T3.5 (abandoned then settled the other way), with their
+reasoning — is in [`../docs/LEDGER_DONE.md`](../docs/LEDGER_DONE.md).

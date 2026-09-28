@@ -2,7 +2,7 @@
 
 This is the **product** roadmap. The engineering follow-ups from the July 2026 v2 — API gaps that
 each remove a named degradation, the four uncommitted infrastructure workstreams, and the live-app
-test checklist — are in [NEXT.md](NEXT.md). Two entries below overlap with it and are
+test checklist — are in [LEDGER_NEXT.md](LEDGER_NEXT.md). Two entries below overlap with it and are
 noted where they appear.
 
 ## P0 — Launch Blockers
@@ -43,7 +43,7 @@ Drive engagement and reduce friction for organizers.
 - [X] User unit system toggle (metric/imperial) — Respect preferences
 - [ ] Ride/trip "Terminated" status — Clarity on past events
   - Both clients derive it from `dateTime < now` today (mobile centralises it in `RideDto.isPast`).
-    A real `TERMINATED` value in the `Status` enum would remove that. See docs/NEXT.md §5.16
+    A real `TERMINATED` value in the `Status` enum would remove that. See docs/LEDGER_NEXT.md §5.16
 
 ### Content System
 - [ ] Markdown image improvements:
@@ -94,7 +94,7 @@ Requires significant architecture work. Spike before committing.
   - Mobile push: **live in production since 2026-09-21** (FCM, Android + iOS)
   - Web push: **live in production since 2026-09-29** (installable site, same FCM, platform `WEB`)
   - E-mail channel: built, **off in production** by product decision (2026-09-21)
-  - What's left is in docs/NEXT.md §8.3
+  - What's left is in docs/LEDGER_NEXT.md §8.3
 
 ### Administration
 - [X] System admin panel

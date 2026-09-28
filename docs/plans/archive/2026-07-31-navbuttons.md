@@ -1,10 +1,10 @@
-# `NavButtons` — instruction du point §3.4 de `NEXT.md`
+# `NavButtons` — instruction du point §3.4 de `LEDGER_NEXT.md`
 
 Écrit le 31 juillet 2026, sur la branche `feat/navbuttons`. Mesures prises sur
 **https://staging.pedalons.fr** (compte connecté, admin de `n-peloton`), pas déduites de la lecture
 du code : chaque chiffre ci-dessous a été relevé dans le navigateur.
 
-`NEXT.md` §3.4 pose le sujet ainsi : *« `NavButtons` n'a ni sémantique de `tablist` ni navigation
+`LEDGER_NEXT.md` §3.4 pose le sujet ainsi : *« `NavButtons` n'a ni sémantique de `tablist` ni navigation
 clavier fléchée. Le remplacer par `Tabs` Mantine a été écarté du portage : […] le réécrire est un
 chantier de design, pas un portage. **M.** »*
 
@@ -192,7 +192,7 @@ Trois lectures, de la plus locale à la plus large :
 | **Navigation fléchée / roving tabindex** | Contrepartie d'un `tablist`. Sur des liens, elle casse la tabulation attendue et aucun critère ne la demande |
 | **Menu de débordement « ⋯ / Plus »** | Le nombre d'items est plafonné à 8 (3 pages d'équipe maximum côté back-end) : sur le bureau la rangée ne déborde **jamais**. Et sur mobile, le repli existe déjà — c'est le menu déroulant du fil d'Ariane, alimenté par le **même** `useNavItems`. Ce serait une troisième copie de la même liste |
 | **Une barre de scroll visible** | Le `type="never"` est un choix assumé ; le §3.3 rend le fondu honnête, ce qui est le vrai correctif |
-| **Des jetons `--pdl-*`** | Interdit au web par §6 de `NEXT.md` — le site tient sa charte dans le thème Mantine |
+| **Des jetons `--pdl-*`** | Interdit au web par §6 de `LEDGER_NEXT.md` — le site tient sa charte dans le thème Mantine |
 
 ---
 
@@ -250,7 +250,7 @@ Vérifié dans le navigateur (dev local branché sur staging par `VITE_API_TARGE
 **Reste ouvert**, à instruire à part :
 
 1. **Lot D** — anneau de focus à 2,74:1 en thème sombre, sous le seuil de 3,0 de SC 1.4.11. Il vient
-   de `lib/theme.ts` et vaut pour tout le site. Ligne à ouvrir dans `NEXT.md` ou dans l'audit
+   de `lib/theme.ts` et vaut pour tout le site. Ligne à ouvrir dans `LEDGER_NEXT.md` ou dans l'audit
    d'infrastructure.
 2. **`/equipes/{slug}/admin/parametres`** tombe sur la frontière d'erreur sur staging, compte admin.
    Sans rapport avec ce chantier.
