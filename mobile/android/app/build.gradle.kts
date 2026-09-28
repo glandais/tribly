@@ -13,6 +13,7 @@ plugins {
 dependencies {
     implementation("com.google.android.material:material:1.14.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    androidTestUtil("androidx.test:orchestrator:1.5.1")
 }
 
 // Load key.properties for release signing
@@ -57,6 +58,13 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Patrol end-to-end tests (patrol_test/, run by mobile/e2e.sh).
+        testInstrumentationRunner = "pl.leancode.patrol.PatrolJUnitRunner"
+        testInstrumentationRunnerArguments["clearPackageData"] = "true"
+    }
+
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
     }
 
     buildTypes {

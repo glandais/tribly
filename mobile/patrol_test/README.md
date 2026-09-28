@@ -1,6 +1,6 @@
 # Mobile end-to-end tests (Patrol)
 
-[Patrol](https://patrol.leancode.co) drives the real app on the iOS simulator against the **e2e
+[Patrol](https://patrol.leancode.co) drives the real app on the iOS simulator or an Android emulator against the **e2e
 stack** — the same one as the web suite (`frontend/e2e/`): empty database, mail to mailpit only.
 Nothing is mocked: accounts are created through the REST API and verified with the link read from
 mailpit.
@@ -23,16 +23,31 @@ is not on `localhost`.
 included — reinstall your dev build afterwards. `flutter test` does not run these files; they
 only run through Patrol.
 
+### On Android
+
+```bash
+~/Library/Android/sdk/emulator/emulator -avd <avd> -no-snapshot-save &   # one emulator
+E2E_PLATFORM=android bash e2e.sh -t patrol_test/logout_test.dart
+```
+
+`E2E_PLATFORM=android` runs on `emulator-5554` (or the adb serial in `PATROL_DEVICE`) and never
+touches a simulator, so it runs beside an iOS run on the same stack — the tests seed under unique
+names. Don't `reset`, `down` or `build` the stack while the other one runs. The app keeps
+`API_BASE_URL=http://localhost:…`: `e2e.sh` waits for the boot to complete, then `adb reverse`s the
+stack's HTTP and mailpit ports. Plain HTTP to `localhost` is allowed by
+`android/app/src/debug/res/xml/network_security_config.xml`, debug builds only.
+
 ### From an agent (Patrol MCP)
 
 `../.mcp.json` registers a `patrol` server (`tool/patrol_mcp.sh`, the `patrol_mcp` package): an
 agent can `run` a test file in a `patrol develop` session, take a `screenshot`, read the
-`native-tree`, then `quit`. It uses the same stack, simulator and dart-defines as `e2e.sh` — both
+`native-tree`, then `quit`. It uses the same stack, device and dart-defines as `e2e.sh` — both
 source `tool/e2e_env.sh` — so the stack must be up first. Set `SHOW_TERMINAL=true` in its `env` to
-follow the session's logs in a Terminal window.
+follow the session's logs in a Terminal window, `E2E_PLATFORM=android` to drive the emulator.
 
-iOS only for now: the `RunnerUITests` target is set up in `ios/Runner.xcodeproj`, the Android
-side (`MainActivityTest.java`, test orchestrator) is not.
+Native wiring: the `RunnerUITests` target in `ios/Runner.xcodeproj`; on Android the
+`PatrolJUnitRunner` with the test orchestrator (`android/app/build.gradle.kts`) and
+`android/app/src/androidTest/…/MainActivityTest.java`.
 
 ## Layout
 
