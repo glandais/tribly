@@ -147,20 +147,26 @@ AXIOS_INSTANCE.interceptors.response.use(
         processQueue(error)
         useAuthStore.getState().setUser(null)
         useAuthStore.getState().setAccessToken(null)
-        window.location.href = '/login'
+        window.location.href = loginAndBack()
         return Promise.reject(error)
       }
     } catch (refreshError) {
       processQueue(refreshError)
       useAuthStore.getState().setUser(null)
       useAuthStore.getState().setAccessToken(null)
-      window.location.href = '/login'
+      window.location.href = loginAndBack()
       return Promise.reject(refreshError)
     } finally {
       isRefreshing = false
     }
   }
 )
+
+/** The sign-in page, bringing the visitor back to where the session ended once signed in again. */
+function loginAndBack(): string {
+  const { pathname, search } = window.location
+  return `/login?next=${encodeURIComponent(pathname + search)}`
+}
 
 /**
  * A failed call, in the bug-report log: method, path without its query, status and business code —

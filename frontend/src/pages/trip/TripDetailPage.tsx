@@ -1,5 +1,5 @@
 import { useState, useMemo, lazy, Suspense } from 'react'
-import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { useLocation, useParams, Navigate, useNavigate } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -91,6 +91,7 @@ export function TripDetailPage() {
 
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const location = useLocation()
   const { team: teamQuery, trip: tripQuery } = useTripDetailData(teamSlug, tripSlug)
   const { data: team, isLoading: isLoadingTeam } = teamQuery
   const { data: trip, isLoading: isLoadingTrip, error, refetch } = tripQuery
@@ -528,7 +529,12 @@ export function TripDetailPage() {
             <Alert color="blue" variant="light">
               <Text>
                 {t('trips.detail.notAuthenticated.message')}{' '}
-                <Anchor component={PrefetchLink} to="/login" fw={500}>
+                <Anchor
+                  component={PrefetchLink}
+                  to={paths.login()}
+                  state={{ from: location }}
+                  fw={500}
+                >
                   {t('trips.detail.notAuthenticated.signIn')}
                 </Anchor>
               </Text>

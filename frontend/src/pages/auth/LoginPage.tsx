@@ -50,21 +50,21 @@ export function LoginPage() {
   const { setAccessToken, setUser } = useAuthStore()
 
   const fromLocation = location.state?.from
-  // `?next=` comes from a link that is not a page of the app — the backend sends a visitor without
-  // a session there from a download link (a data export). Same-origin paths only.
+  // `?next=` comes from outside the router: the backend sends a visitor without a session there
+  // from a download link (a data export), the API client after a session ended mid-page. A browser
+  // path — loaded as such, which also keeps it right on a pinned host. Same-origin paths only.
   const next = safeNextPath(new URLSearchParams(location.search).get('next'))
   const redirectTo =
     next ?? (fromLocation ? `${fromLocation.pathname}${fromLocation.search || ''}` : paths.home())
   const leaving = useRef(false)
   const goToRedirect = useCallback(() => {
-    // An API path is not a route: the browser has to load it, carrying the session cookie.
-    if (redirectTo.startsWith('/api/')) {
-      if (!leaving.current) window.location.assign(redirectTo)
+    if (next) {
+      if (!leaving.current) window.location.assign(next)
       leaving.current = true
     } else {
       navigate(redirectTo)
     }
-  }, [navigate, redirectTo])
+  }, [navigate, next, redirectTo])
 
   const [mode, setMode] = useState<Mode>('login')
   const [isLoading, setIsLoading] = useState(false)

@@ -55,7 +55,8 @@ export function Layout() {
   // The bell is desktop-only: below `sm` the burger and the drawer carry the unread count.
   const unreadCount = useUnreadNotificationCount()
   const [emailBannerDismissed, setEmailBannerDismissed] = useState(false)
-  const { pathname } = useLocation()
+  const location = useLocation()
+  const { pathname } = location
   const navigationType = useNavigationType()
   // Fixed for the lifetime of the running server, so fetch it once and never revalidate.
   const { data: version } = useGetVersion({ query: { staleTime: Infinity } })
@@ -190,7 +191,7 @@ export function Layout() {
                   </Menu.Dropdown>
                 </Menu>
               ) : (
-                <Button component={PrefetchLink} to="/login">
+                <Button component={PrefetchLink} to={paths.login()} state={{ from: location }}>
                   {t('nav.signIn')}
                 </Button>
               )}
@@ -291,7 +292,12 @@ export function Layout() {
               </Button>
             </>
           ) : (
-            <Button component={PrefetchLink} to="/login" onClick={close}>
+            <Button
+              component={PrefetchLink}
+              to={paths.login()}
+              state={{ from: location }}
+              onClick={close}
+            >
               {t('nav.signIn')}
             </Button>
           )}
@@ -376,7 +382,13 @@ export function Layout() {
                 {t('feedback.menu')}
               </Anchor>
             ) : (
-              <Anchor component={PrefetchLink} to={paths.login()} c="dimmed" size="sm">
+              <Anchor
+                component={PrefetchLink}
+                to={paths.login()}
+                state={{ from: location }}
+                c="dimmed"
+                size="sm"
+              >
                 {t('feedback.menu')}
               </Anchor>
             )}
