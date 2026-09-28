@@ -4,7 +4,7 @@ Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX
 
 ## Tech Stack
 
-- **Backend**: Java 21, Quarkus 3.38.x, PostgreSQL 17 with PostGIS
+- **Backend**: Java 25, Quarkus 3.39.x, PostgreSQL 17 with PostGIS
 - **Frontend**: TypeScript 7 (tsgo), React 19, Vite 8, Mantine UI 9
 - **Mobile**: Flutter, Dart, Riverpod 3
 - **Karoo**: Kotlin, Jetpack Compose, ktor-client-karoo
@@ -16,7 +16,7 @@ Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX
 
 ### Prerequisites
 
-- Java 21+
+- Java 25+
 - Maven 3.9+
 - Node.js 22+ (Vite 8 requires ^20.19 or >=22.12)
 - pnpm — the version is pinned by `packageManager` in `frontend/package.json`; `corepack enable` honours it
@@ -216,7 +216,7 @@ echo 'VITE_API_TARGET=http://localhost:8080' >> frontend/.env
 
 ```
 tribly/
-├── backend/          # Quarkus backend (Java 21) — also holds the dev-services compose
+├── backend/          # Quarkus backend (Java 25) — also holds the dev-services compose
 ├── frontend/         # React 19 SPA (Mantine UI)
 ├── mobile/           # Flutter mobile app (iOS/Android)
 ├── karoo/            # Hammerhead Karoo extension (Kotlin/Compose)

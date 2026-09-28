@@ -4,7 +4,7 @@ Quarkus REST API backend for the Pedalons cycling team management platform.
 
 ## Tech Stack
 
-- **Runtime**: Java 21, Quarkus 3.30.x
+- **Runtime**: Java 25, Quarkus 3.39.x
 - **Database**: PostgreSQL 17 + PostGIS (Hibernate Spatial, Panache, Flyway)
 - **Auth**: JWT (SmallRye JWT) + WebAuthn/Passkeys (webauthn4j)
 - **Storage**: S3-compatible (MinIO in dev)
@@ -15,7 +15,7 @@ Quarkus REST API backend for the Pedalons cycling team management platform.
 
 ## Prerequisites
 
-- Java 21+
+- Java 25+
 - Maven 3.9+
 - Docker & Docker Compose
 
