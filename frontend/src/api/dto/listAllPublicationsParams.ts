@@ -1,6 +1,7 @@
 import type { ListViewMode } from './listViewMode.ts'
 import type { MinRole } from './minRole.ts'
 import type { PublicationType } from './publicationType.ts'
+import type { SortDirection } from './sortDirection.ts'
 import type { Status } from './status.ts'
 
 export type ListAllPublicationsParams = {
@@ -28,6 +29,10 @@ export type ListAllPublicationsParams = {
    * Page size
    */
   size?: number
+  /**
+   * Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones.
+   */
+  sortDir?: SortDirection
   /**
    * Only publications with this status. Narrows the visibility rules, never widens them.
    */

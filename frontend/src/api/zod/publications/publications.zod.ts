@@ -25,6 +25,12 @@ export const ListAllPublicationsQueryParams = zod.object({
     ),
   search: zod.string().optional().describe('Search by name/markdown'),
   size: zod.int().default(listAllPublicationsQuerySizeDefault).describe('Page size'),
+  sortDir: zod
+    .enum(['ASC', 'DESC'])
+    .optional()
+    .describe(
+      'Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones.'
+    ),
   status: zod
     .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
     .optional()

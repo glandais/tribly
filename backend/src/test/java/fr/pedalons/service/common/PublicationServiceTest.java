@@ -10,6 +10,7 @@ import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.publications.response.PublicationType;
+import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
@@ -22,6 +23,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
@@ -468,6 +470,47 @@ class PublicationServiceTest extends AbstractBaseTest {
           publicationService.listAll(null, null, null, null, null, 0, 10);
 
       assertEquals(2, result.publications().size());
+    }
+
+    @Test
+    void listAll_sortDirAsc_pageKeepsTheNearestOutingsOfTheWindow() {
+      Instant now = Instant.now();
+      for (int i = 1; i <= 5; i++) {
+        dataService.createRide(
+            team, admin, "Ride " + i, nextSlug(), now.plus(i, ChronoUnit.DAYS), Visibility.PUBLIC);
+      }
+      Instant to = now.plus(30, ChronoUnit.DAYS);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse ascending =
+          publicationService.listAll(
+              null, null, now, to, null, null, false, null, SortDirection.ASC, 0, 3);
+
+      assertEquals(5, ascending.total());
+      assertEquals(
+          List.of("Ride 1", "Ride 2", "Ride 3"),
+          ascending.publications().stream().map(p -> p.getName()).toList());
+    }
+
+    @Test
+    void listAll_withoutSortDir_staysNewestFirst() {
+      Instant now = Instant.now();
+      for (int i = 1; i <= 5; i++) {
+        dataService.createRide(
+            team, admin, "Ride " + i, nextSlug(), now.plus(i, ChronoUnit.DAYS), Visibility.PUBLIC);
+      }
+      Instant to = now.plus(30, ChronoUnit.DAYS);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse unspecified =
+          publicationService.listAll(null, null, now, to, null, null, false, null, null, 0, 3);
+      PublicationListResponse descending =
+          publicationService.listAll(
+              null, null, now, to, null, null, false, null, SortDirection.DESC, 0, 3);
+
+      List<String> expected = List.of("Ride 5", "Ride 4", "Ride 3");
+      assertEquals(expected, unspecified.publications().stream().map(p -> p.getName()).toList());
+      assertEquals(expected, descending.publications().stream().map(p -> p.getName()).toList());
     }
   }
 

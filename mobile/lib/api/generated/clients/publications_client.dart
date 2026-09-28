@@ -11,6 +11,7 @@ import '../models/list_view_mode.dart';
 import '../models/min_role.dart';
 import '../models/publication_list_response.dart';
 import '../models/publication_type.dart';
+import '../models/sort_direction.dart';
 import '../models/status.dart';
 
 part 'publications_client.g.dart';
@@ -35,6 +36,8 @@ abstract class PublicationsClient {
   ///
   /// [size] - Page size.
   ///
+  /// [sortDir] - Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones.
+  ///
   /// [status] - Only publications with this status. Narrows the visibility rules, never widens them.
   ///
   /// [to] - End date filter (ISO format).
@@ -50,6 +53,7 @@ abstract class PublicationsClient {
     @Query('from') String? from,
     @Query('minRole') MinRole? minRole,
     @Query('search') String? search,
+    @Query('sortDir') SortDirection? sortDir,
     @Query('status') Status? status,
     @Query('to') String? to,
     @Query('type') PublicationType? type,

@@ -15,6 +15,7 @@ import fr.pedalons.dto.publications.response.UserParticipations;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.ListViewMode;
+import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.Status;
 import fr.pedalons.repository.common.AllPublicationRepository;
 import fr.pedalons.repository.common.PublicationQuery;
@@ -135,6 +136,28 @@ public class PublicationService {
       @Nullable ListViewMode view,
       int page,
       int size) {
+    return listAll(type, search, from, to, minRole, status, participating, view, null, page, size);
+  }
+
+  /**
+   * @param sortDir order of {@code dateTime}. {@code null} or {@link SortDirection#DESC} is the
+   *     feed's newest-first; {@link SortDirection#ASC} is soonest-first, what a window of upcoming
+   *     outings needs: with more outings in the window than {@code size}, a descending page would
+   *     keep the furthest and drop the nearest.
+   */
+  @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST_ALL_TEAMS)
+  public PublicationListResponse listAll(
+      @Nullable PublicationType type,
+      @Nullable String search,
+      @Nullable Instant from,
+      @Nullable Instant to,
+      @Nullable MinRole minRole,
+      @Nullable Status status,
+      boolean participating,
+      @Nullable ListViewMode view,
+      @Nullable SortDirection sortDir,
+      int page,
+      int size) {
     return list(
         baseQuery(page, size)
             .type(type)
@@ -144,6 +167,7 @@ public class PublicationService {
             .minRole(minRole)
             .status(status)
             .participating(participating)
+            .ascending(sortDir == SortDirection.ASC)
             .includeDeleted(false)
             .build(),
         view);

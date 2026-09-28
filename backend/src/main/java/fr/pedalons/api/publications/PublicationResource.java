@@ -4,6 +4,7 @@ import fr.pedalons.dto.common.CountResponse;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.enums.ListViewMode;
+import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.Status;
 import fr.pedalons.service.common.PublicationService;
 import fr.pedalons.service.team.request.MinRole;
@@ -82,6 +83,13 @@ public class PublicationResource {
           boolean participating,
       @Parameter(description = PublicationResource.VIEW_PARAM_DESCRIPTION) @QueryParam("view")
           @Nullable ListViewMode view,
+      @Parameter(
+              description =
+                  "Order of the publication date. Omitted, or DESC, is newest first (the feed);"
+                      + " ASC is soonest first — what a window of upcoming outings needs, so a"
+                      + " page keeps the nearest ones.")
+          @QueryParam("sortDir")
+          @Nullable SortDirection sortDir,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
@@ -90,7 +98,7 @@ public class PublicationResource {
 
     PublicationListResponse response =
         publicationService.listAll(
-            type, search, from, to, minRole, status, participating, view, page, size);
+            type, search, from, to, minRole, status, participating, view, sortDir, page, size);
 
     // Rows carry per-user fields (registered, registeredGroupId): never let a shared cache keep
     // one user's answer for the next one.

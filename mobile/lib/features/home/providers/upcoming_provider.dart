@@ -27,6 +27,11 @@ final upcomingProvider = FutureProvider<List<PublicationDto>>((Ref ref) async {
             .add(const Duration(days: kUpcomingWindowDays))
             .toIso8601String(),
         status: Status.published,
+        // **Les plus proches d'abord.** Sans cet ordre, le serveur trie du
+        // plus récent au plus ancien : avec plus de dix sorties dans la
+        // fenêtre, la page garderait les plus lointaines et perdrait les
+        // prochaines.
+        sortDir: SortDirection.asc,
         size: kUpcomingLimit,
         view: ListViewMode.compact,
       );
