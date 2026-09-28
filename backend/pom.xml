@@ -32,6 +32,7 @@
         <webauthn4j-core.version>0.31.10.RELEASE</webauthn4j-core.version>
         <timeshape.version>2026b.29</timeshape.version>
         <s3mock-testcontainers.version>5.2.2</s3mock-testcontainers.version>
+        <google-java-format.version>1.36.1</google-java-format.version>
     </properties>
 
     <dependencyManagement>
@@ -49,6 +50,13 @@
                 <version>${quarkus.platform.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- Not a dependency: pins the formatter Spotless runs (google-java-format.version),
+                 declared here only so Dependabot bumps it. Older releases can't parse Java 25. -->
+            <dependency>
+                <groupId>com.google.googlejavaformat</groupId>
+                <artifactId>google-java-format</artifactId>
+                <version>${google-java-format.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -408,6 +416,7 @@
                             <include>src/test/java/**/*.java</include>
                         </includes>
                         <googleJavaFormat>
+                            <version>${google-java-format.version}</version>
                             <style>GOOGLE</style>
                             <reflowLongStrings>true</reflowLongStrings>
                             <formatJavadoc>false</formatJavadoc>
