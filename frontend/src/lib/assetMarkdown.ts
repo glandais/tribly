@@ -101,14 +101,30 @@ export function createAssetDirective(
     parts.push(`size="${size}"`)
   }
 
-  // Include alt text if present
-  if (altText) {
-    // Escape double quotes in alt text
-    const escapedAlt = altText.replace(/"/g, '\\"')
-    parts.push(`alt="${escapedAlt}"`)
+  const alt = directiveValue(altText)
+  if (alt) {
+    parts.push(`alt="${alt}"`)
   }
 
   return `::asset{${parts.join(' ')}}`
+}
+
+/**
+ * Make free text safe as a quoted directive value.
+ *
+ * No reader of `::asset{}` decodes escapes: remark-directive, the regexes here, in the mobile app
+ * and in the backend all stop a value at the first `"` and the directive at the first `}`. A
+ * backslash escape would only leave a stray `\` and cut the alt text short, so the characters that
+ * would end the value or the directive are swapped for look-alikes instead, and line breaks (a leaf
+ * directive fits on one line) become spaces.
+ */
+export function directiveValue(text: string): string {
+  return text
+    .replace(/"/g, "'")
+    .replace(/\{/g, '(')
+    .replace(/\}/g, ')')
+    .replace(/\s*[\r\n]+\s*/g, ' ')
+    .trim()
 }
 
 /**

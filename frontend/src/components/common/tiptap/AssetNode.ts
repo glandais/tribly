@@ -1,7 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { ReactNodeViewRenderer } from '@tiptap/react'
 import { AssetNodeView } from './AssetNodeView'
-import { DEFAULT_IMAGE_SIZE } from '@/lib/assetMarkdown'
+import { createAssetDirective, DEFAULT_IMAGE_SIZE, type ImageSize } from '@/lib/assetMarkdown'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -90,15 +90,12 @@ export const AssetNode = Node.create<AssetNodeOptions>({
           state: { write: (text: string) => void },
           node: { attrs: Record<string, unknown> }
         ) {
-          const parts: string[] = [`id="${node.attrs.id}"`]
-          if (node.attrs.size && node.attrs.size !== DEFAULT_IMAGE_SIZE) {
-            parts.push(`size="${node.attrs.size}"`)
-          }
-          if (node.attrs.alt) {
-            const escapedAlt = String(node.attrs.alt).replace(/"/g, '\\"')
-            parts.push(`alt="${escapedAlt}"`)
-          }
-          state.write(`::asset{${parts.join(' ')}}\n\n`)
+          const directive = createAssetDirective(
+            String(node.attrs.id),
+            node.attrs.alt ? String(node.attrs.alt) : '',
+            node.attrs.size as ImageSize | undefined
+          )
+          state.write(`${directive}\n\n`)
         },
         parse: {
           // Parsing handled via pre-processing with markdownToEditor()
