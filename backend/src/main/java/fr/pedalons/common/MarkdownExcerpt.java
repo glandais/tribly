@@ -12,7 +12,7 @@ import org.jspecify.annotations.Nullable;
  * home (see {@code ?view=compact}).
  *
  * <p>The output is <b>plain text</b>, not truncated markdown: a link becomes its label, an image
- * becomes its alt text, headings, emphasis, list bullets, blockquote markers, table pipes and fenced
+ * becomes its alt text, an {@code ::asset{}} directive disappears, headings, emphasis, list bullets, blockquote markers, table pipes and fenced
  * code are dropped. Truncating markdown instead would leave a client rendering half a link or an
  * unclosed bold span, which is exactly the kind of thing that looks fine in the happy case and
  * breaks on the article that matters.
@@ -29,6 +29,10 @@ public final class MarkdownExcerpt {
   private static final Pattern FENCED_CODE = Pattern.compile("(?s)```.*?```|~~~.*?~~~");
   private static final Pattern HTML_COMMENT = Pattern.compile("(?s)<!--.*?-->");
   private static final Pattern LINK_DEFINITION = Pattern.compile("(?m)^ {0,3}\\[[^]]+]:.*$");
+
+  /** Pédalons' own image embed, {@code ::asset{id="…"}}: an image with no prose to keep. */
+  private static final Pattern ASSET_DIRECTIVE = Pattern.compile("::asset\\{[^}]*}");
+
   private static final Pattern IMAGE = Pattern.compile("!\\[([^]]*)]\\([^)]*\\)");
   private static final Pattern INLINE_LINK = Pattern.compile("\\[([^]]*)]\\([^)]*\\)");
   private static final Pattern REFERENCE_LINK = Pattern.compile("\\[([^]]*)]\\[[^]]*]");
@@ -106,6 +110,7 @@ public final class MarkdownExcerpt {
     text = FENCED_CODE.matcher(text).replaceAll(" ");
     text = HTML_COMMENT.matcher(text).replaceAll(" ");
     text = LINK_DEFINITION.matcher(text).replaceAll(" ");
+    text = ASSET_DIRECTIVE.matcher(text).replaceAll(" ");
     // Images before links: "![alt](url)" also matches the link pattern, minus the bang.
     text = IMAGE.matcher(text).replaceAll("$1");
     text = INLINE_LINK.matcher(text).replaceAll("$1");

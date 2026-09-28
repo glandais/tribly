@@ -30,6 +30,16 @@ class MarkdownExcerptTest {
     }
 
     @Test
+    void assetDirectiveIsDropped() {
+      assertEquals(
+          "Test publi1 et la suite",
+          MarkdownExcerpt.of(
+              "Test publi1\n"
+                  + "::asset{id=\"0rrc7aj7zj9zv\" size=\"medium\" alt=\"Terrasse\"}\n"
+                  + "et la suite"));
+    }
+
+    @Test
     void referenceLinkAndItsDefinitionBothGo() {
       assertEquals(
           "Le col est dur.",
@@ -176,6 +186,11 @@ class MarkdownExcerptTest {
     @Test
     void blankMarkdownYieldsNull() {
       assertNull(MarkdownExcerpt.of("   \n\n  "));
+    }
+
+    @Test
+    void markdownThatIsOnlyAnAssetYieldsNull() {
+      assertNull(MarkdownExcerpt.of("::asset{id=\"0rrc7aj7zj9zv\"}"));
     }
 
     @Test
