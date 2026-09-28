@@ -20,6 +20,9 @@ import { resolveSsrSession } from './lib/ssrSession'
 import { getConfig, getGetConfigQueryKey } from './api/endpoints/configuration/configuration'
 import { getVersion, getGetVersionQueryKey } from './api/endpoints/server-version/server-version'
 import { getGetMeQueryKey } from './api/endpoints/users/users'
+import { getGetTeamQueryKey } from './api/endpoints/teams/teams'
+import type { TeamDetailDto } from './api/dto'
+import { ApiClientError } from './lib/apiError'
 import { getPinnedTeamSlug } from './config/appConfig'
 import { toRouter, toBrowser } from './config/pinnedHistory'
 import type { Locale } from './config/paths'
@@ -30,6 +33,19 @@ import { mapThemePreference } from './lib/theme'
 // Bridge the SSR per-request store (AsyncLocalStorage) to the client-safe getter used by
 // axiosInstance / appConfig / locale-context. Called once at module load.
 setStoreGetter(() => requestContext.getStore())
+
+/** `url` with the path segment holding the team slug — the first one that matches — replaced. */
+function replaceTeamSlug(url: string, from: string, to: string): string {
+  const sepIdx = url.search(/[?#]/)
+  const pathname = sepIdx === -1 ? url : url.slice(0, sepIdx)
+  const suffix = sepIdx === -1 ? '' : url.slice(sepIdx)
+  const segments = pathname.split('/')
+  const index = segments.findIndex((segment) => decodeURIComponent(segment) === from)
+  if (index !== -1) {
+    segments[index] = encodeURIComponent(to)
+  }
+  return segments.join('/') + suffix
+}
 
 export async function render(url: string, headers: Record<string, string> = {}) {
   // Resolve the request locale from the explicit choice cookie (LanguageSwitcher), else from
@@ -159,7 +175,24 @@ export async function render(url: string, headers: Record<string, string> = {}) 
       // The '*' catch-all matches unknown URLs, so the handler reports 200 for them; crawlers
       // must see a real 404 for the NotFound page.
       const leafMatch = context.matches[context.matches.length - 1]
-      const statusCode = leafMatch?.route.path === '*' ? 404 : context.statusCode || 200
+      let statusCode = leafMatch?.route.path === '*' ? 404 : context.statusCode || 200
+
+      // Team-scoped pages: the team the loaders just fetched decides what a crawler must see. The
+      // page itself only redirects after hydration (<Navigate>, useCanonicalPath), which a client
+      // without JavaScript never runs.
+      const teamSlug = leafMatch?.params.teamSlug
+      if (teamSlug && !pinned) {
+        const teamKey = getGetTeamQueryKey(teamSlug)
+        const teamError = queryClient.getQueryState(teamKey)?.error
+        const team = queryClient.getQueryData<TeamDetailDto>(teamKey)
+        if (teamError instanceof ApiClientError && [401, 403, 404].includes(teamError.status)) {
+          // A private team is not revealed to be private: same answer as a team that never existed.
+          statusCode = 404
+        } else if (team && team.slug !== teamSlug) {
+          // Reached through a former slug: the API resolved it, the address moves for good.
+          return { redirect: replaceTeamSlug(url, teamSlug, team.slug), statusCode: 301 }
+        }
+      }
 
       // Build the server-rendered link-preview <head> block. meta() reads the per-request cache the
       // loaders just populated; `pathname` is the browser-space (clean) canonical URL base, so

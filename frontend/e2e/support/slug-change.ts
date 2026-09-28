@@ -10,8 +10,9 @@ import { newRoute, routePath, windingTrack } from './routes'
 /**
  * The slug journey (slug-change.e2e.ts): renaming the URL of a team, a ride, a route or an ad with
  * the edit form's `SlugEditor`, and the redirects the backend keeps from every old slug
- * (`TeamSlugRedirect`, `TeamEntitySlugRedirect`) — which the pages turn into the new URL on the
- * client (`useCanonicalPath`).
+ * (`TeamSlugRedirect`, `TeamEntitySlugRedirect`) — which the server turns into a 301 for an old
+ * team slug, and the pages into the new URL on the client (`useCanonicalPath`) for an old entity
+ * slug.
  */
 
 /** What renaming one kind of entity involves: its URLs, its API path, its pages' landmarks. */

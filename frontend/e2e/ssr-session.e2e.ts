@@ -421,7 +421,8 @@ test.describe('private team: nothing in the server document', () => {
         })
         const where = `${page.label} (${page.path})`
         // A rendered page, for this visitor — not a crash, nor an anonymous render of the outsider.
-        expect(document.status, `${where}: status`).toBe(200)
+        // Answered 404, as a team that never existed: a crawler must not index a private URL.
+        expect(document.status, `${where}: status`).toBe(404)
         expect(authState(document.html)?.user?.id ?? null, `${where}: rendered as`).toBe(
           auth?.user.id ?? null
         )

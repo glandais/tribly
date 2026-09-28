@@ -24,9 +24,10 @@ import { hydrated, pageAs, toasts } from './support/ui'
 /**
  * Changing a slug — the URL of a team, a ride, a route or an ad — from its edit form's
  * `SlugEditor`, and what becomes of the links already shared: the backend keeps a redirect from
- * every old slug (`TeamSlugRedirect`, `TeamEntitySlugRedirect`), so the old URL still renders the
- * entity, and the page replaces it with the new one (`useCanonicalPath`). A link in a chat, an ICS
- * feed or a mobile deeplink must never end on a 404.
+ * every old slug (`TeamSlugRedirect`, `TeamEntitySlugRedirect`), so the old URL still leads to the
+ * entity. An old team slug is redirected by the server (301, so a crawler without JavaScript moves
+ * too); an old entity slug is rendered, and the page replaces it with the new one
+ * (`useCanonicalPath`). A link in a chat, an ICS feed or a mobile deeplink must never end on a 404.
  *
  * One scenario per kind of entity, the same for all four: a malformed slug is refused on the page
  * without a request, a taken one by the API (409), and a new one replaces the URL; then a plain
@@ -78,12 +79,19 @@ async function openEditForm(page: Page, owner: AuthResponse, target: SlugTarget,
 }
 
 /**
- * A member follows an old link: the server answers 200 with the entity (never a 404), and the page
- * swaps the address for the canonical one.
+ * A member follows an old link and ends on the entity (never a 404), under the canonical address.
+ * `oldTeamSlug`: the link carries a former team slug, which the server itself redirects (301) —
+ * an old entity slug under the current team slug is rendered as is and swapped on the client.
  */
-async function followOldLink(page: Page, from: string, to: string) {
+async function followOldLink(page: Page, from: string, to: string, oldTeamSlug: boolean) {
   const response = await page.goto(from)
   expect(response?.status(), `${from} is served, not a 404`).toBe(200)
+  const redirectedFrom = response?.request().redirectedFrom()
+  if (oldTeamSlug) {
+    expect(redirectedFrom?.url(), `${from} is redirected by the server`).toContain(from)
+  } else {
+    expect(redirectedFrom, `${from} is rendered, not redirected`).toBeNull()
+  }
   // Swapped on the client once the page hydrated and read the entity: slow on a loaded stack.
   await expect(page).toHaveURL(to, { timeout: 15_000 })
 }
@@ -203,7 +211,7 @@ for (const target of [teamTarget, ...entityTargets]) {
       const { context, page: memberPage } = await pageAs(browser, member)
       try {
         for (const old of [original, next]) {
-          await followOldLink(memberPage, old.detail, latest.detail)
+          await followOldLink(memberPage, old.detail, latest.detail, target === teamTarget)
           await expect(target.detailHeading(memberPage, entity.name)).toBeVisible()
         }
       } finally {
@@ -273,7 +281,7 @@ test.describe("the old team slug's deep links", () => {
     try {
       await stubBasemap(page)
       for (const { from, to, landmark } of links) {
-        await followOldLink(page, from, to)
+        await followOldLink(page, from, to, true)
         // The page the link was about, rendered — not an empty shell nor a « introuvable ».
         await expect(landmark(page)).toBeVisible()
       }
