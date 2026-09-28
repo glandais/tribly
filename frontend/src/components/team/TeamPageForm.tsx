@@ -126,7 +126,7 @@ export function TeamPageForm({
         {!isCreate && pageSlug && (
           <SlugEditor
             currentSlug={pageSlug}
-            baseUrl={`/teams/${teamSlug}/pages/`}
+            baseUrl={paths.teamPage(teamSlug, '')}
             onSlugChange={handleSlugChange}
           />
         )}

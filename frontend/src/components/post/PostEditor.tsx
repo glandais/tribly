@@ -7,6 +7,7 @@ import { InstantDateTimePicker } from '@/components/common/InstantDateTimePicker
 import type { TeamDetailDto } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
+import { paths } from '@/config/paths'
 import { Status, PostRequest } from '@/api/dto'
 import { CreatePostBody } from '@/api/zod/posts/posts.zod'
 
@@ -91,7 +92,7 @@ export function PostEditor({
         {currentSlug && onSlugChange && (
           <SlugEditor
             currentSlug={currentSlug}
-            baseUrl={`/teams/${teamSlug}/posts/`}
+            baseUrl={paths.post(teamSlug, '')}
             onSlugChange={onSlugChange}
             disabled={!canEditSlug}
           />

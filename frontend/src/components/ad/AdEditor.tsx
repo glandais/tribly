@@ -7,6 +7,7 @@ import { AdRequest, AdType, RentalPeriod, GeoJsonPoint } from '@/api/dto'
 import { CreateAdBody } from '@/api/zod/ads/ads.zod'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
+import { paths } from '@/config/paths'
 import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
 
 interface AdEditorProps {
@@ -88,7 +89,7 @@ export function AdEditor({
         {currentSlug && onSlugChange && (
           <SlugEditor
             currentSlug={currentSlug}
-            baseUrl={`/teams/${teamSlug}/classifieds/`}
+            baseUrl={paths.ad(teamSlug, '')}
             onSlugChange={onSlugChange}
             disabled={!canEditSlug}
           />

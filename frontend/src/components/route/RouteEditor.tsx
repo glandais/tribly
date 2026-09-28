@@ -18,6 +18,7 @@ import { RouteRequest, SurfaceType } from '@/api/dto'
 import type { TeamDetailDto, GeoPoint } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
+import { paths } from '@/config/paths'
 import { RoutePlanner } from '../planner/RoutePlanner'
 import { CreateRouteBody } from '@/api/zod/routes/routes.zod'
 
@@ -230,7 +231,7 @@ export function RouteEditor({
         {currentSlug && onSlugChange && (
           <SlugEditor
             currentSlug={currentSlug}
-            baseUrl={`/teams/${teamSlug}/routes/`}
+            baseUrl={paths.route(teamSlug, '')}
             onSlugChange={onSlugChange}
             disabled={!canEditSlug}
           />

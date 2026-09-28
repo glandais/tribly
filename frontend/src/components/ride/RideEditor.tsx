@@ -20,6 +20,7 @@ import { TimeInput } from '@mantine/dates'
 import { InstantDateTimePicker } from '@/components/common/InstantDateTimePicker'
 import { IconX } from '@tabler/icons-react'
 import { SlugEditor } from '../common/SlugEditor'
+import { paths } from '@/config/paths'
 import { ReorderControls } from '../common/ReorderControls'
 import { RoutePickerModal } from '../route/RoutePickerModal'
 import { CreateRouteModal } from '../route/CreateRouteModal'
@@ -193,7 +194,7 @@ export function RideEditor({
         {currentSlug && onSlugChange && (
           <SlugEditor
             currentSlug={currentSlug}
-            baseUrl={`/teams/${teamSlug}/rides/`}
+            baseUrl={paths.ride(teamSlug, '')}
             onSlugChange={onSlugChange}
             disabled={!canEditSlug}
           />

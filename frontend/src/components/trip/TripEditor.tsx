@@ -17,6 +17,7 @@ import {
 import { InstantDateTimePicker } from '@/components/common/InstantDateTimePicker'
 import { IconPlus, IconTrash, IconSettings, IconRoute as IconRouteIcon } from '@tabler/icons-react'
 import { SlugEditor } from '../common/SlugEditor'
+import { paths } from '@/config/paths'
 import { ReorderControls } from '../common/ReorderControls'
 import { RoutePickerModal } from '../route/RoutePickerModal'
 import { CreateRouteModal } from '../route/CreateRouteModal'
@@ -232,7 +233,7 @@ export function TripEditor({
               {currentSlug && onSlugChange && (
                 <SlugEditor
                   currentSlug={currentSlug}
-                  baseUrl={`/teams/${teamSlug}/trips/`}
+                  baseUrl={paths.trip(teamSlug, '')}
                   onSlugChange={onSlugChange}
                   disabled={!canEditSlug}
                 />

@@ -172,7 +172,7 @@ export function TeamForm({
         />
 
         {!create && teamSlug && onSlugChange && (
-          <SlugEditor currentSlug={teamSlug} baseUrl="/teams/" onSlugChange={onSlugChange} />
+          <SlugEditor currentSlug={teamSlug} baseUrl={paths.team('')} onSlugChange={onSlugChange} />
         )}
 
         <Stack gap="xs">
