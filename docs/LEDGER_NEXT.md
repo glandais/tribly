@@ -165,6 +165,18 @@ ce que l'automatisation ne voit pas, dit sous chaque ligne).
 - [ ] **`AdDto` ne porte aucun champ de contact** — le `grep` et le script Python du §5.3 du document
       d'API. Le jour où ils remontent quelque chose, le relais a été contourné et une adresse
       personnelle est publiée à toute une équipe, irrévocablement.
+- [ ] **Secrets dans les journaux d'accès** — `?t=` (jeton de tuile, ~15 min) et `?token=` (flux
+      ICS, **sans expiration**) sont écrits en clair par Traefik et par le Caddy de l'hôte. Le
+      masquage n'est prescrit que pour Caddy, et rien dans le dépôt ne dit qu'il est en place ;
+      Traefik (`docker-compose.yml`, `--accesslog=true`) n'a aucun filtre de champs. Configurer le
+      masquage des deux paramètres dans les deux, ou retirer le champ de la requête du journal
+      Traefik. Source : [`OPERATIONS.md`](OPERATIONS.md#redacting-credentials-from-access-logs).
+      Voir aussi §7.1 (le jeton ICS qui n'expire jamais).
+- [ ] **Copie à froid des données Valhalla** — `~/shared/data/valhalla` (~17 Go, des heures à
+      reconstruire) est hors des sauvegardes nocturnes : la copier **une fois** vers l'hôte de
+      sauvegarde, puis à chaque changement d'extrait OSM. Rien ne dit que c'est fait, et les données
+      tileserver, nommées comme « à reconstruire à la main », ne sont couvertes par aucune procédure.
+      Source : [`OPERATIONS.md`](OPERATIONS.md#cold-backup-of-the-shared-stack).
 
 ---
 
@@ -185,7 +197,20 @@ Relevés le 29 septembre 2026, en vérifiant `docs/*.md` contre le code :
 - **Survol des cartes web sans effet** — l'ombre `md` des cartes est déclarée en `'&:hover'` dans
   la prop `styles`, que Mantine rend en style inline : le pseudo-sélecteur est ignoré. À passer par
   une classe CSS (module ou `classNames`) ; [`BRANDING.md`](BRANDING.md) §7.1 le note comme absent
-  d'ici là.
+  d'ici là. Le même motif `'&:hover'` dans `styles` est ignoré aussi dans `CardTeamLink.tsx`,
+  `TeamContextBanner.tsx` et `TripStageCard.tsx` (soulignement au survol). Une fois corrigé, aligner
+  [`BRANDING.md`](BRANDING.md) §5.2, qui décrit l'ombre au survol comme acquise et contredit §7.1.
+- **Cache gpx2web : commentaire périmé et tuiles d'élévation non revues** — `.env.example:51-52`
+  dit encore que gpx2web écrit les tuiles directement à leur chemin final ; depuis gpx2web 1.5.1
+  (le dépôt est en 1.5.2) les tuiles de carte sont écrites puis renommées. Corriger le commentaire.
+  Les tuiles d'élévation, elles, n'ont pas été revues et ne sont gardées que par un verrou interne
+  à la JVM : tant que ce n'est pas fait, `DATA_CACHE_PATH` ne se partage pas entre backends.
+  Source : [`OPERATIONS.md`](OPERATIONS.md) (services « per-environment on purpose »).
+- **`PUBLIC_UNLISTED` indexable** — la moitié « non indexé » de la visibilité manque :
+  `frontend/index.html` sert un `<meta name="robots" content="index, follow">` statique et rien
+  n'émet de `noindex` par page ; les pages non listées étant rendues en SSR, un robot les indexe.
+  Le correctif va dans les `meta()` de `routes.config.ts`. Source : [`BACKLOG.md`](BACKLOG.md)
+  (« Visibility Controls »).
 - **`.env.example:143` décrit un `BACKUP_KEEP` que rien ne lit** — la rétention est le second
   argument de `scripts/backup-prune.sh`, sur l'hôte de sauvegarde. Retirer la ligne, comme dans
   [`OPERATIONS.md`](OPERATIONS.md).
@@ -343,7 +368,7 @@ sont des invariants que le code garde.
 |---|---|---|
 | **Liste d'attente (`waitlisted`)** | N'existe pas en base ; ni colonne, ni statut, ni rang sur `RideParticipation` | « Complet » est un **état terminal**. Ne pas câbler un `waitlisted: false` en dur : un champ toujours faux rend la vraie fonctionnalité indétectable en revue |
 | **Repli sur `createdBy` pour le meneur** | **Interdit partout** — base, DTO, client | `createdBy` vaut le créateur de la **sortie**, donc le même nom sur tous ses groupes : un repli serait faux presque partout, et faux de la façon qui ne se signale pas. C'est le défaut que `leader_id` corrige. Gardé par `groupLeader_isNotTheRideCreator` |
-| **Position exacte d'une annonce** | Floutée à ~1 km, **et la sonde de proximité quantifiée sur la même grille** | Flouter la sortie ne suffit pas : répéter « cette annonce est-elle à moins de R de C ? » en déplaçant C multilatère la position réelle. D'où le rayon arrondi au multiple de cellule (3 km servis comme 3,33 km) : l'interface annonce un **ordre de grandeur**, pas une valeur exacte. Et **jamais de punaise** |
+| **Position exacte d'une annonce** | Floutée à ~1 km, **et la sonde de proximité quantifiée sur la même grille** | Flouter la sortie ne suffit pas : répéter « cette annonce est-elle à moins de R de C ? » en déplaçant C multilatère la position réelle. D'où le rayon arrondi au multiple de cellule (3 km servis comme 3,33 km) : l'interface annonce un **ordre de grandeur**, pas une valeur exacte. Et **jamais de punaise**. **L'audit de sécurité garde pourtant M2 ouvert** (le flou peut encore être affiné par des requêtes répétées) : la quantification ne suffit pas, voir §7.1 |
 | **Champ de contact libre sur une annonce** | Écarté au profit du relais e-mail | C'était la solution la moins chère, et elle publie une donnée personnelle **irrévocablement** à toute l'équipe (jusqu'à 1 999 personnes) : ce qui a été lu ne se dépublie pas. Retirer le champ plus tard ne répare rien |
 | **`GET /api/rides` et listes mono-type** | Non créées ; `/api/publications?type=RIDE` est la surface canonique | Deux surfaces = deux jeux de filtres à garder cohérents. `RideListResponse` / `TripListResponse` existent encore comme records retournés par **aucun endpoint** — les supprimer serait un MAJOR gratuit |
 | **Scroll infini côté web** | Non porté | Incompatible avec la règle structurante du frontend (filtres et pagination dans la query string, donc toute vue partageable). `usePaginatedQuery` précharge déjà la page suivante **et** la précédente |
@@ -381,6 +406,35 @@ restent ouvertes :
   confidentialité ne dit pas encore, ou mal, et qui demande une décision juridique : import
   biketeam, conservation des messages d'annonce, position précise envoyée par Garmin et Karoo,
   contenu lisible sans compte, sous-traitants du Web Push.
+
+### 7.1 Audit de sécurité — constats ouverts
+
+[`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) fait foi pour les statuts et reste expurgé : cette liste ne
+fait que les suivre ici, sans détail. Quand un constat est corrigé, mettre à jour **les deux**
+fichiers (statut et commit dans l'audit, ligne déplacée dans `LEDGER_DONE.md` §7.1). Relevé le
+29 septembre 2026 : aucun commit de code n'a touché ces points depuis la mise à jour de l'audit.
+
+| Priorité (audit) | # | Sévérité | Constat |
+|---|---|---|---|
+| 1 | H2 | Élevée | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif |
+| 1 | H3 | Élevée | L'autorisation d'un appareil peut aboutir sans confirmation explicite |
+| 1 | H4 | Élevée | L'app mobile peut transmettre ses identifiants à d'autres hôtes que l'API |
+| 2 | V1 | **Critique si confirmé** | Clé JWT présente dans l'historique public : vérifier que prod et staging n'en sont pas des copies |
+| 4 | M3 | Moyenne | Traitement GPX non borné en mémoire |
+| 4 | M4 | Moyenne | Connexion par mot de passe sans limitation de débit ni verrouillage |
+| — | M2 | Moyenne | Flou d'~1 km des annonces affinable par requêtes répétées (contredit la décision du §6) |
+| — | M5 | Moyenne | Login CSRF via le lien de vérification d'e-mail |
+| — | M6 | Moyenne | ReDoS sur une expression régulière appliquée au markdown |
+| — | L1, L3–L10 | Faible | Voir la table des constats faibles de l'audit |
+| — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
+| — | Info | — | Images externes dans le markdown, parseur XML non durci, paramètre de requête non encodé |
+| — | V2 | — | Reliquat : les comptes déjà rattachés par l'ancien import biketeam |
+| — | V3–V8 | À valider | Configuration hors dépôt : proxy de l'hôte, hôte de sauvegarde, SMTP, imgproxy |
+
+Hors audit, relevé dans [`OPERATIONS.md`](OPERATIONS.md#redacting-credentials-from-access-logs) :
+le **jeton du flux ICS n'expire jamais** — seule la régénération manuelle
+(`CalendarService.regenerateToken`) le révoque. Une expiration, ou au moins le masquage du §1.3, est
+ce qui borne sa fuite par un journal.
 
 ---
 
@@ -483,3 +537,21 @@ divergence ne casse rien de visible, c'est justement le risque.
 - **Écarté** : un test qui parse les deux fichiers et vérifie qu'ils concordent — il détecte sans
   unifier, et repose sur des expressions régulières sur du TypeScript et du Dart.
 - **Hors sujet** : les échelles de nuances, figées par Mantine.
+
+### 8.6 Migration biketeam en direct — mise en production
+
+En service en staging ; la mise en production attend biketeam
+([plan](plans/2026-09-22-biketeam-live-migration.md) §10). Source :
+[`MIGRATE_BIKETEAM.md`](MIGRATE_BIKETEAM.md).
+
+- **Déroulé** : poser les secrets des deux côtés en production, puis un essai sur une petite équipe
+  (`gaby`) contre staging, contre la production, et enfin le passage réel.
+- **Redirections 302 → 301** : une fois les bascules stabilisées, poser
+  `PEDALONS_REDIRECT_STATUS=301` côté biketeam. Pas avant : un 301 est mis en cache par les
+  navigateurs et ne se rattrape pas.
+- **Liens internes non réécrits** : les liens vers `prendslaroue.fr` dans les pages d'équipe (FAQ,
+  descriptions) restent pointés vers biketeam et redirigent tant qu'il tourne. À corriger — à la
+  main, par l'équipe, ou par une réécriture depuis la table d'URL — **avant** l'arrêt de biketeam.
+- **Vignettes régénérées à chaque rejeu** : `updateRide`/`updateTrip` régénèrent les vignettes de
+  sortie et de voyage sans condition (`RideService`, `TripService`) ; c'est le dernier coût d'un
+  rejeu. Ne régénérer que si le parcours ou l'image en entrée a changé.

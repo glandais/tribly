@@ -1,12 +1,11 @@
 User-agent: *
 Allow: /
-Allow: /teams
-Allow: /routes
 
-# Private/authenticated areas
+# Private/authenticated areas — paths from contracts/routes.yaml, both locales.
 Disallow: /profile
-Disallow: /create-team
-Disallow: /join-team
+Disallow: /profil
+Disallow: /notifications
+Disallow: /platform
+Disallow: /plateforme
 
-# Future: Add sitemap reference when domain is decided
-# Sitemap: https://YOUR_DOMAIN/sitemap.xml
+# No sitemap yet: a dynamic sitemap.xml needs a backend endpoint (docs/BACKLOG.md, Discoverability).

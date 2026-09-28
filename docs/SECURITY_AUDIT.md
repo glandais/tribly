@@ -37,6 +37,9 @@
 | L1–L11 | Faible | Voir la section dédiée | L2 caduc, L11 partiellement corrigé, les autres ouverts |
 | V1–V8 | À valider | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | V2 caduc pour l'avenir, les autres à valider |
 
+Les constats ouverts sont suivis, sans détail, au §7.1 de [`LEDGER_NEXT.md`](LEDGER_NEXT.md) : un
+changement de statut ici se reporte là-bas.
+
 **Ordre de correction conseillé** :
 1. ~~H1~~ (corrigé), H2, H3 et H4.
 2. Vérifier V1.

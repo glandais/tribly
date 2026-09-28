@@ -1,7 +1,7 @@
 # Pédalons Roadmap
 
 This is the **product** roadmap. The engineering follow-ups from the July 2026 v2 — API gaps that
-each remove a named degradation, the four uncommitted infrastructure workstreams, and the live-app
+each remove a named degradation, the three uncommitted infrastructure workstreams (push has shipped), and the live-app
 test checklist — are in [LEDGER_NEXT.md](LEDGER_NEXT.md). Two entries below overlap with it and are
 noted where they appear.
 
@@ -14,10 +14,13 @@ Must-have for public launch. Focus on first impressions and core UX.
 - [X] Dark mode — Expected by modern users
 - [X] Appealing cards (icons, route previews)
   - [ ] Still some polish to do ...
-- [X] Pagination / infinite scrolling — Performance at scale
+- [X] Pagination — Performance at scale
+  - Offset pagination everywhere; infinite scroll on mobile only, deliberately not on the web, and
+    cursor pagination still to do — see [LEDGER_NEXT.md](LEDGER_NEXT.md) §4.1 and §6
 
 ### Discoverability
-- [x] SEO/robots.txt — Phase 1 complete (static meta)
+- [x] SEO/robots.txt — Phase 1 complete (static meta); `robots.txt` realigned on
+      `contracts/routes.yaml` on 2026-09-29 (both locales, no route that no longer exists)
   - [ ] llms.txt
 - [X] SSR/Dynamic meta — shipped without Next.js: Express server-side rendering of the React app
       (`frontend/docs/SSR.md`) and per-page Open Graph/Twitter tags (`frontend/docs/LINK_PREVIEW.md`)
@@ -74,7 +77,7 @@ Features that differentiate and deepen engagement.
     **"not indexed" half is missing** — `frontend/index.html` ships a static
     `<meta name="robots" content="index, follow">` and nothing emits a per-page `noindex`. Since
     unlisted pages are SSR-rendered, a crawler indexes them today. The fix belongs with the `meta()`
-    builders in `routes.config.ts`
+    builders in `routes.config.ts` — tracked in [LEDGER_NEXT.md](LEDGER_NEXT.md) §2
 
 ### Trip Enhancements
 - [ ] Trip stats (save in DB)
@@ -87,7 +90,7 @@ Features that differentiate and deepen engagement.
 Requires significant architecture work. Spike before committing.
 
 ### Notifications
-- [ ] Versatile notification system
+- [x] Versatile notification system
   - **Phases 1 to 5 in production since 2026-09-21** — design in
     docs/plans/2026-09-18-notifications.md, state in its ledger
   - Event types, team/user preferences, in-app inbox, team webhook, daily digest
@@ -142,4 +145,5 @@ Validated interest required before prioritization.
 Run alongside feature work.
 
 - [X] Schedule orphan asset deletion (>24h without entity) — `AssetCleanupScheduler`, daily
-- [ ] Markdown asset reference cleanup
+- [x] Markdown asset reference cleanup — `AssetService.updateAssets` keeps only the images a
+      `::asset{…}` directive still references; orphan removal deletes the rest with their S3 files

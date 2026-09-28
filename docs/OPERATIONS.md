@@ -41,7 +41,8 @@ Two services stay per-environment on purpose, even though they look shareable:
   cannot serve two MinIO backends. They become shareable if and when MinIO is shared.
 - **the gpx2web cache** (`DATA_CACHE_PATH`) — since gpx2web 1.5.1 map tiles are written then renamed,
   and only on a 2xx, but the elevation tiles next to them were not reviewed and the downloads are
-  guarded only by an in-JVM lock: don't share the directory between backends. Keep it at
+  guarded only by an in-JVM lock: don't share the directory between backends (tracked in
+  [`LEDGER_NEXT.md`](LEDGER_NEXT.md) §2). Keep it at
   `/mnt/cache`: pointed at `/tmp` it lives inside the container and is re-downloaded in full on every
   restart.
 
@@ -56,7 +57,9 @@ authenticated HTTP stack and cannot set a header:
 
 Traefik and Caddy both log the full URI. Configure the host's Caddy access log to redact those two
 parameters. The short TTL is what makes historical tile-token lines inert, and it is the reason the
-TTL must never be raised to hours; the calendar token has no such protection.
+TTL must never be raised to hours; the calendar token has no such protection. Both open points —
+the redaction itself, and the non-expiring calendar token — are tracked in
+[`LEDGER_NEXT.md`](LEDGER_NEXT.md) §1.3 and §7.1.
 
 ### Seeding the shared Valhalla data
 
@@ -301,7 +304,8 @@ BACKUP_ENV_FILE=/tmp/drill.env scripts/restore.sh --force
 
 `~/shared/data/valhalla` is ~17 GB and takes hours to rebuild from the `.osm.pbf`. It carries no
 application data, so it stays out of the nightly backup — but copying it **once** (and again
-whenever the OSM extract changes) turns a multi-hour restore into an `rsync`:
+whenever the OSM extract changes) turns a multi-hour restore into an `rsync` (tracked in
+[`LEDGER_NEXT.md`](LEDGER_NEXT.md) §1.3):
 
 ```bash
 rsync -a ~/shared/data/valhalla/{france-latest.osm.pbf,valhalla_tiles.tar,file_hashes.txt} \

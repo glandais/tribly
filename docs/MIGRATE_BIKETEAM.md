@@ -17,7 +17,7 @@ polls the job. The worker fetches the team's snapshot and files from biketeam's 
 (`/internal/pedalons/…`), maps them with the rules below, and hands biketeam a URL table. A
 successful non-trial run, once the admin clicks *Basculer vers Pédalons*, makes biketeam redirect
 every URL of the team here — with a 302 by default, a 301 once `PEDALONS_REDIRECT_STATUS=301` is set
-on biketeam after the switches have settled — and turn the team read-only; nothing is deleted on
+on biketeam after the switches have settled ([`LEDGER_NEXT.md`](LEDGER_NEXT.md) §8.6) — and turn the team read-only; nothing is deleted on
 either side.
 
 What comes over: the team (name, visibility, `joinable`), its about page (presentation + contact
@@ -71,7 +71,8 @@ Order, on a new deployment:
    export) a migration in flight for that team. Both URLs must be `https://`.
 3. The backend log says
    `Biketeam live migration enabled (export …, public site …)`.
-4. A trial of a small team (`gaby`) against **staging**, then against production, then the real run.
+4. A trial of a small team (`gaby`) against **staging**, then against production, then the real run
+   (production rollout tracked in [`LEDGER_NEXT.md`](LEDGER_NEXT.md) §8.6).
 
 `pedalons.biketeam.grant-ttl` (10 min), `.max-attempts` (3), `.stuck-after` (20 min),
 `.export-idle-timeout` (60 s without a byte of a snapshot or file) and `.export-transfer-timeout`
@@ -163,7 +164,7 @@ the next one redoes the work.
 | replay | **11s** |
 
 What remains is the ride and trip thumbnails, which `updateRide`/`updateTrip` regenerate
-unconditionally. A route whose `.gpx` changed between two runs is reprocessed, as it should be.
+unconditionally ([`LEDGER_NEXT.md`](LEDGER_NEXT.md) §8.6). A route whose `.gpx` changed between two runs is reprocessed, as it should be.
 
 ## Known failures
 
@@ -302,7 +303,8 @@ bare `<teamId>` is the about page — and refresh the markdown in place.
 
 **Internal links are not rewritten.** `n-peloton`'s page links to
 `https://www.prendslaroue.fr/n-peloton/faq#equipement` and to its old home page; those stay pointing
-at biketeam and have to be fixed by hand, or by the team, once the old site goes away.
+at biketeam and have to be fixed by hand, or by the team, once the old site goes away
+([`LEDGER_NEXT.md`](LEDGER_NEXT.md) §8.6).
 
 ### Trip notes
 

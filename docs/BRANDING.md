@@ -409,7 +409,8 @@ champs et vignettes internes restent à **8 px** (`PdlRadii.md`) — légèremen
 ### 5.2 Ombres
 
 Ombres Mantine par défaut, très douces et multi-couches. Les cartes sont **plates au repos** (bordure
-seule) et prennent `shadow-md` au survol, avec transition `box-shadow 0.2s, border-color 0.2s`.
+seule) et devraient prendre `shadow-md` au survol, avec transition `box-shadow 0.2s, border-color 0.2s` —
+**pas encore le cas** sur le web, voir §7.1 et [`LEDGER_NEXT.md`](LEDGER_NEXT.md) §2.
 
 | Jeton | Valeur |
 |---|---|
@@ -536,7 +537,7 @@ Structure de haut en bas, dans un `Paper withBorder radius="md"` entièrement cl
 
 Au survol : aucun effet aujourd'hui. L'ombre `md` prévue est déclarée en `'&:hover'` dans
 `styles`, que Mantine rend en style inline, donc ignorée. À rétablir par une classe CSS avant de la
-documenter comme acquise. Aucun soulèvement, aucun agrandissement.
+documenter comme acquise (suivi : [`LEDGER_NEXT.md`](LEDGER_NEXT.md) §2). Aucun soulèvement, aucun agrandissement.
 
 ### 7.2 Carte de parcours (`RouteCard`)
 
