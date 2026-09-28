@@ -60,7 +60,10 @@ android {
         versionName = flutter.versionName
         // Patrol end-to-end tests (patrol_test/, run by mobile/e2e.sh).
         testInstrumentationRunner = "pl.leancode.patrol.PatrolJUnitRunner"
-        testInstrumentationRunnerArguments["clearPackageData"] = "true"
+        // No `clearPackageData`, though Patrol's setup guide has it: it wipes the app's temporary
+        // directory between tests, where BackendClient keeps the admin's refresh token for the
+        // run — each test would then log the admin in by OTP again, rate-limited to 3 per 5
+        // minutes. `openApp` already clears the keychain and preferences itself.
     }
 
     testOptions {
