@@ -44,7 +44,7 @@ dependencies:
   intl: ^0.20.3
 
   # Image caching with auth headers support
-  cached_network_image: ^4.0.0
+  cached_network_image: ^4.0.2
 
   # Maps
   maplibre: ^0.3.6
@@ -100,7 +100,7 @@ dev_dependencies:
 
   # Code generation
   build_runner: ^2.16.1
-  freezed: ^4.0.0-dev.3
+  freezed: ^4.0.2
   json_serializable: ^6.14.1
   retrofit_generator: ^10.2.11
   openapi_retrofit_generator: ^2.0.0
