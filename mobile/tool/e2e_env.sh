@@ -19,7 +19,13 @@ E2E_DART_DEFINES="--dart-define=API_BASE_URL=$E2E_API_URL --dart-define=E2E_MAIL
 
 E2E_PLATFORM="${E2E_PLATFORM:-ios}"
 E2E_DEVICE="${PATROL_DEVICE:-}"
-_e2e_adb="${ANDROID_HOME:-$HOME/Library/Android/sdk}/platform-tools/adb"
+# Android Studio's default SDK location: ~/Library/Android/sdk on macOS, ~/Android/Sdk on Linux.
+if [[ "$(uname)" == Darwin ]]; then
+  _e2e_android_sdk="$HOME/Library/Android/sdk"
+else
+  _e2e_android_sdk="$HOME/Android/Sdk"
+fi
+_e2e_adb="${ANDROID_HOME:-$_e2e_android_sdk}/platform-tools/adb"
 
 if [[ "$E2E_PLATFORM" == android ]]; then
   E2E_DEVICE="${E2E_DEVICE:-emulator-5554}"

@@ -26,9 +26,12 @@ only run through Patrol.
 ### On Android
 
 ```bash
-~/Library/Android/sdk/emulator/emulator -avd <avd> -no-snapshot-save &   # one emulator
+<sdk>/emulator/emulator -avd <avd> -no-snapshot-save &   # one emulator
 E2E_PLATFORM=android bash e2e.sh -t patrol_test/logout_test.dart
 ```
+
+`<sdk>` is `$ANDROID_HOME`; without it, `e2e.sh` looks for adb where Android Studio installs the SDK:
+`~/Library/Android/sdk` on macOS, `~/Android/Sdk` on Linux.
 
 `E2E_PLATFORM=android` runs on `emulator-5554` (or the adb serial in `PATROL_DEVICE`) and never
 touches a simulator, so it runs beside an iOS run on the same stack — the tests seed under unique
