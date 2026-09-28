@@ -2,14 +2,21 @@ package fr.pedalons.infrastructure.email;
 
 import io.quarkus.logging.Log;
 import io.quarkus.mailer.Mail;
-import io.quarkus.mailer.Mailer;
+import io.quarkus.mailer.reactive.ReactiveMailer;
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -51,7 +58,34 @@ public class EmailService {
   /** The languages {@code templates/mail} is translated into; anything else falls back to French. */
   private static final Set<String> TEMPLATE_LANGUAGES = Set.of("fr", "en");
 
-  @Inject Mailer mailer;
+  /**
+   * The reactive mailer, subscribed on {@link #sendContext} and awaited here — see {@link #send}.
+   * The blocking {@code Mailer} subscribes on the calling worker thread, which leaves no room for
+   * choosing the context.
+   */
+  @Inject ReactiveMailer mailer;
+
+  @Inject Vertx vertx;
+
+  /**
+   * How long a send may take before failing: the same setting the blocking mailer reads, since this
+   * class now does its waiting itself.
+   */
+  @ConfigProperty(name = "quarkus.mailer.timeout", defaultValue = "60s")
+  Duration timeout;
+
+  /**
+   * The one event loop every send starts on. The Vert.x mail client (4.5.x) installs a new
+   * connection's socket handler only once the pool has handed the connection over, possibly on
+   * another event loop: a server greeting read in between is dropped, and the send waits forever
+   * on a connection it keeps leased. Sends started from worker threads — this service's callers —
+   * hit it on a cold pool: on the e2e stack, 10 concurrent sign-ups right after a restart lost 8 or
+   * 9 sends one round in 5. Started on a single event loop, the connection is created and
+   * initialised on the thread that reads its socket, so the greeting cannot fall in between. The
+   * sends themselves stay concurrent: the loop only starts them. Fixed upstream in vertx-mail-client
+   * (the connection buffers what arrives before init); drop this once Quarkus ships it.
+   */
+  private volatile @Nullable Context sendContext;
 
   @Inject Engine engine;
 
@@ -101,7 +135,7 @@ public class EmailService {
     }
     long start = System.nanoTime();
     try {
-      mailer.send(mail);
+      send(mail);
     } catch (RuntimeException e) {
       // Logged here rather than left to the caller: when the send outlasts the client, the request
       // is gone by the time the exception surfaces and the exception mapper writes nothing.
@@ -111,6 +145,43 @@ public class EmailService {
           templateName,
           Duration.ofNanos(System.nanoTime() - start).toMillis());
       throw e;
+    }
+  }
+
+  private Context sendContext() {
+    Context context = sendContext;
+    if (context == null) {
+      synchronized (this) {
+        context = sendContext;
+        if (context == null) {
+          // From a worker thread, a new event-loop context: kept, so every send starts on it.
+          context = vertx.getOrCreateContext();
+          sendContext = context;
+        }
+      }
+    }
+    return context;
+  }
+
+  private void send(Mail mail) {
+    Context context = sendContext();
+    CompletableFuture<Void> sending =
+        mailer
+            .send(mail)
+            .runSubscriptionOn(task -> context.runOnContext(ignored -> task.run()))
+            .subscribeAsCompletionStage();
+    try {
+      sending.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+    } catch (TimeoutException e) {
+      sending.cancel(true);
+      throw new IllegalStateException("Mail not sent within " + timeout, e);
+    } catch (ExecutionException e) {
+      throw e.getCause() instanceof RuntimeException runtime
+          ? runtime
+          : new IllegalStateException(e.getCause());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException(e);
     }
   }
 }
