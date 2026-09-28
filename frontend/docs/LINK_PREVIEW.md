@@ -2,7 +2,7 @@
 
 How shareable pages unfurl into rich cards on social/messaging platforms, and the research
 that shaped the design (2026-07). The short invariants live in
-[CLAUDE.md](CLAUDE.md#link-previews-open-graph--twitter); this file explains the *why*.
+[CLAUDE.md](../CLAUDE.md#link-previews-open-graph--twitter); this file explains the *why*.
 
 This builds directly on SSR — read [SSR.md](SSR.md) first. Link previews only work because
 the tags are in the **server-rendered initial HTML**; a client-injected tag is invisible to

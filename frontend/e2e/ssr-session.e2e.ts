@@ -39,7 +39,7 @@ import { stack } from './support/stack'
 import { pageAs, pageHydrated, watchHydration } from './support/ui'
 
 /**
- * docs/NEXT.md §1.2 — authenticated SSR (frontend/SSR.md, "Session-aware SSR"): for a document
+ * docs/NEXT.md §1.2 — authenticated SSR (frontend/docs/SSR.md, "Session-aware SSR"): for a document
  * request carrying the refresh_token cookie, « Ma prochaine sortie », the « Inscrit » badge on the
  * feed cards and « Mes participations » are in the server HTML; without the cookie they are not;
  * and hydration adopts that markup instead of throwing it away.
@@ -162,7 +162,7 @@ test.describe('raw document response', () => {
     expect(signedHome.html).toContain(NEXT_RIDE)
     expect(signedHome.html).toContain(REGISTERED)
     expect(signedHome.html).toContain(setup.rideName)
-    // Per-visitor HTML: SSR.md makes these a security requirement.
+    // Per-visitor HTML: docs/SSR.md makes these a security requirement.
     expect(signedHome.headers['cache-control']).toContain('no-store')
     expect(signedHome.headers['vary']?.toLowerCase()).toContain('cookie')
 
@@ -563,7 +563,7 @@ test.describe('private team: nothing in the server document', () => {
 })
 
 /**
- * Link previews, positively (LINK_PREVIEW.md): a public ride, route, post or trip unfurls into a
+ * Link previews, positively (docs/LINK_PREVIEW.md): a public ride, route, post or trip unfurls into a
  * card of its own — its `og:type`, its name in `og:title`, the page itself as `og:url` — and the
  * card's picture is an absolute URL on the host the link was shared from (seo.ts builds it from
  * the request origin, so each tenant gets its own), which answers with an image. The ride, the

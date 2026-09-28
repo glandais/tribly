@@ -27,7 +27,7 @@ function getStoredUnitSystem(): UnitSystem {
  * markup exactly. An anonymous localStorage preference is deliberately NOT read here (see
  * hydrateAnonymousPreferences below): the server has no way to know it, so reading it at module
  * scope would make the first client render diverge from the anonymous server markup (always
- * 'METRIC'), the exact hydration mismatch documented in SSR.md "Finding 4".
+ * 'METRIC'), the exact hydration mismatch documented in docs/SSR.md "Finding 4".
  */
 const initialUnitSystem: UnitSystem =
   !isServer && window.__AUTH_STATE__?.user

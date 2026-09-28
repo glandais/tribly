@@ -20,7 +20,7 @@ Must-have for public launch. Focus on first impressions and core UX.
 - [x] SEO/robots.txt — Phase 1 complete (static meta)
   - [ ] llms.txt
 - [X] SSR/Dynamic meta — shipped without Next.js: Express server-side rendering of the React app
-      (`frontend/SSR.md`) and per-page Open Graph/Twitter tags (`frontend/LINK_PREVIEW.md`)
+      (`frontend/docs/SSR.md`) and per-page Open Graph/Twitter tags (`frontend/docs/LINK_PREVIEW.md`)
 - [ ] Dynamic sitemap.xml — Requires backend endpoint
 - [ ] Share URL (Social) — Viral loop
 

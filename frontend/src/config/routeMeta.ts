@@ -339,7 +339,7 @@ export const routeMeta: RouteMetaFn = (ctx) => {
 }
 
 // No ad builder: `ad-detail` is a member-only route (the ad API is `@RolesAllowed("user")`), and
-// every unfurl crawler is anonymous — there is no cache for a builder to read. See LINK_PREVIEW.md.
+// every unfurl crawler is anonymous — there is no cache for a builder to read. See docs/LINK_PREVIEW.md.
 
 // === gpx-tools-view =========================================================================
 export const gpxPreviewMeta: RouteMetaFn = (ctx) => {

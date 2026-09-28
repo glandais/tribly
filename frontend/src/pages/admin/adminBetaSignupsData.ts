@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/authStore'
  * No `use<Screen>Data` hook here for the same reason as `adminDomainsData.ts` — the page's own
  * `useUrlFilters` call already gives it everything it reads.
  *
- * Known limitation, deliberately preserved (see SSR-data-loading.md): this primes
+ * Known limitation, deliberately preserved (see docs/SSR-data-loading.md): this primes
  * `adminBetaSignupFiltersSchema.parse({})`, the **default** list (page 0, `ADMIN_PAGE_SIZE`), not
  * the URL's filters — the same gap the other admin lists carry, not a page/prefetch divergence.
  *

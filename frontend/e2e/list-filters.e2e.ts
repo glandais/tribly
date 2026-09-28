@@ -11,8 +11,8 @@ import { entityCard, escapeRegExp, hydrated } from './support/ui'
 
 /**
  * docs/plans/archive/2026-09-27-e2e-coverage-audit.md, P1 « Filtres portés par l'URL et cohérents avec le SSR » — a list's
- * filters live in its query string (frontend/URL_FILTERS.md), and the route's prefetch reads that
- * query string through the page's own schema (frontend/SSR-data-loading.md). So a filtered link:
+ * filters live in its query string (frontend/docs/URL_FILTERS.md), and the route's prefetch reads that
+ * query string through the page's own schema (frontend/docs/SSR-data-loading.md). So a filtered link:
  *
  * - is server-rendered already filtered — the document the browser receives lists what the
  *   filters keep, and nothing they drop;

@@ -764,7 +764,7 @@ export const routesConfig: RoutesConfig = [
     prefetch: (queryClient, params) =>
       prefetchAdDetail(queryClient, params.teamSlug!, params.adSlug!),
     // No `meta`: a member-only page has no link preview to build — every unfurl crawler is
-    // anonymous, so the prefetch it would read from answers 401. See LINK_PREVIEW.md.
+    // anonymous, so the prefetch it would read from answers 401. See docs/LINK_PREVIEW.md.
   },
   {
     id: 'ad-edit',

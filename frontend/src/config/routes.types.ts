@@ -111,7 +111,7 @@ export interface RouteConfig {
    * Optional data prefetch, run as a React Router loader in BOTH environments (SSR and client).
    *
    * On the server the request carries the visitor's session when the document request resolved one
-   * (see SSR.md) — but that resolution can fail or simply find no session, in which case the request
+   * (see docs/SSR.md) — but that resolution can fail or simply find no session, in which case the request
    * goes out anonymous. On the client the loader fires before auth initialization. Either way,
    * implementations must tolerate 401/403 responses. The loader adapter (see RouteGenerator) catches
    * all errors, so a failed prefetch never blocks the render; components fall back to their own

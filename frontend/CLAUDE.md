@@ -72,7 +72,7 @@ Custom axios mutator in `lib/axiosInstance.ts` handles: JWT bearer tokens from a
 
 - **Server state**: React Query (generated hooks from Orval)
 - **Global client state**: Zustand — only `authStore` (JWT, user), `preferencesStore` (unit system, persisted to localStorage) and `mapStyleStore` (remembered basemap, terrain and hillshade toggles, localStorage)
-- **List page filters/search/pagination**: the query string, via `useUrlFilters` — never `useState`. See [URL_FILTERS.md](URL_FILTERS.md).
+- **List page filters/search/pagination**: the query string, via `useUrlFilters` — never `useState`. See [docs/URL_FILTERS.md](docs/URL_FILTERS.md).
 - Auth initializes by calling `/api/auth/refresh` on mount; `useAuth` hook fetches `/api/users/me`
 
 ### Path Management
@@ -132,11 +132,11 @@ Lists request `view=COMPACT` where they only need `excerpt` + `thumbnailUrl`; in
 `server.js` (Express) renders public pages on the server via the static prerender API (`react-dom/static`, NOT `renderToString` — lazy route pages would render as their Suspense fallback) and hydrates on the client. Entry points: `src/entry-server.tsx` (`render(url, headers)`) and `src/entry-client.tsx` (hydrate). React Router runs in **library mode** (`createStaticHandler`/`createStaticRouter`, not framework mode); Vite uses `ssrLoadModule` in dev (no Environment API).
 
 Currently-known SSR defects (and the crawler that finds them, `scripts/ssr-audit.mjs`) are listed
-in [SSR-BUGS.md](SSR-BUGS.md) — check it before reporting one.
+in [docs/SSR-BUGS.md](docs/SSR-BUGS.md) — check it before reporting one.
 
-**Before changing SSR-reachable code, read [SSR.md](SSR.md)** — it documents the architecture and the non-obvious failure modes (lazy pages vs renderToString, silent Suspense-swallowed crashes, useId tree parity via `AppProviders`/`AppFrame`, localStorage-derived render state, and the curl checks that actually catch regressions).
+**Before changing SSR-reachable code, read [docs/SSR.md](docs/SSR.md)** — it documents the architecture and the non-obvious failure modes (lazy pages vs renderToString, silent Suspense-swallowed crashes, useId tree parity via `AppProviders`/`AppFrame`, localStorage-derived render state, and the curl checks that actually catch regressions).
 
-**Before adding or editing a route's `prefetch`, read [SSR-data-loading.md](SSR-data-loading.md)** — a screen's data is declared once, in a companion module next to the page (`pages/ride/rideDetailData.ts`, `pages/route/routeListData.ts`), read as hooks by the page and as a `Promise.all` by `routes.config.ts`. Describing it twice doesn't break anything visibly: it just yields a different query key, so the client refetches after hydration and only `scripts/ssr-audit.mjs` notices.
+**Before adding or editing a route's `prefetch`, read [docs/SSR-data-loading.md](docs/SSR-data-loading.md)** — a screen's data is declared once, in a companion module next to the page (`pages/ride/rideDetailData.ts`, `pages/route/routeListData.ts`), read as hooks by the page and as a `Promise.all` by `routes.config.ts`. Describing it twice doesn't break anything visibly: it just yields a different query key, so the client refetches after hydration and only `scripts/ssr-audit.mjs` notices.
 
 Hard invariants — keep these when touching SSR-reachable code:
 
@@ -156,7 +156,7 @@ Hard invariants — keep these when touching SSR-reachable code:
 
 Public pages unfurl into rich social/messaging cards via server-rendered OG/Twitter tags. A route declares an optional `meta(ctx)` in `routes.config.ts`; `entry-server` runs it after `prefetch`, `src/lib/seo.ts` (`buildMetaTags`) serialises the result, and `server.js` injects it at the `<!--ssr-head-->` placeholder. Because no unfurl crawler runs JavaScript, the tags **must** be in the initial HTML — this rides on SSR, not client injection.
 
-**Before adding or changing link previews, read [LINK_PREVIEW.md](LINK_PREVIEW.md)** — architecture, per-page coverage, the 2026 platform findings, invariants, and the curl check that verifies tags render server-side.
+**Before adding or changing link previews, read [docs/LINK_PREVIEW.md](docs/LINK_PREVIEW.md)** — architecture, per-page coverage, the 2026 platform findings, invariants, and the curl check that verifies tags render server-side.
 
 - **`meta()` builders only READ the per-request cache and never throw** — data must be `prefetch`ed on the same route; a missing entity returns `undefined` and falls back to site-wide defaults.
 - **Never add a `<meta>`/`<title>` React component** — React 19 hoisting shifts `useId` and duplicates the title. Tags are string-built in `seo.ts`, outside the React tree.
@@ -164,15 +164,15 @@ Public pages unfurl into rich social/messaging cards via server-rendered OG/Twit
 
 ## Key Rules
 
-- **Never hold list filters, search or pagination in `useState`** — they belong in the query string via `useUrlFilters`, so they survive back-navigation and are shareable. See [URL_FILTERS.md](URL_FILTERS.md).
-- **Never describe a screen's data twice** — the page's hooks and the route's `prefetch` share one companion module (`pages/<domain>/<screen>Data.ts`); derive params, never copy them. See [SSR-data-loading.md](SSR-data-loading.md).
+- **Never hold list filters, search or pagination in `useState`** — they belong in the query string via `useUrlFilters`, so they survive back-navigation and are shareable. See [docs/URL_FILTERS.md](docs/URL_FILTERS.md).
+- **Never describe a screen's data twice** — the page's hooks and the route's `prefetch` share one companion module (`pages/<domain>/<screen>Data.ts`); derive params, never copy them. See [docs/SSR-data-loading.md](docs/SSR-data-loading.md).
 - **Never edit `src/api/`** — it's generated. Run `pnpm generate-api` after backend OpenAPI changes.
 - **Never edit `paths.generated.ts`** — edit `../contracts/routes.yaml` and run `pnpm generate-routes`. See [docs/APP_LINKS.md](../docs/APP_LINKS.md).
 - **Never hard-code links** — use `paths.xxx()` from `config/paths.ts` (locale-aware).
 - **Never import `Link` from `react-router-dom`** — use `<PrefetchLink>` (`components/common/PrefetchLink.tsx`), including as `component={PrefetchLink}` on Mantine's polymorphic components. On hover/focus it warms both the destination's chunk *and* the `prefetch()` its route declares, through the same `runRoutePrefetch` the router loader uses — React Router's own `prefetch` prop is a silent no-op in library mode. Pass `prefetch="viewport"` (chunk only) or `"none"` where intent prefetching isn't wanted.
-- **Never set link-preview tags via a React component** — add a `meta()` to `routes.config.ts` instead. See [LINK_PREVIEW.md](LINK_PREVIEW.md).
+- **Never set link-preview tags via a React component** — add a `meta()` to `routes.config.ts` instead. See [docs/LINK_PREVIEW.md](docs/LINK_PREVIEW.md).
 - **Never use `confirm()` or custom modals for confirmations** — use `ConfirmDialog`.
-- **Never use `useComputedColorScheme` outside `ColorSchemeSwitcher.tsx`** — for a themed asset URL, computed color, or conditional className, use `useResolvedColorScheme()` (`src/hooks/useResolvedColorScheme.ts`) instead; it resolves correctly at hydration time for anonymous/auto-theme visitors instead of after a delayed post-mount effect. See SSR.md Finding 4.
+- **Never use `useComputedColorScheme` outside `ColorSchemeSwitcher.tsx`** — for a themed asset URL, computed color, or conditional className, use `useResolvedColorScheme()` (`src/hooks/useResolvedColorScheme.ts`) instead; it resolves correctly at hydration time for anonymous/auto-theme visitors instead of after a delayed post-mount effect. See docs/SSR.md Finding 4.
 - **Never format a date with a raw `new Date(...).toLocaleDateString()`/`toLocaleString()`/`Intl.DateTimeFormat`** — go through `useFormattedDate()` (`src/utils/dateFormat.ts`), or the `<FormattedDate>`/`<FormattedDateTime>` components when the result renders as its own text node (they add the right `suppressHydrationWarning`). A raw call defaults to the *server process's* timezone during SSR, not the visitor's, and ignores the signed-in user's `timezone` preference on the client.
 - **Never use SVG for icons** — use `@tabler/icons-react`.
 - **Mantine UI exclusively** — check https://mantine.dev/llms.txt for docs.

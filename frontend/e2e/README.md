@@ -115,7 +115,7 @@ helper — reuse before writing a new one, and keep journey-only helpers in thei
   `pinnedAlias`, `hostDocument`, `plannerSite`.
 - `ssr.ts` — the server-rendered document without a browser: `rawDocument`, `ssrOutlet`,
   `reactQueryState` / `dehydratedQuery`, `ogTags`, `authState`, `sessionCookie`.
-- `list-pages.ts` — URL-driven list pages ([URL_FILTERS.md](../URL_FILTERS.md)): `watchListReads`,
+- `list-pages.ts` — URL-driven list pages ([docs/URL_FILTERS.md](../docs/URL_FILTERS.md)): `watchListReads`,
   `openServerRendered`, `expectInMarkup`, `expectQuery`, `nextPage`, `expectCurrentPage`.
 - `invitations.ts` — `inviteByApi`, `invitationTokenIn`, `previewInvitation`, `membershipsOf`.
 - `member-directory.ts` — `directoryTeam` (one account per role, none a platform admin),

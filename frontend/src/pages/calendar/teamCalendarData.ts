@@ -13,7 +13,7 @@ import type { TeamDetailDto } from '@/api/dto'
  * Server/client counterpart of `TeamCalendarPage`: the team, its first events window, and the ICS
  * token `IcsFeedSettings` reads unconditionally (it renders on every paint, not behind a
  * disclosure). Escaped `calendarData.ts`'s fix because the crawler never measured this route — see
- * `SSR-BUGS.md`.
+ * `docs/SSR-BUGS.md`.
  *
  * Keyed the same way `calendarData.ts` keys the personal calendar: `getInitialCalendarRange()` is
  * what `useCalendarDateRange` seeds its state with, so the first `useGetTeamEvents` call and the

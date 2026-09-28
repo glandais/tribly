@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/authStore'
  * `use<Screen>Data` hook here — the page already gets its filter state straight from
  * `useUrlFilters`, and there is nothing else for a companion hook to add.
  *
- * Known limitation, deliberately preserved (see SSR-data-loading.md): this primes
+ * Known limitation, deliberately preserved (see docs/SSR-data-loading.md): this primes
  * `adminDomainFiltersSchema.parse({})`, the **default** list (page 0, `ADMIN_PAGE_SIZE`), not the
  * URL's filters — same gap the other admin lists (`admin-teams`, `admin-users`) already carry. A
  * filtered admin URL server-renders the default page and refetches after hydration; it is not a

@@ -2,7 +2,7 @@
 
 How the frontend is server-rendered, and the non-obvious problems hit while building it
 (2026-07). Read this before touching `server.js`, the entry files, or anything they eagerly
-import. The short invariants live in [CLAUDE.md](CLAUDE.md#ssr-server-side-rendering); this
+import. The short invariants live in [CLAUDE.md](../CLAUDE.md#ssr-server-side-rendering); this
 file explains the *why* behind them.
 
 ## Architecture in one paragraph

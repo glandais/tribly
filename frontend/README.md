@@ -1,6 +1,6 @@
 # Pédalons Frontend
 
-Web client of the Pédalons cycling team management platform, server-side rendered (see [SSR.md](SSR.md)). Built with TypeScript, React 19, Vite, and Mantine UI.
+Web client of the Pédalons cycling team management platform, server-side rendered (see [docs/SSR.md](docs/SSR.md)). Built with TypeScript, React 19, Vite, and Mantine UI.
 
 ## Prerequisites
 
@@ -48,7 +48,7 @@ mkcert localhost 127.0.0.1 <your LAN IP>   # generates localhost+2.pem and local
 | Script | Description |
 |--------|-------------|
 | `pnpm dev` | Dev server with HMR (client-side rendering only) |
-| `pnpm dev:ssr` | SSR dev server (`node server.js`, localhost:3000) — see [SSR.md](SSR.md) |
+| `pnpm dev:ssr` | SSR dev server (`node server.js`, localhost:3000) — see [docs/SSR.md](docs/SSR.md) |
 | `pnpm build` | Production build, client + SSR bundle (no type checking) |
 | `pnpm typecheck` | TypeScript check (`tsc -b`) |
 | `pnpm preview` | Preview production build locally |
@@ -61,7 +61,7 @@ mkcert localhost 127.0.0.1 <your LAN IP>   # generates localhost+2.pem and local
 | `pnpm test` | Vitest (watch mode) |
 | `pnpm test:coverage` | Vitest with coverage report |
 | `pnpm e2e` | Playwright against the e2e stack — see [e2e/README.md](e2e/README.md) |
-| `pnpm ssr-audit` | Crawl the SSR site for defects — see [SSR-BUGS.md](SSR-BUGS.md) |
+| `pnpm ssr-audit` | Crawl the SSR site for defects — see [docs/SSR-BUGS.md](docs/SSR-BUGS.md) |
 | `pnpm i18n:lint` | Validate i18n key usage |
 | `pnpm i18n:extract` | Extract new translation keys |
 | `pnpm check` | Install, regenerate, format, typecheck, lint and build |
@@ -100,8 +100,8 @@ This produces React Query hooks, TypeScript DTOs, and Zod schemas in `src/api/`.
 
 The source layout, the routing, the stores and the rules the code follows (paths, confirmations,
 icons, i18n, forms, dates) are in [CLAUDE.md](CLAUDE.md), which is kept up to date with the code.
-Topic notes: [SSR.md](SSR.md), [SSR-data-loading.md](SSR-data-loading.md),
-[URL_FILTERS.md](URL_FILTERS.md), [LINK_PREVIEW.md](LINK_PREVIEW.md), and
+Topic notes: [docs/SSR.md](docs/SSR.md), [docs/SSR-data-loading.md](docs/SSR-data-loading.md),
+[docs/URL_FILTERS.md](docs/URL_FILTERS.md), [docs/LINK_PREVIEW.md](docs/LINK_PREVIEW.md), and
 [docs/APP_LINKS.md](../docs/APP_LINKS.md) for adding a route.
 
 Runtime app config comes from the `/api/config` endpoint — no `.env` files for app config. The only

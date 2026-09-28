@@ -12,7 +12,7 @@ function startOfWeek(d: dayjs.Dayjs): dayjs.Dayjs {
  *
  * Every branch is a pure function of `date` and `view` — no viewport, no measurement — which is why
  * `useCalendarDateRange` can tell whether the window it prefetched already contains it, and why
- * `SSR-BUGS.md` was wrong to file the calendar's second query as an un-prefetchable viewport read.
+ * `docs/SSR-BUGS.md` was wrong to file the calendar's second query as an un-prefetchable viewport read.
  *
  * The week and day branches used to fall through to the *month* bounds. A visible week straddles
  * months (2026-08-31 shows Aug 31 → Sep 6), so those six September days were queried as August and

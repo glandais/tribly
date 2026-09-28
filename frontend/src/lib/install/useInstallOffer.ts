@@ -29,7 +29,7 @@ export interface InstallState {
 /**
  * The install offer for this browser. **Null on the first render**, server and client alike: it
  * depends on the user agent and on events only the browser knows, so it is computed after
- * hydration — rendering it straight away would not match the SSR markup (SSR.md).
+ * hydration — rendering it straight away would not match the SSR markup (docs/SSR.md).
  */
 export function useInstallOffer({ withStore = false }: { withStore?: boolean } = {}): InstallState {
   const deferredPrompt = useInstallStore((state) => state.deferredPrompt)

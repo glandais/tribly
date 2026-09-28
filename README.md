@@ -224,7 +224,7 @@ echo 'VITE_API_TARGET=http://localhost:8080' >> frontend/.env
 ```
 tribly/
 ├── backend/          # Quarkus backend (Java 25)
-├── frontend/         # React 19 + Mantine UI, server-side rendered (see frontend/SSR.md)
+├── frontend/         # React 19 + Mantine UI, server-side rendered (see frontend/docs/SSR.md)
 ├── mobile/           # Flutter mobile app (iOS/Android)
 ├── karoo/            # Hammerhead Karoo extension (Kotlin/Compose)
 ├── garmin-app/       # Garmin Connect IQ app (Monkey C)

@@ -100,7 +100,7 @@ Alpha flattened onto `#228be6` background.
 | Theme Color      | `#228be6`                            |
 | Title            | Per page, built by `src/lib/seo.ts` from the route's `meta()`; falls back to the domain's app name (`/api/config` `appName`, else `Pédalons`) |
 | Description      | Per page; falls back to the i18n key `home.subtitle` (« Votre plateforme pour organiser vos sorties cyclistes ») |
-| OG Image         | `/og-image.png` (site default; pages with an image of their own use it — see [frontend/LINK_PREVIEW.md](../frontend/LINK_PREVIEW.md)) |
+| OG Image         | `/og-image.png` (site default; pages with an image of their own use it — see [frontend/docs/LINK_PREVIEW.md](../frontend/docs/LINK_PREVIEW.md)) |
 | Static `<title>` | `Pédalons` in `index.html` — a fallback for the JS-less dev SPA only, stripped by the SSR server |
 
 ## Primary Theme

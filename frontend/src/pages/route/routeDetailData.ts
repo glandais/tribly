@@ -47,7 +47,7 @@ export function useRouteTeamAndRoute(teamSlug?: string, routeSlug?: string) {
  *
  * Auth also stays out: the page reads it via `team.role` (`isMember`), not `useAuth()`, but the
  * prefetch's GPS-services gate still goes through `useAuthStore.getState()`, matching the split
- * documented in SSR-data-loading.md.
+ * documented in docs/SSR-data-loading.md.
  */
 export function useRouteDetailData(teamSlug?: string, routeSlug?: string) {
   return useRouteTeamAndRoute(teamSlug, routeSlug)

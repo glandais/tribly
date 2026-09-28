@@ -3,7 +3,7 @@ import { ssrOutlet } from './ssr'
 import { hydrated, pageHydrated } from './ui'
 
 /**
- * The list pages whose search, filters and page live in the query string (frontend/URL_FILTERS.md):
+ * The list pages whose search, filters and page live in the query string (frontend/docs/URL_FILTERS.md):
  * what the server rendered for a URL, what the browser fetched afterwards, and the pagination
  * control on both layouts.
  */
@@ -28,7 +28,7 @@ export function watchListReads(page: Page, endpoint: string): URLSearchParams[] 
  * (the React outlet, as a crawler reads it), once the app has hydrated and settled — plus the list
  * reads the browser sent meanwhile, which must be none: the route's prefetch put the window
  * `usePaginatedQuery` reads (this page, the next, the previous) in the dehydrated cache, under the
- * very key the page builds from the same URL (frontend/SSR-data-loading.md).
+ * very key the page builds from the same URL (frontend/docs/SSR-data-loading.md).
  */
 export async function openServerRendered(page: Page, path: string, endpoint: string) {
   const reads = watchListReads(page, endpoint)
