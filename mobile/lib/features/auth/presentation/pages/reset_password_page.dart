@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
 
 import '../../../../config/paths.dart';
+import '../../../../config/router.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../providers/auth_provider.dart';
 
@@ -45,7 +46,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
       final authNotifier = ref.read(authProvider.notifier);
       await authNotifier.resetPassword(widget.token, _passwordController.text);
       if (mounted) {
-        context.go(Paths.home());
+        goAfterSignIn(ref);
       }
     } catch (e) {
       if (mounted) {

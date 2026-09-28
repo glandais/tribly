@@ -19,6 +19,7 @@ import 'core/utils/link_launcher.dart';
 import 'core/utils/provider_retry.dart';
 import 'core/preferences/user_preferences_provider.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'features/auth/providers/pending_sign_in_link.dart';
 import 'features/feedback/presentation/unreported_fatal_prompt.dart';
 import 'features/feedback/providers/error_reporter_binding.dart';
 import 'features/notifications/providers/push_provider.dart';
@@ -328,17 +329,13 @@ class _DeepLinkHandlerState extends ConsumerState<_DeepLinkHandler> {
   }
 
   void _openWithHierarchy(String path) {
-    final router = ref.read(routerProvider);
-    final ancestors = ancestorsForDeepLink(path);
-    if (ancestors.isEmpty) {
-      router.go(path);
-      return;
-    }
-    router.go(ancestors.first);
-    for (final p in ancestors.skip(1)) {
-      router.push(p);
-    }
-    router.push(path);
+    // Hors session, le lien attend la connexion au lieu d'être perdu.
+    openDeepLink(
+      ref.read(routerProvider),
+      path,
+      signedIn: ref.read(authProvider).isAuthenticated,
+      pending: ref.read(pendingSignInLinkProvider),
+    );
   }
 
   @override

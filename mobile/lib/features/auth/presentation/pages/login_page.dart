@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/paths.dart';
+import '../../../../config/router.dart';
 import '../../../../keys.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_tokens.dart';
@@ -89,7 +90,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       await authNotifier.loginWithPassword(email, password);
       TextInput.finishAutofillContext();
       if (mounted) {
-        context.go(Paths.home());
+        goAfterSignIn(ref);
       }
     } catch (e) {
       if (mounted) {
@@ -112,7 +113,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       final passkeyService = ref.read(passkeyServiceProvider);
       await passkeyService.authenticate();
       if (mounted) {
-        context.go(Paths.home());
+        goAfterSignIn(ref);
       }
     } catch (e) {
       if (mounted) {

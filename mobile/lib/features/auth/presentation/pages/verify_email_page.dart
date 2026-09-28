@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/paths.dart';
+import '../../../../config/router.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/passkey_service.dart';
@@ -70,7 +71,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
       final passkeyService = ref.read(passkeyServiceProvider);
       await passkeyService.register(deviceName: 'Mobile');
       if (mounted) {
-        context.go(Paths.home());
+        goAfterSignIn(ref);
       }
     } catch (e) {
       if (mounted) {
@@ -170,7 +171,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                             ),
                             const SizedBox(height: 8),
                             TextButton(
-                              onPressed: () => context.go(Paths.home()),
+                              onPressed: () => goAfterSignIn(ref),
                               child: Text('common.later'.tr()),
                             ),
                           ],
@@ -195,7 +196,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                     ),
                     const SizedBox(height: 24),
                     FilledButton(
-                      onPressed: () => context.go(Paths.home()),
+                      onPressed: () => goAfterSignIn(ref),
                       child: Text('common.continue'.tr()),
                     ),
                   ],

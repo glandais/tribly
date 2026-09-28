@@ -13,6 +13,7 @@ import '../../routes/data/tile_token_repository.dart';
 import '../data/auth_repository.dart';
 import '../data/secure_storage.dart';
 import '../domain/auth_state.dart';
+import 'pending_sign_in_link.dart';
 
 /// Provider for auth state
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
@@ -314,6 +315,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = const AuthState(isInitialized: true);
       // Drop the logged-out user's cached content before anyone logs back in.
       _resetUserScopedData();
+      // Un lien resté en attente ne se rejoue pas pour le membre suivant.
+      _ref.read(pendingSignInLinkProvider).clear();
     }
   }
 
@@ -330,6 +333,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = const AuthState(isInitialized: true);
       // Drop the logged-out user's cached content before anyone logs back in.
       _resetUserScopedData();
+      // Un lien resté en attente ne se rejoue pas pour le membre suivant.
+      _ref.read(pendingSignInLinkProvider).clear();
     }
   }
 

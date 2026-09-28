@@ -9,6 +9,7 @@ import '../features/auth/presentation/pages/login_page.dart';
 import '../features/auth/presentation/pages/reset_password_page.dart';
 import '../features/auth/presentation/pages/verify_email_page.dart';
 import '../features/auth/providers/auth_provider.dart';
+import '../features/auth/providers/pending_sign_in_link.dart';
 import '../features/device/presentation/pages/device_verify_page.dart';
 import '../features/calendar/presentation/pages/calendar_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
@@ -236,7 +237,7 @@ final Set<String> _authAdjacentPaths = <String>{
 
 final Set<String> _loginPaths = PathVariants.login().values.toSet();
 
-bool _isAuthAdjacent(String location) {
+bool isAuthAdjacent(String location) {
   for (final p in _authAdjacentPaths) {
     if (location == p ||
         location.startsWith('$p?') ||
@@ -246,6 +247,64 @@ bool _isAuthAdjacent(String location) {
   }
   return false;
 }
+
+/// Opens [path] with its ancestor stack ([ancestorsForDeepLink]) underneath, so
+/// back walks the logical hierarchy instead of closing the app. The query string
+/// travels with the target (`/garmin?code=…`).
+void openWithHierarchy(GoRouter router, String path) {
+  final ancestors = ancestorsForDeepLink(path);
+  if (ancestors.isEmpty) {
+    router.go(path);
+    return;
+  }
+  router.go(ancestors.first);
+  for (final p in ancestors.skip(1)) {
+    router.push(p);
+  }
+  router.push(path);
+}
+
+/// Ouvre un lien profond — web, QR code, notification — une fois l'app
+/// navigable.
+///
+/// Hors session, un lien vers une page protégée n'est pas perdu : il est gardé
+/// dans [pending] et l'app passe par la connexion, qui le reprend
+/// ([resumeAfterSignIn]). Le mémoriser ici plutôt que dans `redirect` est
+/// délibéré : la redirection voit aussi l'écran quitté par une déconnexion, qui
+/// se rejouerait alors pour le membre suivant. Une page ouverte sans session
+/// (connexion, CGU, apps…) s'ouvre directement et n'est jamais mise en attente.
+void openDeepLink(
+  GoRouter router,
+  String path, {
+  required bool signedIn,
+  required PendingSignInLink pending,
+}) {
+  if (!signedIn && !isAuthAdjacent(path)) {
+    pending.location = path;
+    router.go(Paths.login());
+    return;
+  }
+  openWithHierarchy(router, path);
+}
+
+/// Où aller une fois connecté — mot de passe, passkey, vérification de
+/// l'e-mail, réinitialisation : le lien ouvert hors session s'il y en a un,
+/// avec ses ancêtres comme tout lien profond, sinon l'accueil. Le lien est
+/// consommé : il ne sert qu'une fois.
+void resumeAfterSignIn(GoRouter router, PendingSignInLink pending) {
+  final location = pending.take();
+  if (location == null) {
+    router.go(Paths.home());
+    return;
+  }
+  openWithHierarchy(router, location);
+}
+
+/// [resumeAfterSignIn] depuis une page de l'authentification.
+void goAfterSignIn(WidgetRef ref) => resumeAfterSignIn(
+  ref.read(routerProvider),
+  ref.read(pendingSignInLinkProvider),
+);
 
 /// Register one [GoRoute] per unique locale variant of [variants].
 /// [asPage] wraps the child in a [NoTransitionPage] (required for shell children
@@ -472,7 +531,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final location = state.matchedLocation;
 
-      if (!auth.isAuthenticated && !_isAuthAdjacent(location)) {
+      if (!auth.isAuthenticated && !isAuthAdjacent(location)) {
         return Paths.login();
       }
 
