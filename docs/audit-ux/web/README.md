@@ -8,6 +8,10 @@ Périmètre : consultation / participation uniquement (pas d'admin, pas de créa
 - Viewport étroit : 420 px (captures 25 → 27).
 - Date de navigation : 25 juillet 2026. Version applicative affichée en pied de page : **v1.2.0 (afbf613)**.
 
+> **Images retirées le 29 septembre 2026** : prises sur les données de production, elles montraient
+> des contenus de membres dans un dépôt public. Seul ce descriptif reste ; les fichiers cités
+> ci-dessous existent encore dans l'historique git d'avant cette date.
+
 ## Index des captures
 
 | # | Fichier | Route | Titre de page |

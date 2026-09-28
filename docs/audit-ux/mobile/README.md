@@ -10,6 +10,10 @@ volontairement exclues.
 
 ---
 
+> **Images retirées le 29 septembre 2026** : prises sur les données de production, elles montraient
+> des contenus de membres dans un dépôt public. Seul ce descriptif reste ; les fichiers cités
+> ci-dessous existent encore dans l'historique git d'avant cette date.
+
 ## Table des captures
 
 | # | Fichier | Écran |

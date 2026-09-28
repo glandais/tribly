@@ -3,7 +3,7 @@
 > **Document historique.** Il décrit l'application **telle qu'elle était avant la v2**, et c'est ce
 > qui fait sa valeur : c'est l'entrant qui a produit la v2, pas une description du code actuel. La
 > v2 mobile est livrée depuis le 27 juillet 2026 et la plupart des écarts listés ici sont refermés —
-> les captures de [`mobile/`](mobile/) ne ressemblent plus à l'app. Pour l'état du code, lire
+> les captures de [`mobile/`](mobile/) (images retirées depuis) ne ressemblaient plus à l'app. Pour l'état du code, lire
 > [`../plans/archive/`](../plans/archive/) ; pour la suite, [`../NEXT.md`](../NEXT.md).
 >
 > Reste utile en revanche, et sans date de péremption : [`analyse/brand.md`](analyse/brand.md) (la
@@ -31,8 +31,8 @@ iPhone 17 Pro / iOS 27.0 (402 × 874 pt) piloté par AXe. Équipes de référenc
 | [`analyse/api-surface.md`](analyse/api-surface.md) | Endpoints de lecture, ce que le mobile n'utilise pas, évolutions proposées |
 | [`analyse/brand.md`](analyse/brand.md) | Palette clair/sombre, typographie, rayons, composants signature, tokens CSS |
 | [`pedalons.css`](pedalons.css) | Feuille de style des maquettes, copiée du projet Claude Design. Fait autorité sur les métriques contre la planche `00 Fondations` |
-| [`web/`](web/) | 27 captures du site + descriptif ([`web/README.md`](web/README.md)) |
-| [`mobile/`](mobile/) | 38 captures de l'app + descriptif ([`mobile/README.md`](mobile/README.md)) |
+| [`web/`](web/) | Descriptif des 27 captures du site (images retirées le 29 septembre 2026) ([`web/README.md`](web/README.md)) |
+| [`mobile/`](mobile/) | Descriptif des 38 captures de l'app (images retirées le 29 septembre 2026) ([`mobile/README.md`](mobile/README.md)) |
 
 ## Maquettes
 

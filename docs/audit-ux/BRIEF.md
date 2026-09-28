@@ -6,7 +6,7 @@ ni maquettés. Locale de référence : **français**. Utilisateur de référence
 membre de `gaby` (7 membres) et `n-peloton` (1999 membres, 2585 parcours, ~665 sorties).
 
 Sources : `analyse/web-pages.md`, `analyse/mobile-screens.md`, `analyse/api-surface.md`,
-`analyse/brand.md`, `web/` (27 captures), `mobile/` (38 captures).
+`analyse/brand.md`, `web/` (27 captures), `mobile/` (38 captures) — images retirées du dépôt le 29 septembre 2026, descriptifs conservés.
 
 ---
 
