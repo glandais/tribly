@@ -41,7 +41,7 @@ backing services alone — which is what dev mode wants. They provide:
 | imgproxy | 38080 | Image transformation |
 | valhalla | 8002 | Cycling route engine |
 | tileserver | 18080 | Server-side raster map rendering |
-| Mailhog | 1025 (SMTP), 8025 (web) | Email testing |
+| Mailpit | 1025 (SMTP), 8025 (web) | Email testing |
 
 ### 2. Start the backend
 

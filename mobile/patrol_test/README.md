@@ -1,9 +1,9 @@
 # Mobile end-to-end tests (Patrol)
 
 [Patrol](https://patrol.leancode.co) drives the real app on the iOS simulator against the **e2e
-stack** — the same one as the web suite (`frontend/e2e/`): empty database, mail to mailhog only.
+stack** — the same one as the web suite (`frontend/e2e/`): empty database, mail to mailpit only.
 Nothing is mocked: accounts are created through the REST API and verified with the link read from
-mailhog.
+mailpit.
 
 ## Running
 
@@ -45,7 +45,7 @@ Follows LeanCode's architecture (the `patrol-test-architecture` skill):
 - `modules/` — one class per feature as the user sees it (`auth`, `navigation`, `profile`); a test
   calls module methods only, never Patrol finders;
 - `api/` — `BackendClient` (seeds through the API, each test under a unique name: the database is
-  shared with the web suite and never reset) and `MailhogClient`;
+  shared with the web suite and never reset) and `MailpitClient`;
 - widgets are found **by key only**. Keys live in a `keys.dart` next to their feature
   (`lib/features/auth/keys.dart`, …) and are aggregated in `lib/keys.dart`; add one only for a
   widget a test uses.

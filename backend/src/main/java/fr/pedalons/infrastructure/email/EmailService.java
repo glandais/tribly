@@ -13,7 +13,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Renders {@code templates/mail/<name>.<lang>.{html,txt}} with Qute and hands the result to the
  * Quarkus mailer. Where that mail goes is the deployment's business alone: Scaleway Transactional
- * Email's SMTP relay in production, mailhog on a workstation, the mock mailbox in tests. The
+ * Email's SMTP relay in production, mailpit on a workstation, the mock mailbox in tests. The
  * templates in this repository are the only copy there is.
  */
 @ApplicationScoped

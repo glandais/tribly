@@ -9,7 +9,7 @@
 #      creates as the invoking user (the backend runs as PUID; a named volume would start root-owned)
 #      and `e2e.sh reset` empties.
 #   2. The backend reads .env.e2e, not the .env next to it — which may be a real one.
-#   3. mailhog, publishing only its HTTP API: the tests read OTP codes and verification links there.
+#   3. mailpit, publishing only its HTTP API: the tests read OTP codes and verification links there.
 #   4. valhalla + tileserver are not run: the `shared` network is the workstation stack's, joined
 #      from outside (E2E_SHARED_NETWORK).
 services:
@@ -21,14 +21,14 @@ services:
       - ./.e2e/keys:/mnt/keys:ro
       - ./.e2e/cache:/mnt/cache
 
-  mailhog:
-    image: mailhog/mailhog:v1.0.1
-    container_name: ${ENV_NAME}-mailhog
+  mailpit:
+    image: axllent/mailpit:v1.31.3
+    container_name: ${ENV_NAME}-mailpit
     restart: unless-stopped
     networks:
       - pedalons
     ports:
-      - "127.0.0.1:${E2E_MAILHOG_PORT:?set it in .env.e2e}:8025"
+      - "127.0.0.1:${E2E_MAILPIT_PORT:?set it in .env.e2e}:8025"
 
 networks:
   shared:

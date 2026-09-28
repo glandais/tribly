@@ -1,14 +1,14 @@
 import { mkdirSync, renameSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { request, type APIRequestContext, type APIResponse } from '@playwright/test'
-import { linkTokenIn, mailbox, otpCodeIn, waitForNewMail } from './mailhog'
+import { linkTokenIn, mailbox, otpCodeIn, waitForNewMail } from './mailpit'
 import { stack } from './stack'
 
 /**
  * Talks to the real REST API from Node, to log in and seed data without going through the UI.
  *
- * Logins go through the same endpoints as the app — OTP read from mailhog, e-mail verification link
- * read from mailhog — so there is no test-only backdoor in the backend.
+ * Logins go through the same endpoints as the app — OTP read from mailpit, e-mail verification link
+ * read from mailpit — so there is no test-only backdoor in the backend.
  */
 
 export interface AuthResponse {

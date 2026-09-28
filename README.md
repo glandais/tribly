@@ -44,7 +44,7 @@ A workstation and a deployment differ in five keys, and only those:
 |---|---|---|
 | `ENV_NAME` | `pedalons-prod`, `pedalons-staging` | `tribly-local` |
 | `COMPOSE_FILE` | *unset* — `docker-compose.yml` alone | `docker-compose.yml:docker-compose.local.yml` |
-| `QUARKUS_MAILER_*` | the Scaleway TEM SMTP relay | `mailhog` / `1025`, TLS and login `DISABLED` |
+| `QUARKUS_MAILER_*` | the Scaleway TEM SMTP relay | `mailpit` / `1025`, TLS and login `DISABLED` |
 | `PEDALONS_BOOTSTRAP_DOMAIN` / `_BASE_URL` | the public hostname, `https://…` | `localhost` / `http://localhost:8090` |
 | `HTTP_PORT` | 8090 prod, 8089 staging, behind Caddy | anything free |
 
@@ -54,7 +54,7 @@ indistinguishable from the real one in `docker ps` and to `scripts/restore.sh`. 
 must not be able to send mail**, for reasons worth reading before the first `up`:
 [Running the full stack locally](#running-the-full-stack-locally).
 
-`COMPOSE_FILE` is what turns the checkout into a workstation. The overlay it adds carries mailhog,
+`COMPOSE_FILE` is what turns the checkout into a workstation. The overlay it adds carries mailpit,
 the valhalla and tileserver a server instead gets from the shared stack, the loopback ports
 `mvn quarkus:dev` and `pnpm dev` talk to, and an `app` profile on `backend`/`frontend`/`traefik` so a
 plain `docker compose up -d` starts the backing services alone. `source scripts/dev-env.sh` then
@@ -107,7 +107,7 @@ mkcert localhost 127.0.0.1 192.168.50.20
 ### 3. Start Infrastructure
 
 ```bash
-# PostgreSQL, MinIO, imgproxy, varnish, valhalla, tileserver, mailhog
+# PostgreSQL, MinIO, imgproxy, varnish, valhalla, tileserver, mailpit
 docker compose up -d
 
 # Wait for PostgreSQL to be ready
@@ -115,7 +115,7 @@ docker compose exec postgres pg_isready -U "$POSTGRES_USER"
 ```
 
 One stack serves both workflows. `docker-compose.yml` is the deployment file; the workstation
-overlay `docker-compose.local.yml` adds mailhog, folds in the valhalla and tileserver of
+overlay `docker-compose.local.yml` adds mailpit, folds in the valhalla and tileserver of
 `docker-compose.shared.yml`, and publishes on loopback the ports `mvn quarkus:dev` and `pnpm dev`
 talk to — imgproxy on 38080, valhalla on 8002, tileserver on 18080, MinIO on 9000, SMTP on 1025.
 
@@ -226,7 +226,7 @@ tribly/
 ├── scripts/          # Utility scripts
 ├── data/             # Runtime data (segments, tileserver, keys)
 ├── docker-compose.yml         # One deployed environment (prod, staging, ...)
-├── docker-compose.local.yml   # Workstation overlay: mailhog, the shared services, the
+├── docker-compose.local.yml   # Workstation overlay: mailpit, the shared services, the
 │                              #   loopback ports dev mode needs. Never deployed
 └── docker-compose.shared.yml  # Services shared by every environment on the host
 ```
@@ -276,7 +276,7 @@ and both live in the local `.env`:
 ```bash
 ENV_NAME=tribly-local
 COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml
-QUARKUS_MAILER_HOST=mailhog       # + the rest of the block in .env.example
+QUARKUS_MAILER_HOST=mailpit       # + the rest of the block in .env.example
 ```
 
 **`ENV_NAME` names the stack** — the containers, the network, the image tags `build.sh` produces,
@@ -285,14 +285,14 @@ indistinguishable from the real one in `docker ps` and to the backup scripts.
 
 **A local stack must not be able to send mail.** The containers run the `%prod` Quarkus profile
 wherever they run, and its only way out for mail is the SMTP relay named by `QUARKUS_MAILER_*` —
-Scaleway Transactional Email on a server. A workstation points it at the mailhog of
+Scaleway Transactional Email on a server. A workstation points it at the mailpit of
 `docker-compose.local.yml` (UI on http://127.0.0.1:8025). This is not hygiene: after a biketeam
 migration the local database holds thousands of real member addresses, and one OTP or team
 invitation is enough to reach them.
 
 `COMPOSE_FILE` makes a plain `docker compose` command pick up the overlay here and nowhere else. A
 deployed `.env` has no `COMPOSE_FILE` and reads `docker-compose.yml` alone, which is why the overlay
-is a separate file rather than a profile. What it adds: mailhog (http://127.0.0.1:8025); valhalla
+is a separate file rather than a profile. What it adds: mailpit (http://127.0.0.1:8025); valhalla
 and tileserver, `extends`-ed from `docker-compose.shared.yml`; and the loopback ports
 [dev mode](#3-start-infrastructure) talks to.
 

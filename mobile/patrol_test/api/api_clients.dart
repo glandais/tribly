@@ -1,11 +1,11 @@
 import 'backend_client.dart';
-import 'mailhog_client.dart';
+import 'mailpit_client.dart';
 
 final class ApiClients {
-  ApiClients() : mailhog = MailhogClient() {
-    backend = BackendClient(mailhog);
+  ApiClients() : mailpit = MailpitClient() {
+    backend = BackendClient(mailpit);
   }
 
-  final MailhogClient mailhog;
+  final MailpitClient mailpit;
   late final BackendClient backend;
 }

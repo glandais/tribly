@@ -19,8 +19,8 @@ abstract final class E2eConfig {
     return AppConfig.apiBaseUrl;
   }
 
-  static const String mailhogUrl = String.fromEnvironment(
-    'E2E_MAILHOG_URL',
+  static const String mailpitUrl = String.fromEnvironment(
+    'E2E_MAILPIT_URL',
     defaultValue: 'http://localhost:18025',
   );
 }

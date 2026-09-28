@@ -25,7 +25,7 @@ import {
   signOutFromHeader,
   virtualAuthenticator,
 } from './support/flow-account'
-import { mailbox, otpCodeIn, waitForNewMail } from './support/mailhog'
+import { mailbox, otpCodeIn, waitForNewMail } from './support/mailpit'
 import { joinGroup, newRide, openRide } from './support/rides'
 import { hydrated } from './support/ui'
 

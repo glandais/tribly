@@ -66,7 +66,7 @@ de première ouverture. `flutter analyze` est propre, les **480 tests mobiles** 
 `pnpm check` du web passent : ce qui suit est ce qu'ils ne peuvent pas dire.
 
 **Sauf le web (§1.2), automatisé le 25 septembre 2026** par une suite Playwright qui tourne contre
-l'application entière (SSR, backend, postgres, MinIO, mailhog) sur une base vide :
+l'application entière (SSR, backend, postgres, MinIO, mailpit) sur une base vide :
 `scripts/e2e.sh up` puis `scripts/e2e.sh test`, voir `frontend/e2e/README.md`. Elle a trouvé onze
 défauts, tous corrigés sauf un arbitré (la page d'équipe, ci-dessous).
 
@@ -185,7 +185,7 @@ recette à la main aurait encore à regarder.
       seul message (le contact coupe le toast global, `skipErrorToast`), `Alert` persistante sur la
       page pour le succès et `AD_CONTACT_OPTED_OUT`, bouton absent sur sa propre annonce, 9 et
       2 001 caractères refusés sans appel réseau ; le mail relayé porte l'auteur en `Reply-To` et
-      ne l'imprime jamais. — `ad-contact.e2e.ts`. *Le 500 est simulé : mailhog accepte tout, la
+      ne l'imprime jamais. — `ad-contact.e2e.ts`. *Le 500 est simulé : mailpit accepte tout, la
       pile ne sait pas faire échouer un envoi. Les clés `en` ont été vérifiées à la lecture, la
       suite tourne en `fr`.*
 - [x] Annonces, détail : galerie aux flèches et aux vignettes, **dans l'ordre d'ajout**, plein écran

@@ -66,7 +66,7 @@ docker compose --profile app up -d
 needs on top lives in `docker-compose.local.yml`, and the local `.env` sets
 `COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml` so a plain `docker compose` command picks
 up both. A deployed `.env` has no `COMPOSE_FILE` and reads `docker-compose.yml` alone. The overlay
-carries four things: mailhog (:8025 — and no SQL browser, deliberately: postgres is on :5432, bring
+carries four things: mailpit (:8025 — and no SQL browser, deliberately: postgres is on :5432, bring
 the client you like); valhalla and tileserver, `extends`-ed from
 `docker-compose.shared.yml` so a laptop runs one stack rather than two — which is also why it
 redeclares the `shared` network as a plain project network instead of the `external`
@@ -82,7 +82,7 @@ env vars above `application.properties`, so the full file would override the `%d
 (`localhost`, the WebAuthn origin of dev passkeys).
 
 **End-to-end tests run on a stack of their own**: `scripts/e2e.sh` starts `tribly-e2e` (empty
-database, mail to mailhog only, ports offset so it runs beside `tribly-local`) from
+database, mail to mailpit only, ports offset so it runs beside `tribly-local`) from
 `docker-compose.yml` + `docker-compose.e2e.yml` and the committed `.env.e2e`. Never point the suite
 at the workstation stack — see [frontend/e2e/README.md](frontend/e2e/README.md).
 
@@ -92,7 +92,7 @@ indistinguishable from the real one in `docker ps` and to `scripts/restore.sh`.
 
 **A local stack must not be able to send mail.** The containers run the `%prod` Quarkus profile,
 whose only way out for mail is the SMTP relay named by `QUARKUS_MAILER_*` — Scaleway Transactional
-Email on a server. A local `.env` therefore points it at `mailhog:1025`, with TLS and login
+Email on a server. A local `.env` therefore points it at `mailpit:1025`, with TLS and login
 `DISABLED`. This is not cosmetic: after a biketeam migration the local database
 holds thousands of real member addresses, and one OTP or team invitation is enough to reach them.
 

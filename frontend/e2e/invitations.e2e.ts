@@ -10,7 +10,7 @@ import {
   membershipsOf,
   previewInvitation,
 } from './support/invitations'
-import { linkTokenIn, mailbox, waitForNewMail } from './support/mailhog'
+import { linkTokenIn, mailbox, waitForNewMail } from './support/mailpit'
 
 /**
  * E-mail invitations, docs/NEXT.md §1.2 — the organiser's screens (invite, pending list, resend,

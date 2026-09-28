@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # End-to-end test stack: a full application (traefik + SSR frontend + backend + postgres + MinIO +
-# imgproxy + mailhog) on an empty database, next to — never instead of — the workstation stack.
+# imgproxy + mailpit) on an empty database, next to — never instead of — the workstation stack.
 #
 #   scripts/e2e.sh build [all|frontend|backend]   build the tribly-e2e images (build.sh + .env.e2e)
 #   scripts/e2e.sh up                             start the stack and wait until it answers
@@ -93,7 +93,7 @@ up() {
   compose --profile app up -d --remove-orphans
   wait_for "http://localhost:$HTTP_PORT/api/config"
   wait_for "http://localhost:$HTTP_PORT/" 60
-  echo "e2e: stack up — app http://localhost:$HTTP_PORT, mailhog http://localhost:$E2E_MAILHOG_PORT"
+  echo "e2e: stack up — app http://localhost:$HTTP_PORT, mailpit http://localhost:$E2E_MAILPIT_PORT"
 }
 
 run_tests() {

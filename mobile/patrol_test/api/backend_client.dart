@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../config.dart';
-import 'mailhog_client.dart';
+import 'mailpit_client.dart';
 
 /// An account created for a test, verified, with its first session.
 final class TestUser {
@@ -22,9 +22,9 @@ final class TestUser {
 /// test-only backdoor. Each test creates what it needs under a unique name: the e2e database is
 /// shared with the web suite and never reset between runs.
 final class BackendClient {
-  BackendClient(this._mailhog);
+  BackendClient(this._mailpit);
 
-  final MailhogClient _mailhog;
+  final MailpitClient _mailpit;
   final Dio _dio = Dio(BaseOptions(baseUrl: E2eConfig.apiBaseUrl));
 
   static const String _password = 'e2e-password';
@@ -32,7 +32,7 @@ final class BackendClient {
   /// Signs up as the app does — register, then follow the verification link from the mail.
   Future<TestUser> newUser(String label) async {
     final email = '${_uniqueTag(label)}@e2e.test';
-    final seen = await _mailhog.mailbox(email);
+    final seen = await _mailpit.mailbox(email);
     await _dio.post<void>(
       '/api/auth/register',
       data: {
@@ -42,8 +42,8 @@ final class BackendClient {
         'acceptTerms': true,
       },
     );
-    final token = _mailhog.linkTokenIn(
-      await _mailhog.waitForNewMail(email, seen),
+    final token = _mailpit.linkTokenIn(
+      await _mailpit.waitForNewMail(email, seen),
     );
     final response = await _dio.post<Map<String, dynamic>>(
       '/api/auth/verify-email',

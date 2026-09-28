@@ -5,7 +5,7 @@ import { contactAuthor, rawAd, setContactable } from './support/ad-contact'
 import { newAd } from './support/ads'
 import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
-import { mailsTo } from './support/mailhog'
+import { mailsTo } from './support/mailpit'
 import { hydrated, toasts, watchToasts } from './support/ui'
 
 /**
@@ -96,7 +96,7 @@ async function exhaustQuota(s: Scene) {
 }
 
 /**
- * Mocked: mailhog accepts every message, so the real stack cannot make the SMTP relay fail. The
+ * Mocked: mailpit accepts every message, so the real stack cannot make the SMTP relay fail. The
  * answer is exactly what AdService.contactAuthor sends when the relay throws.
  */
 async function failDelivery(page: Page) {

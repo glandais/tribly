@@ -7,11 +7,11 @@ import type {
   TeamInvitationDto,
 } from '../../src/api/dto'
 import { apiContext, expectOk, type AuthResponse } from './api'
-import { linkTokenIn, mailbox, waitForNewMail } from './mailhog'
+import { linkTokenIn, mailbox, waitForNewMail } from './mailpit'
 
 /**
  * Invitation journey helpers: invitations sent through the API with the token read back from
- * mailhog, and the reads a test needs to check membership. A team whose admins may invite is
+ * mailpit, and the reads a test needs to check membership. A team whose admins may invite is
  * `newTeam(owner, name, { addMemberAllowed: true })` (support/data.ts).
  */
 

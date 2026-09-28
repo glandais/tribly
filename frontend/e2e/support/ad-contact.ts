@@ -4,7 +4,7 @@ import { apiContext, expectOk, type AuthResponse } from './api'
 /**
  * Journey helpers for the classified-ad contact relay: the author's opt-out switch, a direct call to
  * the relay, and the ad as the API returns it. Ads themselves come from support/ads.ts, the relayed
- * mails from `mailsTo` in support/mailhog.ts.
+ * mails from `mailsTo` in support/mailpit.ts.
  */
 
 /** The profile switch « Recevoir les messages des membres au sujet de mes annonces ». */

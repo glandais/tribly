@@ -8,7 +8,7 @@
 #
 # Four things a deployment does not want:
 #
-#   1. mailhog. No SQL client here: postgres is published on the loopback, so bring your own —
+#   1. mailpit. No SQL client here: postgres is published on the loopback, so bring your own —
 #      psql, pgAdmin, DBeaver, an IDE. See "Running SQL" in README.md.
 #   2. valhalla and tileserver, pulled from docker-compose.shared.yml with `extends`. A host runs
 #      that stack once and shares it between every environment; a workstation has one environment,
@@ -23,9 +23,9 @@
 services:
   # The stack runs the %prod Quarkus profile, whose only way out for mail is the SMTP relay named by
   # QUARKUS_MAILER_*. The local .env points it here, and it goes no further.
-  mailhog:
-    image: mailhog/mailhog:v1.0.1
-    container_name: ${ENV_NAME}-mailhog
+  mailpit:
+    image: axllent/mailpit:v1.31.3
+    container_name: ${ENV_NAME}-mailpit
     restart: unless-stopped
     networks:
       - pedalons

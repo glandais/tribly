@@ -275,7 +275,7 @@ Informationnel :
   - Aucun `badCertificateCallback`, aucune WebView.
   - Uniquement des App Links https vérifiés, sans scheme custom.
 - **Infra** :
-  - Postgres, Traefik, MailHog, MinIO et imgproxy exposés sur loopback uniquement.
+  - Postgres, Traefik, Mailpit, MinIO et imgproxy exposés sur loopback uniquement.
   - Dashboard Traefik désactivé.
   - `.env` jamais versionné.
   - Staging des sauvegardes en `700`, restauration avec confirmation.

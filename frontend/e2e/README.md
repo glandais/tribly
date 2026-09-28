@@ -1,9 +1,9 @@
 # End-to-end tests
 
 Playwright, against the **real application**: the SSR frontend and the backend images behind
-traefik, with postgres, MinIO, imgproxy and mailhog — the deployment's `docker-compose.yml` plus the
+traefik, with postgres, MinIO, imgproxy and mailpit — the deployment's `docker-compose.yml` plus the
 `docker-compose.e2e.yml` overlay. Nothing is mocked: logins read their OTP and verification links
-from mailhog, data is seeded through the REST API.
+from mailpit, data is seeded through the REST API.
 
 ## Running
 
@@ -17,7 +17,7 @@ scripts/e2e.sh build frontend   # after a code change: rebuild an image, then `u
 scripts/e2e.sh down
 ```
 
-The app is on http://localhost:8190, mailhog on http://localhost:18025 — every port is offset from
+The app is on http://localhost:8190, mailpit on http://localhost:18025 — every port is offset from
 the workstation stack (`tribly-local`), so both run side by side. `valhalla` and `tileserver` are
 borrowed from the workstation stack's network; when it is down the e2e stack still starts, but
 routing and map tiles fail.
@@ -32,14 +32,14 @@ Give each its own: `E2E_OUTPUT=/tmp/e2e-mine pnpm e2e`, or `--output=/tmp/e2e-mi
 
 **The tests run against images, not your working tree** — rebuild (`scripts/e2e.sh build frontend`
 or `backend`, about a minute each) and `up` before testing a change. `E2E_BASE_URL` and
-`E2E_MAILHOG_URL` override where the suite looks, but the stack behind them must be one whose
+`E2E_MAILPIT_URL` override where the suite looks, but the stack behind them must be one whose
 bootstrap admin is `admin@e2e.test` — not the workstation stack.
 
 ## Why a separate stack
 
 The workstation database is a biketeam restore holding thousands of real member addresses, and a
 test run sends OTPs and invitations. The e2e stack starts on an **empty** database, its mailer only
-reaches mailhog, and `.env.e2e` holds nothing but throwaway values — which is why it is committed.
+reaches mailpit, and `.env.e2e` holds nothing but throwaway values — which is why it is committed.
 
 ## Writing tests
 
@@ -91,7 +91,7 @@ helper — reuse before writing a new one, and keep journey-only helpers in thei
   event of the same view shown first.
 - `contract.ts` — `contractWebRoutes()` (contracts/routes.yaml), `configuredAuth()`
   (routes.config.ts), `fillPath`.
-- `mailhog.ts` — `mailbox` + `waitForNewMail` (text of the next mail), `mailsTo` (headers and every
+- `mailpit.ts` — `mailbox` + `waitForNewMail` (text of the next mail), `mailsTo` (headers and every
   part), `otpCodeIn`, `linkTokenIn`.
 - `ui.ts` — `hydrated(locator)` before clicking a server-rendered control, `pageHydrated`,
   `watchHydration` (hydration errors, uncaught page errors, discarded server markup), `toasts`,
