@@ -3,7 +3,7 @@ import Axios from 'axios'
 import { ApiClientError } from './apiError'
 
 export function makeQueryClient(opts?: { isServer?: boolean }): QueryClient {
-  return new QueryClient({
+  const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
         // On server: data never goes stale during a single SSR render.
@@ -40,10 +40,32 @@ export function makeQueryClient(opts?: { isServer?: boolean }): QueryClient {
         },
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
         refetchOnWindowFocus: false,
+        // A route's loader has just run the same query and failed (after its own retries): mounting
+        // the page must not start it all over — twice the requests, twice the wait, before the
+        // error shows. See the cache subscription below for why a later visit still reads again.
+        retryOnMount: false,
       },
       mutations: {
         retry: false,
       },
     },
   })
+
+  // With retryOnMount off, a failed query would stay failed for the whole gcTime: a page visited
+  // again ten minutes later would show a stale error without asking. Forgotten as soon as nothing
+  // displays it, the next visit reads afresh.
+  if (!opts?.isServer) {
+    queryClient.getQueryCache().subscribe((event) => {
+      const { query } = event
+      if (
+        event.type === 'observerRemoved' &&
+        query.state.status === 'error' &&
+        query.getObserversCount() === 0
+      ) {
+        queryClient.getQueryCache().remove(query)
+      }
+    })
+  }
+
+  return queryClient
 }
