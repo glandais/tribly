@@ -57,4 +57,41 @@ final class Ride extends Module {
 
   bool offersLeave(String groupId) =>
       isShown(keys.ride.groupLeaveButton(groupId));
+
+  /// Taps « Rejoindre » on [groupId] and waits for nothing: the answer may be a refusal.
+  Future<void> tapJoin(String groupId) async {
+    await (await scrolledTo(keys.ride.groupJoinButton(groupId))).tap();
+  }
+
+  /// Waits until [groupId] is shown as joined — its « Quitter » is there.
+  Future<void> waitUntilRegisteredIn(
+    String groupId, {
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
+    await $(
+      keys.ride.groupLeaveButton(groupId),
+    ).waitUntilExists(timeout: timeout);
+  }
+
+  /// Waits until the card of [groupId] shows the disabled « Complet ».
+  Future<void> waitUntilFull(String groupId) async {
+    await $(keys.ride.groupFullButton(groupId)).waitUntilExists();
+  }
+
+  bool offersFull(String groupId) =>
+      isShown(keys.ride.groupFullButton(groupId));
+
+  /// Waits for the registration failure banner, and tells whether it names [groupName].
+  Future<bool> waitUntilFailureNames(String groupName) async {
+    await $(keys.ride.registrationFailure).waitUntilExists();
+    return shows(keys.ride.registrationFailure, groupName);
+  }
+
+  bool get showsFailure => isShown(keys.ride.registrationFailure);
+
+  /// Lets the refetch that follows a registration settle.
+  Future<void> settle() async {
+    await $.pump(const Duration(seconds: 2));
+    await $.pumpAndTrySettle();
+  }
 }

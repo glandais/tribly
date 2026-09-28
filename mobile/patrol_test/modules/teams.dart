@@ -74,4 +74,56 @@ final class Teams extends Module {
     await $(keys.team.loadError).waitUntilExists(timeout: timeout);
     return DateTime.now().difference(start);
   }
+
+  // ── « Mes équipes » and its pending invitations ────────────────────────
+
+  /// Waits for « Accepter » on the invitation to [teamSlug], in the card atop « Mes équipes ».
+  Future<void> waitUntilInvitationIsShown(String teamSlug) async {
+    await $(keys.teams.invitationAcceptButton(teamSlug)).waitUntilVisible();
+  }
+
+  bool get showsPendingInvitations =>
+      isShown(keys.teams.pendingInvitationsCard);
+
+  /// Whether the invitation card names [text] (the team, the inviter).
+  bool pendingInvitationsShow(String text) =>
+      shows(keys.teams.pendingInvitationsCard, text);
+
+  bool showsMyTeam(String teamSlug) => isShown(keys.teams.teamCard(teamSlug));
+
+  /// « Accepter »: the invitation leaves the card — the last one takes the card with it — and the
+  /// team enters the list.
+  Future<void> acceptInvitation(String teamSlug) async {
+    await $(keys.teams.invitationAcceptButton(teamSlug)).tap();
+    await waitUntilGone(keys.teams.invitationAcceptButton(teamSlug));
+    await $(keys.teams.teamCard(teamSlug)).waitUntilVisible();
+  }
+
+  Future<void> openMyTeam(String teamSlug) async {
+    await $(keys.teams.teamCard(teamSlug)).tap();
+    await waitUntilTeamIsShown();
+  }
+
+  // ── « À propos » and its free pages ────────────────────────────────────
+
+  /// Waits for [pageSlug]'s row in the team's « À propos » section.
+  Future<void> waitUntilAboutPageRowIsShown(String pageSlug) async {
+    await scrolledTo(keys.team.aboutPageRow(pageSlug));
+  }
+
+  bool showsAboutPageRow(String pageSlug) =>
+      isShown(keys.team.aboutPageRow(pageSlug));
+
+  /// Taps [pageSlug]'s row, and waits for the page's title.
+  Future<void> openAboutPage(String pageSlug) async {
+    await (await scrolledTo(keys.team.aboutPageRow(pageSlug))).tap();
+    await $(keys.team.customPageTitle).waitUntilVisible();
+  }
+
+  String? get customPageTitle => $(keys.team.customPageTitle).exists
+      ? $(keys.team.customPageTitle).text
+      : null;
+
+  bool customPageBodyShows(String text) =>
+      shows(keys.team.customPageBody, text);
 }

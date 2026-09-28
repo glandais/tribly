@@ -14,7 +14,16 @@ import 'config.dart';
 import 'modules/modules.dart';
 
 export 'package:flutter_test/flutter_test.dart'
-    show expect, isNull, isNotNull, isTrue, isFalse, isNot, contains, equals;
+    show
+        expect,
+        isNull,
+        isNotNull,
+        isTrue,
+        isFalse,
+        isNot,
+        contains,
+        equals,
+        isEmpty;
 export 'package:pedalons/config/paths.dart' show Paths;
 
 export 'api/backend_client.dart' show Json, TestUser, unique;
@@ -118,6 +127,10 @@ Future<void> _forgetPreviousTest() async {
 
 Future<void> _pumpApp(PatrolIntegrationTester $) async {
   final Widget app = await createApp(installErrorHandlers: false);
+  // A second launch in the same test must start from nothing: pumped over the previous tree, the
+  // new app would be matched to it and keep its `ProviderScope` — the previous user's cache
+  // included. An empty frame in between unmounts it.
+  await $.pumpWidget(const SizedBox.shrink());
   // Not `pumpWidgetAndSettle`: a signed-in home keeps animating while it loads, so it never
   // settles. Each action waits for its own widget instead.
   await $.pumpWidget(app);

@@ -139,9 +139,9 @@ final class BackendClient {
     bool? addMemberAllowed,
   }) async {
     final request = _teamRequest(unique(label));
-    var team = await _post(owner, '/api/teams', request);
+    var team = await post(owner, '/api/teams', request);
     if (visibility != 'TEAM') {
-      team = await _put(await admin(), '/api/teams/${team['slug']}', {
+      team = await put(await admin(), '/api/teams/${team['slug']}', {
         ...request,
         'visibility': visibility,
       });
@@ -149,8 +149,8 @@ final class BackendClient {
     if (joinable != null || addMemberAllowed != null) {
       final admin = await this.admin();
       final path = '/api/admin/teams/${team['id']}';
-      final current = await _get(admin, path);
-      await _patch(admin, '$path/attributes', {
+      final current = await get(admin, path);
+      await patch(admin, '$path/attributes', {
         'visibilityEditable': current['visibilityEditable'],
         'joinable': joinable ?? current['joinable'],
         'addMemberAllowed': addMemberAllowed ?? current['addMemberAllowed'],
@@ -173,7 +173,7 @@ final class BackendClient {
   };
 
   /// The team as [who] reads it — its `role` is the caller's own role in the team.
-  Future<Json> team(TestUser who, String slug) => _get(who, '/api/teams/$slug');
+  Future<Json> team(TestUser who, String slug) => get(who, '/api/teams/$slug');
 
   /// Adds [member] to the team, as the platform admin (who does not become a member by it).
   Future<void> addMember(
@@ -181,14 +181,14 @@ final class BackendClient {
     TestUser member, {
     String role = 'MEMBER',
   }) async {
-    await _post(await admin(), '/api/teams/$teamSlug/members', {
+    await post(await admin(), '/api/teams/$teamSlug/members', {
       'userId': member.id,
       'role': role,
     });
   }
 
   Future<void> leaveTeam(TestUser who, String teamSlug) =>
-      _post(who, '/api/teams/$teamSlug/members/leave');
+      post(who, '/api/teams/$teamSlug/members/leave');
 
   /// PATCH `{entity}/slug` as [who], what the web editor sends: the backend then keeps a redirect
   /// from the old slug. [apiPath] is the entity's resource (`/api/teams/{slug}`, …).
@@ -196,7 +196,7 @@ final class BackendClient {
     final slug = unique(
       label,
     ).toLowerCase().replaceAll(RegExp('[^a-z0-9]+'), '-');
-    final renamed = await _patch(who, '$apiPath/slug', {'slug': slug});
+    final renamed = await patch(who, '$apiPath/slug', {'slug': slug});
     return renamed['slug'] as String;
   }
 
@@ -209,7 +209,7 @@ final class BackendClient {
     String teamSlug,
     String label, {
     List<Json>? groups,
-  }) => _post(by, '/api/teams/$teamSlug/rides', {
+  }) => post(by, '/api/teams/$teamSlug/rides', {
     'name': unique(label),
     'media': markdownMedia(),
     'dateTime': DateTime.now()
@@ -226,7 +226,7 @@ final class BackendClient {
   });
 
   Future<Json> ride(TestUser who, String teamSlug, String rideSlug) =>
-      _get(who, '/api/teams/$teamSlug/rides/$rideSlug');
+      get(who, '/api/teams/$teamSlug/rides/$rideSlug');
 
   /// The ids of the ride's groups [who] is registered in, per the API.
   Future<List<String>> registeredGroupIds(
@@ -245,7 +245,7 @@ final class BackendClient {
 
   /// A published, members-only post dated now.
   Future<Json> newPost(TestUser by, String teamSlug, String label) =>
-      _post(by, '/api/teams/$teamSlug/posts', {
+      post(by, '/api/teams/$teamSlug/posts', {
         'name': unique(label),
         'media': markdownMedia(),
         'dateTime': DateTime.now().toUtc().toIso8601String(),
@@ -258,19 +258,19 @@ final class BackendClient {
     String teamSlug,
     String postSlug,
     String content,
-  ) => _post(by, '/api/teams/$teamSlug/posts/$postSlug/comments', {
+  ) => post(by, '/api/teams/$teamSlug/posts/$postSlug/comments', {
     'content': content,
   });
 
   /// The post as [who] reads it, or null when the API answers 404 (hidden, deleted, unknown).
   Future<Json?> findPost(TestUser who, String teamSlug, String postSlug) =>
-      _getOrNull(who, '/api/teams/$teamSlug/posts/$postSlug');
+      getOrNull(who, '/api/teams/$teamSlug/posts/$postSlug');
 
   // ── Ads ─────────────────────────────────────────────────────────────────
 
   /// A published sale ad.
   Future<Json> newAd(TestUser by, String teamSlug, String label) =>
-      _post(by, '/api/teams/$teamSlug/classifieds', {
+      post(by, '/api/teams/$teamSlug/classifieds', {
         'name': unique(label),
         'status': 'PUBLISHED',
         'adType': 'SALE',
@@ -280,7 +280,7 @@ final class BackendClient {
 
   /// DELETE the ad as [who]: the HTTP status, whatever it is.
   Future<int> deleteAdStatus(TestUser who, String teamSlug, String adSlug) =>
-      _status(who, 'DELETE', '/api/teams/$teamSlug/classifieds/$adSlug');
+      status(who, 'DELETE', '/api/teams/$teamSlug/classifieds/$adSlug');
 
   // ── Moderation ──────────────────────────────────────────────────────────
 
@@ -289,7 +289,7 @@ final class BackendClient {
     String teamSlug,
     String targetType,
     String targetId,
-  ) => _post(who, '/api/reports', {
+  ) => post(who, '/api/reports', {
     'teamSlug': teamSlug,
     'targetType': targetType,
     'targetId': targetId,
@@ -302,7 +302,7 @@ final class BackendClient {
     String teamSlug,
     String targetId,
   ) async {
-    final queue = await _get(
+    final queue = await get(
       moderator,
       '/api/teams/$teamSlug/reports',
       query: {'status': 'OPEN'},
@@ -313,7 +313,7 @@ final class BackendClient {
   }
 
   Future<List<String>> blockedIds(TestUser who) async {
-    final blocked = await _get(who, '/api/users/me/blocks');
+    final blocked = await get(who, '/api/users/me/blocks');
     return [
       for (final user in (blocked['users'] as List).cast<Json>())
         user['id'] as String,
@@ -325,7 +325,7 @@ final class BackendClient {
     String teamSlug,
     String postSlug,
   ) async {
-    final comments = await _get(
+    final comments = await get(
       who,
       '/api/teams/$teamSlug/posts/$postSlug/comments',
     );
@@ -338,10 +338,10 @@ final class BackendClient {
   // ── Notifications ───────────────────────────────────────────────────────
 
   Future<int> unreadCount(TestUser who) async =>
-      (await _get(who, '/api/notifications/unread-count'))['count'] as int;
+      (await get(who, '/api/notifications/unread-count'))['count'] as int;
 
   Future<List<Json>> notifications(TestUser who) async {
-    final page = await _get(
+    final page = await get(
       who,
       '/api/notifications',
       query: {'size': 100, 'unreadOnly': false},
@@ -360,7 +360,7 @@ final class BackendClient {
 
   /// Whether [who] muted the team, per the API; null when the team isn't among theirs.
   Future<bool?> isMuted(TestUser who, String teamSlug) async {
-    final preferences = await _get(who, '/api/notifications/preferences');
+    final preferences = await get(who, '/api/notifications/preferences');
     return (preferences['teams'] as List)
             .cast<Json>()
             .where((t) => t['teamSlug'] == teamSlug)
@@ -397,18 +397,24 @@ final class BackendClient {
   )).data!;
 
   // ── HTTP ────────────────────────────────────────────────────────────────
+  //
+  // Public so that a feature's seeding can live in an extension in a file of
+  // its own (`api/<feature>_seed.dart`) rather than all in this one.
+
+  /// The raw client, for an anonymous call (no session) or a status to inspect.
+  Dio get http => _dio;
 
   Options _as(TestUser who) =>
       Options(headers: {'Authorization': 'Bearer ${who.accessToken}'});
 
-  Future<Json> _get(TestUser who, String path, {Json? query}) async =>
+  Future<Json> get(TestUser who, String path, {Json? query}) async =>
       (await _dio.get<Json>(
         path,
         queryParameters: query,
         options: _as(who),
       )).data!;
 
-  Future<Json?> _getOrNull(TestUser who, String path) async {
+  Future<Json?> getOrNull(TestUser who, String path) async {
     final response = await _dio.get<Json>(
       path,
       options: _as(
@@ -418,18 +424,18 @@ final class BackendClient {
     return response.statusCode == 404 ? null : response.data;
   }
 
-  Future<Json> _post(TestUser who, String path, [Object? data]) async =>
+  Future<Json> post(TestUser who, String path, [Object? data]) async =>
       (await _dio.post<Json>(path, data: data, options: _as(who))).data ??
       const {};
 
-  Future<Json> _put(TestUser who, String path, Object data) async =>
+  Future<Json> put(TestUser who, String path, Object data) async =>
       (await _dio.put<Json>(path, data: data, options: _as(who))).data!;
 
-  Future<Json> _patch(TestUser who, String path, Object data) async =>
+  Future<Json> patch(TestUser who, String path, Object data) async =>
       (await _dio.patch<Json>(path, data: data, options: _as(who))).data ??
       const {};
 
-  Future<int> _status(TestUser who, String method, String path) async =>
+  Future<int> status(TestUser who, String method, String path) async =>
       (await _dio.request<void>(
         path,
         options: _as(who).copyWith(method: method, validateStatus: (_) => true),

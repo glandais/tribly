@@ -13,8 +13,36 @@ abstract class Module {
   ///
   /// Patrol's own `scrollTo` drives the first `Scrollable` it meets, and most screens start with a
   /// horizontal one (a chip row, a carousel): the vertical list is named here instead.
-  Future<PatrolFinder> scrolledTo(Key key) =>
-      $(key).scrollTo(view: _verticalScrollable.first);
+  ///
+  /// A screen still loading may have no list yet (a skeleton, an error): the list is waited for
+  /// first, so that the scroll does not fail on a list that is about to be built.
+  Future<PatrolFinder> scrolledTo(Key key) async {
+    await _waitForVerticalList(key);
+    return $(key).scrollTo(view: _verticalScrollable.first);
+  }
+
+  Future<void> _waitForVerticalList(Key key) async {
+    final deadline = DateTime.now().add(const Duration(seconds: 15));
+    while (_verticalScrollable.evaluate().isEmpty) {
+      if (DateTime.now().isAfter(deadline)) {
+        throw TestFailure('no vertical list on screen to scroll to $key');
+      }
+      await $.pump(const Duration(milliseconds: 200));
+    }
+  }
+
+  /// Scrolls the screen's vertical list until the widget of [key] is built, then brings it into
+  /// view — for a widget that is not hit-testable at its centre (a section whose content leaves
+  /// its middle empty), which [scrolledTo] would never call visible.
+  Future<void> scrolledIntoView(Key key) async {
+    await _waitForVerticalList(key);
+    await $.tester.scrollUntilVisible(
+      find.byKey(key),
+      200,
+      scrollable: _verticalScrollable.first,
+    );
+    await $.pump(const Duration(milliseconds: 300));
+  }
 
   /// Whether a widget of [key] is currently on screen — for the absence checks, made once the
   /// screen is known to be loaded.
@@ -51,9 +79,16 @@ abstract class Module {
     }
   }
 
-  /// Whether the widget of [key] shows [text] somewhere inside it.
-  bool shows(Key key, String text) =>
-      $(key).$(find.textContaining(text)).exists;
+  /// Whether the widget of [key] shows [text] somewhere inside it — or is itself a `Text` that
+  /// does. Rich text counts too: markdown and `Text.rich` render as `RichText`.
+  bool shows(Key key, String text) => find
+      .descendant(
+        of: find.byKey(key),
+        matching: find.textContaining(text, findRichText: true),
+        matchRoot: true,
+      )
+      .evaluate()
+      .isNotEmpty;
 
   static final Finder _verticalScrollable = find.byWidgetPredicate(
     (Widget widget) =>

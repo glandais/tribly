@@ -1,0 +1,84 @@
+import 'backend_client.dart';
+
+/// Seeding for teams, comments, posts and notifications beyond what [BackendClient] carries:
+/// invitations, team pages, replies, reading a notification.
+///
+/// Mirrors `frontend/e2e/support/` (invitations, pages, comments): same endpoints, same bodies.
+extension TeamsContentSeed on BackendClient {
+  // ── Invitations ─────────────────────────────────────────────────────────
+
+  /// `POST /api/teams/{slug}/invitations` as [inviter], a team administrator. The team must allow
+  /// adding members (`newTeam(addMemberAllowed: true)`), or the backend answers 403.
+  Future<Json> invite(
+    TestUser inviter,
+    String teamSlug,
+    String email, {
+    String role = 'MEMBER',
+  }) => post(inviter, '/api/teams/$teamSlug/invitations', {
+    'email': email,
+    'role': role,
+  });
+
+  /// The invitations waiting for [who], newest first (`MyInvitationDto`).
+  Future<List<Json>> myInvitations(TestUser who) async =>
+      ((await get(who, '/api/users/me/invitations'))['invitations'] as List)
+          .cast<Json>();
+
+  // ── Notifications ───────────────────────────────────────────────────────
+
+  Future<void> markRead(TestUser who, String notificationId) =>
+      post(who, '/api/notifications/$notificationId/read');
+
+  // ── Team pages ──────────────────────────────────────────────────────────
+
+  /// A free page of the team, [visibility] `TEAM` (members only) or `PUBLIC`, whose body reads
+  /// [markdown]. Returns the `TeamPageDto`, `slug` included.
+  Future<Json> newTeamPage(
+    TestUser by,
+    String teamSlug,
+    String title, {
+    String visibility = 'TEAM',
+    String markdown = 'Contenu de la page',
+  }) => post(by, '/api/teams/$teamSlug/pages', {
+    'title': title,
+    'media': markdownMedia(markdown),
+    'visibility': visibility,
+  });
+
+  Future<int> deleteTeamPage(TestUser by, String teamSlug, String pageSlug) =>
+      status(by, 'DELETE', '/api/teams/$teamSlug/pages/$pageSlug');
+
+  /// `GET` one team page as [who]: the HTTP status, 404 when it's none of their business.
+  Future<int> teamPageStatus(TestUser who, String teamSlug, String pageSlug) =>
+      status(who, 'GET', '/api/teams/$teamSlug/pages/$pageSlug');
+
+  // ── Comments ────────────────────────────────────────────────────────────
+
+  /// The top-level comments of the post as [who] reads them (`CommentDto`, replies embedded).
+  Future<List<Json>> postComments(
+    TestUser who,
+    String teamSlug,
+    String postSlug,
+  ) async =>
+      ((await get(
+                who,
+                '/api/teams/$teamSlug/posts/$postSlug/comments',
+              ))['items']
+              as List)
+          .cast<Json>();
+
+  /// The replies to [parentId], through `?parentId=` — what « Voir les réponses » asks for.
+  Future<List<Json>> postCommentsOf(
+    TestUser who,
+    String teamSlug,
+    String postSlug,
+    String parentId,
+  ) async =>
+      ((await get(
+                who,
+                '/api/teams/$teamSlug/posts/$postSlug/comments',
+                query: {'parentId': parentId, 'size': 100},
+              ))['items']
+              as List)
+          .cast<Json>();
+}
