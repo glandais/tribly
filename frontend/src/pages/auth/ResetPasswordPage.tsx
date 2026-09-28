@@ -9,6 +9,7 @@ import { Center, Paper, Stack, Title, Text, Button, Anchor, PasswordInput } from
 import { useAuthStore } from '../../store/authStore'
 import { paths } from '@/config/paths'
 import { resetPassword as resetPasswordApi } from '@/api/endpoints/authentication/authentication'
+import { apiErrorCode } from '@/lib/apiError'
 
 export function ResetPasswordPage() {
   const { t } = useTranslation()
@@ -53,16 +54,17 @@ export function ResetPasswordPage() {
   const handleResetPassword = async (values: { newPassword: string }) => {
     setIsLoading(true)
     try {
-      const data = await resetPasswordApi({
-        token,
-        newPassword: values.newPassword,
-      })
+      // The page says what went wrong itself: the mutator's toast would only repeat it.
+      const data = await resetPasswordApi(
+        { token, newPassword: values.newPassword },
+        { skipErrorToast: true }
+      )
       if (data.accessToken) setAccessToken(data.accessToken)
       if (data.user) setUser(data.user)
       navigate(paths.home())
     } catch (err: unknown) {
       console.error('Reset password failed', err)
-      const code = (err as { response?: { data?: { code?: string } } })?.response?.data?.code
+      const code = apiErrorCode(err)
       if (code === 'TOKEN_INVALID') {
         setError('invalid')
       } else {

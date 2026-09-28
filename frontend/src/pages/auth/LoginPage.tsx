@@ -23,6 +23,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useAppName } from '../../hooks/useAppName'
 import { useAuthStore } from '../../store/authStore'
 import { paths } from '@/config/paths'
+import { apiErrorCode } from '@/lib/apiError'
 import {
   loginWithPassword,
   register as registerUser,
@@ -143,13 +144,21 @@ export function LoginPage() {
   const handleLogin = async (values: { email: string; password: string }) => {
     setIsLoading(true)
     try {
-      completeLogin(await loginWithPassword({ email: values.email, password: values.password }))
+      // One message, the page's own: the mutator's toast would come on top of it.
+      completeLogin(
+        await loginWithPassword(
+          { email: values.email, password: values.password },
+          { skipErrorToast: true }
+        )
+      )
     } catch (error: unknown) {
       console.error('Login failed', error)
-      const code = (error as { response?: { data?: { code?: string } } })?.response?.data?.code
+      const code = apiErrorCode(error)
       notifications.show({
         message: t(`auth.errors.${code}` as Parameters<typeof t>[0], {
-          defaultValue: t('auth.errors.loginFailed'),
+          defaultValue: t(`errors.api.${code}` as Parameters<typeof t>[0], {
+            defaultValue: t('auth.errors.loginFailed'),
+          }),
         }),
         color: 'red',
       })
@@ -166,12 +175,15 @@ export function LoginPage() {
   }) => {
     setIsLoading(true)
     try {
-      await registerUser({
-        email: values.email,
-        displayName: values.displayName,
-        password: values.password,
-        acceptTerms: values.acceptTerms,
-      })
+      await registerUser(
+        {
+          email: values.email,
+          displayName: values.displayName,
+          password: values.password,
+          acceptTerms: values.acceptTerms,
+        },
+        { skipErrorToast: true }
+      )
       notifications.show({
         message: t('auth.register.success.checkEmail'),
         color: 'green',
@@ -180,10 +192,12 @@ export function LoginPage() {
       loginForm.setFieldValue('email', values.email)
     } catch (error: unknown) {
       console.error('Registration failed', error)
-      const code = (error as { response?: { data?: { code?: string } } })?.response?.data?.code
+      const code = apiErrorCode(error)
       notifications.show({
         message: t(`auth.errors.${code}` as Parameters<typeof t>[0], {
-          defaultValue: t('auth.errors.registrationFailed'),
+          defaultValue: t(`errors.api.${code}` as Parameters<typeof t>[0], {
+            defaultValue: t('auth.errors.registrationFailed'),
+          }),
         }),
         color: 'red',
       })

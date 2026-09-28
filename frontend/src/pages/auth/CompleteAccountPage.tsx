@@ -6,6 +6,7 @@ import { notifications } from '@mantine/notifications'
 import { IconMail, IconMailCheck } from '@tabler/icons-react'
 import { Center, Paper, Stack, Title, Text, Button, TextInput } from '@mantine/core'
 import { paths } from '@/config/paths'
+import { apiErrorCode } from '@/lib/apiError'
 import { useAuth } from '@/hooks/useAuth'
 import { requestEmailChange } from '@/api/endpoints/authentication/authentication'
 
@@ -41,10 +42,10 @@ export function CompleteAccountPage() {
   const handleSubmit = async (values: { email: string }) => {
     setIsLoading(true)
     try {
-      await requestEmailChange({ email: values.email })
+      await requestEmailChange({ email: values.email }, { skipErrorToast: true })
       setSentTo(values.email)
     } catch (error: unknown) {
-      const code = (error as { response?: { data?: { code?: string } } })?.response?.data?.code
+      const code = apiErrorCode(error)
       notifications.show({
         message:
           code === 'EMAIL_ALREADY_EXISTS'
