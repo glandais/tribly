@@ -129,7 +129,14 @@ export function RouteEditor({
   const showPlanner = canUsePlanner && sourceMode === 'planner'
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
+    <form
+      onSubmit={(event) => {
+        // A React event bubbles through portals: in CreateRouteModal, this form sits inside the
+        // ride's or the trip's own <form>, which would be submitted too — creating the ride.
+        event.stopPropagation()
+        form.onSubmit(handleSubmit)(event)
+      }}
+    >
       <Stack>
         {error && <Alert color="red">{error}</Alert>}
 
