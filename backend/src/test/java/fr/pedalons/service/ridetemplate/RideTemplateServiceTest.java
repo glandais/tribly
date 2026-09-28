@@ -357,6 +357,47 @@ class RideTemplateServiceTest extends AbstractBaseTest {
     }
 
     @Test
+    void shouldKeepTheGroupOrderAfterAnEdit() {
+      queryContext.setUserForTest(organizer);
+      RideTemplateDto created =
+          templateService.createTemplate(
+              team.getSlug(),
+              new RideTemplateRequest(
+                  "Ordered",
+                  "markdown",
+                  Visibility.TEAM,
+                  Status.PUBLISHED,
+                  List.of(
+                      RideTemplateGroupRequest.builder().name("A").build(),
+                      RideTemplateGroupRequest.builder().name("B").build())));
+
+      // Moved, renamed, and a new one appended: the order sent is the order read back, not the
+      // order the table happens to hold the rows in.
+      templateService.updateTemplate(
+          team.getSlug(),
+          created.slug(),
+          new RideTemplateRequest(
+              "Ordered",
+              "markdown",
+              Visibility.TEAM,
+              Status.PUBLISHED,
+              List.of(
+                  RideTemplateGroupRequest.builder()
+                      .id(created.groups().get(1).id())
+                      .name("B")
+                      .build(),
+                  RideTemplateGroupRequest.builder()
+                      .id(created.groups().get(0).id())
+                      .name("A renamed")
+                      .build(),
+                  RideTemplateGroupRequest.builder().name("C").build())));
+
+      RideTemplateDto reloaded = templateService.getTemplate(team.getSlug(), created.slug());
+      assertEquals(
+          List.of("B", "A renamed", "C"), reloaded.groups().stream().map(g -> g.name()).toList());
+    }
+
+    @Test
     void shouldRemoveGroupsNotInRequest() {
       RideTemplate template =
           dataService.createRideTemplate(team, admin, "Template", "template-slug");

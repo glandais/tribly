@@ -50,7 +50,10 @@ public class RideTemplate extends BaseEntity {
   @Column(name = "status", nullable = false, length = 20)
   private Status status = Status.PUBLISHED;
 
+  // Without it the groups come back in whatever order the table holds them, which an update
+  // reshuffles: a renamed group moves to the end.
   @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OrderBy("sortOrder ASC")
   private List<RideTemplateGroup> groups = new ArrayList<>();
 
   public RideTemplate(
