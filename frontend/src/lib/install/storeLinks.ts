@@ -5,5 +5,5 @@
  */
 export const APP_STORE_URL: string | null = null
 
-/** The Android package is `fr.pedalons.mobile` (APP_LINKS.md). */
+/** The Android package is `fr.pedalons.mobile` (docs/APP_LINKS.md). */
 export const PLAY_STORE_URL: string | null = null

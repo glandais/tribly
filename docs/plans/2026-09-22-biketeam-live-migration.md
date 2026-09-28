@@ -19,7 +19,7 @@
 > l'ancien import) et le §12 (découpage des tâches) sont exécutés et ne restent que comme
 > historique.
 
-A remplacé la procédure par dump de [`MIGRATE_BIKETEAM.md`](../../MIGRATE_BIKETEAM.md) (dump +
+A remplacé la procédure par dump de [`MIGRATE_BIKETEAM.md`](../MIGRATE_BIKETEAM.md) (dump +
 dossier de données + `backend-restore`), supprimée le 28 septembre 2026 : ce fichier est désormais
 le guide d'exploitation de la migration en direct. Les **règles de correspondance** qu'il documente
 (ordre des groupes et étapes, dates et fuseaux, visibilité, logo factice, FAQ, empreinte des GPX)

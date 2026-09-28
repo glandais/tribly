@@ -11,7 +11,7 @@ import '../../config/app_config.dart';
 ///
 /// L'URL est construite sur [AppConfig.deepLinkHost] à partir du chemin de
 /// `Paths`, donc **c'est un app link** : il ouvre l'app chez qui l'a installée
-/// et le site chez les autres — voir `APP_LINKS.md`.
+/// et le site chez les autres — voir `docs/APP_LINKS.md`.
 ///
 /// `uri` et `text` s'excluent dans `share_plus` ; c'est `uri` qu'on garde,
 /// parce qu'iOS en tire un aperçu (titre et favicon) là où un texte contenant

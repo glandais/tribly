@@ -47,7 +47,7 @@ const TYPE_ICONS: Record<NotificationType, TablerIcon> = {
 
 /**
  * Mantine palette *name*, never a hex — the theme resolves it per colour scheme. A change to a ride
- * you joined is a caution (`warning`, BRANDING.md), not a cancellation.
+ * you joined is a caution (`warning`, docs/BRANDING.md), not a cancellation.
  */
 const TYPE_COLORS: Record<NotificationType, string> = {
   [NotificationType.RIDE_PUBLISHED]: 'primary',

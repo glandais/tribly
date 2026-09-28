@@ -165,5 +165,5 @@ Environment variables via `--dart-define`:
 - [patrol_test/README.md](patrol_test/README.md) - Patrol end-to-end tests
 - [store-metadata/README.md](store-metadata/README.md) - Store listings, privacy declarations
 - [screenshots/README.md](screenshots/README.md) - Store screenshots
-- [../APP_LINKS.md](../APP_LINKS.md) - Deep links and passkeys (`.well-known` files, signing fingerprints)
+- [docs/APP_LINKS.md](../docs/APP_LINKS.md) - Deep links and passkeys (`.well-known` files, signing fingerprints)
 - [../CLAUDE.md](../CLAUDE.md) - Full project documentation (backend, frontend, mobile, karoo)

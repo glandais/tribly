@@ -13,7 +13,7 @@ Mantine v9 component library with TypeScript, dark mode, and form integration. A
 
 ## Theme Configuration
 
-The theme lives in `frontend/src/lib/theme.ts` (`primaryColor: 'primary'`, virtual colors `primary`, `success`, `warning`, `danger`, responsive headings, 44px touch minimum on `Button`). `MantineProvider` and `Notifications` are set up in `frontend/src/AppProviders.tsx`. Read `theme.ts` rather than copying values from here; brand colours are in `BRANDING.md`.
+The theme lives in `frontend/src/lib/theme.ts` (`primaryColor: 'primary'`, virtual colors `primary`, `success`, `warning`, `danger`, responsive headings, 44px touch minimum on `Button`). `MantineProvider` and `Notifications` are set up in `frontend/src/AppProviders.tsx`. Read `theme.ts` rather than copying values from here; brand colours are in `docs/BRANDING.md`.
 
 ## Core Components
 

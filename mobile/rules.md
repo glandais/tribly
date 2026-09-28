@@ -43,7 +43,7 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>(
 ## Navigation
 
 GoRouter, five fixed shell branches, locale-aware `Paths.xxx()` — see `CLAUDE.md` and
-`../APP_LINKS.md`. `Navigator` remains fine for dialogs and other non-deep-linkable views.
+`../docs/APP_LINKS.md`. `Navigator` remains fine for dialogs and other non-deep-linkable views.
 
 ## Data and code generation
 

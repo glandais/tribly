@@ -7,7 +7,7 @@ Pedalons: multi-tenant cycling team platform (rides, routes with GPX/maps, posts
 Each module has its own `CLAUDE.md` with commands, architecture, and gotchas — it loads automatically when you work with files in that directory:
 [backend/](backend/CLAUDE.md) · [frontend/](frontend/CLAUDE.md) · [mobile/](mobile/CLAUDE.md) · [karoo/](karoo/CLAUDE.md) · [garmin-app/](garmin-app/CLAUDE.md)
 
-See [BRANDING.md](BRANDING.md) for logo, icon assets and brand colours — **start there**: its header
+See [docs/BRANDING.md](docs/BRANDING.md) for logo, icon assets and brand colours — **start there**: its header
 maps which of the three brand sources is authoritative over what (this file for assets and the web
 theme, `mobile/lib/core/theme/` for Flutter and the derived dark mode, `docs/audit-ux/analyse/brand.md`
 for the fullest charter and the French lexicon). The business colour code is semantic and shared by
@@ -18,14 +18,14 @@ both clients: changing it in one place only makes them diverge silently.
 | Question | Read |
 |---|---|
 | What's left to do, and what was deliberately ruled out | **[docs/NEXT.md](docs/NEXT.md)** — start here |
-| Product roadmap (P0 → Icebox) | [BACKLOG.md](BACKLOG.md) |
+| Product roadmap (P0 → Icebox) | [docs/BACKLOG.md](docs/BACKLOG.md) |
 | Notifications (event pipeline, channels, what's left) | [docs/plans/2026-09-18-notifications.md](docs/plans/2026-09-18-notifications.md) + its ledger |
 | Why the mobile app / the site / the API look the way they do | [docs/plans/archive/](docs/plans/archive/) — executed plans, kept for their arbitrations |
 | Security audit (September 2026): vulnerabilities and their status | [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md) |
 | Infrastructure, CI/CD and code-quality audit (February 2026, statuses partly refreshed on 2026-09-29) — some rows still open; not the security reference | [docs/plans/2026-02-14-project-audit.md](docs/plans/2026-02-14-project-audit.md) |
 | Deployment, backups, restore (the runbook) | [docs/operations.md](docs/operations.md) |
 | What the product does, for whom | [docs/PRODUCT_SHEET.md](docs/PRODUCT_SHEET.md) |
-| Biketeam → Pédalons migration, team by team, server to server over HTTPS (contract with biketeam, operations) | [docs/plans/2026-09-22-biketeam-live-migration.md](docs/plans/2026-09-22-biketeam-live-migration.md) + [MIGRATE_BIKETEAM.md](MIGRATE_BIKETEAM.md) |
+| Biketeam → Pédalons migration, team by team, server to server over HTTPS (contract with biketeam, operations) | [docs/plans/2026-09-22-biketeam-live-migration.md](docs/plans/2026-09-22-biketeam-live-migration.md) + [docs/MIGRATE_BIKETEAM.md](docs/MIGRATE_BIKETEAM.md) |
 | The design brief the v2 came from (state *before* v2) | [docs/audit-ux/](docs/audit-ux/) |
 
 Three invariants that cut across modules, each of which a plausible-looking change would break:
@@ -102,7 +102,7 @@ Four rules hold whatever the change:
 
 **API contract**: use the `contract-first-api` skill after modifying backend REST resources or DTOs. Bump `pedalons.api.version` in `backend/src/main/resources/application.properties` with every contract change — it drives both `info.version` in the contract and `GET /api/version`.
 
-**UI routes contract**: `contracts/routes.yaml` is the single source of truth (multi-locale path templates, deeplink/mobile flags). Edit it, then run `pnpm generate-routes` in frontend/ to regenerate `paths.generated.ts`, `paths.generated.dart`, the apple-app-site-association file, and the deeplink section of `AndroidManifest.xml`. Never hand-edit those. See [APP_LINKS.md](APP_LINKS.md).
+**UI routes contract**: `contracts/routes.yaml` is the single source of truth (multi-locale path templates, deeplink/mobile flags). Edit it, then run `pnpm generate-routes` in frontend/ to regenerate `paths.generated.ts`, `paths.generated.dart`, the apple-app-site-association file, and the deeplink section of `AndroidManifest.xml`. Never hand-edit those. See [docs/APP_LINKS.md](docs/APP_LINKS.md).
 
 ## Formatting
 

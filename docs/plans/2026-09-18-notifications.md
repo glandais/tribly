@@ -8,7 +8,7 @@
 > conception et ses arbitrages ; le ledger porte l'état.
 
 Reprend et remplace deux entrées ouvertes : le « Versatile notification system » de
-[`BACKLOG.md`](../../BACKLOG.md) (P3) et le §4.2 « Notifications push » de
+[`BACKLOG.md`](../BACKLOG.md) (P3) et le §4.2 « Notifications push » de
 [`docs/NEXT.md`](../NEXT.md). Le push n'est plus un chantier à part : c'est un canal parmi d'autres
 d'un même pipeline.
 

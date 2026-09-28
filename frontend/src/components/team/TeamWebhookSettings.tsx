@@ -29,7 +29,7 @@ import { languageNames, supportedLanguages, type SupportedLanguage } from '@/i18
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { FormattedDateTime } from '@/components/common/FormattedDate'
 
-/** Mantine palette name per delivery outcome — `success`/`danger` as BRANDING.md uses them. */
+/** Mantine palette name per delivery outcome — `success`/`danger` as docs/BRANDING.md uses them. */
 const STATUS_COLORS: Record<NotificationDeliveryStatus, string> = {
   [NotificationDeliveryStatus.PENDING]: 'gray',
   [NotificationDeliveryStatus.SENDING]: 'gray',

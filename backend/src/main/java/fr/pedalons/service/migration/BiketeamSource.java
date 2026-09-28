@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Child lists come <em>already ordered</em> the way biketeam displayed them — ride groups by
  * meeting time then name, trip stages by date then name, template groups by name alone — because
- * the mapping turns the position into Pédalons' {@code sortOrder}. See MIGRATE_BIKETEAM.md,
+ * the mapping turns the position into Pédalons' {@code sortOrder}. See docs/MIGRATE_BIKETEAM.md,
  * "Ordering of groups and stages".
  */
 public interface BiketeamSource extends AutoCloseable {

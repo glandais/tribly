@@ -233,7 +233,7 @@ tribly/
 ├── scripts/          # Utility scripts (backup/restore, e2e, route generation, SSR audit)
 ├── docs/             # Plans, roadmap (NEXT.md) and the operations runbook
 ├── privacy/          # Privacy policy, terms and support pages (served by the site, bundled in the app)
-├── assets/           # Logo and icon sources (see BRANDING.md)
+├── assets/           # Logo and icon sources (see docs/BRANDING.md)
 ├── data/             # Runtime data (keys, storage, cache, valhalla, tileserver)
 ├── docker-compose.yml         # One deployed environment (prod, staging, ...)
 ├── docker-compose.local.yml   # Workstation overlay: mailpit, the shared services, the
@@ -337,7 +337,7 @@ cd frontend
 pnpm generate-routes
 ```
 
-See [APP_LINKS.md](APP_LINKS.md) for the full workflow.
+See [docs/APP_LINKS.md](docs/APP_LINKS.md) for the full workflow.
 
 ### Run Tests
 

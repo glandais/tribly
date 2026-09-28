@@ -4,7 +4,7 @@
 > without people: the [live migration](#live-migration), then the [mapping rules](#mapping-rules) it
 > applies. The former dump import (a restored database, people included) is gone; the figures quoted
 > below from the 2026-07 dump come from its runs. Design and contract with biketeam:
-> [docs/plans/2026-09-22-biketeam-live-migration.md](docs/plans/2026-09-22-biketeam-live-migration.md).
+> [plans/2026-09-22-biketeam-live-migration.md](plans/2026-09-22-biketeam-live-migration.md).
 
 # Live migration
 

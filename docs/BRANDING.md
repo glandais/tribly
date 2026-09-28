@@ -7,8 +7,8 @@ in one of them:
 | Source | Authoritative over | Not authoritative over |
 |---|---|---|
 | **This file** | Icons and generated assets, meta/SEO, and the **web** theme as Mantine renders it (CSS variables, shade scales, component defaults) | Flutter values; anything about layout, motion or editorial tone |
-| [`mobile/lib/core/theme/`](mobile/lib/core/theme/) (`pdl_colors.dart`, `pdl_tokens.dart`, `pdl_typography.dart`) | The **Flutter** app's tokens — and the *only* home of the **derived dark-mode badge pairs**, since no mockup supplied a dark mode. `pdl_colors.dart` documents the derivation rule and proves it against the five pairs the charter does publish | The web |
-| [`docs/audit-ux/analyse/brand.md`](docs/audit-ux/analyse/brand.md) | The fullest written charter: typography scale, radii, shadows, spacing, iconography, signature components, and the **French editorial lexicon** — none of which is in this file | Current code (it was written 25 July 2026, before the v2) |
+| [`mobile/lib/core/theme/`](../mobile/lib/core/theme/) (`pdl_colors.dart`, `pdl_tokens.dart`, `pdl_typography.dart`) | The **Flutter** app's tokens — and the *only* home of the **derived dark-mode badge pairs**, since no mockup supplied a dark mode. `pdl_colors.dart` documents the derivation rule and proves it against the five pairs the charter does publish | The web |
+| [`docs/audit-ux/analyse/brand.md`](audit-ux/analyse/brand.md) | The fullest written charter: typography scale, radii, shadows, spacing, iconography, signature components, and the **French editorial lexicon** — none of which is in this file | Current code (it was written 25 July 2026, before the v2) |
 
 **The business colour code is semantic, never aesthetic** — one colour means one entity type, status,
 role, surface or climb category. The tables below are the reference; the Flutter side maps the same
@@ -100,12 +100,12 @@ Alpha flattened onto `#228be6` background.
 | Theme Color      | `#228be6`                            |
 | Title            | Per page, built by `src/lib/seo.ts` from the route's `meta()`; falls back to the domain's app name (`/api/config` `appName`, else `Pédalons`) |
 | Description      | Per page; falls back to the i18n key `home.subtitle` (« Votre plateforme pour organiser vos sorties cyclistes ») |
-| OG Image         | `/og-image.png` (site default; pages with an image of their own use it — see [frontend/LINK_PREVIEW.md](frontend/LINK_PREVIEW.md)) |
+| OG Image         | `/og-image.png` (site default; pages with an image of their own use it — see [frontend/LINK_PREVIEW.md](../frontend/LINK_PREVIEW.md)) |
 | Static `<title>` | `Pédalons` in `index.html` — a fallback for the JS-less dev SPA only, stripped by the SSR server |
 
 ## Primary Theme
 
-The code is the source of truth: [`frontend/src/lib/theme.ts`](frontend/src/lib/theme.ts). The
+The code is the source of truth: [`frontend/src/lib/theme.ts`](../frontend/src/lib/theme.ts). The
 tables below are the overview; when they disagree with it, `theme.ts` wins.
 
 | Property          | Value                              |

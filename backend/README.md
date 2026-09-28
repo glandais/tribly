@@ -154,7 +154,7 @@ The API covers these functional areas:
 | Notifications | NotificationResource, PushDeviceResource | In-app notifications, push device registration |
 | Moderation | ReportResource, TeamReportResource | Content reports |
 | Feedback | FeedbackResource | In-app feedback |
-| Migration | BiketeamMigration*Resource | Biketeam → Pédalons migration (see MIGRATE_BIKETEAM.md) |
+| Migration | BiketeamMigration*Resource | Biketeam → Pédalons migration (see docs/MIGRATE_BIKETEAM.md) |
 
 ## Configuration
 

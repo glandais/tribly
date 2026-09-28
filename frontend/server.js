@@ -21,7 +21,7 @@ const DEFAULT_APP_NAME = 'Pédalons'
 
 /**
  * The web app manifest. Only the name varies by domain — every tenant shares the icon set of
- * public/ (see BRANDING.md). `id` and `start_url` are the site root: on a site pinned to one team,
+ * public/ (see docs/BRANDING.md). `id` and `start_url` are the site root: on a site pinned to one team,
  * `/` already opens that team. Colours are the brand blue of the icon background, as theme-color
  * in index.html.
  */

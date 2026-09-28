@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-/// All Pedalons brand colors from BRANDING.md.
+/// All Pedalons brand colors from docs/BRANDING.md.
 ///
 /// Light values use Mantine shade-6, dark values use shade-8
 /// for higher contrast on dark backgrounds.

@@ -167,7 +167,7 @@ Public pages unfurl into rich social/messaging cards via server-rendered OG/Twit
 - **Never hold list filters, search or pagination in `useState`** — they belong in the query string via `useUrlFilters`, so they survive back-navigation and are shareable. See [URL_FILTERS.md](URL_FILTERS.md).
 - **Never describe a screen's data twice** — the page's hooks and the route's `prefetch` share one companion module (`pages/<domain>/<screen>Data.ts`); derive params, never copy them. See [SSR-data-loading.md](SSR-data-loading.md).
 - **Never edit `src/api/`** — it's generated. Run `pnpm generate-api` after backend OpenAPI changes.
-- **Never edit `paths.generated.ts`** — edit `../contracts/routes.yaml` and run `pnpm generate-routes`. See [../APP_LINKS.md](../APP_LINKS.md).
+- **Never edit `paths.generated.ts`** — edit `../contracts/routes.yaml` and run `pnpm generate-routes`. See [docs/APP_LINKS.md](../docs/APP_LINKS.md).
 - **Never hard-code links** — use `paths.xxx()` from `config/paths.ts` (locale-aware).
 - **Never import `Link` from `react-router-dom`** — use `<PrefetchLink>` (`components/common/PrefetchLink.tsx`), including as `component={PrefetchLink}` on Mantine's polymorphic components. On hover/focus it warms both the destination's chunk *and* the `prefetch()` its route declares, through the same `runRoutePrefetch` the router loader uses — React Router's own `prefetch` prop is a silent no-op in library mode. Pass `prefetch="viewport"` (chunk only) or `"none"` where intent prefetching isn't wanted.
 - **Never set link-preview tags via a React component** — add a `meta()` to `routes.config.ts` instead. See [LINK_PREVIEW.md](LINK_PREVIEW.md).

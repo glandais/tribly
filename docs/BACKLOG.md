@@ -2,7 +2,7 @@
 
 This is the **product** roadmap. The engineering follow-ups from the July 2026 v2 — API gaps that
 each remove a named degradation, the four uncommitted infrastructure workstreams, and the live-app
-test checklist — are in [docs/NEXT.md](docs/NEXT.md). Two entries below overlap with it and are
+test checklist — are in [NEXT.md](NEXT.md). Two entries below overlap with it and are
 noted where they appear.
 
 ## P0 — Launch Blockers

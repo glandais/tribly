@@ -22,7 +22,7 @@
 >   48em.
 >
 > Pour l'entrée en matière et le partage des rôles entre les trois sources de charte, voir
-> [`BRANDING.md`](../../../BRANDING.md).
+> [`BRANDING.md`](../../BRANDING.md).
 
 Document de référence pour la production de maquettes. Toutes les valeurs sont extraites du code réel :
 `BRANDING.md`, `frontend/src/lib/theme.ts` (thème Mantine 9), `frontend/src/index.css`,

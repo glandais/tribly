@@ -65,7 +65,7 @@ test.describe('an unknown URL', () => {
 })
 
 /**
- * Universal links (APP_LINKS.md): iOS reads `/.well-known/apple-app-site-association`, Android
+ * Universal links (docs/APP_LINKS.md): iOS reads `/.well-known/apple-app-site-association`, Android
  * `/.well-known/assetlinks.json`, both served by server.js as JSON (the AASA has no extension, so
  * its content type is set by hand — server.js:92-104). The AASA's paths are generated from
  * contracts/routes.yaml (`deeplink: true`, every locale, `{param}` as `*`) by

@@ -554,7 +554,7 @@ sont des invariants que le code garde.
 Ce fichier ne couvre que les suites de la v2 et des chantiers qui l'ont suivie. Quatre autres sources
 restent ouvertes :
 
-- [`BACKLOG.md`](../BACKLOG.md) — la roadmap produit (P0 → Icebox). Y figurent notamment le statut
+- [`BACKLOG.md`](BACKLOG.md) — la roadmap produit (P0 → Icebox). Y figurent notamment le statut
   « Terminée » sur les sorties et voyages (qui recoupe le point 16 du §5 ci-dessus) et le système de
   notifications (qui recoupe le §4.2 et le §8.3).
 - [`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md) — audit d'infrastructure,

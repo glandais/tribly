@@ -102,7 +102,7 @@ The source layout, the routing, the stores and the rules the code follows (paths
 icons, i18n, forms, dates) are in [CLAUDE.md](CLAUDE.md), which is kept up to date with the code.
 Topic notes: [SSR.md](SSR.md), [SSR-data-loading.md](SSR-data-loading.md),
 [URL_FILTERS.md](URL_FILTERS.md), [LINK_PREVIEW.md](LINK_PREVIEW.md), and
-[../APP_LINKS.md](../APP_LINKS.md) for adding a route.
+[docs/APP_LINKS.md](../docs/APP_LINKS.md) for adding a route.
 
 Runtime app config comes from the `/api/config` endpoint — no `.env` files for app config. The only
 `.env` var is `VITE_API_TARGET`, which just points the dev-server proxy at an API (see
