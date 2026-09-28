@@ -1,7 +1,7 @@
 # API v2 — ce que les versions 1.3.0, 1.4.0 et 1.5.0 ont apporté, et ce qui reste
 
 Document de référence du chantier « API v2 » mené en réponse au §3 de
-[`docs/audit-ux/BRIEF.md`](../../audit-ux/BRIEF.md).
+[`docs/plans/archive/audit-ux/BRIEF.md`](audit-ux/BRIEF.md).
 
 **Ce document s'arrête volontairement au contrat `1.5.0`** et n'est pas tenu à jour au-delà : il garde
 le *pourquoi* de la livraison qu'il décrit, pas l'état courant du contrat. Pour tout ce qui a suivi —
@@ -352,7 +352,7 @@ stockait ce choix.
 
 **Maquette débloquée** : `33 Profil` (segmenté Métrique/Impérial, sélecteur de thème, langue), et
 c'est ce qui rend le mode sombre pilotable — rappel : **aucune maquette ne fournit le mode sombre**,
-il devra être dérivé de `docs/audit-ux/analyse/brand.md`.
+il devra être dérivé de `docs/brand.md`.
 
 ---
 

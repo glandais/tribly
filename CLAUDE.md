@@ -9,7 +9,7 @@ Each module has its own `CLAUDE.md` with commands, architecture, and gotchas —
 
 See [docs/BRANDING.md](docs/BRANDING.md) for logo, icon assets and brand colours — **start there**: its header
 maps which of the three brand sources is authoritative over what (this file for assets and the web
-theme, `mobile/lib/core/theme/` for Flutter and the derived dark mode, `docs/audit-ux/analyse/brand.md`
+theme, `mobile/lib/core/theme/` for Flutter and the derived dark mode, `docs/brand.md`
 for the fullest charter and the French lexicon). The business colour code is semantic and shared by
 both clients: changing it in one place only makes them diverge silently.
 
@@ -26,7 +26,7 @@ both clients: changing it in one place only makes them diverge silently.
 | Deployment, backups, restore (the runbook) | [docs/operations.md](docs/operations.md) |
 | What the product does, for whom | [docs/PRODUCT_SHEET.md](docs/PRODUCT_SHEET.md) |
 | Biketeam → Pédalons migration, team by team, server to server over HTTPS (contract with biketeam, operations) | [docs/plans/2026-09-22-biketeam-live-migration.md](docs/plans/2026-09-22-biketeam-live-migration.md) + [docs/MIGRATE_BIKETEAM.md](docs/MIGRATE_BIKETEAM.md) |
-| The design brief the v2 came from (state *before* v2) | [docs/audit-ux/](docs/audit-ux/) |
+| The design brief the v2 came from (state *before* v2) | [docs/plans/archive/audit-ux/](docs/plans/archive/audit-ux/) |
 
 Three invariants that cut across modules, each of which a plausible-looking change would break:
 

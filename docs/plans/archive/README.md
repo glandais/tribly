@@ -45,6 +45,7 @@ Les plans de [notifications](../2026-09-18-notifications.md) (et son ledger) et 
 `docs/plans/` : le premier a encore trois points ouverts (repris dans `NEXT.md` §8.3), le second
 est le contrat en vigueur avec biketeam.
 
-[`../../audit-ux/`](../../audit-ux/) reste également en place : c'est l'**entrant** de design (brief,
-analyse page par page, charte, 65 captures) et il documente l'état d'avant la v2. Il ne décrit pas
-le code actuel.
+[`audit-ux/`](audit-ux/) est l'**entrant** de design (brief, analyse page par page, descriptifs
+des captures) et documente l'état d'avant la v2 ; il ne décrit pas le code actuel. Sa charte et sa
+feuille de style, toujours de référence, vivent dans [`../../brand.md`](../../brand.md) et
+[`../../pedalons.css`](../../pedalons.css).

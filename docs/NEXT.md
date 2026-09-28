@@ -9,7 +9,7 @@ et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de rép
 
 Sources : [`plans/archive/`](plans/archive/) (les trois plans du 26 juillet, avec leur §4/§5, et
 les plans exécutés depuis),
-[`audit-ux/BRIEF.md`](audit-ux/BRIEF.md) (l'entrant de design),
+[`plans/archive/audit-ux/BRIEF.md`](plans/archive/audit-ux/BRIEF.md) (l'entrant de design),
 [`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md) (audit d'infrastructure,
 encore ouvert), [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) (audit de sécurité de septembre 2026).
 

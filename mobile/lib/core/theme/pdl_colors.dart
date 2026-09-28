@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Jetons de couleur de rôle de la charte Pédalons.
 ///
-/// Source de vérité : `docs/audit-ux/analyse/brand.md` et `pedalons.css` (les
+/// Source de vérité : `docs/brand.md` et `pedalons.css` (les
 /// maquettes v2). Les valeurs claires sont toutes maquettées. Les valeurs
 /// sombres publiées par `brand.md` sont recopiées telles quelles ; celles qui
 /// ne le sont pas — les fonds doux de badge, littéraux de `pedalons.css` —

@@ -8,7 +8,7 @@ in one of them:
 |---|---|---|
 | **This file** | Icons and generated assets, meta/SEO, and the **web** theme as Mantine renders it (CSS variables, shade scales, component defaults) | Flutter values; anything about layout, motion or editorial tone |
 | [`mobile/lib/core/theme/`](../mobile/lib/core/theme/) (`pdl_colors.dart`, `pdl_tokens.dart`, `pdl_typography.dart`) | The **Flutter** app's tokens — and the *only* home of the **derived dark-mode badge pairs**, since no mockup supplied a dark mode. `pdl_colors.dart` documents the derivation rule and proves it against the five pairs the charter does publish | The web |
-| [`docs/audit-ux/analyse/brand.md`](audit-ux/analyse/brand.md) | The fullest written charter: typography scale, radii, shadows, spacing, iconography, signature components, and the **French editorial lexicon** — none of which is in this file | Current code (it was written 25 July 2026, before the v2) |
+| [`docs/brand.md`](brand.md) | The fullest written charter: typography scale, radii, shadows, spacing, iconography, signature components, and the **French editorial lexicon** — none of which is in this file | Current code (it was written 25 July 2026, before the v2) |
 
 **The business colour code is semantic, never aesthetic** — one colour means one entity type, status,
 role, surface or climb category. The tables below are the reference; the Flutter side maps the same
@@ -21,7 +21,7 @@ Two traps worth naming:
 - **The 44 px minimum tap target is a *touch* rule.** The web deliberately drops to 36 px above 48em.
   Don't read the mockup stylesheet as a web specification on this point.
 - **Never introduce the `--pdl-*` CSS variables into the site.** They are the mockup engine's
-  restatement of this charter (`docs/audit-ux/pedalons.css`, quoted in `brand.md` §9). The site
+  restatement of this charter (`docs/pedalons.css`, quoted in `brand.md` §9). The site
   already expresses the same charter as a Mantine theme; a second variable layer would create two
   sources of truth. The Flutter `Pdl*` token classes are a *different* thing — they are that app's
   real theme, and they are correct.

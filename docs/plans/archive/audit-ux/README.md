@@ -4,11 +4,12 @@
 > qui fait sa valeur : c'est l'entrant qui a produit la v2, pas une description du code actuel. La
 > v2 mobile est livrée depuis le 27 juillet 2026 et la plupart des écarts listés ici sont refermés —
 > les captures de [`mobile/`](mobile/) (images retirées depuis) ne ressemblaient plus à l'app. Pour l'état du code, lire
-> [`../plans/archive/`](../plans/archive/) ; pour la suite, [`../NEXT.md`](../NEXT.md).
+> [`docs/plans/archive/`](../) ; pour la suite, [`docs/NEXT.md`](../../../NEXT.md).
 >
-> Reste utile en revanche, et sans date de péremption : [`analyse/brand.md`](analyse/brand.md) (la
-> charte, dont le mode sombre a été **dérivé** faute de maquette) et
-> [`pedalons.css`](pedalons.css), qui fait autorité sur les métriques des maquettes.
+> Reste utile en revanche, et sans date de péremption : la charte (le mode sombre y a été **dérivé**
+> faute de maquette) et `pedalons.css`, qui fait autorité sur les métriques des maquettes. Tous deux
+> ont été sortis de cet audit : [`docs/brand.md`](../../../brand.md) et
+> [`docs/pedalons.css`](../../../pedalons.css).
 
 Entrant de design produit le 25 juillet 2026 pour cadrer la prochaine version de l'app mobile.
 L'objectif est de rapprocher l'application de ce que le site propose déjà.
@@ -29,8 +30,8 @@ iPhone 17 Pro / iOS 27.0 (402 × 874 pt) piloté par AXe. Équipes de référenc
 | [`analyse/web-pages.md`](analyse/web-pages.md) | Structure de chaque page du site, champ par champ |
 | [`analyse/mobile-screens.md`](analyse/mobile-screens.md) | Structure de chaque écran de l'app, et ce qui manque |
 | [`analyse/api-surface.md`](analyse/api-surface.md) | Endpoints de lecture, ce que le mobile n'utilise pas, évolutions proposées |
-| [`analyse/brand.md`](analyse/brand.md) | Palette clair/sombre, typographie, rayons, composants signature, tokens CSS |
-| [`pedalons.css`](pedalons.css) | Feuille de style des maquettes, copiée du projet Claude Design. Fait autorité sur les métriques contre la planche `00 Fondations` |
+| [`docs/brand.md`](../../../brand.md) | Palette clair/sombre, typographie, rayons, composants signature, tokens CSS |
+| [`docs/pedalons.css`](../../../pedalons.css) | Feuille de style des maquettes, copiée du projet Claude Design. Fait autorité sur les métriques contre la planche `00 Fondations` |
 | [`web/`](web/) | Descriptif des 27 captures du site (images retirées le 29 septembre 2026) ([`web/README.md`](web/README.md)) |
 | [`mobile/`](mobile/) | Descriptif des 38 captures de l'app (images retirées le 29 septembre 2026) ([`mobile/README.md`](mobile/README.md)) |
 

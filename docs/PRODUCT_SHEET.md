@@ -187,7 +187,7 @@ ride organizers and team administrators.
 - **Anxiety:** Learning curve, getting all members to switch
 
 The French product vocabulary (sortie, parcours, étape…) is in the editorial lexicon of
-[audit-ux/analyse/brand.md](audit-ux/analyse/brand.md).
+[brand.md](brand.md).
 
 ---
 

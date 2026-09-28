@@ -1,6 +1,6 @@
 # Portage web des idées de la v2 mobile — analyse et plan
 
-Le brief de design `docs/audit-ux/BRIEF.md` a été écrit pour combler l'écart de l'application
+Le brief de design `docs/plans/archive/audit-ux/BRIEF.md` a été écrit pour combler l'écart de l'application
 Flutter vis-à-vis du site. Sur presque tous les axes, le site est le modèle et non l'élève : la
 carte multi-tracés, le profil altimétrique colorisé par pente, « Cols et montées », les
 commentaires, la recherche debouncée et le panneau de filtres existent déjà côté React. Ce
