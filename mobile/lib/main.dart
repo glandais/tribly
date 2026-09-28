@@ -16,6 +16,7 @@ import 'core/logging/app_log.dart';
 import 'core/logging/client_context.dart';
 import 'core/logging/error_reporter.dart';
 import 'core/utils/link_launcher.dart';
+import 'core/utils/provider_retry.dart';
 import 'core/preferences/user_preferences_provider.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/feedback/presentation/unreported_fatal_prompt.dart';
@@ -104,6 +105,9 @@ Future<Widget> createApp({bool installErrorHandlers = true}) async {
     path: 'assets/l10n',
     fallbackLocale: const Locale('fr'),
     child: ProviderScope(
+      // Un 4xx s'affiche tout de suite ; seules les pannes passagères sont
+      // rejouées — voir [providerRetry].
+      retry: providerRetry,
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
         errorReporterProvider.overrideWithValue(errorReporter),

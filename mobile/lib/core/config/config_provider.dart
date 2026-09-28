@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/generated/export.dart';
 import '../../api/pedalons_api_client.dart';
 import '../preferences/user_preferences_provider.dart';
+import '../utils/provider_retry.dart';
 
 /// `GET /api/config`, la configuration servie plutôt que compilée.
 ///
@@ -14,10 +15,13 @@ import '../preferences/user_preferences_provider.dart';
 /// livrer une version du client. Rien de ce qu'elle porte ne doit donc être
 /// recopié en dur ailleurs.
 ///
-/// `keepAlive` : c'est une donnée de démarrage, pas une donnée d'écran.
+/// `keepAlive` : c'est une donnée de démarrage, pas une donnée d'écran. Aucun
+/// écran n'en affiche l'erreur, d'où [startupRetry] : une panne passagère au
+/// lancement est rejouée plus longtemps que sur un écran.
 final appConfigProvider = FutureProvider<ConfigDto>(
   (Ref ref) => ref.watch(configurationClientProvider).getConfig(),
   isAutoDispose: false,
+  retry: startupRetry,
 );
 
 const String _kMapStyleKey = 'map.styleId';
