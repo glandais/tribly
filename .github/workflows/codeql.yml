@@ -1,0 +1,63 @@
+name: CodeQL
+
+# Remplace le « default setup » de GitHub : langages choisis, JDK 25 et code
+# généré exclu, le tout versionné ici plutôt que dans les réglages du dépôt.
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+  schedule:
+    # Hebdomadaire : de nouvelles requêtes CodeQL trouvent parfois du vieux code.
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+          - language: javascript-typescript
+          # build-mode none n'analyse que le Java (backend, mobile/android) :
+          # le Kotlin de karoo demanderait un build Gradle complet.
+          - language: java-kotlin
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 25
+        if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@v6.0.1
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          config: |
+            paths-ignore:
+              # Client API généré par orval depuis contracts/openapi.json.
+              - frontend/src/api
+              - '**/node_modules'
+              - '**/*.generated.*'
+
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}
