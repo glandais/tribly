@@ -467,4 +467,47 @@ class TeamResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(403);
   }
+
+  // ==================== Members-only pages ====================
+
+  @Test
+  void aMembersOnlyPage_isListedToMembersOnly() {
+    dataService.createAdditionalPage(team1, user1, "Horaires", 0, Visibility.PUBLIC);
+    dataService.createAdditionalPage(team1, user1, "Codes du local", 1, Visibility.TEAM);
+
+    // Anonymous: neither the team nor the directory names the members-only page.
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug)
+        .then()
+        .statusCode(200)
+        .body("pages.slug", contains("horaires"));
+    given()
+        .queryParam("size", 50)
+        .when()
+        .get("/api/teams")
+        .then()
+        .statusCode(200)
+        .body("teams.find { it.slug == '" + team1Slug + "' }.pages.slug", contains("horaires"));
+
+    // Signed in, not a member: same.
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER4))
+        .when()
+        .get("/api/teams/" + team1Slug)
+        .then()
+        .statusCode(200)
+        .body("pages.slug", contains("horaires"));
+
+    // A member: both.
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .when()
+        .get("/api/teams/" + team1Slug)
+        .then()
+        .statusCode(200)
+        .body("pages.slug", contains("horaires", "codes-du-local"));
+  }
 }

@@ -3,11 +3,13 @@ package fr.pedalons.dto.teams.response;
 import fr.pedalons.common.MarkdownExcerpt;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.team.TeamPage;
 import fr.pedalons.dto.common.GeoJsonPoint;
 import fr.pedalons.dto.common.asset.AssetDto;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.pages.response.TeamPageSummaryDto;
 import fr.pedalons.dto.validation.ValidateSchema;
+import fr.pedalons.enums.Status;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
@@ -104,7 +106,10 @@ public record TeamDetailDto(
       TeamAndRole teamAndRole, AssetService assetService, boolean platformAdmin, TeamStats stats) {
     Team team = teamAndRole.team();
     List<TeamPageSummaryDto> pages =
-        team.getAdditionalPages().stream().map(TeamPageSummaryDto::from).toList();
+        team.getAdditionalPages().stream()
+            .filter(page -> isListed(page, team, teamAndRole.teamRole(), platformAdmin))
+            .map(TeamPageSummaryDto::from)
+            .toList();
     // Built once: the excerpt and the logo are read back out of it rather than re-walking the
     // about page and its assets.
     MediaDto about = MediaDto.from(team.getAboutPage(), assetService);
@@ -134,5 +139,32 @@ public record TeamDetailDto(
         platformAdmin ? TeamRole.ADMIN : teamAndRole.teamRole(),
         team.getCreatedAt(),
         team.getGeometry());
+  }
+
+  /**
+   * Whether the caller may see this page in the team's menu — the rule of {@code
+   * TeamPageService.listPages} (TeamEntityRepository's listing clauses), applied to the pages the
+   * team already holds. Without it every visitor, anonymous included, received the title and slug
+   * of the members-only pages and the drafts; only their content was guarded.
+   */
+  static boolean isListed(
+      TeamPage page, Team team, @Nullable TeamRole role, boolean platformAdmin) {
+    if (platformAdmin) {
+      return true;
+    }
+    boolean moderator = role == TeamRole.ORGANIZER || role == TeamRole.ADMIN;
+    if (page.getModerationHiddenAt() != null && !moderator) {
+      return false;
+    }
+    boolean live = page.getStatus() == Status.PUBLISHED || page.getStatus() == Status.CANCELLED;
+    if (role == TeamRole.ADMIN) {
+      return true;
+    }
+    if (role != null) {
+      return live;
+    }
+    return live
+        && team.getVisibility() != Visibility.TEAM
+        && page.getVisibility() == Visibility.PUBLIC;
   }
 }
