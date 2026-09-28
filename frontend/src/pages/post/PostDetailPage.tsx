@@ -322,9 +322,9 @@ export function PostDetailPage() {
           isOpen={showCancelConfirm}
           onClose={() => setShowCancelConfirm(false)}
           onConfirm={handleCancel}
-          title={t('actions.cancelAction')}
+          title={t('posts.detail.actions.cancel')}
           message={t('posts.detail.confirmations.cancel')}
-          confirmText={t('actions.cancelAction')}
+          confirmText={t('posts.detail.actions.cancel')}
           variant="warning"
           isLoading={updateMutation.isPending}
         />
