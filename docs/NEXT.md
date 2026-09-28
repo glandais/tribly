@@ -567,7 +567,7 @@ restent ouvertes :
   qu'en local : aucune CI ne la lance.
 - [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) — audit de sécurité de septembre 2026 ; il fait foi pour
   les vulnérabilités, l'audit de février pour l'infrastructure.
-- [`PRIVACY_POLICY_OPEN_POINTS.md`](PRIVACY_POLICY_OPEN_POINTS.md) — ce que la politique de
+- [`plans/2026-09-29-privacy-policy-open-points.md`](plans/2026-09-29-privacy-policy-open-points.md) — ce que la politique de
   confidentialité ne dit pas encore, ou mal, et qui demande une décision juridique : import
   biketeam, conservation des messages d'annonce, position précise envoyée par Garmin et Karoo,
   contenu lisible sans compte, Web Push avant son activation.

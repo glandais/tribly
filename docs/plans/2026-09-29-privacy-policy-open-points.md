@@ -16,7 +16,7 @@ décision. Toute modification se fait **en parité FR/EN**. Le texte est embarqu
   - quelle base légale : intérêt légitime, ou exécution du contrat ?
   - comment les membres importés ont-ils été, ou seront-ils, informés ?
 - **Contexte** : l'import par dump a été retiré le 2026-09-28. La migration en direct
-  ([plan](plans/2026-09-22-biketeam-live-migration.md)) n'importe aucune personne, mais les comptes
+  ([plan](2026-09-22-biketeam-live-migration.md)) n'importe aucune personne, mais les comptes
   déjà créés restent en base.
 
 ## 2. Relais des messages vers l'auteur d'une annonce (`AdContact`)
@@ -55,7 +55,7 @@ décision. Toute modification se fait **en parité FR/EN**. Le texte est embarqu
 - **Constat** : la politique dit désormais que, dans un navigateur, les notifications passent « par
   le service push propre au navigateur ». Elle ne nomme ni Google, ni Mozilla, ni Apple, ni
   Microsoft, et ne parle pas des transferts correspondants. Or `FCM_WEB_*` n'est pas encore en
-  production ([NEXT §8.3](NEXT.md#83-notifications--ce-qui-reste)) : le texte décrit une fonction
+  production ([NEXT §8.3](../NEXT.md#83-notifications--ce-qui-reste)) : le texte décrit une fonction
   qui n'existe pas encore.
 - **À décider** :
   - faut-il lister ces services dans le tableau des sous-traitants et des transferts ?
