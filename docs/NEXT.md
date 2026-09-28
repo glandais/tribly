@@ -654,3 +654,21 @@ L'audit ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md)) est exécut
     défaut, Annuler) ; signalement puis redirection.
   - Transverse : navigation mobile (tiroir, entrée Admin selon le rôle, fil d'Ariane « Plus ») ;
     restauration du défilement au retour.
+
+### 8.5 Charte — le code couleur métier n'est synchronisé par rien
+
+Constaté le 29 septembre 2026, en fusionnant `brand.md` dans [`BRANDING.md`](BRANDING.md).
+L'association énumération → famille de couleur (`RIDE` → blue, `CANCELLED` → red, `HC` → grape…)
+est écrite à la main deux fois : `frontend/src/components/card/common/badgeColors.ts` (nom Mantine)
+et `mobile/lib/core/theme/enum_colors.dart` (paire `PdlTone`). Aucun test ne les compare ;
+`mobile/test/core/theme/pdl_tokens_test.dart` ne fige que les hexadécimaux du mobile. Une
+divergence ne casse rien de visible, c'est justement le risque.
+
+- **À faire** : une source unique `contracts/brand-colors.yaml` (énumération → famille, plus les
+  dégradés de repli), et un générateur sur le modèle de `pnpm generate-routes` qui produit
+  `badgeColors.generated.ts` et `enum_colors.generated.dart`. Seul le **choix de la famille** est
+  partagé ; chaque client garde sa façon de la rendre (nuances Mantine d'un côté, `c.softXxx` de
+  l'autre). `BRANDING.md` §3.6 renverra alors au YAML au lieu de recopier les tableaux.
+- **Écarté** : un test qui parse les deux fichiers et vérifie qu'ils concordent — il détecte sans
+  unifier, et repose sur des expressions régulières sur du TypeScript et du Dart.
+- **Hors sujet** : les échelles de nuances, figées par Mantine.
