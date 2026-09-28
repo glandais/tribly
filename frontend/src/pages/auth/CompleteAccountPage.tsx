@@ -50,7 +50,9 @@ export function CompleteAccountPage() {
         message:
           code === 'EMAIL_ALREADY_EXISTS'
             ? t('auth.completeAccount.errors.emailExists')
-            : t('auth.completeAccount.errors.failed'),
+            : t(`errors.api.${code}` as Parameters<typeof t>[0], {
+                defaultValue: t('auth.completeAccount.errors.failed'),
+              }),
         color: 'red',
       })
     } finally {

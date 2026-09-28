@@ -6,6 +6,7 @@ import static fr.pedalons.common.TokenUtils.hashToken;
 
 import fr.pedalons.common.exception.BadRequestException;
 import fr.pedalons.common.exception.ForbiddenException;
+import fr.pedalons.common.exception.InternalException;
 import fr.pedalons.common.exception.NotFoundException;
 import fr.pedalons.domain.auth.AuthSession;
 import fr.pedalons.domain.auth.AuthToken;
@@ -89,7 +90,20 @@ public class AuthService {
   public void register(RegisterRequest request) {
     String token =
         QuarkusTransaction.joiningExisting().call(() -> createPendingRegistration(request));
-    authEmailService.sendVerificationEmail(request.email(), request.displayName(), token);
+    sendVerification(request.email(), request.displayName(), token);
+  }
+
+  /**
+   * The verification mail of a sign-up or an address change, whose failure the visitor must hear
+   * about — named, not as a bare 500: nothing was created (the account only exists once the address
+   * is verified), and trying again works, the new token replacing the orphaned one.
+   */
+  private void sendVerification(String email, String displayName, String token) {
+    try {
+      authEmailService.sendVerificationEmail(email, displayName, token);
+    } catch (RuntimeException e) {
+      throw new InternalException(ErrorCode.EMAIL_NOT_SENT, e);
+    }
   }
 
   private String createPendingRegistration(RegisterRequest request) {
@@ -185,7 +199,7 @@ public class AuthService {
     EmailChange change =
         QuarkusTransaction.joiningExisting().call(() -> createEmailChangeToken(normalized));
     if (change != null) {
-      authEmailService.sendVerificationEmail(normalized, change.displayName(), change.token());
+      sendVerification(normalized, change.displayName(), change.token());
     }
   }
 

@@ -83,6 +83,7 @@ public enum ErrorCode {
   AD_CONTACT_OPTED_OUT,
   AD_CONTACT_RATE_LIMITED,
   AD_CONTACT_DELIVERY_FAILED,
+  EMAIL_NOT_SENT,
   // In-app feedback
   FEEDBACK_RATE_LIMITED,
   // Team invitations

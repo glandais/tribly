@@ -432,6 +432,7 @@
   "errors.api.DOMAIN_ALIAS_HOSTNAME_EXISTS": "Ce nom d'hôte est déjà utilisé",
   "errors.api.DOMAIN_ALIAS_TEAM_MISMATCH": "L'équipe épinglée n'appartient pas à ce domaine",
   "errors.api.EMAIL_ALREADY_EXISTS": "Un compte existe déjà avec cet email",
+  "errors.api.EMAIL_NOT_SENT": "L'e-mail de vérification n'a pas pu partir. Réessayez dans un instant.",
   "errors.api.EMAIL_NOT_VERIFIED": "Veuillez vérifier votre email avant de continuer",
   "errors.api.FILE_REQUIRED": "Un fichier est requis",
   "errors.api.FORBIDDEN": "Vous n'avez pas les droits pour effectuer cette action",

@@ -982,6 +982,7 @@
       "BUSINESS_RULE": "This action is not allowed",
       "DOMAIN_NOT_FOUND": "Domain not found",
       "EMAIL_ALREADY_EXISTS": "An account already exists with this email",
+      "EMAIL_NOT_SENT": "The verification email could not be sent. Please try again in a moment.",
       "EMAIL_NOT_VERIFIED": "Please verify your email before continuing",
       "FILE_REQUIRED": "A file is required",
       "FORBIDDEN": "You don't have permission to perform this action",

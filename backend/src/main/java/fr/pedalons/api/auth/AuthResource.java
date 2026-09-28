@@ -56,6 +56,12 @@ public class AuthResource {
     @APIResponse(
         responseCode = "400",
         description = "Invalid request or email already registered",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "500",
+        description =
+            "EMAIL_NOT_SENT — the verification email could not be sent. Nothing was created;"
+                + " trying again sends a new link.",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response register(@Valid RegisterRequest request) {

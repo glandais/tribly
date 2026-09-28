@@ -432,6 +432,7 @@
   "errors.api.DOMAIN_ALIAS_HOSTNAME_EXISTS": "This hostname is already in use",
   "errors.api.DOMAIN_ALIAS_TEAM_MISMATCH": "The pinned team does not belong to this domain",
   "errors.api.EMAIL_ALREADY_EXISTS": "An account already exists with this email",
+  "errors.api.EMAIL_NOT_SENT": "The verification email could not be sent. Please try again in a moment.",
   "errors.api.EMAIL_NOT_VERIFIED": "Please verify your email before continuing",
   "errors.api.FILE_REQUIRED": "A file is required",
   "errors.api.FORBIDDEN": "You don't have permission to perform this action",
