@@ -1799,6 +1799,7 @@ components:
       - SLUG_TAKEN
       - USER_NOT_SYNCED
       - GROUP_FULL
+      - RIDE_PAST
       - INVALID_VISIBILITY
       - PUBLIC_TRIP_PRIVATE_ROUTE
       - GPX_FAILURE
@@ -15720,7 +15721,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 5.1.0
+  version: 5.2.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

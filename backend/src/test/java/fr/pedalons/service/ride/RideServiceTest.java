@@ -24,6 +24,7 @@ import fr.pedalons.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1152,7 +1153,8 @@ class RideServiceTest extends AbstractBaseTest {
   @Test
   void joinGroup_shouldCreateParticipation() {
     Ride ride =
-        dataService.createRide(team, admin, "Test", "test", Instant.now(), Status.PUBLISHED);
+        dataService.createRide(
+            team, admin, "Test", "test", Instant.now().plus(1, ChronoUnit.DAYS), Status.PUBLISHED);
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
     userService.setUserForTest(member);
@@ -1160,6 +1162,27 @@ class RideServiceTest extends AbstractBaseTest {
 
     assertNotNull(result);
     assertEquals(member.getId(), TsidUtils.toLong(result.userId()));
+  }
+
+  @Test
+  void joinGroup_shouldRefuseARideThatIsOver() {
+    Ride ride =
+        dataService.createRide(
+            team,
+            admin,
+            "Yesterday",
+            "yesterday",
+            Instant.now().minus(1, ChronoUnit.DAYS),
+            Status.PUBLISHED);
+    RideGroup group = dataService.createRideGroup(admin, ride, "Group");
+
+    userService.setUserForTest(member);
+    PedalonsException exception =
+        assertThrows(
+            PedalonsException.class,
+            () -> rideService.joinGroup(team.getSlug(), "yesterday", group.getId()));
+
+    assertEquals("RIDE_PAST", exception.getMessage());
   }
 
   @Test
@@ -1208,7 +1231,8 @@ class RideServiceTest extends AbstractBaseTest {
 
   @Test
   void joinGroup_shouldThrowWhenGroupFull() {
-    Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
+    Ride ride =
+        dataService.createRide(team, admin, "Test", "test", Instant.now().plus(1, ChronoUnit.DAYS));
     RideGroup group = dataService.createRideGroupWithMaxParticipants(admin, ride, "Group", 1);
     dataService.createParticipation(group, organizer);
 
@@ -1225,7 +1249,8 @@ class RideServiceTest extends AbstractBaseTest {
 
   @Test
   void leaveGroup_shouldRemoveParticipation() {
-    Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
+    Ride ride =
+        dataService.createRide(team, admin, "Test", "test", Instant.now().plus(1, ChronoUnit.DAYS));
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
     dataService.createParticipation(group, member);
 

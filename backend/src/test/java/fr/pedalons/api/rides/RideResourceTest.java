@@ -378,7 +378,7 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Ride",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    LocalDate.now().plusDays(7).atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
@@ -458,7 +458,7 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Ride",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    LocalDate.now().plusDays(7).atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,

@@ -445,6 +445,7 @@
   "errors.api.GPX_FAILURE": "Failed to process the GPX file",
   "errors.api.GPX_NOT_FOUND": "GPX file not found",
   "errors.api.GROUP_FULL": "This group is full",
+  "errors.api.RIDE_PAST": "This ride is over: registration is closed",
   "errors.api.INTERNAL_ERROR": "Internal server error",
   "errors.api.INVALID_CREDENTIALS": "Invalid email or password",
   "errors.api.INVALID_FORMAT": "The file format is invalid",

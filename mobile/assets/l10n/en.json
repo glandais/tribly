@@ -995,6 +995,7 @@
       "GPX_FAILURE": "Failed to process the GPX file",
       "GPX_NOT_FOUND": "GPX file not found",
       "GROUP_FULL": "This group is full",
+      "RIDE_PAST": "This ride is over: registration is closed",
       "INTERNAL_ERROR": "Internal server error",
       "INVALID_CREDENTIALS": "Invalid email or password",
       "INVALID_FORMAT": "The file format is invalid",

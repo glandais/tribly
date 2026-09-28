@@ -340,6 +340,11 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     if (existingParticipation.isPresent()) {
       throw new ConflictException(ALREADY_REGISTERED);
     }
+    // The clients hide « Rejoindre » once the ride has started; the rule is here. Leaving stays
+    // open, to correct who actually came.
+    if (ride.getDateTime().isBefore(Instant.now())) {
+      throw new ConflictException(ErrorCode.RIDE_PAST);
+    }
 
     checkCapacity(group);
 
