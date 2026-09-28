@@ -46,7 +46,7 @@ export function GpxPreviewEditor({
 
   const handleFileChange = useCallback(
     (file: File | null) => {
-      if (file && !file.name.endsWith('.gpx')) {
+      if (file && !/\.gpx$/i.test(file.name)) {
         setError(t('routes.create.validation.invalidFileType'))
         setGpxFile(null)
         return

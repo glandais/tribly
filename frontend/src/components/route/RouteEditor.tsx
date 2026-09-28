@@ -88,7 +88,7 @@ export function RouteEditor({
         form.setFieldValue('name', defaultName)
       }
       if (file) {
-        if (!file.name.endsWith('.gpx')) {
+        if (!/\.gpx$/i.test(file.name)) {
           setError(t('routes.create.validation.invalidFileType'))
           setGpxFile(null)
           return
