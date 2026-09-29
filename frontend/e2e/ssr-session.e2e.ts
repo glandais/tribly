@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import type { APIRequestContext, Page } from '@playwright/test'
+import type { APIRequestContext, Page, Request } from '@playwright/test'
 import type { AssetDto, MediaDto, PostDto, PostRequest } from '../src/api/dto'
 import { solidPng, uploadImage } from './support/ads'
 import { apiGetOrNull, apiPut, ApiError, expectOk, withApi, type AuthResponse } from './support/api'
@@ -522,9 +522,19 @@ test.describe('private team: nothing in the server document', () => {
   }) => {
     const { context, page } = await pageAs(browser, priv.outsider)
     try {
+      const isApi = (url: string) => new URL(url).pathname.startsWith('/api/')
       const bodies: Promise<{ url: string; status: number; body: string }>[] = []
+      let inFlight = 0
+      page.on('request', (request) => {
+        if (isApi(request.url())) inFlight += 1
+      })
+      const settle = (request: Request) => {
+        if (isApi(request.url())) inFlight -= 1
+      }
+      page.on('requestfinished', settle)
+      page.on('requestfailed', settle)
       page.on('response', (response) => {
-        if (!new URL(response.url()).pathname.startsWith('/api/')) return
+        if (!isApi(response.url())) return
         bodies.push(
           response
             .text()
@@ -535,8 +545,17 @@ test.describe('private team: nothing in the server document', () => {
       for (const privatePage of priv.pages) {
         const where = `${privatePage.label} (${privatePage.path})`
         bodies.length = 0
+        // The team is read after hydration, and « networkidle » does not wait for it: the document
+        // and its chunks can go quiet for 500 ms while the client still boots, so the event fires
+        // before the first API call (seen under --workers=5: the 403s came 40 ms after the check).
+        // Wait for the read itself, then for every API call it started to have settled.
+        const teamRead = page.waitForResponse((response) =>
+          new URL(response.url()).pathname.startsWith(`/api/teams/${priv.slug}`)
+        )
         await page.goto(privatePage.path)
         await pageHydrated(page)
+        await teamRead.catch(() => undefined)
+        await expect.poll(() => inFlight, { message: `${where}: API calls settled` }).toBe(0)
 
         const responses = await Promise.all(bodies)
         // The page did ask the team's API, and was refused — the absence below is an answer.
