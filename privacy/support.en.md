@@ -1,6 +1,6 @@
 A question, a problem, an idea? Write to us at **[contact@pedalons.fr](mailto:contact@pedalons.fr)**. We answer in English or French, usually within a few days.
 
-The easiest way to report a bug: **Report a problem**, in your profile menu on the website or in **Profile → About** in the app. The report automatically includes the page, the version and a log of your last actions, which helps us a lot to reproduce it.
+The easiest way to report a bug: **Report a problem**, in your profile menu on the website or in **Profile → About** in the app. The report automatically includes the page, the version and a log of your last actions.
 
 By e-mail, please mention the device you use, the app version (**Profile**, at the bottom of the screen) and the team involved.
 
