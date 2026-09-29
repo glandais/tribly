@@ -11,6 +11,26 @@ evaluation_interval: 30s
 tests:
   - interval: 1m
     input_series:
+      # staging's only backend task goes away after an hour; prod's stays.
+      - series: 'up{job="backend", env="pedalons-staging", instance="10.0.1.24:8080", task="s1"}'
+        values: '1x60'
+      - series: 'up{job="backend", env="pedalons-prod", instance="10.0.1.27:8080", task="p1"}'
+        values: '1x90'
+    alert_rule_test:
+      - eval_time: 62m
+        alertname: BackendMissing
+        exp_alerts: []
+      - eval_time: 75m
+        alertname: BackendMissing
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              env: pedalons-staging
+            exp_annotations:
+              summary: "pedalons-staging has no backend task any more."
+
+  - interval: 1m
+    input_series:
       # 60 requests a minute on www, 6 of them 502: 10 %.
       - series: 'caddy_http_request_duration_seconds_count{host="www.pedalons.fr", code="200", handler="subroute", method="GET", server="srv1"}'
         values: '0+54x20'

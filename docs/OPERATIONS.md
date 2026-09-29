@@ -459,6 +459,7 @@ through, whose outage would then silence its own alert. Severity only says how s
 | `BackendConnectionPoolExhausted` | requests waiting for a database connection for 5 min | slow queries, a stuck transaction |
 | `BackendErrors` (Loki) | more than 10 `ERROR` lines in 10 min, for 5 min | the lines themselves, in Loki |
 | `TargetDown` | a scrape target unreachable for 5 min | `docker stack ps` of its stack |
+| `BackendMissing` (critical) | an environment scraped in the last day has no backend task for 5 min (`TargetDown` cannot see a target that is gone); resolves a day later — silence it after a deliberate teardown | `docker service ps <env>_backend` |
 | `Watchdog` | always — its **absence** is the alert, at Healthchecks | the host, then this stack |
 
 The rules are tested: `promtool test rules` (command at the top of

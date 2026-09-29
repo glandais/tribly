@@ -25,6 +25,21 @@ groups:
         annotations:
           summary: "{{ $labels.job }} ({{ $labels.env }} {{ $labels.instance }}) cannot be scraped."
 
+      # What TargetDown cannot see: a backend with no task left (scaled to 0, removed, every task
+      # failing before it runs) is not a target that is down but no target at all — the Swarm
+      # discovery only keeps running tasks. An environment scraped in the last day with no backend
+      # now. Resolves by itself a day later: after a deliberate teardown, silence it.
+      - alert: BackendMissing
+        expr: |
+          count by (env) (max_over_time(up{job="backend"}[1d]))
+          unless
+          count by (env) (up{job="backend"})
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.env }} has no backend task any more."
+
   - name: site
     rules:
       # Measured at Caddy, i.e. what visitors get: traefik or a backend that does not answer shows
