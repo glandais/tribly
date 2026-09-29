@@ -789,6 +789,7 @@
       "preparing": "En préparation…",
       "ready": "Prêt",
       "readyUntil": "Prêt · valable jusqu'au {date}",
+      "expired": "Expiré · vous pouvez en demander un nouveau",
       "failed": "La préparation a échoué",
       "byEmail": "L'archive vous est envoyée par e-mail : le lien de téléchargement se trouve dans ce message.",
       "request": "Demander un export",

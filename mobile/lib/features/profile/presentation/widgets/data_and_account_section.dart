@@ -63,7 +63,17 @@ class _DataExportCardState extends ConsumerState<DataExportCard> {
   Widget build(BuildContext context) {
     final PdlTypography t = context.pdlText;
     final UserExportDto? export = ref.watch(latestExportProvider).value;
-    final bool ready = export?.status.toUpperCase() == 'COMPLETED';
+    // `status` est une chaîne au DTO ; l'enum généré est la liste fermée du
+    // contrat. Un export prêt est `READY` — l'ancienne comparaison à
+    // `COMPLETED`, statut inexistant, le laissait « en préparation » pour
+    // toujours (`docs/LEDGER_*.md MOB-32`).
+    final UserExportStatus? status = export == null
+        ? null
+        : UserExportStatus.fromJson(export.status.toUpperCase());
+    // Un export arrivé à son terme — prêt ou expiré — appelle un « nouvel »
+    // export ; celui en cours ou échoué, une simple demande.
+    final bool ready =
+        status == UserExportStatus.ready || status == UserExportStatus.expired;
     final DateTime? expires = export?.expiresAt == null
         ? null
         : DateTime.tryParse(export!.expiresAt!)?.toLocal();
@@ -85,17 +95,22 @@ class _DataExportCardState extends ConsumerState<DataExportCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         Text('profile.data.export'.tr(), style: t.bodyStrong),
-                        Text(switch (export?.status.toUpperCase()) {
+                        Text(switch (status) {
                           null => 'profile.data.never'.tr(),
-                          'COMPLETED' when expires != null =>
+                          UserExportStatus.ready when expires != null =>
                             'profile.data.readyUntil'.tr(
                               namedArgs: <String, String>{
                                 'date': AppFormatters.formatLongDate(expires),
                               },
                             ),
-                          'COMPLETED' => 'profile.data.ready'.tr(),
-                          'FAILED' => 'profile.data.failed'.tr(),
-                          _ => 'profile.data.preparing'.tr(),
+                          UserExportStatus.ready => 'profile.data.ready'.tr(),
+                          UserExportStatus.expired =>
+                            'profile.data.expired'.tr(),
+                          UserExportStatus.failed => 'profile.data.failed'.tr(),
+                          UserExportStatus.pending ||
+                          UserExportStatus.processing ||
+                          UserExportStatus.$unknown =>
+                            'profile.data.preparing'.tr(),
                         }, style: t.xs),
                       ],
                     ),
