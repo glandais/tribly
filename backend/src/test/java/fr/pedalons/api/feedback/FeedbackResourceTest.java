@@ -195,6 +195,27 @@ class FeedbackResourceTest extends AbstractResourceTest {
   }
 
   @Test
+  void feedback_bugWithoutMessage_isPublishedUnderItsError() {
+    ClientErrorDto error = new ClientErrorDto("TypeError", "x is undefined", WEB_STACK);
+    sendFeedback(
+        USER1, new FeedbackRequest(FeedbackKind.BUG, null, web("abc123"), error, logs()), 204);
+
+    assertNull(reports().getFirst().getMessage());
+    worker.publishPending();
+    ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
+    verify(github)
+        .createIssue(eq("[Bug][web] TypeError: x is undefined"), body.capture(), anyList());
+    assertTrue(body.getValue().contains("Pas de description du membre"), body.getValue());
+  }
+
+  @Test
+  void feedback_suggestionWithoutMessage_isRejected() {
+    sendFeedback(
+        USER1, new FeedbackRequest(FeedbackKind.SUGGESTION, null, web("abc123"), null, null), 400);
+    assertTrue(reports().isEmpty());
+  }
+
+  @Test
   void feedback_isRateLimitedPerMember() {
     for (int i = 0; i < 5; i++) {
       sendFeedback(USER1, feedback(null), 204);

@@ -9,10 +9,10 @@ part of 'feedback_request.dart';
 _FeedbackRequest _$FeedbackRequestFromJson(Map<String, dynamic> json) =>
     _FeedbackRequest(
       kind: json['kind'] as String,
-      message: json['message'] as String,
       context: ClientContextDto.fromJson(
         json['context'] as Map<String, dynamic>,
       ),
+      message: json['message'] as String?,
       error: json['error'] == null
           ? null
           : ClientErrorDto.fromJson(json['error'] as Map<String, dynamic>),
@@ -24,8 +24,8 @@ _FeedbackRequest _$FeedbackRequestFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$FeedbackRequestToJson(_FeedbackRequest instance) =>
     <String, dynamic>{
       'kind': instance.kind,
-      'message': instance.message,
       'context': instance.context.toJson(),
+      'message': instance.message,
       'error': instance.error?.toJson(),
       'logs': instance.logs?.map((e) => e.toJson()).toList(),
     };

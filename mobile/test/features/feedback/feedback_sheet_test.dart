@@ -224,4 +224,32 @@ void main() {
     await tester.pumpAndSettle();
     expect(repository.sent.single.error, error);
   });
+
+  testWidgets('un bug part sans message, une suggestion non', (
+    WidgetTester tester,
+  ) async {
+    const ClientErrorDto error = ClientErrorDto(
+      type: 'StateError',
+      message: 'Bad state: boom',
+    );
+    await open(tester, error: error);
+
+    await tester.tap(find.text('Suggestion'));
+    await tester.pump();
+    await tester.tap(find.text('Envoyer'));
+    await tester.pump();
+    expect(repository.sent, isEmpty);
+    expect(find.text('Au moins 10 caractères.'), findsOneWidget);
+
+    await tester.tap(find.text('Bug'));
+    await tester.pump();
+    expect(find.text('Au moins 10 caractères.'), findsNothing);
+    await tester.tap(find.text('Envoyer'));
+    await tester.pumpAndSettle();
+
+    final FeedbackRequest request = repository.sent.single;
+    expect(request.kind, 'BUG');
+    expect(request.message, isNull);
+    expect(request.error, error);
+  });
 }

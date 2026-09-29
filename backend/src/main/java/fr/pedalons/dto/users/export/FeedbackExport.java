@@ -13,7 +13,7 @@ import org.jspecify.annotations.Nullable;
 public record FeedbackExport(
     String kind,
     String platform,
-    String message,
+    @Nullable String message,
     JsonNode context,
     @Nullable JsonNode error,
     @Nullable JsonNode logs,

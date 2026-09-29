@@ -19,11 +19,11 @@ abstract class FeedbackRequest with _$FeedbackRequest {
     /// Bug or suggestion
     required String kind,
 
-    /// What happened, in the member's words
-    required String message,
-
     /// Client, device and screen
     required ClientContextDto context,
+
+    /// What happened, in the member's words. Required for a suggestion; optional for a bug, whose member may not know what went wrong — the context, error and log then speak for them.
+    String? message,
 
     /// The unhandled error the report was opened from, if any. Links the report to the automatic error report of the same error.
     ClientErrorDto? error,

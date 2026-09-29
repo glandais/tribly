@@ -16,7 +16,10 @@ import '../../../core/utils/api_error_handler.dart';
 import '../../../keys.dart';
 import '../data/feedback_repository.dart';
 
-/// Bornes du message, imposées par `FeedbackRequest` au contrat.
+/// Bornes du message, imposées par `FeedbackRequest` au contrat. Un bug peut
+/// partir sans message — qui tombe sur une erreur ne sait pas forcément ce qui
+/// s'est passé, le contexte et le journal parlent pour lui ; une suggestion,
+/// jamais.
 const int kFeedbackMinLength = 10;
 const int kFeedbackMaxLength = 5000;
 
@@ -95,12 +98,15 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
 
   int get _length => _controller.text.trim().length;
 
+  bool get _messageOptional => _kind == FeedbackKind.bug;
+
   bool get _withinBounds =>
-      _length >= kFeedbackMinLength && _length <= kFeedbackMaxLength;
+      (_length == 0 && _messageOptional) ||
+      (_length >= kFeedbackMinLength && _length <= kFeedbackMaxLength);
 
   FeedbackRequest _request() => FeedbackRequest(
     kind: _kind.toJson(),
-    message: _controller.text.trim(),
+    message: _length == 0 ? null : _controller.text.trim(),
     context: _attach ? _context : _minimalContext,
     error: _attach ? widget.error : null,
     logs: _attach ? _logs : null,
@@ -242,7 +248,8 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
                 children: <Widget>[
                   Expanded(
                     child: Text(
-                      _length < kFeedbackMinLength
+                      _length < kFeedbackMinLength &&
+                              (_length > 0 || !_messageOptional)
                           ? 'feedback.tooShort'.tr(
                               namedArgs: <String, String>{
                                 'min': '$kFeedbackMinLength',

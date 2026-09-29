@@ -1595,7 +1595,7 @@
   "feedback.kind.BUG": "Un problème",
   "feedback.kind.SUGGESTION": "Une suggestion",
   "feedback.menu": "Signaler un problème",
-  "feedback.messageLabel.BUG": "Que s'est-il passé ?",
+  "feedback.messageLabel.BUG": "Que s'est-il passé ? (facultatif)",
   "feedback.messageLabel.SUGGESTION": "Votre idée",
   "feedback.placeholder.BUG": "Ce que vous faisiez, ce que vous attendiez, ce qui s'est produit…",
   "feedback.placeholder.SUGGESTION": "Ce qui vous manque, ce qui pourrait être plus simple…",

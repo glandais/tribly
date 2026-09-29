@@ -49,12 +49,14 @@ public class FeedbackIssueRenderer {
     ClientContextDto context = read(report.getContext(), ClientContextDto.class);
     @Nullable ClientErrorDto error =
         report.getError() == null ? null : read(report.getError(), ClientErrorDto.class);
-    String message = LogRedactor.redact(report.getMessage());
+    @Nullable String message =
+        report.getMessage() == null ? null : LogRedactor.redact(report.getMessage());
     String kind = report.getKind() == FeedbackKind.BUG ? "Bug" : "Suggestion";
     String platform = report.getPlatform().name().toLowerCase(Locale.ROOT);
 
     StringBuilder head = new StringBuilder();
-    head.append(quote(message)).append("\n\n");
+    head.append(message == null ? "_Pas de description du membre._" : quote(message))
+        .append("\n\n");
     head.append(contextTable(context, report.getDomain().getDomain(), report.getUser().getId()));
     head.append(
         row(
@@ -75,10 +77,22 @@ public class FeedbackIssueRenderer {
     }
     String body = withLogs(head.toString(), logs(report.getLogs()));
     return new Issue(
-        "[" + kind + "][" + platform + "] " + excerpt(message),
+        "[" + kind + "][" + platform + "] " + excerpt(title(message, error, context)),
         body,
         List.of(
             "feedback", kind.toLowerCase(Locale.ROOT), platform, report.getDomain().getDomain()));
+  }
+
+  /** The member's words; without them, the error they reported from, or the screen at least. */
+  private static String title(
+      @Nullable String message, @Nullable ClientErrorDto error, ClientContextDto context) {
+    if (message != null) {
+      return message;
+    }
+    if (error != null) {
+      return error.type() + ": " + error.message();
+    }
+    return context.route() == null ? "Sans description" : "Sans description, " + context.route();
   }
 
   public Issue signature(ErrorSignature signature, ErrorOccurrence occurrence) {

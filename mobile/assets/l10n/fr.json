@@ -1227,7 +1227,7 @@
       "bug": "Bug",
       "suggestion": "Suggestion"
     },
-    "placeholderBug": "Ce que vous faisiez, ce qui s'est passé, ce que vous attendiez…",
+    "placeholderBug": "Facultatif : ce que vous faisiez, ce qui s'est passé, ce que vous attendiez…",
     "placeholderSuggestion": "Ce qui vous manque, ou ce qui vous simplifierait la vie…",
     "tooShort": "Au moins {min} caractères.",
     "errorAttached": "Erreur jointe :",

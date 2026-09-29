@@ -47,7 +47,10 @@ export const SendFeedbackBody = zod
       .string()
       .min(sendFeedbackBodyMessageMin)
       .max(sendFeedbackBodyMessageMax)
-      .describe("What happened, in the member's words"),
+      .optional()
+      .describe(
+        "What happened, in the member's words. Required for a suggestion; optional for a bug, whose member may not know what went wrong — the context, error and log then speak for them."
+      ),
     context: zod
       .object({
         platform: zod.enum(['WEB', 'ANDROID', 'IOS']).describe('The client'),

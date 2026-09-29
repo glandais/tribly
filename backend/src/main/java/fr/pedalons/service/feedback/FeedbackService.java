@@ -3,6 +3,7 @@ package fr.pedalons.service.feedback;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.pedalons.common.exception.TooManyRequestsException;
+import fr.pedalons.common.exception.ValidationException;
 import fr.pedalons.domain.feedback.ErrorOccurrence;
 import fr.pedalons.domain.feedback.ErrorSignature;
 import fr.pedalons.domain.feedback.FeedbackReport;
@@ -13,6 +14,7 @@ import fr.pedalons.dto.feedback.request.ClientErrorDto;
 import fr.pedalons.dto.feedback.request.ClientLogEntryDto;
 import fr.pedalons.dto.feedback.request.ErrorReportRequest;
 import fr.pedalons.dto.feedback.request.FeedbackRequest;
+import fr.pedalons.enums.FeedbackKind;
 import fr.pedalons.repository.feedback.ErrorOccurrenceRepository;
 import fr.pedalons.repository.feedback.ErrorSignatureRepository;
 import fr.pedalons.repository.feedback.FeedbackReportRepository;
@@ -68,10 +70,16 @@ public class FeedbackService {
    * @throws TooManyRequestsException {@code FEEDBACK_RATE_LIMITED} past the per-member quota. A
    *     person does not write five bug reports an hour; a script does, and every one of them is an
    *     issue someone has to read.
+   * @throws ValidationException {@code VALIDATION} for a suggestion without a message. A bug may
+   *     come without one: the member who hit it may not know what happened.
    */
   @Logged
   @Transactional
   public void submit(FeedbackRequest request) {
+    @Nullable String message = request.message() == null ? null : request.message().strip();
+    if (request.kind() == FeedbackKind.SUGGESTION && message == null) {
+      throw new ValidationException(ErrorCode.VALIDATION, null, null);
+    }
     User user = pedalonsContext.getUser();
     Instant now = Instant.now();
     long recent =
@@ -93,7 +101,7 @@ public class FeedbackService {
     report.setUser(user);
     report.setKind(request.kind());
     report.setPlatform(context.platform());
-    report.setMessage(request.message().strip());
+    report.setMessage(message);
     report.setContext(objectMapper.valueToTree(context));
     report.setError(error == null ? null : objectMapper.valueToTree(error));
     report.setLogs(request.logs() == null ? null : logs(request.logs()));

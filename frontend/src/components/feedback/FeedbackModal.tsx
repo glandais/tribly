@@ -53,8 +53,11 @@ export function FeedbackModal() {
   const form = useForm({
     initialValues: { kind: 'BUG' as FeedbackKind, message: '', attach: true },
     validate: {
-      message: (value) => {
+      // A bug may go without a description: whoever hit an error may not know what happened, and
+      // the context, error and log speak for them. A suggestion is nothing but its text.
+      message: (value, values) => {
         const length = value.trim().length
+        if (length === 0 && values.kind === 'BUG') return null
         if (length < sendFeedbackBodyMessageMin) return t('feedback.error.tooShort')
         if (length > sendFeedbackBodyMessageMax) return t('feedback.error.tooLong')
         return null
@@ -91,7 +94,7 @@ export function FeedbackModal() {
       {
         data: {
           kind: values.kind,
-          message: values.message.trim(),
+          message: values.message.trim() || undefined,
           context: values.attach ? ctx : { platform: ctx.platform, appVersion: ctx.appVersion },
           error: values.attach ? error : undefined,
           logs: values.attach ? logs : undefined,

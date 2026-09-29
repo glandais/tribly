@@ -55,8 +55,9 @@ public class FeedbackReport {
   @Column(name = "platform", nullable = false, length = 20)
   private ClientPlatform platform;
 
-  @Column(name = "message", nullable = false, columnDefinition = "text")
-  private String message;
+  /** Null for a bug the member did not describe; a suggestion always has one. */
+  @Column(name = "message", columnDefinition = "text")
+  private @Nullable String message;
 
   /** {@code ClientContextDto}, serialized. */
   @Type(JsonBinaryType.class)

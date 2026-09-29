@@ -1958,7 +1958,6 @@ components:
       type: object
       required:
       - kind
-      - message
       - context
       properties:
         kind:
@@ -1967,7 +1966,9 @@ components:
           $ref: "#/components/schemas/FeedbackKind"
         message:
           type: string
-          description: "What happened, in the member's words"
+          description: "What happened, in the member's words. Required for a suggestion;\
+            \ optional for a bug, whose member may not know what went wrong — the\
+            \ context, error and log then speak for them."
           minLength: 10
           maxLength: 5000
         context:
@@ -15826,7 +15827,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 6.0.0
+  version: 6.1.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

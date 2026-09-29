@@ -10,11 +10,11 @@ export interface FeedbackRequest {
   /** Bug or suggestion */
   kind: FeedbackKind
   /**
-   * What happened, in the member's words
+   * What happened, in the member's words. Required for a suggestion; optional for a bug, whose member may not know what went wrong — the context, error and log then speak for them.
    * @minLength 10
    * @maxLength 5000
    */
-  message: string
+  message?: string
   /** Client, device and screen */
   context: ClientContextDto
   /** The unhandled error the report was opened from, if any. Links the report to the automatic error report of the same error. */

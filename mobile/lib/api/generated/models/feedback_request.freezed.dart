@@ -17,9 +17,9 @@ T _$identity<T>(T value) => value;
 mixin _$FeedbackRequest {
 
 /// Bug or suggestion
- String get kind;/// What happened, in the member's words
- String get message;/// Client, device and screen
- ClientContextDto get context;/// The unhandled error the report was opened from, if any. Links the report to the automatic error report of the same error.
+ String get kind;/// Client, device and screen
+ ClientContextDto get context;/// What happened, in the member's words. Required for a suggestion; optional for a bug, whose member may not know what went wrong — the context, error and log then speak for them.
+ String? get message;/// The unhandled error the report was opened from, if any. Links the report to the automatic error report of the same error.
  ClientErrorDto? get error;/// The client's recent log, oldest first. Absent when the member chose not to attach technical details.
  List<ClientLogEntryDto>? get logs;
 /// Create a copy of FeedbackRequest
@@ -35,20 +35,20 @@ $FeedbackRequestCopyWith<FeedbackRequest> get copyWith => _$FeedbackRequestCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as FeedbackRequest;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FeedbackRequest&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.context, _this.context) || other.context == _this.context)&&(identical(other.error, _this.error) || other.error == _this.error)&&const DeepCollectionEquality().equals(other.logs, _this.logs));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FeedbackRequest&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.context, _this.context) || other.context == _this.context)&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.error, _this.error) || other.error == _this.error)&&const DeepCollectionEquality().equals(other.logs, _this.logs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as FeedbackRequest;
-  return Object.hash(runtimeType,_this.kind,_this.message,_this.context,_this.error,const DeepCollectionEquality().hash(_this.logs));
+  return Object.hash(runtimeType,_this.kind,_this.context,_this.message,_this.error,const DeepCollectionEquality().hash(_this.logs));
 }
 
 @override
 String toString() {
   final _this = this as FeedbackRequest;
-  return 'FeedbackRequest(kind: ${_this.kind}, message: ${_this.message}, context: ${_this.context}, error: ${_this.error}, logs: ${_this.logs})';
+  return 'FeedbackRequest(kind: ${_this.kind}, context: ${_this.context}, message: ${_this.message}, error: ${_this.error}, logs: ${_this.logs})';
 }
 
 
@@ -59,7 +59,7 @@ abstract mixin class $FeedbackRequestCopyWith<$Res>  {
   factory $FeedbackRequestCopyWith(FeedbackRequest value, $Res Function(FeedbackRequest) _then) = _$FeedbackRequestCopyWithImpl;
 @useResult
 $Res call({
- String kind, String message, ClientContextDto context, ClientErrorDto? error, List<ClientLogEntryDto>? logs
+ String kind, ClientContextDto context, String? message, ClientErrorDto? error, List<ClientLogEntryDto>? logs
 });
 
 
@@ -76,12 +76,12 @@ class _$FeedbackRequestCopyWithImpl<$Res>
 
 /// Create a copy of FeedbackRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? kind = null,Object? message = null,Object? context = null,Object? error = freezed,Object? logs = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? kind = null,Object? context = null,Object? message = freezed,Object? error = freezed,Object? logs = freezed,}) {
   return _then(FeedbackRequest(
 kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
-as String,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,context: null == context ? _self.context : context // ignore: cast_nullable_to_non_nullable
-as ClientContextDto,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as ClientContextDto,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as ClientErrorDto?,logs: freezed == logs ? _self.logs : logs // ignore: cast_nullable_to_non_nullable
 as List<ClientLogEntryDto>?,
   ));
@@ -189,10 +189,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String kind,  String message,  ClientContextDto context,  ClientErrorDto? error,  List<ClientLogEntryDto>? logs)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String kind,  ClientContextDto context,  String? message,  ClientErrorDto? error,  List<ClientLogEntryDto>? logs)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FeedbackRequest() when $default != null:
-return $default(_that.kind,_that.message,_that.context,_that.error,_that.logs);case _:
+return $default(_that.kind,_that.context,_that.message,_that.error,_that.logs);case _:
   return orElse();
 
 }
@@ -210,10 +210,10 @@ return $default(_that.kind,_that.message,_that.context,_that.error,_that.logs);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String kind,  String message,  ClientContextDto context,  ClientErrorDto? error,  List<ClientLogEntryDto>? logs)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String kind,  ClientContextDto context,  String? message,  ClientErrorDto? error,  List<ClientLogEntryDto>? logs)  $default,) {final _that = this;
 switch (_that) {
 case _FeedbackRequest():
-return $default(_that.kind,_that.message,_that.context,_that.error,_that.logs);case _:
+return $default(_that.kind,_that.context,_that.message,_that.error,_that.logs);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -230,10 +230,10 @@ return $default(_that.kind,_that.message,_that.context,_that.error,_that.logs);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String kind,  String message,  ClientContextDto context,  ClientErrorDto? error,  List<ClientLogEntryDto>? logs)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String kind,  ClientContextDto context,  String? message,  ClientErrorDto? error,  List<ClientLogEntryDto>? logs)?  $default,) {final _that = this;
 switch (_that) {
 case _FeedbackRequest() when $default != null:
-return $default(_that.kind,_that.message,_that.context,_that.error,_that.logs);case _:
+return $default(_that.kind,_that.context,_that.message,_that.error,_that.logs);case _:
   return null;
 
 }
@@ -245,15 +245,15 @@ return $default(_that.kind,_that.message,_that.context,_that.error,_that.logs);c
 @JsonSerializable()
 
 class _FeedbackRequest implements FeedbackRequest {
-  const _FeedbackRequest({required this.kind, required this.message, required this.context, this.error,  List<ClientLogEntryDto>? logs}): _logs = logs;
+  const _FeedbackRequest({required this.kind, required this.context, this.message, this.error,  List<ClientLogEntryDto>? logs}): _logs = logs;
   factory _FeedbackRequest.fromJson(Map<String, dynamic> json) => _$FeedbackRequestFromJson(json);
 
 /// Bug or suggestion
 @override final  String kind;
-/// What happened, in the member's words
-@override final  String message;
 /// Client, device and screen
 @override final  ClientContextDto context;
+/// What happened, in the member's words. Required for a suggestion; optional for a bug, whose member may not know what went wrong — the context, error and log then speak for them.
+@override final  String? message;
 /// The unhandled error the report was opened from, if any. Links the report to the automatic error report of the same error.
 @override final  ClientErrorDto? error;
 /// The client's recent log, oldest first. Absent when the member chose not to attach technical details.
@@ -281,18 +281,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FeedbackRequest&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.message, message) || other.message == message)&&(identical(other.context, context) || other.context == context)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other.logs, _logs));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FeedbackRequest&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.context, context) || other.context == context)&&(identical(other.message, message) || other.message == message)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other.logs, _logs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,kind,message,context,error,const DeepCollectionEquality().hash(_logs));
+    return Object.hash(runtimeType,kind,context,message,error,const DeepCollectionEquality().hash(_logs));
 }
 
 @override
 String toString() {
-    return 'FeedbackRequest(kind: $kind, message: $message, context: $context, error: $error, logs: $logs)';
+    return 'FeedbackRequest(kind: $kind, context: $context, message: $message, error: $error, logs: $logs)';
 }
 
 
@@ -303,7 +303,7 @@ abstract mixin class _$FeedbackRequestCopyWith<$Res> implements $FeedbackRequest
   factory _$FeedbackRequestCopyWith(_FeedbackRequest value, $Res Function(_FeedbackRequest) _then) = __$FeedbackRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String kind, String message, ClientContextDto context, ClientErrorDto? error, List<ClientLogEntryDto>? logs
+ String kind, ClientContextDto context, String? message, ClientErrorDto? error, List<ClientLogEntryDto>? logs
 });
 
 
@@ -320,12 +320,12 @@ class __$FeedbackRequestCopyWithImpl<$Res>
 
 /// Create a copy of FeedbackRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? kind = null,Object? message = null,Object? context = null,Object? error = freezed,Object? logs = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? kind = null,Object? context = null,Object? message = freezed,Object? error = freezed,Object? logs = freezed,}) {
   return _then(_FeedbackRequest(
 kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
-as String,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,context: null == context ? _self.context : context // ignore: cast_nullable_to_non_nullable
-as ClientContextDto,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as ClientContextDto,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as ClientErrorDto?,logs: freezed == logs ? _self._logs : logs // ignore: cast_nullable_to_non_nullable
 as List<ClientLogEntryDto>?,
   ));

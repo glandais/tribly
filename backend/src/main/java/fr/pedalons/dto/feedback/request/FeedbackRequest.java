@@ -12,7 +12,12 @@ import org.jspecify.annotations.Nullable;
 @ValidateSchema
 public record FeedbackRequest(
     @Schema(description = "Bug or suggestion", required = true) FeedbackKind kind,
-    @Schema(description = "What happened, in the member's words", required = true)
+    @Nullable
+        @Schema(
+            description =
+                "What happened, in the member's words. Required for a suggestion; optional for a"
+                    + " bug, whose member may not know what went wrong — the context, error and log"
+                    + " then speak for them.")
         @Size(min = 10, max = 5000)
         String message,
     @Schema(description = "Client, device and screen", required = true) @Valid

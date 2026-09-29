@@ -1227,7 +1227,7 @@
       "bug": "Bug",
       "suggestion": "Suggestion"
     },
-    "placeholderBug": "What you were doing, what happened, what you expected…",
+    "placeholderBug": "Optional: what you were doing, what happened, what you expected…",
     "placeholderSuggestion": "What's missing, or what would make things easier…",
     "tooShort": "At least {min} characters.",
     "errorAttached": "Error attached:",
