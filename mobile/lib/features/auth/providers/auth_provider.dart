@@ -11,6 +11,7 @@ import '../../notifications/data/push_device_repository.dart';
 import '../../notifications/providers/push_provider.dart';
 import '../../routes/data/tile_token_repository.dart';
 import '../data/auth_repository.dart';
+import '../data/passkey_management_repository.dart';
 import '../data/secure_storage.dart';
 import '../domain/auth_state.dart';
 import 'pending_sign_in_link.dart';
@@ -127,7 +128,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     bool hasPasskeys = false;
     if (response.accessToken != null) {
       try {
-        final passkeys = await _repository.listPasskeys(response.accessToken!);
+        // Le jeton vient d'être posé dans le porte-jeton (plus haut) : le
+        // client authentifié le porte, comme `getMe`.
+        final passkeys = await _ref
+            .read(passkeyManagementRepositoryProvider)
+            .listPasskeys();
         hasPasskeys = passkeys.isNotEmpty;
       } on DioException catch (e) {
         log(

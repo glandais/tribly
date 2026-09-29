@@ -7,6 +7,7 @@ import 'package:pedalons/core/pagination/pagination.dart';
 import 'package:pedalons/core/preferences/user_preferences_provider.dart';
 import 'package:pedalons/core/theme/pedalons_theme.dart';
 import 'package:pedalons/features/auth/data/auth_repository.dart';
+import 'package:pedalons/features/auth/data/passkey_management_repository.dart';
 import 'package:pedalons/features/auth/data/secure_storage.dart';
 import 'package:pedalons/features/auth/domain/auth_state.dart';
 import 'package:pedalons/features/auth/providers/auth_provider.dart';
@@ -34,16 +35,21 @@ const UserDto _user = UserDto(
 );
 
 class _FakeAuthRepository implements AuthRepository {
-  _FakeAuthRepository(this.passkeys);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakePasskeys implements PasskeyManagementRepository {
+  _FakePasskeys(this.passkeys);
 
   List<PasskeyDto> passkeys;
   final List<String> deleted = <String>[];
 
   @override
-  Future<List<PasskeyDto>> listPasskeys(String accessToken) async => passkeys;
+  Future<List<PasskeyDto>> listPasskeys() async => passkeys;
 
   @override
-  Future<void> deletePasskey(String id, String accessToken) async {
+  Future<void> deletePasskey(String id) async {
     deleted.add(id);
   }
 
@@ -119,19 +125,21 @@ void main() {
     prefs = await SharedPreferences.getInstance();
   });
 
-  Future<_FakeAuthRepository> mount(
+  Future<_FakePasskeys> mount(
     WidgetTester tester,
     Widget child, {
     List<PasskeyDto> passkeys = const <PasskeyDto>[],
     Brightness brightness = Brightness.light,
     _StubProfileRepository? profile,
   }) async {
-    final _FakeAuthRepository auth = _FakeAuthRepository(passkeys);
+    final _FakeAuthRepository auth = _FakeAuthRepository();
+    final _FakePasskeys keys = _FakePasskeys(passkeys);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           authRepositoryProvider.overrideWithValue(auth),
+          passkeyManagementRepositoryProvider.overrideWithValue(keys),
           profileRepositoryProvider.overrideWithValue(
             profile ?? _StubProfileRepository(),
           ),
@@ -147,7 +155,7 @@ void main() {
     for (int i = 0; i < 4; i++) {
       await tester.pump(const Duration(milliseconds: 10));
     }
-    return auth;
+    return keys;
   }
 
   group('préférences', () {
@@ -214,7 +222,7 @@ void main() {
     testWidgets('supprimer demande confirmation et nomme la clé', (
       WidgetTester tester,
     ) async {
-      final _FakeAuthRepository auth = await mount(
+      final _FakePasskeys auth = await mount(
         tester,
         const PasskeysSection(),
         passkeys: two,

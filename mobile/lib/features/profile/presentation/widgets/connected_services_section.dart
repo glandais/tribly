@@ -12,7 +12,6 @@ import '../../../../api/pedalons_api_client.dart';
 import '../../../../core/utils/link_launcher.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
-import '../../../auth/data/auth_repository.dart';
 import '../../data/profile_repository.dart';
 import 'confirm_sheet.dart';
 
@@ -20,9 +19,9 @@ import 'confirm_sheet.dart';
 /// changer : `UserDto.connectedServices` en est la seule
 /// source, et rien ne la pousse.
 Future<void> _refreshUser(WidgetRef ref) async {
-  final String? token = ref.read(accessTokenHolderProvider);
-  if (token == null) return;
-  final UserDto user = await ref.read(authRepositoryProvider).getMe(token);
+  if (ref.read(accessTokenHolderProvider) == null) return;
+  // Le client authentifié : un jeton expiré y est rafraîchi, pas refusé.
+  final UserDto user = await ref.read(usersClientProvider).getMe();
   ref.read(authProvider.notifier).setUser(user);
 }
 

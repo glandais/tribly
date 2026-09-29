@@ -6,6 +6,7 @@ import '../../../api/generated/export.dart';
 import '../../../api/pedalons_api_client.dart';
 import '../../../config/app_config.dart';
 import '../data/auth_repository.dart';
+import '../data/passkey_management_repository.dart';
 import '../providers/auth_provider.dart';
 
 /// Provider for passkey service
@@ -74,16 +75,16 @@ class PasskeyService {
 
   /// Register a new passkey for the current user
   Future<PasskeyDto> register({String? deviceName}) async {
-    // Get current access token
-    final accessToken = _ref.read(accessTokenHolderProvider);
-    if (accessToken == null) {
+    if (_ref.read(accessTokenHolderProvider) == null) {
       throw Exception('User must be authenticated to register a passkey');
     }
+    // Le client authentifié pose le jeton et le rafraîchit s'il a expiré.
+    final PasskeyManagementRepository passkeys = _ref.read(
+      passkeyManagementRepositoryProvider,
+    );
 
     // Get registration options from server
-    final options = await _repository.getPasskeyRegistrationOptions(
-      accessToken,
-    );
+    final options = await passkeys.getRegistrationOptions();
 
     final user = options['user'] as Map<String, dynamic>;
     final rp = options['rp'] as Map<String, dynamic>?;
@@ -154,9 +155,8 @@ class PasskeyService {
     };
 
     // Register with backend
-    final passkey = await _repository.registerPasskey(
+    final passkey = await passkeys.registerPasskey(
       credential,
-      accessToken,
       deviceName: deviceName,
     );
 

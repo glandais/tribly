@@ -90,34 +90,6 @@ class AuthRepository {
 
   // Passkey endpoints
 
-  /// Get passkey registration options (requires auth - use token)
-  /// Note: Uses Dio directly because the generated client returns void
-  Future<Map<String, dynamic>> getPasskeyRegistrationOptions(
-    String accessToken,
-  ) async {
-    final response = await _dio.get(
-      '/api/auth/passkeys/registration-options',
-      options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
-    );
-    return response.data as Map<String, dynamic>;
-  }
-
-  /// Register a passkey (requires auth - use token)
-  /// Note: Uses Dio directly for custom auth header
-  Future<PasskeyDto> registerPasskey(
-    Map<String, dynamic> credential,
-    String accessToken, {
-    String? deviceName,
-  }) async {
-    final response = await _dio.post(
-      '/api/auth/passkeys/register',
-      data: credential,
-      queryParameters: deviceName != null ? {'deviceName': deviceName} : null,
-      options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
-    );
-    return PasskeyDto.fromJson(response.data as Map<String, Object?>);
-  }
-
   /// Get passkey authentication options
   /// Note: Uses Dio directly because the generated client returns void
   Future<Map<String, dynamic>> getPasskeyAuthenticationOptions({
@@ -137,34 +109,8 @@ class AuthRepository {
     return _passkeysClient.authenticate(body: credential);
   }
 
-  /// List user's passkeys (requires auth - use token)
-  /// Note: Uses Dio directly for custom auth header
-  Future<List<PasskeyDto>> listPasskeys(String accessToken) async {
-    final response = await _dio.get(
-      '/api/auth/passkeys',
-      options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
-    );
-    return (response.data as List)
-        .map((e) => PasskeyDto.fromJson(e as Map<String, Object?>))
-        .toList();
-  }
-
-  /// Delete a passkey (requires auth - use token)
-  /// Note: Uses Dio directly for custom auth header
-  Future<void> deletePasskey(String id, String accessToken) async {
-    await _dio.delete(
-      '/api/auth/passkeys/$id',
-      options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
-    );
-  }
-
-  /// Get current user (requires auth - use token)
-  /// Note: Uses Dio directly for custom auth header
-  Future<UserDto> getMe(String accessToken) async {
-    final response = await _dio.get(
-      '/api/users/me',
-      options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
-    );
-    return UserDto.fromJson(response.data as Map<String, Object?>);
-  }
+  // Les appels qui exigent le jeton d'accès — lister, ajouter, retirer une clé,
+  // relire `/api/users/me` — ne sont pas ici : ce dépôt parle au client de
+  // base, sans intercepteur, et un jeton passé à la main n'y est jamais
+  // rafraîchi. Voir `PasskeyManagementRepository` et `usersClientProvider`.
 }
