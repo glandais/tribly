@@ -779,6 +779,23 @@ The script ends by printing row counts, the object count and the status of `GET 
 last check is manual and the one that matters: open the site and confirm an existing photo renders —
 that path goes MinIO → imgproxy → varnish, so it proves the objects came back, not just the rows.
 
+**Objects older than the database keep their metadata.** Storage re-encodes every image on write,
+and `AssetMetadataBackfill` re-encodes those stored before it did, one `assets.metadata_pending` row
+at a time (ledger `API-43`). `restore.sh` takes the dump and the objects from the same snapshot, so
+the flags match the files. If the MinIO volume ever comes from an older copy than the database — a
+snapshot taken before the backfill had finished, laid under a database where it has — the photos
+come back with their EXIF and GPS position, and nothing flags them again. Flag them by hand, and
+the backfill (every 5 minutes) rewrites them:
+
+```sql
+UPDATE assets SET metadata_pending = true
+WHERE content_type LIKE 'image/%' OR type IN ('LOGO', 'IMAGE', 'ATTACHMENT');
+```
+
+Not after an ordinary restore: each pass is a lossy re-encode, so an image already clean only loses
+quality. GPX files need nothing — `GpxSanitizationBackfill`'s marker lives in the bucket, so a
+restored bucket comes back without it and the next nightly pass checks them all again.
+
 Flyway replays any migration newer than the dump on the next boot, so restoring an old snapshot
 under a recent image works; the reverse does not, which is why the MANIFEST records the commit. An
 image older than the snapshot fails at boot, in a crash loop, with:

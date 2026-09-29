@@ -670,6 +670,31 @@ Ce qui reste ouvert (`MAX_BULK_SLUGS` comme seul garde-fou) est `API-27`.
   après). Le tableau de bord « Quarkus Micrometer Prometheus registry » du Dev Service LGTM est
   provisionné à côté du nôtre, copié tel quel du dépôt Quarkus : le recopier pour le mettre à jour,
   ne pas le modifier. Test : `promtool test rules` (`services/monitoring/prometheus/tests/pedalons.test.yml`).
+- `OPS-15` **Restaurer MinIO sous une base plus récente : la marche à suivre écrite** (2026-09-30) —
+  la section « Restoring » d'[`OPERATIONS.md`](OPERATIONS.md#restoring) dit qu'un volume MinIO
+  plus ancien que la base (une copie antérieure à la fin du rattrapage `API-43`) ramène des photos
+  avec leur EXIF que rien ne revisitera, et donne l'`UPDATE assets SET metadata_pending = true` qui
+  les remet dans le rattrapage. Précisé à l'écriture : **pas après une restauration ordinaire** —
+  `restore.sh` prend base et objets dans le même instantané, les drapeaux concordent, et chaque
+  passe est un réencodage avec perte. Les GPX se réparent seuls (le marqueur de
+  `GpxSanitizationBackfill` vit dans le bucket). Pas de test (documentation).
+- `OPS-16` **imgproxy : copyright retiré, limite de résolution réelle** (2026-09-30) —
+  `docker-compose.yml` passe `IMGPROXY_KEEP_COPYRIGHT: "false"` (le défaut `true` laissait
+  `Copyright` et `Artist` dans les images servies des originaux pas encore rattrapés) et
+  `IMGPROXY_MAX_SRC_RESOLUTION` de `"50000000"` à `"50"`. L'unité est bien le **mégapixel** en v4,
+  vérifié sur `imgproxy:v4.0.14` : `0.01` refuse un PNG de 200 × 200 (422), `1` le sert (200). La
+  valeur précédente ne bornait donc rien contre une image géante ; 50 Mpx est ce que le
+  dimensionnement mémoire (`IMGPROXY_WORKERS`, 1536M) supposait déjà. Ne pas remettre une valeur
+  en pixels. Pas de test automatisé (configuration) ; prend effet au prochain `deploy.sh`.
+- `OPS-17` **Les originaux orphelins de `tmp/reencode/` expirent en un jour** (2026-09-30) — au
+  lieu d'un `mc ilm rule add` à passer à la main sur chaque environnement,
+  `S3StorageService.init` pose la règle au démarrage, juste après le contrôle du bucket :
+  expiration à 1 jour sur `REENCODE_PREFIX` (règle `expire-reencode-originals`), si bien que
+  production, staging, pile locale et pile e2e l'ont sans geste. Elle **remplace** la configuration
+  de cycle de vie du bucket, qui n'en porte pas d'autre : une règle ajoutée un jour à la main
+  serait effacée au redémarrage suivant — l'ajouter dans ce code. Un échec est journalisé en WARN,
+  pas fatal. Vérifié contre le MinIO local (`pgsty/minio`) avec le SDK du backend : règle acceptée,
+  relue, appel répété idempotent. Pas de test automatisé.
 
 ---
 

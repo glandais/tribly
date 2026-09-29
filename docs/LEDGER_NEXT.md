@@ -445,27 +445,6 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       convertir à la main. Redémarrer varnish pour qu'il charge le `pass` des réencodages
       (`services/varnish/varnish.vcl`). Tant que le compte n'est pas à zéro, la phrase du §1 sur les photos antérieures n'est vraie
       qu'en devenir (`API-43`, `API-44`).
-- [ ] `OPS-15` **Une restauration de MinIO peut ramener des originaux non nettoyés** — une
-      sauvegarde antérieure au rattrapage `API-43`, restaurée sur une base où `metadata_pending` est
-      déjà effacé, remet des photos avec leur EXIF que rien ne revisitera. Ajouter à la section
-      « Restoring » d'[`OPERATIONS.md`](OPERATIONS.md) : après une restauration de MinIO,
-      `UPDATE assets SET metadata_pending = true WHERE content_type LIKE 'image/%' OR type IN
-      ('LOGO','IMAGE','ATTACHMENT')`. Les GPX se réparent seuls (le marqueur revient absent avec le
-      bucket). Taille : XS.
-- [ ] `OPS-16` **imgproxy sert le copyright et n'a pas de limite de résolution réelle** — relevé le
-      29 septembre 2026 (`API-54`) : `IMGPROXY_KEEP_COPYRIGHT` vaut `true` par défaut et
-      `docker-compose.yml` ne le surcharge pas, si bien que les images servies gardent `Copyright`
-      et `Artist` (vérifié). Depuis que le stockage réencode (`API-43`, qui passe `kcr:0`), les
-      originaux n'en ont plus ; seuls les originaux pas encore rattrapés en servent. Ajouter
-      `IMGPROXY_KEEP_COPYRIGHT: "false"` reste une ceinture de plus. Et
-      `IMGPROXY_MAX_SRC_RESOLUTION: "50000000"` est lu en **mégapixels** selon la documentation,
-      donc aucune limite contre une image géante (déni de service) : probablement `"50"`, unité à
-      confirmer pour la v4. Taille : XS.
-- [ ] `OPS-17` **Des originaux orphelins peuvent rester sous `tmp/reencode/`** — `S3StorageService`
-      y dépose l'image envoyée, métadonnées comprises, le temps qu'imgproxy la réencode, et l'efface
-      dans un `finally` ; seule une JVM tuée entre les deux en laisse une (`API-43`). Une règle
-      d'expiration MinIO sur le préfixe (`mc ilm rule add --prefix tmp/ --expire-days 1`) les
-      purgerait sans code. Taille : XS.
 - [ ] `OPS-19` **Passer PostgreSQL 17 → 18** — dependabot l'a proposé (PR #338, fermée le
       29 septembre 2026 avec `ignore this major version`) en ne changeant que l'image de
       `docker-compose.yml`, ce qui empêcherait la prod de redémarrer : les fichiers d'un cluster 17

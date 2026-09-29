@@ -22,14 +22,20 @@ import org.jboss.logging.Logger;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.BucketLifecycleConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.LifecycleExpiration;
+import software.amazon.awssdk.services.s3.model.LifecycleRule;
+import software.amazon.awssdk.services.s3.model.LifecycleRuleFilter;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.PutBucketLifecycleConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /** S3-based implementation of {@link StorageService} for MinIO/S3 storage. */
 @Startup
@@ -60,6 +66,7 @@ public class S3StorageService implements StorageService {
     for (int attempt = 1; ; attempt++) {
       try {
         ensureBucketExists();
+        expireTemporaryObjects();
         return;
       } catch (SdkClientException e) {
         if (attempt == BUCKET_CHECK_ATTEMPTS) {
@@ -84,6 +91,36 @@ public class S3StorageService implements StorageService {
     } catch (NoSuchBucketException e) {
       LOG.infof("Creating S3 bucket '%s'", bucket);
       s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+    }
+  }
+
+  /**
+   * Has the bucket delete what is left under {@link #REENCODE_PREFIX} after a day. {@link #store}
+   * deletes its original there in a {@code finally}; only a JVM killed in between leaves
+   * one, with the metadata it was about to lose (docs/LEDGER_*.md OPS-17). Replaces the bucket's
+   * lifecycle configuration, which holds nothing else. A failure is logged, not fatal: the rule
+   * only sweeps up after a crash.
+   */
+  private void expireTemporaryObjects() {
+    try {
+      s3Client.putBucketLifecycleConfiguration(
+          PutBucketLifecycleConfigurationRequest.builder()
+              .bucket(bucket)
+              .lifecycleConfiguration(
+                  BucketLifecycleConfiguration.builder()
+                      .rules(
+                          LifecycleRule.builder()
+                              .id("expire-reencode-originals")
+                              .filter(LifecycleRuleFilter.builder().prefix(REENCODE_PREFIX).build())
+                              .expiration(LifecycleExpiration.builder().days(1).build())
+                              .status("Enabled")
+                              .build())
+                      .build())
+              .build());
+    } catch (S3Exception e) {
+      LOG.warnf(
+          "Cannot set the expiry of %s in bucket '%s': %s",
+          REENCODE_PREFIX, bucket, e.getMessage());
     }
   }
 

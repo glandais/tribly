@@ -211,7 +211,12 @@ services:
       IMGPROXY_AUTO_AVIF: "true"
       IMGPROXY_AUTO_JXL: "true"
       IMGPROXY_QUALITY: "85"
-      IMGPROXY_MAX_SRC_RESOLUTION: "50000000"
+      # In megapixels, not pixels (checked on v4.0.14: 0.01 refuses a 200×200 PNG, 1 serves it).
+      # The former "50000000" set no limit at all against a giant image.
+      IMGPROXY_MAX_SRC_RESOLUTION: "50"
+      # Defaults to true: served images would keep Copyright and Artist. Storage already re-encodes
+      # with kcr:0 (docs/LEDGER_*.md API-43); this covers the originals not yet backfilled.
+      IMGPROXY_KEEP_COPYRIGHT: "false"
       IMGPROXY_MAX_ANIMATION_FRAMES: "100"
       IMGPROXY_USE_ETAG: "true"
       IMGPROXY_USE_S3: "true"
