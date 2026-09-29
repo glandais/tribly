@@ -1602,5 +1602,8 @@
   "feedback.send": "Envoyer",
   "feedback.sent": "Merci ! Votre signalement a bien été transmis à l'équipe.",
   "feedback.showPreview": "Voir ce qui sera envoyé",
-  "feedback.title": "Signaler un problème"
+  "feedback.title": "Signaler un problème",
+  "share.button": "Partager",
+  "share.copied": "Lien copié",
+  "share.copyFailed": "Impossible de copier le lien"
 }

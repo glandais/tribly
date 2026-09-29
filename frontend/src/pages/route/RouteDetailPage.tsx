@@ -18,6 +18,7 @@ import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { CommentSection } from '../../components/comment'
 import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
+import { ShareButton } from '../../components/common/ShareButton'
 import { ReportTargetType } from '@/api/dto'
 import { useAuthStore, selectUser } from '@/store/authStore'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
@@ -137,6 +138,7 @@ export function RouteDetailPage() {
                 </Button>
               </>
             )}
+            <ShareButton title={route.name} />
             <ContentActionsMenu
               teamSlug={team.slug}
               teamName={team.name}

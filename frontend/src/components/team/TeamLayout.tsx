@@ -15,6 +15,7 @@ import { useFavicon } from '../../hooks/useFavicon'
 import { useTeamNavItems } from '@/hooks/useNavItems'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { NavButtons } from '../common/NavButtons'
+import { ShareButton } from '../common/ShareButton'
 import { VisibilityBadge } from '../card/common'
 import { TeamAvatar } from './TeamAvatar'
 import type { TeamDetailDto } from '@/api/dto'
@@ -110,6 +111,8 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
                   {t('teams.detail.actions.admin')}
                 </Button>
               )}
+
+              <ShareButton title={team.name} />
             </Group>
           </Group>
         </Box>

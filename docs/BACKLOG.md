@@ -25,7 +25,8 @@ Must-have for public launch. Focus on first impressions and core UX.
 - [X] SSR/Dynamic meta — shipped without Next.js: Express server-side rendering of the React app
       (`frontend/docs/SSR.md`) and per-page Open Graph/Twitter tags (`frontend/docs/LINK_PREVIEW.md`)
 - [ ] Dynamic sitemap.xml — Requires backend endpoint
-- [ ] Share URL (Social) — Viral loop
+- [x] Share URL (Social) — Viral loop — share button on the web detail pages and team header
+      (ledger `WEB-30`); the mobile app already shared links
 
 ### Core Features (In Progress)
 - [X] Slug changes with redirects

@@ -34,6 +34,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
+import { ShareButton } from '../../components/common/ShareButton'
 import { CommentSection } from '../../components/comment'
 import { TeamContextBanner } from '../../components/team/TeamContextBanner'
 import { useFormattedDate } from '../../utils/dateFormat'
@@ -259,6 +260,7 @@ export function PostDetailPage() {
                   </Menu>
                 </Button.Group>
               )}
+              <ShareButton title={post.name} />
               <ContentActionsMenu
                 teamSlug={post.team.slug}
                 teamName={post.team.name}

@@ -67,6 +67,7 @@ import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
+import { ShareButton } from '../../components/common/ShareButton'
 import { CommentSection } from '../../components/comment'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
@@ -372,6 +373,7 @@ export function TripDetailPage() {
                   </Menu>
                 </Button.Group>
               )}
+              <ShareButton title={trip.name} />
               <ContentActionsMenu
                 teamSlug={trip.team.slug}
                 teamName={trip.team.name}

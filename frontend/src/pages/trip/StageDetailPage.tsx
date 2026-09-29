@@ -26,6 +26,7 @@ import { EntityLogo } from '../../components/common/EntityLogo'
 import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { Status } from '@/api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
+import { ShareButton } from '../../components/common/ShareButton'
 
 const statusColors: Record<Status, 'gray' | 'green' | 'red'> = {
   [Status.DRAFT]: 'gray',
@@ -143,16 +144,19 @@ export function StageDetailPage() {
             </Badge>
           </Group>
 
-          {canEdit && (
-            <Button
-              component={PrefetchLink}
-              to={paths.tripEdit(teamSlug!, tripSlug!)}
-              variant="outline"
-              leftSection={<IconPencil size={16} />}
-            >
-              {t('actions.edit')}
-            </Button>
-          )}
+          <Group gap="xs" wrap="nowrap">
+            {canEdit && (
+              <Button
+                component={PrefetchLink}
+                to={paths.tripEdit(teamSlug!, tripSlug!)}
+                variant="outline"
+                leftSection={<IconPencil size={16} />}
+              >
+                {t('actions.edit')}
+              </Button>
+            )}
+            <ShareButton title={stage.name || trip.name} />
+          </Group>
         </Group>
       </Paper>
 
