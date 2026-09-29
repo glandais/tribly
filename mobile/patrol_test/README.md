@@ -135,26 +135,8 @@ left today.
 
 ## Not covered yet
 
-Screens and behaviours the app has — checked in `lib/features/` — that no test reaches. Ordered by
-risk: the first rows guard a cross-module invariant or a way in; the last ones are plain reading.
-Out of scope, because the app doesn't have them: writing a publication (posts, rides, trips, ads —
-the only write is a comment), the moderation queue (a `CONTENT_REPORTED` entry opens
-`/…/admin/reports` in the browser), sign-in by e-mailed code (`requestOtp`/`verifyOtp` exist in
-`AuthRepository` but no screen calls them), and a time zone preference.
-
-| Scenario | Where in the app | What a test would check (web counterpart) |
-|---|---|---|
-| Ads — location map | `ads/presentation/widgets/ad_location_map.dart` | A blurred sector, never a pin, captioned `ads.detail.locationApproximate`; no block when the ad has no place (`ads-browse.e2e.ts` › location map) |
-| Ads — contact | `ads/presentation/widgets/ad_contact_sheet.dart` | Length checks with no call; success; `AD_CONTACT_OPTED_OUT` closes the sheet and swaps the button for a banner; `RATE_LIMITED` reads `Retry-After`; `DELIVERY_FAILED` keeps the draft; the relayed mail hides both addresses (`ad-contact.e2e.ts`) |
-| Passkeys | `auth/presentation/pages/login_page.dart` (sign-in, when supported), `profile/presentation/widgets/passkeys_section.dart` (add, delete) | A passkey added from the profile signs in; a deleted one no longer does (`flow-account.e2e.ts`) — needs a simulator/emulator authenticator |
-| Rides — past and cancelled | `rides/presentation/pages/ride_detail_page.dart`, `rides/domain/ride_group_action.dart` | « Terminée » and no « Rejoindre »; a cancelled ride's banner and no group action, not even « Quitter » (`rides.e2e.ts` › a past ride, `flow-rides.e2e.ts` › cancel). Only trips are covered today |
-| Error screens — 5xx | `core/utils/provider_retry.dart`, `keys.ride.loadError`, `team_home_page.dart` | A 5xx is retried briefly, then the error shows; « Réessayer » loads the page (`error-states.e2e.ts`) |
-| Notifications — other subjects | `notifications/presentation/notification_display.dart` | `RIDE_CANCELLED` reaches registered riders only and opens the ride marked cancelled; `RIDE_JOINED` reaches the creator and the group leader (`flow-notifications.e2e.ts` › personal notifications) |
-| Routes | `routes/presentation/pages/` — the `nav.routes` tab (`/parcours`, `/parcours/carte`), the team « Parcours » section, `route_detail_page.dart` | Members-only routes stay out of the platform list; « Utilisé dans » lists only what the viewer may read; trace, filters, list/map toggle (`flow-routes.e2e.ts`, `route-maps.e2e.ts`) |
-| Calendar | `calendar/presentation/pages/calendar_page.dart` — the `nav.calendar` tab and the team « Calendrier » section | Rides of my teams only, « Inscrit · <groupe> », an event opens its ride; the ICS feed card (copy, regenerate) (`calendar.e2e.ts`) |
-| Profile — settings | `profile/presentation/widgets/` | Display name and avatar; units, theme, language and the « contactable » switch (which drives `AD_CONTACT_OPTED_OUT`); data export; « Déconnecter tous les appareils »; connected GPS services (`flow-account.e2e.ts`) |
-| Reporting beyond posts and comments | `showDetailModerationMenu` on ride, trip, route and ad detail, team members, participants sheet | A report from each reaches the team's queue (`flow-moderation.e2e.ts`) |
-| Moderator deletes a comment | `comments/presentation/widgets/comment_thread.dart` (`viewer.moderates`) | A moderator deletes someone else's comment; a plain member can't (already covered) |
-| Lists — pagination and filters | `feed/presentation/widgets/publication_feed_view.dart` (home, team feed), `ads_page.dart`, `team_members_page.dart`, comments (20 per page) | Infinite scroll reaches the next page; search and type chips; the filtered-empty state (`pagination.e2e.ts`, `list-filters.e2e.ts`, `rides.e2e.ts` › comments) |
-| Ride detail extras | `participants_sheet.dart`, `ride_group_card.dart` (GPX/FIT export, send to device), `ride_groups_map.dart` | The participants sheet names the registered; exports download |
-| Peripheral screens | `apps/`, `legal/`, `feedback/`, `push_activation_banner.dart` | Apps page and its beta sign-up; legal pages from the login; « Signaler un problème » |
+What the app has and no test reaches is tracked in the ledger, `MOB-25` to `MOB-36`
+(`grep -n 'MOB-2[5-9]\|MOB-3[0-6]' ../../docs/LEDGER_*.md`), ordered by risk, each with the files it
+lives in and its web counterpart; running this suite in CI is `MOB-37`. A test that closes one moves
+its entry to `LEDGER_DONE.md` under the same ID, in the same commit, and adds a row to « Coverage »
+above.

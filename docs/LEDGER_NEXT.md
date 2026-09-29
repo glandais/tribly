@@ -161,6 +161,69 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       seul jeton** à faire tomber à 0 (`PdlMotion.blurToolbar`, surface opaque), aucun écran à
       rouvrir.
 
+### Couverture e2e Patrol — ce que les tests ne couvrent pas encore
+
+`mobile/patrol_test/` couvre les P0 de l'audit de couverture e2e (`WEB-26`) transposés à l'app, et
+dix-huit scénarios au-delà (voir `mobile/patrol_test/README.md`, « Coverage »). Restent les écrans et
+comportements que l'app a — vérifiés dans `mobile/lib/features/` — et qu'aucun test n'atteint, par
+risque décroissant : les premiers gardent un invariant transverse ou une porte d'entrée, les derniers
+sont de la lecture. Hors périmètre, parce que l'app ne les a pas : écrire une publication (le seul
+écrit est un commentaire), la file de modération (une entrée `CONTENT_REPORTED` ouvre
+`/…/admin/reports` dans le navigateur), la connexion par code e-mailé (`requestOtp`/`verifyOtp`
+existent dans `AuthRepository`, aucun écran ne les appelle) et une préférence de fuseau.
+
+- [ ] `MOB-25` **Annonces : carte de localisation et contact du vendeur** — la carte
+      (`ads/presentation/widgets/ad_location_map.dart`) rend un secteur flouté, **jamais une
+      punaise**, légendé `ads.detail.locationApproximate`, et aucun bloc quand l'annonce n'a pas de
+      lieu. Le contact (`ad_contact_sheet.dart`) : longueurs refusées sans appel, succès,
+      `AD_CONTACT_OPTED_OUT` ferme la feuille et remplace le bouton par un bandeau, `RATE_LIMITED`
+      lit `Retry-After`, `DELIVERY_FAILED` garde le brouillon, le mail relayé ne montre aucune des
+      deux adresses. Pendants web : `ads-browse.e2e.ts`, `ad-contact.e2e.ts`. Automatiserait une
+      partie de la recette `MOB-11` et `MOB-12`.
+- [ ] `MOB-26` **Clés d'accès** — une clé ajoutée depuis le profil (`passkeys_section.dart`) connecte
+      depuis `login_page.dart` ; une clé supprimée ne connecte plus (`flow-account.e2e.ts`). Demande
+      un authentificateur sur le simulateur ou l'émulateur.
+- [ ] `MOB-27` **Sorties passées et annulées** — « Terminée » et pas de « Rejoindre » ; une sortie
+      annulée affiche son bandeau et aucune action de groupe, pas même « Quitter »
+      (`ride_detail_page.dart`, `rides/domain/ride_group_action.dart` ; `rides.e2e.ts`,
+      `flow-rides.e2e.ts`). Seuls les voyages sont couverts aujourd'hui (`trip_join_leave_test`).
+- [ ] `MOB-28` **Écrans d'erreur sur un 5xx** — un 5xx est retenté brièvement, puis l'erreur
+      s'affiche ; « Réessayer » charge la page (`core/utils/provider_retry.dart`,
+      `keys.ride.loadError`, `team_home_page.dart` ; `error-states.e2e.ts`). Le 4xx, lui, est
+      couvert (`load_error_delay_test`).
+- [ ] `MOB-29` **Notifications des autres sujets** — `RIDE_CANCELLED` n'atteint que les inscrits et
+      ouvre la sortie marquée annulée ; `RIDE_JOINED` atteint le créateur et le meneur du groupe
+      (`notifications/presentation/notification_display.dart` ; `flow-notifications.e2e.ts`).
+- [ ] `MOB-30` **Parcours** — l'onglet `nav.routes` (`/parcours`, `/parcours/carte`), la section
+      « Parcours » de l'équipe, `route_detail_page.dart` : les parcours réservés aux membres restent
+      hors de la liste de la plateforme ; « Utilisé dans » ne liste que ce que le lecteur peut lire ;
+      tracé, filtres, bascule liste/carte (`flow-routes.e2e.ts`, `route-maps.e2e.ts`).
+- [ ] `MOB-31` **Calendrier** — l'onglet `nav.calendar` et la section « Calendrier » de l'équipe
+      (`calendar_page.dart`) : seulement les sorties de mes équipes, « Inscrit · <groupe> », un
+      événement ouvre sa sortie ; la carte du flux ICS, copier et régénérer (`calendar.e2e.ts`).
+- [ ] `MOB-32` **Réglages du profil** — nom affiché et avatar ; unités, thème, langue et
+      l'interrupteur « contactable » (qui commande `AD_CONTACT_OPTED_OUT`) ; export des données ;
+      « Déconnecter tous les appareils » ; services GPS connectés (`profile/presentation/widgets/` ;
+      `flow-account.e2e.ts`). Automatiserait une partie de la recette `MOB-15`.
+- [ ] `MOB-33` **Signalement au-delà des publications et commentaires, suppression par un
+      modérateur** — un signalement depuis `showDetailModerationMenu` (sortie, voyage, parcours,
+      annonce, membres de l'équipe, feuille des participants) arrive dans la file de l'équipe
+      (`flow-moderation.e2e.ts`) ; un modérateur supprime le commentaire d'autrui
+      (`comment_thread.dart`, `viewer.moderates`), un simple membre ne le peut pas (déjà couvert).
+- [ ] `MOB-34` **Listes : pagination et filtres** — le défilement infini atteint la page suivante
+      (`publication_feed_view.dart` pour l'accueil et le fil d'équipe, `ads_page.dart`,
+      `team_members_page.dart`, les commentaires par 20) ; recherche et puces de type ; l'état vide
+      filtré (`pagination.e2e.ts`, `list-filters.e2e.ts`, `rides.e2e.ts` › commentaires).
+- [ ] `MOB-35` **Détail d'une sortie : participants et exports** — la feuille des participants
+      nomme les inscrits (`participants_sheet.dart`) ; les exports GPX/FIT et l'envoi vers un appareil
+      aboutissent (`ride_group_card.dart`) ; la carte des groupes (`ride_groups_map.dart`).
+- [ ] `MOB-36` **Écrans périphériques** — la page Apps et son inscription à la bêta (`apps/`), les
+      pages légales depuis la connexion (`legal/`), « Signaler un problème » (`feedback/`), le bandeau
+      d'activation du push (`push_activation_banner.dart`).
+- [ ] `MOB-37` **Les tests Patrol ne tournent qu'en local** — aucun workflow de `.github/` ne les
+      lance : `ci.yml` ne passe que les tests unitaires. Il faudrait un runner macOS (simulateur) ou un
+      émulateur Android, plus la stack e2e (`scripts/e2e.sh up`) dans le job. Pendant web : `AUD-3`.
+
 ---
 
 ## WEB — Site web
