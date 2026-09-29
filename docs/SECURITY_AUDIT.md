@@ -179,7 +179,7 @@ Informationnel (ouverts) :
   - Aucun `badCertificateCallback`, aucune WebView.
   - Uniquement des App Links https vérifiés, sans scheme custom.
 - **Infra** :
-  - Postgres, Traefik, Mailpit, MinIO et imgproxy exposés sur loopback uniquement.
+  - Postgres, Traefik, Mailpit, MinIO et imgproxy exposés sur loopback uniquement. Depuis le passage des hôtes à Docker Swarm (postérieur à l'audit), qui ne sait pas publier sur le loopback : sur un hôte, postgres ne publie plus rien et Traefik écoute sur toutes les interfaces, fermé par des règles `DOCKER-USER` qui ne laissent passer que Caddy ([`OPERATIONS.md`](OPERATIONS.md#only-caddy-may-reach-traefik)) ; le loopback ne vaut plus que pour un poste de travail.
   - Dashboard Traefik désactivé.
   - Origines CORS de développement et cookie non `Secure` seulement par défaut : `%prod` les surcharge (audit de février, S8 et S12).
   - `.env` jamais versionné.

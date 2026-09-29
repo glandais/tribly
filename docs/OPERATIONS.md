@@ -5,35 +5,200 @@ How Pedalons is deployed, backed up and restored on a host. Workstation setup st
 
 ## Deployment
 
-A host runs **one shared stack** plus **one stack per environment**, each from its own checkout
-(`~/shared`, `~/prod`, `~/staging`) with its own `.env`. Caddy terminates TLS on the host and
-reverse-proxies each hostname to that environment's traefik, published on loopback only
-(`HTTP_PORT`: 8090 for prod, 8089 for staging).
+A host is a single-node **Docker Swarm**, and runs **one shared stack** plus **one stack per
+environment**, each from its own checkout (`~/shared`, `~/prod`, `~/staging`) with its own `.env`.
+Caddy terminates TLS on the host and reverse-proxies each hostname to that environment's traefik
+(`HTTP_PORT`: 8090 for prod, 8089 for staging). Swarm rather than plain compose for what it
+reconciles: a `deploy` converges the running services onto the file, and a task that dies is
+rescheduled rather than left for a `restart:` policy.
 
 `docker-compose.shared.yml` holds the services that carry no application data and are read-only:
 `valhalla` (17 GB of OSM routing tiles) and `tileserver` (server-side raster rendering, ~1.8 GB
-resident). One instance serves every environment. It owns the `pedalons-shared` Docker network.
+resident). One instance serves every environment. It owns the `pedalons-shared` overlay network.
 
 `docker-compose.yml` holds everything that must stay isolated per environment: traefik, backend,
 frontend, postgres, minio, imgproxy and varnish. Its `backend` also joins `pedalons-shared` to reach
 the two shared services — under the same hostnames as before, since `valhalla` and `tileserver` are
-their compose service names.
+their service names.
 
 Each environment's `.env` differs from a workstation's in five keys only — see
 [The `.env`, on a workstation and on a server](../README.md#the-env-on-a-workstation-and-on-a-server).
-The same `docker-compose.yml` also runs on a workstation to test a build:
-[Running the full stack locally](../README.md#running-the-full-stack-locally).
+The same `docker-compose.yml` also runs on a workstation, under plain compose, to test a build:
+[Running the full stack locally](../README.md#running-the-full-stack-locally). It therefore stays
+valid for both tools — its header lists what each one ignores.
 
-Start the shared stack **first**: `pedalons-shared` is declared `external` in `docker-compose.yml`, so
-an environment fails to come up until it exists.
+**Always deploy through `scripts/deploy.sh`**, never `docker stack deploy` by hand:
+
+- `docker stack deploy` reads **no `.env`**. Every `${VAR}` of the file would expand to nothing —
+  including, for the shared stack, a `VALHALLA_TILE_URLS` whose silent fallback to the default costs
+  a rebuild of several hours;
+- it picks the **build of the checked-out commit**, `pedalons-backend:${ENV_NAME}-<sha12>` (see
+  [Rolling updates](#rolling-updates-and-rollback)), and refuses a checkout with uncommitted changes;
+- the stack must be named after `ENV_NAME`: the backup scripts find its containers and volumes
+  (`${ENV_NAME}_postgres_data`) by that name.
 
 ```bash
-# once per host
-cd ~/shared && docker compose -f docker-compose.shared.yml up -d
+# once per host — the firewall unit (see "Only Caddy may reach traefik") before the swarm
+docker swarm init
+cd ~/shared && scripts/deploy.sh --shared
 
-# then each environment
-cd ~/prod && ./build.sh && docker compose up -d --remove-orphans
+# then each environment, on every deploy
+cd ~/prod && ./build.sh && scripts/deploy.sh
+docker stack ps "$ENV_NAME"        # what is running, and why a task was rejected
+
+# teardown — keeps the volumes
+docker stack rm "$ENV_NAME"
 ```
+
+On a stack's **first** deploy, `docker stack ps` usually shows one backend task `Failed` with
+`task: non-zero exit (1)`: Swarm ignores `depends_on`, the backend started before postgres accepted
+connections, and its replacement is the one running. Nothing to do — the next deploys roll the
+backend beside a postgres already up.
+
+### Rolling updates and rollback
+
+`./build.sh` tags each image twice: `pedalons-backend:${ENV_NAME}-<sha12>`, never moved once
+written, and `pedalons-backend:${ENV_NAME}`, the latest build (what a workstation runs). From a
+checkout with uncommitted changes it writes the second only. No registry: on a single-node swarm the
+images built on the host are all Swarm needs, and it merely warns that it cannot record a digest.
+
+A deploy of a new commit changes the image in the backend and frontend specs, and Swarm rolls them
+**start-first**: the new task boots beside the old one, which keeps serving until the new one's
+healthcheck passes (`/q/health/ready`, i.e. after Flyway). traefik health-checks both too, and the
+old task reports itself not ready for 10 s after SIGTERM (`quarkus.shutdown.delay`; `/health` in
+the frontend's `server.js`) before it drains, so no request lands on a stopping task. A new task
+that never turns healthy is rolled back on its own (`failure_action: rollback`), and
+`scripts/deploy.sh` waits for that outcome: it returns once backend and frontend both run the new
+build, healthy, and exits non-zero on a rollback or after `DEPLOY_TIMEOUT` seconds (600 by default)
+— a deploy that printed no error is one that went through. postgres, minio,
+imgproxy and varnish keep the default stop-first: each owns a volume, one instance at a time.
+
+```bash
+docker service ps "${ENV_NAME}_backend"           # the rollout, and why a task failed
+docker service rollback "${ENV_NAME}_backend"     # back to the previous spec, i.e. the previous build
+scripts/deploy.sh --rev HEAD~1                    # or any earlier commit still built
+```
+
+`deploy.sh` keeps the last five builds per image (and whatever a service runs or would roll back
+to), and drops the older ones; `--rev` of a dropped commit means `git checkout` + `./build.sh`.
+
+**For about a minute, two backends run against the same database.** What that asks of the code:
+
+- **Flyway migrations stay backward compatible** — the previous release must run on the new
+  schema. Renaming or dropping a column takes two deploys: add and write both, then drop.
+- **Scheduled jobs may run on both.** Those that claim their work in the database
+  (`for update skip locked`: notifications, webhooks, user exports) are safe; any other job must be
+  idempotent, since `concurrentExecution = SKIP` only guards within one JVM.
+- **`data/cache` is shared** by the two for that while — the gpx2web race described below.
+
+A `.env` value changed on the host takes effect on the next `scripts/deploy.sh`: `env_file` is read
+at deploy time and a new value rolls the backend.
+
+### Only Caddy may reach traefik
+
+**Swarm cannot publish a port on the loopback.** Given `127.0.0.1:8090:80`, it drops the address
+with a mere warning and listens on every interface — which is why `docker-compose.yml` no longer
+pretends to. And `ufw` cannot close it either: Docker inserts its rules ahead of ufw's. The rule has
+to go into the `DOCKER-USER` chain, which Docker consults first and never rewrites — one per
+environment port, on the public interface.
+
+`docker swarm init` also opens the swarm's own ports on every interface: 2377/tcp (cluster
+management), 7946/tcp+udp (gossip) and 4789/udp — the VXLAN that carries the overlay networks, which
+is **unauthenticated**: anyone who reaches it can inject packets into `pedalons-shared` or an
+environment's network. A single-node swarm needs none of them from outside. They go through the
+host's `INPUT` chain, not `DOCKER-USER`, and a host with no firewall (`-P INPUT ACCEPT`) leaves them
+open.
+
+Both sets of rules come from `scripts/pedalons-firewall.sh`, run by a systemd unit **before**
+`docker.service`: Docker keeps an existing `DOCKER-USER` chain as it is, so no stack is ever up
+without the rules — not even at boot. **Install it before `docker swarm init`**, IPv4 and IPv6
+alike. Not `iptables-persistent`: it would save fail2ban's chains and Docker's too, which both
+rebuild their own at start.
+
+```bash
+install -m 755 scripts/pedalons-firewall.sh /usr/local/sbin/pedalons-firewall.sh
+install -m 644 scripts/pedalons-firewall.service /etc/systemd/system/pedalons-firewall.service
+# The public interface: `eth0` on some hosts, `ens2`, `enp5s0` on others. A rule naming an interface
+# the host does not have is accepted without a word, and drops nothing. TRAEFIK_PORTS (default
+# "8089 8090") lists the HTTP_PORT of every environment.
+echo "PUBLIC_IF=$(ip -o route get 1.1.1.1 | sed -n 's/.* dev \([^ ]*\).*/\1/p')" > /etc/default/pedalons-firewall
+systemctl daemon-reload && systemctl enable --now pedalons-firewall.service
+iptables -S DOCKER-USER                                   # one DROP per environment port
+iptables -S FORWARD | head -3                             # -A FORWARD -j DOCKER-USER, first
+iptables -S INPUT | grep -E '2377|7946|4789'              # four DROP; ip6tables alike
+```
+
+`--ctorigdstport` matches the port as the client asked for it, before the routing mesh rewrites the
+destination; Caddy, which comes in over the loopback, is untouched.
+
+**Then check from another machine, once the first stack is up — it is part of the procedure, not an
+option**: `curl -m 5 http://<host>:8090` must time out, while the site answers through Caddy, and
+`nc -zv -w 3 <host> 2377` must fail. Nothing
+on the host itself can tell: the loopback is not filtered, so a local `curl` succeeds either way.
+
+Postgres, for the same reason, publishes no port at all on a host — a raw Postgres guarded by a
+password alone has no business on a public interface. Reach it through `docker exec` (see
+[Running SQL](../README.md#running-sql)); a workstation still gets `127.0.0.1:5432` from the overlay.
+
+### Moving a host from compose to Swarm
+
+Done once per host. The data needs moving, not just the services: compose named the volumes after the
+project, i.e. the checkout directory (`prod_postgres_data`), a stack names them after itself
+(`pedalons-prod_postgres_data`). A stack deployed without the move would boot on two new empty
+volumes — Flyway on an empty schema and a freshly bootstrapped Domain — with the real data left
+where nothing reads it. Take a backup first (`scripts/backup.sh`), then, after `git pull` in every
+checkout:
+
+```bash
+# 1. each environment: stop its compose containers (volumes kept) and copy its data across
+cd ~/prod && scripts/migrate-to-swarm.sh
+cd ~/staging && scripts/migrate-to-swarm.sh
+
+# 2. the firewall unit of "Only Caddy may reach traefik" above, then the swarm: from the next step
+#    on, a published port listens on every interface
+#    ... the install commands above, then `iptables -S DOCKER-USER`
+docker swarm init --advertise-addr <public IPv4>   # the flag only if the host has several addresses
+
+# 3. the shared stack. Its old project name came from the `name:` the file no longer carries, and
+#    its bridge network must be gone before Swarm creates the overlay of the same name
+cd ~/shared && docker compose -p pedalons-shared -f docker-compose.shared.yml down
+scripts/deploy.sh --shared
+
+# 4. each environment, as a stack
+cd ~/prod && scripts/deploy.sh
+cd ~/staging && scripts/deploy.sh
+```
+
+5. From **another machine**: `curl -m 5 http://<host>:8090` (and `:8089`) must time out, and
+   `nc -zv -w 3 <host> 2377` fail. If one answers, the rules are missing or name the wrong interface
+   — fix that before anything else.
+
+The old volumes stay behind as the way back; drop them (`docker volume rm prod_postgres_data …`)
+once the site has been checked, photos included.
+
+#### One environment at a time
+
+The environments may move separately — staging first, prod once staging has proved itself. Only the
+environment that moves runs step 1 and step 4; steps 2 and 3 are the host's and happen once. The
+catch is step 3: the environment still under compose has its backend on the `pedalons-shared`
+bridge, which must be gone before the overlay replaces it, and must then join the overlay — which a
+compose container can only do because the shared stack declares it `attachable`. So step 3 becomes,
+with prod still under compose:
+
+```bash
+docker network disconnect pedalons-shared pedalons-prod-backend
+cd ~/shared && docker compose -p pedalons-shared -f docker-compose.shared.yml down
+docker network inspect pedalons-shared >/dev/null 2>&1 && echo "still there"   # must print nothing
+scripts/deploy.sh --shared
+docker network connect pedalons-shared pedalons-prod-backend
+docker exec pedalons-prod-backend getent hosts valhalla tileserver             # two addresses
+```
+
+Valhalla and the tile server are down for prod meanwhile, the time for valhalla to load its tiles. A
+later `docker compose up` of prod rejoins the overlay by itself: its file declares the network
+`external`.
+
+### Services that stay per-environment
 
 Two services stay per-environment on purpose, even though they look shareable:
 
@@ -157,8 +322,18 @@ docker run --rm -v /home/pedalons:/h alpine \
 
 ### Changing an environment's network topology
 
-Renaming or re-declaring a network makes compose (v5.3.1) drop the old one and create the new one
-*during* the run, then fail on `network X was found but has incorrect label
+**On a host**, `docker stack deploy` never alters a network that already exists: change its driver,
+its options or its labels and the deploy succeeds, reporting nothing, on the old network. For any
+such change, remove the stack and wait for its network to be gone before deploying again:
+
+```bash
+docker stack rm "$ENV_NAME"    # never followed by `docker volume rm` — that is the data
+while docker network inspect "${ENV_NAME}-net" >/dev/null 2>&1; do sleep 2; done
+scripts/deploy.sh
+```
+
+**On a workstation**, renaming or re-declaring a network makes compose (v5.3.1) drop the old one and
+create the new one *during* the run, then fail on `network X was found but has incorrect label
 com.docker.compose.network` — it labels the network with the map key but validates against the
 resolved name. The run aborts halfway and can leave a container attached to **no network**, which
 then fails with a misleading DNS error rather than an obvious one. So for any such change, do not
@@ -413,13 +588,18 @@ rm /dev/shm/pedalons-backup.key              # as soon as the restore is done
 
 The restore pulls the snapshot to a local directory, verifies its checksums, then decrypts the
 secrets and the whole dump once to prove the key matches — all **before** touching anything. Only
-then does it run `docker compose down -v`, which drops the current postgres and minio volumes, and
-repopulate them; the dump is decrypted in flight into `pg_restore` and never written in clear. It
-refuses a snapshot with no `COMPLETE` marker, and refuses one from another `ENV_NAME` unless
-`--force`.
+then does it take the stack down, drop the current postgres and minio volumes, and repopulate them;
+the dump is decrypted in flight into `pg_restore` and never written in clear. It refuses a snapshot
+with no `COMPLETE` marker, and refuses one from another `ENV_NAME` unless `--force`.
 
-It needs only `rsync`, `age` and `docker`, no root: objects go back through `docker cp`, which also hands
-them to the container as `root:root` — the user MinIO runs as. Writing into
+It follows the stack wherever it runs. On a host (a swarm) it removes the stack and redeploys it
+through `scripts/deploy.sh --hold-app` — Swarm cannot start part of a stack, so backend and frontend
+come back at zero replicas, or the backend would bootstrap a fresh Domain on the empty database
+before the dump lands. On a workstation it is `docker compose down -v`, then `up`.
+
+It needs only `rsync`, `age` and `docker`, no root. The objects go back as `root:root` — the user
+MinIO runs as — through `docker cp` on a workstation, and on a host, where a service scaled to zero
+leaves no container to copy into, through a throwaway container mounting the volume. Writing into
 `/var/lib/docker/volumes` directly would stamp them with the restoring account's uid.
 
 On a **new host**, the order matters — you need `.env` before anything else can read its own config:
@@ -436,8 +616,10 @@ BACKUP_REMOTE=<backup-user>@<backup-tunnel-ip> BACKUP_REMOTE_PATH=/ \
 BACKUP_SSH_KEY=/root/.ssh/id_pedalons_backup \
   scripts/restore.sh --secrets-only
 
-# 2. the shared stack (see Deployment), then the images
-cd ~/shared && docker compose -f docker-compose.shared.yml up -d
+# 2. the firewall unit (see "Only Caddy may reach traefik"), the swarm, the shared stack, then
+#    the images
+docker swarm init
+cd ~/shared && scripts/deploy.sh --shared
 cd ~/prod && ./build.sh            # at the commit recorded in MANIFEST
 
 # 3. the data, then drop the key
@@ -462,7 +644,7 @@ FlywayValidateException: Detected applied migration not resolved locally: 26.
 
 The restore itself succeeded in that case — the data is in place and the script correctly refuses to
 report success, since `/api/config` never answers 200. Rebuild at the MANIFEST's commit
-(`./build.sh`) and `docker compose up -d`; nothing needs to be restored again.
+(`./build.sh`) and `scripts/deploy.sh`; nothing needs to be restored again.
 
 #### Restore drill from another machine
 
