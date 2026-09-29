@@ -267,6 +267,23 @@ const screens: Record<string, Screen> = {
     },
   },
   teamAbout: { roles: EVERYONE, sees: heading("À propos de l'équipe") },
+  // The members' directory (WEB-1). The dataset's team has it open (teamRequest sets
+  // enableMemberDirectory): the API lets its members read it, and the platform admin (API-39); an
+  // outsider gets a 403, which the page shows as its own refusal, in place.
+  teamMembers: {
+    roles: MEMBERS,
+    sees: async (main, d) => {
+      await heading('Membres')(main)
+      await expect(main.getByText(d.sessions.organizer.user.displayName).first()).toBeVisible()
+    },
+    denied: {
+      outsider: {
+        why: 'the member directory is for the team members',
+        sees: heading('Liste des membres non partagée'),
+      },
+    },
+    guards: (page) => page.getByRole('main').getByRole('searchbox', { name: 'Rechercher' }),
+  },
   teamCalendar: {
     roles: MEMBERS,
     sees: async (main, d) => {

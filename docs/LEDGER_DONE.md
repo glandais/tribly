@@ -192,8 +192,10 @@ plus (`WEB-25`).
 Couvert par trois scénarios de `frontend/e2e/member-directory.e2e.ts` (membre sur trombinoscope
 fermé : pas de lien, page de refus sans aucun nom ; organisateur sur trombinoscope fermé : les noms,
 sans rôle, date ni filtre de rôle, sans action d'admin ; membre sur trombinoscope ouvert : les
-rôles), écrits sans avoir été lancés — la pile e2e n'a pas tourné —, et par `pnpm e2e:typecheck` ;
-`appOnlyFallbacks.test.ts` et `smoke.e2e.ts` ne comptent plus `/membres` parmi les liens réservés à
+rôles), et par l'entrée `teamMembers` de `routes-render.e2e.ts` (anonyme renvoyé à la connexion ;
+sur l'équipe du jeu de données, trombinoscope ouvert, rendu pour les membres, organisateur, admin et
+admin plateforme ; refus sur place pour un extérieur), lancés le 2026-09-30, verts sur desktop et
+mobile ; `appOnlyFallbacks.test.ts` et `smoke.e2e.ts` ne comptent plus `/membres` parmi les liens réservés à
 l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que le serveur donne.
 
 ### Outillage
