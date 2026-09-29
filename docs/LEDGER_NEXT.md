@@ -215,13 +215,6 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       de confidentialité (§1, stockage local) renvoie donc à l'app. Un bouton dans le profil web
       permettrait de citer les deux.
 
-- [ ] `WEB-29` **Les sélecteurs d'image proposent encore HEIC/HEIF (XS à M)** —
-      `MediaEditor.tsx`, `tiptap/ImageUploadControl.tsx` et `UserProfilePage.tsx` annoncent
-      `accept="image/*,.heic,.heif"`, alors que le backend refuse HEIC/HEIF (Magika avant, et
-      explicitement depuis `API-43`, faute de savoir en retirer les métadonnées). Retirer `.heic,.heif`
-      (XS), ou convertir en JPEG côté client avant l'envoi (M). Sans objet si `API-53` fait
-      accepter HEIC/AVIF par le backend.
-
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
 L'audit ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md), `WEB-26`) est exécuté : P0, P1
@@ -356,7 +349,7 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       (ISO-BMFF `isom`/`mp42`/`qt`) est acceptée comme `ATTACHMENT` et stockée telle quelle, avec
       ses boîtes `udta`/`meta` (`©xyz`, lieu de la prise). `API-43` ne nettoie que les images. Soit
       refuser les vidéos (`FileTypeCategory.ATTACHMENT`), soit retirer `udta`/`meta` dans
-      `S3StorageService.store` à côté d'`ImageMetadataStripper`. Tant que ce n'est pas fait, le §1
+      `S3StorageService.store` à côté du réencodage des images. Tant que ce n'est pas fait, le §1
       de la politique dit que les vidéos sont gardées telles quelles. Taille : S (refus) à M.
       Évaluation du 29 septembre 2026 (`API-54`) : exiftool retire `udta`/`©xyz` mais laisse
       probablement les pistes GPS temporisées (GoPro, DJI) et les dates `mvhd`. Côté maison,
@@ -367,12 +360,13 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       garder la phrase. Taille : M à L. exiftool **n'aide pas** (mesuré le 29 septembre 2026,
       `API-54`) : il ajoute une mise à jour incrémentale réversible, le dictionnaire Info reste dans
       les octets, et l'EXIF des JPEG embarqués est intact. Seule voie : réécriture complète (PDFBox)
-      en passant les JPEG embarqués par `ImageMetadataStripper`.
+      en faisant réencoder les JPEG embarqués comme les images (`API-43`).
 - [ ] `API-48` **SVG et ICO stockés tels quels** — tous deux sont dans la liste blanche `IMAGE` et
-      ne passent pas par `ImageMetadataStripper` : un SVG peut embarquer une photo en base64 avec
+      ne sont pas réencodés par imgproxy : un SVG peut embarquer une photo en base64 avec
       son EXIF/GPS (Inkscape le fait pour une image importée), un ICO des PNG avec `tEXt`/`eXIf`.
-      Cas marginal, que la politique couvre en disant « JPEG, PNG, WebP, GIF ». Refuser les SVG à
-      image embarquée, ou nettoyer le PNG/JPEG qu'ils contiennent. Taille : S à M.
+      Cas marginal, que la politique couvre (« images SVG ou ICO » conservées telles quelles). Refuser
+      les SVG à image embarquée, faire réencoder les ICO (imgproxy les lit), ou nettoyer le PNG/JPEG
+      qu'un SVG contient. Taille : S à M.
 - [ ] `API-49` **Un GPX ou un FIT joint en pièce jointe n'est pas nettoyé** — `API-44` ne couvre
       que le pipeline des parcours et de l'outil GPX ; un `.gpx`/`.fit` déposé comme `ATTACHMENT`
       (liste noire qui accepte xml/fit) garde horodatages et capteurs. La politique le dit (§1,
@@ -388,26 +382,6 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       `GpxSanitizationBackfill.runOnce` ne doit pas repasser quand
       `maintenance/api-44-gpx-sanitized` existe, et ne doit pas l'écrire si un fichier a échoué.
       Le test doit effacer le marqueur en fin de test (le bucket de test est partagé). Taille : S.
-- [ ] `API-52` **Durcir `ImageMetadataStripper` là où il garde encore par défaut** — la revue du
-      29 septembre 2026 (`API-54`) n'a trouvé aucune fuite sur un corpus réaliste, mais quatre
-      branches gardent ce qu'elles ne connaissent pas, à l'inverse du principe de liste blanche :
-      JPEG, les marqueurs hors APPn/COM sont tous gardés (`keptJpegSegment`, branche par défaut ;
-      restreindre à SOFn, DHT, DAC, DQT, DRI, DNL) ; PNG, tout chunk critique inconnu est gardé
-      (restreindre à IHDR, PLTE, IDAT, IEND) ; WebP, les sous-chunks inconnus d'`ANMF` passent tels
-      quels (les parcourir), le corps est lu entier en mémoire (jusqu'à 100 Mo : passer en flux) et
-      un VP8X sans chunk d'image est accepté (le refuser) ; GIF, l'extension Plain Text (0x01), du
-      texte libre ignoré des navigateurs, est gardée. Ajouter un test de fuzzing par mutation (seule
-      `MalformedImageException` sort, sortie idempotente) et un corpus réaliste en ressources de
-      test (motion photo Pixel, trailer Samsung, MPF avec carte de gain, JPEG façon iPhone avec GPS,
-      XMP, IPTC, ICC et vidéo collée). Taille : S à M.
-- [ ] `API-53` **Accepter HEIC/AVIF au lieu de les refuser** — `API-43` les refuse faute de savoir
-      en retirer les métadonnées, et iOS en produit par défaut (`WEB-29` retire seulement la
-      promesse côté web). Deux voies, évaluées le 29 septembre 2026 (`API-54`) : étendre la maison
-      en effaçant sur place, à longueur constante, les items `Exif` et `mime` (XMP) désignés par
-      `iloc` (aucun offset réécrit ; l'orientation vit dans `irot`/`imir`, pas dans l'EXIF) ; ou
-      convertir en JPEG/WebP avec imgproxy, déjà déployé (conversion vérifiée pour l'AVIF), mais avec
-      perte et en lui passant l'original par un volume local, jamais par S3 où il atterrirait avec
-      son GPS. Taille : M.
 - [ ] `API-45` **Des jetons dans le chemin d'URL finissent dans le journal d'accès** — le masquage
       de `LEGAL-10` ne porte que sur les paramètres de requête : `DELETE
       /api/push-devices/{token}` (jeton FCM) et le téléchargement d'export
@@ -474,11 +448,11 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       `GpxSanitizationBackfill` (4 h 15) écrit `maintenance/api-44-gpx-sanitized` après une passe
       sans échec. Vérifier `SELECT count(*) FROM assets WHERE metadata_pending` à zéro, le journal
       « GPX sanitization backfill: N file sets checked, M rewritten, 0 failed » et le marqueur dans
-      le bucket. Les TIFF/HEIF déjà stockés ne peuvent pas être nettoyés (journal WARN) : les
-      trouver par `SELECT id, file_name, content_type FROM assets WHERE content_type IN
-      ('image/tiff','image/heic','image/heif','image/avif') OR file_name ~*
-      '\.(tiff?|heic|heif|avif|dng)$'` et décider de les supprimer ou de les convertir à la main.
-      Tant que le compte n'est pas à zéro, la phrase du §1 sur les photos antérieures n'est vraie
+      le bucket. Les TIFF/HEIF déjà stockés sont convertis en JPEG par le rattrapage ; restent les
+      JPEG 2000 et les images qu'imgproxy ne sait pas lire (journal WARN « cannot be re-encoded »
+      ou « imgproxy cannot decode », résultat `UNREADABLE`) : décider de les supprimer ou de les
+      convertir à la main. Redémarrer varnish pour qu'il charge le `pass` des réencodages
+      (`services/varnish/varnish.vcl`). Tant que le compte n'est pas à zéro, la phrase du §1 sur les photos antérieures n'est vraie
       qu'en devenir (`API-43`, `API-44`).
 - [ ] `OPS-15` **Une restauration de MinIO peut ramener des originaux non nettoyés** — une
       sauvegarde antérieure au rattrapage `API-43`, restaurée sur une base où `metadata_pending` est
@@ -490,10 +464,17 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
 - [ ] `OPS-16` **imgproxy sert le copyright et n'a pas de limite de résolution réelle** — relevé le
       29 septembre 2026 (`API-54`) : `IMGPROXY_KEEP_COPYRIGHT` vaut `true` par défaut et
       `docker-compose.yml` ne le surcharge pas, si bien que les images servies gardent `Copyright`
-      et `Artist` (vérifié) ; ajouter `IMGPROXY_KEEP_COPYRIGHT: "false"`. Et
+      et `Artist` (vérifié). Depuis que le stockage réencode (`API-43`, qui passe `kcr:0`), les
+      originaux n'en ont plus ; seuls les originaux pas encore rattrapés en servent. Ajouter
+      `IMGPROXY_KEEP_COPYRIGHT: "false"` reste une ceinture de plus. Et
       `IMGPROXY_MAX_SRC_RESOLUTION: "50000000"` est lu en **mégapixels** selon la documentation,
       donc aucune limite contre une image géante (déni de service) : probablement `"50"`, unité à
       confirmer pour la v4. Taille : XS.
+- [ ] `OPS-17` **Des originaux orphelins peuvent rester sous `tmp/reencode/`** — `S3StorageService`
+      y dépose l'image envoyée, métadonnées comprises, le temps qu'imgproxy la réencode, et l'efface
+      dans un `finally` ; seule une JVM tuée entre les deux en laisse une (`API-43`). Une règle
+      d'expiration MinIO sur le préfixe (`mc ilm rule add --prefix tmp/ --expire-days 1`) les
+      purgerait sans code. Taille : XS.
 - [ ] `OPS-8` **Exercice de restauration** (audit de février, I20) — la procédure est écrite
       ([`OPERATIONS.md`](OPERATIONS.md), « Restore drill from another machine ») mais rien ne dit
       qu'elle a été menée de bout en bout sur une autre machine.
@@ -731,7 +712,8 @@ redevient une entrée de sa section sous le même identifiant.
 | `API-32` | **Champ de contact libre sur une annonce** | Écarté au profit du relais e-mail | C'était la solution la moins chère, et elle publie une donnée personnelle **irrévocablement** à toute l'équipe (jusqu'à 1 999 personnes) : ce qui a été lu ne se dépublie pas. Retirer le champ plus tard ne répare rien |
 | `API-33` | **`GET /api/rides` et listes mono-type** | Non créées ; `/api/publications?type=RIDE` est la surface canonique | Deux surfaces = deux jeux de filtres à garder cohérents. `RideListResponse` / `TripListResponse` existent encore comme records retournés par **aucun endpoint** — les supprimer serait un MAJOR gratuit |
 | `API-34` | **`acceptTerms` obligatoire à l'inscription (contrat `4.1.0`)** | Laissé en mineure | Les builds mobiles qui n'envoient pas le champ reçoivent un 400 `VALIDATION` à l'inscription. La rupture est acceptée sans passer en `5.0.0` |
-| `API-54` | **exiftool ou imgproxy à la place d'`ImageMetadataStripper`** | Écartés le 29 septembre 2026, après mesure sur un corpus synthétique (métadonnées marquées, pixels comparés) | exiftool (micro-service ou WASM) retire ce qu'il connaît au lieu de ne garder que ce qui est autorisé : il a laissé passer un chunk PNG privé et les octets après le trailer GIF, et refusé un WebP valide. Il ne nettoie pas les PDF, il a des CVE répétées (dont CVE-2026-7580, qui touche la 13.50) et il ajoute un conteneur. En WASM (zeroperl sur Chicory), sa sortie est identique mais il prend 17 à 19 s par image. imgproxy n'a pas de JPEG sans perte (même `q:100` réencode) et réserve le WebP sans perte à sa version Pro : chaque upload serait dégradé, et l'upload dépendrait d'imgproxy. La maison reste sans perte (pixels identiques), sans dépendance, à 0,1 s pour 48 Mpx. imgproxy reste une voie pour `API-53` |
+| `API-54` | **exiftool pour retirer les métadonnées des images** | Écarté le 29 septembre 2026, après mesure sur un corpus synthétique (métadonnées marquées, pixels comparés) | exiftool (micro-service ou WASM) retire ce qu'il connaît au lieu de ne garder que ce qui est autorisé : il a laissé passer un chunk PNG privé et les octets après le trailer GIF, et refusé un WebP valide. Il ne nettoie pas les PDF, il a des CVE répétées (dont CVE-2026-7580, qui touche la 13.50) et il ajoute un conteneur. En WASM (zeroperl sur Chicory), sa sortie est identique mais il prend 17 à 19 s par image. imgproxy, écarté le même jour parce qu'il n'a pas de mode sans perte, a finalement été retenu : la perte d'un réencodage a été acceptée pour un code plus simple, qui ne laisse rien passer par construction et lit aussi HEIC, AVIF, TIFF et JPEG XL (`API-43`) |
+| `API-52` | **Durcir `ImageMetadataStripper`** | Sans objet depuis le 29 septembre 2026 | Le nettoyeur maison sans perte a été supprimé : le stockage fait réencoder chaque image par imgproxy (`API-43`), qui n'écrit que les pixels. Ne pas le réintroduire pour gagner la qualité perdue : c'est lui dont les branches gardaient par défaut ce qu'elles ne connaissaient pas |
 | `WEB-8` | **Scroll infini côté web** | Non porté | Incompatible avec la règle structurante du frontend (filtres et pagination dans la query string, donc toute vue partageable). `usePaginatedQuery` précharge déjà la page suivante **et** la précédente |
 | `WEB-9` | **Gabarits tactiles portés au web** | Non portés | Feuilles à crans, barre d'onglets basse, app bar interpolée, chips en remplacement des `Select` : ils résolvent une contrainte que le desktop n'a pas, et produiraient des composants hors Mantine |
 | `WEB-10` | **Minimum de 44 px sur les boutons web** | Règle **tactile** uniquement | Le web descend à 36 px au-dessus de 768 px. Ne pas prendre `pedalons.css` pour une spécification web |

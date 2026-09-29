@@ -12,6 +12,7 @@ import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.infrastructure.image.ImageFormat;
 import fr.pedalons.infrastructure.image.TestImages;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.asset.AssetRepository;
@@ -34,8 +35,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
- * docs/LEDGER_*.md API-43: the files stored before metadata stripping are cleaned by the backfill,
- * and running it again changes nothing.
+ * docs/LEDGER_*.md API-43: the images stored before storage re-encoded them are re-encoded by the
+ * backfill, once.
  */
 @QuarkusTest
 class AssetMetadataBackfillTest extends AbstractBaseTest {
@@ -67,7 +68,7 @@ class AssetMetadataBackfillTest extends AbstractBaseTest {
   /** An asset as it was before API-43: its original, metadata and all, in the bucket, flagged. */
   private Asset legacyAsset(String fileName, byte[] content) {
     Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, fileName);
-    // Straight to S3: StorageService would strip it
+    // Straight to S3: StorageService would re-encode it
     s3Client.putObject(
         PutObjectRequest.builder().bucket(bucket).key(key(asset)).build(),
         RequestBody.fromBytes(content));
@@ -92,19 +93,18 @@ class AssetMetadataBackfillTest extends AbstractBaseTest {
   }
 
   @Test
-  void stripsLegacyOriginalsAndUnflagsThem() throws IOException {
-    Asset jpeg = legacyAsset("photo.jpg", TestImages.jpeg(6));
-    Asset png = legacyAsset("photo.png", TestImages.png(1));
+  void reencodesLegacyOriginalsAndUnflagsThem() throws IOException {
+    Asset jpeg = legacyAsset("photo.jpg", TestImages.load(TestImages.JPEG));
+    Asset png = legacyAsset("photo.png", TestImages.load(TestImages.PNG));
     byte[] text = "not an image at all".getBytes(StandardCharsets.UTF_8);
     Asset notAnImage = legacyAsset("notes.txt", text);
 
     BatchResult result = backfill.processBatch(0, 10);
 
     assertEquals(3, result.processed());
-    assertEquals(2, result.outcomes().get(Outcome.STRIPPED));
+    assertEquals(2, result.outcomes().get(Outcome.REENCODED));
     assertEquals(1, result.outcomes().get(Outcome.NOT_AN_IMAGE));
     assertFalse(TestImages.contains(stored(jpeg), TestImages.SECRET));
-    assertTrue(TestImages.contains(stored(jpeg), "Exif"), "orientation kept");
     assertFalse(TestImages.contains(stored(png), TestImages.SECRET));
     assertArrayEquals(text, stored(notAnImage));
     assertFalse(pending(jpeg));
@@ -113,26 +113,44 @@ class AssetMetadataBackfillTest extends AbstractBaseTest {
   }
 
   @Test
-  void isIdempotent() throws IOException {
-    Asset jpeg = legacyAsset("photo.jpg", TestImages.jpeg(3));
+  void aTiffBecomesAJpegAndItsAssetFollows() throws IOException {
+    Asset tiff = legacyAsset("scan.tif", TestImages.load(TestImages.TIFF));
+
+    BatchResult result = backfill.processBatch(0, 10);
+
+    assertEquals(1, result.outcomes().get(Outcome.REENCODED));
+    assertEquals(ImageFormat.JPEG, ImageFormat.sniff(stored(tiff)));
+    Asset after =
+        QuarkusTransaction.requiringNew().call(() -> assetRepository.findById(tiff.getId()));
+    assertEquals("scan.jpg", after.getFileName());
+    assertEquals("image/jpeg", after.getContentType());
+  }
+
+  @Test
+  void leavesABrokenImageAsItIs() throws IOException {
+    byte[] broken = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE1, 0x10, 0x00, 'E', 'x'};
+    Asset asset = legacyAsset("broken.jpg", broken);
+
+    BatchResult result = backfill.processBatch(0, 10);
+
+    assertEquals(1, result.outcomes().get(Outcome.UNREADABLE));
+    assertArrayEquals(broken, stored(asset));
+    assertFalse(pending(asset));
+  }
+
+  @Test
+  void doesNothingOnceUnflagged() throws IOException {
+    Asset jpeg = legacyAsset("photo.jpg", TestImages.load(TestImages.JPEG));
     backfill.processBatch(0, 10);
     byte[] once = stored(jpeg);
 
-    // Nothing flagged any more: nothing to do
     assertEquals(0, backfill.processBatch(0, 10).processed());
-
-    // Flagged again (a crash between the write and the flag): the file is left as it is
-    QuarkusTransaction.requiringNew()
-        .run(() -> assetRepository.findById(jpeg.getId()).setMetadataPending(true));
-    BatchResult again = backfill.processBatch(0, 10);
-    assertEquals(1, again.outcomes().get(Outcome.ALREADY_CLEAN));
     assertArrayEquals(once, stored(jpeg));
-    assertFalse(pending(jpeg));
   }
 
   @Test
   void unflagsAMissingFile() throws IOException {
-    Asset asset = legacyAsset("photo.jpg", TestImages.jpeg(1));
+    Asset asset = legacyAsset("photo.jpg", TestImages.load(TestImages.JPEG));
     storageService.delete(key(asset));
 
     BatchResult result = backfill.processBatch(0, 10);
@@ -143,8 +161,8 @@ class AssetMetadataBackfillTest extends AbstractBaseTest {
 
   @Test
   void resumesAfterTheCursor() throws IOException {
-    Asset first = legacyAsset("a.jpg", TestImages.jpeg(1));
-    Asset second = legacyAsset("b.jpg", TestImages.jpeg(1));
+    Asset first = legacyAsset("a.jpg", TestImages.load(TestImages.JPEG));
+    Asset second = legacyAsset("b.jpg", TestImages.load(TestImages.JPEG));
 
     BatchResult result = backfill.processBatch(first.getId(), 10);
 

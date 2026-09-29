@@ -18,6 +18,7 @@ import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.infrastructure.image.ImageFormat;
 import fr.pedalons.infrastructure.image.TestImages;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.asset.AssetRepository;
@@ -476,9 +477,9 @@ class AssetServiceTest extends AbstractBaseTest {
     }
   }
 
-  /** docs/LEDGER_*.md API-43: an uploaded photo is stored without its metadata. */
+  /** docs/LEDGER_*.md API-43: an uploaded photo is stored re-encoded, without its metadata. */
   @Nested
-  class MetadataStripping {
+  class MetadataRemoval {
 
     private byte[] stored(AssetDto dto) throws IOException {
       Asset asset = assetRepository.findById(TsidUtils.toLong(dto.id()));
@@ -487,42 +488,41 @@ class AssetServiceTest extends AbstractBaseTest {
       }
     }
 
-    @Test
-    void storesAPhotoWithoutItsExifButWithItsOrientation() throws IOException {
-      byte[] photo = TestImages.jpeg(6);
-
-      queryContext.setUserForTest(member);
-      AssetDto dto =
-          assetService.createAsset(
-              team.getSlug(), AssetType.IMAGE, new ByteArrayInputStream(photo), "photo.jpg");
-
-      byte[] stored = stored(dto);
-      assertFalse(TestImages.contains(stored, TestImages.SECRET), "metadata left in storage");
-      assertTrue(stored.length < photo.length);
-      assertTrue(TestImages.contains(stored, "Exif"), "orientation must survive");
-      assertEquals("image/jpeg", dto.contentType());
+    private AssetDto upload(AssetType type, String testImage, String fileName) throws IOException {
+      return assetService.createAsset(
+          team.getSlug(), type, new ByteArrayInputStream(TestImages.load(testImage)), fileName);
     }
 
     @Test
-    void stripsAPhotoUploadedAsAnAttachment() throws IOException {
+    void storesAPhotoWithoutItsMetadata() throws IOException {
       queryContext.setUserForTest(member);
-      AssetDto dto =
-          assetService.createAsset(
-              team.getSlug(),
-              AssetType.ATTACHMENT,
-              new ByteArrayInputStream(TestImages.png(1)),
-              "scan.png");
+      AssetDto dto = upload(AssetType.IMAGE, TestImages.JPEG, "photo.jpg");
+
+      assertFalse(TestImages.contains(stored(dto), TestImages.SECRET), "metadata left in storage");
+      assertEquals("image/jpeg", dto.contentType());
+      assertEquals("photo.jpg", dto.fileName());
+      // Rotated upright: the dimensions are those of what is stored
+      Asset asset = assetRepository.findById(TsidUtils.toLong(dto.id()));
+      assertEquals(20, asset.getWidth());
+      assertEquals(40, asset.getHeight());
+    }
+
+    @Test
+    void reencodesAPhotoUploadedAsAnAttachment() throws IOException {
+      queryContext.setUserForTest(member);
+      AssetDto dto = upload(AssetType.ATTACHMENT, TestImages.PNG, "scan.png");
 
       assertFalse(TestImages.contains(stored(dto), TestImages.SECRET));
+      assertEquals("image/png", dto.contentType());
     }
 
     @Test
-    void stripsWhatAnImporterWritesToTheTempFile() throws IOException {
+    void reencodesWhatAnImporterWritesToTheTempFile() throws IOException {
       // The biketeam import and the thumbnails write a temp file, then call uploadAssetFile
       queryContext.setUserForTest(admin);
       AssetWithFile awf =
-          assetService.addAssetStream(team, AssetType.IMAGE, null, null, "imported.jpg");
-      java.nio.file.Files.write(awf.file().toPath(), TestImages.jpeg(3));
+          assetService.addAssetStream(team, AssetType.IMAGE, null, null, "imported.heic");
+      java.nio.file.Files.write(awf.file().toPath(), TestImages.load(TestImages.HEIC));
       assetService.uploadAssetFile(awf.asset());
 
       byte[] stored;
@@ -530,30 +530,41 @@ class AssetServiceTest extends AbstractBaseTest {
         stored = in.readAllBytes();
       }
       assertFalse(TestImages.contains(stored, TestImages.SECRET));
+      assertEquals("image/jpeg", awf.asset().getContentType());
+      assertEquals("imported.jpg", awf.asset().getFileName());
     }
 
     @Test
-    void rejectsAHeicPhoto() {
-      byte[] heic = new byte[64];
-      byte[] ftyp = "\0\0\0\u0018ftypheic\0\0\0\0mif1heic".getBytes(StandardCharsets.ISO_8859_1);
-      System.arraycopy(ftyp, 0, heic, 0, ftyp.length);
-
+    void acceptsAHeicPhotoAndStoresAJpeg() throws IOException {
       queryContext.setUserForTest(member);
       for (AssetType type : new AssetType[] {AssetType.IMAGE, AssetType.ATTACHMENT}) {
-        PedalonsException ex =
-            assertThrows(
-                PedalonsException.class,
-                () ->
-                    assetService.createAsset(
-                        team.getSlug(), type, new ByteArrayInputStream(heic), "photo.heic"));
-        assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode(), type.name());
+        AssetDto dto = upload(type, TestImages.HEIC, "IMG_0042.HEIC");
+
+        assertEquals("image/jpeg", dto.contentType(), type.name());
+        assertEquals("IMG_0042.jpg", dto.fileName(), type.name());
+        byte[] stored = stored(dto);
+        assertEquals(ImageFormat.JPEG, ImageFormat.sniff(stored), type.name());
+        assertFalse(TestImages.contains(stored, TestImages.SECRET), type.name());
       }
     }
 
     @Test
-    void rejectsATiffPhoto() {
-      byte[] tiff =
-          TestImages.concat("II*\0".getBytes(StandardCharsets.ISO_8859_1), TestImages.exifTiff(1));
+    void acceptsATiffAnAvifAndAJpegXl() throws IOException {
+      queryContext.setUserForTest(member);
+      for (String testImage : new String[] {TestImages.TIFF, TestImages.AVIF, TestImages.JXL}) {
+        AssetDto dto = upload(AssetType.IMAGE, testImage, testImage);
+
+        assertEquals("image/jpeg", dto.contentType(), testImage);
+        assertEquals("photo.jpg", dto.fileName(), testImage);
+        assertFalse(TestImages.contains(stored(dto), TestImages.SECRET), testImage);
+      }
+    }
+
+    @Test
+    void refusesAJpeg2000() {
+      byte[] jp2 = new byte[64];
+      byte[] box = {0, 0, 0, 0x0C, 'j', 'P', ' ', ' ', '\r', '\n', (byte) 0x87, '\n'};
+      System.arraycopy(box, 0, jp2, 0, box.length);
 
       queryContext.setUserForTest(member);
       PedalonsException ex =
@@ -563,8 +574,8 @@ class AssetServiceTest extends AbstractBaseTest {
                   assetService.createAsset(
                       team.getSlug(),
                       AssetType.ATTACHMENT,
-                      new ByteArrayInputStream(tiff),
-                      "scan.tif"));
+                      new ByteArrayInputStream(jp2),
+                      "scan.jp2"));
       assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode());
     }
   }

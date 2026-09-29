@@ -81,7 +81,7 @@ public class UserAvatarService {
     try (InputStream fis = new FileInputStream(tempFile)) {
       storageService.store(tempKey, fis, contentType, tempFile.length());
     } catch (IOException | RuntimeException e) {
-      // e.g. an image too broken to strip of its metadata (docs/LEDGER_*.md API-43)
+      // e.g. an image imgproxy cannot decode to re-encode it (docs/LEDGER_*.md API-43)
       tempFile.delete();
       throw e;
     }

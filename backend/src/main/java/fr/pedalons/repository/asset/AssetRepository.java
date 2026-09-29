@@ -32,7 +32,7 @@ public class AssetRepository implements PanacheRepository<Asset> {
       Long assetId, Long teamId, Long fileId, String fileName, String contentType) {}
 
   /**
-   * Assets whose stored file predates metadata stripping, by id from {@code afterId} on. Backed by the partial
+   * Assets whose stored file predates the re-encoding of images, by id from {@code afterId} on. Backed by the partial
    * index {@code idx_assets_metadata_pending} (V47), empty once the backfill is done.
    * docs/LEDGER_*.md API-43.
    */
@@ -55,6 +55,14 @@ public class AssetRepository implements PanacheRepository<Asset> {
   /** Bulk update: neither {@code updatedAt} nor the entity listeners are touched. */
   public void clearMetadataPending(Long assetId) {
     update("metadataPending = false where id = ?1", assetId);
+  }
+
+  /**
+   * Bulk update, for a file the backfill re-encoded into another format (a TIFF into a JPEG);
+   * neither {@code updatedAt} nor the entity listeners are touched.
+   */
+  public void updateStoredFormat(Long assetId, String fileName, String contentType) {
+    update("fileName = ?1, contentType = ?2 where id = ?3", fileName, contentType, assetId);
   }
 
   /**

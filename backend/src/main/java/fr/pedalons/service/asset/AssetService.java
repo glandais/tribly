@@ -14,6 +14,7 @@ import fr.pedalons.enums.*;
 import fr.pedalons.infrastructure.exception.NotFoundException;
 import fr.pedalons.infrastructure.filetype.DetectedFileType;
 import fr.pedalons.infrastructure.filetype.FileTypeDetector;
+import fr.pedalons.infrastructure.image.ImageFormat;
 import fr.pedalons.infrastructure.imgproxy.ImgProxyService;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.asset.AssetRepository;
@@ -107,11 +108,13 @@ public class AssetService {
     // Create temp file for content type detection and possible external writing
     File tempFile = createTempFile(fileId);
     String contentType;
+    String storedName = fileName;
 
     if (content != null) {
       // Copy content to temp file for content type detection
       Files.copy(content, tempFile.toPath());
       contentType = detectAndValidate(tempFile, fileName, type);
+      storedName = storedFileName(tempFile, fileName);
 
       // Upload to S3 with metadata
       String key = getAssetKey(team, fileId);
@@ -119,7 +122,7 @@ public class AssetService {
           Map.of(
               "file-id", TsidUtils.toString(fileId),
               "team-id", TsidUtils.toString(team.getId()),
-              "file-name", fileName);
+              "file-name", storedName);
       try (InputStream fis = new FileInputStream(tempFile)) {
         storageService.store(key, fis, contentType, tempFile.length(), metadata);
       }
@@ -136,7 +139,7 @@ public class AssetService {
           fileName, type);
     }
 
-    Asset asset = new Asset(creator, team, type, fileId, fileName, contentType);
+    Asset asset = new Asset(creator, team, type, fileId, storedName, contentType);
     asset.setTeamEntity(teamEntity);
 
     if (content != null && contentType.startsWith("image/")) {
@@ -170,6 +173,7 @@ public class AssetService {
 
     String contentType = detectAndValidate(tempFile, asset.getFileName(), asset.getType());
     asset.setContentType(contentType);
+    asset.setFileName(storedFileName(tempFile, asset.getFileName()));
 
     String key = getAssetKey(asset.getTeam(), asset.getFileId());
     Map<String, String> metadata =
@@ -289,6 +293,14 @@ public class AssetService {
   private String detectAndValidate(File file, String fileName, AssetType type) {
     DetectedFileType detected = fileTypeDetector.detectAndValidate(file, fileName, type);
     return detected.mimeType();
+  }
+
+  /**
+   * The name the asset keeps once storage has re-encoded it: a HEIC stored as a JPEG ends in
+   * {@code .jpg}. docs/LEDGER_*.md API-43.
+   */
+  private static String storedFileName(File file, String fileName) throws IOException {
+    return ImageFormat.sniff(file.toPath()).storedFileName(fileName);
   }
 
   private String getContentTypeFromFileName(String fileName) {

@@ -21,9 +21,8 @@ class FileTypeCategoryTest {
     }
 
     @Test
-    void rejectsImagesWhoseMetadataCannotBeStripped() {
-      // docs/LEDGER_*.md API-43
-      assertFalse(FileTypeCategory.IMAGE.accepts("tiff"));
+    void rejectsJpeg2000() {
+      // docs/LEDGER_*.md API-43. TIFF, HEIC, AVIF, JPEG XL are accepted before Magika is asked.
       assertFalse(FileTypeCategory.IMAGE.accepts("jp2"));
     }
 
@@ -119,9 +118,8 @@ class FileTypeCategoryTest {
     }
 
     @Test
-    void rejectsImagesWhoseMetadataCannotBeStripped() {
-      // docs/LEDGER_*.md API-43
-      assertFalse(FileTypeCategory.ATTACHMENT.accepts("tiff"));
+    void rejectsJpeg2000() {
+      // docs/LEDGER_*.md API-43: its metadata cannot be removed
       assertFalse(FileTypeCategory.ATTACHMENT.accepts("jp2"));
     }
 

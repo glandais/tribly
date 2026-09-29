@@ -6,7 +6,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * What an uploaded file is, as far as its metadata is concerned, read from its first bytes — never
@@ -16,12 +18,12 @@ import java.util.Set;
  * <p>Three outcomes:
  *
  * <ul>
- *   <li>{@linkplain #isStrippable() strippable}: {@link ImageMetadataStripper} rewrites the file
- *       without its metadata;
- *   <li>{@linkplain #isRefused() refused}: an image container that carries EXIF (GPS position
- *       included) and that we cannot clean without re-encoding — TIFF and everything built on it
- *       (DNG and most camera raw files), HEIF/HEIC/AVIF, JPEG XL and JPEG 2000 containers. Such a
- *       file is rejected at upload rather than stored with its position;
+ *   <li>{@linkplain #isReencoded() re-encoded}: storage has imgproxy decode the pixels and write a
+ *       fresh file, which carries no metadata. JPEG, PNG, WebP and GIF keep their format; TIFF (and
+ *       the raw files built on it), HEIF/HEIC/AVIF and JPEG XL, which browsers and apps do not all
+ *       display, become a JPEG;
+ *   <li>{@linkplain #isRefused() refused}: a JPEG 2000 container, which carries EXIF and XMP and
+ *       that imgproxy cannot read;
  *   <li>{@link #OTHER}: not an image container we know of (GPX, PDF, zip, BMP, ICO, SVG…), stored
  *       as it is.
  * </ul>
@@ -29,15 +31,15 @@ import java.util.Set;
  * <p>docs/LEDGER_*.md API-43.
  */
 public enum ImageFormat {
-  JPEG(true, false),
-  PNG(true, false),
-  WEBP(true, false),
-  GIF(true, false),
-  TIFF(false, true),
-  HEIF(false, true),
-  JPEG_XL(false, true),
-  JPEG_2000(false, true),
-  OTHER(false, false);
+  JPEG("jpg", "image/jpeg"),
+  PNG("png", "image/png"),
+  WEBP("webp", "image/webp"),
+  GIF("gif", "image/gif"),
+  TIFF("jpg", "image/jpeg"),
+  HEIF("jpg", "image/jpeg"),
+  JPEG_XL("jpg", "image/jpeg"),
+  JPEG_2000(null, null),
+  OTHER(null, null);
 
   /** How many leading bytes {@link #sniff(byte[])} needs to decide. */
   public static final int SNIFF_LENGTH = 64;
@@ -59,22 +61,55 @@ public enum ImageFormat {
           "heic", "heix", "hevc", "hevx", "heim", "heis", "hevm", "hevs", "mif1", "mif2", "msf1",
           "avif", "avis", "avio", "crx ");
 
-  private final boolean strippable;
-  private final boolean refused;
+  private final @Nullable String storedExtension;
+  private final @Nullable String storedMimeType;
 
-  ImageFormat(boolean strippable, boolean refused) {
-    this.strippable = strippable;
-    this.refused = refused;
+  ImageFormat(@Nullable String storedExtension, @Nullable String storedMimeType) {
+    this.storedExtension = storedExtension;
+    this.storedMimeType = storedMimeType;
   }
 
-  /** {@link ImageMetadataStripper} knows how to remove this format's metadata. */
-  public boolean isStrippable() {
-    return strippable;
+  /** Storage stores a re-encoded copy of this image, never the uploaded bytes. */
+  public boolean isReencoded() {
+    return storedExtension != null;
   }
 
-  /** An image that carries metadata we cannot remove: never store it. */
+  /** An image that carries metadata and that cannot be re-encoded: never store it. */
   public boolean isRefused() {
-    return refused;
+    return this == JPEG_2000;
+  }
+
+  /** The extension of the re-encoded file, which is also the format imgproxy is asked for. */
+  public String storedExtension() {
+    if (storedExtension == null) {
+      throw new IllegalStateException(this + " is not re-encoded");
+    }
+    return storedExtension;
+  }
+
+  /** The content type of the re-encoded file. */
+  public String storedMimeType() {
+    if (storedMimeType == null) {
+      throw new IllegalStateException(this + " is not re-encoded");
+    }
+    return storedMimeType;
+  }
+
+  /**
+   * {@code fileName} with the extension of the re-encoded file when it announced another format
+   * ({@code IMG_0042.HEIC} → {@code IMG_0042.jpg}), unchanged otherwise.
+   */
+  public String storedFileName(String fileName) {
+    if (!isReencoded()) {
+      return fileName;
+    }
+    int dot = fileName.lastIndexOf('.');
+    String base = dot > 0 ? fileName.substring(0, dot) : fileName;
+    String extension = dot > 0 ? fileName.substring(dot + 1).toLowerCase(Locale.ROOT) : "";
+    boolean matches =
+        extension.equals(storedExtension)
+            || (storedExtension.equals("jpg") && extension.equals("jpeg"));
+    return matches ? fileName : base + "." + storedExtension;
   }
 
   /** Reads the format from the first bytes of {@code file}. */
@@ -112,7 +147,8 @@ public enum ImageFormat {
         return TIFF;
       }
     }
-    if (startsWith(head, JXL_CONTAINER)) {
+    // A bare JPEG XL codestream, or its ISO BMFF container
+    if ((n >= 2 && u(head, 0) == 0xFF && u(head, 1) == 0x0A) || startsWith(head, JXL_CONTAINER)) {
       return JPEG_XL;
     }
     if (startsWith(head, JP2_CONTAINER)) {

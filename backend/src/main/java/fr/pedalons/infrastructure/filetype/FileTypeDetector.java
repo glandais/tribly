@@ -104,9 +104,12 @@ public class FileTypeDetector {
    */
   public DetectedFileType detectAndValidate(
       File file, @Nullable String fileName, AssetType assetType) {
-    rejectUnstrippableImage(file, fileName, assetType);
-    DetectedFileType detected = detect(file, fileName);
     FileTypeCategory category = FileTypeCategory.forAssetType(assetType);
+    DetectedFileType image = detectImage(file, fileName, assetType, category);
+    if (image != null) {
+      return image;
+    }
+    DetectedFileType detected = detect(file, fileName);
     boolean acceptedByLabel = category.accepts(detected.label());
     if (!acceptedByLabel) {
       if (!matchesByExtension(category, fileName)) {
@@ -135,13 +138,17 @@ public class FileTypeDetector {
   }
 
   /**
-   * Refuses, whatever Magika says and whatever the category, an image container whose metadata
-   * (GPS position included) cannot be removed without re-encoding — TIFF and camera raw files,
-   * HEIF/HEIC/AVIF, JPEG XL and JPEG 2000 containers. Storage would refuse it too; failing here
-   * gives the user the same answer as any other rejected type. docs/LEDGER_*.md API-43.
+   * Decides on an image by its first bytes, before Magika, which has no label for HEIC, AVIF or
+   * JPEG XL. An image storage re-encodes is accepted where images are ({@link
+   * FileTypeCategory#IMAGE}, {@link FileTypeCategory#ATTACHMENT}), with the content type it will be
+   * stored under: re-encoding leaves nothing of the uploaded bytes, so Magika has nothing to guard
+   * against. Elsewhere (GPX, FIT), Magika and the file name decide as for any other file. A JPEG
+   * 2000, which cannot be re-encoded, is refused whatever the category. docs/LEDGER_*.md API-43.
+   *
+   * @return the detected image, or {@code null} for anything else, to let Magika decide
    */
-  private static void rejectUnstrippableImage(
-      File file, @Nullable String fileName, AssetType assetType) {
+  private static @Nullable DetectedFileType detectImage(
+      File file, @Nullable String fileName, AssetType assetType, FileTypeCategory category) {
     ImageFormat format;
     try {
       format = ImageFormat.sniff(file.toPath());
@@ -150,10 +157,16 @@ public class FileTypeDetector {
     }
     if (format.isRefused()) {
       LOG.warnf(
-          "Rejecting upload fileName=%s assetType=%s: %s image, its metadata cannot be removed",
+          "Rejecting upload fileName=%s assetType=%s: %s image, it cannot be re-encoded",
           fileName, assetType, format);
       throw new BadRequestException(ErrorCode.FILE_TYPE_REJECTED);
     }
+    if (!format.isReencoded()
+        || (category != FileTypeCategory.IMAGE && category != FileTypeCategory.ATTACHMENT)) {
+      return null;
+    }
+    return new DetectedFileType(
+        format.name().toLowerCase(Locale.ROOT), 1f, format.storedMimeType());
   }
 
   private static String policyKey(FileTypeCategory category) {

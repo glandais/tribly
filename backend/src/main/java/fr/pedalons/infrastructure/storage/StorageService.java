@@ -19,11 +19,10 @@ public interface StorageService {
   /**
    * Stores content in the storage backend with custom metadata.
    *
-   * <p><strong>An image is stored without its metadata</strong> (EXIF with the GPS position, XMP,
-   * IPTC, comments; the orientation is kept): the implementation strips it, whatever the caller,
-   * so the stored object may be smaller than {@code contentLength}. An image whose metadata cannot
-   * be removed (TIFF, HEIF…) is refused. See {@code ImageMetadataStripper}, docs/LEDGER_*.md
-   * API-43.
+   * <p><strong>An image is stored re-encoded, without its metadata</strong> (EXIF with the GPS
+   * position, XMP, IPTC, comments), rotated upright, whatever the caller: the stored object differs
+   * from {@code content}, in size and possibly in format and content type (a HEIC becomes a JPEG).
+   * See {@code ImageFormat}, docs/LEDGER_*.md API-43.
    *
    * @param key the storage key (path within the bucket)
    * @param content the input stream containing the content

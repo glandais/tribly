@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
@@ -25,43 +24,48 @@ class ImageFormatTest {
     return s.getBytes(StandardCharsets.ISO_8859_1);
   }
 
+  private static ImageFormat sniff(String testImage) {
+    return ImageFormat.sniff(TestImages.load(testImage));
+  }
+
   @Test
-  void strippableImages() throws IOException {
-    assertEquals(ImageFormat.JPEG, ImageFormat.sniff(TestImages.jpeg(1)));
-    assertEquals(ImageFormat.PNG, ImageFormat.sniff(TestImages.png(1)));
-    assertEquals(ImageFormat.GIF, ImageFormat.sniff(TestImages.gif()));
-    assertEquals(ImageFormat.WEBP, ImageFormat.sniff(TestImages.webp(1)));
+  void imagesKeepingTheirFormat() {
+    assertEquals(ImageFormat.JPEG, sniff(TestImages.JPEG));
+    assertEquals(ImageFormat.PNG, sniff(TestImages.PNG));
+    assertEquals(ImageFormat.GIF, sniff(TestImages.GIF));
+    assertEquals(ImageFormat.WEBP, sniff(TestImages.WEBP));
+    assertEquals("image/jpeg", ImageFormat.JPEG.storedMimeType());
+    assertEquals("image/png", ImageFormat.PNG.storedMimeType());
+    assertEquals("image/gif", ImageFormat.GIF.storedMimeType());
+    assertEquals("image/webp", ImageFormat.WEBP.storedMimeType());
+  }
+
+  @Test
+  void imagesBecomingJpegs() {
+    assertEquals(ImageFormat.TIFF, sniff(TestImages.TIFF));
+    assertEquals(ImageFormat.TIFF, ImageFormat.sniff(ascii("MM\0*\0\0\0\u0008")));
+    assertEquals(ImageFormat.HEIF, sniff(TestImages.HEIC));
+    assertEquals(ImageFormat.HEIF, sniff(TestImages.AVIF));
+    // A generic major brand, the still-image brand only among the compatible ones
+    assertEquals(ImageFormat.HEIF, ImageFormat.sniff(ftyp("mp41", "isom", "mif1")));
+    assertEquals(ImageFormat.JPEG_XL, sniff(TestImages.JXL));
+    assertEquals(ImageFormat.JPEG_XL, ImageFormat.sniff(new byte[] {(byte) 0xFF, 0x0A, 0, 0}));
     for (ImageFormat f :
-        new ImageFormat[] {ImageFormat.JPEG, ImageFormat.PNG, ImageFormat.GIF, ImageFormat.WEBP}) {
-      assertTrue(f.isStrippable(), f.name());
+        new ImageFormat[] {ImageFormat.TIFF, ImageFormat.HEIF, ImageFormat.JPEG_XL}) {
+      assertTrue(f.isReencoded(), f.name());
       assertFalse(f.isRefused(), f.name());
+      assertEquals("image/jpeg", f.storedMimeType(), f.name());
     }
   }
 
   @Test
-  void refusedImages() {
-    assertEquals(ImageFormat.TIFF, ImageFormat.sniff(ascii("II*\0\u0008\0\0\0")));
-    assertEquals(ImageFormat.TIFF, ImageFormat.sniff(ascii("MM\0*\0\0\0\u0008")));
-    assertEquals(ImageFormat.HEIF, ImageFormat.sniff(ftyp("heic", "mif1", "heic")));
-    assertEquals(ImageFormat.HEIF, ImageFormat.sniff(ftyp("avif", "avif", "mif1")));
-    // A generic major brand, the still-image brand only among the compatible ones
-    assertEquals(ImageFormat.HEIF, ImageFormat.sniff(ftyp("mp41", "isom", "mif1")));
-    assertEquals(ImageFormat.HEIF, ImageFormat.sniff(ftyp("crx ", "crx ")));
-    assertEquals(
-        ImageFormat.JPEG_XL,
-        ImageFormat.sniff(
-            new byte[] {0, 0, 0, 0x0C, 'J', 'X', 'L', ' ', '\r', '\n', (byte) 0x87, '\n'}));
+  void jpeg2000IsRefused() {
     assertEquals(
         ImageFormat.JPEG_2000,
         ImageFormat.sniff(
             new byte[] {0, 0, 0, 0x0C, 'j', 'P', ' ', ' ', '\r', '\n', (byte) 0x87, '\n'}));
-    for (ImageFormat f :
-        new ImageFormat[] {
-          ImageFormat.TIFF, ImageFormat.HEIF, ImageFormat.JPEG_XL, ImageFormat.JPEG_2000
-        }) {
-      assertTrue(f.isRefused(), f.name());
-      assertFalse(f.isStrippable(), f.name());
-    }
+    assertTrue(ImageFormat.JPEG_2000.isRefused());
+    assertFalse(ImageFormat.JPEG_2000.isReencoded());
   }
 
   @Test
@@ -72,7 +76,21 @@ class ImageFormatTest {
     assertEquals(ImageFormat.OTHER, ImageFormat.sniff(ascii("PK\u0003\u0004")));
     assertEquals(ImageFormat.OTHER, ImageFormat.sniff(ascii("BM")));
     assertEquals(ImageFormat.OTHER, ImageFormat.sniff(new byte[0]));
-    assertFalse(ImageFormat.OTHER.isStrippable());
+    assertFalse(ImageFormat.OTHER.isReencoded());
     assertFalse(ImageFormat.OTHER.isRefused());
+  }
+
+  @Test
+  void theFileNameFollowsTheStoredFormat() {
+    assertEquals("IMG_0042.jpg", ImageFormat.HEIF.storedFileName("IMG_0042.HEIC"));
+    assertEquals("scan.jpg", ImageFormat.TIFF.storedFileName("scan.tif"));
+    assertEquals("photo.JPEG", ImageFormat.JPEG.storedFileName("photo.JPEG"));
+    assertEquals("photo.jpg", ImageFormat.JPEG.storedFileName("photo.jpg"));
+    assertEquals("photo.png", ImageFormat.PNG.storedFileName("photo.png"));
+    // A name that lied about the format is corrected, a name without extension gets one
+    assertEquals("photo.jpg", ImageFormat.JPEG.storedFileName("photo.png"));
+    assertEquals("scan.webp", ImageFormat.WEBP.storedFileName("scan"));
+    assertEquals(".hidden.gif", ImageFormat.GIF.storedFileName(".hidden"));
+    assertEquals("notes.txt", ImageFormat.OTHER.storedFileName("notes.txt"));
   }
 }

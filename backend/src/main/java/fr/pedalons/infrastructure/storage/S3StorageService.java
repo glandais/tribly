@@ -3,21 +3,21 @@ package fr.pedalons.infrastructure.storage;
 import fr.pedalons.common.exception.BadRequestException;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.infrastructure.image.ImageFormat;
-import fr.pedalons.infrastructure.image.ImageMetadataStripper;
-import fr.pedalons.infrastructure.image.MalformedImageException;
+import fr.pedalons.infrastructure.imgproxy.ImgProxyClient;
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.WebApplicationException;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
+import java.util.UUID;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -37,7 +37,12 @@ public class S3StorageService implements StorageService {
 
   private static final Logger LOG = Logger.getLogger(S3StorageService.class);
 
+  /** Where an image waits, with its metadata, for imgproxy to re-encode it. Never kept. */
+  static final String REENCODE_PREFIX = "tmp/reencode/";
+
   @Inject S3Client s3Client;
+
+  @Inject @RestClient ImgProxyClient imgProxyClient;
 
   @ConfigProperty(name = "storage.bucket", defaultValue = "pedalons")
   String bucket;
@@ -63,17 +68,21 @@ public class S3StorageService implements StorageService {
   }
 
   /**
-   * Stores {@code content}, without its metadata when it is an image.
+   * Stores {@code content}; an image is stored re-encoded, hence without its metadata.
    *
    * <p>The one place every file reaches the bucket through — uploaded assets and attachments,
    * avatars, generated thumbnails, the biketeam import — hence the one place metadata is removed,
    * so that no new write path can forget to (docs/LEDGER_*.md API-43). The format is read from the
    * bytes, not from {@code contentType}: a JPEG uploaded as an attachment under a generic type is
-   * cleaned all the same.
+   * re-encoded all the same, and stored under the content type of what imgproxy wrote (a HEIC
+   * becomes an {@code image/jpeg}, see {@link ImageFormat}).
    *
-   * @throws BadRequestException {@link ErrorCode#FILE_TYPE_REJECTED} for an image whose metadata
-   *     cannot be removed (TIFF, HEIF…), {@link ErrorCode#INVALID_FORMAT} for an image too broken
-   *     to walk; nothing is stored in either case
+   * <p>imgproxy reads its sources from the bucket: the original goes under {@link
+   * #REENCODE_PREFIX} for the time of the call, and is deleted whatever the outcome.
+   *
+   * @throws BadRequestException {@link ErrorCode#FILE_TYPE_REJECTED} for an image imgproxy cannot
+   *     read (JPEG 2000), {@link ErrorCode#INVALID_FORMAT} for an image imgproxy refuses to decode;
+   *     nothing is stored in either case
    */
   @Override
   public void store(
@@ -91,29 +100,40 @@ public class S3StorageService implements StorageService {
         LOG.warnf("Refusing to store %s: %s image, its metadata cannot be removed", key, format);
         throw new BadRequestException(ErrorCode.FILE_TYPE_REJECTED);
       }
-      if (!format.isStrippable()) {
+      if (!format.isReencoded()) {
         put(key, in, contentType, contentLength, metadata);
         return;
       }
-      Path stripped = Files.createTempFile("pedalons-stripped-", ".tmp");
+      String originalKey = REENCODE_PREFIX + UUID.randomUUID();
+      put(originalKey, in, contentType, contentLength, Map.of());
       try {
-        try (OutputStream out = Files.newOutputStream(stripped)) {
-          ImageMetadataStripper.strip(format, in, out);
-        } catch (MalformedImageException e) {
-          LOG.warnf("Refusing to store %s: malformed %s (%s)", key, format, e.getMessage());
-          throw new BadRequestException(ErrorCode.INVALID_FORMAT, e);
-        }
-        long size = Files.size(stripped);
+        byte[] reencoded = reencode(key, format, originalKey);
         LOG.debugf(
-            "Stripped metadata of %s (%s): %d -> %d bytes", key, format, contentLength, size);
-        try (InputStream strippedContent = Files.newInputStream(stripped)) {
-          put(key, strippedContent, contentType, size, metadata);
-        }
+            "Re-encoded %s (%s): %d -> %d bytes", key, format, contentLength, reencoded.length);
+        put(
+            key,
+            new ByteArrayInputStream(reencoded),
+            format.storedMimeType(),
+            reencoded.length,
+            metadata);
       } finally {
-        Files.deleteIfExists(stripped);
+        delete(originalKey);
       }
     } catch (IOException e) {
       throw new UncheckedIOException("Failed to store " + key, e);
+    }
+  }
+
+  private byte[] reencode(String key, ImageFormat format, String originalKey) {
+    try {
+      return imgProxyClient.reencode(getS3Path(originalKey), format.storedExtension());
+    } catch (WebApplicationException e) {
+      int status = e.getResponse().getStatus();
+      if (status >= 400 && status < 500) {
+        LOG.warnf("Refusing to store %s: imgproxy cannot decode this %s (%d)", key, format, status);
+        throw new BadRequestException(ErrorCode.INVALID_FORMAT, e);
+      }
+      throw e;
     }
   }
 

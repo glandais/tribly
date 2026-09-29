@@ -1,9 +1,9 @@
 package fr.pedalons.service.asset;
 
 import fr.pedalons.common.TsidUtils;
+import fr.pedalons.common.exception.PedalonsException;
+import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.infrastructure.image.ImageFormat;
-import fr.pedalons.infrastructure.image.ImageMetadataStripper;
-import fr.pedalons.infrastructure.image.MalformedImageException;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.asset.AssetRepository;
 import fr.pedalons.repository.asset.AssetRepository.MetadataPendingRow;
@@ -12,25 +12,25 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import org.jboss.logging.Logger;
 
 /**
- * Strips the metadata of the files stored before storage did it on write (docs/LEDGER_*.md
- * API-43): the assets V47 flagged {@code metadata_pending}, one batch at a time.
+ * Re-encodes the images stored before storage did it on write (docs/LEDGER_*.md API-43): the
+ * assets V47 flagged {@code metadata_pending}, one batch at a time.
  *
- * <p><strong>Idempotent.</strong> Each file is downloaded, stripped, and written back under the same
- * key only if stripping changed it; its flag is then cleared. A file already clean, a file that is
- * not an image, a file gone from the bucket, are just unflagged. Running it again on a file — the
- * flag cleared in between or not — leaves it as it is, stripping being a fixed point.
+ * <p>Each image is downloaded and stored again under the same key, which re-encodes it; its flag
+ * is then cleared. A file that is not an image, a file gone from the bucket, are just unflagged. An
+ * image re-encoded into another format (a TIFF into a JPEG) has its asset's name and content type
+ * updated.
  *
  * <p>No transaction spans the storage calls: the flag of each asset is cleared in its own, after
- * its file is written, so a crash between the two only means the file is looked at again.
+ * its file is written, so a crash between the two only means the file is re-encoded once more.
  */
 @ApplicationScoped
 public class AssetMetadataBackfill {
@@ -39,19 +39,15 @@ public class AssetMetadataBackfill {
 
   /** What happened to one file. */
   public enum Outcome {
-    /** Metadata removed, file rewritten. */
-    STRIPPED,
-    /** Nothing to remove. */
-    ALREADY_CLEAN,
+    /** Re-encoded, rewritten without its metadata. */
+    REENCODED,
     /** Not an image, or one without metadata (BMP, ICO, SVG). */
     NOT_AN_IMAGE,
-    /** TIFF, HEIF…: kept as it is, logged — see the WARN. */
-    UNSTRIPPABLE,
-    /** Announces an image but cannot be walked: kept as it is, logged. */
-    MALFORMED,
+    /** JPEG 2000, or an image imgproxy cannot decode: kept as it is, logged — see the WARN. */
+    UNREADABLE,
     /** No object under the key. */
     MISSING,
-    /** Storage failed: the asset stays flagged and is tried again on a later run. */
+    /** Storage or imgproxy failed: the asset stays flagged and is tried again on a later run. */
     FAILED
   }
 
@@ -71,7 +67,7 @@ public class AssetMetadataBackfill {
     List<MetadataPendingRow> rows =
         QuarkusTransaction.requiringNew()
             .call(() -> assetRepository.findMetadataPending(afterId, limit));
-    Map<Outcome, Integer> outcomes = new java.util.EnumMap<>(Outcome.class);
+    Map<Outcome, Integer> outcomes = new EnumMap<>(Outcome.class);
     long lastId = afterId;
     for (MetadataPendingRow row : rows) {
       Outcome outcome = process(row);
@@ -87,7 +83,7 @@ public class AssetMetadataBackfill {
   Outcome process(MetadataPendingRow row) {
     Outcome outcome;
     try {
-      outcome = strip(row);
+      outcome = reencode(row);
     } catch (IOException | RuntimeException e) {
       LOG.warnf(
           e,
@@ -100,7 +96,7 @@ public class AssetMetadataBackfill {
     return outcome;
   }
 
-  private Outcome strip(MetadataPendingRow row) throws IOException {
+  private Outcome reencode(MetadataPendingRow row) throws IOException {
     String key = assetService.getAssetKey(row.teamId(), row.fileId());
     if (!storageService.exists(key)) {
       return Outcome.MISSING;
@@ -111,44 +107,46 @@ public class AssetMetadataBackfill {
         ImageFormat.sniff(storageService.retrieveHead(key, ImageFormat.SNIFF_LENGTH));
     if (format.isRefused()) {
       LOG.warnf(
-          "Asset %s (%s, %s) is a %s image: its metadata cannot be removed, left as is",
+          "Asset %s (%s, %s) is a %s image: it cannot be re-encoded, left as is",
           TsidUtils.toString(row.assetId()), row.fileName(), key, format);
-      return Outcome.UNSTRIPPABLE;
+      return Outcome.UNREADABLE;
     }
-    if (!format.isStrippable()) {
+    if (!format.isReencoded()) {
       return Outcome.NOT_AN_IMAGE;
     }
+    String fileName = format.storedFileName(row.fileName());
     Path original = Files.createTempFile("pedalons-backfill-", ".orig");
-    Path stripped = Files.createTempFile("pedalons-backfill-", ".stripped");
     try {
       try (InputStream in = storageService.retrieve(key)) {
         Files.copy(in, original, StandardCopyOption.REPLACE_EXISTING);
-      }
-      try (InputStream in = Files.newInputStream(original);
-          OutputStream out = Files.newOutputStream(stripped)) {
-        ImageMetadataStripper.strip(format, in, out);
-      } catch (MalformedImageException e) {
-        LOG.warnf(
-            "Asset %s (%s, %s) is a malformed %s, left as is: %s",
-            TsidUtils.toString(row.assetId()), row.fileName(), key, format, e.getMessage());
-        return Outcome.MALFORMED;
-      }
-      if (Files.mismatch(original, stripped) == -1) {
-        return Outcome.ALREADY_CLEAN;
       }
       Map<String, String> metadata =
           Map.of(
               "asset-id", TsidUtils.toString(row.assetId()),
               "file-id", TsidUtils.toString(row.fileId()),
               "team-id", TsidUtils.toString(row.teamId()),
-              "file-name", row.fileName());
-      try (InputStream in = Files.newInputStream(stripped)) {
-        storageService.store(key, in, row.contentType(), Files.size(stripped), metadata);
+              "file-name", fileName);
+      try (InputStream in = Files.newInputStream(original)) {
+        storageService.store(key, in, row.contentType(), Files.size(original), metadata);
+      } catch (PedalonsException e) {
+        if (e.getErrorCode() != ErrorCode.INVALID_FORMAT) {
+          throw e;
+        }
+        LOG.warnf(
+            "Asset %s (%s, %s) is a %s imgproxy cannot decode, left as is",
+            TsidUtils.toString(row.assetId()), row.fileName(), key, format);
+        return Outcome.UNREADABLE;
       }
-      return Outcome.STRIPPED;
     } finally {
       Files.deleteIfExists(original);
-      Files.deleteIfExists(stripped);
     }
+    if (!fileName.equals(row.fileName()) || !format.storedMimeType().equals(row.contentType())) {
+      QuarkusTransaction.requiringNew()
+          .run(
+              () ->
+                  assetRepository.updateStoredFormat(
+                      row.assetId(), fileName, format.storedMimeType()));
+    }
+    return Outcome.REENCODED;
   }
 }

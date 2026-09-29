@@ -81,10 +81,11 @@ to policy §7.
 ## P1 — High-value data minimisation (each deletes a scary disclosure)
 
 ### ~~5. Strip EXIF on image upload~~ **[Minimize]** — *first P1 item*
-> **Done (2026-09-29, `API-43`):** `S3StorageService.store` strips JPEG/PNG/WebP/GIF by allowlist
-> (orientation kept in a minimal EXIF), refuses TIFF/raw, HEIF/HEIC/AVIF, JXL and JP2, and a backfill
-> (V47 `metadata_pending`) cleans the originals already stored. Policy §1 now says the metadata is
-> removed. Videos, documents and SVG/ICO are still stored as-is (`API-46` to `API-48`).
+> **Done (2026-09-29, `API-43`):** `S3StorageService.store` has imgproxy re-encode every image
+> (JPEG/PNG/WebP/GIF keep their format; TIFF, HEIF/HEIC/AVIF and JXL become JPEG; JP2 is refused),
+> which leaves no metadata, and a backfill (V47 `metadata_pending`) re-encodes the originals already
+> stored. Policy §1 now says the metadata is removed and the image re-encoded. Videos, documents
+> and SVG/ICO are still stored as-is (`API-46` to `API-48`).
 
 > **2026-09-21:** more urgent than it was. An ad's location is now blurred to about 1 km and the
 > proximity probe is quantised (`common/CoarseLocation.java`, `AdRepository`), because an ad's location

@@ -22,8 +22,8 @@ import java.util.Set;
  * </ul>
  */
 public enum FileTypeCategory {
-  // No TIFF: its metadata (GPS position included) cannot be removed without re-encoding, so it is
-  // refused rather than stored with it — docs/LEDGER_*.md API-43, see ImageFormat
+  // JPEG, PNG, GIF, WebP, TIFF, HEIC, AVIF and JPEG XL are accepted by their first bytes before
+  // Magika is asked, and re-encoded by storage — see FileTypeDetector, docs/LEDGER_*.md API-43
   IMAGE(Set.of("png", "jpeg", "gif", "webp", "bmp", "ico", "svg"), false),
   // Magika labels GPX as `xml`. The `.gpx` extension fallback in FileTypeDetector covers
   // small/empty GPX files where Magika cannot reach a confident decision.
@@ -113,9 +113,8 @@ public enum FileTypeCategory {
           // OS housekeeping artifacts
           "thumbsdb",
           "dsstore",
-          // Images whose metadata (GPS position included) cannot be removed — docs/LEDGER_*.md
-          // API-43. FileTypeDetector also refuses them by their first bytes, whatever the label.
-          "tiff",
+          // JPEG 2000: its metadata cannot be removed, imgproxy does not read it — docs/LEDGER_*.md
+          // API-43. FileTypeDetector also refuses it by its first bytes, whatever the label.
           "jp2",
           // Ambiguous Magika outputs (defeat content-based validation)
           "unknown",

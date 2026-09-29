@@ -58,9 +58,9 @@ public class Asset extends BaseEntity {
   private int sortOrder = 0;
 
   /**
-   * The stored file was uploaded before images were stripped of their metadata and still has to be
-   * cleaned by {@code AssetMetadataBackfill}. Always false for a new asset: storage strips on
-   * write. docs/LEDGER_*.md API-43.
+   * The stored file was uploaded before storage re-encoded images to remove their metadata, and
+   * still has to go through {@code AssetMetadataBackfill}. Always false for a new asset: storage
+   * re-encodes on write. docs/LEDGER_*.md API-43.
    */
   @Column(name = "metadata_pending", nullable = false)
   private boolean metadataPending = false;
