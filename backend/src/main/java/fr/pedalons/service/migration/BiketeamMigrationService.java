@@ -1679,11 +1679,11 @@ public class BiketeamMigrationService {
    * Biketeam has no per-entity visibility beyond {@code listed_in_feed}, which hides a ride or trip
    * from the team feed while leaving a direct link working — exactly {@code PUBLIC_UNLISTED}.
    *
-   * <p>The team's own unlisted-ness is deliberately not pushed down onto its content. {@code
-   * getPublicEntity} already requires {@code team.visibility = 'PUBLIC'} to list anything, so
-   * marking the items of an unlisted team PUBLIC_UNLISTED would change nothing today — but it would
-   * stick: promoting that team to PUBLIC later would leave its whole feed hidden, where biketeam
-   * would have shown it.
+   * <p>The team's own unlisted-ness is deliberately not pushed down onto its content. Marking the
+   * items of an unlisted team PUBLIC_UNLISTED would empty the team's own feed today — the team's
+   * pages list a PUBLIC_UNLISTED team's items, but team-scoped listings still require {@code
+   * te.visibility = 'PUBLIC'} — and it would stick: promoting that team to PUBLIC later would leave
+   * its whole feed hidden, where biketeam would have shown it.
    */
   private static Visibility contentVisibility(Visibility teamVisibility, boolean listedInFeed) {
     if (teamVisibility == Visibility.TEAM) {
