@@ -179,7 +179,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          # 256M was measured too tight in production: Grafana 13 sits at ~235M idle
+          # (docs/LEDGER_DONE.md OPS-22).
+          memory: 512M
 
 volumes:
   prometheus_data:

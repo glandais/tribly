@@ -476,7 +476,7 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       (`quarkus.datasource.devservices.image-name`, `application.properties`) pour que les tests
       tournent sur la même version ; la doc qui annonce « PostgreSQL 17 » (CLAUDE.md, README.md,
       backend/README.md). Rien ne presse tant que la 17 est maintenue. Taille : S.
-- [ ] `OPS-20` **Mettre le monitoring en service sur l'hôte** — le code est livré (`AUD-11`,
+- [ ] `OPS-22` **Mettre le monitoring en service sur l'hôte** — le code est livré (`AUD-11`,
       `AUD-12`, `AUD-13`), rien n'est encore déployé. Dans l'ordre de
       [`OPERATIONS.md`](OPERATIONS.md#setting-it-up) : pare-feu réinstallé (`MONITORING_PORTS`,
       `HOST_PORTS`), `metrics` et site `:2020` dans le Caddyfile, check Healthchecks du `Watchdog`,

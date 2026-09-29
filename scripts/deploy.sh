@@ -64,6 +64,9 @@ if $MONITORING; then
     ALERT_SMTP_FROM ALERT_EMAIL_TO ALERT_WATCHDOG_PING_URL; do
     [[ -n "${!var:-}" ]] || die "$var is not set in .env (see services/monitoring/env.example)"
   done
+  # Alertmanager refuses a smarthost without its port, and Swarm would then restart it in a loop.
+  [[ "$ALERT_SMTP_SMARTHOST" =~ :[0-9]+$ ]] \
+    || die "ALERT_SMTP_SMARTHOST must be host:port (587, STARTTLS), got '$ALERT_SMTP_SMARTHOST'"
   docker network inspect pedalons-shared >/dev/null 2>&1 \
     || die "network pedalons-shared missing — deploy the shared stack first (scripts/deploy.sh --shared)"
   # A missing bind-mount source makes Swarm reject the task (Caddy's logs: docs/OPERATIONS.md,
