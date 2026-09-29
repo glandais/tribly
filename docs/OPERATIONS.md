@@ -50,6 +50,11 @@ docker stack ps "$ENV_NAME"        # what is running, and why a task was rejecte
 docker stack rm "$ENV_NAME"
 ```
 
+On a stack's **first** deploy, `docker stack ps` usually shows one backend task `Failed` with
+`task: non-zero exit (1)`: Swarm ignores `depends_on`, the backend started before postgres accepted
+connections, and its replacement is the one running. Nothing to do — the next deploys roll the
+backend beside a postgres already up.
+
 ### Rolling updates and rollback
 
 `./build.sh` tags each image twice: `pedalons-backend:${ENV_NAME}-<sha12>`, never moved once
