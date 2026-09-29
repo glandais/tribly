@@ -50,10 +50,11 @@ docker stack ps "$ENV_NAME"        # what is running, and why a task was rejecte
 docker stack rm "$ENV_NAME"
 ```
 
-On a stack's **first** deploy, `docker stack ps` usually shows one backend task `Failed` with
-`task: non-zero exit (1)`: Swarm ignores `depends_on`, the backend started before postgres accepted
-connections, and its replacement is the one running. Nothing to do — the next deploys roll the
-backend beside a postgres already up.
+On a stack's **first** deploy, `docker stack ps` usually shows a task or two `Failed` — the backend
+with `task: non-zero exit (1)`, sometimes varnish with `(2)`: Swarm ignores `depends_on`, so the
+backend may start before postgres accepts connections and varnish before `imgproxy` resolves, and
+their replacements are the ones running. Nothing to do — the next deploys roll the backend beside
+services already up.
 
 ### Rolling updates and rollback
 

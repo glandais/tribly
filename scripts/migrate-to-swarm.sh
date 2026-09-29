@@ -52,6 +52,15 @@ if [[ -n "$(docker ps -aq --filter "name=^${ENV_NAME}-")" ]]; then
   log "stopping the compose containers (volumes kept)"
   docker compose -p "$project" down --remove-orphans
 fi
+# `down` may leave the project's bridge network behind (seen on prod, compose 5.3.1), and the stack's
+# overlay has the same name: `docker stack deploy` would fail on "network ... already exists".
+net="${ENV_NAME}-net"
+if [[ "$(docker network inspect -f '{{.Scope}}' "$net" 2>/dev/null)" == "local" ]]; then
+  [[ -z "$(docker network inspect -f '{{range .Containers}}{{.Name}} {{end}}' "$net")" ]] \
+    || die "network $net still has containers attached — stop them first"
+  log "removing the compose network $net"
+  docker network rm "$net" >/dev/null
+fi
 [[ -z "$(docker ps -q --filter "volume=$OLD_PG")$(docker ps -q --filter "volume=$OLD_MINIO")" ]] \
   || die "a container still uses $OLD_PG or $OLD_MINIO — stop it first"
 
