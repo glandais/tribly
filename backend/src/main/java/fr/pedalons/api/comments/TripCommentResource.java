@@ -10,7 +10,6 @@ import fr.pedalons.enums.EntityType;
 import fr.pedalons.service.comment.CommentService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -29,7 +28,6 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed("user")
-@Transactional
 public class TripCommentResource {
 
   @Inject CommentService commentService;

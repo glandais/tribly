@@ -1,6 +1,8 @@
 package fr.pedalons;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaField;
@@ -83,6 +85,32 @@ class ArchitectureTest {
           .should(onlyCallServiceMethodsWithCheckAccess())
           .because(
               "all API calls to service methods must go through @CheckAccess annotated methods");
+
+  /**
+   * The transaction boundary is the service method (docs/LEDGER_*.md AUD-14): every resource method
+   * calls a single {@code @Transactional} service method, so a second annotation on the resource
+   * only widened the transaction around the response building. A resource that ever needs several
+   * service calls to be atomic should get one service method that does them, not a resource-level
+   * transaction.
+   */
+  @ArchTest
+  static final ArchRule resources_should_not_be_transactional =
+      noClasses()
+          .that()
+          .resideInAPackage("fr.pedalons.api..")
+          .should()
+          .beAnnotatedWith(jakarta.transaction.Transactional.class)
+          .because("the transaction boundary is the service method");
+
+  @ArchTest
+  static final ArchRule resource_methods_should_not_be_transactional =
+      noMethods()
+          .that()
+          .areDeclaredInClassesThat()
+          .resideInAPackage("fr.pedalons.api..")
+          .should()
+          .beAnnotatedWith(jakarta.transaction.Transactional.class)
+          .because("the transaction boundary is the service method");
 
   @ArchTest
   static final ArchRule api_layer_should_only_access_allowed_packages =

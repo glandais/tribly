@@ -557,7 +557,6 @@ Deux gestes d'exploitation de l'audit sont sous `OPS` : I13 (`OPS-7`) et I20 (`O
 | `AUD-11` | Observabilité | I6 | Critique | Aucune collecte de métriques (ni Micrometer, ni Prometheus, ni OpenTelemetry) |
 | `AUD-12` | Observabilité | I7 | Critique | Aucune alerte |
 | `AUD-13` | Observabilité | §9.3 | — | Pas de journaux JSON centralisés |
-| `AUD-14` | Backend | B4 | Important | `@Transactional` sur dix `*Resource`, en double des services |
 | `AUD-15` | Backend | B9, B11 | Important | `FetchType.EAGER` sur neuf `@ManyToOne` (`Ride`, `RideGroup`, `Trip`, `TripStage`, `UserTeam`) |
 | `AUD-16` | Backend | B12 | Important | Device flow sans test backend (couvert par `frontend/e2e/flow-device.e2e.ts`) |
 | `AUD-20` | Mobile | M11 | Important | Lints Flutter par défaut seulement (`analysis_options.yaml`) |

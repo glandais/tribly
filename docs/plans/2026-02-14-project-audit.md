@@ -74,7 +74,7 @@ En février 2026 : backend Quarkus 3.31.2, Java 21 (compile en Java 25), ~90 fic
 | B1 | Bug `TeamEntityType.AD` hardcode dans `updateSlug()` — les redirections de slug ne fonctionnent que pour les Ads | Critique | S | `TeamEntityService.java:90` | ✅ |
 | B2 | `<release>25</release>` dans pom.xml vs parent `maven.compiler.release=21` — risque en prod si JDK 21 | Important | S | `backend/pom.xml:281` | ✅ |
 | B3 | `hibernate-spatial` version geree hors BOM Quarkus — risque d'incompatibilite | Important | S | `backend/pom.xml:92-95` | ✅ |
-| B4 | `@Transactional` duplique sur Resources (deja present dans Services) | Important | M | `RideResource`, `PostResource`, `TripResource`, etc. | |
+| B4 | `@Transactional` duplique sur Resources (deja present dans Services) | Important | M | `RideResource`, `PostResource`, `TripResource`, etc. | ✅ (30 sept. 2026 : retiré des dix resources, chacune n'appelant qu'une méthode de service transactionnelle ; règles ArchUnit `resources_should_not_be_transactional` et `resource_methods_should_not_be_transactional`) |
 | B5 | `GlobalExceptionMapper` logue toutes les exceptions en ERROR (y compris 4xx) | Important | S | `GlobalExceptionMapper.java:33` | ✅ |
 | B6 | ~5 `RuntimeException` dans le code prod au lieu d'exceptions metier | Important | M | `RouteService`, `GarminClient`, `TokenEncryptionService`, etc. | ✅ |
 | B7 | Traitement GPX complet dans une seule transaction (connexion DB longue) | Important | L | `GpxProcessingService.java` | ✅ |
@@ -384,7 +384,7 @@ Les deux clients partagent des problemes communs :
 | 13 | Ajouter `quarkus-micrometer-registry-prometheus` | Backend |
 | 14 | Implementer la rotation des refresh tokens | Securite |
 | 15 | Aligner `<release>` Java (21 ou 25) dans le POM | Backend | ✅ |
-| 16 | Retirer `@Transactional` des Resources | Backend |
+| 16 | Retirer `@Transactional` des Resources | Backend | ✅ |
 | 17 | Passer les logs 4xx en WARN dans GlobalExceptionMapper | Backend | ✅ |
 | 18 | Cacher le User dans `PedalonsQueryContext` | Backend | ✅ (3bb01f32) |
 | 19 | Ajouter des tests frontend Phase 1 (utils, hooks, stores) | Frontend | ✅ |
@@ -444,9 +444,9 @@ Les deux clients partagent des problemes communs :
 | Severite | Backend | Frontend | Mobile | Karoo | Garmin | Infra | Securite | Docs | Total |
 |----------|---------|----------|--------|-------|--------|-------|----------|------|-------|
 | Critique | 0 | 0 | 0 | 3 | 1 | 6 | 1 | 0 | **11** |
-| Important | 4 | 2 | 1 | 3 | 7 | 6 | 5 | 0 | **28** |
+| Important | 3 | 2 | 1 | 3 | 7 | 6 | 5 | 0 | **27** |
 | Mineur | 0 | 0 | 2 | 2 | 0 | 0 | 6 | 0 | **10** |
-| **Total** | **4** | **2** | **3** | **8** | **8** | **12** | **12** | **0** | **49** |
+| **Total** | **3** | **2** | **3** | **8** | **8** | **12** | **12** | **0** | **48** |
 
 ### Points corrigés depuis l'audit initial
 
@@ -459,5 +459,5 @@ Les deux clients partagent des problemes communs :
 | Frontend | F4, F5, F6, F9, F10, F11, F15 | Cle i18n LoginPage, FullCalendar retire, titres de page, textes RideEditor traduits, pages CGU/confidentialite, cles `_many` |
 | Mobile | M2, M5, M6, M7, M8 | Fuite de subscription, navigation traduite, widgets dedupliques, couleurs du theme, Markdown |
 | Documentation | D2, D3, D4, D6, D9 | rules.md Riverpod, BACKLOG corrige, PRODUCT_SHEET corrige |
-| Septembre 2026 | I2, I9, I11, I12, F1, F2, F3, F7, F13, F14, M1, M3, M9, M10, G2, G3, G11, G12, G13, D1, D5, D7, D8, D10, D11, B15 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), traces de debogage et chaine `Back` inutilisee retirees de l'app Garmin, image frontend sur `node`, meme version de Node en CI que dans l'image (`frontend/.nvmrc`), zoom rendu au viewport, lien d'evitement, index en double de `device_codes` retires (V46), BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
+| Septembre 2026 | I2, I9, I11, I12, F1, F2, F3, F7, F13, F14, M1, M3, M9, M10, G2, G3, G11, G12, G13, D1, D5, D7, D8, D10, D11, B15, B4 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), traces de debogage et chaine `Back` inutilisee retirees de l'app Garmin, image frontend sur `node`, meme version de Node en CI que dans l'image (`frontend/.nvmrc`), zoom rendu au viewport, lien d'evitement, index en double de `device_codes` retires (V46), `@Transactional` retire des resources, BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
 | Juin-juillet 2026 | B10, K6, M4 | `PedalonsQueryContext` memorise l'utilisateur (3bb01f32), `registerForActivityResult` (7e2d710f), dependances Riverpod inutilisees retirees (874a3288) |

@@ -10,7 +10,6 @@ import fr.pedalons.enums.TeamRole;
 import fr.pedalons.service.team.TeamMembershipService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -179,7 +178,6 @@ public class TeamMemberResource {
 
   @PUT
   @Path("/{memberId}")
-  @Transactional
   @Operation(
       summary = "Update member role",
       description = "Update a team member's role. Requires ADMIN role.")

@@ -10,7 +10,6 @@ import fr.pedalons.service.team.request.MinRole;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -117,7 +116,6 @@ public class TeamResource {
 
   @PUT
   @Path("/{teamSlug}")
-  @Transactional
   @Operation(summary = "Update team", description = "Update team information. Requires ADMIN role.")
   @APIResponses({
     @APIResponse(

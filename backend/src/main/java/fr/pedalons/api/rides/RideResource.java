@@ -9,7 +9,6 @@ import fr.pedalons.service.ride.RideService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -92,7 +91,6 @@ public class RideResource {
 
   @PUT
   @Path("/{rideSlug}")
-  @Transactional
   @Operation(
       summary = "Update ride",
       description = "Update ride information. Requires organizer permissions.")

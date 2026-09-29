@@ -16,7 +16,6 @@ import fr.pedalons.enums.SortDirection;
 import fr.pedalons.service.ad.AdService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -329,7 +328,6 @@ public class AdResource {
 
   @PUT
   @Path("/{slug}")
-  @Transactional
   @Operation(
       summary = "Update ad",
       description = "Update ad information. Only the creator or an admin can update.")
