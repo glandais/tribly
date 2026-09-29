@@ -189,12 +189,16 @@ Production is backed up nightly to the backup host over a WireGuard tunnel (`<pr
 The receiving account's key is restricted to `command="rrsync <root>",restrict,from="<prod-tunnel-ip>"`:
 it accepts an `rsync --server` invocation and refuses everything else, confined to one directory.
 A compromise of the production host therefore stops at its own backup tree — it cannot read the
-other backups on the host, and it cannot delete its own history. Three consequences run through the
-scripts, and none of them are incidental:
+other backups on the host. Within that tree it can still delete or overwrite its own snapshots:
+`rrsync` runs without `-no-del` and honours `rsync --delete` (ledger `SEC-16`). What it cannot do is
+read them back in clear: the dump and the secrets are encrypted to a key it does not hold
+([Encryption](#encryption)). Three consequences run through the scripts, and none of them are
+incidental:
 
 - **the dumps are staged locally** (`/var/backups/pedalons/<env>`) before being pushed — there is no
-  remote `cat >`; the staging directory is removed once the run succeeds; a failed run leaves it (dump and
-  secrets included, mode 700) until the next run wipes it on start;
+  remote `cat >`; they are encrypted as they are written, so nothing lands there in clear; the staging
+  directory is removed once the run succeeds; a failed run leaves it (mode 700) until the next run
+  wipes it on start;
 - **the previous snapshot is named explicitly** in `--link-dest`, because `rrsync` rejects any path
   containing `..`;
 - **retention lives on the backup host** (`backup-prune.sh`, root's crontab there), not in the
@@ -206,12 +210,12 @@ scripts, and none of them are incidental:
 
 | File | Contents | Why it matters |
 |------|----------|----------------|
-| `postgres.dump` | `pg_dump -Fc` of `$POSTGRES_DB` | Accounts, teams, rides, routes, posts |
-| `minio/` | The object store, verbatim | Photos, GPX files, avatars, previews |
-| `secrets.tar.gz` | `.env`, `data/keys` (JWT keys, FCM service account), `data/storage` | The JWT keys sign every session and passkey; the service account sends every push; `ENCRYPTION_KEY` decrypts the stored Karoo/Garmin/Wahoo tokens and the per-domain GPS client secrets |
-| `MANIFEST` | Timestamp, env, git commit, image tags | Says which commit to rebuild before restoring |
-| `SHA256SUMS` | Checksums of the two archives | Verified by `restore.sh` before it destroys anything |
-| `COMPLETE` | Written last, after everything else landed | A dated directory without it is a failed run, not a backup — and the restricted key cannot delete it, so it has to be recognisable |
+| `postgres.dump.age` | `pg_dump -Fc` of `$POSTGRES_DB`, encrypted with age | Accounts, teams, rides, routes, posts |
+| `minio/` | The object store, verbatim (not encrypted: see [Encryption](#encryption)) | Photos, GPX files, avatars, previews |
+| `secrets.tar.gz.age` | `.env`, `data/keys` (JWT keys, FCM service account), `data/storage`, encrypted with age | The JWT keys sign every session and passkey; the service account sends every push; `ENCRYPTION_KEY` decrypts the stored Karoo/Garmin/Wahoo tokens and the per-domain GPS client secrets |
+| `MANIFEST` | Timestamp, env, git commit, image tags, file names | Says which commit to rebuild before restoring |
+| `SHA256SUMS` | Checksums of the two encrypted archives | Verified by `restore.sh` before it decrypts or destroys anything |
+| `COMPLETE` | Written last, after everything else landed | A dated directory without it is a failed run, not a backup — the scripts never delete on the backup host, so it has to be recognisable |
 
 Postgres is dumped **before** MinIO on purpose: `AssetService` uploads to S3 and only then persists
 the row, so a file landing mid-backup leaves an orphan object rather than a row pointing at a
@@ -230,6 +234,47 @@ gets one more rsync pass before it is called failed.
 **Not** in a snapshot, and to be rebuilt by hand: the Docker images (`./build.sh` at the MANIFEST's
 commit), `data/cache` (regenerable, just slow), and the shared valhalla/tileserver data (below).
 
+### Encryption
+
+The backup host sits at the controller's home, so every snapshot is encrypted at rest, in two
+layers:
+
+- **the dump and the secrets are encrypted on production**, with [age](https://age-encryption.org)
+  to a public key (`BACKUP_AGE_RECIPIENT`). `pg_dump` and `tar` are piped straight into `age`: neither
+  touches the staging disk in clear. The private key is kept **offline**, at
+  `<offline-key-location>`: production can write a backup but cannot read one back, and neither can
+  the backup host;
+- **the whole backup root sits on a LUKS volume** on the backup host
+  ([below](#luks-volume-on-the-backup-host)). That is what protects `minio/`: encrypting it on
+  production would turn the object store into one opaque archive a night and lose the
+  `--link-dest` incrementals.
+
+`backup.sh` refuses to run without `age` or without a valid `BACKUP_AGE_RECIPIENT`: a run that cannot
+encrypt fails (and Healthchecks says so) rather than pushing clear text. `restore.sh` restores only
+this format — snapshots from before it (clear, or `secrets.tar.gz.gpg`) are not supported.
+
+The key pair is generated **once, on a machine that is not production** (ideally offline):
+
+```bash
+age-keygen -o pedalons-backup.key      # prints "Public key: age1..."
+```
+
+- the private key (the whole `pedalons-backup.key`, `AGE-SECRET-KEY-1...`) goes to
+  `<offline-key-location>`, then the file is deleted; lose it and no snapshot's database or secrets
+  can be read again;
+- the public key goes into `/root/pedalons-backup.env` on production as `BACKUP_AGE_RECIPIENT`
+  (see [Configuration](#configuration)).
+
+On production, `apt install age` (the Debian/Ubuntu package ships `age` and `age-keygen`). Check the
+recipient before the first night — this must print nothing and exit 0:
+
+```bash
+age -r "$(sed -n 's/^BACKUP_AGE_RECIPIENT=//p' /root/pedalons-backup.env)" </dev/null >/dev/null
+```
+
+A new key pair takes effect from the next run; older snapshots stay readable only with the old
+private key, so keep it until they have all been pruned (30 nights).
+
 ### Configuration
 
 `BACKUP_*` lives in **`/root/pedalons-backup.env`**, not in `.env`: compose hands the whole `.env`
@@ -242,6 +287,7 @@ BACKUP_REMOTE=<backup-user>@<backup-tunnel-ip>
 BACKUP_REMOTE_PATH=/                     # relative to the rrsync root
 BACKUP_SSH_KEY=/root/.ssh/id_pedalons_backup
 BACKUP_PING_URL=https://hc-ping.com/<uuid>
+BACKUP_AGE_RECIPIENT=age1...             # public key, required (see Encryption)
 ```
 
 Retention is not set here: it is the second argument of `backup-prune.sh` on the backup host (30 in
@@ -313,20 +359,66 @@ ssh -i /root/.ssh/id_pedalons_backup <backup-user>@<backup-tunnel-ip> 'ls /'
 # /usr/bin/rrsync error: SSH_ORIGINAL_COMMAND does not run rsync
 ```
 
-### Restoring
+### LUKS volume on the backup host
+
+`<backup-root>` is the mount point of a LUKS container: a file on the backup host's disk, never
+unlocked at boot. As root on the backup host, once — `<backup-root>` must be empty and unmounted:
 
 ```bash
+touch <backup-root>.luks && chattr +C <backup-root>.luks    # btrfs: no copy-on-write, before any data
+fallocate -l 40G <backup-root>.luks
+cryptsetup luksFormat --type luks2 <backup-root>.luks        # passphrase -> <offline-key-location>
+cryptsetup open --allow-discards <backup-root>.luks pedalons-backup
+mkfs.ext4 /dev/mapper/pedalons-backup
+chattr +i <backup-root>                                      # the bare mount point: unwritable
+mount /dev/mapper/pedalons-backup <backup-root>
+chown <backup-user>:<backup-user> <backup-root> && chmod 750 <backup-root>
+cryptsetup luksHeaderBackup <backup-root>.luks --header-backup-file /root/pedalons-backup.luks-header
+```
+
+- **`chattr +i` on the bare mount point** is what keeps a locked volume from filling up in clear:
+  while nothing is mounted there, the night's `rsync` fails instead of writing to the host disk;
+- **`--allow-discards`** lets TRIM from ext4 reach the SSD, so deleted snapshots do not linger on
+  it;
+- **the header backup** goes to `<offline-key-location>` and is then deleted from the host: a damaged
+  LUKS header makes the whole volume unreadable, passphrase or not.
+
+There is deliberately **no `crypttab` or `fstab` entry**: the passphrase is never stored on the
+host. After every reboot, unlock it by hand over SSH:
+
+```bash
+cryptsetup open --allow-discards <backup-root>.luks pedalons-backup && mount /dev/mapper/pedalons-backup <backup-root>
+```
+
+Until then each night's backup fails, and Healthchecks says so; `backup-prune.sh` finds an empty
+directory and removes nothing.
+
+### Restoring
+
+Everything but `--list` needs the private key. Bring it from `<offline-key-location>` into a file on
+a RAM-backed filesystem, for the duration of the restore only, and point `BACKUP_AGE_IDENTITY` at
+it:
+
+```bash
+install -m 600 /dev/null /dev/shm/pedalons-backup.key
+$EDITOR /dev/shm/pedalons-backup.key         # paste the AGE-SECRET-KEY-1... line
+export BACKUP_AGE_IDENTITY=/dev/shm/pedalons-backup.key
+
 scripts/restore.sh --list                    # complete snapshots, and failed runs marked as such
 scripts/restore.sh                           # restore the newest complete one (asks to confirm)
 scripts/restore.sh --snapshot 2026-07-24T031500Z
+
+rm /dev/shm/pedalons-backup.key              # as soon as the restore is done
 ```
 
-The restore pulls the snapshot to a local directory and verifies its checksums **before** touching
-anything, then runs `docker compose down -v` — it drops the current postgres and minio volumes and
-repopulates them. It refuses a snapshot with no `COMPLETE` marker, and refuses one from another
-`ENV_NAME` unless `--force`.
+The restore pulls the snapshot to a local directory, verifies its checksums, then decrypts the
+secrets and the whole dump once to prove the key matches — all **before** touching anything. Only
+then does it run `docker compose down -v`, which drops the current postgres and minio volumes, and
+repopulate them; the dump is decrypted in flight into `pg_restore` and never written in clear. It
+refuses a snapshot with no `COMPLETE` marker, and refuses one from another `ENV_NAME` unless
+`--force`.
 
-It needs only `rsync` and `docker`, no root: objects go back through `docker cp`, which also hands
+It needs only `rsync`, `age` and `docker`, no root: objects go back through `docker cp`, which also hands
 them to the container as `root:root` — the user MinIO runs as. Writing into
 `/var/lib/docker/volumes` directly would stamp them with the restoring account's uid.
 
@@ -334,6 +426,10 @@ On a **new host**, the order matters — you need `.env` before anything else ca
 
 ```bash
 git clone <repo> ~/prod && cd ~/prod
+
+# 0. age, and the private key on a RAM-backed file (see above)
+apt install age
+export BACKUP_AGE_IDENTITY=/dev/shm/pedalons-backup.key
 
 # 1. secrets first: no .env yet, so pass the coordinates in the environment
 BACKUP_REMOTE=<backup-user>@<backup-tunnel-ip> BACKUP_REMOTE_PATH=/ \
@@ -344,9 +440,13 @@ BACKUP_SSH_KEY=/root/.ssh/id_pedalons_backup \
 cd ~/shared && docker compose -f docker-compose.shared.yml up -d
 cd ~/prod && ./build.sh            # at the commit recorded in MANIFEST
 
-# 3. the data
+# 3. the data, then drop the key
 scripts/restore.sh
+rm /dev/shm/pedalons-backup.key
 ```
+
+`/root/pedalons-backup.env` is not in the snapshot: recreate it (with `BACKUP_AGE_RECIPIENT`) before
+the next night's backup.
 
 The script ends by printing row counts, the object count and the status of `GET /api/config`. The
 last check is manual and the one that matters: open the site and confirm an existing photo renders —
@@ -376,8 +476,11 @@ cat > /tmp/drill.env <<'EOF'
 BACKUP_REMOTE=root@<backup-host-lan-ip>
 BACKUP_REMOTE_PATH=<backup-root>
 EOF
-BACKUP_ENV_FILE=/tmp/drill.env scripts/restore.sh --force
+BACKUP_ENV_FILE=/tmp/drill.env BACKUP_AGE_IDENTITY=/dev/shm/pedalons-backup.key scripts/restore.sh --force
 ```
+
+The backup host's LUKS volume must be open, and the private key is needed here too — delete it
+from `/dev/shm` afterwards.
 
 ### Cold backup of the shared stack
 

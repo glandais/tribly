@@ -8,9 +8,13 @@
 # DESTRUCTIVE: the full restore runs `docker compose down -v`, which drops this environment's
 # postgres and minio volumes before repopulating them. It asks for confirmation unless --force.
 #
-# Only rsync and docker are used, so this works both from the production host (root, restricted
+# Only rsync, age and docker are used, so this works both from the production host (root, restricted
 # backup key) and from any machine that can read the backup store over plain SSH — which is how a
 # restore drill is run without touching production.
+#
+# The dump and the secrets are encrypted to an age public key (see backup.sh). Decrypting them needs
+# the matching private key, which lives offline: put it in a file for the duration of the restore,
+# point BACKUP_AGE_IDENTITY at it, and delete it afterwards. --list does not need it.
 #
 # Not in the backup, and therefore not restored: the docker images (rebuild with ./build.sh at the
 # commit recorded in MANIFEST), data/cache (regenerable), and the shared valhalla/tileserver data.
@@ -33,7 +37,7 @@ while (($# > 0)); do
     --list) LIST_ONLY=true; shift ;;
     --force) FORCE=true; shift ;;
     --keep-fetch) KEEP_FETCH=true; shift ;;
-    -h | --help) sed -n '2,18p' "$0"; exit 0 ;;
+    -h | --help) sed -n '2,20p' "$0"; exit 0 ;;
     *) die "unknown argument: $1 (try --help)" ;;
   esac
 done
@@ -65,6 +69,13 @@ if $LIST_ONLY; then
   exit 0
 fi
 
+# Checked before anything is fetched: without the key, the snapshot is unreadable.
+command -v age >/dev/null || die "age is not installed (apt install age)"
+[[ -n "${BACKUP_AGE_IDENTITY:-}" ]] \
+  || die "BACKUP_AGE_IDENTITY is not set — point it at the age private key (kept offline) for this restore"
+[[ -r "$BACKUP_AGE_IDENTITY" ]] || die "BACKUP_AGE_IDENTITY not readable: $BACKUP_AGE_IDENTITY"
+decrypt() { age -d -i "$BACKUP_AGE_IDENTITY" "$1"; }
+
 if [[ "$SNAPSHOT" == "latest" ]]; then
   SNAPSHOT="$(latest_complete_snapshot || true)"
   [[ -n "$SNAPSHOT" ]] || die "no complete snapshot on $BACKUP_REMOTE:$BACKUP_REMOTE_PATH (try --list)"
@@ -86,24 +97,25 @@ MANIFEST="$(cat "$FETCH/MANIFEST")"
 printf '%s\n' "$MANIFEST" | sed 's/^/    /'
 manifest_get() { printf '%s\n' "$MANIFEST" | sed -n "s/^$1=//p"; }
 
+# Only the age format is restorable: snapshots from before it (clear or gpg) are not supported.
+[[ "$(manifest_get encryption)" == "age" ]] \
+  || die "$SNAPSHOT is not an age-encrypted snapshot — this script only restores those"
+DUMP_FILE="$(manifest_get postgres_dump_file)"
 SECRETS_FILE="$(manifest_get secrets_file)"
-[[ -n "$SECRETS_FILE" ]] || SECRETS_FILE="secrets.tar.gz"
+[[ -n "$DUMP_FILE" && -n "$SECRETS_FILE" ]] || die "MANIFEST does not name the dump and secrets files"
 
 log "verifying checksums"
 (cd "$FETCH" && sha256sum -c SHA256SUMS) || die "checksum mismatch — this snapshot is corrupt, try an older one"
+
+# Decrypting the secrets (a few kilobytes) proves the key is the right one before anything else.
+decrypt "$FETCH/$SECRETS_FILE" | tar -tzf - >/dev/null \
+  || die "cannot decrypt $SECRETS_FILE with $BACKUP_AGE_IDENTITY — wrong key?"
 
 # --- secrets ----------------------------------------------------------------
 
 restore_secrets() {
   log "restoring $SECRETS_FILE (.env, data/keys, data/storage)"
-  if [[ "$SECRETS_FILE" == *.gpg ]]; then
-    [[ -n "${BACKUP_SECRETS_PASSPHRASE_FILE:-}" && -r "$BACKUP_SECRETS_PASSPHRASE_FILE" ]] \
-      || die "snapshot secrets are encrypted — set BACKUP_SECRETS_PASSPHRASE_FILE"
-    gpg --batch --decrypt --passphrase-file "$BACKUP_SECRETS_PASSPHRASE_FILE" "$FETCH/$SECRETS_FILE" \
-      | tar -xzf - -C "$REPO_ROOT"
-  else
-    tar -xzf "$FETCH/$SECRETS_FILE" -C "$REPO_ROOT"
-  fi
+  decrypt "$FETCH/$SECRETS_FILE" | tar -xzf - -C "$REPO_ROOT"
   chmod 600 "$REPO_ROOT/.env" "$REPO_ROOT"/data/keys/privateKey.pem \
     "$REPO_ROOT"/data/keys/fcm-service-account.json 2>/dev/null || true
   log "secrets restored — next: ./build.sh, then $0 --snapshot $SNAPSHOT"
@@ -126,6 +138,11 @@ if [[ "$SNAP_ENV" != "$ENV_NAME" ]]; then
   $FORCE || die "snapshot is from '$SNAP_ENV', this checkout is '$ENV_NAME' — pass --force for a cross-environment drill"
   log "WARNING: restoring a '$SNAP_ENV' snapshot into '$ENV_NAME'"
 fi
+
+# age authenticates every chunk: a full pass to /dev/null proves the whole dump decrypts before the
+# volumes are dropped, rather than half-way through pg_restore.
+log "verifying that $DUMP_FILE decrypts"
+decrypt "$FETCH/$DUMP_FILE" >/dev/null || die "cannot decrypt $DUMP_FILE — this snapshot is not restorable"
 
 # --- full restore -----------------------------------------------------------
 
@@ -175,11 +192,11 @@ done
 # --no-acl because the dump's role names need not exist here.
 # pg_restore is not run with --exit-on-error: a fresh database emits harmless "does not exist"
 # notices for the DROPs, so the summary below is what matters.
+# Decrypted in flight: the clear dump never lands on this disk.
 log "restoring postgres into $POSTGRES_DB"
 set +e
-docker exec -i "${ENV_NAME}-postgres" \
-  sh -c 'pg_restore --clean --if-exists --no-owner --no-acl -U "$POSTGRES_USER" -d "$POSTGRES_DB"' \
-  < "$FETCH/postgres.dump"
+decrypt "$FETCH/$DUMP_FILE" | docker exec -i "${ENV_NAME}-postgres" \
+  sh -c 'pg_restore --clean --if-exists --no-owner --no-acl -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
 PG_RC=$?
 set -e
 ((PG_RC == 0)) || log "WARNING: pg_restore exited $PG_RC — read the errors above before continuing"

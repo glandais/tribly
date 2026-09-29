@@ -332,7 +332,7 @@ Certains traitements que vous pouvez déclencher impliquent des serveurs situés
 
 Les données expirées sont effacées de la base par un nettoyage exécuté chaque nuit : elles peuvent donc rester stockées jusqu'à 24 heures au-delà de la durée indiquée.
 
-**Sauvegardes.** Chaque nuit, nous réalisons une copie complète de la base de données et des fichiers téléversés, stockée sur un serveur séparé situé en France ; les 30 dernières copies sont conservées, les plus anciennes supprimées automatiquement. Une donnée supprimée ou effacée, y compris à la suppression de votre compte, peut donc subsister dans nos sauvegardes pendant 30 jours au maximum. Les sauvegardes ne servent qu'à restaurer le service après un incident.
+**Sauvegardes.** Chaque nuit, nous réalisons une copie complète de la base de données et des fichiers téléversés, stockée sur un serveur séparé situé en France ; les 30 dernières copies sont conservées, les plus anciennes supprimées automatiquement. Une donnée supprimée ou effacée, y compris à la suppression de votre compte, peut donc subsister dans nos sauvegardes pendant 30 jours au maximum. Les sauvegardes sont chiffrées (voir section 9) et ne servent qu'à restaurer le service après un incident.
 
 ---
 
@@ -451,7 +451,7 @@ Nous mettons en œuvre les mesures suivantes pour protéger vos données :
 - **Cookie de session** : illisible par les scripts de la page, envoyé uniquement en HTTPS, et protégé contre son utilisation par un autre site pour modifier vos données.
 - **Isolation entre sites** : les données de chaque site sont isolées dans la base de données ; seuls les administrateurs de la plateforme font exception (voir section 4).
 - **Limitation des codes de connexion** : le nombre de codes et de liens de connexion pouvant être demandés pour une même adresse est plafonné, et chacun expire rapidement.
-- **Sauvegardes** : chiffrées en transit vers un serveur séparé, hors d'atteinte du serveur de production, qui ne peut ni les lire ni les supprimer.
+- **Sauvegardes** : chiffrées en transit vers un serveur séparé. La base de données est chiffrée avant de quitter nos serveurs, et seule une clé conservée hors ligne peut la déchiffrer ; l'ensemble est stocké sur un volume chiffré.
 
 Aucun système n'est infaillible. Si vous constatez une activité suspecte sur votre compte, contactez-nous immédiatement.
 

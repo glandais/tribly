@@ -434,15 +434,6 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
 
 ### Exploitation
 
-- [ ] `OPS-13` **Sauvegardes non chiffrées au repos** — l'hôte de sauvegarde est au domicile du
-      responsable du traitement, et les 30 copies nocturnes (base complète : e-mails, hachages de
-      mots de passe, adresses IP, traces ; fichiers téléversés) y sont en clair. Un vol du matériel
-      serait une violation à notifier à la CNIL **et** à chaque membre (art. 34 : le chiffrement
-      dispense de la seconde). Options : LUKS sur le volume de sauvegarde (rien à changer dans les
-      scripts, protège du vol à froid), ou chiffrement côté production (age/restic : protège aussi
-      d'une compromission de l'hôte, mais réécrit `backup.sh`, `backup-prune.sh`, `restore.sh` et
-      perd l'incrémental rsync). Une fois fait, le dire au §6 et au §9 de la politique. Relevé le
-      29 septembre 2026 (`LEGAL-12`).
 - [ ] `OPS-14` **Recette des deux rattrapages de métadonnées après le déploiement** —
       `AssetMetadataBackfillScheduler` (toutes les 5 min) vide `assets.metadata_pending` (V47) ;
       `GpxSanitizationBackfill` (4 h 15) écrit `maintenance/api-44-gpx-sanitized` après une passe
@@ -719,6 +710,7 @@ redevient une entrée de sa section sous le même identifiant.
 | `MOB-22` | **Jeu d'icônes Tabler côté mobile** | Material outline conservé | L'écart ne porte que sur la graisse du trait des icônes de badge de 11 px. `PdlIcons` devrait être le **seul** fichier à nommer `Icons.*` (c'est tenu dans `lib/core/pdl`, pas encore ailleurs : une vingtaine de fichiers le font encore) : une fois ce ménage fait, basculer ne touchera qu'un fichier |
 | `MOB-23` | **Écran de profil public d'un membre** | Aucune maquette ne va au-delà de la liste | Les lignes du trombinoscope ne sont pas cliquables. Ne pas inventer l'écran |
 | `MOB-24` | **Édition et création de contenu au mobile** | Hors brief : la v2 est une version de consultation et de participation | Le sélecteur de meneur dans l'éditeur de groupes existe **côté web** (livré hors plan) ; l'équivalent mobile n'est pas ouvert |
+| `OPS-18` | **Rotation des secrets exposés par les sauvegardes en clair** (`ENCRYPTION_KEY`, clé JWT, compte de service FCM) | Non (décidé le 29 septembre 2026, avec `OPS-13`) | Les 30 copies antérieures à `OPS-13` les contenaient en clair sur l'hôte de sauvegarde. Rotation jugée disproportionnée : ces copies sont supprimées et le SSD trimé. Reste un résidu physique possible sur le SSD de l'hôte ; à rouvrir si le matériel est perdu ou volé |
 | `NOTIF-5` | **Badge iOS du push** | Écarté, côté serveur comme côté app | Serveur : il faudrait recompter les non-lues à l'envoi, et `NotificationMessage` ne porte ni le domaine ni ce compteur. App : `flutter_local_notifications` ne pose un badge qu'en affichant une notification, et en arrière-plan c'est le système qui affiche celle de FCM — une dépendance de plus pour un compteur que la cloche montre déjà. D'où l'absence de `content-available` (voir `NOTIF-9`) |
 | `NOTIF-6` | **Isolat de fond du push (`onBackgroundMessage`)** | Non écrit | Le serveur envoie `notification` **et** `data` : le système affiche la bannière sans l'app, un isolat n'aurait rien à faire de plus |
 | `NOTIF-7` | **Temps réel des notifications (SSE)** | Non fait : sondage de `unread-count` | Un flux SSE « si le besoin se confirme » ([plan](plans/archive/2026-09-18-notifications.md) §9) ; la cloche sonde au plus une fois par minute |

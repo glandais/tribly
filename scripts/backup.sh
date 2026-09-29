@@ -4,12 +4,18 @@
 #   scripts/backup.sh
 #
 # Produces $BACKUP_REMOTE_PATH/<UTC timestamp>/ on the backup host:
-#   postgres.dump      pg_dump -Fc of $POSTGRES_DB
-#   minio/             object storage, hard-linked against the previous snapshot
-#   secrets.tar.gz     .env, data/keys (JWT keys, FCM service account), data/storage
-#   MANIFEST           what this snapshot is, and what to rebuild to restore it
-#   SHA256SUMS         checksums of the two archives
-#   COMPLETE           written last: a snapshot without it is a failed run, not a backup
+#   postgres.dump.age    pg_dump -Fc of $POSTGRES_DB, encrypted with age
+#   minio/               object storage, hard-linked against the previous snapshot
+#   secrets.tar.gz.age   .env, data/keys (JWT keys, FCM service account), data/storage, encrypted
+#   MANIFEST             what this snapshot is, and what to rebuild to restore it
+#   SHA256SUMS           checksums of the two encrypted archives
+#   COMPLETE             written last: a snapshot without it is a failed run, not a backup
+#
+# The dump and the secrets are encrypted to BACKUP_AGE_RECIPIENT, an age public key whose private
+# half is kept offline: this host can write a backup but not read one back. Both are encrypted as
+# they are produced, so neither ever lies in clear on the staging disk. minio/ is not encrypted
+# here — encrypting it would lose the --link-dest incrementals; the backup host keeps its backup
+# root on a LUKS volume instead (docs/OPERATIONS.md).
 #
 # rsync is the ONLY channel. The receiving key is restricted to `command="rrsync <root>"`, so this
 # script can neither run a command on the backup host nor touch anything outside its own root — a
@@ -31,7 +37,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 cd "$REPO_ROOT"
 load_env
-require_vars ENV_NAME POSTGRES_DB BACKUP_REMOTE BACKUP_REMOTE_PATH
+require_vars ENV_NAME POSTGRES_DB BACKUP_REMOTE BACKUP_REMOTE_PATH BACKUP_AGE_RECIPIENT
 
 # Serialize runs: a backup still going when the next one fires would push into a half-written
 # snapshot and hard-link against it.
@@ -68,6 +74,12 @@ trap finish_failed EXIT
 hc_ping "/start"
 log "backing up $ENV_NAME to $(remote_url "$STAMP")"
 
+# Checked before anything is dumped: a run that cannot encrypt must fail, never push clear text.
+# Encrypting an empty input is what validates the recipient — age rejects a malformed key there.
+command -v age >/dev/null || die "age is not installed (apt install age)"
+[[ "$BACKUP_AGE_RECIPIENT" == age1* ]] || die "BACKUP_AGE_RECIPIENT must be an age public key (age1...)"
+age -r "$BACKUP_AGE_RECIPIENT" </dev/null >/dev/null || die "BACKUP_AGE_RECIPIENT is not a valid age recipient"
+
 require_container "${ENV_NAME}-postgres"
 require_container "${ENV_NAME}-minio"
 
@@ -81,12 +93,16 @@ chmod 700 "$STAGE"
 # file landing mid-backup leaves an orphan object (harmless) rather than a row pointing at a missing
 # object. pg_dump runs in a single transaction, so the dump is consistent without stopping anything.
 # Credentials are read from the container's own environment — never typed into this shell.
+# The dump is piped straight into age: pipefail fails the run if pg_dump fails. The size floor is
+# only a sanity check — age wraps even an empty input in ~200 bytes, and a real dump is megabytes.
+DUMP_FILE="postgres.dump.age"
 log "dumping postgres ($POSTGRES_DB)"
 docker exec -i "${ENV_NAME}-postgres" \
-  sh -c 'pg_dump -Fc -U "$POSTGRES_USER" -d "$POSTGRES_DB"' > "$STAGE/postgres.dump"
-DUMP_SIZE="$(stat -c %s "$STAGE/postgres.dump")"
-((DUMP_SIZE > 0)) || die "postgres.dump is empty"
-log "postgres dump: $DUMP_SIZE bytes"
+  sh -c 'pg_dump -Fc -U "$POSTGRES_USER" -d "$POSTGRES_DB"' \
+  | age -r "$BACKUP_AGE_RECIPIENT" > "$STAGE/$DUMP_FILE"
+DUMP_SIZE="$(stat -c %s "$STAGE/$DUMP_FILE")"
+((DUMP_SIZE > 1024)) || die "$DUMP_FILE is only $DUMP_SIZE bytes — the dump is empty"
+log "postgres dump (encrypted): $DUMP_SIZE bytes"
 
 # --- 2. Secrets -------------------------------------------------------------
 #
@@ -98,18 +114,9 @@ log "archiving secrets"
 SECRET_PATHS=(.env data/keys)
 [[ -d data/storage ]] && SECRET_PATHS+=(data/storage)
 
-if [[ -n "${BACKUP_SECRETS_PASSPHRASE_FILE:-}" ]]; then
-  [[ -r "$BACKUP_SECRETS_PASSPHRASE_FILE" ]] \
-    || die "BACKUP_SECRETS_PASSPHRASE_FILE not readable: $BACKUP_SECRETS_PASSPHRASE_FILE"
-  SECRETS_FILE="secrets.tar.gz.gpg"
-  tar -czf - "${SECRET_PATHS[@]}" \
-    | gpg --batch --symmetric --cipher-algo AES256 \
-        --passphrase-file "$BACKUP_SECRETS_PASSPHRASE_FILE" > "$STAGE/$SECRETS_FILE"
-else
-  SECRETS_FILE="secrets.tar.gz"
-  tar -czf - "${SECRET_PATHS[@]}" > "$STAGE/$SECRETS_FILE"
-fi
-chmod 600 "$STAGE/$SECRETS_FILE"
+SECRETS_FILE="secrets.tar.gz.age"
+tar -czf - "${SECRET_PATHS[@]}" | age -r "$BACKUP_AGE_RECIPIENT" > "$STAGE/$SECRETS_FILE"
+chmod 600 "$STAGE/$DUMP_FILE" "$STAGE/$SECRETS_FILE"
 
 # --- 3. MANIFEST ------------------------------------------------------------
 #
@@ -128,10 +135,12 @@ log "writing MANIFEST"
   echo "postgres_image=$(image_of "${ENV_NAME}-postgres")"
   echo "backend_image=$(image_of "${ENV_NAME}-backend")"
   echo "frontend_image=$(image_of "${ENV_NAME}-frontend")"
+  echo "encryption=age"
+  echo "postgres_dump_file=$DUMP_FILE"
   echo "postgres_dump_bytes=$DUMP_SIZE"
   echo "secrets_file=$SECRETS_FILE"
 } > "$STAGE/MANIFEST"
-(cd "$STAGE" && sha256sum postgres.dump "$SECRETS_FILE" > SHA256SUMS)
+(cd "$STAGE" && sha256sum "$DUMP_FILE" "$SECRETS_FILE" > SHA256SUMS)
 
 # --- 4. Push ----------------------------------------------------------------
 
@@ -196,7 +205,7 @@ esac
 date -u +%Y-%m-%dT%H:%M:%SZ > "$STAGE/COMPLETE"
 rsync_remote -a "$STAGE/COMPLETE" "$(remote_url "$STAMP")/COMPLETE"
 
-# The staged dump is the only local copy of the secrets and the database; it has done its job.
+# The staged archives are encrypted, but there is no reason to keep them; they have done their job.
 rm -rf "$STAGE"
 
 log "backup complete: $(remote_url "$STAMP")"

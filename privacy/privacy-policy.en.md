@@ -332,7 +332,7 @@ Some processing you can trigger involves servers outside the European Union:
 
 Expired data is erased from the database by a clean-up that runs every night, so it may remain stored for up to 24 hours beyond the period shown.
 
-**Backups.** Every night we take a complete copy of the database and of the uploaded files, stored on a separate server in France; the last 30 copies are kept, and older ones are deleted automatically. Data that is deleted or erased, including when you delete your account, can therefore remain in our backups for up to 30 days. Backups are used only to restore the service after an incident.
+**Backups.** Every night we take a complete copy of the database and of the uploaded files, stored on a separate server in France; the last 30 copies are kept, and older ones are deleted automatically. Data that is deleted or erased, including when you delete your account, can therefore remain in our backups for up to 30 days. Backups are encrypted (see section 9) and used only to restore the service after an incident.
 
 ---
 
@@ -451,7 +451,7 @@ We implement the following measures to protect your data:
 - **Session cookie**: unreadable by the page's scripts, sent over HTTPS only, and protected against use by another website to change your data.
 - **Isolation between sites**: each site's data is isolated in the database; platform administrators are the only exception (see section 4).
 - **Limits on sign-in codes**: the number of sign-in codes and links that can be requested for the same address is capped, and each one expires quickly.
-- **Backups**: encrypted in transit to a separate server, out of reach of the production server, which can neither read nor delete them.
+- **Backups**: encrypted in transit to a separate server. The database is encrypted before it leaves our servers, and only a key kept offline can decrypt it; everything is stored on an encrypted volume.
 
 No system is infallible. If you notice suspicious activity on your account, contact us immediately.
 

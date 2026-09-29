@@ -5,7 +5,8 @@
 #
 # It cannot live in backup.sh: the production host pushes through a key restricted to
 # `command="rrsync <root>"`, which accepts an rsync transfer and nothing else. That is deliberate —
-# a compromised production host must not be able to delete its own history — and the price is that
+# a compromised production host must not be able to delete its own history (not fully true yet:
+# rrsync still honours `rsync --delete`, see docs/LEDGER_*.md SEC-16) — and the price is that
 # expiry is decided here, by the machine that owns the disk.
 #
 # Keeps the `keep` most recent COMPLETE snapshots. Snapshots without a COMPLETE marker are failed

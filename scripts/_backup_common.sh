@@ -76,8 +76,8 @@ list_snapshots() {
 }
 
 # A snapshot is only usable once its COMPLETE marker landed — it is the last thing a run writes.
-# Without it, an interrupted run would leave a dated directory that looks like a backup: the
-# restricted key cannot delete a partial snapshot, so it has to be recognisable instead.
+# Without it, an interrupted run would leave a dated directory that looks like a backup: nothing
+# here deletes on the backup host (no remote `rm`), so a partial snapshot has to be recognisable.
 # -R is what makes this work: without it rsync lists a globbed file under its basename alone, so
 # every marker comes back as plain "COMPLETE" — same name for every snapshot, and rsync only shows
 # one of them. With it, the listing carries "<snapshot>/COMPLETE".
