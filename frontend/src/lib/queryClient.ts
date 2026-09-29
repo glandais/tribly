@@ -9,13 +9,15 @@ export function makeQueryClient(opts?: { isServer?: boolean }): QueryClient {
         // On server: data never goes stale during a single SSR render.
         // On client: 3 minutes before data is considered stale.
         staleTime: opts?.isServer ? Infinity : 3 * 60 * 1000,
-        // Server: 2000ms (NOT 0) — per TanStack docs, gcTime 0 can garbage-collect
-        // query entries before dehydration completes, causing dropped
-        // dehydration/hydration and mismatch errors. A short window keeps entries
-        // alive across the dehydrate() call.
+        // Server: never collected — the client lives for one request, and entry-server clears it
+        // once the page is rendered. Any finite window is a race: the config and version are read
+        // first and have no observer until the render, so a request whose prefetch outlasted the
+        // window (2 s, under load) rendered without them — no site name, no version — and did not
+        // dehydrate them either. The client, which reads the config before hydrating, then
+        // rendered the name: React #418 on every page (docs/LEDGER_*.md WEB-6).
         // Client: 10 minutes to cover tab-away / back navigation. gcTime must exceed
         // staleTime so stale-but-cached data serves instantly while a refetch completes.
-        gcTime: opts?.isServer ? 2000 : 10 * 60 * 1000,
+        gcTime: opts?.isServer ? Infinity : 10 * 60 * 1000,
         retry: (failureCount, error) => {
           if (opts?.isServer) return false
           // Defensive retry for 401 — the axios interceptor handles token refresh,

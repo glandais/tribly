@@ -208,12 +208,9 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
 L'audit ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md), `WEB-26`) est exécuté : P0, P1
-et P2 écrits, 54 défauts relevés, tous corrigés ou tranchés sauf un. Le canal e-mail des
+et P2 écrits, 54 défauts relevés, tous corrigés ou tranchés — le dernier, `WEB-6`, le 29 septembre. Le canal e-mail des
 notifications n'a pas de test e2e : c'est `NOTIF-4`.
 
-- [ ] `WEB-6` **Point 40 — erreur d'hydratation React #418 (texte), intermittente**, sur
-      `/equipes/{slug}` en membre, sur mobile. Vue une fois pendant la validation des P0
-      (`team-misc.e2e.ts`), non reproduite en 4 répétitions ; cause inconnue. À surveiller.
 - [ ] `WEB-7` **Idées de la liste « P2 (à planifier) » qui n'ont pas été retenues** parmi les
       21 tests P2 écrits — quelques-unes peuvent être couvertes au passage par une autre spec, à
       vérifier avant de les écrire :
