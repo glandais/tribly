@@ -7,14 +7,20 @@ FROM node:26.9.0-alpine AS base
 
 WORKDIR /app
 
+# pnpm 11 only reads pnpm_config_* variables (npm_config_* is ignored). The update
+# notifier is noise in a build: the version is the one pinned by packageManager.
+ENV pnpm_config_store_dir=/pnpm-store \
+    pnpm_config_update_notifier=false
+
 RUN npm install --global --force corepack@latest && \
-    corepack enable && \
-    corepack prepare pnpm@latest-10 --activate && \
-    pnpm config set store-dir /pnpm-store
+    corepack enable
 
 # Manifests only — this layer (and the installs below) stay cached until a
 # dependency actually changes, independent of any source edit.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Fetches the pnpm version pinned by packageManager in package.json.
+RUN corepack install
 
 ####
 # Production dependencies only — keyed solely on the manifests above, so the
