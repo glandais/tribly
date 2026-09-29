@@ -339,6 +339,37 @@ test('the display name is edited from the profile', async ({ page, context, isMo
 })
 
 /**
+ * « Déconnecter tous les appareils » (UserProfilePage.tsx, docs/LEDGER_*.md WEB-28): after the
+ * confirmation, the browser lands on the login page, and a session opened elsewhere — the phone,
+ * a Karoo — no longer refreshes either.
+ */
+test('signing out of every device from the profile closes the other sessions too', async ({
+  page,
+  context,
+}) => {
+  const user = await newUser(unique('Tous appareils'))
+  const elsewhere = await loginWithPassword(user.user.email, user.password)
+  await signIn(context, user)
+  const main = await openProfile(page, user.user.email)
+
+  const button = main.getByRole('button', { name: 'Déconnecter tous les appareils' })
+  await hydrated(button)
+  await button.click()
+  const dialog = page.getByRole('dialog', { name: 'Déconnecter tous les appareils ?' })
+  await expect(dialog).toBeVisible()
+  const revoked = page.waitForResponse(
+    (r) => r.request().method() === 'POST' && r.url().endsWith('/api/auth/logout-all')
+  )
+  await dialog.getByRole('button', { name: 'Déconnecter tous les appareils' }).click()
+  expect((await revoked).status()).toBe(204)
+
+  await expect(page.getByRole('main').getByRole('heading', { name: WELCOME })).toBeVisible()
+  expect(await sessionIsAlive(user.refreshToken), 'this browser’s session').toBe(false)
+  expect(await sessionIsAlive(elsewhere.refreshToken), 'the other device’s session').toBe(false)
+  await expectSignedOut(page)
+})
+
+/**
  * The avatar sent from the profile (UserProfilePage.tsx, the camera button and its hidden file
  * input): the upload answers the updated user, which useAuth puts in the store — so the header's
  * account control changes at once — and comments resolve their author at read time, so one written

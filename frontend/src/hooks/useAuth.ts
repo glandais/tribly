@@ -28,6 +28,7 @@ export function useAuth() {
     error,
     initialize,
     logout: storeLogout,
+    logoutAll: storeLogoutAll,
     setUser,
     setLoading,
     clearError,
@@ -130,6 +131,12 @@ export function useAuth() {
     storeLogout()
   }, [storeLogout, queryClient])
 
+  /** Rejects, with the session still open, if the server refuses. */
+  const logoutAll = useCallback(async () => {
+    await storeLogoutAll()
+    queryClient.clear()
+  }, [storeLogoutAll, queryClient])
+
   // Wrap mutations to maintain existing API
   const updateProfile = useCallback(
     (
@@ -153,6 +160,7 @@ export function useAuth() {
     isLoading,
     error,
     logout,
+    logoutAll,
     updateProfile,
     isUpdatingProfile: updateProfileMutation.isPending,
     deleteAccount: deleteAccountMutation.mutate,

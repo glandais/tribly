@@ -210,11 +210,6 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       que les événements de la grille visible, ou ne pas rendre la grille côté serveur. La suite e2e
       ne l'exerce plus (routes-render promeut un admin plateforme neuf).
 
-- [ ] `WEB-28` **Pas de « Se déconnecter de tous les appareils » sur le site (S)** — seule l'app
-      mobile l'offre ; le client web généré a `logoutAll`, aucune page ne l'appelle. La politique
-      de confidentialité (§1, stockage local) renvoie donc à l'app. Un bouton dans le profil web
-      permettrait de citer les deux.
-
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
 L'audit ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md), `WEB-26`) est exécuté : P0, P1
@@ -378,10 +373,6 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       émettre `<time>` quand l'instant est `EPOCH` donnerait des fichiers plus propres. Changement de
       bibliothèque, pas de Pédalons ; `GpxSanitizationBackfill.isDirty` accepte déjà l'absence de
       `<time>`. Taille : S.
-- [ ] `API-51` **La pose du marqueur du rattrapage GPX n'a pas de test** —
-      `GpxSanitizationBackfill.runOnce` ne doit pas repasser quand
-      `maintenance/api-44-gpx-sanitized` existe, et ne doit pas l'écrire si un fichier a échoué.
-      Le test doit effacer le marqueur en fin de test (le bucket de test est partagé). Taille : S.
 - [ ] `API-45` **Des jetons dans le chemin d'URL finissent dans le journal d'accès** — le masquage
       de `LEGAL-10` ne porte que sur les paramètres de requête : `DELETE
       /api/push-devices/{token}` (jeton FCM) et le téléchargement d'export
@@ -734,6 +725,6 @@ restent ouvertes :
 - [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) — audit de sécurité de septembre 2026 ; il fait foi pour
   les vulnérabilités, l'audit de février pour l'infrastructure. Suivi sous `SEC`.
 - [`plans/2026-07-25-privacy-improvement-opportunities.md`](plans/2026-07-25-privacy-improvement-opportunities.md) —
-  les options d'amélioration de la vie privée et leur justification ; ce qui en reste ouvert est
-  suivi sous `WEB-28` (le chiffrement des jetons Karoo est `SEC-12`). L'audit de juillet et la mise à jour de
+  les options d'amélioration de la vie privée et leur justification ; ce qui en reste ouvert, le
+  chiffrement des jetons Karoo, est suivi sous `SEC-12`. L'audit de juillet et la mise à jour de
   septembre qui ont réécrit la politique sont archivés.

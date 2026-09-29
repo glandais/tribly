@@ -4,6 +4,7 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import type { ErrorResponse } from '../api/dto'
 import { ApiClientError, parseRetryAfter } from './apiError'
+import { refreshesOn401 } from './authRefresh'
 import { getSSRAuth, getSSRHeaders } from './ssrContext'
 import { logEntry, pathOnly } from './feedback/clientLog'
 
@@ -105,8 +106,8 @@ AXIOS_INSTANCE.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // Don't try to refresh auth endpoints
-    if (originalRequest.url?.includes('/api/auth/')) {
+    // Nor on the public auth endpoints: a 401 there is a refused sign-in, not an expired token
+    if (!refreshesOn401(originalRequest.url)) {
       return Promise.reject(error)
     }
 

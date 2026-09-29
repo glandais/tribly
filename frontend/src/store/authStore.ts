@@ -39,6 +39,12 @@ export interface AuthActions {
    * not a client navigation: it is what drops every piece of the signed-out user's in-memory state.
    */
   logout: (options?: { redirectTo?: string }) => Promise<void>
+  /**
+   * Revokes every session of the member, this one included, then reloads on the login page.
+   * **Throws if the server refuses**, and the session then stays open: announcing that every
+   * device is signed out when the others are not would be worse than an error.
+   */
+  logoutAll: () => Promise<void>
   redirectToLogin: () => void
 }
 
@@ -171,6 +177,25 @@ const authStore = create<AuthStore>()((set, get) => ({
 
     set({ ...defaultState, isInitialized: true, isLoading: false })
     window.location.href = options?.redirectTo ?? paths.login()
+  },
+
+  logoutAll: async () => {
+    // Like logout: the browser's push registration goes first, while the session is still valid.
+    // logout-all revokes the sessions, not the push registrations of the other devices.
+    try {
+      const { disableWebPush } = await import('@/lib/push/webPush')
+      await disableWebPush()
+    } catch (error) {
+      console.error('Web push unregistration failed:', error)
+    }
+    // Through the authenticated client (a dynamic import: it imports this store): it sets the
+    // bearer token logout-all requires, and refreshes it on a 401.
+    // Its error is the page's to say, in terms of sessions still open: no generic toast on top.
+    const { logoutAll } = await import('@/api/endpoints/authentication/authentication')
+    await logoutAll({ skipErrorToast: true })
+
+    set({ ...defaultState, isInitialized: true, isLoading: false })
+    window.location.href = paths.login()
   },
 
   redirectToLogin: () => {

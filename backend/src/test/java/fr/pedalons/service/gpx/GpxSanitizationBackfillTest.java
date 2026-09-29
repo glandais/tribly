@@ -31,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -68,6 +69,13 @@ class GpxSanitizationBackfillTest extends AbstractBaseTest {
     route.getTracks().clear();
     dataService.updateRoute(route);
     context.setUserForTest(user);
+    storageService.delete(GpxSanitizationBackfill.MARKER_KEY);
+  }
+
+  /** The bucket is shared by the whole test run: a marker left behind would skip every pass. */
+  @AfterEach
+  void removeMarker() {
+    storageService.delete(GpxSanitizationBackfill.MARKER_KEY);
   }
 
   // ==================== Routes ====================
@@ -132,6 +140,64 @@ class GpxSanitizationBackfillTest extends AbstractBaseTest {
     assertEquals(1, report.rewritten(), report.toString());
     assertStoredFilesClean(
         keys.get("original.gpx"), keys.get("filtered.gpx"), keys.get("route.fit"));
+  }
+
+  // ==================== Marker (docs/LEDGER_*.md API-51) ====================
+
+  @Test
+  void runOnce_writesTheMarkerAfterAPassWithoutFailure() throws Exception {
+    gpxProcessingService.createTracks(route, gpxProcessingService.parseGpx(activity()));
+    Map<AssetType, String> keys = routeKeys();
+    putRawActivityBack(
+        keys.get(AssetType.ROUTE_ORIGINAL_GPX),
+        keys.get(AssetType.ROUTE_FILTERED_GPX),
+        keys.get(AssetType.ROUTE_FIT));
+
+    backfill.runOnce();
+
+    assertStoredFilesClean(
+        keys.get(AssetType.ROUTE_ORIGINAL_GPX),
+        keys.get(AssetType.ROUTE_FILTERED_GPX),
+        keys.get(AssetType.ROUTE_FIT));
+    assertTrue(storageService.exists(GpxSanitizationBackfill.MARKER_KEY));
+  }
+
+  @Test
+  void runOnce_doesNothingOnceTheMarkerExists() throws Exception {
+    gpxProcessingService.createTracks(route, gpxProcessingService.parseGpx(activity()));
+    Map<AssetType, String> keys = routeKeys();
+    store(
+        GpxSanitizationBackfill.MARKER_KEY,
+        "done\n".getBytes(StandardCharsets.UTF_8),
+        "text/plain");
+    putRawActivityBack(
+        keys.get(AssetType.ROUTE_ORIGINAL_GPX),
+        keys.get(AssetType.ROUTE_FILTERED_GPX),
+        keys.get(AssetType.ROUTE_FIT));
+
+    backfill.runOnce();
+
+    // Still the raw activity: the pass did not run.
+    assertTrue(
+        GpxSanitizationBackfill.isDirty(
+            new String(read(keys.get(AssetType.ROUTE_FILTERED_GPX)), StandardCharsets.UTF_8)));
+  }
+
+  @Test
+  void runOnce_writesNoMarkerWhenAFileFailed() throws Exception {
+    gpxProcessingService.createTracks(route, gpxProcessingService.parseGpx(activity()));
+    Map<AssetType, String> keys = routeKeys();
+    // Dirty (a recorded time), and unreadable: the pass counts it as failed.
+    store(
+        keys.get(AssetType.ROUTE_FILTERED_GPX),
+        "<gpx><trk><trkseg><trkpt><time>2025-11-22T07:00:00Z</time>"
+            .getBytes(StandardCharsets.UTF_8),
+        "application/gpx+xml");
+
+    assertEquals(1, backfill.sanitizeAll().failed(), "the broken file must fail the pass");
+    backfill.runOnce();
+
+    assertFalse(storageService.exists(GpxSanitizationBackfill.MARKER_KEY));
   }
 
   // ==================== Dirty check ====================

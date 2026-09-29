@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-**Dernière mise à jour : 29 septembre 2026**
+**Dernière mise à jour : 30 septembre 2026**
 
 La présente politique de confidentialité décrit la manière dont Pedalons (« nous », « notre », « nos ») collecte, utilise et protège vos données personnelles lorsque vous utilisez notre plateforme (site web, application mobile, extensions pour appareils GPS).
 
@@ -154,7 +154,7 @@ Si vous connectez un service GPS externe (Hammerhead, Garmin, Wahoo) :
 - **Journal des dernières actions et rapports d'erreur** : vos dernières actions (200 entrées au plus), les rapports d'erreur pas encore envoyés et votre réglage des rapports automatiques. Rien de cela ne quitte votre téléphone, sauf dans les cas décrits dans « Signalements de problèmes et rapports d'erreur ».
 - **Pas de sauvegarde** : sur Android, les données de l'application sont exclues de la sauvegarde dans le cloud et du transfert vers un nouvel appareil.
 
-**Sur votre appareil GPS (Karoo, Garmin)** : l'extension Pedalons ne stocke que vos jetons de session et leur expiration (plus, pendant l'appairage, le code temporaire), dans son stockage privé, sans chiffrement supplémentaire : une personne ayant accès à l'appareil déverrouillé ou à une de ses sauvegardes pourrait les lire. Aucun contenu de sortie ou d'itinéraire n'y est conservé. Se déconnecter sur l'appareil n'efface les jetons que de l'appareil : la session reste valide sur nos serveurs jusqu'à son expiration (90 jours). Pour y mettre fin immédiatement, par exemple si vous perdez l'appareil, utilisez « Déconnecter tous les appareils » dans le profil de l'application mobile.
+**Sur votre appareil GPS (Karoo, Garmin)** : l'extension Pedalons ne stocke que vos jetons de session et leur expiration (plus, pendant l'appairage, le code temporaire), dans son stockage privé, sans chiffrement supplémentaire : une personne ayant accès à l'appareil déverrouillé ou à une de ses sauvegardes pourrait les lire. Aucun contenu de sortie ou d'itinéraire n'y est conservé. Se déconnecter sur l'appareil n'efface les jetons que de l'appareil : la session reste valide sur nos serveurs jusqu'à son expiration (90 jours). Pour y mettre fin immédiatement, par exemple si vous perdez l'appareil, utilisez « Déconnecter tous les appareils » dans votre profil, sur le site ou dans l'application mobile.
 
 ---
 

@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated: September 29, 2026**
+**Last updated: September 30, 2026**
 
 This privacy policy describes how Pedalons ("we", "our", "us") collects, uses, and protects your personal data when you use our platform (website, mobile app, GPS device extensions).
 
@@ -154,7 +154,7 @@ If you connect an external GPS service (Hammerhead, Garmin, Wahoo):
 - **Log of your last actions and error reports**: your last actions (200 entries at most), the error reports not yet sent and your automatic-error-report setting. None of this leaves your phone except in the cases described in "Problem Reports and Error Reports".
 - **No backup**: on Android, the app's data is excluded from cloud backup and from transfer to a new device.
 
-**On your GPS device (Karoo, Garmin)**: the Pedalons extension stores only your session tokens and their expiry (plus, during pairing, the temporary code), in its private storage, without additional encryption: anyone with access to the unlocked device or to a backup of it could read them. No ride or route content is kept on it. Signing out on the device erases the tokens from the device only: the session stays valid on our servers until it expires (90 days). To end it immediately, for example if you lose the device, use "Sign out of every device" in the mobile app's profile.
+**On your GPS device (Karoo, Garmin)**: the Pedalons extension stores only your session tokens and their expiry (plus, during pairing, the temporary code), in its private storage, without additional encryption: anyone with access to the unlocked device or to a backup of it could read them. No ride or route content is kept on it. Signing out on the device erases the tokens from the device only: the session stays valid on our servers until it expires (90 days). To end it immediately, for example if you lose the device, use "Sign out of every device" in your profile, on the website or in the mobile app.
 
 ---
 

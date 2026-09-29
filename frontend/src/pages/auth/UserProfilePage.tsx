@@ -20,6 +20,7 @@ import {
   Center,
   Loader,
 } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
 import { useAuth } from '../../hooks/useAuth'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { UserAvatar } from '../../components/common/UserAvatar'
@@ -54,11 +55,14 @@ export function UserProfilePage() {
     deleteAvatar,
     isDeletingAvatar,
     logout,
+    logoutAll,
   } = useAuth()
 
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showLogoutAllConfirm, setShowLogoutAllConfirm] = useState(false)
+  const [isLoggingOutAll, setIsLoggingOutAll] = useState(false)
   // Read when the confirmation opens, and again on every opening: a team may have gained a member
   // or an admin since.
   const deletionImpact = useGetMyDeletionImpact({
@@ -99,6 +103,18 @@ export function UserProfilePage() {
     // the API client; the dialog closes so the message is not left behind a confirmation that
     // can only fail again.
     deleteAccount(undefined, { onError: () => setShowDeleteConfirm(false) })
+  }
+
+  const handleLogoutAll = async () => {
+    setIsLoggingOutAll(true)
+    try {
+      // Reloads on the login page once done.
+      await logoutAll()
+    } catch {
+      setIsLoggingOutAll(false)
+      setShowLogoutAllConfirm(false)
+      notifications.show({ message: t('profile.account.logoutAllFailed'), color: 'red' })
+    }
   }
 
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -272,6 +288,15 @@ export function UserProfilePage() {
               {t('profile.account.signOut')}
             </Button>
 
+            <div>
+              <Button variant="default" onClick={() => setShowLogoutAllConfirm(true)}>
+                {t('profile.account.logoutAll')}
+              </Button>
+              <Text size="sm" c="dimmed" mt={4}>
+                {t('profile.account.logoutAllDescription')}
+              </Text>
+            </div>
+
             <Box pt="md" style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}>
               <Text size="sm" fw={500} c="red">
                 {t('profile.account.dangerZone.title')}
@@ -292,6 +317,17 @@ export function UserProfilePage() {
           </Stack>
         </Stack>
       </Paper>
+
+      <ConfirmDialog
+        isOpen={showLogoutAllConfirm}
+        onClose={() => setShowLogoutAllConfirm(false)}
+        onConfirm={() => void handleLogoutAll()}
+        title={t('profile.account.logoutAllTitle')}
+        message={t('profile.account.logoutAllMessage')}
+        confirmText={t('profile.account.logoutAll')}
+        variant="warning"
+        isLoading={isLoggingOutAll}
+      />
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
