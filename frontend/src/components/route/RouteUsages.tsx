@@ -3,7 +3,7 @@ import { IconCalendar } from '@tabler/icons-react'
 import { Box, Group, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core'
 import { Card, CardContent, CardTitle, TypeBadge, Stat } from '../card/common'
 import { useGetRouteUsages } from '@/api/endpoints/routes/routes'
-import { FormattedDateTime } from '../common/FormattedDate'
+import { FormattedDate, FormattedDateTime } from '../common/FormattedDate'
 import { paths } from '@/config/paths'
 import type { RouteUsageDto } from '@/api/dto'
 
@@ -76,7 +76,16 @@ export function RouteUsages({ teamSlug, routeSlug }: RouteUsagesProps) {
                 </Group>
                 <Stack gap={4} mt="auto">
                   <Stat icon={<IconCalendar size={16} />}>
-                    <FormattedDateTime date={usage.dateTime} />
+                    {/* A trip carries the date of its last stage: show the range, like its card. */}
+                    {usage.endDate ? (
+                      <>
+                        <FormattedDate date={usage.dateTime} />
+                        {' → '}
+                        <FormattedDate date={usage.endDate} />
+                      </>
+                    ) : (
+                      <FormattedDateTime date={usage.dateTime} />
+                    )}
                   </Stat>
                   {hint && (
                     <Text size="sm" c="dimmed">

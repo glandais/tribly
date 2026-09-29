@@ -13,6 +13,8 @@ export interface RouteUsageDto {
   name: string
   /** Publication date/time */
   dateTime: Instant
+  /** For a trip, the date of its last stage — the same value as TripDto.endDate. Null for a ride, and for a trip with no stage, which lasts a day. */
+  endDate?: Instant
   /** Slug of the team owning the publication */
   teamSlug: string
   /** Whether the publication references the route directly (not only via a child) */

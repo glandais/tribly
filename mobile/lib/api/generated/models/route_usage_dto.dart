@@ -34,6 +34,9 @@ abstract class RouteUsageDto with _$RouteUsageDto {
 
     /// Names of the ride groups or trip stages that reference the route, if any
     required List<String> viaChildNames,
+
+    /// For a trip, the date of its last stage — the same value as TripDto.endDate. Null for a ride, and for a trip with no stage, which lasts a day.
+    String? endDate,
   }) = _RouteUsageDto;
 
   factory RouteUsageDto.fromJson(Map<String, Object?> json) =>

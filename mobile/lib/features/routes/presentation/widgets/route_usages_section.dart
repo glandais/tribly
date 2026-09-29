@@ -63,6 +63,9 @@ class _UsageCard extends StatelessWidget {
     final PdlColors c = context.pdl;
     final PdlTypography t = context.pdlText;
     final DateTime? at = DateTime.tryParse(usage.dateTime)?.toLocal();
+    final DateTime? end = usage.endDate == null
+        ? null
+        : DateTime.tryParse(usage.endDate!)?.toLocal();
 
     return PdlCard(
       padding: PdlCardPadding.tight,
@@ -88,10 +91,14 @@ class _UsageCard extends StatelessWidget {
                       const SizedBox(width: 5),
                       Flexible(
                         child: Text(
-                          // `RouteUsageDto` n'a **pas** de date de fin
-                          // (§5.2-9) : un voyage affiche sa date de début
-                          // seule, plutôt qu'une plage inventée.
-                          AppFormatters.formatLongDateTime(at),
+                          // Un voyage porte la date de sa dernière étape
+                          // (`endDate`, API 5.9.0) : la plage, comme sur sa
+                          // carte. Une sortie, ou un voyage sans étape,
+                          // garde sa date et son heure.
+                          end == null
+                              ? AppFormatters.formatLongDateTime(at)
+                              : '${AppFormatters.formatDayMonth(at)} → '
+                                    '${AppFormatters.formatDayMonth(end)}',
                           style: t.sub,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

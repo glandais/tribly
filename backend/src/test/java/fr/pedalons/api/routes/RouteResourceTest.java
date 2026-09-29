@@ -1008,6 +1008,40 @@ class RouteResourceTest extends AbstractResourceTest {
         .body("usages[0].viaChildNames", contains("Stage 1"));
   }
 
+  /**
+   * A trip usage carries the date of its last live stage, so the route page can render the range
+   * (docs/LEDGER_*.md API-9); a ride carries none.
+   */
+  @Test
+  void getRouteUsages_trip_carriesItsEndDate_rideDoesNot() {
+    Route route = dataService.createRoute(team1, user1, "Range Route", Visibility.PUBLIC);
+    Trip trip = dataService.createTrip(team1, user1, "Range Trip", USAGE_TIME);
+    dataService.setTripRoute(trip, route);
+    Instant lastDay = USAGE_TIME.plus(3, ChronoUnit.DAYS);
+    dataService.createTripStage(user1, trip, "Day 1", 0, USAGE_TIME);
+    dataService.createTripStage(user1, trip, "Day 4", 1, lastDay);
+    TripStage ghost =
+        dataService.createTripStage(
+            user1, trip, "Deleted Day", 2, lastDay.plus(2, ChronoUnit.DAYS));
+    dataService.deleteTripStage(ghost);
+    Trip bare = dataService.createTrip(team1, user1, "Bare Trip", USAGE_TIME.minusSeconds(60));
+    dataService.setTripRoute(bare, route);
+    Ride ride = dataService.createRide(team1, user1, "Range Ride", "range-ride", USAGE_TIME);
+    dataService.setRideRoute(ride, route);
+
+    given()
+        .when()
+        .get(usagesUrl(route))
+        .then()
+        .statusCode(200)
+        .body("usages", hasSize(3))
+        .body(
+            "usages.find { it.slug == '" + trip.getSlug() + "' }.endDate",
+            equalTo(lastDay.toString()))
+        .body("usages.find { it.slug == '" + bare.getSlug() + "' }.endDate", nullValue())
+        .body("usages.find { it.slug == 'range-ride' }.endDate", nullValue());
+  }
+
   @Test
   void getRouteUsages_softDeletedRide_shouldBeExcluded() {
     Route route = dataService.createRoute(team1, user1, "Deleted Ride Route", Visibility.PUBLIC);

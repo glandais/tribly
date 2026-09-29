@@ -4352,6 +4352,12 @@ components:
           description: Publication date/time
           type: string
           $ref: "#/components/schemas/Instant"
+        endDate:
+          description: "For a trip, the date of its last stage — the same value as\
+            \ TripDto.endDate. Null for a ride, and for a trip with no stage, which\
+            \ lasts a day."
+          type: string
+          $ref: "#/components/schemas/Instant"
         teamSlug:
           type: string
           description: Slug of the team owning the publication
@@ -15788,7 +15794,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 5.8.0
+  version: 5.9.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

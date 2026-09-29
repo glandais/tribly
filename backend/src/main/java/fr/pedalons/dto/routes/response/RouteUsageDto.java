@@ -8,6 +8,7 @@ import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.dto.validation.ValidateSchema;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -23,6 +24,12 @@ public record RouteUsageDto(
     @Schema(description = "Publication URL slug", required = true) String slug,
     @Schema(description = "Publication name", required = true) String name,
     @Schema(description = "Publication date/time", required = true) Instant dateTime,
+    @Nullable
+        @Schema(
+            description =
+                "For a trip, the date of its last stage — the same value as TripDto.endDate. Null"
+                    + " for a ride, and for a trip with no stage, which lasts a day.")
+        Instant endDate,
     @Schema(description = "Slug of the team owning the publication", required = true)
         String teamSlug,
     @Schema(
@@ -47,15 +54,16 @@ public record RouteUsageDto(
         ride.getSlug(),
         ride.getName(),
         ride.getDateTime(),
+        null,
         ride.getTeam().getSlug(),
         referencesRoute(ride.getRoute(), routeId),
         viaGroups);
   }
 
   public static RouteUsageDto fromTrip(Trip trip, Long routeId) {
+    List<TripStage> liveStages = trip.getStages().stream().filter(s -> !s.isDeleted()).toList();
     List<String> viaStages =
-        trip.getStages().stream()
-            .filter(stage -> !stage.isDeleted())
+        liveStages.stream()
             .filter(stage -> referencesRoute(stage.getRoute(), routeId))
             .map(TripStage::getName)
             .toList();
@@ -64,6 +72,8 @@ public record RouteUsageDto(
         trip.getSlug(),
         trip.getName(),
         trip.getDateTime(),
+        // The rule of TripDto.endDateOf: the last live stage's date, whatever the stage order.
+        liveStages.stream().map(TripStage::getDateTime).max(Comparator.naturalOrder()).orElse(null),
         trip.getTeam().getSlug(),
         referencesRoute(trip.getRoute(), routeId),
         viaStages);

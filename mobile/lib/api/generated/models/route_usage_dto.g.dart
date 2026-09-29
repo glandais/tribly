@@ -17,6 +17,7 @@ _RouteUsageDto _$RouteUsageDtoFromJson(Map<String, dynamic> json) =>
       viaChildNames: (json['viaChildNames'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
+      endDate: json['endDate'] as String?,
     );
 
 Map<String, dynamic> _$RouteUsageDtoToJson(_RouteUsageDto instance) =>
@@ -28,4 +29,5 @@ Map<String, dynamic> _$RouteUsageDtoToJson(_RouteUsageDto instance) =>
       'teamSlug': instance.teamSlug,
       'referencedDirectly': instance.referencedDirectly,
       'viaChildNames': instance.viaChildNames,
+      'endDate': instance.endDate,
     };

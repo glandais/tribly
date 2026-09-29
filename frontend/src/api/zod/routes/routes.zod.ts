@@ -2847,6 +2847,12 @@ export const GetRouteUsagesResponse = zod
             slug: zod.string().describe('Publication URL slug'),
             name: zod.string().describe('Publication name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+            endDate: zod.iso
+              .datetime({ offset: true })
+              .optional()
+              .describe(
+                'For a trip, the date of its last stage — the same value as TripDto.endDate. Null for a ride, and for a trip with no stage, which lasts a day.'
+              ),
             teamSlug: zod.string().describe('Slug of the team owning the publication'),
             referencedDirectly: zod
               .boolean()
