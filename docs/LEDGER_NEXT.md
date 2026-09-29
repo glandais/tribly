@@ -234,6 +234,10 @@ Relevés le 29 septembre 2026, en vérifiant `docs/*.md` contre le code :
   `PUBLIC_UNLISTED` de l'équipe sur ses contenus ne changerait rien ; en réalité le fil de l'équipe
   se viderait, les listes limitées à l'équipe exigeant `te.visibility = 'PUBLIC'`
   ([`MIGRATE_BIKETEAM.md`](MIGRATE_BIKETEAM.md) a été corrigé).
+- **Javadoc périmée de `isPlaceholderLogo`** (`BiketeamMigrationService`) — elle cite encore
+  « 70 of the 187 exported teams », un décompte du dump de 2026-07 que l'import live n'a plus ;
+  [`MIGRATE_BIKETEAM.md`](MIGRATE_BIKETEAM.md) a retiré ces chiffres. Dire seulement que beaucoup
+  d'équipes n'ont jamais remplacé l'image par défaut.
 
 ---
 

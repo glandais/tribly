@@ -2,8 +2,7 @@
 
 > A biketeam team admin moves *their* team from biketeam's admin, server to server over HTTPS,
 > without people: the [live migration](#live-migration), then the [mapping rules](#mapping-rules) it
-> applies. The former dump import (a restored database, people included) is gone; the figures quoted
-> below from the 2026-07 dump come from its runs. Design and contract with biketeam:
+> applies. Design and contract with biketeam:
 > [plans/2026-09-22-biketeam-live-migration.md](plans/2026-09-22-biketeam-live-migration.md).
 
 # Live migration
@@ -43,11 +42,10 @@ key.
 | this biketeam team was migrated into another domain of this database | **refused** (`BIKETEAM_MIGRATED_IN_OTHER_DOMAIN`) | same |
 
 A **trial** is a real migration — the team really exists afterwards, visible according to its
-biketeam visibility — that biketeam simply does not switch over to. Replays are idempotent (same
-`biketeam_migration_map` as the former dump import, now tagged with `biketeam_team_id`), so the real run
-after a trial re-creates nothing: it resynchronises what changed on biketeam meanwhile, and skips
-the whole GPX pipeline — without even downloading — for every route whose file has the same
-`size:md5` fingerprint, including routes the former dump import built.
+biketeam visibility — that biketeam simply does not switch over to. Replays are idempotent (see
+[Replaying](#replaying)), so the real run after a trial re-creates nothing: it resynchronises what
+changed on biketeam meanwhile, and skips the whole GPX pipeline — without even downloading — for
+every route whose file has the same `size:md5` fingerprint.
 
 ## Turning it on
 
@@ -75,8 +73,11 @@ Order, on a new deployment:
    (production rollout tracked in [`LEDGER_NEXT.md`](LEDGER_NEXT.md) §8.6).
 
 `pedalons.biketeam.grant-ttl` (10 min), `.max-attempts` (3), `.stuck-after` (20 min),
-`.export-idle-timeout` (60 s without a byte of a snapshot or file) and `.export-transfer-timeout`
-(10 min for one snapshot or file) have defaults in `application.properties`.
+`.export-snapshot-timeout` (5 min for the snapshot's headers — biketeam may hash a big team's files
+first), `.export-idle-timeout` (60 s without a byte of a snapshot or file) and
+`.export-transfer-timeout` (10 min for one snapshot or file) have defaults in
+`application.properties`; startup fails if `stuck-after` does not exceed the longest silence they
+allow.
 
 ## Following a job
 
@@ -112,9 +113,8 @@ network or 5xx failure of the export is retried after 2, then 4 minutes; a job s
 | `INTERNAL_ERROR` | Anything else — the backend log has the stack trace. |
 
 A job that `SUCCEEDED` may still count per-element failures (`counts.*.failed`, with a warning each:
-`GPX_MISSING`, `GPX_EMPTY`, `GPX_FAILURE`, `FILE_DOWNLOAD_FAILED`, `IMAGE_FAILED`, `ITEM_FAILED`) —
-the same element-level error boundary as the former dump import, which lost 25 routes of the 2026-07
-dump to missing or broken GPX files. Read them after the trial; whether to go on is a human call.
+`GPX_MISSING`, `GPX_EMPTY`, `GPX_FAILURE`, `FILE_DOWNLOAD_FAILED`, `IMAGE_FAILED`, `ITEM_FAILED`;
+see [Known failures](#known-failures)). Read them after the trial; whether to go on is a human call.
 One warning is not a failure: `TRIP_STAGES_OUTSIDE_DATES` flags a trip whose stages fall outside its
 biketeam start/end dates — migrated as is, but Pédalons ends a trip with its last stage, so its
 biketeam end date is lost. Fix the dates on either side.
@@ -138,7 +138,7 @@ Not run by the assistant (see CLAUDE.md): run them yourself.
 
 ```bash
 cd backend
-mvn test -Dtest='BiketeamRequestTokenVerifierTest,BiketeamMigrationResourceTest,BiketeamMigrationDisabledTest,BiketeamMigrationInternalResourceTest,BiketeamLiveMigrationTest'
+mvn test -Dtest='Biketeam*Test'
 ```
 
 # Mapping rules
@@ -146,46 +146,30 @@ mvn test -Dtest='BiketeamRequestTokenVerifierTest,BiketeamMigrationResourceTest,
 ## Replaying
 
 Re-running is safe and cheap. Already-migrated rows are matched through the biketeam→tribly id
-mapping table, so a replay repairs what a previous run left missing rather than duplicating it.
-Verified on `louise` (165 routes, 5 rides, 19 trips, 124 stages): seven consecutive runs, every row
-count identical from the second onwards — only the Hibernate `version` column moves.
+mapping table (`biketeam_migration_map`, tagged with `biketeam_team_id`), so a replay repairs what a
+previous run left missing rather than duplicating it.
 
 Most of a run is the GPX pipeline: parse, SRTM elevation, Douglas-Peucker, FIT, two thumbnails, five
-S3 uploads — 92% of `louise`'s replay before this was addressed. `biketeam_migration_map` therefore
-records the size and MD5 of the `.gpx` each route was built from, and a replay whose file still
-digests the same skips the pipeline entirely, refreshing only the name, surface and visibility.
-The fingerprint is written *after* the pipeline succeeds, so a run killed mid-upload leaves none and
-the next one redoes the work.
-
-| `louise` | duration |
-|---|---|
-| first import | 476s |
-| replay, cold cache and no fingerprints | 161s |
-| replay | **11s** |
+S3 uploads. `biketeam_migration_map` therefore records the size and MD5 of the `.gpx` each route was
+built from — the snapshot announces both, and a downloaded file that does not match is rejected — and
+a replay whose file carries the same fingerprint skips the pipeline entirely, refreshing only the
+name, surface and visibility. The fingerprint is written *after* the pipeline succeeds, so a run
+killed mid-upload leaves none and the next one redoes the work.
 
 What remains is the ride and trip thumbnails, which `updateRide`/`updateTrip` regenerate
 unconditionally ([`LEDGER_NEXT.md`](LEDGER_NEXT.md) §8.6). A route whose `.gpx` changed between two runs is reprocessed, as it should be.
 
 ## Known failures
 
-A full local run of the 2026-07 dump (187 teams, ~70 min) loses 25 routes, for reasons that predate
-the migration and cannot be fixed here. Everything else reconciles exactly against the source.
+Two defects of biketeam's own data lose routes, and cannot be fixed on this side:
 
-| What | Count | Cause |
-|---|---|---|
-| Routes | 22 | The `.gpx` file is simply missing from the export — the `map` row points at nothing (`GPX_EMPTY`). |
-| Routes | 3 | Emoji in the track/waypoint name, written by biketeam as two separate UTF-16 surrogate character references (`&#55357;&#56629;`), which is not valid XML (`GPX_FAILURE`). |
+| Warning | Cause |
+|---|---|
+| `GPX_MISSING` / `GPX_EMPTY` | The `map` row points at a `.gpx` file biketeam no longer has, or at one without a track. |
+| `GPX_FAILURE` | Emoji in the track/waypoint name, written by biketeam as two separate UTF-16 surrogate character references (`&#55357;&#56629;`), which is not valid XML. |
 
-No team failed, and the 25 lost routes were referenced by no ride and no trip stage.
-
-That same run also lost 3 trips and their 22 stages to a `uk_team_entity_slug` collision, since
-fixed: `TripStage`'s constructor minted the slug as `"stage-" + System.currentTimeMillis()` and no
-one ever replaced it, so two stages created in the same millisecond collided — and every surviving
-stage carried a timestamp for a slug. `TripService` now derives it from the stage name, like every
-other entity.
-
-`FileTypeDetector` also logs one WARN per generated FIT file (~5400 of them): Magika has no
-signature for FIT, so it falls back to the extension and **accepts** the upload. Harmless noise.
+The route is skipped and the rest of the team goes on; a ride or trip stage that referenced it loses
+its route.
 
 ## Ordering of groups and stages
 
@@ -220,13 +204,13 @@ team's `PUBLIC_UNLISTED` down onto its content would empty the team's own feed t
 promoting that team to `PUBLIC` later would leave its whole feed hidden. A `TEAM` team clamps
 everything under it to `TEAM`, which `validateVisibility` requires anyway.
 
-| biketeam `team.visibility` | tribly | teams |
-|---|---|---|
-| `PUBLIC` | `PUBLIC` | 63 |
-| `PUBLIC_UNLISTED` | `PUBLIC_UNLISTED` | 7 |
-| `USER` (personal space) | `PUBLIC_UNLISTED` | 105 |
-| `PRIVATE` | `TEAM` | 4 |
-| `PRIVATE_UNLISTED` | `TEAM` | 8 |
+| biketeam `team.visibility` | tribly |
+|---|---|
+| `PUBLIC` | `PUBLIC` |
+| `PUBLIC_UNLISTED` | `PUBLIC_UNLISTED` |
+| `USER` (personal space) | `PUBLIC_UNLISTED` |
+| `PRIVATE` | `TEAM` |
+| `PRIVATE_UNLISTED` | `TEAM` |
 
 Both PRIVATE flavours mean "members only", which is `TEAM`; tribly has no unlisted-and-private,
 so that distinction is dropped. `USER` marks a personal training space that biketeam never lists,
@@ -287,9 +271,8 @@ Biketeam had exactly two pieces of free-form team prose, and tribly's `TeamPage`
 | `team_configuration.markdown_page` | an **additional** page titled *FAQ* |
 
 `markdown_page` is what biketeam's `FAQController` served at `/{teamId}/faq`, under that fixed
-title — the schema has no other page table and no per-page title, so *FAQ* is the whole of it. Six
-teams of the 2026-07 dump have one (`n-peloton`, `audax-lavallois`, `mollet_qui_pique`,
-`la_petite_amicale_du`, `tomacla`, `malika`); the other 181 get no additional page.
+title — the schema has no other page table and no per-page title, so *FAQ* is the whole of it. Few
+teams have one (`n-peloton`, for instance); the others get no additional page.
 
 The column already holds Markdown, so it is copied across as-is — only CRLF is normalised, with
 none of the hard-break rewriting `team_description` needs. It lands at
@@ -320,7 +303,6 @@ reads `team.about.assets.logo`, so the file is imported as a `LOGO` asset on the
 No `::asset{}` directive is added — a logo is addressed through `assets.logo`, not from the markdown.
 
 Biketeam handed every new team a copy of its `default-images/empty.png` placeholder, so the file
-being present means nothing: **70 of the 187 exported teams never replaced it**, leaving 117 real
-logos. Those 70 are skipped by comparing the file digest against the placeholder, which leaves
-tribly's initials avatar in place. `heatmap.png`, which sits in the same directory, is never picked
-up, and neither is `misc/logo.png` — that one is biketeam's own platform logo, not a team's.
+being present means nothing: **many teams never replaced it**. The snapshot's logo is skipped when
+its MD5 is the placeholder's (`PLACEHOLDER_LOGO_MD5`), which leaves tribly's initials avatar in
+place.
