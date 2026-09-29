@@ -1,7 +1,7 @@
 # Privacy Improvement Opportunities — 2026-07-25
 
 > **Tracking moved to the ledger (2026-09-29).** What is still open here is followed under
-> `LEGAL-11`, `LEGAL-13`, `SEC-7`, `SEC-12` (Karoo token store), `SEC-17` and `WEB-28` in `docs/LEDGER_NEXT.md`; this
+> `LEGAL-13`, `SEC-7`, `SEC-12` (Karoo token store), `SEC-17` and `WEB-28` in `docs/LEDGER_NEXT.md`; this
 > file keeps the options and their rationale. #5 and #6 are done (`LEGAL-9`). #3 is moot (`LEGAL-1`), #27 is moot (the dump import is
 > gone), #15's acceptance trail shipped with the moderation work.
 

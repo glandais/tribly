@@ -130,7 +130,7 @@ The log contains no password, no form content and no web address parameter; any 
 
 ### Beta Programme Sign-ups
 
-On the Apps page, anyone, with or without an account, can leave an email address to hear when a test version of our mobile or Garmin app opens. We store the address, the site it was entered on and the date; it is not linked to any account and no confirmation email is sent. We use it only to contact you about the beta. If we invite you, we enter it by hand in the beta-testing service of the store concerned (Apple TestFlight, Google Play Console or Garmin Connect IQ), which processes it under its own privacy policy. To be removed from the list, write to privacy@pedalons.fr.
+On the Apps page, anyone, with or without an account, can leave an email address to hear when a test version of our mobile or Garmin app opens. We store the address, the site it was entered on and the date; it is not linked to any account and no confirmation email is sent. We use it only to contact you about the beta. If we invite you, we enter it by hand in the beta-testing service of the store concerned (Apple TestFlight or Google Play Console), which processes it under its own privacy policy. Connect IQ, Garmin's store, has no beta-testing service, so your address is not entered there. To be removed from the list, write to privacy@pedalons.fr.
 
 ### Third-Party GPS Service Connections
 
@@ -232,7 +232,7 @@ We use technical services to operate the platform:
 - **Google Firebase Cloud Messaging (Google Ireland Limited, Ireland)**
   - *Role*: Routing push notifications to the mobile app, through Apple Push Notification service for iPhones, and to your browser
   - *Data Involved*: The push token of your phone or browser, your device's IP address when the app or the browser contacts Firebase, and the content of each notification: title and text (which can include a team name, a ride, trip or post title and date, the name of a member and an extract of a comment), plus technical data used to open the right page (notification type and identifier, team and page identifiers)
-- **Apple Push Notification service (Apple Inc., United States)**
+- **Apple Push Notification service (Apple Distribution International Ltd, Ireland)**
   - *Role*: Delivering push notifications to iPhones, relayed by Firebase Cloud Messaging
   - *Data Involved*: The same notification content and your device's Apple push token
 - **Hammerhead, Garmin, Wahoo (United States)**
@@ -252,7 +252,7 @@ Place search (team location, meeting places, classified ads; when signed in), by
 - **VersaTiles (tiles.versatiles.org)**
   - *Role*: Vector map background (default style), map fonts and sprites
   - *Data Involved*: IP address, map area viewed
-- **Mapterhorn (tiles.mapterhorn.com)**
+- **Mapterhorn (tiles.mapterhorn.com, served by Cloudflare, United States)**
   - *Role*: Terrain-elevation and hillshade tiles (3-D relief); also used by our server to correct the altitude of imported tracks
   - *Data Involved*: Your browser or app, only when you switch on relief shading or 3-D terrain (both off by default): IP address, map area viewed. Server-side: coordinates of coarse map tiles (~10 km squares) covered by a track and our server's IP address — never your identity, account or IP address
 - **IGN / Géoplateforme (data.geopf.fr, France)**
@@ -285,13 +285,13 @@ Our servers are hosted by **Scaleway** (Scaleway SAS, Vitry-sur-Seine, France) a
 
 Some processing you can trigger involves servers outside the European Union:
 
-- **Third-party GPS services** (Hammerhead, Garmin, Wahoo, United States): only if you connect one; this transfer is based on your explicit consent when connecting.
-- **The "Satellite (ESRI)" map background** (Esri, United States): your device sends it your IP address and the area viewed, only if you choose this background. The OpenStreetMap background is served from the United Kingdom, which benefits from a European Commission adequacy decision.
+- **Third-party GPS services** (Hammerhead, Garmin, Wahoo, United States): only if you connect one, and only for the routes you send them. This transfer is necessary for the service you request, sending the route to your account (Article 49(1)(b) GDPR); Garmin is also certified under the EU–US Data Privacy Framework.
+- **Map backgrounds and terrain**: your device sends your IP address and the area viewed to the provider of the background you choose (see section 4). The "Satellite (ESRI)" background comes from Esri (United States), which is certified under the Data Privacy Framework. Mapterhorn's terrain tiles, requested only if you switch on relief shading or 3-D terrain, are served by Cloudflare (United States), which is certified too. The OpenStreetMap background is served from the United Kingdom, which benefits from a European Commission adequacy decision.
 - **Google's Firebase messaging component**: the mobile app includes it, and it contacts Google's servers when the app starts, even before you sign in or allow notifications, which reveals your device's IP address and creates a Firebase installation identifier. The app and the website include only this messaging part of Firebase: no analytics, advertising or tracking component. On the website, this component is loaded only once you have turned on notifications.
-- **Push notifications**: Google (Firebase Cloud Messaging) may process their title, their text and your device's push token in the United States; this transfer is covered by the European Commission's standard contractual clauses and by Google LLC's certification under the EU–US Data Privacy Framework. On iPhone, they are delivered by Apple (United States); in a browser, by its vendor's push service, which only receives the encrypted message (see section 4). This happens only while you allow notifications.
-- **Problem reports and error reports**: sent to GitHub (United States), without your name or your e-mail address; this transfer is covered by the European Commission's standard contractual clauses.
-- **Team chat channels**: the service chosen by the team's administrators (for example Slack or Discord, operated from the United States) receives the team's announcements, under its own terms.
-- **Beta programmes**: if we invite you, your email address is entered in Apple TestFlight, Google Play Console or Garmin Connect IQ, some of which are operated from the United States.
+- **Push notifications**: Google (Firebase Cloud Messaging) may process their title, their text and your device's push token in the United States; this transfer is covered by the European Commission's standard contractual clauses and by Google LLC's certification under the Data Privacy Framework. On iPhone, they are delivered by Apple (Apple Distribution International, Ireland), whose transfers to the United States are covered by the standard contractual clauses; in a browser, by its vendor's push service, which only receives the encrypted message (see section 4). This happens only while you allow notifications.
+- **Problem reports and error reports**: sent to GitHub (United States), without your name or your e-mail address; this transfer is covered by the European Commission's standard contractual clauses and by GitHub, Inc.'s certification under the Data Privacy Framework.
+- **Team chat channels**: the service chosen by the team's administrators (for example Slack or Discord, operated from the United States) receives the team's announcements. This transfer takes place on the administrators' instructions, who choose the service: Slack and Discord are certified under the Data Privacy Framework; any other service is governed by its own terms.
+- **Beta programmes**: if we invite you, your email address is entered in Apple TestFlight or Google Play Console; Apple and Google cover their transfers to the United States with the standard contractual clauses.
 
 ---
 

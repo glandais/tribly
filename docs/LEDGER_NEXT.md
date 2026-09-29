@@ -693,7 +693,6 @@ l'app mobile, un changement n'y apparaît qu'avec la build suivante.
 
 | ID | Point du plan | Sujet | Décision attendue | Liens |
 |---|---|---|---|---|
-| `LEGAL-11` | §5 | Garanties de transfert non confirmées : DPA Google (FCM), Apple (APNs, TestFlight), Garmin Connect IQ, hébergement de Mapterhorn et du CyclOSM d'OpenStreetMap France ; webhooks d'équipe vers Slack/Discord présentés comme le choix de l'équipe | Confirmer chaque garantie et compléter le §5, ou auto-héberger les tuiles de relief | — |
 | `LEGAL-13` | §4, §10 | Gouvernance : nombre d'admins plateforme et journalisation de leurs accès, responsable du traitement en multi-tenant, contrôle de l'âge | Décider, puis compléter les §4 et §10 ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #15 à #17, #19) | `LEGAL-14` |
 
 ---
@@ -750,5 +749,5 @@ restent ouvertes :
   juridique : suivi sous `LEGAL`.
 - [`plans/2026-07-25-privacy-improvement-opportunities.md`](plans/2026-07-25-privacy-improvement-opportunities.md) —
   les options d'amélioration de la vie privée et leur justification ; ce qui en reste ouvert est
-  suivi sous `LEGAL-11`, `LEGAL-13` et `WEB-28` (le chiffrement des jetons Karoo est `SEC-12`). L'audit de juillet et la mise à jour de
+  suivi sous `LEGAL-13` et `WEB-28` (le chiffrement des jetons Karoo est `SEC-12`). L'audit de juillet et la mise à jour de
   septembre qui ont réécrit la politique sont archivés.

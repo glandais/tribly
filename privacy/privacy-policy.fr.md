@@ -130,7 +130,7 @@ Le journal ne contient ni mot de passe, ni contenu de formulaire, ni paramètre 
 
 ### Inscriptions aux programmes bêta
 
-Sur la page Applications, toute personne, avec ou sans compte, peut laisser une adresse e-mail pour être prévenue de l'ouverture d'une version de test de notre application mobile ou Garmin. Nous stockons l'adresse, le site sur lequel elle a été saisie et la date ; elle n'est rattachée à aucun compte et aucun e-mail de confirmation n'est envoyé. Nous ne l'utilisons que pour vous contacter au sujet de la bêta. Si nous vous invitons, nous la saisissons à la main dans le service de test du magasin concerné (Apple TestFlight, Google Play Console ou Garmin Connect IQ), qui la traite selon sa propre politique de confidentialité. Pour être retiré de la liste, écrivez à privacy@pedalons.fr.
+Sur la page Applications, toute personne, avec ou sans compte, peut laisser une adresse e-mail pour être prévenue de l'ouverture d'une version de test de notre application mobile ou Garmin. Nous stockons l'adresse, le site sur lequel elle a été saisie et la date ; elle n'est rattachée à aucun compte et aucun e-mail de confirmation n'est envoyé. Nous ne l'utilisons que pour vous contacter au sujet de la bêta. Si nous vous invitons, nous la saisissons à la main dans le service de test du magasin concerné (Apple TestFlight ou Google Play Console), qui la traite selon sa propre politique de confidentialité. Connect IQ, le magasin de Garmin, n'ayant pas de service de test, votre adresse n'y est pas saisie. Pour être retiré de la liste, écrivez à privacy@pedalons.fr.
 
 ### Données de connexion à des services GPS tiers
 
@@ -232,7 +232,7 @@ Nous faisons appel à des services techniques pour le fonctionnement de la plate
 - **Google Firebase Cloud Messaging (Google Ireland Limited, Irlande)**
   - *Rôle* : Acheminement des notifications push vers l'application mobile, via Apple Push Notification service pour les iPhone, et vers votre navigateur
   - *Données concernées* : Le jeton push de votre téléphone ou de votre navigateur, l'adresse IP de votre appareil lorsque l'application ou le navigateur contacte Firebase, et le contenu de chaque notification : titre et texte (qui peuvent contenir un nom d'équipe, le titre et la date d'une sortie, d'un voyage ou d'une publication, le nom d'un membre et un extrait de commentaire), ainsi que des données techniques qui permettent d'ouvrir la bonne page (type et identifiant de la notification, identifiants de l'équipe et de la page)
-- **Apple Push Notification service (Apple Inc., États-Unis)**
+- **Apple Push Notification service (Apple Distribution International Ltd, Irlande)**
   - *Rôle* : Acheminement des notifications push vers les iPhone, relayées par Firebase Cloud Messaging
   - *Données concernées* : Le même contenu de notification et le jeton push Apple de votre appareil
 - **Hammerhead, Garmin, Wahoo (États-Unis)**
@@ -252,7 +252,7 @@ La recherche de lieux (lieu de l'équipe, lieux de rendez-vous, petites annonces
 - **VersaTiles (tiles.versatiles.org)**
   - *Rôle* : Fond de carte vectoriel (style par défaut), polices et sprites de carte
   - *Données concernées* : Adresse IP, zone de carte affichée
-- **Mapterhorn (tiles.mapterhorn.com)**
+- **Mapterhorn (tiles.mapterhorn.com, servi par Cloudflare, États-Unis)**
   - *Rôle* : Tuiles d'altitude et d'ombrage (relief 3D) ; également utilisé par notre serveur pour corriger l'altitude des traces importées
   - *Données concernées* : Votre navigateur ou application, uniquement si vous activez l'ombrage du relief ou le relief 3D (tous deux désactivés par défaut) : adresse IP, zone de carte affichée. Côté serveur : coordonnées de tuiles grossières (~10 km de côté) couvertes par une trace et adresse IP de notre serveur — jamais votre identité, votre compte ni votre adresse IP
 - **IGN / Géoplateforme (data.geopf.fr, France)**
@@ -285,13 +285,13 @@ Nos serveurs sont hébergés par **Scaleway** (Scaleway SAS, Vitry-sur-Seine, Fr
 
 Certains traitements que vous pouvez déclencher impliquent des serveurs situés hors de l'Union européenne :
 
-- **Services GPS tiers** (Hammerhead, Garmin, Wahoo, États-Unis) : uniquement si vous en connectez un ; ce transfert repose sur votre consentement explicite lors de la connexion.
-- **Fond de carte « Satellite (ESRI) »** (Esri, États-Unis) : votre appareil lui envoie votre adresse IP et la zone affichée, uniquement si vous choisissez ce fond. Le fond OpenStreetMap est servi depuis le Royaume-Uni, qui bénéficie d'une décision d'adéquation de la Commission européenne.
+- **Services GPS tiers** (Hammerhead, Garmin, Wahoo, États-Unis) : uniquement si vous en connectez un, et seulement pour les itinéraires que vous leur envoyez. Ce transfert est nécessaire au service que vous demandez, l'envoi de l'itinéraire sur votre compte (article 49, paragraphe 1, point b, du RGPD) ; Garmin adhère en outre au cadre de protection des données UE–États-Unis (Data Privacy Framework).
+- **Fonds de carte et relief** : votre appareil envoie votre adresse IP et la zone affichée au fournisseur du fond que vous choisissez (voir section 4). Le fond « Satellite (ESRI) » vient d'Esri (États-Unis), qui adhère au Data Privacy Framework. Les tuiles de relief de Mapterhorn, demandées seulement si vous activez l'ombrage ou le relief 3D, sont servies par Cloudflare (États-Unis), qui y adhère aussi. Le fond OpenStreetMap est servi depuis le Royaume-Uni, qui bénéficie d'une décision d'adéquation de la Commission européenne.
 - **Composant de messagerie Firebase de Google** : l'application mobile l'intègre, et il contacte les serveurs de Google au démarrage de l'application, avant même que vous vous connectiez ou autorisiez les notifications, ce qui révèle l'adresse IP de votre appareil et crée un identifiant d'installation Firebase. L'application et le site n'intègrent que cette partie messagerie de Firebase : aucun composant d'analyse, de publicité ou de suivi. Sur le site, ce composant n'est chargé qu'une fois les notifications activées.
-- **Notifications push** : Google (Firebase Cloud Messaging) peut traiter leur titre, leur texte et le jeton push de votre appareil aux États-Unis ; ce transfert est encadré par les clauses contractuelles types de la Commission européenne et par l'adhésion de Google LLC au cadre de protection des données UE–États-Unis (Data Privacy Framework). Sur iPhone, elles sont remises par Apple (États-Unis) ; dans un navigateur, par le service push de son éditeur, qui ne reçoit que le message chiffré (voir section 4). Cela n'a lieu que tant que vous autorisez les notifications.
-- **Signalements de problème et rapports d'erreur** : transmis à GitHub (États-Unis), sans votre nom ni votre adresse e-mail ; ce transfert est encadré par les clauses contractuelles types de la Commission européenne.
-- **Canaux de discussion d'équipe** : le service choisi par les administrateurs de l'équipe (par exemple Slack ou Discord, exploités depuis les États-Unis) reçoit les annonces de l'équipe, selon ses propres conditions.
-- **Programmes bêta** : si nous vous invitons, votre adresse e-mail est saisie dans Apple TestFlight, Google Play Console ou Garmin Connect IQ, dont certains sont exploités depuis les États-Unis.
+- **Notifications push** : Google (Firebase Cloud Messaging) peut traiter leur titre, leur texte et le jeton push de votre appareil aux États-Unis ; ce transfert est encadré par les clauses contractuelles types de la Commission européenne et par l'adhésion de Google LLC au Data Privacy Framework. Sur iPhone, elles sont remises par Apple (Apple Distribution International, Irlande), dont les transferts vers les États-Unis sont encadrés par les clauses contractuelles types ; dans un navigateur, par le service push de son éditeur, qui ne reçoit que le message chiffré (voir section 4). Cela n'a lieu que tant que vous autorisez les notifications.
+- **Signalements de problème et rapports d'erreur** : transmis à GitHub (États-Unis), sans votre nom ni votre adresse e-mail ; ce transfert est encadré par les clauses contractuelles types de la Commission européenne et par l'adhésion de GitHub, Inc. au Data Privacy Framework.
+- **Canaux de discussion d'équipe** : le service choisi par les administrateurs de l'équipe (par exemple Slack ou Discord, exploités depuis les États-Unis) reçoit les annonces de l'équipe. Ce transfert a lieu sur instruction des administrateurs, qui choisissent le service : Slack et Discord adhèrent au Data Privacy Framework ; tout autre service relève de ses propres conditions.
+- **Programmes bêta** : si nous vous invitons, votre adresse e-mail est saisie dans Apple TestFlight ou Google Play Console ; Apple et Google encadrent leurs transferts vers les États-Unis par les clauses contractuelles types.
 
 ---
 
