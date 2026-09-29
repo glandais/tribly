@@ -533,10 +533,6 @@ En service en staging ; la mise en production attend biketeam
       S3 restent. Chaque reset en laisse un exemplaire de plus. **Quand** : si le volume le
       justifie, ou avec une politique de rétention générale de la corbeille. Décision du 2026-09-22
       ([plan](plans/2026-09-22-biketeam-live-migration.md) §13, décision 10).
-- [ ] `MIG-11` **Javadoc périmée de `isPlaceholderLogo`** (`BiketeamMigrationService`) — elle cite
-      encore « 70 of the 187 exported teams », un décompte du dump de 2026-07 que l'import live n'a
-      plus ; [`MIGRATE_BIKETEAM.md`](MIGRATE_BIKETEAM.md) a retiré ces chiffres. Dire seulement que
-      beaucoup d'équipes n'ont jamais remplacé l'image par défaut.
 
 ---
 

@@ -406,6 +406,10 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
   `te.visibility = 'PUBLIC'`, comme [`MIGRATE_BIKETEAM.md`](MIGRATE_BIKETEAM.md). Le code n'a pas
   changé : la visibilité d'un contenu vient de son propre `listed_in_feed`, jamais de celle de
   l'équipe — ne pas la rabattre. Pas de test (commentaire).
+- `MIG-11` **Javadoc de `isPlaceholderLogo` corrigée** (2026-09-30, `BiketeamMigrationService`) —
+  elle citait encore « 70 of the 187 exported teams », un décompte du dump de 2026-07 que l'import
+  live n'a plus ; elle dit seulement que beaucoup d'équipes n'ont jamais remplacé l'image par
+  défaut, comme [`MIGRATE_BIKETEAM.md`](MIGRATE_BIKETEAM.md). Pas de test (commentaire).
 
 ---
 

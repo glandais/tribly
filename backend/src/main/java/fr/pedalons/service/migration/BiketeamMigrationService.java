@@ -587,7 +587,7 @@ public class BiketeamMigrationService {
 
   /**
    * Biketeam handed every new team a copy of its {@code default-images/empty.png} placeholder, so a
-   * logo file existing proves nothing: 70 of the 187 exported teams never replaced it. Importing
+   * logo file existing proves nothing: many teams never replaced it. Importing
    * those would replace Pédalons' initials avatar with a blank square.
    *
    * <p>Digest of the bytes as biketeam stored them — {@code ImageService.save} re-encodes the
