@@ -19,9 +19,7 @@ statut, un rôle, un revêtement ou une catégorie de col. Les tableaux du §3.6
 mappe les mêmes énumérations dans `core/theme/enum_colors.dart`, le web dans
 `frontend/src/components/card/common/badgeColors.ts`, sauf les catégories de col
 (`getClimbCategoryColor` dans `RouteDetailView.tsx`). Un changement ici est un changement dans les
-deux, sinon les clients divergent en silence. Attention : `AdDetailPage.tsx` garde sa propre table
-`adTypeColors` (SALE `primary`, RENTAL `grape`, WANTED `yellow`), qui diverge du §3.6 et reste à
-réaligner.
+deux, sinon les clients divergent en silence.
 
 Trois pièges à connaître :
 

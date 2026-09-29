@@ -546,11 +546,6 @@ catégories de col) et `CardImage.tsx` (dégradés de repli), et côté mobile d
 `mobile/test/core/theme/pdl_tokens_test.dart` ne fige que les hexadécimaux du mobile. Une
 divergence ne casse rien de visible, c'est justement le risque.
 
-- [ ] `BRAND-1` **Divergence déjà là** : `frontend/src/pages/ad/AdDetailPage.tsx` garde sa propre
-      table `adTypeColors` (SALE `primary`, RENTAL `grape`, WANTED `yellow`) alors que
-      `badgeColors.ts` et le §3.6 de la charte disent SALE green, RENTAL indigo, WANTED orange. À
-      réaligner tout de suite en passant par `badgeColors.ts`, sans attendre le générateur
-      (`BRAND-2`).
 - [ ] `BRAND-2` **Source unique et générateur** : une source unique `contracts/brand-colors.yaml`
       (énumération → famille, plus les dégradés de repli), et un générateur sur le modèle de
       `pnpm generate-routes` qui produit `badgeColors.generated.ts` (qui remplace les trois sources
