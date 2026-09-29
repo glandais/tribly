@@ -19,6 +19,7 @@ import java.util.UUID;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -47,9 +48,33 @@ public class S3StorageService implements StorageService {
   @ConfigProperty(name = "storage.bucket", defaultValue = "pedalons")
   String bucket;
 
+  /** How long boot waits for MinIO, restarting beside us when a deploy changes its spec. */
+  private static final int BUCKET_CHECK_ATTEMPTS = 12;
+
+  private static final long BUCKET_CHECK_DELAY_MS = 5_000;
+
   @PostConstruct
   void init() {
-    ensureBucketExists();
+    // Like Flyway's connect-retries (docs/LEDGER_DONE.md OPS-20): an unreachable MinIO at boot
+    // would otherwise fail the new task and roll the deploy back.
+    for (int attempt = 1; ; attempt++) {
+      try {
+        ensureBucketExists();
+        return;
+      } catch (SdkClientException e) {
+        if (attempt == BUCKET_CHECK_ATTEMPTS) {
+          throw e;
+        }
+        LOG.warnf(
+            "S3 unreachable (%s), attempt %d/%d", e.getMessage(), attempt, BUCKET_CHECK_ATTEMPTS);
+        try {
+          Thread.sleep(BUCKET_CHECK_DELAY_MS);
+        } catch (InterruptedException interrupted) {
+          Thread.currentThread().interrupt();
+          throw e;
+        }
+      }
+    }
   }
 
   private void ensureBucketExists() {

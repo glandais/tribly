@@ -49,11 +49,12 @@ docker stack ps "$ENV_NAME"        # what is running, and why a task was rejecte
 docker stack rm "$ENV_NAME"
 ```
 
-On a stack's **first** deploy, `docker stack ps` usually shows a task or two `Failed` — the backend
-with `task: non-zero exit (1)`, sometimes varnish with `(2)`: Swarm ignores `depends_on`, so the
-backend may start before postgres accepts connections and varnish before `imgproxy` resolves, and
-their replacements are the ones running. Nothing to do — the next deploys roll the backend beside
-services already up.
+Swarm ignores `depends_on`. The backend therefore waits for its dependencies at boot: Flyway retries
+the database for about a minute, and the S3 bucket check retries MinIO for as long. That covers a
+stack's first deploy, and every deploy that changes postgres's or minio's spec, since Swarm stops
+them (stop-first) while the new backend boots. On a first deploy, `docker stack ps` may still show
+varnish `Failed` with `(2)` when it starts before `imgproxy` resolves; its replacement is the one
+running, so there is nothing to do.
 
 ### Rolling updates and rollback
 
