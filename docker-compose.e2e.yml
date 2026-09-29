@@ -37,6 +37,7 @@ services:
       - "--entrypoints.web.forwardedHeaders.insecure=true"
       - "--log.level=WARN"
       - "--accesslog=false"
+      - "--ping=true"
       - "--providers.docker.constraints=Label(`traefik.stack`,`${ENV_NAME}`)"
       - "--providers.docker.network=${ENV_NAME}-net"
 

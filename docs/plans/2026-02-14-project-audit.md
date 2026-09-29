@@ -243,7 +243,7 @@ Docker Compose : 7 services par environnement (`docker-compose.yml`) + 2 partag�
 | I2 | Aucun backup PostgreSQL ni MinIO | Critique | M | Scripts cron | ✅ (`scripts/backup.sh`, `scripts/restore.sh`, procedure dans `docs/OPERATIONS.md`) |
 | I3 | Aucun pipeline CD — images poussees manuellement | Critique | L | Nouveau `cd.yml` | |
 | I4 | Tag `:latest` sur images backend/frontend — pas de rollback. Depuis, tag par environnement (`pedalons-backend:${ENV_NAME}`) : chaque build écrase la précédente, toujours pas de rollback par version | Critique | S | `docker-compose.yml`, `build.sh` | ✅ (Docker Swarm : `build.sh` tague aussi `${ENV_NAME}-<sha12>`, `scripts/deploy.sh --rev` et `docker service rollback` — voir `docs/OPERATIONS.md`, Rolling updates) |
-| I5 | Pas de healthchecks Docker (sauf PostgreSQL) | Critique | M | `docker-compose.yml` | *(ouvert : backend, frontend et postgres en ont un ; minio, imgproxy, varnish et traefik non)* |
+| I5 | Pas de healthchecks Docker (sauf PostgreSQL) | Critique | M | `docker-compose.yml` | ✅ (tous les services de `docker-compose.yml` : ledger `AUD-5`) |
 | I6 | Aucune collecte de metriques (pas de Prometheus/Micrometer) | Critique | M | `pom.xml`, config | ✅ (ledger `AUD-11`) |
 | I7 | Aucun alerting | Critique | XL | Infrastructure | ✅ (ledger `AUD-12`) |
 | I8 | Tests frontend commentes dans le CI | Important | S | `ci.yml` | ✅ |

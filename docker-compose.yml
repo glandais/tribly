@@ -21,6 +21,12 @@ services:
     restart: unless-stopped
     networks:
       - pedalons
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     ports:
       # Le TLS est termine par Caddy sur l'hote, qui seul doit joindre ce port. Swarm ne sait pas
       # publier sur le loopback : il ignore une IP `127.0.0.1:` (avec un simple avertissement) et
@@ -41,6 +47,10 @@ services:
       # 14 jours (docs/OPERATIONS.md, « Access logs »). Traefik ne sait pas masquer un parametre
       # de requete, et son fichier, sans volume, mourait avec le conteneur.
       - "--accesslog=false"
+      # /ping for the healthcheck below, on traefik's own entrypoint (:8080): neither published nor
+      # routed, and nothing else is served there (no api, no dashboard). Keep it off `web`, which
+      # Caddy forwards the whole internet to. The overlays repeat it in their command.
+      - "--ping=true"
       - "--providers.swarm.constraints=Label(`traefik.stack`,`${ENV_NAME}`)"
       # backend est attache a deux reseaux : sans ce reglage le provider choisit une IP au hasard
       # entre les deux, et une IP `pedalons-shared` -- que traefik ne joint pas -- donne des 502
@@ -206,6 +216,12 @@ services:
       - pedalons
     depends_on:
       - minio
+    healthcheck:
+      test: ["CMD", "imgproxy", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     environment:
       IMGPROXY_AUTO_WEBP: "true"
       IMGPROXY_AUTO_AVIF: "true"
@@ -257,6 +273,13 @@ services:
       # cache that exceeds the limit is killed and restarts empty.
       - VARNISH_SIZE=${VARNISH_SIZE:-1G}
     command: "-p default_ttl=86400"
+    # Asks the running varnishd through its management socket, found in the default working dir.
+    healthcheck:
+      test: ["CMD", "varnishadm", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     deploy:
       resources:
         limits:
@@ -274,6 +297,13 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    # `local` is the alias the image's mc ships with, pointing at this server.
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     volumes:
       - minio_data:/data
     deploy:
