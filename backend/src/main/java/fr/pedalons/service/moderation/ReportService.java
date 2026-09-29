@@ -35,6 +35,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import org.hibernate.Hibernate;
 import org.jspecify.annotations.Nullable;
@@ -195,16 +196,19 @@ public class ReportService {
     if (type == ReportTargetType.MEMBER) {
       return;
     }
+    TeamEntity entity = target.entity();
+    Comment comment = target.comment();
+    // Serialises the reports of one target: the count below then sees every report committed
+    // before it, and two concurrent third reports cannot both stop at two (docs/LEDGER_*.md MOD-3).
+    reportRepository.lockReported(entity != null ? entity : Objects.requireNonNull(comment));
     if (reportRepository.countOpenReporters(pedalonsContext.getDomainId(), type, targetId)
         < AUTO_HIDE_REPORTERS) {
       return;
     }
     Instant now = Instant.now();
-    TeamEntity entity = target.entity();
     if (entity != null && entity.getModerationHiddenAt() == null) {
       entity.setModerationHiddenAt(now);
     }
-    Comment comment = target.comment();
     if (comment != null && comment.getModerationHiddenAt() == null) {
       comment.setModerationHiddenAt(now);
     }

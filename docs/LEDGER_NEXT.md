@@ -427,12 +427,8 @@ pièges à ne pas rejouer, sont sous `NOTIF-9` (le ledger du chantier y a été 
 
 ## MOD — Modération et signalement
 
-Livrée le 24 septembre 2026 (`MOD-6`). Défauts mineurs notés à la livraison, pas encore corrigés :
+Livrée le 24 septembre 2026 (`MOD-6`). Défaut mineur noté à la livraison, pas encore corrigé :
 
-- [ ] `MOD-3` **Seuil de masquage sous concurrence** (`ReportService`) : le nombre de signalants est
-      compté dans la transaction de chaque signalement. Deux signalements validés au même instant
-      peuvent chacun voir 2 signalants, et le contenu n'est pas masqué avant un 4e. Verrouiller la
-      ligne du contenu (`SELECT … FOR UPDATE`) avant de compter.
 - [ ] `MOD-4` **Notification de signalements fusionnés** (`NotificationRecipientResolver`) : une
       rafale de signalements donne une seule notification qui ne connaît que le premier. Seul ce
       premier signalant est exclu des destinataires, et un organisateur qui vient de signaler est

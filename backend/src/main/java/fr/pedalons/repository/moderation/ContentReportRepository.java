@@ -9,6 +9,7 @@ import fr.pedalons.enums.ReportTargetType;
 import io.hypersistence.tsid.TSID;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.TypedQuery;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -102,6 +103,18 @@ public class ContentReportRepository implements PanacheRepository<ContentReport>
                 ReportTargetType.ROUTE),
             ReportStatus.REMOVED)
         > 0;
+  }
+
+  /**
+   * Locks the row of a reported publication or comment ({@code SELECT … FOR UPDATE}) until the end
+   * of the transaction, and reloads it. Taken before {@link #countOpenReporters}: two reports filed
+   * at the same instant would otherwise each count the other's as not yet committed, and neither
+   * would reach the threshold (docs/LEDGER_*.md MOD-3). A refresh rather than {@code lock()}: the
+   * row may have been hidden by the report that held the lock, and a plain lock would fail its
+   * version check where the refresh reads that state.
+   */
+  public void lockReported(Object target) {
+    getEntityManager().refresh(target, LockModeType.PESSIMISTIC_WRITE);
   }
 
   /** How many distinct members have an open report on this target — the auto-hide threshold. */
