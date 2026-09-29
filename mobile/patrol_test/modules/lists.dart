@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pedalons/api/generated/export.dart';
+import 'package:pedalons/core/pdl/pdl.dart';
 
 import 'module.dart';
 
@@ -22,7 +23,9 @@ final class Lists extends Module {
     final deadline = DateTime.now().add(timeout);
     while (!$(key).exists) {
       if (DateTime.now().isAfter(deadline)) {
-        throw TestFailure('$key not reached after $timeout of scrolling');
+        throw TestFailure(
+          '$key not reached after $timeout of scrolling; ${_footerStates()}',
+        );
       }
       final lists = _verticalScrollable.evaluate();
       if (lists.isNotEmpty) {
@@ -36,6 +39,22 @@ final class Lists extends Module {
     }
     await $.tester.ensureVisible(find.byKey(key));
     await $.pump(const Duration(milliseconds: 300));
+  }
+
+  /// What the paged lists' footers say — the next page loading, failed, or the end — so that a
+  /// list stuck on its first page says why.
+  String _footerStates() {
+    final footers = find
+        .byType(PdlPagedListFooter)
+        .evaluate()
+        .map((element) => element.widget as PdlPagedListFooter)
+        .map(
+          (footer) =>
+              'loadingNext=${footer.isLoadingNext} hasMore=${footer.hasMore} '
+              'error=${footer.hasError}',
+        )
+        .toList();
+    return footers.isEmpty ? 'no paged-list footer' : 'footers: $footers';
   }
 
   // ── Feeds ───────────────────────────────────────────────────────────────
@@ -116,6 +135,38 @@ final class Lists extends Module {
 
   Future<void> waitUntilMembersLack(String userId) =>
       waitUntilGone(keys.team.memberRow(userId));
+
+  /// Waits until the member rows built are exactly those of [userIds] — the proof that a search
+  /// has been applied. « The owner's row is gone » proves nothing once the list was scrolled: the
+  /// lazy list no longer builds the top rows, and the unfiltered list is still on screen until the
+  /// search's answer comes (seen under load: a row the search excludes was still there).
+  Future<void> waitUntilMembersAre(
+    Iterable<String> userIds, {
+    Duration timeout = const Duration(seconds: 20),
+  }) async {
+    final expected = {for (final id in userIds) keys.team.memberRow(id).value};
+    final deadline = DateTime.now().add(timeout);
+    while (true) {
+      final built = find
+          .byWidgetPredicate(
+            (widget) =>
+                widget.key is ValueKey<String> &&
+                (widget.key! as ValueKey<String>).value.startsWith(
+                  keys.team.memberRow('').value,
+                ),
+          )
+          .evaluate()
+          .map((element) => (element.widget.key! as ValueKey<String>).value)
+          .toSet();
+      if (built.length == expected.length && built.containsAll(expected)) {
+        return;
+      }
+      if (DateTime.now().isAfter(deadline)) {
+        throw TestFailure('member rows $built, expected $expected');
+      }
+      await $.pump(const Duration(milliseconds: 200));
+    }
+  }
 
   Future<void> searchMembers(String text) async {
     await $(keys.team.membersSearchField).enterText(text);

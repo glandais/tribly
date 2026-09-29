@@ -64,8 +64,9 @@ void main() {
       await modules.lists.waitUntilMembersHave(owner.id);
       await modules.lists.scrollMembersTo(membersPage2.first);
       await modules.lists.searchMembers(others[7].displayName);
-      await modules.lists.waitUntilMembersLack(owner.id);
-      await modules.lists.waitUntilMembersHave(others[7].id);
+      // « Membre liste 7 » alone — not « Membre liste 17 », which a substring search leaves out.
+      await modules.lists.waitUntilMembersAre([others[7].id]);
+      expect(modules.lists.membersHave(owner.id), isFalse);
       expect(modules.lists.membersHave(others[17].id), isFalse);
     },
   );
