@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { IconUsers, IconCalendar, IconBike, IconMap } from '@tabler/icons-react'
 import { Box, Group, Paper, SimpleGrid, Stack, Text, Title, UnstyledButton } from '@mantine/core'
 import { paths } from '../../config/paths'
+import { TeamRole } from '@/api/dto'
 import { useTeamAboutData } from './teamAboutData'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
@@ -27,6 +28,30 @@ export function TeamAboutPage() {
     return <Navigate to={paths.teams()} replace />
   }
 
+  // Organisers and admins read the directory whatever the team decided; a member needs the team to
+  // have opened it (API-39, UserTeamAccessChecker). Same rule as the mobile's members chip: a link
+  // that always leads to a 403 is worse than no link.
+  const canSeeMembers =
+    team.role === TeamRole.ADMIN ||
+    team.role === TeamRole.ORGANIZER ||
+    (!!team.role && team.enableMemberDirectory)
+
+  const membersStat = (
+    <Group gap="sm">
+      <Box style={{ flexShrink: 0 }}>
+        <IconUsers size={20} color="var(--mantine-color-dimmed)" />
+      </Box>
+      <Stack gap={0}>
+        <Text size="sm" c="dimmed">
+          {t('teams.detail.about.members')}
+        </Text>
+        <Text size="lg" fw={500}>
+          {t('memberCount', { count: team.memberCount })}
+        </Text>
+      </Stack>
+    </Group>
+  )
+
   return (
     <TeamLayout team={team} currentTab="about">
       <Box py="md">
@@ -48,20 +73,13 @@ export function TeamAboutPage() {
           {/* Stats */}
           <Box pt="md" style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}>
             <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
-              {/* Not a link: listing members is admin-only server-side (USER_TEAM/LIST). */}
-              <Group gap="sm">
-                <Box style={{ flexShrink: 0 }}>
-                  <IconUsers size={20} color="var(--mantine-color-dimmed)" />
-                </Box>
-                <Stack gap={0}>
-                  <Text size="sm" c="dimmed">
-                    {t('teams.detail.about.members')}
-                  </Text>
-                  <Text size="lg" fw={500}>
-                    {t('memberCount', { count: team.memberCount })}
-                  </Text>
-                </Stack>
-              </Group>
+              {canSeeMembers ? (
+                <UnstyledButton component={PrefetchLink} to={paths.teamMembers(team.slug)}>
+                  {membersStat}
+                </UnstyledButton>
+              ) : (
+                membersStat
+              )}
 
               <UnstyledButton component={PrefetchLink} to={paths.team(team.slug)}>
                 <Group gap="sm">

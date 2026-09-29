@@ -125,6 +125,12 @@ routes:
   # only crawl user who belongs to the team in `params`.
   - id: teamCalendar
     users: [user1]
+  # Member directory (`auth: 'authenticated'`, graded server-side by API-39): user1 administers
+  # `gaby`, so the list always comes back to them.
+  - id: teamMembers
+    users: [user1]
+    params:
+      teamSlug: gaby
   # `gaby` is the team whose pages/admin user1 owns.
   - id: teamPage
     params:

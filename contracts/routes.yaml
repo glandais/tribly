@@ -304,18 +304,17 @@ routes:
     deeplink: true
 
   # Member list of a team, shown to regular (non-admin) members. Distinct
-  # from `teamAdminMembers`, which is the admin screen under /admin/members
-  # and stays web-only.
+  # from `teamAdminMembers`, which is the admin screen under /admin/members.
+  # Who may read it is graded server-side (docs/LEDGER_*.md API-39).
   - id: teamMembers
     path:
       en: /teams/{teamSlug}/members
       fr: /equipes/{teamSlug}/membres
     params:
       - teamSlug
-    web: false
+    web: true
     mobile: true
     deeplink: true
-    webFallback: team
 
   # --- Team pages (segment "pages" is already French) ---
   - id: teamPage

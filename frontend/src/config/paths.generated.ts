@@ -158,6 +158,12 @@ export const paths = {
       default: return `/teams/${teamSlug}/calendar`
     }
   },
+  teamMembers: (teamSlug: string) => {
+    switch (getCurrentLocale()) {
+      case 'fr': return `/equipes/${teamSlug}/membres`
+      default: return `/teams/${teamSlug}/members`
+    }
+  },
   teamPage: (teamSlug: string, pageSlug: string) => {
     switch (getCurrentLocale()) {
       case 'fr': return `/equipes/${teamSlug}/pages/${pageSlug}`
@@ -426,6 +432,7 @@ export const pathVariants = {
   team: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}`, fr: `/equipes/${teamSlug}` }),
   teamAbout: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/about`, fr: `/equipes/${teamSlug}/a-propos` }),
   teamCalendar: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/calendar`, fr: `/equipes/${teamSlug}/calendrier` }),
+  teamMembers: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/members`, fr: `/equipes/${teamSlug}/membres` }),
   teamPage: (teamSlug: string, pageSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/pages/${pageSlug}`, fr: `/equipes/${teamSlug}/pages/${pageSlug}` }),
   teamAdmin: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin`, fr: `/equipes/${teamSlug}/admin` }),
   teamAdminPlaces: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin/places`, fr: `/equipes/${teamSlug}/admin/lieux` }),
@@ -475,5 +482,4 @@ export const appOnlyFallbacks = [
   { id: 'register', patterns: ['/register', '/inscription'], fallback: 'login' as const },
   { id: 'myParticipations', patterns: ['/profile/participations', '/profil/participations'], fallback: 'profile' as const },
   { id: 'teamsDiscover', patterns: ['/teams/discover', '/equipes/decouvrir'], fallback: 'teams' as const },
-  { id: 'teamMembers', patterns: ['/teams/:teamSlug/members', '/equipes/:teamSlug/membres'], fallback: 'team' as const },
 ] as const

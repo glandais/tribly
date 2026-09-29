@@ -36,7 +36,7 @@ import { prefetchEditRouteForm } from '@/pages/route/routeFormData'
 import { prefetchAdDetail } from '@/pages/ad/adDetailData'
 import { prefetchEditAdForm } from '@/pages/ad/adFormData'
 import { prefetchTeamPlaces } from '@/pages/team/teamPlacesData'
-import { prefetchTeamMembers } from '@/pages/team/teamMembersData'
+import { prefetchTeamDirectory, prefetchTeamMembers } from '@/pages/team/teamMembersData'
 import { prefetchTeamReports } from '@/pages/team/teamReportsData'
 import { prefetchRideTemplateList } from '@/pages/ridetemplate/rideTemplateListData'
 import { prefetchCreateRideForm, prefetchEditRideForm } from '@/pages/ride/rideFormData'
@@ -403,6 +403,18 @@ export const routesConfig: RoutesConfig = [
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.tabs.about') },
     prefetch: (queryClient, params) => prefetchTeamAbout(queryClient, params.teamSlug!),
     meta: teamAboutMeta,
+  },
+  {
+    // The members' own directory (docs/LEDGER_*.md WEB-1); `team-members` is the admin screen.
+    // Signed-in only: the server lets an organiser, or a member of a team that opened its
+    // directory, read it (API-39), and the page shows its 403 to anyone else.
+    id: 'team-directory',
+    paths: pathVariants.teamMembers(':teamSlug'),
+    component: pages.TeamDirectoryPage,
+    auth: 'authenticated',
+    parentId: 'team-about',
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.members.title') },
+    prefetch: teamScopedPrefetch((qc, p, url) => prefetchTeamDirectory(qc, p.teamSlug!, url)),
   },
   {
     id: 'team-calendar',

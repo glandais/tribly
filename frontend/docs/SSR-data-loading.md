@@ -127,7 +127,7 @@ added to the page and forgotten in the prefetch. Don't reintroduce the exception
 | `pages/route/routeDetailData.ts` | `route-detail`, `route-map` | team+route pair, usages, comments, GPS services |
 | `pages/auth/profileData.ts` | `profile` | the participation-count params and their shared hour boundary |
 | `pages/calendar/calendarData.ts` | `calendar` | `getInitialCalendarRange()`, the range the hook seeds itself with |
-| `pages/team/teamMembersData.ts` | `team-members` | member filters, the pending-invitations params |
+| `pages/team/teamMembersData.ts` | `team-members`, `team-directory` | member filters, the pending-invitations params (admin screen only) |
 | `pages/team/teamPlacesData.ts` | `team-admin-places` | the place filters `PlaceList` reads |
 | `pages/ridetemplate/rideTemplateListData.ts` | `ride-templates` | ride-template filters |
 | `pages/ride/rideFormData.ts` | `ride-new`, `ride-edit` | the two `PlaceAutocomplete` param sets the form mounts |

@@ -169,13 +169,6 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
 (`WEB-13` à `WEB-22`, livrés, avec ce que l'automatisation ne voit pas) : voir
 `frontend/e2e/README.md`.
 
-- [ ] `WEB-1` **Trombinoscope : la page web publique (S)** — le reste est livré (`API-39` : contrat
-      `3.0.0`, réglage `Team.enableMemberDirectory`, autorisation graduée, invitations par e-mail,
-      avec les décisions à ne pas défaire). La **page web** du trombinoscope n'est pas écrite : la
-      route `teamMembers` existe dans `contracts/routes.yaml` en `web: false`, et le lien « N
-      membres » de `TeamAboutPage` reste inerte. Repartir de `TeamMembersPage` amputée des actions
-      d'admin. Le mobile, lui, est fonctionnel. Les autres restes du portage (T5.5, T3.5,
-      `NavButtons`) sont livrés : `WEB-23`, `WEB-24`, `WEB-25`.
 - [ ] `WEB-2` **Anneau de focus global sous le seuil de contraste** — resté ouvert après
       `NavButtons` (`WEB-25`) : l'anneau de focus global est à 2,74:1 en thème sombre, sous le seuil
       de 3,0 de SC 1.4.11 — il vient de `lib/theme.ts` et vaut pour tout le site.

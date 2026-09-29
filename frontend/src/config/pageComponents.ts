@@ -64,6 +64,7 @@ export const pages = {
     () => import('../pages/publication/PublicationListPage')
   ),
   TeamMembersPage: lazyPage('TeamMembersPage', () => import('../pages/team/TeamMembersPage')),
+  TeamDirectoryPage: lazyPage('TeamDirectoryPage', () => import('../pages/team/TeamDirectoryPage')),
   TeamReportsPage: lazyPage('TeamReportsPage', () => import('../pages/team/TeamReportsPage')),
   TeamSettingsPage: lazyPage('TeamSettingsPage', () => import('../pages/team/TeamSettingsPage')),
   TeamAdminPage: lazyPage('TeamAdminPage', () => import('../pages/team/TeamAdminPage')),

@@ -29,7 +29,6 @@ describe('app-only deeplinks opened in a browser', () => {
     ['/profil/participations', '/profil'],
     ['/equipes/decouvrir', '/equipes'],
     ['/teams/discover', '/equipes'],
-    ['/equipes/n-peloton/membres', '/equipes/n-peloton'],
   ])('%s lands on %s, not a 404', async (path, target) => {
     expect(await landsOn(path)).toBe(target)
   })

@@ -81,9 +81,9 @@ export function TeamMemberList({
         {members.map((member, index) => {
           const isCurrentUser = member.user.id === currentUserId
           // `role` is null when the caller is not entitled to it — an organiser reading a team
-          // that has not opened its directory. This list is the admin screen, where it is always
-          // present, but the type is honest about the wider contract, so the actions that depend on
-          // knowing the role stay off when it is absent rather than guessing.
+          // that has not opened its directory. On the admin screen it is always present; on the
+          // members' directory (TeamDirectoryPage) it may not be, and the actions are off there
+          // anyway. The actions that depend on knowing the role stay off when it is absent.
           const memberRole = member.role
           const canEdit =
             canManageMembers && !isCurrentUser && memberRole != null && memberRole !== 'ADMIN'
@@ -120,11 +120,14 @@ export function TeamMemberList({
                         </Text>
                       )}
                     </Group>
-                    <Text size="xs" c="dimmed" suppressHydrationWarning={isGuessedTimezone}>
-                      {t('teams.detail.members.joined', {
-                        date: formatDate(member.joinedAt) || t('unknown'),
-                      })}
-                    </Text>
+                    {/* Null, like `role`, when the caller is not entitled to it (API-39). */}
+                    {member.joinedAt && (
+                      <Text size="xs" c="dimmed" suppressHydrationWarning={isGuessedTimezone}>
+                        {t('teams.detail.members.joined', {
+                          date: formatDate(member.joinedAt) || t('unknown'),
+                        })}
+                      </Text>
+                    )}
                   </Box>
                 </Group>
 

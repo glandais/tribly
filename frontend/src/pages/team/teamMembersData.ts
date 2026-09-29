@@ -59,14 +59,26 @@ export function useTeamMembersData(teamSlug?: string) {
   return { filters, setFilters, members, totalPages }
 }
 
-export async function prefetchTeamMembers(
+/**
+ * `team-directory` (the members' own page, `TeamDirectoryPage`): the same member list, without the
+ * invitations — those are an admin's, and asking for them as anyone else is a 403.
+ */
+export async function prefetchTeamDirectory(
   queryClient: QueryClient,
   teamSlug: string,
   url: URL
 ): Promise<void> {
   const filters = readUrlFilters(url.searchParams, teamMemberFilterOptions)
+  await prefetchPageWindow(filters, (p) => prefetchGetMembersQuery(queryClient, teamSlug, p))
+}
+
+export async function prefetchTeamMembers(
+  queryClient: QueryClient,
+  teamSlug: string,
+  url: URL
+): Promise<void> {
   await Promise.all([
-    prefetchPageWindow(filters, (p) => prefetchGetMembersQuery(queryClient, teamSlug, p)),
+    prefetchTeamDirectory(queryClient, teamSlug, url),
     // Prefetched here because `TeamInvitationList` — a child the page always mounts — owns this
     // query itself; the page's own hooks never touch it.
     prefetchListInvitationsQuery(queryClient, teamSlug, pendingInvitationsParams),

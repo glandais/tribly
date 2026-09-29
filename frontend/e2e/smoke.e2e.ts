@@ -160,15 +160,16 @@ test.describe('app links', () => {
    * sign-in, the profile, the team list, the team; before, each answered the « Page non trouvée »
    * 404, and /equipes/decouvrir was read as a team named « decouvrir ».
    */
-  const landings = [
+  const landings: {
+    path: (team: string) => string
+    to: (team: string) => string
+    signedIn: boolean
+  }[] = [
     { path: () => '/inscription', to: () => '/connexion', signedIn: false },
     { path: () => '/profil/participations', to: () => '/profil', signedIn: true },
     { path: () => '/equipes/decouvrir', to: () => '/equipes', signedIn: true },
-    {
-      path: (team: string) => `/equipes/${team}/membres`,
-      to: (team: string) => `/equipes/${team}`,
-      signedIn: true,
-    },
+    // /equipes/{team}/membres left this list with WEB-1: it is a web page now
+    // (member-directory.e2e.ts).
   ]
   for (const landing of landings) {
     const label = landing.path('{team}')

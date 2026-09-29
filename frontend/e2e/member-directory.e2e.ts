@@ -6,11 +6,10 @@ import { directoryTeam, listMembers, setMemberDirectory } from './support/member
  * The member directory, role × setting (docs/LEDGER_*.md WEB-20, « Trombinoscope, la matrice rôle ×
  * réglage »).
  *
- * The web has no member directory page for non-admins — the `teamMembers` route is mobile-only
- * (contracts/routes.yaml) — so the matrix is asserted where both clients get it from, the
- * `GET /api/teams/{slug}/members` endpoint, with one real account per role. The web surfaces that
- * depend on it (the ride editor's leader picker, the admin member screen, the team navigation) are
- * driven through the browser.
+ * The matrix is asserted where both clients get it from, the `GET /api/teams/{slug}/members`
+ * endpoint, with one real account per role. The web surfaces that depend on it (the members'
+ * directory page `/equipes/{slug}/membres` — docs/LEDGER_*.md WEB-1 —, the ride editor's leader
+ * picker, the admin member screen, the team navigation) are driven through the browser.
  *
  * None of the actors is the seeded platform admin: a platform admin bypasses the access checker.
  */
@@ -186,6 +185,73 @@ test.describe('member directory — web', () => {
       await expect(page.getByText(t.member.user.displayName, { exact: true })).toHaveCount(0)
       await expect(page.getByText(t.organizer.user.displayName, { exact: true })).toHaveCount(0)
       await expect(page.getByText(t.teammate.user.displayName, { exact: true })).toBeVisible()
+    } finally {
+      await context.close()
+    }
+  })
+
+  test('closed directory: the « À propos » count is not a link for a plain member, and the directory page shows the refusal', async ({
+    browser,
+  }) => {
+    const t = await directoryTeam(false)
+    const context = await browser.newContext()
+    try {
+      await signIn(context, t.member)
+      const page = await context.newPage()
+
+      await page.goto(`/equipes/${t.team.slug}/a-propos`)
+      await expect(page.getByRole('heading', { name: "À propos de l'équipe" })).toBeVisible()
+      await expect(page.getByRole('link', { name: /Membres/ })).toHaveCount(0)
+
+      // Typed by hand: the page renders the server's 403, and no name leaks around it.
+      await page.goto(`/equipes/${t.team.slug}/membres`)
+      await expect(page.getByText('Liste des membres non partagée')).toBeVisible()
+      await expect(page.getByText(t.teammate.user.displayName, { exact: true })).toHaveCount(0)
+    } finally {
+      await context.close()
+    }
+  })
+
+  test('closed directory: an organizer follows the « À propos » link to the names, without roles nor a role filter', async ({
+    browser,
+  }) => {
+    const t = await directoryTeam(false)
+    const context = await browser.newContext()
+    try {
+      await signIn(context, t.organizer)
+      const page = await context.newPage()
+
+      await page.goto(`/equipes/${t.team.slug}/a-propos`)
+      await page.getByRole('link', { name: /Membres/ }).click()
+      await expect(page).toHaveURL(new RegExp(`/equipes/${t.team.slug}/membres$`))
+      await expect(page.getByRole('heading', { name: 'Membres', level: 2 })).toBeVisible()
+      await expect(page.getByText(t.teammate.user.displayName, { exact: true })).toBeVisible()
+
+      // The API sent no role: no badge, no join date, no filter on what cannot be seen.
+      await expect(page.getByText('Organisateur', { exact: true })).toHaveCount(0)
+      await expect(page.getByText(/^A rejoint le/)).toHaveCount(0)
+      await expect(page.getByRole('textbox', { name: 'Rôle' })).toHaveCount(0)
+      // And none of the admin screen's actions.
+      await expect(page.getByRole('button', { name: 'Retirer' })).toHaveCount(0)
+      await expect(page.getByRole('button', { name: 'Inviter par e-mail' })).toHaveCount(0)
+    } finally {
+      await context.close()
+    }
+  })
+
+  test('open directory: a plain member reads every member with their role', async ({ browser }) => {
+    const t = await directoryTeam(true)
+    const context = await browser.newContext()
+    try {
+      await signIn(context, t.member)
+      const page = await context.newPage()
+
+      await page.goto(`/equipes/${t.team.slug}/a-propos`)
+      await page.getByRole('link', { name: /Membres/ }).click()
+      await expect(page).toHaveURL(new RegExp(`/equipes/${t.team.slug}/membres$`))
+      await expect(page.getByText(t.organizer.user.displayName, { exact: true })).toBeVisible()
+      await expect(page.getByText('Organisateur', { exact: true }).first()).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Retirer' })).toHaveCount(0)
     } finally {
       await context.close()
     }
