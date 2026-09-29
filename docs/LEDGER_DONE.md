@@ -698,6 +698,18 @@ Ce qui reste ouvert (`MAX_BULK_SLUGS` comme seul garde-fou) est `API-27`.
   après). Le tableau de bord « Quarkus Micrometer Prometheus registry » du Dev Service LGTM est
   provisionné à côté du nôtre, copié tel quel du dépôt Quarkus : le recopier pour le mettre à jour,
   ne pas le modifier. Test : `promtool test rules` (`services/monitoring/prometheus/tests/pedalons.test.yml`).
+- `OPS-10` **Cache gpx2web revu : partageable entre backends** (2026-09-30) — lu dans gpx2web
+  1.5.2 (la version du dépôt) : `HttpTileFetcher` (tuiles d'élévation Mapterhorn) et
+  `TileMapProducer.downloadTile` (tuiles de carte) téléchargent chacun dans un fichier temporaire
+  **unique** du même répertoire (`Files.createTempFile`), ne le gardent que sur un 2xx et le
+  renomment en place (`ATOMIC_MOVE`, `REPLACE_EXISTING`) ; une tuile en cache illisible est effacée
+  et retéléchargée. Deux backends sur le même répertoire ne voient donc jamais de fichier partiel,
+  et le verrou interne à la JVM (`TileLruCache`, `synchronized`) n'évite qu'un double
+  téléchargement. Deux backends d'un même environnement partagent d'ailleurs déjà le répertoire
+  pendant un déploiement start-first. L'interdiction de `.env.example` et d'`OPERATIONS.md` est
+  levée ; **le cache reste par environnement**, partager entre environnements serait un choix
+  d'exploitation, pas fait. Condition à garder : un seul système de fichiers (le renommage n'est
+  atomique que là), et ne pas redescendre sous gpx2web 1.5.2. Pas de test (revue de code).
 - `OPS-15` **Restaurer MinIO sous une base plus récente : la marche à suivre écrite** (2026-09-30) —
   la section « Restoring » d'[`OPERATIONS.md`](OPERATIONS.md#restoring) dit qu'un volume MinIO
   plus ancien que la base (une copie antérieure à la fin du rattrapage `API-43`) ramène des photos

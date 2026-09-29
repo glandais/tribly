@@ -466,14 +466,6 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       sauvegarde, puis à chaque changement d'extrait OSM. Rien ne dit que c'est fait, et les données
       tileserver, nommées comme « à reconstruire à la main », ne sont couvertes par aucune
       procédure. Source : [`OPERATIONS.md`](OPERATIONS.md#cold-backup-of-the-shared-stack).
-- [ ] `OPS-10` **Cache gpx2web : tuiles d'élévation non revues** — elles ne sont gardées que par un
-      verrou interne à la JVM : tant que ce n'est pas revu, `DATA_CACHE_PATH` ne se partage pas entre
-      backends. Piste pour la revue : gpx2web 1.5.2 (la version du dépôt) contient
-      « fix(gpx): never cache a partial elevation tile download » (`HttpTileFetcher` écrit dans un
-      `.part` puis renomme), reste à vérifier ce que deux backends font en téléchargeant la même
-      tuile. Le commentaire périmé de `.env.example` qui en faisait partie est `OPS-12`. Source :
-      [`OPERATIONS.md`](OPERATIONS.md) (services « per-environment on purpose »). (Relevé le
-      29 septembre 2026.)
 
 ---
 
