@@ -466,6 +466,16 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       dans un `finally` ; seule une JVM tuée entre les deux en laisse une (`API-43`). Une règle
       d'expiration MinIO sur le préfixe (`mc ilm rule add --prefix tmp/ --expire-days 1`) les
       purgerait sans code. Taille : XS.
+- [ ] `OPS-19` **Passer PostgreSQL 17 → 18** — dependabot l'a proposé (PR #338, fermée le
+      29 septembre 2026 avec `ignore this major version`) en ne changeant que l'image de
+      `docker-compose.yml`, ce qui empêcherait la prod de redémarrer : les fichiers d'un cluster 17
+      ne s'ouvrent pas en 18, et l'image 18 attend ses données sous `/var/lib/postgresql/18/docker`,
+      le volume monté sur `/var/lib/postgresql` (le montage actuel sur `…/data` la fait refuser de
+      démarrer). À faire ensemble : dump avec `scripts/backup.sh`, nouveau volume au nouveau point
+      de montage, restauration avec `scripts/restore.sh` ; l'image des devservices
+      (`quarkus.datasource.devservices.image-name`, `application.properties`) pour que les tests
+      tournent sur la même version ; la doc qui annonce « PostgreSQL 17 » (CLAUDE.md, README.md,
+      backend/README.md). Rien ne presse tant que la 17 est maintenue. Taille : S.
 - [ ] `OPS-8` **Exercice de restauration** (audit de février, I20) — la procédure est écrite
       ([`OPERATIONS.md`](OPERATIONS.md), « Restore drill from another machine ») mais rien ne dit
       qu'elle a été menée de bout en bout sur une autre machine.
