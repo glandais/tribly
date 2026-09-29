@@ -1109,6 +1109,7 @@
       "other": "{} commentaires"
     },
     "emptyTitle": "Aucun commentaire",
+    "loadMore": "Voir plus de commentaires",
     "emptyMessage": "Soyez le premier à commenter.",
     "placeholder": "Écrire un commentaire...",
     "send": "Publier",
