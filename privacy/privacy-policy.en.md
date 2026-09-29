@@ -300,7 +300,7 @@ Some processing you can trigger involves servers outside the European Union:
 - **Account data (email address, display name, profile picture, preferences, password hash)**: For as long as your account exists; erased as soon as you delete it (see section 7)
 - **Date of acceptance of the terms of service**: As long as your account exists
 - **Login sessions (hashed token, IP address, browser or device, creation and last-use dates)**: 30 days from sign-in, not extended by use
-- **Sessions of a paired GPS device (Karoo, Garmin)**: 90 days from pairing, not extended by use. "Sign out of every device" revokes it; signing out on the device itself does not
+- **Sessions of a paired GPS device (Karoo, Garmin)**: 90 days from pairing, not extended by use. "Sign out of every device" revokes it, and so does a password reset; signing out on the device itself does not
 - **Temporary sign-in codes (OTP)**: 5 minutes, or until 5 wrong attempts
 - **Pending sign-up (verification link, display name, password hash, date of acceptance of the terms)**: 24 hours
 - **Password reset link**: 1 hour

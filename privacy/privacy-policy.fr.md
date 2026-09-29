@@ -300,7 +300,7 @@ Certains traitements que vous pouvez déclencher impliquent des serveurs situés
 - **Données de compte (adresse e-mail, nom d'affichage, photo de profil, préférences, hachage du mot de passe)** : Tant que votre compte existe ; effacées dès que vous le supprimez (voir section 7)
 - **Date d'acceptation des conditions d'utilisation** : Tant que votre compte existe
 - **Sessions de connexion (jeton haché, adresse IP, navigateur ou appareil, dates de création et de dernière utilisation)** : 30 jours à compter de la connexion, sans prolongation à l'usage
-- **Sessions d'un appareil GPS appairé (Karoo, Garmin)** : 90 jours à compter de l'appairage, sans prolongation à l'usage. « Déconnecter tous les appareils » la révoque ; se déconnecter sur l'appareil lui-même ne la révoque pas
+- **Sessions d'un appareil GPS appairé (Karoo, Garmin)** : 90 jours à compter de l'appairage, sans prolongation à l'usage. « Déconnecter tous les appareils » la révoque, de même qu'une réinitialisation du mot de passe ; se déconnecter sur l'appareil lui-même ne la révoque pas
 - **Codes de connexion temporaires (OTP)** : 5 minutes, ou jusqu'à 5 tentatives erronées
 - **Inscription en attente (lien de vérification, nom d'affichage, hachage du mot de passe, date d'acceptation des conditions)** : 24 heures
 - **Lien de réinitialisation de mot de passe** : 1 heure
