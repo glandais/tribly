@@ -30,7 +30,7 @@ A file analysed with the GPX tool is reachable by anyone who has its link, even 
 
 - To create an account yourself, you must provide a valid email address and confirm it by clicking the link we send you.
 - You are responsible for the security of your account and authentication methods.
-- You must be at least 16 years old to use the service.
+- You must be at least 16 years old to use the service; you declare it when creating your account.
 
 ## 4. Acceptable Use
 

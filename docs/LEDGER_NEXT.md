@@ -691,9 +691,7 @@ porte le détail et les options ; tous demandent une décision avant d'écrire. 
 `privacy/privacy-policy.{fr,en}.md` se fait **en parité FR/EN**, et le texte étant un asset de
 l'app mobile, un changement n'y apparaît qu'avec la build suivante.
 
-| ID | Point du plan | Sujet | Décision attendue | Liens |
-|---|---|---|---|---|
-| `LEGAL-13` | §4, §10 | Gouvernance : nombre d'admins plateforme et journalisation de leurs accès, responsable du traitement en multi-tenant, contrôle de l'âge | Décider, puis compléter les §4 et §10 ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #15 à #17, #19) | `LEGAL-14` |
+Aucun point ouvert : `LEGAL-13`, le dernier, a été tranché le 29 septembre 2026.
 
 ---
 
@@ -727,6 +725,8 @@ redevient une entrée de sa section sous le même identifiant.
 | `NOTIF-8` | **Tests Vitest de la cloche et de la page Notifications** | Écartés le 29 septembre 2026 | La recette navigateur les a validées ; le mobile a son test de widget (`notifications_page_test.dart`) |
 | `MOD-5` | **Contenu masqué d'un compte effacé** | Reste masqué | L'effacement supprime les signalements visant le membre, mais ne touche pas `moderationHiddenAt` sur ses sorties, parcours, posts et voyages. Ce contenu, masqué par 3 signalements, n'a plus d'entrée dans la file et reste invisible pour les membres. C'est voulu : le démasquer republierait un contenu signalé 3 fois |
 | `LEGAL-14` | **Notification des changements de politique dans l'app** | Non : l'e-mail seul, comme le dit le §11 (décidé le 29 septembre 2026, scindé de `LEGAL-13`) | Aucun type de notification « politique mise à jour ». Un changement important se signale par e-mail à chaque membre ; ne pas ajouter de promesse au §11 sans créer le type d'abord |
+| `LEGAL-16` | **Journal des accès des admins plateforme** | Non (décidé le 29 septembre 2026, avec `LEGAL-13`) | Il n'y a qu'un admin plateforme, le responsable du traitement lui-même : un journal ne surveillerait que lui. Le §4 dit qui a accès et pourquoi, sans promettre de traçabilité. À rouvrir dès qu'un second compte reçoit `PLATFORM_ADMIN` : écrire le journal (intercepteur sur `@Admin`) **avant** d'en parler au §4 |
+| `LEGAL-17` | **Responsable du traitement par domaine** | Non : un seul responsable pour tous les sites (décidé le 29 septembre 2026, avec `LEGAL-13`) | Le §12 le dit, et que les clubs ne sont pas responsables du traitement. Un club qui voudrait l'être demanderait des champs sur `Domain`, une page légale générée par domaine et un accord de sous-traitance : à rouvrir si un club le demande, pas avant |
 | `BRAND-3` | **Test de concordance des tables de couleurs web et mobile** | Écarté au profit du générateur (`BRAND-2`) | Un test qui parse les deux fichiers et vérifie qu'ils concordent détecte sans unifier, et repose sur des expressions régulières sur du TypeScript et du Dart |
 
 ---
@@ -749,5 +749,5 @@ restent ouvertes :
   juridique : suivi sous `LEGAL`.
 - [`plans/2026-07-25-privacy-improvement-opportunities.md`](plans/2026-07-25-privacy-improvement-opportunities.md) —
   les options d'amélioration de la vie privée et leur justification ; ce qui en reste ouvert est
-  suivi sous `LEGAL-13` et `WEB-28` (le chiffrement des jetons Karoo est `SEC-12`). L'audit de juillet et la mise à jour de
+  suivi sous `WEB-28` (le chiffrement des jetons Karoo est `SEC-12`). L'audit de juillet et la mise à jour de
   septembre qui ont réécrit la politique sont archivés.

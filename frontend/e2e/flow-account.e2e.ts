@@ -1005,7 +1005,7 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
   test('sign-up needs the terms accepted: without them nothing is sent', async ({ page }) => {
     const email = freshAddress('sans cgu')
     const main = await fillSignUp(page, email)
-    const terms = main.getByRole('checkbox', { name: /J'accepte les Conditions d'utilisation/ })
+    const terms = main.getByRole('checkbox', { name: /j'accepte les Conditions d'utilisation/ })
     await expect(terms).not.toBeChecked()
     let registrations = 0
     page.on('request', (r) => {
@@ -1014,7 +1014,9 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
 
     await main.getByRole('button', { name: 'Créer un compte' }).click()
     await expect(
-      main.getByText("Acceptez les conditions d'utilisation pour créer un compte")
+      main.getByText(
+        "Confirmez votre âge et acceptez les conditions d'utilisation pour créer un compte"
+      )
     ).toBeVisible()
     await expect(main.getByRole('heading', { name: 'Créer un compte' })).toBeVisible()
     expect(registrations, 'the form stopped before the API').toBe(0)

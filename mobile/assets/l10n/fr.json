@@ -90,8 +90,8 @@
       "PASSWORD_NOT_SET": "Aucun mot de passe défini. Un code de réinitialisation a été envoyé à votre email."
     },
     "terms": {
-      "accept": "J'accepte les conditions d'utilisation : aucune tolérance pour les contenus injurieux ni pour les comportements abusifs.",
-      "required": "Acceptez les conditions d'utilisation pour créer un compte.",
+      "accept": "J'ai au moins 16 ans et j'accepte les conditions d'utilisation : aucune tolérance pour les contenus injurieux ni pour les comportements abusifs.",
+      "required": "Confirmez votre âge et acceptez les conditions d'utilisation pour créer un compte.",
       "read": "Lire les conditions",
       "privacy": "Confidentialité"
     }

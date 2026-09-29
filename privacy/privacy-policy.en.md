@@ -455,11 +455,13 @@ We implement the following measures to protect your data:
 
 No system is infallible. If you notice suspicious activity on your account, contact us immediately.
 
+**Data breach**: if a breach of your data poses a risk to your rights and freedoms, we notify the CNIL (the French data protection authority) within 72 hours of becoming aware of it; if the risk is high, we also inform you without undue delay, telling you what happened and what you can do.
+
 ---
 
 ## 10. Children's Privacy
 
-Pedalons is not intended for children under 16, and we do not knowingly collect their data. If you are a parent and believe your child has provided us with data, contact us so we can delete it.
+Pedalons is not intended for children under 16, and we do not knowingly collect their data. When you create your account, you declare that you are at least 16, in the same checkbox as the acceptance of the terms, whose date we keep. We do not verify this declaration and do not ask for your date of birth. If you are a parent and believe your child has provided us with data, contact us so we can delete it.
 
 ---
 
@@ -476,6 +478,8 @@ The data controller for your personal data is:
 - **LANDAIS Gabriel** (sole proprietorship)
 - **Address**: 29 rue Docteur Jean Rostand, 44800 Saint-Herblain, France
 - **SIRET**: 897 872 958 00011
+
+The same controller is responsible on every site Pedalons hosts, including a club's site under its own domain name: the clubs and teams that use the platform are not controllers of your data on Pedalons.
 
 ### Data Protection Officer (DPO)
 

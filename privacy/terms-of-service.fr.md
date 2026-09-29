@@ -30,7 +30,7 @@ Un fichier analysé avec l'outil GPX est accessible à quiconque possède son li
 
 - Pour créer un compte vous-même, vous devez fournir une adresse e-mail valide et la confirmer en cliquant sur le lien que nous vous envoyons.
 - Vous êtes responsable de la sécurité de votre compte et de vos moyens d'authentification.
-- Vous devez avoir au moins 16 ans pour utiliser le service.
+- Vous devez avoir au moins 16 ans pour utiliser le service ; vous le déclarez en créant votre compte.
 
 ## 4. Utilisation acceptable
 

@@ -455,11 +455,13 @@ Nous mettons en œuvre les mesures suivantes pour protéger vos données :
 
 Aucun système n'est infaillible. Si vous constatez une activité suspecte sur votre compte, contactez-nous immédiatement.
 
+**Violation de données** : si une violation de vos données présente un risque pour vos droits et libertés, nous la notifions à la CNIL dans les 72 heures après en avoir pris connaissance ; si le risque est élevé, nous vous prévenons aussi, dans les meilleurs délais, en vous disant ce qui s'est passé et ce que vous pouvez faire.
+
 ---
 
 ## 10. Mineurs
 
-Pedalons n'est pas destiné aux enfants de moins de 16 ans, et nous ne collectons pas sciemment leurs données. Si vous êtes parent et pensez que votre enfant nous a fourni des données, contactez-nous pour que nous les supprimions.
+Pedalons n'est pas destiné aux enfants de moins de 16 ans, et nous ne collectons pas sciemment leurs données. En créant votre compte, vous déclarez avoir au moins 16 ans, dans la même case que l'acceptation des conditions, dont nous gardons la date. Nous ne vérifions pas cette déclaration et ne vous demandons pas votre date de naissance. Si vous êtes parent et pensez que votre enfant nous a fourni des données, contactez-nous pour que nous les supprimions.
 
 ---
 
@@ -476,6 +478,8 @@ Le responsable du traitement de vos données personnelles est :
 - **LANDAIS Gabriel** (entreprise individuelle)
 - **Adresse** : 29 rue Docteur Jean Rostand, 44800 Saint-Herblain, France
 - **SIRET** : 897 872 958 00011
+
+C'est le même responsable sur tous les sites que Pedalons héberge, y compris celui d'un club sous son propre nom de domaine : les clubs et les équipes qui utilisent la plateforme ne sont pas responsables du traitement de vos données sur Pedalons.
 
 ### Délégué à la protection des données (DPO)
 
