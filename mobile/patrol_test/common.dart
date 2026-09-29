@@ -122,7 +122,13 @@ Future<T> eventually<T>(
 
 Future<void> _forgetPreviousTest() async {
   await SecureTokenStorage().clearAll();
-  await (await SharedPreferences.getInstance()).clear();
+  final preferences = await SharedPreferences.getInstance();
+  await preferences.clear();
+  // The tests read the app's French wording. A test user never chose a language, so the app would
+  // follow the device: French on the iOS simulator, English on a stock Android emulator, where
+  // every « shows(key, 'Réessayez…') » came back false. This is easy_localization's own saved
+  // choice (`EasyLocalizationController._saveLocale`), read by `ensureInitialized` in `createApp`.
+  await preferences.setString('locale', 'fr');
 }
 
 Future<void> _pumpApp(PatrolIntegrationTester $) async {

@@ -1,30 +1,44 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 
 import 'module.dart';
 
 /// The system share sheet (`SharePlus`), which the app opens on a file it downloaded — a GPX or
-/// FIT export. It is native: read through Patrol's native UI tree, iOS only for now.
+/// FIT export. It is native: read through Patrol's native UI tree, on iOS and on Android.
 final class ShareSheet extends Module {
   ShareSheet(super.$);
 
-  /// Waits until the share sheet is up — its activity list, whatever the device's language —
-  /// and returns whether it shows [text] anywhere (label, title, value or identifier): the
-  /// caption under the file, « GPX • 17 ko » for instance.
-  Future<bool> waitUntilShownAndCheck(
-    String text, {
+  /// Waits until the share sheet is up — whatever the device's language — and returns whether it
+  /// presents a GPX file, then closes it.
+  ///
+  /// Each system says so its own way, never with the app's own « GPX » button (which the native
+  /// tree also carries): iOS captions the file with its type and size, « GPX • 17 ko »; Android 14
+  /// (`com.android.intentresolver`) names the file itself, « parcours-est-….gpx ».
+  Future<bool> waitUntilSharesGpxFile({
     Duration timeout = const Duration(seconds: 20),
   }) async {
+    final shown = await _waitUntilShownAndCheck(
+      Platform.isAndroid ? '.gpx' : 'GPX •',
+      timeout,
+    );
+    // Android leaves the chooser above the app otherwise; iOS dismisses it with the test.
+    if (Platform.isAndroid) await $.platform.android.pressBack();
+    return shown;
+  }
+
+  Future<bool> _waitUntilShownAndCheck(String text, Duration timeout) async {
     final deadline = DateTime.now().add(timeout);
     while (true) {
-      final roots = (await $.platform.ios.getNativeViews(null)).roots;
-      if (roots.any((view) => _contains(view, _activityList))) {
-        return roots.any((view) => _contains(view, text));
+      final roots = await _nativeRoots();
+      if (roots.any((view) => view.isShareSheet)) {
+        return roots.any((view) => view.contains(text));
       }
       if (DateTime.now().isAfter(deadline)) {
         final dump = StringBuffer();
         for (final view in roots) {
-          _dump(view, 0, dump);
+          view.dump(0, dump);
         }
         throw TestFailure('no share sheet after $timeout; native tree:\n$dump');
       }
@@ -32,23 +46,51 @@ final class ShareSheet extends Module {
     }
   }
 
-  /// The identifier of the sheet's list of activities (UIKit's, not the app's).
-  static const _activityList = 'ActivityListView';
+  Future<List<_View>> _nativeRoots() async => Platform.isAndroid
+      ? [
+          for (final view in (await $.platform.android.getNativeViews(
+            null,
+          )).roots)
+            _View.android(view),
+        ]
+      : [
+          for (final view in (await $.platform.ios.getNativeViews(null)).roots)
+            _View.ios(view),
+        ];
+}
 
-  static bool _contains(IOSNativeView view, String text) =>
-      view.label.contains(text) ||
-      view.title.contains(text) ||
-      (view.value?.contains(text) ?? false) ||
-      view.identifier.contains(text) ||
-      view.children.any((child) => _contains(child, text));
+/// One node of the native tree, iOS or Android, reduced to what the sheet is recognised by.
+final class _View {
+  _View.ios(IOSNativeView view)
+    : texts = [view.label, view.title, ?view.value, view.identifier],
+      description = '${view.elementType} id=${view.identifier}',
+      // UIKit's list of activities.
+      isSheetNode = view.identifier.contains('ActivityListView'),
+      children = [for (final child in view.children) _View.ios(child)];
 
-  static void _dump(IOSNativeView view, int depth, StringBuffer out) {
-    out.writeln(
-      '${'  ' * depth}${view.elementType} id=${view.identifier} '
-      'label=${view.label} title=${view.title} value=${view.value}',
-    );
-    for (final child in view.children) {
-      _dump(child, depth + 1, out);
+  _View.android(AndroidNativeView view)
+    : texts = [?view.text, ?view.contentDescription, ?view.resourceName],
+      description = '${view.className} pkg=${view.applicationPackage}',
+      // The chooser's list of targets, the framework's own id whatever the package serving it.
+      isSheetNode = view.resourceName == 'android:id/resolver_list',
+      children = [for (final child in view.children) _View.android(child)];
+
+  final List<String> texts;
+  final String description;
+  final bool isSheetNode;
+  final List<_View> children;
+
+  bool get isShareSheet =>
+      isSheetNode || children.any((child) => child.isShareSheet);
+
+  bool contains(String text) =>
+      texts.any((t) => t.contains(text)) ||
+      children.any((child) => child.contains(text));
+
+  void dump(int depth, StringBuffer out) {
+    out.writeln('${'  ' * depth}$description ${texts.join(' | ')}');
+    for (final child in children) {
+      child.dump(depth + 1, out);
     }
   }
 }

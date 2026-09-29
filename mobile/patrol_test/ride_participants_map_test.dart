@@ -11,7 +11,7 @@ import 'common.dart';
 /// then gathers the riders of **every** group, and nobody else. Last, the group's exports: « GPX »
 /// (and « FIT » when the route has one) from the route's assets, no « Envoyer vers un appareil »
 /// without a connected GPS service — which the e2e stack cannot connect — and « GPX » hands the
-/// downloaded file to the system share sheet, found in the native UI tree (its caption names a
+/// downloaded file to the system share sheet, found in the native UI tree (it presents a
 /// GPX file).
 void main() {
   testApp(
@@ -84,9 +84,7 @@ void main() {
       expect(modules.ride.offersSendToDevice(groupB), isFalse);
 
       await modules.ride.exportGpx(groupB);
-      // The sheet's caption gives the file's type and size, « GPX • 17 ko » — not the app's own
-      // « GPX » button, which the native tree also carries.
-      expect(await modules.shareSheet.waitUntilShownAndCheck('GPX •'), isTrue);
+      expect(await modules.shareSheet.waitUntilSharesGpxFile(), isTrue);
     },
   );
 }
