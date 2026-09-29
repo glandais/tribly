@@ -12,6 +12,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../keys.dart';
 
 /// Les réglages d'affichage, appliqués **immédiatement, sans bouton**.
 ///
@@ -77,10 +78,12 @@ class _PreferencesSectionState extends ConsumerState<PreferencesSection> {
                 _apply(() => notifier.setUnitSystem(value)),
             segments: <PdlSegment<UnitSystem>>[
               PdlSegment<UnitSystem>(
+                key: keys.profile.unitSegment(UnitSystem.metric),
                 value: UnitSystem.metric,
                 label: 'profile.unitOptions.metric'.tr(),
               ),
               PdlSegment<UnitSystem>(
+                key: keys.profile.unitSegment(UnitSystem.imperial),
                 value: UnitSystem.imperial,
                 label: 'profile.unitOptions.imperial'.tr(),
               ),
@@ -91,6 +94,7 @@ class _PreferencesSectionState extends ConsumerState<PreferencesSection> {
           // choix concret, et il serait absurde qu'il reste en métrique après
           // un passage à l'impérial.
           Text(
+            key: keys.profile.unitsExample,
             'profile.unitsExample'.tr(
               namedArgs: <String, String>{
                 'distance': AppFormatters.formatDistance(
@@ -120,14 +124,17 @@ class _PreferencesSectionState extends ConsumerState<PreferencesSection> {
                 _apply(() => notifier.setTheme(value)),
             segments: <PdlSegment<ThemePreference>>[
               PdlSegment<ThemePreference>(
+                key: keys.profile.themeSegment(ThemePreference.system),
                 value: ThemePreference.system,
                 label: 'profile.themeOptions.system'.tr(),
               ),
               PdlSegment<ThemePreference>(
+                key: keys.profile.themeSegment(ThemePreference.light),
                 value: ThemePreference.light,
                 label: 'profile.themeOptions.light'.tr(),
               ),
               PdlSegment<ThemePreference>(
+                key: keys.profile.themeSegment(ThemePreference.dark),
                 value: ThemePreference.dark,
                 label: 'profile.themeOptions.dark'.tr(),
               ),
@@ -135,6 +142,7 @@ class _PreferencesSectionState extends ConsumerState<PreferencesSection> {
           ),
           const SizedBox(height: PdlSpacing.chipGap),
           PdlSettingRow(
+            key: keys.profile.languageRow,
             icon: PdlIcons.language,
             title: 'profile.language'.tr(),
             trailing: Row(
@@ -156,6 +164,7 @@ class _PreferencesSectionState extends ConsumerState<PreferencesSection> {
             title: 'profile.contactable.title'.tr(),
             subtitle: 'profile.contactable.hint'.tr(),
             trailing: PdlSwitch(
+              key: keys.profile.contactableSwitch,
               value: prefs.contactableByMembers,
               onChanged: (bool value) =>
                   _apply(() => notifier.setContactableByMembers(value)),
@@ -210,6 +219,7 @@ class _PreferencesSectionState extends ConsumerState<PreferencesSection> {
         children: <Widget>[
           for (final String code in <String>['fr', 'en'])
             PdlSettingRow(
+              key: keys.profile.languageOption(code),
               title: 'languages.$code'.tr(),
               trailing: code == current
                   ? Icon(PdlIcons.check, size: 20, color: c.primary)

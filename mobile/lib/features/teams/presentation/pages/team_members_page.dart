@@ -11,6 +11,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../keys.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../moderation/presentation/moderation_menu.dart';
@@ -286,6 +287,7 @@ class _MembersToolbar extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: PdlSpacing.section),
           child: PdlSearchField(
+            key: keys.team.membersSearchField,
             value: filters.search,
             hintText: 'teams.membersList.searchPlaceholder'.tr(),
             clearTooltip: 'common.clearSearch'.tr(),
@@ -349,6 +351,7 @@ class _MemberRow extends StatelessWidget {
     final String? role = member.role;
 
     return PdlPersonRow(
+      key: keys.team.memberRow(member.user.id),
       name: member.user.displayName,
       imageUrl: member.user.avatarUrl,
       // Le menu de modération, et non un profil public, qui n'existe pas.

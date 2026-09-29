@@ -1,6 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maplibre/maplibre.dart';
 import 'package:pedalons/core/pdl/map/pdl_map_controller.dart';
+
+/// Un style qui applique les deux règles de MapLibre iOS qui comptent ici :
+/// `addSource` lève sur un identifiant déjà pris, et `removeSource` ne fait
+/// rien tant qu'une couche emploie la source. Chaque appel rend la main,
+/// comme le vrai, ce qui laisse deux poses s'entrelacer.
+class _StrictStyle extends Fake implements StyleController {
+  final Set<String> sources = <String>{};
+  final Map<String, String?> layers = <String, String?>{};
+
+  @override
+  Future<void> addSource(Source source) async {
+    await Future<void>.delayed(Duration.zero);
+    if (!sources.add(source.id)) {
+      throw Exception('A Source with the id "${source.id}" already exists');
+    }
+  }
+
+  @override
+  Future<void> removeSource(String id) async {
+    await Future<void>.delayed(Duration.zero);
+    if (layers.values.contains(id)) return;
+    sources.remove(id);
+  }
+
+  @override
+  Future<void> addLayer(
+    StyleLayer layer, {
+    String? belowLayerId,
+    String? aboveLayerId,
+    int? atIndex,
+  }) async {
+    await Future<void>.delayed(Duration.zero);
+    if (layers.containsKey(layer.id)) {
+      throw Exception('A Layer with the id "${layer.id}" already exists');
+    }
+    layers[layer.id] = layer is StyleLayerWithSource ? layer.sourceId : null;
+  }
+
+  @override
+  Future<void> removeLayer(String id) async {
+    await Future<void>.delayed(Duration.zero);
+    layers.remove(id);
+  }
+
+  @override
+  Future<void> updateGeoJsonSource({
+    required String id,
+    required String data,
+  }) async {
+    await Future<void>.delayed(Duration.zero);
+    if (!sources.contains(id)) throw StateError('no source $id');
+  }
+}
+
+PdlMapTrack _track(String id) => PdlMapTrack(
+  id: id,
+  color: const Color(0xFF000000),
+  lines: const <List<List<double>>>[
+    <List<double>>[
+      <double>[2.0, 48.0],
+      <double>[2.1, 48.1],
+    ],
+  ],
+);
 
 void main() {
   group('PdlMapBox.ofTracks', () {
@@ -249,6 +314,50 @@ void main() {
 
       await controller.setMassTileUrl(null);
       expect(controller.massTileUrl, isNull);
+    });
+  });
+
+  group('PdlMapController — pose des couches (MOB-35)', () {
+    test('reposer des tracés sur un style chargé ne lève pas', () async {
+      final PdlMapController controller = PdlMapController();
+      addTearDown(controller.dispose);
+      final _StrictStyle style = _StrictStyle();
+
+      await controller.setContent(tracks: <PdlMapTrack>[_track('a')]);
+      await controller.attachStyle(style);
+      await controller.setContent(
+        tracks: <PdlMapTrack>[_track('a'), _track('b')],
+      );
+
+      expect(
+        style.layers.keys,
+        containsAll(<String>['pdl-track-a', 'pdl-track-b']),
+      );
+    });
+
+    test('des mises à jour non attendues ne s\'entrelacent pas', () async {
+      final PdlMapController controller = PdlMapController();
+      addTearDown(controller.dispose);
+      final _StrictStyle style = _StrictStyle();
+      await controller.attachStyle(style);
+
+      // Ce que fait `PdlMap._pushContent` : un `setContent` par mise à jour
+      // du widget, sans attendre le précédent.
+      final List<Future<void>> pending = <Future<void>>[
+        controller.setContent(tracks: <PdlMapTrack>[_track('a')]),
+        controller.setContent(tracks: <PdlMapTrack>[_track('a'), _track('b')]),
+        controller.select('b'),
+        controller.setContent(tracks: <PdlMapTrack>[_track('a'), _track('b')]),
+      ];
+      await Future.wait(pending);
+
+      expect(
+        style.layers.keys.where(
+          (String id) => id == 'pdl-track-a' || id == 'pdl-track-b',
+        ),
+        unorderedEquals(<String>['pdl-track-a', 'pdl-track-b']),
+      );
+      expect(controller.selectedTrackId, 'b');
     });
   });
 }

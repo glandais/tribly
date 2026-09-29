@@ -1,11 +1,28 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/data/secure_storage.dart';
 import '../generated/export.dart';
 import '../pedalons_api_client.dart';
+
+/// Whether a 401 on [path] is worth a refresh-and-retry.
+///
+/// Everything outside `/api/auth/` is. Inside it, only the endpoints that
+/// require the access token are: `logout-all` and the passkey management
+/// calls (list, delete, registration). They used to be excluded along with
+/// the public ones — login, refresh, passkey authentication — so an expired
+/// access token failed them with a 401 instead of being refreshed
+/// (`docs/LEDGER_*.md MOB-32`).
+@visibleForTesting
+bool refreshesOn401(String path) {
+  if (!path.contains('/api/auth/')) return true;
+  if (path.contains('/api/auth/logout-all')) return true;
+  // `authenticate` and `authentication-options` are public: they sign in.
+  return path.contains('/api/auth/passkeys') && !path.contains('authenticat');
+}
 
 /// Interceptor that handles authentication tokens and refresh
 /// Mirrors frontend/src/lib/axiosInstance.ts
@@ -46,8 +63,9 @@ class AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
-    // Don't try to refresh auth endpoints
-    if (requestOptions.path.contains('/api/auth/')) {
+    // Don't try to refresh the public auth endpoints: their 401 means bad
+    // credentials, not an expired token.
+    if (!refreshesOn401(requestOptions.path)) {
       return handler.next(err);
     }
 

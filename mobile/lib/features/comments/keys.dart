@@ -24,4 +24,7 @@ class CommentKeys {
   /// « En réponse à {nom} », au-dessus du composeur, et son « Annuler ».
   final replyingToBanner = const _CommentKey('replyingToBanner');
   final cancelReplyButton = const _CommentKey('cancelReplyButton');
+
+  /// « Voir plus de commentaires », au pied d'un fil qui a une page suivante.
+  final loadMoreButton = const _CommentKey('loadMoreButton');
 }

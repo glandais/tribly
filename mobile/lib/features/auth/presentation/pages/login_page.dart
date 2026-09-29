@@ -531,10 +531,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             spacing: PdlSpacing.chipGap,
             children: [
               TextButton(
+                key: keys.login.termsLink,
                 onPressed: () => context.push(Paths.terms()),
                 child: Text('auth.terms.read'.tr()),
               ),
               TextButton(
+                key: keys.login.privacyLink,
                 onPressed: () => context.push(Paths.privacy()),
                 child: Text('auth.terms.privacy'.tr()),
               ),

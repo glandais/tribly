@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../keys.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
@@ -180,12 +181,18 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
                 onPressed: () => context.pop(),
               ),
               const SizedBox(width: PdlSpacing.chipGap),
-              Expanded(child: PdlMapPill(label: route.name)),
+              Expanded(
+                child: PdlMapPill(
+                  key: keys.routeDetail.title,
+                  label: route.name,
+                ),
+              ),
               // Son propre parcours ne se signale pas : le menu serait vide.
               if (currentUserId != null &&
                   currentUserId != route.createdBy.id) ...<Widget>[
                 const SizedBox(width: PdlSpacing.chipGap),
                 PdlMapButton(
+                  key: keys.routeDetail.moreButton,
                   icon: PdlIcons.more,
                   semanticLabel: 'moderation.more'.tr(),
                   onPressed: () => showDetailModerationMenu(
@@ -288,6 +295,7 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
           data: (ElevationSamples? samples) => samples == null
               ? const SizedBox.shrink()
               : PdlElevationProfile(
+                  key: keys.routeDetail.elevationProfile,
                   samples: samples,
                   height: PdlMetrics.elevationLarge,
                   // Le **seul** état partagé avec la carte, et il ne passe pas

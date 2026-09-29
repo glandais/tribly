@@ -122,6 +122,12 @@ class PdlSheet extends StatelessWidget {
         onTap: () => FocusScope.of(context).unfocus(),
         child: Align(
           alignment: Alignment.bottomCenter,
+          // La hauteur de la feuille, pas celle de l'écran : sans ce facteur,
+          // l'`Align` prenait toute la place que la route lui offre, et la
+          // feuille — transparente au-dessus de sa surface — couvrait la
+          // barrière. Un appui hors de la feuille ne faisait alors que fermer
+          // le clavier, au lieu de la refermer.
+          heightFactor: 1,
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxHeight: maxHeight,

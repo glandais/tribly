@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../keys.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../domain/ad_filters.dart';
@@ -29,6 +30,7 @@ class AdsToolbar extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: PdlSpacing.section),
           child: PdlSearchField(
+            key: keys.adsList.searchField,
             value: filters.search,
             hintText: 'ads.list.searchPlaceholder'.tr(),
             clearTooltip: 'common.clearSearch'.tr(),
@@ -49,12 +51,14 @@ class AdsToolbar extends StatelessWidget {
               onTap: () => _openSortSheet(context),
             ),
             PdlChip(
+              key: keys.adsList.typeChip(null),
               label: 'ads.list.allTypes'.tr(),
               selected: filters.adType == null,
               onTap: () => onChanged(filters.copyWith(clearAdType: true)),
             ),
             for (final AdType type in AdType.$valuesDefined)
               PdlChip(
+                key: keys.adsList.typeChip(type.json),
                 label: 'ads.adType.${type.json}'.tr(),
                 selected: filters.adType == type,
                 // Retoucher la chip déjà choisie la lève : sans cela, revenir

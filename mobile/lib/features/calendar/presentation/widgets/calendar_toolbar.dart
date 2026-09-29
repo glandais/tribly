@@ -9,6 +9,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../keys.dart';
 import '../../../teams/providers/team_providers.dart';
 import '../../providers/calendar_month_provider.dart';
 
@@ -79,6 +80,7 @@ class CalendarToolbar extends ConsumerWidget {
               ),
             ),
             PdlAppBarAction(
+              key: keys.calendar.nextMonthButton,
               icon: PdlIcons.chevronRight,
               semanticLabel: 'calendar.nextMonth'.tr(),
               onPressed: () => onMonthChanged(monthKey.shifted(1)),

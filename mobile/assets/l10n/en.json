@@ -790,6 +790,7 @@
       "preparing": "Being prepared…",
       "ready": "Ready",
       "readyUntil": "Ready · valid until {date}",
+      "expired": "Expired · you can request a new one",
       "failed": "Preparation failed",
       "byEmail": "The archive is emailed to you: the download link is in that message.",
       "request": "Request an export",
@@ -1110,6 +1111,7 @@
       "other": "{} comments"
     },
     "emptyTitle": "No comment",
+    "loadMore": "Load more comments",
     "emptyMessage": "Be the first to comment.",
     "placeholder": "Write a comment...",
     "send": "Post",

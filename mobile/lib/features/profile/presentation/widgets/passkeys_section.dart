@@ -11,16 +11,18 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../auth/data/auth_repository.dart';
+import '../../../auth/data/passkey_management_repository.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/services/passkey_service.dart';
 import 'confirm_sheet.dart';
 
 /// Les clés d'accès de l'utilisateur — **toutes**.
 final passkeysProvider = FutureProvider<List<PasskeyDto>>((ref) async {
+  // Surveillé pour relire la liste à chaque changement de session, pas pour
+  // être passé à la main : le client authentifié porte le jeton.
   final String? token = ref.watch(accessTokenHolderProvider);
   if (token == null) return const <PasskeyDto>[];
-  return ref.watch(authRepositoryProvider).listPasskeys(token);
+  return ref.read(passkeyManagementRepositoryProvider).listPasskeys();
 });
 
 /// Sécurité : la liste des clés d'accès.
@@ -72,16 +74,15 @@ class _PasskeysSectionState extends ConsumerState<PasskeysSection> {
     );
     if (!confirmed || !mounted) return;
 
-    final String? token = ref.read(accessTokenHolderProvider);
     final String? id = passkey.id;
-    if (token == null || id == null) return;
+    if (id == null) return;
 
     setState(() {
       _busy = true;
       _error = null;
     });
     try {
-      await ref.read(authRepositoryProvider).deletePasskey(id, token);
+      await ref.read(passkeyManagementRepositoryProvider).deletePasskey(id);
       ref.invalidate(passkeysProvider);
       if (mounted) setState(() => _busy = false);
     } catch (error, stackTrace) {

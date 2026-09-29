@@ -12,6 +12,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/link_launcher.dart';
 import '../../../../core/widgets/back_or_home_button.dart';
+import '../../../../keys.dart';
 import '../../data/beta_signup_repository.dart';
 
 const String _kKarooReleasesUrl =
@@ -111,7 +112,7 @@ class _AppsPageState extends ConsumerState<AppsPage> {
               const SizedBox(height: PdlSpacing.section),
               PdlCard(
                 child: _sent
-                    ? _SentState(t: t)
+                    ? _SentState(key: keys.apps.betaSentState, t: t)
                     : Form(
                         key: _formKey,
                         child: Column(
@@ -122,6 +123,7 @@ class _AppsPageState extends ConsumerState<AppsPage> {
                             Text('apps.signup.subtitle'.tr(), style: t.sub),
                             const SizedBox(height: PdlSpacing.cardTight),
                             TextFormField(
+                              key: keys.apps.betaEmailField,
                               controller: _emailController,
                               enabled: !_sending,
                               keyboardType: TextInputType.emailAddress,
@@ -161,6 +163,7 @@ class _AppsPageState extends ConsumerState<AppsPage> {
                             ],
                             const SizedBox(height: PdlSpacing.cardTight),
                             PdlButton(
+                              key: keys.apps.betaSubmitButton,
                               label: 'apps.signup.submit'.tr(),
                               loading: _sending,
                               fullWidth: true,
@@ -179,7 +182,7 @@ class _AppsPageState extends ConsumerState<AppsPage> {
 }
 
 class _SentState extends StatelessWidget {
-  const _SentState({required this.t});
+  const _SentState({super.key, required this.t});
 
   final PdlTypography t;
 

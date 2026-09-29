@@ -218,13 +218,17 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
                 if (ad.locationGeometry != null ||
                     ad.locationDescription != null) ...<Widget>[
                   const SizedBox(height: PdlSpacing.section),
-                  PdlSectionHeader(title: 'ads.detail.location'.tr()),
+                  PdlSectionHeader(
+                    key: keys.ad.location,
+                    title: 'ads.detail.location'.tr(),
+                  ),
                   if (ad.locationDescription != null)
                     Padding(
                       padding: const EdgeInsets.only(
                         bottom: PdlSpacing.chipGap,
                       ),
                       child: PdlStat(
+                        key: keys.ad.locationDescription,
                         value: ad.locationDescription!,
                         icon: PdlIcons.place,
                       ),
@@ -235,7 +239,10 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
                     AdLocationMap(geometry: ad.locationGeometry!),
                 ],
                 const SizedBox(height: PdlSpacing.section),
-                PdlSectionHeader(title: 'ads.detail.seller'.tr()),
+                PdlSectionHeader(
+                  key: keys.ad.seller,
+                  title: 'ads.detail.seller'.tr(),
+                ),
                 PdlPersonRow(name: ad.createdByDisplayName),
                 if (_messageSent) ...<Widget>[
                   const SizedBox(height: PdlSpacing.cardTight),
@@ -243,6 +250,7 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
                   // gagne pas une pour l'occasion : `info` porte la même
                   // paire primaire, et l'icône dit le reste.
                   PdlBanner(
+                    key: keys.ad.contactSent,
                     tone: PdlBannerTone.info,
                     icon: PdlIcons.checkCircle,
                     message: 'ads.contact.sent'.tr(),
@@ -250,6 +258,7 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
                 ] else if (_optedOut) ...<Widget>[
                   const SizedBox(height: PdlSpacing.cardTight),
                   PdlBanner(
+                    key: keys.ad.contactOptedOut,
                     tone: PdlBannerTone.warn,
                     message: 'ads.contact.optedOut'.tr(),
                   ),

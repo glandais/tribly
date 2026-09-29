@@ -92,8 +92,8 @@ final betaSignupsClientProvider = Provider<BetaSignupsClient>((ref) {
 });
 
 /// Only `authenticate` goes through this client, and that endpoint is public —
-/// the authenticated passkey calls pass their bearer token explicitly through
-/// [AuthRepository]. Keeping it on the base client is what keeps the auth tree
+/// the authenticated passkey calls go through `PasskeyManagementRepository`, on
+/// [apiClientProvider]. Keeping this one on the base client is what keeps the auth tree
 /// independent from [apiClientProvider], which gets invalidated on every
 /// identity change.
 final passkeysClientProvider = Provider<PasskeysClient>((ref) {

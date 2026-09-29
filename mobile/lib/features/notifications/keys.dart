@@ -23,4 +23,7 @@ class NotificationsKeys {
   /// L'interrupteur « je reçois ses annonces » d'une équipe, dans le profil.
   ValueKey<String> teamSwitch(String teamSlug) =>
       _NotificationsKey('teamSwitch_$teamSlug');
+
+  /// Le bandeau qui propose d'activer le push, en tête de la boîte.
+  final pushActivationBanner = const _NotificationsKey('pushActivationBanner');
 }

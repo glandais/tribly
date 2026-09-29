@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../core/pagination/pagination.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../keys.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../domain/ad_filters.dart';
@@ -228,6 +229,7 @@ class _AdsDeadEnd extends StatelessWidget {
     final String? search = filters.search?.trim();
 
     return PdlDeadEndEmpty(
+      key: keys.adsList.filteredEmptyState,
       title: 'ads.list.empty.title'.tr(),
       message: search == null || search.isEmpty
           ? 'ads.list.empty.description'.tr()

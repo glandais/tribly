@@ -10,6 +10,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../providers/ride_detail_provider.dart';
 import '../../providers/ride_group_selection_provider.dart';
+import '../../../../keys.dart';
 
 /// La hauteur de la carte de sortie.
 ///
@@ -215,6 +216,7 @@ class RideGroupsMap extends ConsumerWidget {
   }
 
   Widget _pill(RideGroupDto group) => PdlMapPill(
+    key: keys.ride.groupsMapPill,
     label: group.name,
     leading: PdlColorTrack(
       color: multiTrackColor(group.sortOrder),

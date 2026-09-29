@@ -7,6 +7,7 @@ import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/pagination/pagination.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../keys.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
@@ -358,7 +359,11 @@ class _MapBody extends StatelessWidget {
         ),
         Divider(height: 1, color: c.borderSubtle),
         Expanded(
-          child: RoutesMapView(filters: filters, onChanged: onChanged),
+          child: RoutesMapView(
+            key: keys.routes.mapView,
+            filters: filters,
+            onChanged: onChanged,
+          ),
         ),
       ],
     );
@@ -448,6 +453,7 @@ class RoutesEmptyState extends ConsumerWidget {
     final String? search = filters.search?.trim();
 
     return PdlDeadEndEmpty(
+      key: keys.routes.emptyState,
       title: 'routes.list.empty.title'.tr(),
       message: search == null || search.isEmpty
           ? 'routes.list.empty.description'.tr()

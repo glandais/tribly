@@ -11,6 +11,7 @@ import '../../notifications/data/push_device_repository.dart';
 import '../../notifications/providers/push_provider.dart';
 import '../../routes/data/tile_token_repository.dart';
 import '../data/auth_repository.dart';
+import '../data/passkey_management_repository.dart';
 import '../data/secure_storage.dart';
 import '../domain/auth_state.dart';
 import 'pending_sign_in_link.dart';
@@ -127,7 +128,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     bool hasPasskeys = false;
     if (response.accessToken != null) {
       try {
-        final passkeys = await _repository.listPasskeys(response.accessToken!);
+        // Le jeton vient d'être posé dans le porte-jeton (plus haut) : le
+        // client authentifié le porte, comme `getMe`.
+        final passkeys = await _ref
+            .read(passkeyManagementRepositoryProvider)
+            .listPasskeys();
         hasPasskeys = passkeys.isNotEmpty;
       } on DioException catch (e) {
         log(
@@ -310,32 +315,36 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (_) {
       // Ignore logout errors
     } finally {
-      await _storage.deleteRefreshToken();
-      _syncTokenToHolder(null);
-      state = const AuthState(isInitialized: true);
-      // Drop the logged-out user's cached content before anyone logs back in.
-      _resetUserScopedData();
-      // Un lien resté en attente ne se rejoue pas pour le membre suivant.
-      _ref.read(pendingSignInLinkProvider).clear();
+      await _clearLocalSession();
     }
   }
 
-  /// Logout from all devices
+  /// Déconnecte toutes les sessions du membre, celle-ci comprise.
+  ///
+  /// `POST /api/auth/logout-all` exige le jeton d'accès : il passe donc par le
+  /// client **authentifié**, dont l'intercepteur pose le `Bearer` et le
+  /// rafraîchit sur un 401. Il passait par le client de base, partait sans
+  /// jeton et recevait un 401 — que cette méthode avalait avant de ne
+  /// déconnecter que ce téléphone (`docs/LEDGER_*.md MOB-32`).
+  ///
+  /// **Lève si le serveur refuse**, et la session locale reste alors ouverte :
+  /// annoncer « tous les appareils sont déconnectés » quand les autres ne le
+  /// sont pas serait pire qu'une erreur.
   Future<void> logoutAll() async {
     await _unregisterPushDevice();
-    try {
-      await _repository.logoutAll();
-    } catch (_) {
-      // Ignore logout errors
-    } finally {
-      await _storage.deleteRefreshToken();
-      _syncTokenToHolder(null);
-      state = const AuthState(isInitialized: true);
-      // Drop the logged-out user's cached content before anyone logs back in.
-      _resetUserScopedData();
-      // Un lien resté en attente ne se rejoue pas pour le membre suivant.
-      _ref.read(pendingSignInLinkProvider).clear();
-    }
+    await _ref.read(apiClientProvider).authentication.logoutAll();
+    await _clearLocalSession();
+  }
+
+  /// Oublie la session sur ce téléphone, quoi qu'en dise le serveur.
+  Future<void> _clearLocalSession() async {
+    await _storage.deleteRefreshToken();
+    _syncTokenToHolder(null);
+    state = const AuthState(isInitialized: true);
+    // Drop the logged-out user's cached content before anyone logs back in.
+    _resetUserScopedData();
+    // Un lien resté en attente ne se rejoue pas pour le membre suivant.
+    _ref.read(pendingSignInLinkProvider).clear();
   }
 
   /// Clear error

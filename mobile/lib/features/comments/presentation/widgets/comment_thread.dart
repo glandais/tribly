@@ -138,7 +138,32 @@ class _CommentThreadState extends ConsumerState<CommentThread> {
               padding: const EdgeInsets.only(bottom: 14),
               child: _thread(comment, viewer),
             ),
-        if (state.hasMore || state.nextError != null)
+        // Le fil est une `Column` posée dans le défilement de la page, pas une
+        // liste paresseuse : `onItemBuilt` y chargerait toutes les pages d'un
+        // coup, chacune construisant la suivante. La suite part donc quand le
+        // pied approche de l'écran — et « Voir plus », comme sur le web, reste
+        // là pour qui ne défile pas (`docs/LEDGER_*.md MOB-34`).
+        if (state.hasMore &&
+            !state.isLoadingNext &&
+            state.nextError == null &&
+            state.items.isNotEmpty)
+          _NearViewportTrigger(
+            // Un déclencheur neuf par page : la page suivante arrive souvent
+            // avant la frame qui aurait démonté celui-ci, et l'élément réutilisé
+            // garderait son « déjà déclenché ».
+            key: ValueKey<int>(state.items.length),
+            onNear: _notifier.loadNextPage,
+            child: Center(
+              child: PdlButton(
+                key: keys.comments.loadMoreButton,
+                label: 'comments.loadMore'.tr(),
+                variant: PdlButtonVariant.text,
+                size: PdlButtonSize.sm,
+                onPressed: _notifier.loadNextPage,
+              ),
+            ),
+          )
+        else if (state.hasMore || state.nextError != null)
           PdlPagedListFooter(
             isLoadingNext: state.isLoadingNext,
             hasMore: state.hasMore,
@@ -413,4 +438,70 @@ class _Viewer {
   final bool moderates;
 
   final String? teamName;
+}
+
+/// Appelle [onNear] quand [child] arrive à moins de [margin] du bas de la
+/// zone visible du défilement qui l'entoure — ou tout de suite s'il n'y en a
+/// pas, la page tenant alors entière à l'écran.
+///
+/// Vérifié après chaque construction et à chaque mouvement du défilement.
+/// Ne se déclenche qu'une fois par montage : le fil en monte un neuf, par sa
+/// clé, à chaque page arrivée.
+class _NearViewportTrigger extends StatefulWidget {
+  const _NearViewportTrigger({
+    super.key,
+    required this.onNear,
+    required this.child,
+  });
+
+  final VoidCallback onNear;
+  final Widget child;
+
+  static const double margin = 300;
+
+  @override
+  State<_NearViewportTrigger> createState() => _NearViewportTriggerState();
+}
+
+class _NearViewportTriggerState extends State<_NearViewportTrigger> {
+  ScrollPosition? _position;
+  bool _fired = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final ScrollPosition? position = Scrollable.maybeOf(context)?.position;
+    if (position != _position) {
+      _position?.removeListener(_check);
+      _position = position?..addListener(_check);
+    }
+  }
+
+  @override
+  void dispose() {
+    _position?.removeListener(_check);
+    super.dispose();
+  }
+
+  void _check() {
+    if (_fired || !mounted) return;
+    final RenderObject? box = context.findRenderObject();
+    if (box is! RenderBox || !box.attached || !box.hasSize) return;
+    final ScrollableState? scrollable = Scrollable.maybeOf(context);
+    final RenderObject? viewport = scrollable?.context.findRenderObject();
+    if (viewport is RenderBox && viewport.hasSize) {
+      final double top = box.localToGlobal(Offset.zero, ancestor: viewport).dy;
+      if (top > viewport.size.height + _NearViewportTrigger.margin) return;
+    }
+    _fired = true;
+    widget.onNear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Après la frame : la position n'est connue qu'une fois la mise en page
+    // faite, et `onNear` modifie un provider, interdit pendant un `build`.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _check());
+    return widget.child;
+  }
 }

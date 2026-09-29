@@ -20,6 +20,9 @@ class TripDetailKeys {
   /// « Se désinscrire » dans la barre d'action.
   final leaveButton = const _TripKey('leave');
 
+  /// Le `⋯` de l'app bar : signaler le voyage.
+  final moreButton = const _TripKey('moreButton');
+
   /// La section des participants, nommés en pastilles.
   final participants = const _TripKey('participants');
 

@@ -15,7 +15,6 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../auth/data/auth_repository.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../data/profile_repository.dart';
 import 'confirm_sheet.dart';
@@ -63,7 +62,17 @@ class _DataExportCardState extends ConsumerState<DataExportCard> {
   Widget build(BuildContext context) {
     final PdlTypography t = context.pdlText;
     final UserExportDto? export = ref.watch(latestExportProvider).value;
-    final bool ready = export?.status.toUpperCase() == 'COMPLETED';
+    // `status` est une chaîne au DTO ; l'enum généré est la liste fermée du
+    // contrat. Un export prêt est `READY` — l'ancienne comparaison à
+    // `COMPLETED`, statut inexistant, le laissait « en préparation » pour
+    // toujours (`docs/LEDGER_*.md MOB-32`).
+    final UserExportStatus? status = export == null
+        ? null
+        : UserExportStatus.fromJson(export.status.toUpperCase());
+    // Un export arrivé à son terme — prêt ou expiré — appelle un « nouvel »
+    // export ; celui en cours ou échoué, une simple demande.
+    final bool ready =
+        status == UserExportStatus.ready || status == UserExportStatus.expired;
     final DateTime? expires = export?.expiresAt == null
         ? null
         : DateTime.tryParse(export!.expiresAt!)?.toLocal();
@@ -85,18 +94,28 @@ class _DataExportCardState extends ConsumerState<DataExportCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         Text('profile.data.export'.tr(), style: t.bodyStrong),
-                        Text(switch (export?.status.toUpperCase()) {
-                          null => 'profile.data.never'.tr(),
-                          'COMPLETED' when expires != null =>
-                            'profile.data.readyUntil'.tr(
-                              namedArgs: <String, String>{
-                                'date': AppFormatters.formatLongDate(expires),
-                              },
-                            ),
-                          'COMPLETED' => 'profile.data.ready'.tr(),
-                          'FAILED' => 'profile.data.failed'.tr(),
-                          _ => 'profile.data.preparing'.tr(),
-                        }, style: t.xs),
+                        Text(
+                          key: keys.profile.dataExportStatus,
+                          switch (status) {
+                            null => 'profile.data.never'.tr(),
+                            UserExportStatus.ready when expires != null =>
+                              'profile.data.readyUntil'.tr(
+                                namedArgs: <String, String>{
+                                  'date': AppFormatters.formatLongDate(expires),
+                                },
+                              ),
+                            UserExportStatus.ready => 'profile.data.ready'.tr(),
+                            UserExportStatus.expired =>
+                              'profile.data.expired'.tr(),
+                            UserExportStatus.failed =>
+                              'profile.data.failed'.tr(),
+                            UserExportStatus.pending ||
+                            UserExportStatus.processing ||
+                            UserExportStatus.$unknown =>
+                              'profile.data.preparing'.tr(),
+                          },
+                          style: t.xs,
+                        ),
                       ],
                     ),
                   ),
@@ -111,6 +130,7 @@ class _DataExportCardState extends ConsumerState<DataExportCard> {
               Text('profile.data.byEmail'.tr(), style: t.xs),
               const SizedBox(height: PdlSpacing.cardTight),
               PdlButton(
+                key: keys.profile.dataExportButton,
                 label: ready
                     ? 'profile.data.newExport'.tr()
                     : 'profile.data.request'.tr(),
@@ -190,9 +210,10 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
       confirmLabel: 'profile.account.logoutAll'.tr(),
     );
     if (!confirmed || !mounted) return;
+    // Un refus du serveur lève et laisse la session ouverte : `_run` l'affiche
+    // en bandeau plutôt que d'annoncer une déconnexion qui n'a pas eu lieu.
     await _run(() async {
-      await ref.read(authRepositoryProvider).logoutAll();
-      await ref.read(authProvider.notifier).logout();
+      await ref.read(authProvider.notifier).logoutAll();
       if (mounted) context.go(Paths.login());
     });
   }
@@ -286,6 +307,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
           ),
           const SizedBox(height: PdlSpacing.chipGap),
           PdlButton(
+            key: keys.profile.logoutAllButton,
             label: 'profile.account.logoutAll'.tr(),
             variant: PdlButtonVariant.outline,
             fullWidth: true,

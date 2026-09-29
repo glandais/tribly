@@ -11,6 +11,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../keys.dart';
 import '../../data/calendar_repository.dart';
 
 /// Le jeton, lu **à chaque ouverture du bloc** et jamais au-delà.
@@ -122,6 +123,7 @@ class _CalendarSubscriptionCardState
           if (_notice != null) ...<Widget>[
             const SizedBox(height: PdlSpacing.cardTight),
             PdlBanner(
+              key: keys.calendar.subscriptionNotice,
               tone: _noticeTone,
               message: _notice!,
               onDismiss: () => setState(() => _notice = null),
@@ -165,6 +167,7 @@ class _CalendarSubscriptionCardState
             ),
             const SizedBox(width: PdlSpacing.chipGap),
             PdlAppBarAction(
+              key: keys.calendar.subscriptionCopyButton,
               icon: PdlIcons.copy,
               semanticLabel: 'calendar.subscription.copy'.tr(),
               onPressed: () => _copy(url),
@@ -187,6 +190,7 @@ class _CalendarSubscriptionCardState
             const SizedBox(width: PdlSpacing.chipGap),
             Expanded(
               child: PdlButton(
+                key: keys.calendar.subscriptionRegenerateButton,
                 variant: PdlButtonVariant.outline,
                 label: 'calendar.subscription.regenerate'.tr(),
                 fullWidth: true,
@@ -245,6 +249,7 @@ class _CalendarSubscriptionCardState
             onPressed: () => Navigator.of(dialogContext).pop(false),
           ),
           PdlButton(
+            key: keys.calendar.subscriptionRegenerateConfirmButton,
             variant: PdlButtonVariant.danger,
             label: 'calendar.subscription.regenerate'.tr(),
             onPressed: () => Navigator.of(dialogContext).pop(true),

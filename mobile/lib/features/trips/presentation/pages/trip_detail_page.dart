@@ -121,6 +121,7 @@ class _TripDetailContent extends ConsumerWidget {
             onPressed: () => _share(context),
           ),
           PdlAppBarAction(
+            key: keys.trip.moreButton,
             icon: PdlIcons.more,
             semanticLabel: 'moderation.more'.tr(),
             onPressed: () => showDetailModerationMenu(

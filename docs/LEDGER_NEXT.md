@@ -161,6 +161,36 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       seul jeton** à faire tomber à 0 (`PdlMotion.blurToolbar`, surface opaque), aucun écran à
       rouvrir.
 
+### Couverture e2e Patrol — ce que les tests ne couvrent pas encore
+
+`mobile/patrol_test/` couvre les P0 de l'audit de couverture e2e (`WEB-26`) transposés à l'app, et
+les scénarios `MOB-25` à `MOB-36` sauf `MOB-26`, écrits le 29 septembre 2026 (voir
+`mobile/patrol_test/README.md`, « Coverage »). Ce que chacun laisse de côté est dit dans son entrée
+livrée. Hors périmètre, parce que l'app ne les a pas : écrire une publication (le seul écrit est un
+commentaire), la file de modération (une entrée `CONTENT_REPORTED` ouvre `/…/admin/reports` dans le
+navigateur), la connexion par code e-mailé et une préférence de fuseau.
+
+- [ ] `MOB-26` **Clés d'accès** — une clé ajoutée depuis le profil (`passkeys_section.dart`) connecte
+      depuis `login_page.dart` ; une clé supprimée ne connecte plus (`flow-account.e2e.ts`). Demande
+      un authentificateur sur le simulateur ou l'émulateur.
+      **Bloqué sur la stack e2e** (évalué le 29 septembre 2026) : le RP ID y est `localhost` en HTTP,
+      alors qu'iOS n'accepte une clé que pour un domaine associé (`webcredentials:`, fichier
+      `apple-app-site-association` servi en HTTPS de confiance) et que `Runner.entitlements` ne
+      déclare que `www.pedalons.fr` ; la correspondance Face ID du simulateur ne se pilote pas depuis
+      Patrol ; Android bute de même sur `assetlinks.json`. Il faudrait un nom d'hôte HTTPS pour la
+      stack (certificat mkcert ajouté au simulateur), `PEDALONS_WEBAUTHN_RP_ID` et
+      `--dart-define=WEBAUTHN_RP_ID` réglés dessus, une variante d'entitlements de debug
+      (`?mode=developer`) et un pas « visage reconnu » lancé par l'hôte.
+- [ ] `MOB-37` **Les tests Patrol ne tournent qu'en local** — aucun workflow de `.github/` ne les
+      lance : `ci.yml` ne passe que les tests unitaires. Il faudrait un runner macOS (simulateur) ou un
+      émulateur Android, plus la stack e2e (`scripts/e2e.sh up`) dans le job. Pendant web : `AUD-3`.
+- [ ] `MOB-38` **Un jeton d'accès expiré, de bout en bout** — 08aa46ef fait rafraîchir le jeton aux
+      appels authentifiés sous `/api/auth/` (`getMe`, gestion des clés d'accès, `logout-all`) ; ses
+      tests unitaires vérifient la table des chemins, pas le cycle 401 → refresh → nouvel essai, que
+      l'intercepteur fait sur une instance `Dio` qu'un test ne peut pas intercepter. Un test Patrol
+      ouvrirait l'app avec un jeton d'accès invalide dans la session stockée (`openAppSignedIn`) et
+      vérifierait que le profil charge et que « Déconnecter tous les appareils » aboutit. (S)
+
 ---
 
 ## WEB — Site web

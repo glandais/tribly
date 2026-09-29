@@ -10,6 +10,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../moderation/presentation/moderation_menu.dart';
+import '../../../../keys.dart';
 
 /// La feuille « Participants » d'un groupe de sortie ou d'un voyage.
 ///
@@ -176,6 +177,7 @@ class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
             ),
           ),
           PdlBadge(
+            key: keys.participants.count,
             label: '${widget.count}',
             tone: PdlDerivedTones.registered(c),
             size: PdlBadgeSize.lg,
@@ -219,6 +221,7 @@ class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: PdlPersonRow(
+                key: keys.participants.person(person.id),
                 name: person.displayName,
                 imageUrl: person.avatarUrl,
                 isCurrentUser: person.id == currentUserId,

@@ -35,6 +35,10 @@ class _TeamPageKey extends ValueKey<String> {
 
 class TeamPageKeys {
   final loadError = const _TeamPageKey('loadError');
+
+  /// « Réessayer » de l'état d'erreur.
+  final loadErrorRetryButton = const _TeamPageKey('loadErrorRetryButton');
+
   final joinButton = const _TeamPageKey('joinButton');
   final leaveButton = const _TeamPageKey('leaveButton');
   final inviteOnlyButton = const _TeamPageKey('inviteOnlyButton');
@@ -47,4 +51,12 @@ class TeamPageKeys {
   /// L'écran d'une page libre : son titre, son corps.
   final customPageTitle = const _TeamPageKey('customPageTitle');
   final customPageBody = const _TeamPageKey('customPageBody');
+
+  /// La ligne d'un membre dans la section « Membres », par l'identifiant de
+  /// l'utilisateur.
+  ValueKey<String> memberRow(String userId) =>
+      _TeamPageKey('memberRow_$userId');
+
+  /// La recherche de la section « Membres ».
+  final membersSearchField = const _TeamPageKey('membersSearchField');
 }

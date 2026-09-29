@@ -8,6 +8,7 @@ import '../../../../core/pagination/pagination.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../keys.dart';
 import '../../../posts/domain/post_neighbours.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/publication_feed_provider.dart';
@@ -221,6 +222,7 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
           child: Center(
             child: filtered
                 ? PdlEmptyState(
+                    key: keys.feed.filteredEmptyState,
                     variant: PdlEmptyVariant.filtered,
                     icon: Icons.dynamic_feed,
                     title: 'home.feed.emptyFiltered.title'.tr(),
@@ -257,6 +259,7 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
             notifier.onItemBuilt(index);
             return ContentWidthConstraint(
               child: PublicationCard(
+                key: keys.feed.card(state.items[index].slug),
                 publication: state.items[index],
                 postNeighbours: _postNeighbours(state.items, index),
               ),
@@ -316,6 +319,7 @@ class FeedToolbar extends StatelessWidget {
         ContentWidthConstraint(
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
           child: PdlSearchField(
+            key: keys.feed.searchField,
             value: search,
             hintText: 'home.feed.searchPlaceholder'.tr(),
             clearTooltip: 'common.clearSearch'.tr(),
@@ -437,6 +441,7 @@ class _FilterChips extends StatelessWidget {
     IconData? icon,
   }) {
     return PdlChip(
+      key: keys.feed.typeChip(value),
       label: label,
       icon: icon,
       selected: selected == value,
