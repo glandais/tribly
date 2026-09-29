@@ -30,8 +30,12 @@ public final class MarkdownExcerpt {
   private static final Pattern HTML_COMMENT = Pattern.compile("(?s)<!--.*?-->");
   private static final Pattern LINK_DEFINITION = Pattern.compile("(?m)^ {0,3}\\[[^]]+]:.*$");
 
-  /** Pédalons' own image embed, {@code ::asset{id="…"}}: an image with no prose to keep. */
-  private static final Pattern ASSET_DIRECTIVE = Pattern.compile("::asset\\{[^}]*}");
+  /**
+   * Pédalons' own image embed, {@code ::asset{id="…"}}: an image with no prose to keep. Stopped by
+   * an opening brace too, so that a run of unclosed directives is read once and not once per
+   * directive (docs/LEDGER_*.md SEC-10).
+   */
+  private static final Pattern ASSET_DIRECTIVE = Pattern.compile("::asset\\{[^{}]*+}");
 
   private static final Pattern IMAGE = Pattern.compile("!\\[([^]]*)]\\([^)]*\\)");
   private static final Pattern INLINE_LINK = Pattern.compile("\\[([^]]*)]\\([^)]*\\)");

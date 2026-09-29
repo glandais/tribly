@@ -34,7 +34,7 @@
 | M3 | Moyenne | Un traitement de tracé GPX n'est pas borné en mémoire (déni de service) | Ouvert |
 | M4 | Moyenne | La connexion par mot de passe n'a ni limitation de débit ni verrouillage | Ouvert |
 | M5 | Moyenne | Un lien de vérification d'e-mail peut connecter la victime à un compte qui n'est pas le sien (login CSRF) | Ouvert |
-| M6 | Moyenne | Une expression régulière appliquée au markdown est exposée au ReDoS | Ouvert |
+| M6 | Moyenne | Une expression régulière appliquée au markdown est exposée au ReDoS | Partiellement corrigé : l'expression est linéaire (ledger `SEC-10`) ; la taille du markdown reste à borner (`SEC-19`) |
 | M7 | Moyenne | Le refresh token n'est pas renouvelé à l'usage | Ouvert |
 | M8 | Moyenne | Deux requêtes de résolution d'identité ne filtrent pas par domaine | Ouvert |
 | M9 | Moyenne | Le jeton d'accès des appareils a une durée longue pour un jeton non révocable | Ouvert |
@@ -93,7 +93,7 @@ changement de statut ici se reporte là-bas.
 
 ### M5 — Login CSRF via le lien de vérification d'e-mail — **Ouvert**
 
-### M6 — ReDoS sur le markdown — **Ouvert**
+### M6 — ReDoS sur le markdown — **Partiellement corrigé** (ledger `SEC-10`, reste `SEC-19`)
 
 ### M7 — Pas de rotation du refresh token — **Ouvert** (audit de février, S3)
 

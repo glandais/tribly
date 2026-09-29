@@ -59,9 +59,17 @@ public class AssetService {
   private static final Comparator<Asset> EDITOR_ORDER =
       Comparator.comparingInt(Asset::getSortOrder).thenComparing(Asset::getId);
 
-  /** Matches ::asset{...id="ASSET_ID"...} directives in markdown */
-  private static final Pattern ASSET_DIRECTIVE_PATTERN =
-      Pattern.compile("::asset\\{[^}]*id=\"([^\"]+)\"[^}]*\\}");
+  /**
+   * An asset directive in markdown ({@code ::asset} followed by its attributes in braces), the
+   * attributes in group 1. Possessive, and stopped by an opening brace as well as by the closing
+   * one: the former pattern, which looked for the id inside greedy runs on either side, backtracked
+   * in cubic time over a run of unclosed directives — 28 KB of them took 78 s of CPU
+   * (docs/LEDGER_*.md SEC-10, audit M6). This one reads each character once.
+   */
+  private static final Pattern ASSET_DIRECTIVE_PATTERN = Pattern.compile("::asset\\{([^{}]*+)\\}");
+
+  /** The {@code id="…"} attribute inside a directive's attributes. */
+  private static final Pattern ASSET_ID_ATTRIBUTE = Pattern.compile("id=\"([^\"]+)\"");
 
   @Inject AssetRepository assetRepository;
 
@@ -514,14 +522,22 @@ public class AssetService {
     addAssetsToEntity(order, teamEntity, AssetType.ATTACHMENT, assets.attachments());
   }
 
-  private Set<String> extractAssetIdsFromMarkdown(String markdown) {
+  static Set<String> extractAssetIdsFromMarkdown(String markdown) {
     Set<String> assetIds = new HashSet<>();
     if (markdown.isEmpty()) {
       return assetIds;
     }
-    Matcher matcher = ASSET_DIRECTIVE_PATTERN.matcher(markdown);
-    while (matcher.find()) {
-      assetIds.add(matcher.group(1));
+    Matcher directive = ASSET_DIRECTIVE_PATTERN.matcher(markdown);
+    while (directive.find()) {
+      // The last id="…" of the directive, as the former greedy pattern picked it.
+      Matcher id = ASSET_ID_ATTRIBUTE.matcher(directive.group(1));
+      @Nullable String last = null;
+      while (id.find()) {
+        last = id.group(1);
+      }
+      if (last != null) {
+        assetIds.add(last);
+      }
     }
     return assetIds;
   }

@@ -622,13 +622,13 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 | `SEC-7` | 4 | M4 | Moyenne | Connexion par mot de passe sans limitation de débit ni verrouillage |
 | `SEC-8` | — | M2 | Moyenne | Flou d'~1 km des annonces affinable par requêtes répétées (contredit la décision `API-31`) |
 | `SEC-9` | — | M5 | Moyenne | Login CSRF via le lien de vérification d'e-mail |
-| `SEC-10` | — | M6 | Moyenne | ReDoS sur une expression régulière appliquée au markdown |
 | `SEC-11` | — | M7 à M10 | Moyenne | Refresh token non renouvelé ; résolution d'identité sans filtre de domaine ; jeton d'appareil long et non révocable ; pas de limitation de débit HTTP globale — voir `API-27` (audit de février, S3 à S7) |
 | `SEC-12` | — | L1, L3–L10, L12–L14 | Faible | Voir la table des constats faibles de l'audit (L12 à L14 viennent de l'audit de février, S9 à S11) |
 | `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | `SEC-14` | — | Info | — | Images externes dans le markdown, parseur XML non durci, paramètre de requête non encodé |
 | `SEC-16` | — | V3–V8 | À valider | Configuration hors dépôt : proxy de l'hôte, hôte de sauvegarde, SMTP, imgproxy |
 | `SEC-17` | — | *hors audit* | — | Le **jeton du flux ICS n'expire jamais** — seule la régénération manuelle (`CalendarService.regenerateToken`) le révoque. Le masquage du journal d'accès (`OPS-6`, en place) borne sa fuite par ce journal ; reste à l'expirer. Relevé dans [`OPERATIONS.md`](OPERATIONS.md#access-logs) |
+| `SEC-19` | — | M6 (reste) | Moyenne | Le markdown d'un contenu n'a pas de taille maximale (`MediaDto.markdown` sans `@Size`, corps de requête jusqu'à 100 Mo) : l'expression de `SEC-10` est linéaire, la borne reste la défense de fond. Correctif de l'audit : `@Size(max = 100_000)`, soit un changement de contrat (bump d'API). Mesuré le 30 septembre 2026 sur la base locale (restauration biketeam) : le plus long markdown fait 4 342 caractères (`team_entities`), 1 684 pour `ride_templates` — 100 000 ne refuserait rien d'existant, à revérifier en production avant de livrer |
 
 ---
 
