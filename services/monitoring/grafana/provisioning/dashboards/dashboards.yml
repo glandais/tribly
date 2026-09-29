@@ -1,0 +1,13 @@
+# Dashboards from the repository (services/monitoring/grafana/dashboards), read-only in Grafana:
+# change them here, not in the UI. Community dashboards imported from the UI (docs/OPERATIONS.md,
+# « Monitoring ») live in Grafana's own database instead.
+apiVersion: 1
+
+providers:
+  - name: pedalons
+    folder: Pédalons
+    type: file
+    allowUiUpdates: false
+    updateIntervalSeconds: 60
+    options:
+      path: /etc/grafana/dashboards

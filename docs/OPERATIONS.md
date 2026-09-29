@@ -6,7 +6,8 @@ How Pedalons is deployed, backed up and restored on a host. Workstation setup st
 ## Deployment
 
 A host is a single-node **Docker Swarm**, and runs **one shared stack** plus **one stack per
-environment**, each from its own checkout (`~/shared`, `~/prod`, `~/staging`) with its own `.env`.
+environment**, each from its own checkout (`~/shared`, `~/prod`, `~/staging`) with its own `.env` —
+and a monitoring stack, from `~/shared` too (see [Monitoring](#monitoring)).
 Caddy terminates TLS on the host and reverse-proxies each hostname to that environment's traefik
 (`HTTP_PORT`: 8090 for prod, 8089 for staging). Swarm rather than plain compose for what it
 reconciles: a `deploy` converges the running services onto the file, and a task that dies is
@@ -113,6 +114,7 @@ limit is killed by the kernel (`OOMKilled` in `docker inspect`, `task: non-zero 
 | traefik | 256M | |
 | tileserver (shared) | 3G | ~1.8 GB resident |
 | valhalla (shared) | none | the rebuild after a `tile_urls` change needs far more than the service |
+| monitoring stack | 2G in all | see [Monitoring](#monitoring); ~1 GB resident |
 
 **The backend has no `-Xmx`.** The image's entrypoint (`run-java.sh`, from the Jib base image
 `ubi9/openjdk-25-runtime`) passes `-XX:MaxRAMPercentage=$JAVA_MAX_MEM_RATIO`, and the ratio is
@@ -134,9 +136,9 @@ resident memory once the cache fills; keep `VARNISH_MEMORY` about half as much a
 **What a host must hold**: these are ceilings, not usage — but a host should hold the sum of them.
 Per environment, 7.3 GB, plus 2 GB during a rolling update (a second backend and frontend run
 beside the old ones, see above); on top, the shared stack's tileserver (3 GB) and valhalla, whose
-17 GB of tiles live in the page cache. Two environments with the defaults come to about 21 GB with
-the host's own share (Caddy, Docker, the OS): a 32 GB host holds them with room left for that page
-cache. A staging environment can take less through its own `.env` (`BACKEND_MEMORY=1G`,
+17 GB of tiles live in the page cache, and the monitoring stack (2 GB). Two environments with the
+defaults come to about 23 GB with the host's own share (Caddy, Docker, the OS): a 32 GB host holds
+them with room left for that page cache. A staging environment can take less through its own `.env` (`BACKEND_MEMORY=1G`,
 `VARNISH_SIZE=256M`, `VARNISH_MEMORY=512M`); prod, more `BACKEND_MEMORY` if `docker stats` shows the
 backend near its limit.
 
@@ -338,6 +340,156 @@ After an aborted run, check what a container is actually attached to before beli
 docker inspect <container> --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
 docker compose up -d --force-recreate <service>
 ```
+
+## Monitoring
+
+A third stack beside the shared one, **`pedalons-monitoring`** (`docker-compose.monitoring.yml`),
+deployed from the `~/shared` checkout. It watches every stack on the host; one thing it cannot
+watch is the host itself going down, which is why two pieces live **elsewhere**: Healthchecks,
+which expects the stack's `Watchdog` alert every 5 minutes, and Gatus on the backup host, which
+probes the sites from outside.
+
+| Service | What it does | Memory limit |
+|---|---|---|
+| prometheus | metrics, 15 days (4 GB at most); evaluates `services/monitoring/prometheus/rules/` | 512M |
+| alertmanager | sends the alerts by e-mail, and the `Watchdog` to Healthchecks | 128M |
+| node-exporter | the host: disks, memory, load, OOM kills | 64M |
+| cadvisor | each container's CPU and memory, against its limit | 256M |
+| loki | logs, **14 days** — as the Caddy access log it receives, see below | 512M |
+| alloy | ships every stack's container logs and the Caddy access logs to Loki | 256M |
+| grafana | dashboards; the only published port (3300) | 256M |
+
+About 2 GB of ceilings, 1 GB or so resident. What Prometheus scrapes:
+
+- **the host's Caddy** — requests, 5xx and latency per hostname, i.e. what visitors get, from every
+  environment at once. It listens on the host, on `:2020`, and Prometheus reaches it through the
+  gateway of `docker_gwbridge`, which `deploy.sh` looks up (`CADDY_METRICS_TARGET` to override);
+- **each environment's backend**, `/q/metrics` (Micrometer: JVM, HTTP, the Agroal pool). Found
+  through the Swarm API, one target per task — both during a rolling update — on
+  `pedalons-shared`, and labelled `env` with the stack's name: a new environment needs no change.
+  `/q` is not routed by traefik (only `/api` is), so the endpoint is not public;
+- node-exporter, cadvisor, and the monitoring services themselves.
+
+The backend logs **JSON** in `%prod` (`quarkus-logging-json`), so a stack trace is one Loki entry
+rather than one per line, and its `level` a label. That holds on a workstation's full stack too,
+which runs `%prod`: `docker logs` shows JSON there as well.
+
+### Setting it up
+
+In this order — **the firewall first**: Swarm publishes Grafana on every interface, like traefik.
+
+```bash
+# 1. firewall: the updated unit also drops Grafana (MONITORING_PORTS, 3300) and Caddy's metrics
+#    (HOST_PORTS, 2020) on the public interface
+install -m 755 scripts/pedalons-firewall.sh /usr/local/sbin/pedalons-firewall.sh
+systemctl restart pedalons-firewall.service
+iptables -S DOCKER-USER | grep 3300 && iptables -S INPUT | grep 2020     # ip6tables alike
+```
+
+2. **Caddy's metrics**, in the host's Caddyfile — the `metrics` global option (Caddy 2.8+), and a
+   site of its own that serves them. No `log` in that site: Prometheus polls it every 30 s.
+
+   ```caddyfile
+   {
+   	metrics {
+   		per_host
+   	}
+   }
+
+   :2020 {
+   	metrics
+   }
+   ```
+
+   `systemctl reload caddy`, then `curl -s localhost:2020/metrics | grep caddy_http_requests_total`
+   lists one `host` per site. Never expose Caddy's **admin** endpoint (`:2019`) instead: it can
+   rewrite the configuration.
+
+3. **Healthchecks**: a new check, period 5 minutes, grace 10 minutes. Its ping URL is
+   `ALERT_WATCHDOG_PING_URL`.
+
+4. **The `.env` of `~/shared`**: the keys of `services/monitoring/env.example` (Grafana's admin
+   password, the SMTP relay of the alerts, the Healthchecks URL). Then:
+
+```bash
+cd ~/shared && git pull && scripts/deploy.sh --monitoring
+docker stack ps pedalons-monitoring
+```
+
+`deploy.sh --monitoring` renders Alertmanager's configuration into `data/monitoring/` (it reads no
+environment; the SMTP password and the ping URL go beside it as files), writes Caddy's target,
+deploys, and sends `SIGHUP` to the Prometheus, Alertmanager and Alloy that were already running so
+that they reload their files. Loki and Grafana read theirs at start only: after changing
+`loki.yml` or a provisioning file, `docker service update --force pedalons-monitoring_<service>`.
+Dashboards under `services/monitoring/grafana/dashboards/` are picked up within a minute.
+
+5. **Check from another machine**, as for traefik: `curl -m 5 http://<host>:3300` and
+   `curl -m 5 http://<host>:2020/metrics` must both time out.
+
+### Grafana
+
+Through an SSH tunnel, never a public hostname:
+
+```bash
+ssh -L 3300:127.0.0.1:3300 <host>      # then http://localhost:3300, user admin
+```
+
+`GRAFANA_ADMIN_PASSWORD` is only read on Grafana's first start; change the password in Grafana
+after. The **Pédalons — vue d'ensemble** dashboard comes from the repository (read-only in the UI:
+edit the JSON). Community dashboards import by ID from the UI (*Dashboards → New → Import*) and live
+in Grafana's database: *Node Exporter Full* (1860), *JVM (Micrometer)* (4701). Logs are in
+*Explore → Loki*: `{stack="pedalons-prod", service="backend"} | json`, or `{job="caddy"} | json |
+status >= 500`.
+
+### Alerts
+
+All of them by e-mail, through `ALERT_SMTP_*` — preferably not the relay the application sends
+through, whose outage would then silence its own alert. Severity only says how soon to look.
+
+| Alert | Fires when | First look |
+|---|---|---|
+| `HighErrorRate` (critical) | over 5 % of a site's requests end in 5xx for 5 min | `docker stack ps`, backend logs in Loki |
+| `SlowResponses` | a site's p95 above 3 s for 15 min | the dashboard's CPU and connection pool panels |
+| `OomKill` (critical) | the kernel killed a process in the last 10 min | `docker stack ps` (`exit (137)`), then [Memory](#memory) |
+| `ContainerNearMemoryLimit` | a container's working set above 90 % of its limit for 30 min | raise that limit, or `VARNISH_SIZE` down |
+| `DiskAlmostFull` (critical) | a filesystem under 15 % free | `docker system df`, `data/cache`, old images |
+| `DiskFillingUp` | a filesystem full within 24 h at the last 6 h's rate | same |
+| `HostLowMemory` | under 10 % of the host's memory available for 15 min | `docker stats` |
+| `BackendHeapFull` | over 90 % of the heap still live after GC for 15 min | raise `BACKEND_MEMORY` |
+| `BackendConnectionPoolExhausted` | requests waiting for a database connection for 5 min | slow queries, a stuck transaction |
+| `BackendErrors` (Loki) | more than 10 `ERROR` lines in 10 min, for 5 min | the lines themselves, in Loki |
+| `TargetDown` | a scrape target unreachable for 5 min | `docker stack ps` of its stack |
+| `Watchdog` | always — its **absence** is the alert, at Healthchecks | the host, then this stack |
+
+The rules are tested: `promtool test rules` (command at the top of
+`services/monitoring/prometheus/tests/pedalons.test.yml`) — mostly for the label matching of the
+ratios, where a mismatch makes an alert silently never fire. Backups are not among them: their own
+Healthchecks check already covers them (see [Configuration](#configuration)).
+
+### Gatus, on the backup host
+
+The one monitor outside the application host: it probes `https://www.pedalons.fr/api/version`, the
+home page, the bare-domain redirect and staging, and mails when one fails three times in a row or
+when a certificate expires within 14 days. Its configuration lives in the repository
+(`services/monitoring/gatus/`), in the same read-only checkout as `backup-prune.sh` — Gatus reloads it
+when the nightly `git reset --hard` changes it:
+
+```bash
+cd /opt/pedalons-scripts && git sparse-checkout add services/monitoring/gatus
+cd services/monitoring/gatus
+cp env.example .env && $EDITOR .env      # GATUS_BIND=<backup-tunnel-ip>, or 127.0.0.1 + SSH tunnel
+docker compose up -d && docker compose logs -f   # four "success=true" lines within a minute
+```
+
+Nothing watches Gatus itself: a glance at its page now and then (through the tunnel) is the check.
+
+### Privacy
+
+The Caddy access log is read **as Caddy wrote it**, already filtered (see
+[Access logs](#access-logs)), and Loki keeps it, like everything else, **14 days** — the promise of
+the privacy policy for that log. Don't raise `retention_period` in `loki.yml`, and never point Alloy
+at an unfiltered source. The containers' own logs go through the same retention: 14 days, whatever
+they may carry.
 
 ## Backup and restore
 

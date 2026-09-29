@@ -1,0 +1,13 @@
+# Log-based alerts, evaluated by Loki's ruler (loki.yml) and sent to Alertmanager.
+groups:
+  - name: backend-logs
+    rules:
+      # The backend's JSON log (%prod) carries `level`, extracted as a label by Alloy. 4xx are
+      # logged at WARN (GlobalExceptionMapper), so an ERROR is a server-side failure.
+      - alert: BackendErrors
+        expr: sum by (stack) (count_over_time({service="backend", level="ERROR"}[10m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.stack }}: {{ $value }} errors logged by the backend in 10 minutes."

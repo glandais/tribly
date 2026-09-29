@@ -1,0 +1,92 @@
+// Alloy of the monitoring stack: ships logs to Loki, nothing else (Prometheus scrapes the metrics).
+// Reloaded by `scripts/deploy.sh --monitoring`.
+//
+// Loki labels stay few — stack, service, level for the backend, filename for Caddy — everything
+// else is searched in the line (`| json`). A label per status code, path or user would multiply
+// Loki's streams.
+
+// ---- Every Swarm container on the host ------------------------------------------------------
+
+discovery.docker "containers" {
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "15s"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  // Stack containers only: a one-off `docker run` (restore.sh, a debugging shell) is not shipped.
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_stack_namespace"]
+    regex         = ".+"
+    action        = "keep"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_stack_namespace"]
+    target_label  = "stack"
+  }
+  // "pedalons-prod_backend" → "backend".
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_swarm_service_name"]
+    regex         = ".+?_(.+)"
+    target_label  = "service"
+  }
+}
+
+loki.source.docker "containers" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.relabel.containers.output
+  relabel_rules = discovery.relabel.containers.rules
+  forward_to    = [loki.process.containers.receiver]
+}
+
+loki.process "containers" {
+  // The backend logs JSON in %prod (quarkus-logging-json): one line per event, stack trace included.
+  stage.match {
+    selector = "{service=\"backend\"}"
+
+    stage.json {
+      expressions = { level = "level" }
+    }
+    stage.labels {
+      values = { level = "" }
+    }
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+
+// ---- The host's Caddy access logs ------------------------------------------------------------
+//
+// Read as Caddy wrote them: the query string is already filtered (docs/OPERATIONS.md, « Access
+// logs »). One file per site, hence the filename label.
+
+local.file_match "caddy" {
+  path_targets = [{
+    "__path__" = "/var/log/caddy/*-access.log",
+    "job"      = "caddy",
+  }]
+}
+
+loki.source.file "caddy" {
+  targets    = local.file_match.caddy.targets
+  forward_to = [loki.process.caddy.receiver]
+}
+
+loki.process "caddy" {
+  stage.json {
+    expressions = { ts = "ts" }
+  }
+  stage.timestamp {
+    source = "ts"
+    format = "unix"
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

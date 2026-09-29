@@ -1,0 +1,70 @@
+# Gatus, on the BACKUP host: probes the sites from outside, which nothing on the application host can
+# do — an alert raised there cannot leave a host that is down. Its twin is the Watchdog of the
+# monitoring stack, which Healthchecks watches (docs/OPERATIONS.md, « Monitoring »).
+#
+# ${…} are read from the environment (docker-compose.yml beside this file, and its .env). Gatus
+# reloads this file when it changes: the nightly `git reset --hard` of the backup host's checkout
+# is enough to roll out an edit.
+storage:
+  type: sqlite
+  path: /data/gatus.db
+
+alerting:
+  email:
+    from: "${GATUS_SMTP_FROM}"
+    username: "${GATUS_SMTP_USERNAME}"
+    password: "${GATUS_SMTP_PASSWORD}"
+    host: "${GATUS_SMTP_HOST}"
+    port: ${GATUS_SMTP_PORT}
+    to: "${GATUS_ALERT_TO}"
+    default-alert:
+      failure-threshold: 3
+      success-threshold: 2
+      send-on-resolved: true
+
+# /api/version answers from the backend through Caddy and traefik, without touching the database:
+# a failure is the chain, not a slow query. The home page adds the SSR frontend.
+endpoints:
+  - name: api
+    group: prod
+    url: https://www.pedalons.fr/api/version
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 5000"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
+    alerts:
+      - type: email
+
+  - name: home
+    group: prod
+    url: https://www.pedalons.fr/
+    interval: 2m
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 5000"
+    alerts:
+      - type: email
+
+  # The bare domain only redirects, but has a certificate of its own.
+  - name: redirect
+    group: prod
+    url: https://pedalons.fr/
+    interval: 5m
+    client:
+      ignore-redirect: true
+    conditions:
+      - "[STATUS] < 400"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
+    alerts:
+      - type: email
+
+  - name: api
+    group: staging
+    url: https://staging.pedalons.fr/api/version
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
+    alerts:
+      - type: email

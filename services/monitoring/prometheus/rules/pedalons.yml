@@ -1,0 +1,131 @@
+# Alerts of the monitoring stack. Every one of them goes by e-mail (alertmanager.yml), whatever its
+# severity, which only tells the reader how soon to look. What each one means and what to do about
+# it: docs/OPERATIONS.md, « Monitoring ».
+#
+# The site being down seen from outside, and its certificate, are Gatus's, on the backup host: an
+# alert raised here cannot leave a host that is down.
+groups:
+  - name: meta
+    rules:
+      # Always firing. Alertmanager sends it to Healthchecks every 5 minutes; Healthchecks mails when
+      # it stops — the host, the stack or Alertmanager is down, and none of the alerts below can
+      # arrive either.
+      - alert: Watchdog
+        expr: vector(1)
+        labels:
+          severity: none
+        annotations:
+          summary: The alerting pipeline is alive.
+
+      - alert: TargetDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.job }} ({{ $labels.env }} {{ $labels.instance }}) cannot be scraped."
+
+  - name: site
+    rules:
+      # Measured at Caddy, i.e. what visitors get: traefik or a backend that does not answer shows
+      # up as 502. `host` is the site's hostname; `_other` is Caddy's own metrics endpoint.
+      - alert: HighErrorRate
+        expr: |
+          sum by (host) (rate(caddy_http_request_duration_seconds_count{host!="_other", code=~"5.."}[5m]))
+            / sum by (host) (rate(caddy_http_request_duration_seconds_count{host!="_other"}[5m]))
+            > 0.05
+          and sum by (host) (rate(caddy_http_request_duration_seconds_count{host!="_other"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.host }}: {{ $value | humanizePercentage }} of requests end in 5xx."
+
+      - alert: SlowResponses
+        expr: |
+          histogram_quantile(0.95,
+            sum by (host, le) (rate(caddy_http_request_duration_seconds_bucket{host!="_other"}[10m])))
+            > 3
+          and sum by (host) (rate(caddy_http_request_duration_seconds_count{host!="_other"}[10m])) > 0.05
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.host }}: p95 latency {{ $value | humanizeDuration }}."
+
+  - name: containers
+    rules:
+      # The kernel killed a process for lack of memory — most likely a container over its limit
+      # (`docker stack ps` shows `non-zero exit (137)`, Swarm has restarted it).
+      - alert: OomKill
+        expr: increase(node_vmstat_oom_kill[10m]) > 0
+        labels:
+          severity: critical
+        annotations:
+          summary: The kernel OOM-killed a process in the last 10 minutes.
+
+      # Working set: what the kernel cannot reclaim before killing. Varnish's cache alone is two
+      # thirds of its limit by design (VARNISH_SIZE), so it runs high but should stay under this.
+      - alert: ContainerNearMemoryLimit
+        expr: |
+          max by (container_label_com_docker_stack_namespace, container_label_com_docker_swarm_service_name) (
+            container_memory_working_set_bytes{container_label_com_docker_swarm_service_name!=""}
+              / (container_spec_memory_limit_bytes > 0)
+          ) > 0.9
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.container_label_com_docker_swarm_service_name }} uses {{ $value | humanizePercentage }} of its memory limit."
+
+  - name: host
+    rules:
+      - alert: DiskAlmostFull
+        expr: |
+          node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs"}
+            / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs"} < 0.15
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.mountpoint }}: {{ $value | humanizePercentage }} free."
+
+      - alert: DiskFillingUp
+        expr: |
+          predict_linear(node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs"}[6h], 24 * 3600) < 0
+          and node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs"}
+            / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs"} < 0.4
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.mountpoint }} will be full within 24 hours at this rate."
+
+      - alert: HostLowMemory
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Only {{ $value | humanizePercentage }} of the host's memory is available."
+
+  - name: backend
+    rules:
+      # Old generation after a full GC, against its maximum: a heap that stays this full no longer
+      # has room to work, whatever the momentary usage.
+      - alert: BackendHeapFull
+        expr: jvm_gc_live_data_size_bytes / jvm_gc_max_data_size_bytes > 0.9
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.env }}: {{ $value | humanizePercentage }} of the heap is live after GC (raise BACKEND_MEMORY?)."
+
+      # Requests waiting for a database connection: the 20 pooled ones are all taken.
+      - alert: BackendConnectionPoolExhausted
+        expr: max by (env) (agroal_awaiting_count) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.env }}: requests are waiting for a database connection."

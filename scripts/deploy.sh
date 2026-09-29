@@ -5,6 +5,7 @@
 #   scripts/deploy.sh --rev <commit>  an earlier build, without rebuilding (e.g. --rev HEAD~1)
 #   scripts/deploy.sh --hold-app      backend and frontend at 0 replicas (used by restore.sh)
 #   scripts/deploy.sh --shared        the shared stack instead, from the ~/shared checkout
+#   scripts/deploy.sh --monitoring    the monitoring stack, from the ~/shared checkout too
 #
 # Never run `docker stack deploy` by hand on this file, for two reasons this script exists for:
 #
@@ -35,11 +36,13 @@ KEEP_BUILDS=5
 
 HOLD_APP=false
 SHARED=false
+MONITORING=false
 REV=""
 case "${1:-}" in
   "") ;;
   --hold-app) HOLD_APP=true ;;
   --shared) SHARED=true ;;
+  --monitoring) MONITORING=true ;;
   --rev) REV="${2:?--rev needs a commit}" ;;
   -h | --help) sed -n '2,22p' "$0"; exit 0 ;;
   *) die "unknown argument: $1 (try --help)" ;;
@@ -50,8 +53,68 @@ cd "$REPO_ROOT"
 [[ "$(docker info --format '{{.Swarm.LocalNodeState}}' 2>/dev/null)" == "active" ]] \
   || die "this node is not in a swarm — run 'docker swarm init' once (see docs/OPERATIONS.md, Deployment)"
 
+if $MONITORING; then
+  # The .env of the ~/shared checkout: the ALERT_* and GRAFANA_* keys of
+  # services/monitoring/env.example sit beside VALHALLA_TILE_URLS.
+  [[ -f .env ]] || die "no .env in $REPO_ROOT — add the keys of services/monitoring/env.example"
+  set -a
+  . ./.env
+  set +a
+  for var in GRAFANA_ADMIN_PASSWORD ALERT_SMTP_SMARTHOST ALERT_SMTP_USERNAME ALERT_SMTP_PASSWORD \
+    ALERT_SMTP_FROM ALERT_EMAIL_TO ALERT_WATCHDOG_PING_URL; do
+    [[ -n "${!var:-}" ]] || die "$var is not set in .env (see services/monitoring/env.example)"
+  done
+  docker network inspect pedalons-shared >/dev/null 2>&1 \
+    || die "network pedalons-shared missing — deploy the shared stack first (scripts/deploy.sh --shared)"
+  # A missing bind-mount source makes Swarm reject the task (Caddy's logs: docs/OPERATIONS.md,
+  # « Access logs »).
+  [[ -d /var/log/caddy ]] || die "no /var/log/caddy — set up Caddy's access logs first"
+  command -v envsubst >/dev/null || die "envsubst is not installed (apt install gettext-base)"
+
+  # Alertmanager reads no environment: its configuration is rendered here, the secrets written
+  # beside it as files so that no value can break the YAML. World-readable, because Alertmanager
+  # runs as nobody; the checkout's own permissions keep other users out.
+  out=data/monitoring/alertmanager
+  mkdir -p "$out" data/monitoring/prometheus-targets
+  # Only these, spelled out: anything else in the template that looks like a variable stays as is.
+  # shellcheck disable=SC2016
+  envsubst '${ALERT_SMTP_SMARTHOST} ${ALERT_SMTP_USERNAME} ${ALERT_SMTP_FROM} ${ALERT_EMAIL_TO}' \
+    < services/monitoring/alertmanager/alertmanager.yml > "$out/alertmanager.yml"
+  printf '%s' "$ALERT_SMTP_PASSWORD" > "$out/smtp_password"
+  printf '%s' "$ALERT_WATCHDOG_PING_URL" > "$out/watchdog_url"
+  chmod 644 "$out/alertmanager.yml" "$out/smtp_password" "$out/watchdog_url"
+
+  # Caddy listens on the host: Prometheus reaches it through the gateway of docker_gwbridge, the
+  # bridge every Swarm task leaves the overlay by.
+  if [[ -z "${CADDY_METRICS_TARGET:-}" ]]; then
+    gateway="$(docker network inspect docker_gwbridge -f '{{(index .IPAM.Config 0).Gateway}}' 2>/dev/null)" \
+      || die "no docker_gwbridge network — set CADDY_METRICS_TARGET in .env"
+    CADDY_METRICS_TARGET="$gateway:2020"
+  fi
+  printf '[{"targets": ["%s"], "labels": {"instance": "caddy"}}]\n' "$CADDY_METRICS_TARGET" \
+    > data/monitoring/prometheus-targets/caddy.json
+
+  # Configuration files are bind-mounted: a task already running keeps its old configuration
+  # unless told to reload. Those present before the deploy get SIGHUP after it; a task the deploy
+  # creates reads the new files anyway (and a SIGHUP too early in its start would kill it).
+  declare -A running
+  for service in prometheus alertmanager alloy; do
+    running[$service]="$(docker ps -q --filter "label=com.docker.swarm.service.name=pedalons-monitoring_$service")"
+  done
+
+  log "deploying stack pedalons-monitoring"
+  docker stack deploy --prune -c docker-compose.monitoring.yml pedalons-monitoring
+  for service in "${!running[@]}"; do
+    for id in ${running[$service]}; do
+      docker kill -s HUP "$id" >/dev/null 2>&1 && log "reloaded $service"
+    done
+  done
+  log "loki and grafana read their files at start: docker service update --force pedalons-monitoring_<service> after changing them"
+  exit 0
+fi
+
 if $SHARED; then
-  # Its .env is optional: it only ever carries VALHALLA_TILE_URLS.
+  # Its .env is optional: it carries VALHALLA_TILE_URLS, and the keys of the monitoring stack.
   if [[ -f .env ]]; then
     set -a
     . ./.env

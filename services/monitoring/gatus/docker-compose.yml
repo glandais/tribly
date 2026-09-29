@@ -1,0 +1,24 @@
+# Gatus on the backup host — plain compose, not Swarm: that host runs no stack.
+#
+#   cd /opt/pedalons-scripts/services/monitoring/gatus && docker compose up -d
+#
+# The .env beside this file (never committed) holds the GATUS_* values, see env.example. Its UI
+# listens on GATUS_BIND only: the WireGuard address, or the loopback behind an SSH tunnel.
+services:
+  gatus:
+    image: ghcr.io/twin/gatus:v5.37.0
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      GATUS_CONFIG_PATH: /config/config.yaml
+    ports:
+      - "${GATUS_BIND:-127.0.0.1}:8080:8080"
+    volumes:
+      # The directory, not the file: an edit replaces the file, and a single-file bind mount would
+      # keep reading the old one.
+      - .:/config:ro
+      - gatus_data:/data
+    mem_limit: 128m
+
+volumes:
+  gatus_data:

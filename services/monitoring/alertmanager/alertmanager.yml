@@ -1,0 +1,41 @@
+# Alertmanager of the monitoring stack — a TEMPLATE. `scripts/deploy.sh --monitoring` substitutes
+# the ${ALERT_*} values of the ~/shared .env and writes the result, with the two secrets beside it
+# as files, to data/monitoring/alertmanager/. Edit this file, never the rendered one.
+global:
+  smtp_smarthost: "${ALERT_SMTP_SMARTHOST}"
+  smtp_from: "${ALERT_SMTP_FROM}"
+  smtp_auth_username: "${ALERT_SMTP_USERNAME}"
+  # Written by deploy.sh from ALERT_SMTP_PASSWORD: a file, so no value can break the YAML.
+  smtp_auth_password_file: /etc/alertmanager/smtp_password
+  smtp_require_tls: true
+
+route:
+  receiver: email
+  group_by: [alertname, env, stack, host]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+  routes:
+    # The dead man's switch: Healthchecks expects this every 5 minutes and mails when it stops
+    # coming (rules/pedalons.yml, Watchdog).
+    - matchers: [alertname="Watchdog"]
+      receiver: healthchecks
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 5m
+
+receivers:
+  - name: email
+    email_configs:
+      - to: "${ALERT_EMAIL_TO}"
+        send_resolved: true
+  - name: healthchecks
+    webhook_configs:
+      - url_file: /etc/alertmanager/watchdog_url
+        send_resolved: false
+
+inhibit_rules:
+  # A disk already almost full needs no forecast on top.
+  - source_matchers: [alertname="DiskAlmostFull"]
+    target_matchers: [alertname="DiskFillingUp"]
+    equal: [mountpoint]

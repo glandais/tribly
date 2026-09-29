@@ -118,3 +118,5 @@ frontend/e2e/.report/
 mobile/screenshots/accounts*.local.json
 mobile/screenshots/flat/
 mobile/screenshots/koubou/out/
+# Rendered by scripts/deploy.sh --monitoring (Alertmanager configuration and secrets, Caddy target)
+data/monitoring/

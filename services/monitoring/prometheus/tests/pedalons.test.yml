@@ -1,0 +1,86 @@
+# Unit tests of rules/pedalons.yml, mostly for the label matching of the ratios — a division whose
+# two sides do not share their labels returns nothing and never fires. Run:
+#
+#   docker run --rm -v "$PWD/services/monitoring/prometheus:/etc/prometheus:ro" \
+#     --entrypoint promtool prom/prometheus:v3.15.0 test rules /etc/prometheus/tests/pedalons.test.yml
+rule_files:
+  - ../rules/pedalons.yml
+
+evaluation_interval: 30s
+
+tests:
+  - interval: 1m
+    input_series:
+      # 60 requests a minute on www, 6 of them 502: 10 %.
+      - series: 'caddy_http_request_duration_seconds_count{host="www.pedalons.fr", code="200", handler="subroute", method="GET", server="srv1"}'
+        values: '0+54x20'
+      - series: 'caddy_http_request_duration_seconds_count{host="www.pedalons.fr", code="502", handler="subroute", method="GET", server="srv1"}'
+        values: '0+6x20'
+      # staging: healthy.
+      - series: 'caddy_http_request_duration_seconds_count{host="staging.pedalons.fr", code="200", handler="subroute", method="GET", server="srv1"}'
+        values: '0+60x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: HighErrorRate
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              host: www.pedalons.fr
+            exp_annotations:
+              summary: "www.pedalons.fr: 10% of requests end in 5xx."
+
+  - interval: 1m
+    input_series:
+      - series: 'container_memory_working_set_bytes{id="/a", name="x", container_label_com_docker_stack_namespace="pedalons-prod", container_label_com_docker_swarm_service_name="pedalons-prod_backend"}'
+        values: '1500x40'
+      - series: 'container_spec_memory_limit_bytes{id="/a", name="x", container_label_com_docker_stack_namespace="pedalons-prod", container_label_com_docker_swarm_service_name="pedalons-prod_backend"}'
+        values: '1600x40'
+      # valhalla: no limit (0), must not fire.
+      - series: 'container_memory_working_set_bytes{id="/b", name="y", container_label_com_docker_stack_namespace="pedalons-shared", container_label_com_docker_swarm_service_name="pedalons-shared_valhalla"}'
+        values: '1500x40'
+      - series: 'container_spec_memory_limit_bytes{id="/b", name="y", container_label_com_docker_stack_namespace="pedalons-shared", container_label_com_docker_swarm_service_name="pedalons-shared_valhalla"}'
+        values: '0x40'
+    alert_rule_test:
+      - eval_time: 35m
+        alertname: ContainerNearMemoryLimit
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              container_label_com_docker_stack_namespace: pedalons-prod
+              container_label_com_docker_swarm_service_name: pedalons-prod_backend
+            exp_annotations:
+              summary: "pedalons-prod_backend uses 93.75% of its memory limit."
+
+  - interval: 1m
+    input_series:
+      - series: 'node_vmstat_oom_kill{instance="node-exporter:9100", job="node"}'
+        values: '3 3 3 4 4 4'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: OomKill
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              instance: node-exporter:9100
+              job: node
+            exp_annotations:
+              summary: The kernel OOM-killed a process in the last 10 minutes.
+
+  - interval: 1m
+    input_series:
+      - series: 'jvm_gc_live_data_size_bytes{env="pedalons-prod", task="t1", job="backend", instance="10.0.0.5:8080"}'
+        values: '950x30'
+      - series: 'jvm_gc_max_data_size_bytes{env="pedalons-prod", task="t1", job="backend", instance="10.0.0.5:8080"}'
+        values: '1000x30'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: BackendHeapFull
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              env: pedalons-prod
+              task: t1
+              job: backend
+              instance: 10.0.0.5:8080
+            exp_annotations:
+              summary: "pedalons-prod: 95% of the heap is live after GC (raise BACKEND_MEMORY?)."

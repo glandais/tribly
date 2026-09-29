@@ -1,0 +1,71 @@
+# Prometheus of the monitoring stack (docker-compose.monitoring.yml). Reloaded by
+# `scripts/deploy.sh --monitoring`; the rules under rules/ are checked by
+# `promtool check config` (docs/OPERATIONS.md, « Monitoring »).
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: [alertmanager:9093]
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: [localhost:9090]
+
+  - job_name: alertmanager
+    static_configs:
+      - targets: [alertmanager:9093]
+
+  - job_name: loki
+    static_configs:
+      - targets: [loki:3100]
+
+  - job_name: alloy
+    static_configs:
+      - targets: [alloy:12345]
+
+  - job_name: node
+    static_configs:
+      - targets: [node-exporter:9100]
+
+  - job_name: cadvisor
+    static_configs:
+      - targets: [cadvisor:8080]
+
+  # The host's Caddy: requests, status codes and latency per hostname, i.e. per environment. It
+  # listens on the host, so its address — the docker_gwbridge gateway — is written by deploy.sh.
+  - job_name: caddy
+    file_sd_configs:
+      - files: [/etc/prometheus-targets/caddy.json]
+
+  # Every environment's backend, one target per task: during a rolling update both the old and the
+  # new one are scraped. Found through the Swarm API rather than by name, so that a new environment
+  # needs no change here. Its address on `pedalons-shared`, the one network Prometheus shares with
+  # it; /q is not routed by traefik (only /api is), so the endpoint is not public.
+  - job_name: backend
+    metrics_path: /q/metrics
+    dockerswarm_sd_configs:
+      - host: unix:///var/run/docker.sock
+        role: tasks
+        port: 8080
+    relabel_configs:
+      - source_labels: [__meta_dockerswarm_task_desired_state]
+        regex: running
+        action: keep
+      - source_labels: [__meta_dockerswarm_service_name]
+        regex: .+_backend
+        action: keep
+      - source_labels: [__meta_dockerswarm_network_name]
+        regex: pedalons-shared
+        action: keep
+      # The stack, i.e. ENV_NAME: pedalons-prod, pedalons-staging.
+      - source_labels: [__meta_dockerswarm_service_label_com_docker_stack_namespace]
+        target_label: env
+      - source_labels: [__meta_dockerswarm_task_id]
+        target_label: task

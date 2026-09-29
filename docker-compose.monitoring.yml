@@ -1,0 +1,196 @@
+# Monitoring stack of a deployed host: metrics, logs, dashboards and alerts for every stack on it.
+#
+#   cd ~/shared && scripts/deploy.sh --monitoring
+#
+# Deployed from the ~/shared checkout like docker-compose.shared.yml, as the Swarm stack
+# `pedalons-monitoring`, after it (Prometheus joins `pedalons-shared` to reach each environment's
+# backend). Never by hand: deploy.sh loads the .env, renders Alertmanager's configuration and the
+# Caddy scrape target into data/monitoring/, and reloads what was already running. What each
+# service does, the host-side prerequisites (firewall, Caddy's metrics) and the alerts:
+# docs/OPERATIONS.md, « Monitoring ».
+#
+# Not run on a workstation: it reads the host's Caddy logs and the Docker socket, and has nothing to
+# watch there that `docker stats` does not show.
+#
+# Nothing here publishes a port but Grafana, and Swarm publishes on every interface: the host's
+# DOCKER-USER rules (scripts/pedalons-firewall.sh, MONITORING_PORTS) keep it off the Internet —
+# install them first. Prometheus, cAdvisor and Alloy read the Docker socket, as traefik does; none of
+# them is reachable from outside the stack.
+services:
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    # The socket is root:docker 0660: Swarm service discovery (the backend job) needs it readable.
+    user: root
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=4GB
+    networks:
+      - monitoring
+      # Each environment's backend joins it too: the backend job scrapes its tasks there.
+      - shared
+    volumes:
+      - ./services/monitoring/prometheus:/etc/prometheus:ro
+      # file_sd target of the host's Caddy, written by deploy.sh (its address is the host's).
+      - ./data/monitoring/prometheus-targets:/etc/prometheus-targets:ro
+      - prometheus_data:/prometheus
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 512M
+
+  alertmanager:
+    image: prom/alertmanager:v0.34.1
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    networks:
+      - monitoring
+    volumes:
+      # Rendered by deploy.sh from services/monitoring/alertmanager/alertmanager.yml, secrets as files.
+      - ./data/monitoring/alertmanager:/etc/alertmanager:ro
+      - alertmanager_data:/alertmanager
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  # The host's disks, memory and OOM kills. Host /proc, /sys and / mounted read-only: Swarm has no
+  # `pid: host`, and does not need it for these. Network collectors are off: through a mounted /proc
+  # they would report this container's own interface, not the host's.
+  node-exporter:
+    image: prom/node-exporter:v1.12.1
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|run|sys|var/lib/docker/.+)($$|/)
+      - --no-collector.netdev
+      - --no-collector.netstat
+      - --no-collector.sockstat
+      - --no-collector.arp
+    networks:
+      - monitoring
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - type: bind
+        source: /
+        target: /rootfs
+        read_only: true
+        bind:
+          propagation: rslave
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+
+  # Per-container CPU and memory, against each service's limit. Only the two Swarm labels are kept:
+  # every other container label would become a Prometheus label.
+  cadvisor:
+    image: ghcr.io/google/cadvisor:v0.60.6
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=30s
+      - --store_container_labels=false
+      - --whitelisted_container_labels=com.docker.stack.namespace,com.docker.swarm.service.name
+      - --enable_metrics=cpu,memory
+    networks:
+      - monitoring
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 256M
+
+  loki:
+    image: grafana/loki:3.7.8
+    command:
+      - -config.file=/etc/loki/loki.yml
+    networks:
+      - monitoring
+    volumes:
+      - ./services/monitoring/loki:/etc/loki:ro
+      - loki_data:/loki
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # Ships every stack's container logs and the host's Caddy access logs to Loki. The Caddy files are
+  # read as Caddy wrote them, i.e. already filtered (docs/OPERATIONS.md, « Access logs »).
+  alloy:
+    image: grafana/alloy:v1.20.1
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - --disable-reporting
+      - /etc/alloy/config.alloy
+    networks:
+      - monitoring
+    volumes:
+      - ./services/monitoring/alloy:/etc/alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log/caddy:/var/log/caddy:ro
+      - alloy_data:/var/lib/alloy/data
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 256M
+
+  grafana:
+    image: grafana/grafana:13.2.3
+    networks:
+      - monitoring
+    ports:
+      # Every interface, as with traefik: the DOCKER-USER rule of MONITORING_PORTS drops it on the
+      # public one. Reach it through an SSH tunnel (docs/OPERATIONS.md, « Monitoring »).
+      - "${GRAFANA_PORT:-3300}:3000"
+    environment:
+      # Only read on the very first start: afterwards the password lives in Grafana's database.
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set it in .env}
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3300}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+    volumes:
+      - ./services/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./services/monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+volumes:
+  prometheus_data:
+  alertmanager_data:
+  loki_data:
+  alloy_data:
+  grafana_data:
+
+networks:
+  monitoring:
+    driver: overlay
+  shared:
+    name: pedalons-shared
+    external: true

@@ -244,8 +244,8 @@ Docker Compose : 7 services par environnement (`docker-compose.yml`) + 2 partag�
 | I3 | Aucun pipeline CD — images poussees manuellement | Critique | L | Nouveau `cd.yml` | |
 | I4 | Tag `:latest` sur images backend/frontend — pas de rollback. Depuis, tag par environnement (`pedalons-backend:${ENV_NAME}`) : chaque build écrase la précédente, toujours pas de rollback par version | Critique | S | `docker-compose.yml`, `build.sh` | ✅ (Docker Swarm : `build.sh` tague aussi `${ENV_NAME}-<sha12>`, `scripts/deploy.sh --rev` et `docker service rollback` — voir `docs/OPERATIONS.md`, Rolling updates) |
 | I5 | Pas de healthchecks Docker (sauf PostgreSQL) | Critique | M | `docker-compose.yml` | *(ouvert : backend, frontend et postgres en ont un ; minio, imgproxy, varnish et traefik non)* |
-| I6 | Aucune collecte de metriques (pas de Prometheus/Micrometer) | Critique | M | `pom.xml`, config | |
-| I7 | Aucun alerting | Critique | XL | Infrastructure | |
+| I6 | Aucune collecte de metriques (pas de Prometheus/Micrometer) | Critique | M | `pom.xml`, config | ✅ (ledger `AUD-11`) |
+| I7 | Aucun alerting | Critique | XL | Infrastructure | ✅ (ledger `AUD-12`) |
 | I8 | Tests frontend commentes dans le CI | Important | S | `ci.yml` | ✅ |
 | I9 | Version Node CI (24) vs Dockerfile frontend (26.9.0) — mismatch | Important | S | `ci.yml` | ✅ (la CI lit `frontend/.nvmrc`, 26.9.0 comme le Dockerfile) |
 | I10 | `forwardedHeaders.insecure=true` sur Traefik | Important | S | `docker-compose.yml` | |
