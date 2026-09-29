@@ -65,6 +65,9 @@ vers les lignes voisines du ledger. Un point tranché quitte les deux fichiers.
 
 ## 5. Web Push : formulation et calendrier
 
+> **Clos le 2026-09-29 (`LEGAL-5`)** : destinataires indépendants, décrits au §4 et au §5, hors du
+> tableau des sous-traitants.
+
 - **Constat** : la politique dit désormais que, dans un navigateur, les notifications passent « par
   le service push propre au navigateur ». Elle nomme FCM (Google) comme relais, mais pas
   les services push des éditeurs de navigateurs qui remettent le message (Google pour Chrome,
@@ -73,6 +76,9 @@ vers les lignes voisines du ledger. Un point tranché quitte les deux fichiers.
 - **À décider** : faut-il lister ces services dans le tableau des sous-traitants et des transferts ?
 
 ## 6. Points mineurs
+
+> **Clos le 2026-09-29** : Wahoo ajouté à la FAQ (`LEGAL-6`) ; le message à l'auteur d'une annonce
+> déclaré aussi en « Messages » côté Play (`LEGAL-7`).
 
 - **Wahoo** (`LEGAL-6` ; les CGU le citent depuis le 29 septembre 2026, reste la FAQ) : il s'active par domaine (`DomainFormModal`). S'il est actif sur pedalons.fr, il faut
   l'ajouter à la dernière FAQ de `privacy/support.{fr,en}.md` et au §2 des CGU, qui ne citent que

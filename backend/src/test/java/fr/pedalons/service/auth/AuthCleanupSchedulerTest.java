@@ -9,8 +9,11 @@ import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.AuthTokenType;
 import fr.pedalons.enums.GpsServiceType;
+import fr.pedalons.enums.WebAuthnChallengeType;
 import fr.pedalons.repository.auth.AuthSessionRepository;
 import fr.pedalons.repository.auth.AuthTokenRepository;
+import fr.pedalons.repository.auth.DeviceCodeRepository;
+import fr.pedalons.repository.auth.WebAuthnChallengeRepository;
 import fr.pedalons.repository.gps.GpsOAuthStateRepository;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.util.TestDataCleaner;
@@ -30,6 +33,8 @@ class AuthCleanupSchedulerTest extends AbstractBaseTest {
   @Inject AuthSessionRepository authSessionRepository;
   @Inject AuthTokenRepository authTokenRepository;
   @Inject GpsOAuthStateRepository gpsOAuthStateRepository;
+  @Inject DeviceCodeRepository deviceCodeRepository;
+  @Inject WebAuthnChallengeRepository webAuthnChallengeRepository;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
   @Inject DomainResolver domainResolver;
@@ -173,6 +178,40 @@ class AuthCleanupSchedulerTest extends AbstractBaseTest {
       authCleanupScheduler.cleanupExpiredAuthData();
 
       assertEquals(2, gpsOAuthStateRepository.count());
+    }
+  }
+
+  /** The privacy policy (§6) announces both as deleted once expired: docs/LEDGER_DONE.md LEGAL-12. */
+  @Nested
+  class CleanupAbandonedPairingsAndChallenges {
+
+    @Test
+    void shouldDeleteExpiredDeviceCodesOnly() {
+      dataService.createDeviceCode(domain.getId(), "EXPIRED1", Instant.now().minusSeconds(60));
+      dataService.createDeviceCode(
+          domain.getId(), "VALID001", Instant.now().plus(10, ChronoUnit.MINUTES));
+
+      authCleanupScheduler.cleanupExpiredAuthData();
+
+      assertEquals(1, deviceCodeRepository.count());
+      assertTrue(deviceCodeRepository.findByUserCode("VALID001").isPresent());
+    }
+
+    @Test
+    void shouldDeleteExpiredWebAuthnChallengesOnly() {
+      dataService.createExpiredWebAuthnChallenge(
+          user, "cleanup@example.com", "expired", WebAuthnChallengeType.REGISTRATION);
+      dataService.createWebAuthnChallenge(
+          null,
+          "other@example.com",
+          "valid",
+          WebAuthnChallengeType.AUTHENTICATION,
+          Instant.now().plus(5, ChronoUnit.MINUTES));
+
+      authCleanupScheduler.cleanupExpiredAuthData();
+
+      assertEquals(1, webAuthnChallengeRepository.count());
+      assertTrue(webAuthnChallengeRepository.findValidByChallenge("valid").isPresent());
     }
   }
 }

@@ -1,0 +1,20 @@
+# Rotation of the host Caddy's access log. Install as /etc/logrotate.d/caddy-access on the
+# production host (docs/OPERATIONS.md, "Access logs"):
+#
+#   install -m 644 scripts/caddy-access.logrotate /etc/logrotate.d/caddy-access
+#   mkdir -p /var/log/caddy
+#   logrotate -d /etc/logrotate.d/caddy-access     # dry run
+#
+# daily + rotate 13: the live file holds up to a day, the 13 rotated ones the rest, so no line is
+# older than the 14 days the privacy policy (§6) promises — do not raise it without changing the
+# policy first (docs/LEDGER_DONE.md LEGAL-10). copytruncate because Caddy keeps the file open and
+# has no signal to reopen it; `roll_disabled` in the Caddyfile leaves the rotation to us.
+/var/log/caddy/*-access.log {
+    daily
+    rotate 13
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}

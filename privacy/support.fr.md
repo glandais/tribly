@@ -28,4 +28,4 @@ Dans l'application : **Profil → Compte → Zone de danger**, puis « Supprimer
 
 ### Comment envoyer un parcours vers mon compteur GPS ?
 
-Connectez d'abord votre compteur (Hammerhead Karoo ou Garmin) depuis **Profil → Appareils GPS**. L'action « Envoyer vers un appareil » apparaît ensuite sur chaque parcours.
+Connectez d'abord votre compteur (Hammerhead Karoo, Garmin ou Wahoo) depuis **Profil → Appareils GPS**. L'action « Envoyer vers un appareil » apparaît ensuite sur chaque parcours.

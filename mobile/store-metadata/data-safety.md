@@ -300,6 +300,7 @@ per-row, because approximate location is the one type that is processed ephemera
 | Personal info | User IDs | Yes | No | Required | App functionality, Account management, Fraud prevention, security, and compliance |
 | App activity | Other actions | Yes | No | Optional | App functionality |
 | App activity | Other user-generated content | Yes | No | Optional | App functionality, Fraud prevention, security, and compliance |
+| Messages | Other in-app messages | Yes | No | Optional | App functionality |
 | Photos and videos | Photos | Yes | No | Optional | App functionality |
 | Location | Approximate location | Yes | **Yes** | Optional | App functionality |
 | Device or other IDs | Device or other IDs | Yes | No | Optional | App functionality |
@@ -331,13 +332,21 @@ report's free-text message are. Nobody has to comment or report to use the app. 
 exists to enforce the terms of service. Reports are not *shared*: they go to the team's organizers
 and to Pedalons inside the service, which Google does not count as sharing.
 
+*Messages → Other in-app messages* is **optional** and covers the **message to an ad's author**
+(#20) **as well as** the *Other user-generated content* row above (decided on 2026-09-29,
+`docs/LEDGER_DONE.md LEGAL-7`): its full text goes from one member to another, which is what Google
+calls a message, and declaring it twice costs nothing where declaring it too narrowly risks a
+rejection. It is **not shared**: the relay is a transfer the sender initiates, and the e-mail
+provider that carries it is a service provider of ours. Only the relay record is stored, not the
+text.
+
 *Device or other IDs* is **optional** and covers the **push registration token** (#11) with the
 device model sent beside it: it exists only for a member who turned notifications on, and
 sign-out deletes it. It is **not** an advertising ID — none is read — and Google's own form has no
 finer bucket for a messaging token.
 
 Everything else in the form is **not collected**: Precise location, Financial info, Health and
-fitness, Messages, Videos, Audio files, Files and docs, Calendar, Contacts, App interactions,
+fitness, Emails, SMS or MMS, Videos, Audio files, Files and docs, Calendar, Contacts, App interactions,
 In-app search history, Installed apps, Web browsing history, Other app performance data.
 
 **Deliberate divergences from §4**
@@ -523,7 +532,7 @@ these ships:
    (`serviceType`, `teamSlug`, `routeSlug`), no file leaves the device
    (`lib/features/routes/presentation/widgets/route_download_actions.dart`). `contactAdAuthor` is
    now #20, under the *Other User Content* / *Other user-generated content* rows already
-   declared.
+   declared — and, on Play only, under *Messages → Other in-app messages* too (`LEGAL-7`).
 
 ---
 

@@ -116,12 +116,26 @@ public class BiketeamMigrationJobRepository implements PanacheRepository<Biketea
         maxAttempts);
   }
 
-  /** GRANTED rows whose grant lapsed: they become EXPIRED. Nothing is ever deleted. */
+  /** GRANTED rows whose grant lapsed: they become EXPIRED. {@link #deleteEndedBefore} purges. */
   public int expireGrants(Instant now) {
     return update(
         "status = ?1 where status = ?2 and grantExpiresAt < ?3",
         BiketeamMigrationStatus.EXPIRED,
         BiketeamMigrationStatus.GRANTED,
         now);
+  }
+
+  /**
+   * Rows that ended before {@code cutoff}: finished jobs (SUCCEEDED, FAILED), and grants that
+   * lapsed (EXPIRED, which never get a {@code finishedAt}). Never an active or a GRANTED row.
+   */
+  public long deleteEndedBefore(Instant cutoff) {
+    return delete(
+        "status in ?1 and coalesce(finishedAt, grantExpiresAt) < ?2",
+        List.of(
+            BiketeamMigrationStatus.SUCCEEDED,
+            BiketeamMigrationStatus.FAILED,
+            BiketeamMigrationStatus.EXPIRED),
+        cutoff);
   }
 }

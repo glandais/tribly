@@ -343,6 +343,24 @@ Le meneur de groupe (`API-41`, livré en 1.5.0) et l'URL de tuile (`API-1`) sont
 [`LEDGER_DONE.md`](LEDGER_DONE.md). Les **gabarits de sortie n'ont volontairement pas de meneur** —
 décision produit : `RideTemplateGroupRequest` reste sans champ.
 
+### Vie privée : ce que la politique doit encore décrire faute de mieux
+
+- [ ] `API-43` **Les photos téléversées gardent leur EXIF** (position GPS de la prise de vue
+      comprise) — les originaux vont tels quels dans MinIO ; imgproxy retire les métadonnées de ce
+      qu'il sert, mais l'original reste stocké, exporté et sauvegardé. Les retirer à l'import (upload
+      d'asset, avatar), puis simplifier le §1 de la politique. Débloque `LEGAL-9`. Taille : S à M.
+- [ ] `API-44` **Les GPX téléversés gardent horodatages et capteurs** (fréquence cardiaque,
+      cadence, puissance, température dans les extensions) — le fichier source d'un parcours et d'un
+      aperçu de l'outil GPX est stocké tel quel. Ne garder que la trace (position, altitude) et les
+      waypoints, puis simplifier le §1. Débloque `LEGAL-9`. Taille : M.
+- [ ] `API-45` **Des jetons dans le chemin d'URL finissent dans le journal d'accès** — le masquage
+      de `LEGAL-10` ne porte que sur les paramètres de requête : `DELETE
+      /api/push-devices/{token}` (jeton FCM) et le téléchargement d'export
+      (`UserExportDownloadResource`, `/{token}`, valable 7 jours) restent en clair pendant 14 jours.
+      Passer le jeton FCM dans un corps, l'autre en paramètre (masqué) ou en en-tête
+      ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #25). Taille : S, mais
+      l'export touche le contrat.
+
 ---
 
 ## OPS — Exploitation, déploiement, recette du backend
@@ -387,17 +405,22 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
 
 ### Exploitation
 
-- [ ] `OPS-6` **Secrets dans les journaux d'accès** — `?t=` (jeton de tuile, ~15 min) et `?token=`
-      (flux ICS, **sans expiration**) sont écrits en clair par Traefik et par le Caddy de l'hôte. Le
-      masquage n'est prescrit que pour Caddy, et rien dans le dépôt ne dit qu'il est en place ;
-      Traefik (`docker-compose.yml`, `--accesslog=true`) n'a aucun filtre de champs. Configurer le
-      masquage des deux paramètres dans les deux, ou retirer le champ de la requête du journal
-      Traefik. Source : [`OPERATIONS.md`](OPERATIONS.md#redacting-credentials-from-access-logs).
-      Voir aussi `SEC-17` (le jeton ICS qui n'expire jamais).
-- [ ] `OPS-7` **Journal d'accès Traefik non persisté** (audit de février, I13) —
-      `docker-compose.yml` écrit dans `/var/log/traefik/access.log` sans volume : le journal meurt
-      avec le conteneur. À traiter avec `OPS-6` (même fichier, même décision : persister, filtrer ou
-      couper).
+- [ ] `OPS-6` **Appliquer la configuration du journal d'accès sur l'hôte** — depuis le
+      29 septembre 2026, la politique (§1, §6) promet un journal d'accès sans les coordonnées ni les
+      jetons passés en paramètres, gardé 14 jours (`LEGAL-10`). Le journal de Traefik est coupé ;
+      reste celui du Caddy de l'hôte, hors dépôt : y poser le filtre et `roll_disabled`, installer
+      `scripts/caddy-access.logrotate`, et faire la vérification décrite. **À faire avant que la
+      politique parte en production.** Source : [`OPERATIONS.md`](OPERATIONS.md#access-logs). Voir
+      aussi `SEC-17` (le jeton ICS qui n'expire jamais) et `API-45` (les jetons dans le chemin).
+- [ ] `OPS-13` **Sauvegardes non chiffrées au repos** — l'hôte de sauvegarde est au domicile du
+      responsable du traitement, et les 30 copies nocturnes (base complète : e-mails, hachages de
+      mots de passe, adresses IP, traces ; fichiers téléversés) y sont en clair. Un vol du matériel
+      serait une violation à notifier à la CNIL **et** à chaque membre (art. 34 : le chiffrement
+      dispense de la seconde). Options : LUKS sur le volume de sauvegarde (rien à changer dans les
+      scripts, protège du vol à froid), ou chiffrement côté production (age/restic : protège aussi
+      d'une compromission de l'hôte, mais réécrit `backup.sh`, `backup-prune.sh`, `restore.sh` et
+      perd l'incrémental rsync). Une fois fait, le dire au §6 et au §9 de la politique. Relevé le
+      29 septembre 2026 (`LEGAL-12`).
 - [ ] `OPS-8` **Exercice de restauration** (audit de février, I20) — la procédure est écrite
       ([`OPERATIONS.md`](OPERATIONS.md), « Restore drill from another machine ») mais rien ne dit
       qu'elle a été menée de bout en bout sur une autre machine.
@@ -562,7 +585,7 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 | `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | `SEC-14` | — | Info | — | Images externes dans le markdown, parseur XML non durci, paramètre de requête non encodé |
 | `SEC-16` | — | V3–V8 | À valider | Configuration hors dépôt : proxy de l'hôte, hôte de sauvegarde, SMTP, imgproxy |
-| `SEC-17` | — | *hors audit* | — | Le **jeton du flux ICS n'expire jamais** — seule la régénération manuelle (`CalendarService.regenerateToken`) le révoque. Une expiration, ou au moins le masquage d'`OPS-6`, est ce qui borne sa fuite par un journal. Relevé dans [`OPERATIONS.md`](OPERATIONS.md#redacting-credentials-from-access-logs) |
+| `SEC-17` | — | *hors audit* | — | Le **jeton du flux ICS n'expire jamais** — seule la régénération manuelle (`CalendarService.regenerateToken`) le révoque. Une expiration, ou au moins le masquage d'`OPS-6`, est ce qui borne sa fuite par un journal. Relevé dans [`OPERATIONS.md`](OPERATIONS.md#access-logs) |
 
 ---
 
@@ -616,14 +639,9 @@ l'app mobile, un changement n'y apparaît qu'avec la build suivante.
 
 | ID | Point du plan | Sujet | Décision attendue | Liens |
 |---|---|---|---|---|
-| `LEGAL-5` | §5 | Web Push : les services push des navigateurs (Google, Mozilla, Apple, Microsoft) ne sont pas listés | Les déclarer ou non comme sous-traitants, avec leurs transferts | `NOTIF-9` |
-| `LEGAL-6` | §6 | Wahoo cité par les CGU (§2) depuis le 29 septembre 2026, mais absent de la FAQ `privacy/support.{fr,en}.md` | Vérifier qu'il est actif sur pedalons.fr (`DomainFormModal`), puis l'ajouter à la FAQ — ou le retirer des CGU | — |
-| `LEGAL-7` | §6 | Message à l'auteur d'une annonce classé « Other user-generated content » côté Play | Le déclarer aussi en « Messages » ? | `mobile/store-metadata/data-safety.md` |
-| `LEGAL-9` | — | Les fichiers téléversés gardent leurs métadonnées : EXIF des photos (position GPS comprise), horodatage et capteurs (fréquence cardiaque) des GPX | Les retirer à l'import, puis simplifier le §1 de la politique ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #5, #6) | — |
-| `LEGAL-10` | — | Logs d'accès : aucune durée de conservation configurée sur l'hôte, et ils contiennent les coordonnées passées en paramètres (`lat`/`lon` Garmin, `nearLat`/`nearLon` mobile) | Fixer la rotation et l'annoncer au §6 ; sortir ou arrondir les coordonnées ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #7, #13, #25) | `SEC-16` |
-| `LEGAL-11` | §5 | Garanties de transfert non confirmées : DPA Google (FCM), Apple (APNs, TestFlight), Garmin Connect IQ, hébergement de Mapterhorn et du CyclOSM d'OpenStreetMap France ; webhooks d'équipe vers Slack/Discord présentés comme le choix de l'équipe | Confirmer chaque garantie et compléter le §5, ou auto-héberger les tuiles de relief | `LEGAL-5` |
-| `LEGAL-12` | §6 | Conservations sans borne : inscriptions bêta, demandes de transfert biketeam (`biketeam_migrations`, « Nothing is ever deleted »), codes d'appairage et défis WebAuthn expirés jamais purgés ; hébergement et chiffrement des sauvegardes non déclarés | Choisir des durées et écrire les purges (entrées `API`), puis simplifier le §6 ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #13, #26) | — |
-| `LEGAL-13` | §4, §11 | Gouvernance : nombre d'admins plateforme et journalisation de leurs accès, notification des changements de politique (aucun type de notification ne l'annonce, le §11 ne promet que l'e-mail), responsable du traitement en multi-tenant, contrôle de l'âge | Décider, puis compléter les §4, §10 et §11 ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #15 à #17, #19) | — |
+| `LEGAL-9` | — | Les fichiers téléversés gardent leurs métadonnées : EXIF des photos (position GPS comprise), horodatage et capteurs (fréquence cardiaque) des GPX | Décidé le 29 septembre 2026 : les retirer à l'import (`API-43`, `API-44`), puis simplifier le §1 de la politique ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #5, #6) | `API-43`, `API-44` |
+| `LEGAL-11` | §5 | Garanties de transfert non confirmées : DPA Google (FCM), Apple (APNs, TestFlight), Garmin Connect IQ, hébergement de Mapterhorn et du CyclOSM d'OpenStreetMap France ; webhooks d'équipe vers Slack/Discord présentés comme le choix de l'équipe | Confirmer chaque garantie et compléter le §5, ou auto-héberger les tuiles de relief | — |
+| `LEGAL-13` | §4, §10 | Gouvernance : nombre d'admins plateforme et journalisation de leurs accès, responsable du traitement en multi-tenant, contrôle de l'âge | Décider, puis compléter les §4 et §10 ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #15 à #17, #19) | `LEGAL-14` |
 
 ---
 
@@ -654,6 +672,7 @@ redevient une entrée de sa section sous le même identifiant.
 | `NOTIF-7` | **Temps réel des notifications (SSE)** | Non fait : sondage de `unread-count` | Un flux SSE « si le besoin se confirme » ([plan](plans/archive/2026-09-18-notifications.md) §9) ; la cloche sonde au plus une fois par minute |
 | `NOTIF-8` | **Tests Vitest de la cloche et de la page Notifications** | Écartés le 29 septembre 2026 | La recette navigateur les a validées ; le mobile a son test de widget (`notifications_page_test.dart`) |
 | `MOD-5` | **Contenu masqué d'un compte effacé** | Reste masqué | L'effacement supprime les signalements visant le membre, mais ne touche pas `moderationHiddenAt` sur ses sorties, parcours, posts et voyages. Ce contenu, masqué par 3 signalements, n'a plus d'entrée dans la file et reste invisible pour les membres. C'est voulu : le démasquer republierait un contenu signalé 3 fois |
+| `LEGAL-14` | **Notification des changements de politique dans l'app** | Non : l'e-mail seul, comme le dit le §11 (décidé le 29 septembre 2026, scindé de `LEGAL-13`) | Aucun type de notification « politique mise à jour ». Un changement important se signale par e-mail à chaque membre ; ne pas ajouter de promesse au §11 sans créer le type d'abord |
 | `BRAND-3` | **Test de concordance des tables de couleurs web et mobile** | Écarté au profit du générateur (`BRAND-2`) | Un test qui parse les deux fichiers et vérifie qu'ils concordent détecte sans unifier, et repose sur des expressions régulières sur du TypeScript et du Dart |
 
 ---
@@ -676,5 +695,5 @@ restent ouvertes :
   juridique : suivi sous `LEGAL`.
 - [`plans/2026-07-25-privacy-improvement-opportunities.md`](plans/2026-07-25-privacy-improvement-opportunities.md) —
   les options d'amélioration de la vie privée et leur justification ; ce qui en reste ouvert est
-  suivi sous `LEGAL-9` à `LEGAL-13` et `WEB-28` (le chiffrement des jetons Karoo est `SEC-12`). L'audit de juillet et la mise à jour de
+  suivi sous `LEGAL-9`, `LEGAL-11`, `LEGAL-13` et `WEB-28` (le chiffrement des jetons Karoo est `SEC-12`). L'audit de juillet et la mise à jour de
   septembre qui ont réécrit la politique sont archivés.

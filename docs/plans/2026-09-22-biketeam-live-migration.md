@@ -788,8 +788,10 @@ d'un parcours (600 s), ou en-têtes de l'instantané (`export-snapshot-timeout`)
 1 min (16 min avec les défauts). La migration
 étant idempotente, reprendre depuis le début est correct et rapide (empreintes GPX, §7.5).
 
-**Ménage.** Toutes les heures : `GRANTED` dont `grant_expires_at` est passé → `EXPIRED`. Aucune ligne
-n'est supprimée (historique d'audit, volumétrie négligeable).
+**Ménage.** Toutes les heures : `GRANTED` dont `grant_expires_at` est passé → `EXPIRED`. Chaque nuit,
+les lignes terminées depuis plus d'un an (`SUCCEEDED`, `FAILED`, `EXPIRED`) sont supprimées : la
+politique de confidentialité l'annonce (§6 ; ledger `LEGAL-12`). `biketeam_migration_map` n'est
+pas touchée.
 
 ### 7.2 Une source, deux implémentations
 

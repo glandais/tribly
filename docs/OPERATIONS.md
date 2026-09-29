@@ -46,20 +46,65 @@ Two services stay per-environment on purpose, even though they look shareable:
   `/mnt/cache`: pointed at `/tmp` it lives inside the container and is re-downloaded in full on every
   restart.
 
-### Redacting credentials from access logs
+### Access logs
 
-Two endpoints carry a credential in the query string, because their client fetches them outside the
-authenticated HTTP stack and cannot set a header:
+The host's Caddy writes the **only** access log: Traefik's is off (`--accesslog=false` in
+`docker-compose.yml`), since it cannot filter a query parameter and its file, with no volume, died
+with the container anyway. The privacy policy (§1, §6) makes two promises about that log, and both
+live in the host's Caddy configuration, outside this repository:
 
-- `?t=` on `/api/…/tiles/{z}/{x}/{y}.mvt` — the tile token, ~15 min (see `TileTokenService`). MapLibre
-  fetches tiles itself, so this repeats on every tile: dozens of log lines per map session.
-- `?token=` on the ICS calendar feed — this one does **not** expire, so it matters more.
+- **Nothing sensitive from the query string.** Three kinds of parameters are written away before
+  the line is:
+  - credentials, because their client fetches them outside the authenticated HTTP stack and
+    cannot set a header — `?t=` on `/api/…/tiles/{z}/{x}/{y}.mvt` (the tile token, ~15 min, see
+    `TileTokenService`; MapLibre fetches tiles itself, so dozens of lines per map session),
+    `?token=` on the ICS calendar feed (it does **not** expire, `SEC-17`), and the OAuth
+    `?code=`/`?state=` of the GPS-service callbacks;
+  - the device's position: `?lat=`/`?lon=` from the Garmin app (`DeviceRoutesResource`),
+    `?nearLat=`/`?nearLon=` from "around me" and the ad proximity probe.
+- **14 days**, then deleted.
 
-Traefik and Caddy both log the full URI. Configure the host's Caddy access log to redact those two
-parameters. The short TTL is what makes historical tile-token lines inert, and it is the reason the
-TTL must never be raised to hours; the calendar token has no such protection. Both open points —
-the redaction itself, and the non-expiring calendar token — are tracked in
-ledger `OPS-6` and `SEC-17`.
+```caddyfile
+(pedalons_access_log) {
+	log {
+		output file /var/log/caddy/pedalons-access.log {
+			roll_disabled          # logrotate owns the rotation, below
+		}
+		format filter {
+			request>uri query {
+				replace t REDACTED
+				replace token REDACTED
+				replace code REDACTED
+				replace state REDACTED
+				delete lat
+				delete lon
+				delete nearLat
+				delete nearLon
+			}
+		}
+	}
+}
+
+pedalons.fr {
+	import pedalons_access_log
+	reverse_proxy 127.0.0.1:8090
+}
+```
+
+Credentials are replaced rather than deleted, so a line still shows that one was there; the
+position leaves no trace. Caddy already leaves `Authorization` and `Cookie` headers out of its log.
+Rotation, from the repository like the backup logs:
+
+```bash
+mkdir -p /var/log/caddy
+install -m 644 scripts/caddy-access.logrotate /etc/logrotate.d/caddy-access
+logrotate -d /etc/logrotate.d/caddy-access     # dry run
+```
+
+Check it bites after a reload: `curl -s 'https://pedalons.fr/api/version?lat=1&t=x' >/dev/null`,
+then the last line of the log must show `t=REDACTED` and no `lat`. Applying this on the host is
+ledger `OPS-6`; the short TTL of the tile token is what makes any line written before it inert, and
+the reason that TTL must never be raised to hours.
 
 ### Seeding the shared Valhalla data
 

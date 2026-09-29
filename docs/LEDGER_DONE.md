@@ -513,6 +513,12 @@ Ce qui reste ouvert (`MAX_BULK_SLUGS` comme seul garde-fou) est `API-27`.
   gpx2web 1.5.1 les tuiles de carte sont écrites puis renommées. Le commentaire le dit, et garde
   l'interdiction de partager `DATA_CACHE_PATH` entre environnements tant que les tuiles d'élévation
   ne sont pas revues (`OPS-10`, toujours ouvert) : ne pas la lever avant. Pas de test (commentaire).
+- `OPS-7` **Journal d'accès Traefik coupé** (2026-09-29, audit de février I13) — il n'était pas
+  persisté (pas de volume : il mourait avec le conteneur) et Traefik ne sait pas masquer un
+  paramètre de requête. `docker-compose.yml` passe `--accesslog=false` : le journal du Caddy de
+  l'hôte est le seul, et c'est lui que la politique décrit (`LEGAL-10`, application sur l'hôte :
+  `OPS-6`). Ne pas le rallumer sans filtre ni rotation : il redoublerait, en clair et sans borne,
+  ce que la politique promet de masquer. Pas de test (configuration).
 
 ---
 
@@ -785,3 +791,37 @@ fait.
   « exclure » : le §9 dit que deux secrets font exception et sont stockés lisibles, dont ce jeton,
   décrit au §1 et au §4 comme une clé qui ne s'expire pas et se régénère. Le hacher reste possible
   (l'URL ne se réafficherait plus) ; son expiration est `SEC-17`.
+- `LEGAL-5` **Services push des navigateurs : destinataires, pas sous-traitants** (2026-09-29) —
+  §4, nouvelle sous-section « Services push des navigateurs » : Google (Chrome), Mozilla (Firefox),
+  Apple (Safari), Microsoft (Edge) remettent la notification web ; c'est le navigateur qui choisit
+  le service, qui ne reçoit que le message chiffré (RFC 8291), l'adresse d'abonnement et l'IP de
+  l'appareil, et agit en responsable de traitement indépendant. Le §5 y renvoie. Ils ne vont **pas**
+  au tableau des sous-traitants : nous ne les choisissons pas et ils ne lisent pas le contenu. FCM,
+  qui le lit, y reste.
+- `LEGAL-6` **Wahoo ajouté à la FAQ** (2026-09-29) — actif sur pedalons.fr ; `privacy/support.{fr,en}.md`
+  le cite avec Karoo et Garmin, comme les CGU (§2) et la politique (§4, §5).
+- `LEGAL-7` **Message à l'auteur d'une annonce aussi déclaré en « Messages »** (2026-09-29) —
+  `mobile/store-metadata/data-safety.md` : ligne Play *Messages → Other in-app messages*
+  (facultatif, non partagé, *App functionality*) **en plus** de *Other user-generated content*.
+  Déclarer en trop ne coûte rien, déclarer trop étroit expose à un rejet. À reporter dans la Play
+  Console à la prochaine mise à jour de la fiche.
+- `LEGAL-10` **Journaux d'accès : 14 jours, sans coordonnées ni jetons en paramètres** (2026-09-29)
+  — la politique (§1 « Données de session » et « Données de localisation », §6) le dit ; le journal
+  de Traefik est coupé (`OPS-7`), celui du Caddy de l'hôte est décrit dans
+  [`OPERATIONS.md`](OPERATIONS.md#access-logs) : `t`, `token`, `code`, `state` remplacés par
+  `REDACTED`, `lat`, `lon`, `nearLat`, `nearLon` supprimés, rotation par
+  `scripts/caddy-access.logrotate` (quotidienne, 13 fichiers + le courant = 14 jours).
+  **L'application sur l'hôte est `OPS-6`, à faire avant la mise en production de la politique.**
+  Les jetons dans le **chemin** (push FCM, export) restent visibles : `API-45`. Ne pas remonter la
+  rotation au-delà de 14 jours sans changer le §6. Pas de test (configuration hors dépôt).
+- `LEGAL-12` **Purges des conservations sans borne** (2026-09-29) — nettoyage nocturne : codes
+  d'appairage et challenges WebAuthn expirés (`AuthCleanupScheduler`, 3 h), inscriptions bêta après
+  un an (`BetaSignupScheduler`, 3 h 45, `pedalons.beta.signups.retention-days`), demandes de
+  transfert biketeam un an après leur fin (`BiketeamMigrationRetentionScheduler`, 3 h 50,
+  `pedalons.biketeam.retention-days`) — fin = `finishedAt` des jobs `SUCCEEDED`/`FAILED`,
+  `grantExpiresAt` des `EXPIRED` ; jamais un `GRANTED`, `QUEUED` ou `RUNNING`, et
+  `biketeam_migration_map` n'est pas touchée (le rejeu en dépend). La purge biketeam tourne même
+  migration désactivée. §6 mis à jour, la phrase « pas encore couverts par un nettoyage » a disparu.
+  Tests : `AuthCleanupSchedulerTest.CleanupAbandonedPairingsAndChallenges`,
+  `BetaSignupSchedulerTest`, `BiketeamMigrationRetentionSchedulerTest`. Le chiffrement des
+  sauvegardes, relevé en chemin (hôte au domicile, copies en clair), est `OPS-13`.

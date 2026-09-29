@@ -452,7 +452,10 @@ public class BiketeamMigrationJobService {
     return failed + requeued;
   }
 
-  /** GRANTED rows whose grant lapsed become EXPIRED. Nothing is deleted: the rows are an audit. */
+  /**
+   * GRANTED rows whose grant lapsed become EXPIRED. They stay as the team's migration history until
+   * {@link BiketeamMigrationRetentionScheduler} purges them.
+   */
   @Transactional
   public int expireGrants() {
     return jobRepository.expireGrants(Instant.now());

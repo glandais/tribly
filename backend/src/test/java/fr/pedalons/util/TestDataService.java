@@ -1257,6 +1257,25 @@ public class TestDataService {
     return webAuthnChallenge;
   }
 
+  @Transactional
+  public fr.pedalons.domain.auth.DeviceCode createDeviceCode(
+      Long domainId, String userCode, java.time.Instant expiresAt) {
+    var deviceCode =
+        new fr.pedalons.domain.auth.DeviceCode(
+            "hash-" + userCode, userCode, "karoo", domainId, expiresAt);
+    userRepository.getEntityManager().persist(deviceCode);
+    return deviceCode;
+  }
+
+  @Transactional
+  public fr.pedalons.domain.beta.BetaSignup createBetaSignup(
+      String email, java.time.Instant createdAt) {
+    var signup = new fr.pedalons.domain.beta.BetaSignup(email, null);
+    signup.setCreatedAt(createdAt);
+    userRepository.getEntityManager().persist(signup);
+    return signup;
+  }
+
   // ===== GPS Service Connection entities =====
 
   @Transactional

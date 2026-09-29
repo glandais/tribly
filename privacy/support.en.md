@@ -28,4 +28,4 @@ In the app: **Profile → Account → Danger zone**, then "Delete the account". 
 
 ### How do I send a route to my GPS bike computer?
 
-First connect your bike computer (Hammerhead Karoo or Garmin) from **Profile → GPS devices**. The "Send to device" action then appears on every route.
+First connect your bike computer (Hammerhead Karoo, Garmin or Wahoo) from **Profile → GPS devices**. The "Send to device" action then appears on every route.

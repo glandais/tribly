@@ -78,6 +78,19 @@ public class BiketeamTestData {
     job.setNextAttemptAt(null);
   }
 
+  /** Puts a job in {@code status}, ended at {@code finishedAt}, its grant lapsed at {@code grantExpiresAt}. */
+  @Transactional
+  public void end(
+      long jobId,
+      BiketeamMigrationStatus status,
+      @Nullable Instant finishedAt,
+      Instant grantExpiresAt) {
+    BiketeamMigrationJob job = jobRepository.findById(jobId);
+    job.setStatus(status);
+    job.setFinishedAt(finishedAt);
+    job.setGrantExpiresAt(grantExpiresAt);
+  }
+
   /** Makes a requeued job claimable right away, instead of after its retry delay. */
   @Transactional
   public void dueNow(long jobId) {

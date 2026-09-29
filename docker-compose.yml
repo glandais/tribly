@@ -16,8 +16,10 @@ services:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.forwardedHeaders.insecure=true"
       - "--log.level=WARN"
-      - "--accesslog=true"
-      - "--accesslog.filepath=/var/log/traefik/access.log"
+      # Pas de journal d'acces ici : celui du Caddy de l'hote est le seul, masque et borne a
+      # 14 jours (docs/OPERATIONS.md, « Access logs »). Traefik ne sait pas masquer un parametre
+      # de requete, et son fichier, sans volume, mourait avec le conteneur.
+      - "--accesslog=false"
       - "--providers.docker.constraints=Label(`traefik.stack`,`${ENV_NAME}`)"
       # backend est attache a deux reseaux : sans ce reglage le provider Docker choisit une IP au
       # hasard entre les deux, et une IP `pedalons-shared` -- que traefik ne joint pas -- donne des
