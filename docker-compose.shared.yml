@@ -50,3 +50,6 @@ networks:
   shared:
     name: pedalons-shared
     driver: overlay
+    # Un environnement encore sous `docker compose` (bascule hote par hote, un environnement a la
+    # fois) y rattache son backend : sans `attachable`, seuls les services Swarm peuvent le joindre.
+    attachable: true

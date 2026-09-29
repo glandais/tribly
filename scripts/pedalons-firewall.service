@@ -1,0 +1,15 @@
+# Installed with scripts/pedalons-firewall.sh — see its header.
+[Unit]
+Description=Pedalons firewall rules (DOCKER-USER, swarm ports)
+Before=docker.service
+Wants=network-pre.target
+After=network-pre.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/default/pedalons-firewall
+ExecStart=/usr/local/sbin/pedalons-firewall.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

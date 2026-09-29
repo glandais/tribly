@@ -38,7 +38,7 @@ valid for both tools — its header lists what each one ignores.
   (`${ENV_NAME}_postgres_data`) by that name.
 
 ```bash
-# once per host — the DOCKER-USER rules (see "Only Caddy may reach traefik") before any stack
+# once per host — the firewall unit (see "Only Caddy may reach traefik") before the swarm
 docker swarm init
 cd ~/shared && scripts/deploy.sh --shared
 
@@ -95,25 +95,40 @@ at deploy time and a new value rolls the backend.
 with a mere warning and listens on every interface — which is why `docker-compose.yml` no longer
 pretends to. And `ufw` cannot close it either: Docker inserts its rules ahead of ufw's. The rule has
 to go into the `DOCKER-USER` chain, which Docker consults first and never rewrites — one per
-environment port, on the public interface. **Put them in right after `docker swarm init`, before the
-first stack is deployed**: the chain exists from then on, and every minute a stack runs without them,
-traefik answers the whole Internet.
+environment port, on the public interface.
+
+`docker swarm init` also opens the swarm's own ports on every interface: 2377/tcp (cluster
+management), 7946/tcp+udp (gossip) and 4789/udp — the VXLAN that carries the overlay networks, which
+is **unauthenticated**: anyone who reaches it can inject packets into `pedalons-shared` or an
+environment's network. A single-node swarm needs none of them from outside. They go through the
+host's `INPUT` chain, not `DOCKER-USER`, and a host with no firewall (`-P INPUT ACCEPT`) leaves them
+open.
+
+Both sets of rules come from `scripts/pedalons-firewall.sh`, run by a systemd unit **before**
+`docker.service`: Docker keeps an existing `DOCKER-USER` chain as it is, so no stack is ever up
+without the rules — not even at boot. **Install it before `docker swarm init`**, IPv4 and IPv6
+alike. Not `iptables-persistent`: it would save fail2ban's chains and Docker's too, which both
+rebuild their own at start.
 
 ```bash
-# The public interface: `eth0` on some hosts, `ens2`, `enp0s…` on others. A rule naming an interface
-# the host does not have is accepted without a word, and drops nothing.
-PUBLIC_IF="$(ip -o route get 1.1.1.1 | sed -n 's/.* dev \([^ ]*\).*/\1/p')"
-iptables -I DOCKER-USER -i "$PUBLIC_IF" -p tcp -m conntrack --ctorigdstport 8090 -j DROP
-iptables -I DOCKER-USER -i "$PUBLIC_IF" -p tcp -m conntrack --ctorigdstport 8089 -j DROP
-iptables -S DOCKER-USER            # both rules, above the final RETURN
+install -m 755 scripts/pedalons-firewall.sh /usr/local/sbin/pedalons-firewall.sh
+install -m 644 scripts/pedalons-firewall.service /etc/systemd/system/pedalons-firewall.service
+# The public interface: `eth0` on some hosts, `ens2`, `enp5s0` on others. A rule naming an interface
+# the host does not have is accepted without a word, and drops nothing. TRAEFIK_PORTS (default
+# "8089 8090") lists the HTTP_PORT of every environment.
+echo "PUBLIC_IF=$(ip -o route get 1.1.1.1 | sed -n 's/.* dev \([^ ]*\).*/\1/p')" > /etc/default/pedalons-firewall
+systemctl daemon-reload && systemctl enable --now pedalons-firewall.service
+iptables -S DOCKER-USER                                   # one DROP per environment port
+iptables -S FORWARD | head -3                             # -A FORWARD -j DOCKER-USER, first
+iptables -S INPUT | grep -E '2377|7946|4789'              # four DROP; ip6tables alike
 ```
 
 `--ctorigdstport` matches the port as the client asked for it, before the routing mesh rewrites the
-destination; Caddy, which comes in over the loopback, is untouched. Persist the rules (e.g.
-`iptables-persistent`): without that, a reboot loses them.
+destination; Caddy, which comes in over the loopback, is untouched.
 
 **Then check from another machine, once the first stack is up — it is part of the procedure, not an
-option**: `curl -m 5 http://<host>:8090` must time out, while the site answers through Caddy. Nothing
+option**: `curl -m 5 http://<host>:8090` must time out, while the site answers through Caddy, and
+`nc -zv -w 3 <host> 2377` must fail. Nothing
 on the host itself can tell: the loopback is not filtered, so a local `curl` succeeds either way.
 
 Postgres, for the same reason, publishes no port at all on a host — a raw Postgres guarded by a
@@ -134,10 +149,10 @@ checkout:
 cd ~/prod && scripts/migrate-to-swarm.sh
 cd ~/staging && scripts/migrate-to-swarm.sh
 
-# 2. the swarm, and at once the DOCKER-USER rules of "Only Caddy may reach traefik" above: from the
-#    next step on, a published port listens on every interface
-docker swarm init
-#    ... the iptables commands above, then `iptables -S DOCKER-USER`
+# 2. the firewall unit of "Only Caddy may reach traefik" above, then the swarm: from the next step
+#    on, a published port listens on every interface
+#    ... the install commands above, then `iptables -S DOCKER-USER`
+docker swarm init --advertise-addr <public IPv4>   # the flag only if the host has several addresses
 
 # 3. the shared stack. Its old project name came from the `name:` the file no longer carries, and
 #    its bridge network must be gone before Swarm creates the overlay of the same name
@@ -149,11 +164,34 @@ cd ~/prod && scripts/deploy.sh
 cd ~/staging && scripts/deploy.sh
 ```
 
-5. From **another machine**: `curl -m 5 http://<host>:8090` (and `:8089`) must time out. If it
-   answers, the rules are missing or name the wrong interface — fix that before anything else.
+5. From **another machine**: `curl -m 5 http://<host>:8090` (and `:8089`) must time out, and
+   `nc -zv -w 3 <host> 2377` fail. If one answers, the rules are missing or name the wrong interface
+   — fix that before anything else.
 
 The old volumes stay behind as the way back; drop them (`docker volume rm prod_postgres_data …`)
 once the site has been checked, photos included.
+
+#### One environment at a time
+
+The environments may move separately — staging first, prod once staging has proved itself. Only the
+environment that moves runs step 1 and step 4; steps 2 and 3 are the host's and happen once. The
+catch is step 3: the environment still under compose has its backend on the `pedalons-shared`
+bridge, which must be gone before the overlay replaces it, and must then join the overlay — which a
+compose container can only do because the shared stack declares it `attachable`. So step 3 becomes,
+with prod still under compose:
+
+```bash
+docker network disconnect pedalons-shared pedalons-prod-backend
+cd ~/shared && docker compose -p pedalons-shared -f docker-compose.shared.yml down
+docker network inspect pedalons-shared >/dev/null 2>&1 && echo "still there"   # must print nothing
+scripts/deploy.sh --shared
+docker network connect pedalons-shared pedalons-prod-backend
+docker exec pedalons-prod-backend getent hosts valhalla tileserver             # two addresses
+```
+
+Valhalla and the tile server are down for prod meanwhile, the time for valhalla to load its tiles. A
+later `docker compose up` of prod rejoins the overlay by itself: its file declares the network
+`external`.
 
 ### Services that stay per-environment
 
@@ -573,8 +611,8 @@ BACKUP_REMOTE=<backup-user>@<backup-tunnel-ip> BACKUP_REMOTE_PATH=/ \
 BACKUP_SSH_KEY=/root/.ssh/id_pedalons_backup \
   scripts/restore.sh --secrets-only
 
-# 2. the swarm, its DOCKER-USER rules at once (see "Only Caddy may reach traefik"), the shared
-#    stack, then the images
+# 2. the firewall unit (see "Only Caddy may reach traefik"), the swarm, the shared stack, then
+#    the images
 docker swarm init
 cd ~/shared && scripts/deploy.sh --shared
 cd ~/prod && ./build.sh            # at the commit recorded in MANIFEST
