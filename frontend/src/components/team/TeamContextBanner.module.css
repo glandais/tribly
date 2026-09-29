@@ -1,0 +1,8 @@
+/* A class, not the `styles` prop: Mantine renders `styles` inline and drops `'&:hover'` (docs/LEDGER_*.md WEB-3). */
+.link {
+  display: block;
+
+  @mixin hover {
+    text-decoration: underline;
+  }
+}

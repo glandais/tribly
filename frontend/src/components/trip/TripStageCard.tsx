@@ -9,6 +9,7 @@ import { useUnits } from '@/hooks/useUnits'
 import { MediaDisplay } from '../common/MediaDisplay'
 import { EntityLogo } from '../common/EntityLogo'
 import { paths } from '@/config/paths'
+import classes from './TripStageCard.module.css'
 
 interface TripStageCardProps {
   stage: TripStageDto
@@ -108,16 +109,7 @@ export function TripStageCard({
               e.stopPropagation()
               navigate(paths.route(teamSlug, stage.route!.slug))
             }}
-            styles={{
-              root: {
-                fontSize: 'var(--mantine-font-size-sm)',
-                fontWeight: 500,
-                color: 'var(--mantine-color-anchor)',
-                '&:hover': {
-                  textDecoration: 'underline',
-                },
-              },
-            }}
+            className={classes.routeLink}
           >
             {t('trips.stage.viewRoute')}
           </UnstyledButton>

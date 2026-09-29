@@ -1,0 +1,28 @@
+/*
+ * Hover states live here, not in the `styles` prop: Mantine renders `styles` inline, where a
+ * `'&:hover'` key is silently dropped (docs/LEDGER_*.md WEB-3).
+ */
+
+.card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
+
+  @mixin hover {
+    box-shadow: var(--mantine-shadow-md);
+    border-color: var(--mantine-color-default-border);
+  }
+}
+
+.teamLink {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+
+  @mixin hover {
+    text-decoration: underline;
+  }
+}

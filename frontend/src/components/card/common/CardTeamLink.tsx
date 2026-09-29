@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Text, UnstyledButton } from '@mantine/core'
 import { IconUsers, IconChevronRight } from '@tabler/icons-react'
 import { paths } from '@/config/paths'
+import classes from './Card.module.css'
 
 interface CardTeamLinkProps {
   teamSlug: string
@@ -19,16 +20,7 @@ export function CardTeamLink({ teamSlug, teamName }: CardTeamLinkProps) {
         navigate(paths.team(teamSlug))
       }}
       mb="sm"
-      styles={{
-        root: {
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--mantine-spacing-xs)',
-          '&:hover': {
-            textDecoration: 'underline',
-          },
-        },
-      }}
+      className={classes.teamLink}
     >
       <IconUsers size={16} color="var(--mantine-color-dimmed)" />
       <Text size="sm" c="dimmed" fw={500}>

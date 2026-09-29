@@ -3,6 +3,7 @@ import { ReactNode } from 'react'
 import { Paper, Title, Box, Text } from '@mantine/core'
 import { MarkdownDisplay } from '../../common/MarkdownDisplay'
 import { MediaDto } from '@/api/dto'
+import classes from './Card.module.css'
 
 interface CardProps {
   to: string
@@ -11,26 +12,7 @@ interface CardProps {
 
 export function Card({ to, children }: CardProps) {
   return (
-    <Paper
-      component={PrefetchLink}
-      to={to}
-      withBorder
-      radius="md"
-      style={{
-        display: 'block',
-        textDecoration: 'none',
-        color: 'inherit',
-        transition: 'box-shadow 0.2s, border-color 0.2s',
-      }}
-      styles={{
-        root: {
-          '&:hover': {
-            boxShadow: 'var(--mantine-shadow-md)',
-            borderColor: 'var(--mantine-color-default-border)',
-          },
-        },
-      }}
-    >
+    <Paper component={PrefetchLink} to={to} withBorder radius="md" className={classes.card}>
       {children}
     </Paper>
   )

@@ -6,6 +6,7 @@ import { IconChevronRight } from '@tabler/icons-react'
 import type { MediaDto } from '@/api/dto'
 import { paths } from '@/config/paths'
 import { TeamAvatar } from './TeamAvatar'
+import classes from './TeamContextBanner.module.css'
 
 export interface TeamContextBannerProps {
   team: {
@@ -34,12 +35,7 @@ export function TeamContextBanner({ team, mb = 'lg' }: TeamContextBannerProps) {
         to={paths.team(team.slug)}
         aria-label={t('teams.contextBanner.goToTeam', { name: team.name })}
         w="100%"
-        styles={{
-          root: {
-            display: 'block',
-            '&:hover': { textDecoration: 'underline' },
-          },
-        }}
+        className={classes.link}
       >
         <Group gap="sm" wrap="nowrap">
           <TeamAvatar team={team} size="sm" />

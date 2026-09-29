@@ -179,13 +179,6 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
 - [ ] `WEB-2` **Anneau de focus global sous le seuil de contraste** — resté ouvert après
       `NavButtons` (`WEB-25`) : l'anneau de focus global est à 2,74:1 en thème sombre, sous le seuil
       de 3,0 de SC 1.4.11 — il vient de `lib/theme.ts` et vaut pour tout le site.
-- [ ] `WEB-3` **Survol des cartes web sans effet** — l'ombre `md` des cartes est déclarée en
-      `'&:hover'` dans la prop `styles`, que Mantine rend en style inline : le pseudo-sélecteur est
-      ignoré. À passer par une classe CSS (module ou `classNames`) ; [`BRANDING.md`](BRANDING.md)
-      §7.1 le note comme absent d'ici là. Le même motif `'&:hover'` dans `styles` est ignoré aussi
-      dans `CardTeamLink.tsx`, `TeamContextBanner.tsx` et `TripStageCard.tsx` (soulignement au
-      survol). Une fois corrigé, aligner [`BRANDING.md`](BRANDING.md) §5.2, qui décrit l'ombre au
-      survol comme acquise et contredit §7.1. (Relevé le 29 septembre 2026.)
 - [ ] `WEB-4` **`PUBLIC_UNLISTED` indexable** — la moitié « non indexé » de la visibilité manque :
       `frontend/index.html` sert un `<meta name="robots" content="index, follow">` statique et rien
       n'émet de `noindex` par page ; les pages non listées étant rendues en SSR, un robot les
