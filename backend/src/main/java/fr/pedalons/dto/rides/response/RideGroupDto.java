@@ -6,6 +6,7 @@ import fr.pedalons.domain.ride.RideParticipation;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.validation.ValidateSchema;
+import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import java.time.LocalTime;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -46,17 +47,32 @@ public record RideGroupDto(
                 "The member who leads this group, when one is designated. Null means no leader was"
                     + " designated — render nothing rather than falling back on the ride's"
                     + " creator, who is the same person on every group of the ride.")
-        PublicUserDto leader) {
+        PublicUserDto leader,
+    @Nullable @Schema(description = "Thumbnail URL (light) of the group route, if it has one")
+        String thumbnailLightUrl,
+    @Nullable @Schema(description = "Thumbnail URL (dark) of the group route, if it has one")
+        String thumbnailDarkUrl,
+    @Nullable
+        @Schema(
+            description =
+                "The one thumbnail of the group route to show when the client does not theme its"
+                    + " cards: the light variant if there is one, else the dark one. Null when the"
+                    + " group has no route or its route has no thumbnail — the ride's own"
+                    + " thumbnail is then the one to fall back on.")
+        String thumbnailUrl) {
 
   public static RideGroupDto from(RideGroup group) {
-    return from(group, null);
+    return from(group, null, null);
   }
 
   /**
    * @param registeredGroupId the group of this ride the current user joined, or {@code null} — the
    *     caller resolved it once for the whole payload rather than once per group
+   * @param routeThumbnail the thumbnail of the group's route, resolved by {@code ThumbnailLookup}
+   *     for every group of the ride in one query — never by walking {@code route.getAssets()} here
    */
-  public static RideGroupDto from(RideGroup group, @Nullable Long registeredGroupId) {
+  public static RideGroupDto from(
+      RideGroup group, @Nullable Long registeredGroupId, @Nullable ThemedThumbnail routeThumbnail) {
     List<PublicUserDto> participantDtos =
         group.getParticipations().stream()
             .map(RideParticipation::getUser)
@@ -79,6 +95,9 @@ public record RideGroupDto(
         !group.hasCapacity(),
         route != null ? route.getDistance() : null,
         route != null ? route.getElevationGain() : null,
-        group.getLeader() != null ? PublicUserDto.from(group.getLeader()) : null);
+        group.getLeader() != null ? PublicUserDto.from(group.getLeader()) : null,
+        routeThumbnail != null ? routeThumbnail.light() : null,
+        routeThumbnail != null ? routeThumbnail.dark() : null,
+        routeThumbnail != null ? routeThumbnail.collapsed() : null);
   }
 }

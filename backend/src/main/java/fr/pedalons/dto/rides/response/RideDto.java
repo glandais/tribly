@@ -19,10 +19,12 @@ import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
+import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -264,13 +266,34 @@ public class RideDto implements PublicationDto {
       AssetService assetService,
       UserParticipations participations,
       CommentCounts commentCounts) {
+    return from(ride, groupDetails, assetService, participations, commentCounts, Map.of());
+  }
+
+  /**
+   * @param routeThumbnails route id → thumbnail, for the routes of this ride's groups, resolved in
+   *     one query by {@code ThumbnailLookup} — never one lookup per group
+   */
+  public static RideDto from(
+      Ride ride,
+      boolean groupDetails,
+      AssetService assetService,
+      UserParticipations participations,
+      CommentCounts commentCounts,
+      Map<Long, ThemedThumbnail> routeThumbnails) {
     Long registeredGroupId = participations.registeredGroupId(ride.getId());
 
     List<RideGroupDto> groupDtos =
         groupDetails
             ? ride.getGroups().stream()
                 .sorted(Comparator.comparing(RideGroup::getSortOrder))
-                .map(group -> RideGroupDto.from(group, registeredGroupId))
+                .map(
+                    group ->
+                        RideGroupDto.from(
+                            group,
+                            registeredGroupId,
+                            group.getRoute() != null
+                                ? routeThumbnails.get(group.getRoute().getId())
+                                : null))
                 .toList()
             : List.of();
 

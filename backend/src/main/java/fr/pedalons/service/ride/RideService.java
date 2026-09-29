@@ -28,6 +28,7 @@ import fr.pedalons.repository.ride.RideGroupRepository;
 import fr.pedalons.repository.ride.RideParticipationRepository;
 import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
+import fr.pedalons.service.asset.ThumbnailLookup;
 import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.common.ParticipationLookup;
 import fr.pedalons.service.common.TeamEntityService;
@@ -68,6 +69,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
   @Inject CommentCountLookup commentCountLookup;
 
+  @Inject ThumbnailLookup thumbnailLookup;
+
   @Inject UserTeamRepository userTeamRepository;
 
   @Inject NotificationPublisher notificationPublisher;
@@ -83,13 +86,21 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
   @Override
   protected RideDto toDto(Ride entity) {
-    // One indexed lookup resolves registered/registeredGroupId for the ride and all of its groups.
+    // One indexed lookup resolves registered/registeredGroupId for the ride and all of its groups,
+    // and one query the thumbnails of every group route — never route.getAssets() per group.
+    List<Long> groupRouteIds =
+        entity.getGroups().stream()
+            .map(RideGroup::getRoute)
+            .filter(Objects::nonNull)
+            .map(Route::getId)
+            .toList();
     return RideDto.from(
         entity,
         true,
         assetService,
         participationLookup.forRide(entity.getId()),
-        commentCountLookup.forEntity(entity));
+        commentCountLookup.forEntity(entity),
+        thumbnailLookup.forTeamEntities(groupRouteIds));
   }
 
   @Override

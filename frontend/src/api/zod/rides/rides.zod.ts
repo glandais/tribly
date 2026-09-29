@@ -454,6 +454,20 @@ export const CreateRideResponse = zod
               .describe(
                 "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
               ),
+            thumbnailLightUrl: zod
+              .string()
+              .optional()
+              .describe('Thumbnail URL (light) of the group route, if it has one'),
+            thumbnailDarkUrl: zod
+              .string()
+              .optional()
+              .describe('Thumbnail URL (dark) of the group route, if it has one'),
+            thumbnailUrl: zod
+              .string()
+              .optional()
+              .describe(
+                "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+              ),
           })
           .describe('Ride group information')
       )
@@ -992,6 +1006,20 @@ export const UpdateRideResponse = zod
               .describe(
                 "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
               ),
+            thumbnailLightUrl: zod
+              .string()
+              .optional()
+              .describe('Thumbnail URL (light) of the group route, if it has one'),
+            thumbnailDarkUrl: zod
+              .string()
+              .optional()
+              .describe('Thumbnail URL (dark) of the group route, if it has one'),
+            thumbnailUrl: zod
+              .string()
+              .optional()
+              .describe(
+                "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+              ),
           })
           .describe('Ride group information')
       )
@@ -1317,6 +1345,20 @@ export const GetRideResponse = zod
               .optional()
               .describe(
                 "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+              ),
+            thumbnailLightUrl: zod
+              .string()
+              .optional()
+              .describe('Thumbnail URL (light) of the group route, if it has one'),
+            thumbnailDarkUrl: zod
+              .string()
+              .optional()
+              .describe('Thumbnail URL (dark) of the group route, if it has one'),
+            thumbnailUrl: zod
+              .string()
+              .optional()
+              .describe(
+                "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
               ),
           })
           .describe('Ride group information')
@@ -1699,6 +1741,20 @@ export const ChangeRideSlugResponse = zod
               .describe(
                 "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
               ),
+            thumbnailLightUrl: zod
+              .string()
+              .optional()
+              .describe('Thumbnail URL (light) of the group route, if it has one'),
+            thumbnailDarkUrl: zod
+              .string()
+              .optional()
+              .describe('Thumbnail URL (dark) of the group route, if it has one'),
+            thumbnailUrl: zod
+              .string()
+              .optional()
+              .describe(
+                "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+              ),
           })
           .describe('Ride group information')
       )
@@ -2024,6 +2080,20 @@ export const UndeleteRideResponse = zod
               .optional()
               .describe(
                 "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+              ),
+            thumbnailLightUrl: zod
+              .string()
+              .optional()
+              .describe('Thumbnail URL (light) of the group route, if it has one'),
+            thumbnailDarkUrl: zod
+              .string()
+              .optional()
+              .describe('Thumbnail URL (dark) of the group route, if it has one'),
+            thumbnailUrl: zod
+              .string()
+              .optional()
+              .describe(
+                "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
               ),
           })
           .describe('Ride group information')

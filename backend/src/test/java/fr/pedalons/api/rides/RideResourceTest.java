@@ -4,14 +4,19 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import fr.pedalons.api.AbstractResourceTest;
+import fr.pedalons.common.TsidUtils;
+import fr.pedalons.domain.ride.Ride;
+import fr.pedalons.domain.route.Route;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.SlugChangeRequest;
 import fr.pedalons.dto.rides.request.GroupRequest;
 import fr.pedalons.dto.rides.request.RideRequest;
 import fr.pedalons.dto.rides.response.RideDto;
+import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import io.quarkus.test.junit.QuarkusTest;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -734,5 +739,51 @@ class RideResourceTest extends AbstractResourceTest {
         .patch("/api/teams/" + team1Slug + "/rides/" + rideSlug + "/slug")
         .then()
         .statusCode(401);
+  }
+
+  /**
+   * Each group carries its own route's thumbnail, so two groups on two routes no longer share the
+   * ride's picture; a group without a route gets none rather than the ride's (the client falls back
+   * on the ride's thumbnail itself).
+   */
+  @Test
+  void getRide_groupsCarryTheirOwnRouteThumbnail() {
+    Ride ride =
+        dataService.createRide(
+            team1,
+            user1,
+            "Sortie à deux parcours",
+            "deux-parcours",
+            Instant.now().plusSeconds(3600));
+    Route longRoute = dataService.createRoute(team1, user1, "Grande boucle");
+    Route shortRoute = dataService.createRoute(team1, user1, "Petite boucle");
+    dataService.setRideRoute(ride, longRoute);
+    var longLight =
+        dataService.attachAsset(longRoute, user1, AssetType.ROUTE_THUMBNAIL_LIGHT, "long-l.png");
+    var longDark =
+        dataService.attachAsset(longRoute, user1, AssetType.ROUTE_THUMBNAIL_DARK, "long-d.png");
+    var shortDark =
+        dataService.attachAsset(shortRoute, user1, AssetType.ROUTE_THUMBNAIL_DARK, "short-d.png");
+    dataService.setRideGroupRoute(dataService.createRideGroup(user1, ride, "Rapide", 0), longRoute);
+    dataService.setRideGroupRoute(dataService.createRideGroup(user1, ride, "Cool", 1), shortRoute);
+    dataService.createRideGroup(user1, ride, "Sans parcours", 2);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/teams/" + team1Slug + "/rides/deux-parcours")
+        .then()
+        .statusCode(200)
+        .body("groups[0].thumbnailLightUrl", containsString(TsidUtils.toString(longLight.getId())))
+        .body("groups[0].thumbnailDarkUrl", containsString(TsidUtils.toString(longDark.getId())))
+        .body("groups[0].thumbnailUrl", containsString(TsidUtils.toString(longLight.getId())))
+        .body("groups[0].thumbnailUrl", endsWith("/{size}"))
+        // Only a dark variant: the light one is absent and the collapsed one falls to dark.
+        .body("groups[1]", not(hasKey("thumbnailLightUrl")))
+        .body("groups[1].thumbnailUrl", containsString(TsidUtils.toString(shortDark.getId())))
+        // No route, no thumbnail — never the ride's, which the client already holds.
+        .body("groups[2]", not(hasKey("thumbnailUrl")))
+        .body("thumbnailUrl", containsString(TsidUtils.toString(longLight.getId())));
   }
 }

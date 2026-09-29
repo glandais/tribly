@@ -26,6 +26,9 @@ _RideGroupDto _$RideGroupDtoFromJson(Map<String, dynamic> json) =>
       leader: json['leader'] == null
           ? null
           : PublicUserDto.fromJson(json['leader'] as Map<String, dynamic>),
+      thumbnailLightUrl: json['thumbnailLightUrl'] as String?,
+      thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
+      thumbnailUrl: json['thumbnailUrl'] as String?,
     );
 
 Map<String, dynamic> _$RideGroupDtoToJson(_RideGroupDto instance) =>
@@ -44,4 +47,7 @@ Map<String, dynamic> _$RideGroupDtoToJson(_RideGroupDto instance) =>
       'distance': instance.distance,
       'elevationGain': instance.elevationGain,
       'leader': instance.leader?.toJson(),
+      'thumbnailLightUrl': instance.thumbnailLightUrl,
+      'thumbnailDarkUrl': instance.thumbnailDarkUrl,
+      'thumbnailUrl': instance.thumbnailUrl,
     };

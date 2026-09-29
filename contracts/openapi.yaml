@@ -3795,6 +3795,18 @@ components:
             \ the ride."
           type: object
           $ref: "#/components/schemas/PublicUserDto"
+        thumbnailLightUrl:
+          type: string
+          description: "Thumbnail URL (light) of the group route, if it has one"
+        thumbnailDarkUrl:
+          type: string
+          description: "Thumbnail URL (dark) of the group route, if it has one"
+        thumbnailUrl:
+          type: string
+          description: "The one thumbnail of the group route to show when the client\
+            \ does not theme its cards: the light variant if there is one, else the\
+            \ dark one. Null when the group has no route or its route has no thumbnail\
+            \ — the ride's own thumbnail is then the one to fall back on."
     RideListResponse:
       description: Paginated ride list response
       type: object
@@ -15794,7 +15806,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 5.9.0
+  version: 5.10.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

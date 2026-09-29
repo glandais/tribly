@@ -6,8 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import fr.pedalons.api.AbstractQueryCountTest;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
+import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.util.QueryStats;
@@ -143,6 +145,49 @@ class PublicationQueryCountTest extends AbstractQueryCountTest {
                 + ", budget +"
                 + MAX_STATEMENT_GROWTH
                 + ")");
+  }
+
+  /**
+   * Every group of the detail carries its route's thumbnail (ledger API-3). They are resolved for
+   * the whole ride in one query, so six groups on six routes must cost what one group on one route
+   * does — not one asset walk per group.
+   */
+  @Test
+  void rideDetail_groupRouteThumbnails_costDoesNotScaleWithGroupCount() {
+    Instant base = Instant.now().plus(7, ChronoUnit.DAYS);
+    Ride small = dataService.createRide(team1, user1, "Small", "small-ride", base);
+    seedGroupOnThumbnailedRoute(small, 0);
+    Ride large = dataService.createRide(team1, user1, "Large", "large-ride", base.plusSeconds(1));
+    for (int g = 0; g < 6; g++) {
+      seedGroupOnThumbnailedRoute(large, g);
+    }
+
+    QueryStats.Counters smallCounters =
+        measureDetail("GET /api/teams/{teamSlug}/rides/{rideSlug} [1 routed group]", "small-ride");
+    QueryStats.Counters largeCounters =
+        measureDetail("GET /api/teams/{teamSlug}/rides/{rideSlug} [6 routed groups]", "large-ride");
+
+    long growth = largeCounters.statements() - smallCounters.statements();
+    assertTrue(
+        growth <= MAX_STATEMENT_GROWTH,
+        () ->
+            "N+1 on the group route thumbnails: 1 group cost "
+                + smallCounters.statements()
+                + " SQL statements, 6 groups cost "
+                + largeCounters.statements()
+                + " (+"
+                + growth
+                + ", budget +"
+                + MAX_STATEMENT_GROWTH
+                + ")");
+  }
+
+  private void seedGroupOnThumbnailedRoute(Ride ride, int index) {
+    RideGroup group = dataService.createRideGroup(user1, ride, "Group " + index, index);
+    Route route = dataService.createRoute(team1, user1, ride.getName() + " route " + index);
+    dataService.attachAsset(route, user1, AssetType.ROUTE_THUMBNAIL_LIGHT, "light.png");
+    dataService.attachAsset(route, user1, AssetType.ROUTE_THUMBNAIL_DARK, "dark.png");
+    dataService.setRideGroupRoute(group, route);
   }
 
   private QueryStats.Counters measureDetail(String label, String rideSlug) {

@@ -19,6 +19,27 @@ import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/next_ride_provider.dart';
 import '../../../../keys.dart';
 
+/// La vignette de « Ma prochaine sortie » : celle du **parcours du groupe**
+/// (`docs/LEDGER_*.md API-3`), puisque deux groupes sur deux parcours n'ont pas
+/// la même image. Celle de la sortie reste le repli — pas de groupe, groupe
+/// sans parcours, ou parcours sans vignette. Chaque niveau préfère la variante
+/// du thème courant, puis l'autre.
+String? nextRideThumbnailUrl(
+  RideDto ride,
+  RideGroupDto? group, {
+  required bool dark,
+}) {
+  final String? groupUrl = group == null
+      ? null
+      : dark
+      ? (group.thumbnailDarkUrl ?? group.thumbnailLightUrl)
+      : (group.thumbnailLightUrl ?? group.thumbnailDarkUrl);
+  return groupUrl ??
+      (dark
+          ? (ride.thumbnailDarkUrl ?? ride.thumbnailLightUrl)
+          : (ride.thumbnailLightUrl ?? ride.thumbnailDarkUrl));
+}
+
 /// « Ma prochaine sortie » — la réponse à la question du brief : *qu'est-ce que
 /// je fais à vélo cette semaine ?*
 ///
@@ -88,13 +109,11 @@ class NextRideCard extends ConsumerWidget {
               PdlCardMedia(
                 tone: PdlMediaTone.ride,
                 icon: PdlIcons.ride,
-                // **La vignette est celle de la sortie, pas du parcours du
-                // groupe** : `RideGroupDto` n'a pas de `thumbnailUrl`
-                // (§5.2-3). Deux groupes sur deux parcours partagent donc la
-                // même image.
-                imageUrl: Theme.of(context).brightness == Brightness.dark
-                    ? (ride.thumbnailDarkUrl ?? ride.thumbnailLightUrl)
-                    : (ride.thumbnailLightUrl ?? ride.thumbnailDarkUrl),
+                imageUrl: nextRideThumbnailUrl(
+                  ride,
+                  group,
+                  dark: Theme.of(context).brightness == Brightness.dark,
+                ),
                 height: PdlMediaHeights.hero,
                 borderRadius: BorderRadius.zero,
               ),
