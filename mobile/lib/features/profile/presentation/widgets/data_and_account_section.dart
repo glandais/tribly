@@ -15,7 +15,6 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../auth/data/auth_repository.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../data/profile_repository.dart';
 import 'confirm_sheet.dart';
@@ -205,9 +204,10 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
       confirmLabel: 'profile.account.logoutAll'.tr(),
     );
     if (!confirmed || !mounted) return;
+    // Un refus du serveur lève et laisse la session ouverte : `_run` l'affiche
+    // en bandeau plutôt que d'annoncer une déconnexion qui n'a pas eu lieu.
     await _run(() async {
-      await ref.read(authRepositoryProvider).logoutAll();
-      await ref.read(authProvider.notifier).logout();
+      await ref.read(authProvider.notifier).logoutAll();
       if (mounted) context.go(Paths.login());
     });
   }

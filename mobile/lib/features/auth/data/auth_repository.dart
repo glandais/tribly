@@ -85,10 +85,8 @@ class AuthRepository {
     );
   }
 
-  /// Logout from all devices
-  Future<void> logoutAll() {
-    return _authClient.logoutAll();
-  }
+  // `logout-all` n'est pas ici : il exige le jeton d'accès, et ce dépôt parle
+  // au client de base. Voir `AuthNotifier.logoutAll`.
 
   // Passkey endpoints
 
