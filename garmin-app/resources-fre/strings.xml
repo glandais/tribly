@@ -14,7 +14,6 @@
     <string id="DownloadFailed">Échec du téléchargement</string>
     <string id="ConnectionError">Erreur de connexion</string>
     <string id="Retry">Réessayer</string>
-    <string id="Back">Retour</string>
     <string id="Distance">Distance</string>
     <string id="Elevation">Dénivelé</string>
     <string id="RefreshRoutes">Actualiser</string>

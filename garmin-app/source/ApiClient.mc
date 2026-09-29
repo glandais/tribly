@@ -86,7 +86,6 @@ class ApiClient {
             }
         }
 
-        // System.println("Device code response failed: " + responseCode);
         if (callback != null) {
             callback.invoke({
                 "success" => false,
@@ -175,7 +174,6 @@ class ApiClient {
             }
         }
 
-        // System.println("Token poll failed: " + responseCode);
         if (callback != null) {
             callback.invoke({
                 "success" => false,
@@ -241,7 +239,6 @@ class ApiClient {
             }
         }
 
-        // System.println("Token response failed: " + responseCode);
         if (callback != null) {
             callback.invoke(false);
         }
@@ -479,14 +476,11 @@ class ApiClient {
         _downloadCallback = null;
 
         if (responseCode == 200) {
-            // System.println("FIT download successful");
             if (callback != null) {
                 callback.invoke(true);
             }
             return;
         }
-
-        // System.println("FIT download failed: " + responseCode);
 
         // If 401, clear tokens
         if (responseCode == 401) {

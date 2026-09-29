@@ -69,7 +69,6 @@ class PedalonsApp extends Application.AppBase {
      * Requests a device code, displays it, and starts polling.
      */
     function startDeviceCodeFlow() {
-        // System.println("startDeviceCodeFlow called");
         _apiClient.requestDeviceCode(method(:onDeviceCodeReceived));
     }
 
@@ -77,8 +76,6 @@ class PedalonsApp extends Application.AppBase {
      * Callback when device code is received.
      */
     function onDeviceCodeReceived(result) {
-        // System.println("onDeviceCodeReceived");
-
         if (result.get("success") == true) {
             _deviceCode = result.get("deviceCode");
             var userCode = result.get("userCode");
@@ -117,11 +114,8 @@ class PedalonsApp extends Application.AppBase {
      * Called periodically by the timer.
      */
     function pollForToken() as Void {
-        // System.println("pollForToken");
-
         // Check if device code expired
         if (_authManager.isDeviceCodeExpired()) {
-            // System.println("Device code expired");
             stopPolling();
             _authManager.clearDeviceCode();
 
@@ -139,8 +133,6 @@ class PedalonsApp extends Application.AppBase {
      * Callback when poll response is received.
      */
     function onPollResponse(result) {
-        // System.println("onPollResponse");
-
         if (result.get("success") == true) {
             // Success! Tokens received and saved
             stopPolling();
@@ -154,7 +146,6 @@ class PedalonsApp extends Application.AppBase {
 
         if (result.get("pending") == true) {
             // Normal state - authorization pending, keep polling
-            // System.println("Authorization pending, continuing poll...");
             return;
         }
 

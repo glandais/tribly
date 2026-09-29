@@ -70,8 +70,6 @@ class AuthManager {
         // Calculate expiry timestamp
         var expiry = Time.now().value() + expiresIn;
         Storage.setValue(TOKEN_EXPIRY_KEY, expiry);
-
-        // System.println("Tokens saved, expires at: " + expiry);
     }
 
     /**
@@ -81,7 +79,6 @@ class AuthManager {
         Storage.deleteValue(ACCESS_TOKEN_KEY);
         Storage.deleteValue(REFRESH_TOKEN_KEY);
         Storage.deleteValue(TOKEN_EXPIRY_KEY);
-        // System.println("Tokens cleared");
     }
 
     /**
@@ -111,8 +108,6 @@ class AuthManager {
         // Calculate expiry timestamp
         var expiry = Time.now().value() + expiresIn;
         Storage.setValue(CODE_EXPIRY_KEY, expiry);
-
-        // System.println("Device code saved, expires at: " + expiry);
     }
 
     /**
@@ -149,6 +144,5 @@ class AuthManager {
         Storage.deleteValue(DEVICE_CODE_KEY);
         Storage.deleteValue(USER_CODE_KEY);
         Storage.deleteValue(CODE_EXPIRY_KEY);
-        // System.println("Device code cleared");
     }
 }

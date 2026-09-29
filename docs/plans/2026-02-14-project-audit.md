@@ -217,8 +217,8 @@ App Connect IQ Monkey C pour GPS Edge Garmin. 15 fichiers source, 1838 lignes. 1
 | G8 | Pas de gestion `slow_down` RFC 8628 | Important | S | `ApiClient.mc` | |
 | G9 | Layouts a offsets fixes — mal adaptes aux 3 resolutions d'ecran | Important | M | `LoginView.mc`, `RouteDetailView.mc` | ⚠️ |
 | G10 | Collision potentielle sur `_tokenCallback` (refresh vs poll) | Important | S | `ApiClient.mc` | |
-| G11 | Code debug commente (`System.println`) | Mineur | S | `ApiClient.mc`, `AuthManager.mc`, `PedalonsApp.mc` | |
-| G12 | 4 strings non utilisees (Back, Logout, AM, PM) | Mineur | S | `resources/strings.xml` | ⚠️ (`Logout` utilisée depuis G2 ; restent Back, AM, PM) |
+| G11 | Code debug commente (`System.println`) | Mineur | S | `ApiClient.mc`, `AuthManager.mc`, `PedalonsApp.mc` | ✅ (retirés le 30 septembre 2026) |
+| G12 | 4 strings non utilisees (Back, Logout, AM, PM) | Mineur | S | `resources/strings.xml` | ✅ (`Logout` utilisée depuis G2 ; `Back` retirée le 30 septembre 2026 ; `AM`/`PM` gardées : ce sont les chaînes que la correction de G5 doit lire) |
 | G13 | BUILD.md liste 7 devices, manifest en a 13 | Mineur | S | `BUILD.md` | ✅ (fusionne dans `garmin-app/README.md` le 29 septembre 2026 : 13 appareils) |
 
 ---
@@ -445,8 +445,8 @@ Les deux clients partagent des problemes communs :
 |----------|---------|----------|--------|-------|--------|-------|----------|------|-------|
 | Critique | 0 | 0 | 0 | 3 | 1 | 6 | 1 | 0 | **11** |
 | Important | 4 | 2 | 1 | 3 | 7 | 6 | 5 | 0 | **28** |
-| Mineur | 0 | 0 | 2 | 2 | 2 | 0 | 6 | 0 | **12** |
-| **Total** | **4** | **2** | **3** | **8** | **10** | **12** | **12** | **0** | **51** |
+| Mineur | 0 | 0 | 2 | 2 | 0 | 0 | 6 | 0 | **10** |
+| **Total** | **4** | **2** | **3** | **8** | **8** | **12** | **12** | **0** | **49** |
 
 ### Points corrigés depuis l'audit initial
 
@@ -459,5 +459,5 @@ Les deux clients partagent des problemes communs :
 | Frontend | F4, F5, F6, F9, F10, F11, F15 | Cle i18n LoginPage, FullCalendar retire, titres de page, textes RideEditor traduits, pages CGU/confidentialite, cles `_many` |
 | Mobile | M2, M5, M6, M7, M8 | Fuite de subscription, navigation traduite, widgets dedupliques, couleurs du theme, Markdown |
 | Documentation | D2, D3, D4, D6, D9 | rules.md Riverpod, BACKLOG corrige, PRODUCT_SHEET corrige |
-| Septembre 2026 | I2, I9, I11, I12, F1, F2, F3, F7, F13, F14, M1, M3, M9, M10, G2, G3, G13, D1, D5, D7, D8, D10, D11, B15 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), image frontend sur `node`, meme version de Node en CI que dans l'image (`frontend/.nvmrc`), zoom rendu au viewport, lien d'evitement, index en double de `device_codes` retires (V46), BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
+| Septembre 2026 | I2, I9, I11, I12, F1, F2, F3, F7, F13, F14, M1, M3, M9, M10, G2, G3, G11, G12, G13, D1, D5, D7, D8, D10, D11, B15 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), traces de debogage et chaine `Back` inutilisee retirees de l'app Garmin, image frontend sur `node`, meme version de Node en CI que dans l'image (`frontend/.nvmrc`), zoom rendu au viewport, lien d'evitement, index en double de `device_codes` retires (V46), BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
 | Juin-juillet 2026 | B10, K6, M4 | `PedalonsQueryContext` memorise l'utilisateur (3bb01f32), `registerForActivityResult` (7e2d710f), dependances Riverpod inutilisees retirees (874a3288) |

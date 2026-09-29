@@ -573,7 +573,6 @@ Deux gestes d'exploitation de l'audit sont sous `OPS` : I13 (`OPS-7`) et I20 (`O
 | `AUD-25` | Garmin | G1 | Critique | `BASE_URL` de production en dur (`ApiClient.mc`) : bloque le multi-tenant |
 | `AUD-26` | Garmin | G4, G5, G7, G10 | Important | `loadResource()` dans `onUpdate()` ; AM/PM en dur ; état comparé à une chaîne localisée ; `_tokenCallback` partagé entre refresh et polling |
 | `AUD-27` | Garmin | G6, G8, G9 | Important | Version du SDK en dur dans le Makefile ; pas de `slow_down` ; offsets fixes dans les layouts |
-| `AUD-28` | Garmin | G11, G12 | Mineur | `System.println` commentés ; chaînes `Back`, `AM`, `PM` inutilisées |
 | `AUD-29` | Appareils | §9.2 | — | Reprise d'un flow d'autorisation interrompu et résilience réseau pendant le polling, à revérifier |
 
 Suivis ailleurs : les lignes de sécurité S2 à S12 sont versées dans `SECURITY_AUDIT.md`, donc sous
