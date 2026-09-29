@@ -15,7 +15,8 @@ import type {
 import { newAd } from './ads'
 import { contractEnglishPaths, fillPath } from './contract'
 import { apiPost, expectOk, withApi, type AuthResponse } from './api'
-import { addMember, markdownMedia, newTeam, newTeamPage, newUser, roleSession } from './data'
+import { addMember, markdownMedia, newTeam, newTeamPage, newUser } from './data'
+import { setPlatformRole } from './platform-admin'
 import { newPost } from './posts'
 import { newRide } from './rides'
 import { gpxOf, newRoute, newTrip, windingTrack } from './routes'
@@ -63,16 +64,23 @@ export interface Dataset {
  * with a plain member, an organizer and an admin, and one public entity of every kind a route
  * names. The platform admin adds the members (a team is born with addMemberAllowed=false) and is
  * not a member itself. The outsider is a plain signed-in account that joins nothing.
+ *
+ * The platform admin is a fresh account promoted for the run ({@link releaseDataset} takes the role
+ * back), not the bootstrap `admin@e2e.test`: that one owns a team per spec that creates one as it,
+ * run after run, and its screens grow with them. `/calendrier` lists every outing of its teams over
+ * eight months, unpaginated — after a few runs on the same database, thousands on the same week,
+ * which `@mantine/schedule` lays out in quadratic time: a 20 s server render, and a timeout.
  */
 export async function buildDataset(label: string): Promise<Dataset> {
-  const platformAdmin = await roleSession('admin')
-  const [owner, outsider, member, organizer, teamAdmin] = await Promise.all([
+  const [owner, outsider, member, organizer, teamAdmin, platformAdmin] = await Promise.all([
     newUser(`Fondatrice ${label}`),
     newUser(`Passante ${label}`),
     newUser(`Membre ${label}`),
     newUser(`Organisatrice ${label}`),
     newUser(`Admin équipe ${label}`),
+    newUser(`Admin plateforme ${label}`),
   ])
+  await setPlatformRole(platformAdmin.user.id, 'PLATFORM_ADMIN')
   const team = await newTeam(owner, `Écrans ${label}`, { visibility: 'PUBLIC' })
   await addMember(platformAdmin, team.slug, member, 'MEMBER')
   await addMember(platformAdmin, team.slug, organizer, 'ORGANIZER')
@@ -142,6 +150,11 @@ export async function buildDataset(label: string): Promise<Dataset> {
       previewId: preview.id,
     },
   }
+}
+
+/** Takes back the platform role {@link buildDataset} granted: never leave a stray platform admin. */
+export async function releaseDataset(dataset: Dataset) {
+  await setPlatformRole(dataset.sessions.platformAdmin.user.id, undefined)
 }
 
 /** A GPX preview (the « Outils GPX » upload), owned by `as`. */

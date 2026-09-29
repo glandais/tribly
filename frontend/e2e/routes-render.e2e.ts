@@ -5,6 +5,7 @@ import { expect, test } from './support/fixtures'
 import { configuredAuth, contractWebRoutes, fillPath, type ContractRoute } from './support/contract'
 import {
   buildDataset,
+  releaseDataset,
   englishPath,
   RENDER_ROLES,
   type Dataset,
@@ -584,6 +585,16 @@ function data(): Promise<Dataset> {
 test.beforeAll(async () => {
   test.setTimeout(120_000)
   await data()
+})
+
+// A worker may come back to this file after its afterAll (fully parallel): the next beforeAll then
+// builds a dataset again rather than reuse the one whose platform admin was just demoted.
+test.afterAll(async () => {
+  const done = dataset
+  dataset = undefined
+  // A build that failed promoted nobody, or reported it already.
+  const built = await done?.catch(() => undefined)
+  if (built) await releaseDataset(built)
 })
 
 type Kind = 'renders' | 'redirects' | 'denied'
