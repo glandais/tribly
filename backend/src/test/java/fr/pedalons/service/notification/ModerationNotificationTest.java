@@ -173,6 +173,23 @@ class ModerationNotificationTest extends AbstractResourceTest {
     assertEquals(ONE, reportsFor(user1));
   }
 
+  /** docs/LEDGER_*.md MOD-4: the burst folds into the first report's event, not its reporters. */
+  @Test
+  void aBurstOfReports_notifiesNoneOfItsReporters_notOnlyTheFirst() {
+    Post post = dataService.createPost(team1, user3, "Billet", yesterday, Visibility.PUBLIC);
+
+    // An outsider reports first; the organizer reports the same post before the fan-out.
+    report(USER4, ReportTargetType.POST, post.getId());
+    report(USER2, ReportTargetType.POST, post.getId());
+    drain();
+
+    assertEquals(1, notifications.events().size());
+    assertEquals(ONE, reportsFor(user1));
+    assertEquals(ONE, reportsFor(platformAdmin));
+    assertTrue(reportsFor(user2).isEmpty(), "the organizer who reported, second in the burst");
+    assertTrue(reportsFor(user4).isEmpty(), "the first reporter");
+  }
+
   @Test
   void aReportDecidedBeforeTheFanOut_notifiesNobody() {
     Post post = dataService.createPost(team1, user2, "Billet", yesterday, Visibility.PUBLIC);

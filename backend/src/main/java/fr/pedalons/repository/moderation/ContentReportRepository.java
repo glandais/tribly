@@ -133,6 +133,26 @@ public class ContentReportRepository implements PanacheRepository<ContentReport>
   }
 
   /**
+   * Who has an open report on this target in this team — the reporters a coalesced burst of
+   * {@code ContentReported} stands for, none of whom is told of their own report (docs/LEDGER_*.md
+   * MOD-4). One query, whatever the size of the burst.
+   */
+  public Set<Long> findOpenReporterIds(Long teamId, ReportTargetType targetType, Long targetId) {
+    return new HashSet<>(
+        getEntityManager()
+            .createQuery(
+                "select distinct r.reporter.id from ContentReport r where r.team.id = :teamId"
+                    + " and r.targetType = :type and r.targetId = :targetId"
+                    + " and r.status = :open and r.reporter is not null",
+                Long.class)
+            .setParameter("teamId", teamId)
+            .setParameter("type", targetType)
+            .setParameter("targetId", targetId)
+            .setParameter("open", ReportStatus.OPEN)
+            .getResultList());
+  }
+
+  /**
    * Which of these targets this member reported — one query for a whole page, so a reporter stops
    * seeing what they reported.
    */

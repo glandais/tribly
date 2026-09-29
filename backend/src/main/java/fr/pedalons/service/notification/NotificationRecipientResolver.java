@@ -312,7 +312,8 @@ public class NotificationRecipientResolver {
 
   /**
    * The moderators of the team a report was filed in, and the platform admins of its domain — never
-   * the reporter nor the member the report is about. When that member moderates the team, only the
+   * a reporter nor the member the report is about. The event coalesces a burst of reports on one
+   * target, so "a reporter" is every author of an open report on it, not only the first. When that member moderates the team, only the
    * team's other administrators hear of it; with none left, the platform admins alone do.
    *
    * <p>No excerpt: a push shows on the lock screen, and the subject is the team, whose queue the
@@ -327,7 +328,14 @@ public class NotificationRecipientResolver {
       return Optional.empty();
     }
     Long targetUserId = report.getTargetUser().getId();
-    User reporter = report.getReporter();
+    // The event stands for a burst: every report filed on this target in this team while it was
+    // pending folded into it, and this is only the first. None of their authors is told of it.
+    Set<Long> reporterIds =
+        contentReportRepository.findOpenReporterIds(
+            team.getId(), report.getTargetType(), report.getTargetId());
+    if (report.getReporter() != null) {
+      reporterIds.add(report.getReporter().getId());
+    }
     List<UserTeam> moderators = userTeamRepository.findModerators(team.getId());
     boolean targetModerates =
         moderators.stream().anyMatch(ut -> ut.getUser().getId().equals(targetUserId));
@@ -339,9 +347,7 @@ public class NotificationRecipientResolver {
     }
     recipients.addAll(userRepository.findPlatformAdmins(team.getDomain().getId()));
     recipients.removeIf(
-        user ->
-            user.getId().equals(targetUserId)
-                || (reporter != null && user.getId().equals(reporter.getId())));
+        user -> user.getId().equals(targetUserId) || reporterIds.contains(user.getId()));
     return Optional.of(
         new Resolution(
             team,

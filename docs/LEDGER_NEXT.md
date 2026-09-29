@@ -415,12 +415,8 @@ pièges à ne pas rejouer, sont sous `NOTIF-9` (le ledger du chantier y a été 
 
 ## MOD — Modération et signalement
 
-Livrée le 24 septembre 2026 (`MOD-6`). Défaut mineur noté à la livraison, pas encore corrigé :
-
-- [ ] `MOD-4` **Notification de signalements fusionnés** (`NotificationRecipientResolver`) : une
-      rafale de signalements donne une seule notification qui ne connaît que le premier. Seul ce
-      premier signalant est exclu des destinataires, et un organisateur qui vient de signaler est
-      donc notifié de son propre signalement.
+Livrée le 24 septembre 2026 (`MOD-6`). Les quatre défauts mineurs notés à la livraison sont corrigés
+(`MOD-1` à `MOD-4`).
 
 ---
 
