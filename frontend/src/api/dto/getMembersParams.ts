@@ -6,7 +6,7 @@ export type GetMembersParams = {
    */
   page?: number
   /**
-   * Filter by role
+   * Filter by role. Only for a caller who gets the roles (an administrator, or anyone once the directory is open): 403 otherwise.
    */
   role?: TeamRole
   /**

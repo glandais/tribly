@@ -40,7 +40,8 @@ public class TeamMemberResource {
               + " a member list to designate a ride group's leader. Everyone else needs the team to"
               + " have set enableMemberDirectory. What is returned is graded too: 'role' and"
               + " 'joinedAt' are null unless the caller is an administrator or the directory is"
-              + " open, and 'search' only matches an e-mail address for an administrator.")
+              + " open, 'search' only matches an e-mail address for an administrator, and 'role' is"
+              + " refused with a 403 to a caller who does not get the roles.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -52,7 +53,9 @@ public class TeamMemberResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "403",
-        description = "Not entitled to read this team's member directory",
+        description =
+            "Not entitled to read this team's member directory, or to filter it by a role the"
+                + " response would hide",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "404",
@@ -70,7 +73,12 @@ public class TeamMemberResource {
                       + " only.")
           @QueryParam("search")
           @Nullable String search,
-      @Parameter(description = "Filter by role") @QueryParam("role") @Nullable TeamRole role) {
+      @Parameter(
+              description =
+                  "Filter by role. Only for a caller who gets the roles (an administrator, or"
+                      + " anyone once the directory is open): 403 otherwise.")
+          @QueryParam("role")
+          @Nullable TeamRole role) {
 
     MemberListResponse members =
         membershipService.getTeamMembers(teamSlug, page, size, search, role);

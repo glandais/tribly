@@ -13143,7 +13143,7 @@
     "/api/teams/{teamSlug}/members" : {
       "get" : {
         "summary" : "Get team members",
-        "description" : "Paginated list of team members. Administrators always see it; so do organisers, who need a member list to designate a ride group's leader. Everyone else needs the team to have set enableMemberDirectory. What is returned is graded too: 'role' and 'joinedAt' are null unless the caller is an administrator or the directory is open, and 'search' only matches an e-mail address for an administrator.",
+        "description" : "Paginated list of team members. Administrators always see it; so do organisers, who need a member list to designate a ride group's leader. Everyone else needs the team to have set enableMemberDirectory. What is returned is graded too: 'role' and 'joinedAt' are null unless the caller is an administrator or the directory is open, 'search' only matches an e-mail address for an administrator, and 'role' is refused with a 403 to a caller who does not get the roles.",
         "operationId" : "getMembers",
         "tags" : [ "Team Members" ],
         "parameters" : [ {
@@ -13164,7 +13164,7 @@
             "default" : 0
           }
         }, {
-          "description" : "Filter by role",
+          "description" : "Filter by role. Only for a caller who gets the roles (an administrator, or anyone once the directory is open): 403 otherwise.",
           "name" : "role",
           "in" : "query",
           "schema" : {
@@ -13209,7 +13209,7 @@
             }
           },
           "403" : {
-            "description" : "Not entitled to read this team's member directory",
+            "description" : "Not entitled to read this team's member directory, or to filter it by a role the response would hide",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -19988,7 +19988,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "5.7.0",
+    "version" : "5.7.1",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

@@ -50,7 +50,8 @@ public class TeamMembershipService {
    *   <li><b>Whether {@code role} and {@code joinedAt} are filled.</b> They are, for an
    *       administrator, and for everyone once the team has opened its directory. An organiser on a
    *       team that has <i>not</i> opened it still gets the list — they need it to designate a ride
-   *       group's leader — but only the names.
+   *       group's leader — but only the names, and a {@code role} filter is refused (403): it would
+   *       reveal the roles the response hides.
    * </ul>
    */
   @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.LIST)
@@ -64,6 +65,12 @@ public class TeamMembershipService {
     boolean admin =
         pedalonsContext.isPlatformAdmin() || (callerRole != null && callerRole.isAdmin());
     boolean full = admin || team.isEnableMemberDirectory();
+    // Filtering on a role the response hides would hand it back all the same, one query per role.
+    // Refused like every other thing this caller may not do, rather than ignored: an ignored filter
+    // reads as an answer. docs/LEDGER_*.md SEC-18.
+    if (role != null && !full) {
+      throw new ForbiddenException();
+    }
 
     PedalonsPage<UserTeam> members =
         userTeamRepository.findByTeam(team.getId(), page, size, search, role, admin);

@@ -1,7 +1,7 @@
 import * as zod from 'zod'
 
 /**
- * Paginated list of team members. Administrators always see it; so do organisers, who need a member list to designate a ride group's leader. Everyone else needs the team to have set enableMemberDirectory. What is returned is graded too: 'role' and 'joinedAt' are null unless the caller is an administrator or the directory is open, and 'search' only matches an e-mail address for an administrator.
+ * Paginated list of team members. Administrators always see it; so do organisers, who need a member list to designate a ride group's leader. Everyone else needs the team to have set enableMemberDirectory. What is returned is graded too: 'role' and 'joinedAt' are null unless the caller is an administrator or the directory is open, 'search' only matches an e-mail address for an administrator, and 'role' is refused with a 403 to a caller who does not get the roles.
  * @summary Get team members
  */
 export const GetMembersParams = zod.object({
@@ -13,7 +13,12 @@ export const getMembersQuerySizeDefault = 50
 
 export const GetMembersQueryParams = zod.object({
   page: zod.int().default(getMembersQueryPageDefault).describe('Page number'),
-  role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional().describe('Filter by role'),
+  role: zod
+    .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+    .optional()
+    .describe(
+      'Filter by role. Only for a caller who gets the roles (an administrator, or anyone once the directory is open): 403 otherwise.'
+    ),
   search: zod
     .string()
     .optional()

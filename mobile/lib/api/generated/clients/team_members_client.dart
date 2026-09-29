@@ -20,13 +20,13 @@ abstract class TeamMembersClient {
 
   /// Get team members.
   ///
-  /// Paginated list of team members. Administrators always see it; so do organisers, who need a member list to designate a ride group's leader. Everyone else needs the team to have set enableMemberDirectory. What is returned is graded too: 'role' and 'joinedAt' are null unless the caller is an administrator or the directory is open, and 'search' only matches an e-mail address for an administrator.
+  /// Paginated list of team members. Administrators always see it; so do organisers, who need a member list to designate a ride group's leader. Everyone else needs the team to have set enableMemberDirectory. What is returned is graded too: 'role' and 'joinedAt' are null unless the caller is an administrator or the directory is open, 'search' only matches an e-mail address for an administrator, and 'role' is refused with a 403 to a caller who does not get the roles.
   ///
   /// [teamSlug] - Team URL slug.
   ///
   /// [page] - Page number.
   ///
-  /// [role] - Filter by role.
+  /// [role] - Filter by role. Only for a caller who gets the roles (an administrator, or anyone once the directory is open): 403 otherwise.
   ///
   /// [search] - Search by display name. Also matches the e-mail address, for administrators only.
   ///

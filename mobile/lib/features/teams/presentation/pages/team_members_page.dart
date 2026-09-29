@@ -36,7 +36,18 @@ import '../../../feedback/presentation/report_problem_button.dart';
 class TeamMembersPage extends ConsumerStatefulWidget {
   final String teamSlug;
 
-  const TeamMembersPage({super.key, required this.teamSlug});
+  /// Si l'équipe rend les rôles à ce lecteur : admin de l'équipe, ou
+  /// trombinoscope ouvert. Sinon — un organisateur sur un trombinoscope
+  /// fermé — pas de chips de rôle : le serveur refuse ce filtre (403), qui
+  /// révélerait les rôles qu'il masque (docs/LEDGER_*.md SEC-18). Un admin
+  /// plateforme les voit toujours.
+  final bool rolesShown;
+
+  const TeamMembersPage({
+    super.key,
+    required this.teamSlug,
+    required this.rolesShown,
+  });
 
   @override
   ConsumerState<TeamMembersPage> createState() => _TeamMembersPageState();
@@ -83,6 +94,11 @@ class _TeamMembersPageState extends ConsumerState<TeamMembersPage> {
     final MemberFilters filters = ref.watch(
       memberFiltersProvider(widget.teamSlug),
     );
+    final bool platformAdmin = ref.watch(
+      authProvider.select(
+        (AuthState s) => s.user?.platformRole == 'PLATFORM_ADMIN',
+      ),
+    );
     final PagedListState<MemberDto> state = ref.watch(
       teamMembersProvider(filters),
     );
@@ -97,7 +113,11 @@ class _TeamMembersPageState extends ConsumerState<TeamMembersPage> {
         primary: true,
         slivers: <Widget>[
           PdlPinnedToolbar(
-            child: _MembersToolbar(filters: filters, onChanged: _setFilters),
+            child: _MembersToolbar(
+              filters: filters,
+              onChanged: _setFilters,
+              showRoles: widget.rolesShown || platformAdmin,
+            ),
           ),
           ..._contentSlivers(state, notifier, filters),
           const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
@@ -247,10 +267,15 @@ class _TeamMembersPageState extends ConsumerState<TeamMembersPage> {
 /// Recherche débouncée et chips de rôle **exclusives** — `role` est un
 /// paramètre unique au contrat.
 class _MembersToolbar extends StatelessWidget {
-  const _MembersToolbar({required this.filters, required this.onChanged});
+  const _MembersToolbar({
+    required this.filters,
+    required this.onChanged,
+    required this.showRoles,
+  });
 
   final MemberFilters filters;
   final ValueChanged<MemberFilters> onChanged;
+  final bool showRoles;
 
   @override
   Widget build(BuildContext context) {
@@ -271,26 +296,28 @@ class _MembersToolbar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: PdlSpacing.chipGap),
-        PdlChipRow(
-          children: <Widget>[
-            PdlChip(
-              label: 'teams.membersList.allRoles'.tr(),
-              selected: filters.role == null,
-              onTap: () => onChanged(filters.copyWith(clearRole: true)),
-            ),
-            for (final TeamRole role in TeamRole.$valuesDefined)
+        if (showRoles) ...<Widget>[
+          const SizedBox(height: PdlSpacing.chipGap),
+          PdlChipRow(
+            children: <Widget>[
               PdlChip(
-                label: AppFormatters.roleName(role.json ?? ''),
-                selected: filters.role == role,
-                onTap: () => onChanged(
-                  filters.role == role
-                      ? filters.copyWith(clearRole: true)
-                      : filters.copyWith(role: role),
-                ),
+                label: 'teams.membersList.allRoles'.tr(),
+                selected: filters.role == null,
+                onTap: () => onChanged(filters.copyWith(clearRole: true)),
               ),
-          ],
-        ),
+              for (final TeamRole role in TeamRole.$valuesDefined)
+                PdlChip(
+                  label: AppFormatters.roleName(role.json ?? ''),
+                  selected: filters.role == role,
+                  onTap: () => onChanged(
+                    filters.role == role
+                        ? filters.copyWith(clearRole: true)
+                        : filters.copyWith(role: role),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }

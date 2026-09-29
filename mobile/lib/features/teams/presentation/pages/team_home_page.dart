@@ -230,7 +230,12 @@ class _TeamSectionScaffold extends StatelessWidget {
         body: _WithSectionsBar(
           sections: sections,
           current: section,
-          child: TeamMembersPage(teamSlug: team.slug),
+          child: TeamMembersPage(
+            teamSlug: team.slug,
+            // Les rôles ne reviennent qu'à un admin, ou à tous une fois le
+            // trombinoscope ouvert (docs/LEDGER_*.md SEC-18).
+            rolesShown: team.role == 'ADMIN' || team.enableMemberDirectory,
+          ),
         ),
       ),
     };

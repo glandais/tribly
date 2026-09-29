@@ -69,6 +69,7 @@ void main() {
     required _StubTeamRepository repository,
     MemberFilters? filters,
     Brightness brightness = Brightness.light,
+    bool rolesShown = true,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -79,7 +80,12 @@ void main() {
         ],
         child: MaterialApp(
           theme: PedalonsTheme.build(brightness),
-          home: const Scaffold(body: TeamMembersPage(teamSlug: 'n-peloton')),
+          home: Scaffold(
+            body: TeamMembersPage(
+              teamSlug: 'n-peloton',
+              rolesShown: rolesShown,
+            ),
+          ),
         ),
       ),
     );
@@ -135,6 +141,20 @@ void main() {
     }
 
     expect(repository.calls.last['role'], TeamRole.admin);
+  });
+
+  // SEC-18 : sans les rôles, pas de filtre de rôle — le serveur le refuse.
+  testWidgets('sans les rôles, aucune chip de rôle', (
+    WidgetTester tester,
+  ) async {
+    await openMembers(
+      tester,
+      repository: _StubTeamRepository(total: 3),
+      rolesShown: false,
+    );
+
+    expect(find.text('Admin'), findsNothing);
+    expect(find.text('Membre 0'), findsOneWidget);
   });
 
   testWidgets('un vide filtré propose de tout réinitialiser', (

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.AbstractBaseTest;
 import fr.pedalons.common.TsidUtils;
+import fr.pedalons.common.exception.ForbiddenException;
 import fr.pedalons.common.exception.PedalonsException;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.team.Team;
@@ -116,6 +117,37 @@ class TeamMembershipServiceTest extends AbstractBaseTest {
     assertTrue(result.members().stream().allMatch(m -> m.role() == null));
     assertTrue(result.members().stream().allMatch(m -> m.joinedAt() == null));
     assertTrue(result.members().stream().allMatch(m -> m.user().displayName() != null));
+  }
+
+  /**
+   * docs/LEDGER_*.md SEC-18: filtering on a role the response hides would hand the role back. The
+   * filter is refused, not ignored, and the same filter stays open to whoever does get the roles.
+   */
+  @Test
+  void getTeamMembers_roleFilter_isRefused_whenTheRolesAreHidden() {
+    dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
+
+    queryContext.setUserForTest(user1);
+    assertThrows(
+        ForbiddenException.class,
+        () -> membershipService.getTeamMembers(team.getSlug(), 0, 10, null, TeamRole.ADMIN));
+
+    queryContext.setUserForTest(admin);
+    MemberListResponse asAdmin =
+        membershipService.getTeamMembers(team.getSlug(), 0, 10, null, TeamRole.ADMIN);
+    assertEquals(1, asAdmin.members().size());
+  }
+
+  @Test
+  void getTeamMembers_roleFilter_works_onceTheDirectoryIsOpen() {
+    dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
+    dataService.setTeamEnableMemberDirectory(team, true);
+
+    queryContext.setUserForTest(user1);
+    MemberListResponse opened =
+        membershipService.getTeamMembers(team.getSlug(), 0, 10, null, TeamRole.ADMIN);
+    assertEquals(1, opened.members().size());
+    assertEquals(TeamRole.ADMIN, opened.members().getFirst().role());
   }
 
   @Test
