@@ -48,13 +48,18 @@ The capabilities added, and their exact boundary:
   ride recording.
 
 - **`firebase_core` + `firebase_messaging`** — Firebase Cloud Messaging, *messaging only*. The app
-  sends the FCM registration token to `POST /api/push-devices` with the device model and the app
-  version, and deletes it with `DELETE /api/push-devices/{token}` on sign-out. Nothing else of
+  sends the FCM registration token to `POST /api/push-devices` with the device name (the name the
+  user gave the phone on iOS, manufacturer and model on Android) and the app version, and deletes it with `DELETE /api/push-devices/{token}` on sign-out. Nothing else of
   Firebase is initialized: **no Analytics, no Crashlytics, no Performance, no Remote Config, no
   Installations-based measurement** — the Firebase project itself was created with Analytics
-  switched off (`docs/LEDGER_*.md` NOTIF-9). The token is requested **only
-  after the member grants notification permission from the notifications screen**
-  (`lib/features/notifications/providers/push_provider.dart`); the app never asks at launch.
+  switched off (`docs/LEDGER_*.md` NOTIF-9). The app asks for notification
+  permission only from the notifications screen, never at launch. But where the system already
+  allows notifications without a prompt (Android 12 and below, which have no runtime
+  `POST_NOTIFICATIONS` permission), or where permission was granted earlier, the token is
+  registered with our server automatically at every signed-in start
+  (`lib/features/notifications/providers/push_provider.dart`, `_start`). Firebase itself is
+  initialised at every launch, before sign-in (`lib/main.dart`), with FCM auto-init left at its
+  default.
   `device_info_plus` is now on an executed path — it supplies that device name, and nothing else.
 
 - **Reports and blocks** — `api.moderation` (`lib/api/generated/clients/moderation_client.dart`):
@@ -125,8 +130,8 @@ Everything below leaves the device to `https://www.pedalons.fr` unless stated ot
 | 7 | **GPS-device pairing code** | 6-character code — `lib/features/device/presentation/pages/device_verify_page.dart` | Yes | Yes |
 | 8 | **Session security metadata** | Server-recorded on sign-in: IP address, user agent, last-login / last-use timestamps (per `privacy/privacy-policy.en.md` §"Session Data") | Yes | Yes |
 | 9 | **Profile picture** | Photo chosen from the system photo library (`image_picker`) and sent to `POST /api/users/me/avatar` | Yes | Yes |
-| 11 | **Push registration token** | `lib/features/notifications/providers/push_provider.dart` → `POST /api/push-devices`. Issued by FCM, identifies the *installation*, deleted server-side at sign-out | Yes, to us **and to Google** (FCM issues it and routes every message) | Yes |
-| 12 | **Device model and app version** | Sent alongside #11 — `lib/features/notifications/data/push_device_repository.dart` (`device_info_plus`, `package_info_plus`) | Yes | Yes |
+| 11 | **Push registration token** | `lib/features/notifications/providers/push_provider.dart` → `POST /api/push-devices`. Issued by FCM, identifies the *installation*, deleted server-side at sign-out and at account closure | Yes, to us **and to Google** (FCM issues it and routes every message) | Yes |
+| 12 | **Device name and app version** | Sent alongside #11 (device name: the user-given name on iOS, manufacturer + model on Android) — `lib/features/notifications/data/push_device_repository.dart` (`device_info_plus`, `package_info_plus`) | Yes | Yes |
 | 13 | **Comments** | `lib/features/comments/data/comment_repository.dart` → `create*Comment` on rides, trips, routes and posts | Yes | Yes |
 | 14 | **Content reports** | Report sheet → `POST /api/reports`: target, reason, optional free-text message. Server adds the target's author, a copy of the reported text and the decision | Yes | Yes (reporter; erasure nulls it and keeps the report) |
 | 15 | **User blocks** | `PUT`/`DELETE /api/users/me/blocks/{userId}`: who blocked whom, and when | Yes | Yes |

@@ -13,15 +13,24 @@ Creating an account requires you to accept them explicitly, by ticking the box p
 Pedalons is a cycling team management platform that allows you to:
 
 - Create and manage teams
-- Plan and share bike rides and trips
-- Import and share GPS routes
-- Publish content (posts, comments, classified ads)
-- Connect GPS devices (Karoo, Garmin)
+- Plan and share bike rides and multi-day trips
+- Import, draw and share GPS routes (GPX): calculate a route with the route planner (when enabled for your site or team), analyse elevation and climbs, and export the result as a GPX or FIT file
+- Publish content (posts, comments)
+- Post classified listings within your team (items for sale, for rent, or wanted), when enabled for your team, including a price, a description, photos and an approximate location. Pedalons only hosts the listing: it is not a party to any sale or rental, does not process payments, and does not verify listings or items. Other members can write to you about a listing through Pedalons: we forward their message by email, and their email address is shown to you so you can reply. You can turn this off in your profile. Use this feature only for matters about the listing
+- Subscribe to your rides and trips from an external calendar application, using a personal iCalendar (ICS/webcal) link. Anyone who holds this link can read the events it contains without logging in; if you subscribe from a hosted calendar service (for example Google Calendar), that service will fetch the feed and hold a copy of those events. You can revoke the link at any time by regenerating it
+- Connect GPS devices and services (Hammerhead Karoo, Garmin, Wahoo) and send your routes to them
+- Receive notifications about your teams' activity in an inbox, and, depending on your settings, by email or as push notifications on your phone: new rides, trips and posts; reminders before a ride you joined, and changes to its date or meeting point; cancellation of a ride or trip you joined, or removal of the ride group you were in; members joining a ride you created or lead a group of; comments on your publications and replies to your comments; invitations to a team; and, if you moderate a team, reports awaiting your decision. You choose which notifications you receive by email or push in your notification settings. A team's administrators can also relay the team's announcements (new rides, trips and posts) to an external chat service, such as Slack or Discord, through a webhook
+- Invite people to your team by email, if you are one of its administrators. Only invite people who expect to hear from your team. Nobody becomes a member without accepting the invitation
+
+Depending on your team's settings, other members may see the team's member list (names and pictures, and, if the team opens its member directory, roles and join dates).
+
+Files analysed with the GPX tools are kept for 30 days and then deleted automatically. They are reachable by anyone who has the link we generate for them, even without an account, so only share that link with people you trust.
 
 ## 3. Registration and Account
 
-- You must provide a valid email address to create an account.
+- To create an account yourself, you must provide a valid email address and confirm it by clicking the link we send you.
 - You must accept these terms to create an account.
+- Some accounts were not created this way: accounts imported when a previous platform was migrated to Pedalons may hold a technical, non-working email address generated from the member's Strava identifier (`strava_…`). Those accounts can no longer be signed in to: their holders must contact us to attach a real email address to the account, or to have it deleted.
 - You are responsible for the security of your account and authentication methods.
 - You must be at least 16 years old to use the service.
 
@@ -42,11 +51,12 @@ You also agree to:
 - Respect other users
 - Not attempt unauthorized access to the service or other users' data
 - Not use the service for unauthorized commercial purposes
+- Not use the classified-ad contact feature or team invitations to send unsolicited messages, harass anyone, or collect other people's email addresses
 
 ## 5. User Content
 
 - You retain ownership of the content you publish (text, images, GPX files).
-- By publishing content, you grant Pedalons a limited license to display and distribute that content to other users according to the visibility settings you have chosen.
+- By publishing content, you grant Pedalons a limited, non-exclusive licence to host, display and distribute that content in accordance with the visibility you choose. Content whose visibility is limited to your team is shown only to that team's members. Content you publish as public is accessible to anyone on the internet, including people without a Pedalons account, and its title, summary and illustration image may be reproduced by third-party sites, social networks and messaging apps when the link is shared, so that they can display a preview. This licence ends when you delete the content, subject to copies already made by those third parties, which are beyond our control.
 - You are responsible for the content you publish.
 
 ## 6. Moderation: Reporting and Blocking
@@ -62,13 +72,19 @@ You also agree to:
 
 The Pedalons service, its source code, design, and features are protected by intellectual property law.
 
+### Maps and geographic data
+
+Maps, place search, route calculation and elevation data rely on third-party data: © OpenStreetMap contributors (ODbL licence), which also covers the results of route calculation (Valhalla) and place search (Nominatim), together with CyclOSM, VersaTiles, IGN / Géoplateforme, Esri and its sources, Mapterhorn elevation data, and Michelin. Map images, place search results and elevation data are provided as they are, without any guarantee that they are accurate or complete.
+
 ## 8. Limitation of Liability
 
 The service is provided "as is". We strive to ensure its availability but do not guarantee uninterrupted operation.
 
 ## 9. Termination
 
-- You may delete your account at any time.
+- You may delete your account at any time from your profile, on the website or in the app. Deletion is immediate and irreversible: your personal data is erased on the spot — see "Delete your account" in section 7 of the Privacy Policy.
+- If you are the only administrator of a team that has other members, you must first make another member an administrator. A team of which you are the only member is deleted along with your account.
+- The content you published in a team (rides, routes, posts and the files attached to them) is not deleted with your account: it belongs to the team and remains visible to it, credited to "Ancien membre" ("former member"), so that the team's history stays intact. Your comments are erased, however, except a comment other members replied to, which is kept empty; your classified ads are withdrawn, stripped of their text, price and location, and their photos are deleted. If you want the rest removed as well, delete it before deleting your account, or ask one of the team's organizers.
 - We reserve the right to suspend or delete an account in case of violation of these terms.
 
 ## 10. Governing Law
