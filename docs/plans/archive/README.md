@@ -18,6 +18,7 @@ des tests gardent (`groupLeader_isNotTheRideCreator`, `…QueryCountTest`, les d
 | [`2026-09-27-e2e-coverage-audit.md`](2026-09-27-e2e-coverage-audit.md) | Audit de couverture e2e Playwright, plan P0/P1/P2, suivi des 54 défauts trouvés (était `frontend/E2E_COVERAGE_AUDIT.md`) | **Exécuté** le 28 septembre 2026 : P0, P1 et P2 écrits, sauf le canal e-mail. Le point 40 (hydratation #418) est le ledger `WEB-6`, les idées P2 non écrites `WEB-7` |
 | [`2026-07-25-privacy-policy-audit.md`](2026-07-25-privacy-policy-audit.md) | Audit de la politique de confidentialité et des CGU contre le code (juillet 2026), constats et preuves | **Exécuté** — politique et CGU réécrites, puis rebasées le 29 septembre 2026 ; les suites sont sous `LEGAL` |
 | [`2026-09-21-privacy-policy-refresh.md`](2026-09-21-privacy-policy-refresh.md) | Mise à jour de la politique après ~400 commits (notifications, export, Wahoo…), registre des preuves, points ouverts sortis du texte publié | **Exécuté** le 29 septembre 2026 — les points ouverts sont `LEGAL-9` à `LEGAL-13`, `WEB-28` (jetons Karoo : `SEC-12`) |
+| [`2026-09-29-privacy-policy-open-points.md`](2026-09-29-privacy-policy-open-points.md) | Ce que la politique ne disait pas, ou mal, et qui demandait une décision juridique (import biketeam, relais d'annonces, app Garmin, contenu public, Web Push, points mineurs) | **Exécuté** le 29 septembre 2026 — ses six points sont clos (`LEGAL-1` à `LEGAL-8`), comme les suites `LEGAL-9` à `LEGAL-15` ; la section `LEGAL` de `LEDGER_NEXT.md` est vide |
 | [`2026-09-18-notifications.md`](2026-09-18-notifications.md) | Notifications évènementielles : pipeline évènement → notification → livraison, canaux in-app, e-mail, push mobile et Web Push, webhook d'équipe, résumé quotidien | **Livré** — phases 1 à 5 en production le 21 septembre 2026, Web Push le 29 ; archivé le 29 septembre 2026. Le livré (et son ledger rapatrié) est dans `LEDGER_DONE.md` (`NOTIF-9`), les restes dans `LEDGER_NEXT.md` (`NOTIF-1` à `NOTIF-4`). Les migrations V37, V39 et V40 citent encore l'ancien chemin `docs/plans/…` : une migration appliquée ne se modifie pas |
 
 ## Les invariants vérifiés du plan mobile
@@ -44,9 +45,7 @@ septembre 2026 ; les backups, notamment, existent. La sécurité applicative est
 
 Le plan de [migration biketeam en direct](../2026-09-22-biketeam-live-migration.md) reste aussi dans
 `docs/plans/` : c'est le contrat en vigueur avec biketeam, jusqu'à la mise en production et l'arrêt
-de biketeam (`LEDGER_NEXT.md`, préfixe `MIG`). De même pour les
-[points ouverts de la politique de confidentialité](../2026-09-29-privacy-policy-open-points.md),
-qui attendent des décisions (`LEDGER_NEXT.md`, préfixe `LEGAL`).
+de biketeam (`LEDGER_NEXT.md`, préfixe `MIG`).
 
 [`audit-ux/`](audit-ux/) est l'**entrant** de design (brief, analyse page par page, descriptifs
 des captures) et documente l'état d'avant la v2 ; il ne décrit pas le code actuel. Sa charte et sa

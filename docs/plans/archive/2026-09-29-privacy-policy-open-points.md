@@ -6,8 +6,10 @@ déjà dans `privacy/privacy-policy.{fr,en}.md` : export dans l'app, Web Push, s
 décision. Toute modification se fait **en parité FR/EN**. Le texte est embarqué dans l'app mobile
 (`privacy/` est un asset) : un changement n'y apparaît qu'avec la build suivante.
 
-Suivi : chaque point est repris sous le préfixe `LEGAL` de [`LEDGER_NEXT.md`](../LEDGER_NEXT.md), avec ses liens
-vers les lignes voisines du ledger. Un point tranché quitte les deux fichiers.
+> **Archivé le 29 septembre 2026** : tous les points sont tranchés. Les décisions sont dans
+> [`LEDGER_DONE.md`](../../LEDGER_DONE.md), préfixe `LEGAL` ; `LEGAL-14` est dans « Délibérément dehors » de
+> `LEDGER_NEXT.md`. Ce fichier garde
+> les constats et les options d'origine.
 
 ## 1. Import biketeam et « pas de données de tiers »
 
@@ -19,7 +21,7 @@ vers les lignes voisines du ledger. Un point tranché quitte les deux fichiers.
   - quelle base légale : intérêt légitime, ou exécution du contrat ?
   - comment les membres importés ont-ils été, ou seront-ils, informés ?
 - **Contexte** : l'import par dump a été retiré le 2026-09-28. La migration en direct
-  ([plan](2026-09-22-biketeam-live-migration.md)) n'importe aucune personne, mais les comptes
+  ([plan](../2026-09-22-biketeam-live-migration.md)) n'importe aucune personne, mais les comptes
   déjà créés restent en base.
 - **Clos le 2026-09-29 (`LEGAL-1`, sans objet)** : vérification faite, staging et prod n'ont plus
   aucun compte venu de l'import ; la politique ne décrit plus que le transfert d'équipe.

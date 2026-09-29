@@ -677,8 +677,8 @@ V4, dans `SEC-16` ; F12 (sitemap) reste au [`BACKLOG.md`](BACKLOG.md).
 
 ## LEGAL — Politique de confidentialité
 
-[`plans/2026-09-29-privacy-policy-open-points.md`](plans/2026-09-29-privacy-policy-open-points.md)
-porte le détail et les options ; tous demandent une décision avant d'écrire. Toute modification de
+Le plan des points ouverts est [archivé](plans/archive/2026-09-29-privacy-policy-open-points.md).
+Toute modification de
 `privacy/privacy-policy.{fr,en}.md` se fait **en parité FR/EN**, et le texte étant un asset de
 l'app mobile, un changement n'y apparaît qu'avec la build suivante.
 
@@ -736,9 +736,6 @@ restent ouvertes :
   suivies sous `AUD`.
 - [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) — audit de sécurité de septembre 2026 ; il fait foi pour
   les vulnérabilités, l'audit de février pour l'infrastructure. Suivi sous `SEC`.
-- [`plans/2026-09-29-privacy-policy-open-points.md`](plans/2026-09-29-privacy-policy-open-points.md) —
-  ce que la politique de confidentialité ne dit pas encore, ou mal, et qui demande une décision
-  juridique : suivi sous `LEGAL`.
 - [`plans/2026-07-25-privacy-improvement-opportunities.md`](plans/2026-07-25-privacy-improvement-opportunities.md) —
   les options d'amélioration de la vie privée et leur justification ; ce qui en reste ouvert est
   suivi sous `WEB-28` (le chiffrement des jetons Karoo est `SEC-12`). L'audit de juillet et la mise à jour de
