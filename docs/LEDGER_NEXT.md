@@ -553,7 +553,6 @@ Deux gestes d'exploitation de l'audit sont sous `OPS` : I13 (`OPS-7`) et I20 (`O
 | `AUD-1` | CI/CD | I3 | Critique | Aucun pipeline de déploiement (`ci.yml`, `codeql.yml`, `karoo-release.yml` seulement) |
 | `AUD-2` | CI/CD | I4 | Critique | Images taguées par environnement (`pedalons-*:${ENV_NAME}`) : pas de retour arrière par version |
 | `AUD-3` | CI/CD | — | — | La suite e2e (`frontend/e2e/`, `WEB-13` à `WEB-22`) ne tourne qu'en local : la CI ne lance que `pnpm test run` |
-| `AUD-4` | CI/CD | I9 | Important | Node 24 en CI, `node:26.9.0-alpine` dans le Dockerfile du frontend |
 | `AUD-5` | Docker | I5 | Critique | Seul postgres a un healthcheck ; l'endpoint `smallrye-health` du backend existe pourtant |
 | `AUD-6` | Docker | I10 | Important | `forwardedHeaders.insecure=true` sur Traefik (atténué par l'écoute en loopback) — voir V3, `SEC-16` |
 | `AUD-7` | Docker | I14 | Important | Aucune limite CPU ou mémoire dans les compose |

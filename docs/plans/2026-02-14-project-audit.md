@@ -247,7 +247,7 @@ Docker Compose : 7 services par environnement (`docker-compose.yml`) + 2 partag�
 | I6 | Aucune collecte de metriques (pas de Prometheus/Micrometer) | Critique | M | `pom.xml`, config | |
 | I7 | Aucun alerting | Critique | XL | Infrastructure | |
 | I8 | Tests frontend commentes dans le CI | Important | S | `ci.yml` | ✅ |
-| I9 | Version Node CI (24) vs Dockerfile frontend (26.9.0) — mismatch | Important | S | `ci.yml` | |
+| I9 | Version Node CI (24) vs Dockerfile frontend (26.9.0) — mismatch | Important | S | `ci.yml` | ✅ (la CI lit `frontend/.nvmrc`, 26.9.0 comme le Dockerfile) |
 | I10 | `forwardedHeaders.insecure=true` sur Traefik | Important | S | `docker-compose.yml` | |
 | I11 | Frontend Dockerfile : `pnpm install` sans `--frozen-lockfile` | Important | S | `frontend/Dockerfile` | ✅ |
 | I12 | Image nginx tierce `steebchen/nginx-spa:stable` | Important | M | `frontend/Dockerfile` | ✅ (plus de nginx : image `node`, `server.js`) |
@@ -444,9 +444,9 @@ Les deux clients partagent des problemes communs :
 | Severite | Backend | Frontend | Mobile | Karoo | Garmin | Infra | Securite | Docs | Total |
 |----------|---------|----------|--------|-------|--------|-------|----------|------|-------|
 | Critique | 0 | 0 | 0 | 3 | 1 | 6 | 1 | 0 | **11** |
-| Important | 4 | 2 | 1 | 3 | 7 | 7 | 5 | 0 | **29** |
+| Important | 4 | 2 | 1 | 3 | 7 | 6 | 5 | 0 | **28** |
 | Mineur | 0 | 0 | 2 | 2 | 2 | 0 | 6 | 0 | **12** |
-| **Total** | **4** | **2** | **3** | **8** | **10** | **13** | **12** | **0** | **52** |
+| **Total** | **4** | **2** | **3** | **8** | **10** | **12** | **12** | **0** | **51** |
 
 ### Points corrigés depuis l'audit initial
 
@@ -459,5 +459,5 @@ Les deux clients partagent des problemes communs :
 | Frontend | F4, F5, F6, F9, F10, F11, F15 | Cle i18n LoginPage, FullCalendar retire, titres de page, textes RideEditor traduits, pages CGU/confidentialite, cles `_many` |
 | Mobile | M2, M5, M6, M7, M8 | Fuite de subscription, navigation traduite, widgets dedupliques, couleurs du theme, Markdown |
 | Documentation | D2, D3, D4, D6, D9 | rules.md Riverpod, BACKLOG corrige, PRODUCT_SHEET corrige |
-| Septembre 2026 | I2, I11, I12, F1, F2, F3, F7, F13, F14, M1, M3, M9, M10, G2, G3, G13, D1, D5, D7, D8, D10, D11, B15 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), image frontend sur `node`, zoom rendu au viewport, lien d'evitement, index en double de `device_codes` retires (V46), BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
+| Septembre 2026 | I2, I9, I11, I12, F1, F2, F3, F7, F13, F14, M1, M3, M9, M10, G2, G3, G13, D1, D5, D7, D8, D10, D11, B15 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), image frontend sur `node`, meme version de Node en CI que dans l'image (`frontend/.nvmrc`), zoom rendu au viewport, lien d'evitement, index en double de `device_codes` retires (V46), BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
 | Juin-juillet 2026 | B10, K6, M4 | `PedalonsQueryContext` memorise l'utilisateur (3bb01f32), `registerForActivityResult` (7e2d710f), dependances Riverpod inutilisees retirees (874a3288) |

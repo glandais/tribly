@@ -1,5 +1,7 @@
 ####
 # Base: node + pnpm via corepack (shared by all stages)
+# The Node version is the one in frontend/.nvmrc, which the CI reads: change both together
+# (here and in the runtime stage below).
 ####
 FROM node:26.9.0-alpine AS base
 
