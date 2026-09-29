@@ -5,10 +5,10 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.addLinearSystem;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.addVerticalSystem;
 
+import fr.pedalons.domain.route.ClimbData;
 import fr.pedalons.domain.route.GpxTrack;
 import fr.pedalons.dto.common.GeoJsonLineString;
 import fr.pedalons.dto.validation.ValidateSchema;
-import io.github.glandais.gpx.climb.Climb;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.geolatte.geom.G3D;
@@ -45,7 +45,7 @@ public record TrackDto(
   }
 
   /** Builds a track DTO straight from computed points and climbs, with no entity involved. */
-  public static TrackDto of(List<GpxTrack.TrackPoint> trackPoints, List<Climb> climbs) {
+  public static TrackDto of(List<GpxTrack.TrackPoint> trackPoints, List<ClimbData> climbs) {
     G3DM[] geomPoints =
         trackPoints.stream().map(p -> g(p.lng(), p.lat(), p.ele(), p.dist())).toArray(G3DM[]::new);
     LineString<G3DM> line = linestring(WGS84_3DM, geomPoints);
