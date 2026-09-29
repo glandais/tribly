@@ -6,11 +6,14 @@ import '../../../../api/generated/export.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
+import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../routes/presentation/route_export.dart';
 import '../../domain/ride_group_action.dart';
 import '../../providers/ride_detail_provider.dart';
+import '../../providers/ride_group_selection_provider.dart';
 import '../../providers/ride_registration_controller.dart';
 import 'ride_group_card.dart';
 import '../../../../keys.dart';
@@ -62,6 +65,12 @@ class RideGroupsSection extends ConsumerStatefulWidget {
 class _RideGroupsSectionState extends ConsumerState<RideGroupsSection> {
   bool _expanded = false;
 
+  /// L'issue du dernier export ou envoi d'un groupe, en bandeau au-dessus des
+  /// cartes — comme sur la fiche parcours, pas en snackbar.
+  Object? _exportError;
+  String? _exportSuccess;
+  bool _exporting = false;
+
   @override
   Widget build(BuildContext context) {
     final RideDto ride = widget.ride;
@@ -86,6 +95,18 @@ class _RideGroupsSectionState extends ConsumerState<RideGroupsSection> {
       authProvider.select((AuthState s) => s.user?.id),
     );
     final UnitSystem units = ref.watch(unitSystemProvider);
+    // Les parcours des groupes sont déjà chargés en lot pour la carte : leurs
+    // assets GPX/FIT viennent de là, sans appel de plus.
+    final Map<String, RouteDetailDto> routes = ref.watch(
+      rideRouteGeometriesProvider(
+        widget.rideKey,
+      ).select((RideRouteGeometriesState s) => s.geometries),
+    );
+    final List<GpsServiceConnectionDto> services = ref.watch(
+      authProvider.select(
+        (AuthState s) => s.user?.connectedServices ?? const [],
+      ),
+    );
 
     // Tant qu'on ne sait pas, on propose : un 403 `FORBIDDEN` répondra, et son
     // bandeau est plus juste qu'un bouton absent sans explication.
@@ -108,31 +129,35 @@ class _RideGroupsSectionState extends ConsumerState<RideGroupsSection> {
           _failureBanner(registration.failure!, controller),
           const SizedBox(height: 10),
         ],
+        if (_exportError != null) ...<Widget>[
+          PdlBanner(
+            tone: PdlBannerTone.danger,
+            message: getErrorMessage(_exportError!),
+            onDismiss: () => setState(() => _exportError = null),
+            dismissSemanticLabel: 'common.close'.tr(),
+          ),
+          const SizedBox(height: 10),
+        ],
+        if (_exportSuccess != null) ...<Widget>[
+          PdlBanner(
+            tone: PdlBannerTone.info,
+            message: _exportSuccess!,
+            onDismiss: () => setState(() => _exportSuccess = null),
+            dismissSemanticLabel: 'common.close'.tr(),
+          ),
+          const SizedBox(height: 10),
+        ],
         for (final RideGroupDto group in shown) ...<Widget>[
-          RideGroupCard(
-            key: keys.ride.group(group.id),
+          _groupCard(
             group: group,
-            action: rideGroupAction(
-              ride: ride,
-              group: group,
-              isMember: isMember,
-            ),
-            trackColor: multiTrackColor(group.sortOrder),
-            units: units,
-            selected: group.id == widget.selectedGroupId,
-            pending: registration.pendingGroupId == group.id,
+            ride: ride,
+            route: routes[group.routeSlug ?? ride.routeSlug],
+            services: services,
+            isMember: isMember,
+            registration: registration,
+            controller: controller,
             currentUserId: currentUserId,
-            onTap: () => widget.onSelect(group.id),
-            onJoin: () => controller.join(group.id),
-            onLeave: () => controller.leave(group.id),
-            onShowParticipants: widget.onShowParticipants == null
-                ? null
-                : () => widget.onShowParticipants!(group),
-            onViewRoute:
-                widget.onViewRoute == null ||
-                    (group.routeSlug ?? ride.routeSlug) == null
-                ? null
-                : () => widget.onViewRoute!(group),
+            units: units,
           ),
           const SizedBox(height: PdlSpacing.feedGap),
         ],
@@ -145,6 +170,98 @@ class _RideGroupsSectionState extends ConsumerState<RideGroupsSection> {
           ),
       ],
     );
+  }
+
+  Widget _groupCard({
+    required RideGroupDto group,
+    required RideDto ride,
+    required RouteDetailDto? route,
+    required List<GpsServiceConnectionDto> services,
+    required bool isMember,
+    required RideRegistrationState registration,
+    required RideRegistrationController controller,
+    required String? currentUserId,
+    required UnitSystem units,
+  }) {
+    final String? routeSlug = group.routeSlug ?? ride.routeSlug;
+    final AssetDto? gpx = route?.media.assets.gpx;
+    final AssetDto? fit = route?.media.assets.fit;
+
+    return RideGroupCard(
+      key: keys.ride.group(group.id),
+      group: group,
+      action: rideGroupAction(ride: ride, group: group, isMember: isMember),
+      trackColor: multiTrackColor(group.sortOrder),
+      units: units,
+      selected: group.id == widget.selectedGroupId,
+      pending: registration.pendingGroupId == group.id,
+      currentUserId: currentUserId,
+      onTap: () => widget.onSelect(group.id),
+      onJoin: () => controller.join(group.id),
+      onLeave: () => controller.leave(group.id),
+      onShowParticipants: widget.onShowParticipants == null
+          ? null
+          : () => widget.onShowParticipants!(group),
+      onViewRoute: widget.onViewRoute == null || routeSlug == null
+          ? null
+          : () => widget.onViewRoute!(group),
+      onExportGpx: gpx == null ? null : () => _download(gpx),
+      onExportFit: fit == null ? null : () => _download(fit),
+      onSendToDevice: routeSlug == null || services.isEmpty
+          ? null
+          : () => _sendToDevice(ride.team.slug, routeSlug, services),
+    );
+  }
+
+  Future<void> _download(AssetDto asset) async {
+    await _runExport(() async {
+      await downloadAndShareRouteAsset(
+        ref,
+        asset,
+        origin: shareOriginOf(context),
+      );
+      return null;
+    });
+  }
+
+  Future<void> _sendToDevice(
+    String teamSlug,
+    String routeSlug,
+    List<GpsServiceConnectionDto> services,
+  ) async {
+    final GpsServiceConnectionDto? picked = await pickGpsService(
+      context,
+      services,
+    );
+    if (picked == null) return;
+    await _runExport(() async {
+      await uploadRouteToService(
+        ref,
+        picked,
+        teamSlug: teamSlug,
+        routeSlug: routeSlug,
+      );
+      return 'routes.uploadSuccess'.tr();
+    });
+  }
+
+  /// Un export à la fois : un second tap pendant un téléchargement est ignoré
+  /// plutôt que d'empiler deux feuilles de partage.
+  Future<void> _runExport(Future<String?> Function() run) async {
+    if (_exporting) return;
+    setState(() {
+      _exporting = true;
+      _exportError = null;
+      _exportSuccess = null;
+    });
+    try {
+      final String? success = await run();
+      if (mounted) setState(() => _exportSuccess = success);
+    } catch (error) {
+      if (mounted) setState(() => _exportError = error);
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
   }
 
   /// Le bandeau d'échec — **persistant**, nommant le groupe, et porteur de la

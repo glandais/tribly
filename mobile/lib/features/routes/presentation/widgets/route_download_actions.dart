@@ -1,13 +1,9 @@
-import 'package:dio/dio.dart' show Dio;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
-import '../../../../api/pedalons_api_client.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
@@ -15,6 +11,7 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/share_link.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../route_export.dart';
 
 /// La rangée d'exports d'un parcours : GPX plein, FIT contour, appareil,
 /// partage.
@@ -127,17 +124,10 @@ class _RouteDownloadActionsState extends ConsumerState<RouteDownloadActions> {
       _error = null;
     });
     try {
-      final Dio dio = ref.read(dioProvider);
-      final String path =
-          '${(await getTemporaryDirectory()).path}/'
-          '${asset.fileName}';
-      await dio.download(asset.url, path);
-      if (!mounted) return;
-      await SharePlus.instance.share(
-        ShareParams(
-          files: <XFile>[XFile(path)],
-          sharePositionOrigin: _origin(),
-        ),
+      await downloadAndShareRouteAsset(
+        ref,
+        asset,
+        origin: shareOriginOf(context),
       );
     } catch (error) {
       if (mounted) setState(() => _error = error);
@@ -152,33 +142,11 @@ class _RouteDownloadActionsState extends ConsumerState<RouteDownloadActions> {
     path: Paths.route(route.team.slug, route.slug),
   );
 
-  Rect _origin() {
-    final RenderBox? box = context.findRenderObject() as RenderBox?;
-    return box == null ? Rect.zero : box.localToGlobal(Offset.zero) & box.size;
-  }
-
-  /// Le choix de l'appareil passe par une `PdlSheet` : `PdlSheet.show` force
-  /// `useRootNavigator`, donc la feuille passe au-dessus de la barre d'onglets
-  /// (F-DE-8).
   Future<void> _openDeviceSheet(List<GpsServiceConnectionDto> services) async {
-    final GpsServiceConnectionDto? picked =
-        await PdlSheet.show<GpsServiceConnectionDto>(
-          context: context,
-          builder: (BuildContext sheetContext) => PdlSheet(
-            title: 'routes.sendToDevice'.tr(),
-            children: <Widget>[
-              for (final GpsServiceConnectionDto s in services)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: PdlSettingRow(
-                    title: s.displayName,
-                    icon: PdlIcons.device,
-                    onTap: () => Navigator.of(sheetContext).pop(s),
-                  ),
-                ),
-            ],
-          ),
-        );
+    final GpsServiceConnectionDto? picked = await pickGpsService(
+      context,
+      services,
+    );
     if (picked != null) await _upload(picked);
   }
 
@@ -188,13 +156,12 @@ class _RouteDownloadActionsState extends ConsumerState<RouteDownloadActions> {
       _error = null;
     });
     try {
-      await ref
-          .read(gpsServicesClientProvider)
-          .uploadRoute(
-            serviceType: GpsServiceType.fromJson(service.serviceType),
-            teamSlug: route.team.slug,
-            routeSlug: route.slug,
-          );
+      await uploadRouteToService(
+        ref,
+        service,
+        teamSlug: route.team.slug,
+        routeSlug: route.slug,
+      );
       if (mounted) setState(() => _success = 'routes.uploadSuccess'.tr());
     } catch (error) {
       if (mounted) setState(() => _error = error);

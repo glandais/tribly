@@ -331,6 +331,7 @@ class RideGroupCard extends StatelessWidget {
           ),
         if (onExportGpx != null)
           PdlButton(
+            key: keys.ride.groupExportGpx(group.id),
             label: 'routes.exportGpx'.tr(),
             icon: PdlIcons.gpx,
             variant: PdlButtonVariant.text,
@@ -339,6 +340,7 @@ class RideGroupCard extends StatelessWidget {
           ),
         if (onExportFit != null)
           PdlButton(
+            key: keys.ride.groupExportFit(group.id),
             label: 'routes.exportFit'.tr(),
             icon: PdlIcons.gpx,
             variant: PdlButtonVariant.text,
@@ -347,6 +349,7 @@ class RideGroupCard extends StatelessWidget {
           ),
         if (onSendToDevice != null)
           PdlButton(
+            key: keys.ride.groupSendToDevice(group.id),
             label: 'routes.sendToDevice'.tr(),
             icon: PdlIcons.device,
             variant: PdlButtonVariant.text,
