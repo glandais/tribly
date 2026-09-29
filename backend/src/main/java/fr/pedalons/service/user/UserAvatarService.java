@@ -80,6 +80,10 @@ public class UserAvatarService {
     String tempKey = getAvatarKey(tempFileId);
     try (InputStream fis = new FileInputStream(tempFile)) {
       storageService.store(tempKey, fis, contentType, tempFile.length());
+    } catch (IOException | RuntimeException e) {
+      // e.g. an image too broken to strip of its metadata (docs/LEDGER_*.md API-43)
+      tempFile.delete();
+      throw e;
     }
 
     // Generate final file ID and resize via imgproxy

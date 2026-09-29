@@ -390,8 +390,9 @@ public class GpxPreviewService {
   }
 
   /**
-   * Downloads the untouched upload to a temp file, so route creation can replay the full pipeline
-   * on it and produce its own FIT and thumbnails.
+   * Downloads the stored original — the upload's full-resolution track, already stripped of
+   * timestamps and sensor data ({@code GpxSanitizer}) — to a temp file, so route creation can
+   * replay the full pipeline on it and produce its own FIT and thumbnails.
    *
    * <p>The caller owns the returned file and must delete it.
    */

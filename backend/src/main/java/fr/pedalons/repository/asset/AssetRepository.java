@@ -27,6 +27,36 @@ public class AssetRepository implements PanacheRepository<Asset> {
     return list("teamEntity is null and updatedAt < ?1", olderThan);
   }
 
+  /** What the metadata backfill needs to rewrite a stored file, without loading the asset. */
+  public record MetadataPendingRow(
+      Long assetId, Long teamId, Long fileId, String fileName, String contentType) {}
+
+  /**
+   * Assets whose stored file predates metadata stripping, by id from {@code afterId} on. Backed by the partial
+   * index {@code idx_assets_metadata_pending} (V47), empty once the backfill is done.
+   * docs/LEDGER_*.md API-43.
+   */
+  public List<MetadataPendingRow> findMetadataPending(long afterId, int limit) {
+    return getEntityManager()
+        .createQuery(
+            "select a.id, a.team.id, a.fileId, a.fileName, a.contentType "
+                + "from Asset a where a.metadataPending = true and a.id > :afterId order by a.id",
+            Object[].class)
+        .setParameter("afterId", afterId)
+        .setMaxResults(limit)
+        .getResultStream()
+        .map(
+            r ->
+                new MetadataPendingRow(
+                    (Long) r[0], (Long) r[1], (Long) r[2], (String) r[3], (String) r[4]))
+        .toList();
+  }
+
+  /** Bulk update: neither {@code updatedAt} nor the entity listeners are touched. */
+  public void clearMetadataPending(Long assetId) {
+    update("metadataPending = false where id = ?1", assetId);
+  }
+
   /**
    * The thumbnail assets of a whole set of entities, in one query.
    *

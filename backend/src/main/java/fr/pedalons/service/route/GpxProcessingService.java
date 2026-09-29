@@ -165,6 +165,13 @@ public class GpxProcessingService {
    * <p>The GPX object is mutated in place by the pipeline, so {@code original.gpx} must be written
    * before the loop and {@code filtered.gpx} after it. Keeping both serializations here makes that
    * ordering a local property of this method rather than a rule callers must remember.
+   *
+   * <p><b>This is where timestamps and sensor data are stripped</b> ({@link GpxSanitizer},
+   * docs/LEDGER_*.md API-44), before anything is written: every stored GPX and FIT file of a route
+   * or a GPX-tool preview comes out of this method — or, for the FIT, out of the same mutated
+   * {@code gpx} right after it — whatever the entry point (upload, planner, GPX-tool promotion,
+   * biketeam import). {@code original.gpx} is therefore not the uploaded bytes but the sanitized
+   * parse of them; don't write a file from a {@link GPX} that has not been through here.
    */
   public ComputedGpx computeGpx(GPX gpx) {
     if (gpx.paths().isEmpty()) {
@@ -173,6 +180,7 @@ public class GpxProcessingService {
     File original = null;
     File filtered = null;
     try {
+      GpxSanitizer.sanitize(gpx);
       original = writeGpxToTempFile(gpx, false);
 
       List<ComputedWaypoint> waypoints = new ArrayList<>();

@@ -1,0 +1,285 @@
+package fr.pedalons.service.gpx;
+
+import fr.pedalons.common.TsidUtils;
+import fr.pedalons.enums.AssetType;
+import fr.pedalons.infrastructure.storage.StorageService;
+import fr.pedalons.repository.asset.AssetRepository;
+import fr.pedalons.repository.gpx.GpxPreviewRepository;
+import fr.pedalons.service.asset.AssetService;
+import fr.pedalons.service.route.GpxSanitizer;
+import io.github.glandais.gpx.data.GPX;
+import io.github.glandais.gpx.io.read.GPXFileReader;
+import io.github.glandais.gpx.io.write.FitFileWriter;
+import io.github.glandais.gpx.io.write.GPXFileWriter;
+import io.quarkus.narayana.jta.QuarkusTransaction;
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import org.jboss.logging.Logger;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * One-off rewrite of the GPX and FIT files stored before timestamps and sensor data were stripped
+ * at import (docs/LEDGER_*.md API-44): every route's {@code original.gpx}, {@code filtered.gpx} and
+ * {@code route.fit}, and the same three files of every GPX-tool preview still within retention.
+ *
+ * <p><b>In place, geometry untouched.</b> A dirty GPX is parsed, passed through {@link
+ * GpxSanitizer} and written back under the same storage key; the FIT, which carries the same
+ * clock and power values, is regenerated from the sanitized filtered track — exactly what the
+ * pipeline writes it from. The pipeline itself (SRTM, simplification, climbs) is <em>not</em>
+ * replayed: tracks, climbs and metadata in the database hold no time or sensor value, and
+ * re-running it could shift distances and elevations under routes people already know.
+ *
+ * <p><b>Idempotent.</b> A file is rewritten only when it still holds an {@code <extensions>} block
+ * or a {@code <time>} other than the epoch placeholder a sanitized file carries; a clean file is
+ * read and left alone. Once a full pass ends without an error, a marker object in the bucket turns
+ * the nightly trigger into a single existence check — and a bucket restored from a backup taken
+ * before the pass comes back without it, so the pass simply runs again.
+ */
+@ApplicationScoped
+public class GpxSanitizationBackfill {
+
+  private static final Logger LOG = Logger.getLogger(GpxSanitizationBackfill.class);
+
+  /** Written once a pass completes without error; its presence skips every later run. */
+  static final String MARKER_KEY = "maintenance/api-44-gpx-sanitized";
+
+  private static final String GPX_CONTENT_TYPE = "application/gpx+xml";
+  private static final String FIT_CONTENT_TYPE = "application/vnd.ant.fit";
+  private static final String ORIGINAL_GPX = "original.gpx";
+  private static final String FILTERED_GPX = "filtered.gpx";
+  private static final String FIT = "route.fit";
+
+  /** What a sanitized point carries: see {@link GpxSanitizer} on why it is the epoch. */
+  private static final Pattern REAL_TIME = Pattern.compile("<time>(?!1970-01-01T00:00:00Z<)");
+
+  @Inject StorageService storageService;
+
+  @Inject AssetService assetService;
+
+  @Inject AssetRepository assetRepository;
+
+  @Inject GpxPreviewRepository gpxPreviewRepository;
+
+  @Inject GpxPreviewService gpxPreviewService;
+
+  @Inject GPXFileReader gpxFileReader;
+
+  @Inject GPXFileWriter gpxFileWriter;
+
+  @Inject FitFileWriter fitFileWriter;
+
+  /** Outcome of one pass: file sets looked at, file sets rewritten, file sets that failed. */
+  public record Report(int sets, int rewritten, int failed) {}
+
+  /** A stored object, with what it must be written back with. */
+  record StoredFile(String key, String contentType, Map<String, String> metadata) {}
+
+  /** The three files one route or one preview owns; any of them may be missing. */
+  record FileSet(
+      String label,
+      @Nullable StoredFile original,
+      @Nullable StoredFile filtered,
+      @Nullable StoredFile fit) {}
+
+  /**
+   * Nightly, after the preview purge (4:00) so expired previews are not rewritten just before
+   * being deleted. After the first clean pass this is one existence check a night.
+   */
+  @Scheduled(
+      cron = "0 15 4 * * ?",
+      concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
+      identity = "gpx-sanitization-backfill")
+  void runOnce() {
+    if (storageService.exists(MARKER_KEY)) {
+      return;
+    }
+    Report report = sanitizeAll();
+    LOG.infof(
+        "GPX sanitization backfill: %d file sets checked, %d rewritten, %d failed",
+        report.sets(), report.rewritten(), report.failed());
+    if (report.failed() == 0) {
+      byte[] marker =
+          ("done " + Instant.now() + " — " + report + "\n").getBytes(StandardCharsets.UTF_8);
+      storageService.store(
+          MARKER_KEY, new ByteArrayInputStream(marker), "text/plain", marker.length);
+    }
+  }
+
+  /** One full pass over every stored route and preview file. Safe to run any number of times. */
+  public Report sanitizeAll() {
+    List<FileSet> sets = new ArrayList<>(routeFileSets());
+    sets.addAll(previewFileSets());
+    int rewritten = 0;
+    int failed = 0;
+    for (FileSet set : sets) {
+      try {
+        if (sanitize(set)) {
+          rewritten++;
+        }
+      } catch (Exception e) {
+        failed++;
+        LOG.warnf(e, "GPX sanitization backfill failed for %s", set.label());
+      }
+    }
+    return new Report(sets.size(), rewritten, failed);
+  }
+
+  /** Rewrites the dirty files of one set; {@code true} if anything was written. */
+  boolean sanitize(FileSet set) throws Exception {
+    boolean changed = false;
+    if (set.original() != null) {
+      GPX original = readIfDirty(set.original());
+      if (original != null) {
+        store(set.original(), toGpxBytes(original, false));
+        changed = true;
+      }
+    }
+    if (set.filtered() != null) {
+      GPX filtered = readIfDirty(set.filtered());
+      if (filtered != null) {
+        // Written from the same in-memory track as the filtered GPX, so dirty exactly when it is.
+        // The FIT goes first: the filtered GPX is the only dirtiness signal for the pair, so if
+        // the second write fails the next pass must still see it dirty and redo the FIT too.
+        if (set.fit() != null) {
+          store(set.fit(), toFitBytes(filtered));
+        }
+        store(set.filtered(), toGpxBytes(filtered, true));
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  /** The sanitized parse of a stored GPX, or null when it is missing or already clean. */
+  private @Nullable GPX readIfDirty(StoredFile file) throws Exception {
+    if (!storageService.exists(file.key())) {
+      return null;
+    }
+    byte[] raw;
+    try (InputStream is = storageService.retrieve(file.key())) {
+      raw = is.readAllBytes();
+    }
+    if (!isDirty(new String(raw, StandardCharsets.UTF_8))) {
+      return null;
+    }
+    GPX gpx = gpxFileReader.parseGPX(new ByteArrayInputStream(raw));
+    GpxSanitizer.sanitize(gpx);
+    return gpx;
+  }
+
+  static boolean isDirty(String gpxXml) {
+    return gpxXml.contains("<extensions>") || REAL_TIME.matcher(gpxXml).find();
+  }
+
+  private byte[] toGpxBytes(GPX gpx, boolean filtered) throws IOException {
+    StringWriter writer = new StringWriter();
+    gpxFileWriter.writeGPX(gpx, writer, filtered);
+    return writer.toString().getBytes(StandardCharsets.UTF_8);
+  }
+
+  private byte[] toFitBytes(GPX gpx) throws IOException {
+    Path temp = Files.createTempFile("gpx-sanitize-", ".fit");
+    try {
+      fitFileWriter.writeGPX(gpx, temp.toFile());
+      return Files.readAllBytes(temp);
+    } finally {
+      Files.deleteIfExists(temp);
+    }
+  }
+
+  private void store(StoredFile file, byte[] content) {
+    storageService.store(
+        file.key(),
+        new ByteArrayInputStream(content),
+        file.contentType(),
+        content.length,
+        file.metadata());
+  }
+
+  /**
+   * Every route's GPX and FIT assets, grouped by route — deleted routes and every domain included:
+   * a soft-deleted route still holds its files.
+   */
+  private List<FileSet> routeFileSets() {
+    List<Object[]> rows =
+        QuarkusTransaction.requiringNew()
+            .call(
+                () ->
+                    assetRepository
+                        .getEntityManager()
+                        .createQuery(
+                            "select te.id, a.team.id, a.fileId, a.fileName, a.contentType, a.type "
+                                + "from Asset a join a.teamEntity te "
+                                + "where a.type in (:types) "
+                                + "order by te.id",
+                            Object[].class)
+                        .setParameter(
+                            "types",
+                            List.of(
+                                AssetType.ROUTE_ORIGINAL_GPX,
+                                AssetType.ROUTE_FILTERED_GPX,
+                                AssetType.ROUTE_FIT))
+                        .getResultList());
+
+    Map<Long, Map<AssetType, StoredFile>> byRoute = new LinkedHashMap<>();
+    for (Object[] row : rows) {
+      Long routeId = (Long) row[0];
+      Long teamId = (Long) row[1];
+      Long fileId = (Long) row[2];
+      String fileName = (String) row[3];
+      Map<String, String> metadata =
+          Map.of(
+              "file-id", TsidUtils.toString(fileId),
+              "team-id", TsidUtils.toString(teamId),
+              "file-name", fileName);
+      byRoute
+          .computeIfAbsent(routeId, id -> new LinkedHashMap<>())
+          .put(
+              (AssetType) row[5],
+              new StoredFile(assetService.getAssetKey(teamId, fileId), (String) row[4], metadata));
+    }
+
+    List<FileSet> sets = new ArrayList<>(byRoute.size());
+    byRoute.forEach(
+        (routeId, files) ->
+            sets.add(
+                new FileSet(
+                    "route " + TsidUtils.toString(routeId),
+                    files.get(AssetType.ROUTE_ORIGINAL_GPX),
+                    files.get(AssetType.ROUTE_FILTERED_GPX),
+                    files.get(AssetType.ROUTE_FIT))));
+    return sets;
+  }
+
+  /** The three files of every preview still in the database, whatever its domain. */
+  private List<FileSet> previewFileSets() {
+    return QuarkusTransaction.requiringNew()
+        .call(
+            () ->
+                gpxPreviewRepository.listAll().stream()
+                    .map(
+                        preview -> {
+                          Map<String, String> keys = gpxPreviewService.exportKeys(preview);
+                          return new FileSet(
+                              "preview " + preview.getPublicId(),
+                              new StoredFile(keys.get(ORIGINAL_GPX), GPX_CONTENT_TYPE, Map.of()),
+                              new StoredFile(keys.get(FILTERED_GPX), GPX_CONTENT_TYPE, Map.of()),
+                              new StoredFile(keys.get(FIT), FIT_CONTENT_TYPE, Map.of()));
+                        })
+                    .toList());
+  }
+}

@@ -10,11 +10,13 @@ import fr.pedalons.domain.route.GpxTrack;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.route.response.TrackMetadata;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
+import fr.pedalons.util.GpxPrivacyAssertions;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
 import io.github.glandais.gpx.data.GPX;
@@ -183,6 +185,49 @@ class GpxProcessingServiceTest extends AbstractBaseTest {
                 + " - "
                 + e.getMessage());
       }
+    }
+  }
+
+  /**
+   * docs/LEDGER_*.md API-44: an activity export (timestamps, heart rate, cadence, power,
+   * temperature, author) leaves nothing of it in any stored file — original and filtered GPX
+   * (the latter is what every download and GPS-service upload serves) nor the FIT course.
+   */
+  @Test
+  void createTracks_shouldStripTimestampsAndSensorsFromEveryStoredFile() throws Exception {
+    GPX gpx = gpxProcessingService.parseGpx(GpxPrivacyAssertions.activityGpx());
+    context.setUserForTest(user);
+    TrackMetadata result = gpxProcessingService.createTracks(route, gpx);
+
+    assertTrue(result.distance() > 5000, "the geometry must survive: " + result.distance());
+    assertEquals(
+        3,
+        route.getAssets().stream()
+            .filter(
+                a ->
+                    a.getType() == AssetType.ROUTE_ORIGINAL_GPX
+                        || a.getType() == AssetType.ROUTE_FILTERED_GPX
+                        || a.getType() == AssetType.ROUTE_FIT)
+            .count(),
+        "every stored GPX and FIT file must be checked");
+    for (Asset asset : route.getAssets()) {
+      byte[] content;
+      try (InputStream is = assetService.getAssetContent(asset)) {
+        content = is.readAllBytes();
+      }
+      switch (asset.getType()) {
+        case ROUTE_ORIGINAL_GPX, ROUTE_FILTERED_GPX ->
+            GpxPrivacyAssertions.assertGpxHasNoPersonalData(
+                new String(content, java.nio.charset.StandardCharsets.UTF_8));
+        case ROUTE_FIT -> GpxPrivacyAssertions.assertFitHasNoPersonalData(content);
+        default -> {}
+      }
+    }
+    try (InputStream is = gpxProcessingService.getFilteredGpxContent(route)) {
+      String filtered = new String(is.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+      // The writer escapes every non-ASCII character.
+      assertTrue(
+          filtered.contains("<name>Caf&#233; stop</name>"), "the waypoint's name must survive");
     }
   }
 

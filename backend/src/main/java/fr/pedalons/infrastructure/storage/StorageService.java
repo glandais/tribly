@@ -19,6 +19,12 @@ public interface StorageService {
   /**
    * Stores content in the storage backend with custom metadata.
    *
+   * <p><strong>An image is stored without its metadata</strong> (EXIF with the GPS position, XMP,
+   * IPTC, comments; the orientation is kept): the implementation strips it, whatever the caller,
+   * so the stored object may be smaller than {@code contentLength}. An image whose metadata cannot
+   * be removed (TIFF, HEIF…) is refused. See {@code ImageMetadataStripper}, docs/LEDGER_*.md
+   * API-43.
+   *
    * @param key the storage key (path within the bucket)
    * @param content the input stream containing the content
    * @param contentType the MIME type of the content
@@ -39,6 +45,15 @@ public interface StorageService {
    * @return an input stream for reading the content
    */
   InputStream retrieve(String key);
+
+  /**
+   * The first bytes of stored content, without downloading the rest — enough to sniff a format.
+   *
+   * @param key the storage key
+   * @param length how many leading bytes to return at most
+   * @return up to {@code length} bytes, fewer when the content is shorter
+   */
+  byte[] retrieveHead(String key, int length);
 
   /**
    * Deletes content from the storage backend.

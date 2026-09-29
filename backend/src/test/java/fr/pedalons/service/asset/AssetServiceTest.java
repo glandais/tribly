@@ -18,6 +18,7 @@ import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.infrastructure.image.TestImages;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.asset.AssetRepository;
 import fr.pedalons.repository.post.PostRepository;
@@ -471,6 +472,99 @@ class AssetServiceTest extends AbstractBaseTest {
               () ->
                   assetService.addAssetStream(
                       team, AssetType.ATTACHMENT, null, content, "evil.html"));
+      assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode());
+    }
+  }
+
+  /** docs/LEDGER_*.md API-43: an uploaded photo is stored without its metadata. */
+  @Nested
+  class MetadataStripping {
+
+    private byte[] stored(AssetDto dto) throws IOException {
+      Asset asset = assetRepository.findById(TsidUtils.toLong(dto.id()));
+      try (InputStream in = storageService.retrieve(getAssetKey(team, asset.getFileId()))) {
+        return in.readAllBytes();
+      }
+    }
+
+    @Test
+    void storesAPhotoWithoutItsExifButWithItsOrientation() throws IOException {
+      byte[] photo = TestImages.jpeg(6);
+
+      queryContext.setUserForTest(member);
+      AssetDto dto =
+          assetService.createAsset(
+              team.getSlug(), AssetType.IMAGE, new ByteArrayInputStream(photo), "photo.jpg");
+
+      byte[] stored = stored(dto);
+      assertFalse(TestImages.contains(stored, TestImages.SECRET), "metadata left in storage");
+      assertTrue(stored.length < photo.length);
+      assertTrue(TestImages.contains(stored, "Exif"), "orientation must survive");
+      assertEquals("image/jpeg", dto.contentType());
+    }
+
+    @Test
+    void stripsAPhotoUploadedAsAnAttachment() throws IOException {
+      queryContext.setUserForTest(member);
+      AssetDto dto =
+          assetService.createAsset(
+              team.getSlug(),
+              AssetType.ATTACHMENT,
+              new ByteArrayInputStream(TestImages.png(1)),
+              "scan.png");
+
+      assertFalse(TestImages.contains(stored(dto), TestImages.SECRET));
+    }
+
+    @Test
+    void stripsWhatAnImporterWritesToTheTempFile() throws IOException {
+      // The biketeam import and the thumbnails write a temp file, then call uploadAssetFile
+      queryContext.setUserForTest(admin);
+      AssetWithFile awf =
+          assetService.addAssetStream(team, AssetType.IMAGE, null, null, "imported.jpg");
+      java.nio.file.Files.write(awf.file().toPath(), TestImages.jpeg(3));
+      assetService.uploadAssetFile(awf.asset());
+
+      byte[] stored;
+      try (InputStream in = assetService.getAssetContent(awf.asset())) {
+        stored = in.readAllBytes();
+      }
+      assertFalse(TestImages.contains(stored, TestImages.SECRET));
+    }
+
+    @Test
+    void rejectsAHeicPhoto() {
+      byte[] heic = new byte[64];
+      byte[] ftyp = "\0\0\0\u0018ftypheic\0\0\0\0mif1heic".getBytes(StandardCharsets.ISO_8859_1);
+      System.arraycopy(ftyp, 0, heic, 0, ftyp.length);
+
+      queryContext.setUserForTest(member);
+      for (AssetType type : new AssetType[] {AssetType.IMAGE, AssetType.ATTACHMENT}) {
+        PedalonsException ex =
+            assertThrows(
+                PedalonsException.class,
+                () ->
+                    assetService.createAsset(
+                        team.getSlug(), type, new ByteArrayInputStream(heic), "photo.heic"));
+        assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode(), type.name());
+      }
+    }
+
+    @Test
+    void rejectsATiffPhoto() {
+      byte[] tiff =
+          TestImages.concat("II*\0".getBytes(StandardCharsets.ISO_8859_1), TestImages.exifTiff(1));
+
+      queryContext.setUserForTest(member);
+      PedalonsException ex =
+          assertThrows(
+              PedalonsException.class,
+              () ->
+                  assetService.createAsset(
+                      team.getSlug(),
+                      AssetType.ATTACHMENT,
+                      new ByteArrayInputStream(tiff),
+                      "scan.tif"));
       assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode());
     }
   }

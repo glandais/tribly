@@ -5,9 +5,11 @@ import edu.kit.kastel.mcse.ardoco.magika.Prediction;
 import fr.pedalons.common.exception.BadRequestException;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.AssetType;
+import fr.pedalons.infrastructure.image.ImageFormat;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.File;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
 import org.jboss.logging.Logger;
@@ -102,6 +104,7 @@ public class FileTypeDetector {
    */
   public DetectedFileType detectAndValidate(
       File file, @Nullable String fileName, AssetType assetType) {
+    rejectUnstrippableImage(file, fileName, assetType);
     DetectedFileType detected = detect(file, fileName);
     FileTypeCategory category = FileTypeCategory.forAssetType(assetType);
     boolean acceptedByLabel = category.accepts(detected.label());
@@ -129,6 +132,28 @@ public class FileTypeDetector {
           category.getLabels());
     }
     return detected;
+  }
+
+  /**
+   * Refuses, whatever Magika says and whatever the category, an image container whose metadata
+   * (GPS position included) cannot be removed without re-encoding — TIFF and camera raw files,
+   * HEIF/HEIC/AVIF, JPEG XL and JPEG 2000 containers. Storage would refuse it too; failing here
+   * gives the user the same answer as any other rejected type. docs/LEDGER_*.md API-43.
+   */
+  private static void rejectUnstrippableImage(
+      File file, @Nullable String fileName, AssetType assetType) {
+    ImageFormat format;
+    try {
+      format = ImageFormat.sniff(file.toPath());
+    } catch (IOException e) {
+      throw new BadRequestException(ErrorCode.FILE_DETECTION_FAILED, e);
+    }
+    if (format.isRefused()) {
+      LOG.warnf(
+          "Rejecting upload fileName=%s assetType=%s: %s image, its metadata cannot be removed",
+          fileName, assetType, format);
+      throw new BadRequestException(ErrorCode.FILE_TYPE_REJECTED);
+    }
   }
 
   private static String policyKey(FileTypeCategory category) {

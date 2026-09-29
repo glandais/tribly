@@ -57,6 +57,14 @@ public class Asset extends BaseEntity {
   @Column(name = "sort_order", nullable = false)
   private int sortOrder = 0;
 
+  /**
+   * The stored file was uploaded before images were stripped of their metadata and still has to be
+   * cleaned by {@code AssetMetadataBackfill}. Always false for a new asset: storage strips on
+   * write. docs/LEDGER_*.md API-43.
+   */
+  @Column(name = "metadata_pending", nullable = false)
+  private boolean metadataPending = false;
+
   public Asset(
       User createdBy, Team team, AssetType type, Long fileId, String fileName, String contentType) {
     super(createdBy);

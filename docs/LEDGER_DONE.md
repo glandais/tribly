@@ -417,6 +417,68 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   et `createRide_withEmptyMediaObject_shouldSucceed`. Un `media` nul, lui, reste un 400 là où la
   requête porte `@ValidateSchema` (`RideRequest`…).
 
+### Vie privée : les métadonnées retirées à l'import
+
+- `API-43` **Les images perdent leurs métadonnées au stockage** (2026-09-29, contrat inchangé) —
+  `S3StorageService.store`, le seul chemin par lequel un fichier atteint le bucket (upload
+  d'asset, pièce jointe, avatar et son original temporaire, vignettes, import biketeam via
+  `addAsset`/`uploadAssetFile`, `uploadTempFileToS3`), passe les JPEG, PNG, WebP et GIF par
+  `ImageMetadataStripper` : sans perte, sans décoder les pixels, **par liste blanche** de segments
+  et de chunks par format (tout ce qui est inconnu part, y compris EXIF, GPS, XMP, IPTC, MPF,
+  commentaires, miniature JFIF et tout octet après la fin de l'image — vidéos de « motion photo »,
+  cartes de gain). L'orientation est gardée seule dans un EXIF minimal (26 octets, IFD0 = la seule
+  balise Orientation), écrit seulement si elle n'est pas 1 ; les pixels ne sont pas tournés,
+  largeur et hauteur ne changent pas. Sortie déterministe et idempotente : un fichier propre
+  ressort octet pour octet. TIFF et ses dérivés (DNG, la plupart des RAW), HEIF/HEIC/AVIF/CR3,
+  JPEG XL et JPEG 2000 sont **refusés** pour toutes les catégories, pièces jointes comprises, dans
+  `FileTypeDetector.detectAndValidate` (`FILE_TYPE_REJECTED`) et à nouveau dans `store()` ; une
+  image trop cassée pour être parcourue est refusée (`INVALID_FORMAT`). Rattrapage : V47 ajoute
+  `assets.metadata_pending` (images et types `LOGO`/`IMAGE`/`ATTACHMENT`, index partiel) ;
+  `AssetMetadataBackfillScheduler` (toutes les 5 min, lots de 100, curseur en mémoire) lit l'en-tête
+  par une lecture partielle (`StorageService.retrieveHead`), ne télécharge que les images
+  nettoyables, réécrit sous la même clé seulement si le contenu change, puis efface le drapeau ;
+  une erreur de stockage transitoire le laisse posé. Tests : `ImageMetadataStripperTest` (dont
+  `Jpeg.keepsAProgressiveJpegIntact`), `ImageFormatTest`, `FileTypeCategoryTest`,
+  `StorageMetadataStrippingTest`, `AssetServiceTest.MetadataStripping`, `AssetMetadataBackfillTest`.
+  **Décisions à ne pas défaire** : le nettoyage reste dans la couche de stockage, pas dans
+  `AssetService` ni `UserAvatarService` (un futur chemin d'écriture le contournerait) ; le format se
+  lit sur les octets (`ImageFormat.sniff`), jamais sur le type déclaré ni l'étiquette de Magika —
+  un JPEG envoyé en `application/octet-stream` est nettoyé aussi ; liste blanche plutôt que liste
+  noire ; refus d'une image cassée plutôt que stockage avec ses métadonnées. Limites connues : les
+  vidéos (`API-46`), documents (`API-47`), SVG/ICO (`API-48`) restent tels quels ; les TIFF/HEIF
+  déjà stockés, s'il y en a, et la restauration d'une vieille sauvegarde MinIO sont `OPS-14` et
+  `OPS-15` ; un eXIf PNG placé après IDAT (hors norme) est réécrit à sa place ; le WebP est traité en
+  mémoire. Les exports déjà générés (7 jours) et les sauvegardes antérieures (30 jours) gardent les
+  originaux jusqu'à leur expiration.
+- `API-44` **Les GPX importés ne gardent que la trace et les waypoints** (2026-09-29, contrat
+  inchangé) — `GpxSanitizer`, appelé en tête de `GpxProcessingService.computeGpx` (dans son `try`,
+  donc une erreur donne `GPX_FAILURE`), avant l'écriture d'`original.gpx` : chaque point garde
+  latitude, longitude et altitude, son instant devient `Instant.EPOCH`, ses extensions (fréquence
+  cardiaque, cadence, puissance, température) disparaissent ; les waypoints gardent position et
+  nom. Tous les fichiers stockés d'un parcours et d'un aperçu de l'outil GPX (original, filtré,
+  FIT) en sortent : upload, planificateur, promotion d'un aperçu en parcours, import biketeam. Les
+  métadonnées du document (auteur, e-mail, lien, `creator`) ne survivaient déjà pas au lecteur.
+  Le constat d'origine était inexact : `original.gpx` était déjà une resérialisation ; la fuite
+  était le `<time>` de chaque point dans les deux GPX, les extensions de `filtered.gpx` (celui des
+  téléchargements, des routes d'appareil et des envois aux services GPS) et l'heure et la puissance
+  du FIT. Rattrapage : `GpxSanitizationBackfill` (`service/gpx`, 4 h 15, après la purge des aperçus,
+  `SKIP`) réécrit en place, sous la même clé, tout parcours (supprimés et tous domaines compris) et
+  tout aperçu dont un fichier porte encore `<extensions>` ou un `<time>` autre qu'epoch, en
+  régénérant le FIT **avant** le GPX filtré (qui est le seul signal de saleté) ; le pipeline
+  (SRTM, simplification, montées) n'est pas rejoué. Le marqueur `maintenance/api-44-gpx-sanitized`
+  n'est écrit qu'après une passe sans échec ; une restauration du bucket le fait disparaître et la
+  passe repart. Tests : `GpxSanitizerTest`, `GpxSanitizationBackfillTest`,
+  `GpxProcessingServiceTest#createTracks_shouldStripTimestampsAndSensorsFromEveryStoredFile`,
+  `GpxPreviewServiceTest#create_shouldStripTimestampsAndSensorsFromStoredFiles`.
+  **Décisions à ne pas défaire** : un seul point d'entrée (`computeGpx`), pas chez un appelant ;
+  nettoyage **en place** (les appelants écrivent le FIT depuis le même objet `GPX`) ; `EPOCH` et
+  non `null` (le rédacteur FIT et `computeArrays` exigent un instant, et c'est déjà la valeur d'un
+  point sans `<time>`) ; pas de rejeu du pipeline dans le rattrapage. Rien n'utilisait les
+  horodatages : distances, dénivelés, montées, vent, simplification sont de la géométrie. Limites
+  connues : un GPX/FIT déposé en pièce jointe (`API-49`) ; le rédacteur de la bibliothèque
+  (`API-50`) ; la pose du marqueur n'a pas de test (`API-51`) ; les copies déjà envoyées à Garmin,
+  Wahoo ou Hammerhead avant le correctif ne se réparent pas de notre côté.
+
 ### `API-39` T5.4 — Trombinoscope : débloqué par un réglage d'équipe (contrat `3.0.0`)
 
 **Livré** — la page web des membres est venue ensuite, `WEB-1`. L'oracle
@@ -837,3 +899,11 @@ fait.
   Tests : `AuthCleanupSchedulerTest.CleanupAbandonedPairingsAndChallenges`,
   `BetaSignupSchedulerTest`, `BiketeamMigrationRetentionSchedulerTest`. Le chiffrement des
   sauvegardes, relevé en chemin (hôte au domicile, copies en clair), est `OPS-13`.
+- `LEGAL-9` **Métadonnées des fichiers téléversés retirées à l'import** (2026-09-29) — les photos
+  perdent EXIF, XMP, IPTC et commentaires, orientation gardée (`API-43`) ; les GPX ne gardent que
+  la trace et les waypoints (`API-44`) ; les deux rattrapages nettoient ce qui était déjà stocké.
+  Le §1 de la politique (« Fichiers GPX que vous importez », « Photos et images », fichiers
+  téléchargés par l'app mobile) dit désormais ce qui est retiré et ce qui est gardé, à la place des
+  avertissements sur l'EXIF, les photos d'annonce et les données de santé ; il dit aussi que les
+  formats non nettoyables sont refusés et que les autres pièces jointes (vidéos, documents, GPX
+  joints) sont gardées telles quelles (`API-46`, `API-47`, `API-49`). Opportunités #5 et #6.

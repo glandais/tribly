@@ -1,8 +1,8 @@
 # Privacy Improvement Opportunities — 2026-07-25
 
 > **Tracking moved to the ledger (2026-09-29).** What is still open here is followed under
-> `LEGAL-9` to `LEGAL-13`, `SEC-7`, `SEC-12` (Karoo token store), `SEC-17` and `WEB-28` in `docs/LEDGER_NEXT.md`; this
-> file keeps the options and their rationale. #3 is moot (`LEGAL-1`), #27 is moot (the dump import is
+> `LEGAL-11`, `LEGAL-13`, `SEC-7`, `SEC-12` (Karoo token store), `SEC-17` and `WEB-28` in `docs/LEDGER_NEXT.md`; this
+> file keeps the options and their rationale. #5 and #6 are done (`LEGAL-9`). #3 is moot (`LEGAL-1`), #27 is moot (the dump import is
 > gone), #15's acceptance trail shipped with the moderation work.
 
 Companion to [2026-07-25-privacy-policy-audit.md](archive/2026-07-25-privacy-policy-audit.md). The audit fixed the
@@ -80,7 +80,12 @@ to policy §7.
 
 ## P1 — High-value data minimisation (each deletes a scary disclosure)
 
-### 5. Strip EXIF on image upload **[Minimize]** — *first P1 item*
+### ~~5. Strip EXIF on image upload~~ **[Minimize]** — *first P1 item*
+> **Done (2026-09-29, `API-43`):** `S3StorageService.store` strips JPEG/PNG/WebP/GIF by allowlist
+> (orientation kept in a minimal EXIF), refuses TIFF/raw, HEIF/HEIC/AVIF, JXL and JP2, and a backfill
+> (V47 `metadata_pending`) cleans the originals already stored. Policy §1 now says the metadata is
+> removed. Videos, documents and SVG/ICO are still stored as-is (`API-46` to `API-48`).
+
 > **2026-09-21:** more urgent than it was. An ad's location is now blurred to about 1 km and the
 > proximity probe is quantised (`common/CoarseLocation.java`, `AdRepository`), because an ad's location
 > is in practice the seller's home — but photos attached to an ad are exposed to every team member as
@@ -95,7 +100,12 @@ Photos are stored byte-for-byte, so camera GPS positions, timestamps and device 
 anyone allowed to view them. Strip EXIF (keep orientation) at upload in the asset service. Then replace the
 long EXIF warning in policy §1 "Photos and images" with "we remove this metadata on upload".
 
-### 6. Strip `<time>` and sensor extensions from imported GPX/FIT **[Minimize]**
+### ~~6. Strip `<time>` and sensor extensions from imported GPX/FIT~~ **[Minimize]**
+> **Done (2026-09-29, `API-44`):** `GpxSanitizer` in `GpxProcessingService.computeGpx` keeps only
+> lat/lon/ele and waypoint position/name for every route and GPX-tool file (original, filtered, FIT);
+> `GpxSanitizationBackfill` rewrote the stored ones. The health-data paragraph left policy §1. A
+> GPX/FIT uploaded as a plain attachment is not cleaned (`API-49`).
+
 Activity exports carry per-point timestamps, heart rate (health data — Art. 9!), cadence, power. The
 platform never uses them but stores and re-serves them. Strip `gpxtpx` extensions and timestamps at import
 (both team routes and the GPX tool). Deletes the health-data paragraph from policy §1.

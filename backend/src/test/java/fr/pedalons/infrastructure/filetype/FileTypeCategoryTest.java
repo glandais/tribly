@@ -15,10 +15,16 @@ class FileTypeCategoryTest {
 
     @Test
     void acceptsCommonImageLabels() {
-      for (String label :
-          new String[] {"png", "jpeg", "gif", "webp", "bmp", "tiff", "ico", "svg"}) {
+      for (String label : new String[] {"png", "jpeg", "gif", "webp", "bmp", "ico", "svg"}) {
         assertTrue(FileTypeCategory.IMAGE.accepts(label), label);
       }
+    }
+
+    @Test
+    void rejectsImagesWhoseMetadataCannotBeStripped() {
+      // docs/LEDGER_*.md API-43
+      assertFalse(FileTypeCategory.IMAGE.accepts("tiff"));
+      assertFalse(FileTypeCategory.IMAGE.accepts("jp2"));
     }
 
     @Test
@@ -107,10 +113,16 @@ class FileTypeCategoryTest {
 
     @Test
     void acceptsImageLabels() {
-      for (String label :
-          new String[] {"png", "jpeg", "gif", "webp", "bmp", "tiff", "ico", "svg"}) {
+      for (String label : new String[] {"png", "jpeg", "gif", "webp", "bmp", "ico", "svg"}) {
         assertTrue(FileTypeCategory.ATTACHMENT.accepts(label), label);
       }
+    }
+
+    @Test
+    void rejectsImagesWhoseMetadataCannotBeStripped() {
+      // docs/LEDGER_*.md API-43
+      assertFalse(FileTypeCategory.ATTACHMENT.accepts("tiff"));
+      assertFalse(FileTypeCategory.ATTACHMENT.accepts("jp2"));
     }
 
     @Test

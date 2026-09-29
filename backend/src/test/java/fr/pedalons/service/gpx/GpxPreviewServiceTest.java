@@ -13,12 +13,16 @@ import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.gpx.GpxPreviewRepository;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
+import fr.pedalons.util.GpxPrivacyAssertions;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.io.File;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,6 +74,22 @@ class GpxPreviewServiceTest extends AbstractBaseTest {
 
     assertTrue(storageService.exists(key(preview, "original.gpx")));
     assertTrue(storageService.exists(key(preview, "filtered.gpx")));
+  }
+
+  /** docs/LEDGER_*.md API-44: nothing of an activity's clock or sensors reaches a stored file. */
+  @Test
+  void create_shouldStripTimestampsAndSensorsFromStoredFiles() throws Exception {
+    GpxPreview preview =
+        gpxPreviewService.create(GpxPrivacyAssertions.activityGpx(), "activity.gpx");
+
+    for (String file : List.of("original.gpx", "filtered.gpx")) {
+      try (InputStream is = storageService.retrieve(key(preview, file))) {
+        GpxPrivacyAssertions.assertGpxHasNoPersonalData(
+            new String(is.readAllBytes(), StandardCharsets.UTF_8));
+      }
+    }
+    GpxPrivacyAssertions.assertFitHasNoPersonalData(gpxPreviewService.getFitContent(preview));
+    assertEquals("Morning Ride", preview.getName());
   }
 
   @Test
