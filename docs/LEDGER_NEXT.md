@@ -476,25 +476,18 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       (`quarkus.datasource.devservices.image-name`, `application.properties`) pour que les tests
       tournent sur la même version ; la doc qui annonce « PostgreSQL 17 » (CLAUDE.md, README.md,
       backend/README.md). Rien ne presse tant que la 17 est maintenue. Taille : S.
-- [ ] `OPS-22` **Mettre le monitoring en service sur l'hôte** — le code est livré (`AUD-11`,
-      `AUD-12`, `AUD-13`), rien n'est encore déployé. Dans l'ordre de
-      [`OPERATIONS.md`](OPERATIONS.md#setting-it-up) : pare-feu réinstallé (`MONITORING_PORTS`,
-      `HOST_PORTS`), `metrics` et site `:2020` dans le Caddyfile, check Healthchecks du `Watchdog`,
-      clés de `services/monitoring/env.example` dans le `.env` de `~/shared`, `deploy.sh
-      --monitoring`, puis la vérification depuis une autre machine (3300 et 2020 injoignables).
-      Gatus sur l'hôte de sauvegarde (`services/monitoring/gatus/`). À recetter en même temps, ce
-      qui n'a pu l'être qu'hors Swarm : la découverte des backends par l'API Swarm (cible `backend`
-      à `up` sur **chaque** environnement, une par tâche), cAdvisor sans `privileged` (les séries
-      `container_memory_working_set_bytes` portent bien les deux labels Swarm), `/q/metrics` qui
-      sort `agroal_awaiting_count` et `jvm_gc_live_data_size_bytes`, et les journaux du backend en
-      JSON dans Loki (label `level`). Déclencher une alerte à la main une fois (par exemple
-      `docker service scale pedalons-staging_backend=0` → `TargetDown` après 5 min, puis le
-      rétablir) pour voir arriver le courriel. Taille : S.
 - [ ] `OPS-21` **Ce que le monitoring ne voit pas encore** — PostgreSQL (connexions, taille, bloat,
       requêtes lentes : un `postgres_exporter` par environnement, sur `pedalons-shared`), le
       frontend SSR (ni métriques Node ni temps de rendu : seul Caddy le voit, par hôte), et les
       erreurs côté client web et mobile (un GlitchTip, compatible Sentry, pèserait une base et un
       Redis de plus : à ne faire que si le besoin se confirme). Taille : M.
+- [ ] `OPS-23` **Les alertes partent par le relais de l'application** — `ALERT_SMTP_*` (`.env` de
+      `~/shared`) pointe sur Scaleway TEM, comme `QUARKUS_MAILER_*` : une panne de TEM, ou un
+      compte suspendu, tairait les alertes qui devraient la signaler. Le `Watchdog`, qui passe par
+      Healthchecks, n'en dépend pas, mais aucune autre alerte n'arriverait. Prendre un relais
+      indépendant (le SMTP d'une messagerie personnelle, avec un mot de passe d'application), le
+      mettre dans le `.env`, `deploy.sh --monitoring`, puis un `amtool alert add` pour voir arriver
+      le courriel ([`OPERATIONS.md`](OPERATIONS.md#alerts)). Taille : XS.
 - [ ] `OPS-8` **Exercice de restauration** (audit de février, I20) — la procédure est écrite
       ([`OPERATIONS.md`](OPERATIONS.md), « Restore drill from another machine ») mais rien ne dit
       qu'elle a été menée de bout en bout sur une autre machine.

@@ -436,7 +436,11 @@ ssh -L 3300:127.0.0.1:3300 <host>      # then http://localhost:3300, user admin
 
 `GRAFANA_ADMIN_PASSWORD` is only read on Grafana's first start; change the password in Grafana
 after. The **Pédalons — vue d'ensemble** dashboard comes from the repository (read-only in the UI:
-edit the JSON). Community dashboards import by ID from the UI (*Dashboards → New → Import*) and live
+edit the JSON), and so does **Quarkus Micrometer Prometheus registry** — the dashboard of Quarkus's
+LGTM Dev Service, copied unchanged from `quarkusio/quarkus`
+(`extensions/observability-devservices/testcontainers/src/main/resources/grafana-dashboard-quarkus-micrometer-prometheus.json`,
+commit `94a2ecba6efe`, Apache 2.0): to update it, copy the file again rather than editing it. Its
+`instance` variable is a task's IP, which changes with every deploy. Community dashboards import by ID from the UI (*Dashboards → New → Import*) and live
 in Grafana's database: *Node Exporter Full* (1860), *JVM (Micrometer)* (4701). Logs are in
 *Explore → Loki*: `{stack="pedalons-prod", service="backend"} | json`, or `{job="caddy"} | json |
 status >= 500`.
