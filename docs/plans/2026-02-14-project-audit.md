@@ -34,7 +34,7 @@ Pedalons est une plateforme multi-tenant mature pour equipes cyclistes, comprena
 | 7 | **Ajouter rate limiting sur `/api/device/oauth/complete`** — brute force possible sur les user codes | Securite | CRITIQUE | S | |
 | 8 | **Creer un pipeline CD** — aucun deploiement automatise, images tagguees `:latest` | Infra | CRITIQUE | L | |
 | 9 | **Retirer `maximum-scale=1.0`** du viewport — bloque le zoom pour les malvoyants | Frontend | CRITIQUE | S | ✅ (30 sept. 2026) |
-| 10 | **Ajouter des healthchecks Docker** a tous les services | Infra | CRITIQUE | M | *(ouvert : seul postgres a un healthcheck)* |
+| 10 | **Ajouter des healthchecks Docker** a tous les services | Infra | CRITIQUE | M | *(ouvert : backend, frontend et postgres en ont un)* |
 
 ---
 
@@ -242,8 +242,8 @@ Docker Compose : 7 services par environnement (`docker-compose.yml`) + 2 partag�
 | I1 | CI desactivee sur `develop` — branches ciblees = `['tmp']` | Critique | S | `ci.yml` | ✅ |
 | I2 | Aucun backup PostgreSQL ni MinIO | Critique | M | Scripts cron | ✅ (`scripts/backup.sh`, `scripts/restore.sh`, procedure dans `docs/OPERATIONS.md`) |
 | I3 | Aucun pipeline CD — images poussees manuellement | Critique | L | Nouveau `cd.yml` | |
-| I4 | Tag `:latest` sur images backend/frontend — pas de rollback. Depuis, tag par environnement (`pedalons-backend:${ENV_NAME}`) : chaque build écrase la précédente, toujours pas de rollback par version | Critique | S | `docker-compose.yml`, `build.sh` | *(ouvert — prévu avec le passage à Docker Swarm)* |
-| I5 | Pas de healthchecks Docker (sauf PostgreSQL) | Critique | M | `docker-compose.yml` | *(ouvert : seul postgres a un healthcheck)* |
+| I4 | Tag `:latest` sur images backend/frontend — pas de rollback. Depuis, tag par environnement (`pedalons-backend:${ENV_NAME}`) : chaque build écrase la précédente, toujours pas de rollback par version | Critique | S | `docker-compose.yml`, `build.sh` | ✅ (Docker Swarm : `build.sh` tague aussi `${ENV_NAME}-<sha12>`, `scripts/deploy.sh --rev` et `docker service rollback` — voir `docs/OPERATIONS.md`, Rolling updates) |
+| I5 | Pas de healthchecks Docker (sauf PostgreSQL) | Critique | M | `docker-compose.yml` | *(ouvert : backend, frontend et postgres en ont un ; minio, imgproxy, varnish et traefik non)* |
 | I6 | Aucune collecte de metriques (pas de Prometheus/Micrometer) | Critique | M | `pom.xml`, config | |
 | I7 | Aucun alerting | Critique | XL | Infrastructure | |
 | I8 | Tests frontend commentes dans le CI | Important | S | `ci.yml` | ✅ |

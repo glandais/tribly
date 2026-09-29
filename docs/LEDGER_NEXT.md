@@ -655,10 +655,9 @@ Deux gestes d'exploitation de l'audit sont sous `OPS` : I13 (`OPS-7`) et I20 (`O
 | ID | Thème | Audit | Gravité | Constat |
 |---|---|---|---|---|
 | `AUD-1` | CI/CD | I3 | Critique | Aucun pipeline de déploiement (`ci.yml`, `codeql.yml`, `karoo-release.yml` seulement) |
-| `AUD-2` | CI/CD | I4 | Critique | Images taguées par environnement (`pedalons-*:${ENV_NAME}`) : pas de retour arrière par version |
 | `AUD-3` | CI/CD | — | — | La suite e2e (`frontend/e2e/`, `WEB-13` à `WEB-22`) ne tourne qu'en local : la CI ne lance que `pnpm test run` |
-| `AUD-5` | Docker | I5 | Critique | Seul postgres a un healthcheck ; l'endpoint `smallrye-health` du backend existe pourtant |
-| `AUD-6` | Docker | I10 | Important | `forwardedHeaders.insecure=true` sur Traefik (atténué par l'écoute en loopback) — voir V3, `SEC-16` |
+| `AUD-5` | Docker | I5 | Critique | backend (`/q/health/ready`), frontend (`/health`) et postgres ont un healthcheck — les deux premiers pour le rolling update Swarm ; minio, imgproxy, varnish et traefik n'en ont pas |
+| `AUD-6` | Docker | I10 | Important | `forwardedHeaders.insecure=true` sur Traefik (atténué par les règles `DOCKER-USER` qui ne laissent que Caddy le joindre : sous Swarm il écoute sur toutes les interfaces, voir [`OPERATIONS.md`](OPERATIONS.md#only-caddy-may-reach-traefik)) — voir V3, `SEC-16` |
 | `AUD-7` | Docker | I14 | Important | Aucune limite CPU ou mémoire dans les compose |
 | `AUD-8` | Docker | I15 | Important | VCL Varnish réduite à un `backend default` : ni purge, ni grace, ni ban |
 | `AUD-9` | Docker | I17 | Important | imgproxy sans signature d'URL (ni `IMGPROXY_KEY` ni `IMGPROXY_SALT`) — même brique que les URLs signées (`API-24`) |
