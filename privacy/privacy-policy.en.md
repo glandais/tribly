@@ -190,28 +190,28 @@ Apart from team transfers from Biketeam, invitations, reports and the services d
 
 ## 3. Why We Use Your Data
 
-| Purpose | Legal Basis (GDPR) |
-|---------|-------------------|
-| Provide the service (account, authentication, navigation) | Performance of contract |
-| Display your team's routes, rides, trips and other content | Performance of contract |
-| Send verification emails and sign-in codes | Performance of contract |
-| Show notifications about your teams in your inbox on the website and in the app | Performance of contract |
-| Send you notifications by email, according to your notification settings | Performance of contract (adjustable at any time, per type) |
-| Notify you on your phone or in your browser (push notifications) | Consent (permission granted on the phone or in the browser); you can withdraw it in your device's or browser's settings, or turn push off per type in your notification settings |
-| Post the team's announcements to the chat channel its administrators connected | Legitimate interest (the team's interest in informing its members) |
-| Relay messages about classified ads | Performance of contract |
-| Team invitations | Legitimate interest (the team's interest in inviting its members) |
-| Moderate content: handle reports, apply your blocks, filter abusive terms at publication | Performance of contract (terms of service) and legitimate interest (protecting members) |
-| Keep proof that you accepted the terms of service | Legitimate interest |
-| Secure your account (suspicious session detection) | Legitimate interest |
-| Sync your routes with connected GPS devices | Consent (voluntary connection) |
-| Display maps (map backgrounds downloaded by your device from the chosen provider) | Legitimate interest |
-| Approximate location ("Around me", optional, mobile app) | Consent, given through the operating-system permission prompt; you can withdraw it in your device settings |
-| Provide your personal calendar feed to the calendar app you choose | Consent (voluntary subscription) |
-| Tell you when a beta of our apps opens | Consent (voluntary sign-up) |
-| Handle your problem reports and fix the app's errors | Legitimate interest (reliability of the service; automatic reports can be turned off) |
-| Continue the service for teams coming from the previous platform | Legitimate interest |
-| Operate and support the platform | Legitimate interest |
+For each purpose, the legal basis (GDPR) it rests on:
+
+- **Provide the service (account, authentication, navigation)**: Performance of contract
+- **Display your team's routes, rides, trips and other content**: Performance of contract
+- **Send verification emails and sign-in codes**: Performance of contract
+- **Show notifications about your teams in your inbox on the website and in the app**: Performance of contract
+- **Send you notifications by email, according to your notification settings**: Performance of contract (adjustable at any time, per type)
+- **Notify you on your phone or in your browser (push notifications)**: Consent (permission granted on the phone or in the browser); you can withdraw it in your device's or browser's settings, or turn push off per type in your notification settings
+- **Post the team's announcements to the chat channel its administrators connected**: Legitimate interest (the team's interest in informing its members)
+- **Relay messages about classified ads**: Performance of contract
+- **Team invitations**: Legitimate interest (the team's interest in inviting its members)
+- **Moderate content: handle reports, apply your blocks, filter abusive terms at publication**: Performance of contract (terms of service) and legitimate interest (protecting members)
+- **Keep proof that you accepted the terms of service**: Legitimate interest
+- **Secure your account (suspicious session detection)**: Legitimate interest
+- **Sync your routes with connected GPS devices**: Consent (voluntary connection)
+- **Display maps (map backgrounds downloaded by your device from the chosen provider)**: Legitimate interest
+- **Approximate location ("Around me", optional, mobile app)**: Consent, given through the operating-system permission prompt; you can withdraw it in your device settings
+- **Provide your personal calendar feed to the calendar app you choose**: Consent (voluntary subscription)
+- **Tell you when a beta of our apps opens**: Consent (voluntary sign-up)
+- **Handle your problem reports and fix the app's errors**: Legitimate interest (reliability of the service; automatic reports can be turned off)
+- **Continue the service for teams coming from the previous platform**: Legitimate interest
+- **Operate and support the platform**: Legitimate interest
 
 We **never** use your data for:
 - Targeted advertising
@@ -240,14 +240,21 @@ We **never** use your data for:
 
 We use technical services to operate the platform:
 
-| Service | Role | Data Involved |
-|---------|------|--------------|
-| OVHcloud (OVH SAS, France) | Application, database, and object storage hosting | All data |
-| Scaleway (Scaleway SAS, France) | Delivery of transactional emails and email notifications, through its Transactional Email SMTP relay | Email address, display name, and the contents of the message we ask it to deliver: email-verification link, one-time sign-in code, password-reset link (these links and codes are single-use and short-lived); team invitations (the invitee's email address, which may belong to someone without an account, the inviting administrator's display name, the team name and the invitation link, valid 14 days); messages about classified ads (the author's email address and display name, the sender's display name, the sender's email address as the reply address, the ad's title and link, and the full text of the message); notification emails and daily digests (your display name, the site name, the team's name, the title and date of the ride, trip or post concerned, the name of the member who triggered it, for comments and replies an extract of up to 280 characters, and links to that page and to your notification settings); and the link to your data export |
-| GitHub (GitHub, Inc., United States) | Tracking of problem reports and error reports, in a private repository only the Pedalons team can access | Report text, technical information, log of last actions, team viewed, technical account identifier and domain |
-| Google Firebase Cloud Messaging (Google Ireland Limited, Ireland) | Routing push notifications to the mobile app, through Apple Push Notification service for iPhones, and to your browser | The push token of your phone or browser, your device's IP address when the app or the browser contacts Firebase, and the content of each notification: title and text (which can include a team name, a ride, trip or post title and date, the name of a member and an extract of a comment), plus technical data used to open the right page (notification type and identifier, team and page identifiers) |
-| Apple Push Notification service (Apple Inc., United States) | Delivering push notifications to iPhones, relayed by Firebase Cloud Messaging | The same notification content and your device's Apple push token |
-| Hammerhead, Garmin, Wahoo (United States) | Sending your routes to your GPS device, only if you connect the service | OAuth tokens, and the routes you choose to send (track, name; for Wahoo also start point, distance, climb and descent) |
+- **Scaleway (Scaleway SAS, France)**
+  - *Role*: Application, database, and object storage hosting; delivery of transactional emails and email notifications, through its Transactional Email SMTP relay
+  - *Data Involved*: For hosting, all data. For email delivery: email address, display name, and the contents of the message we ask it to deliver: email-verification link, one-time sign-in code, password-reset link (these links and codes are single-use and short-lived); team invitations (the invitee's email address, which may belong to someone without an account, the inviting administrator's display name, the team name and the invitation link, valid 14 days); messages about classified ads (the author's email address and display name, the sender's display name, the sender's email address as the reply address, the ad's title and link, and the full text of the message); notification emails and daily digests (your display name, the site name, the team's name, the title and date of the ride, trip or post concerned, the name of the member who triggered it, for comments and replies an extract of up to 280 characters, and links to that page and to your notification settings); and the link to your data export
+- **GitHub (GitHub, Inc., United States)**
+  - *Role*: Tracking of problem reports and error reports, in a private repository only the Pedalons team can access
+  - *Data Involved*: Report text, technical information, log of last actions, team viewed, technical account identifier and domain
+- **Google Firebase Cloud Messaging (Google Ireland Limited, Ireland)**
+  - *Role*: Routing push notifications to the mobile app, through Apple Push Notification service for iPhones, and to your browser
+  - *Data Involved*: The push token of your phone or browser, your device's IP address when the app or the browser contacts Firebase, and the content of each notification: title and text (which can include a team name, a ride, trip or post title and date, the name of a member and an extract of a comment), plus technical data used to open the right page (notification type and identifier, team and page identifiers)
+- **Apple Push Notification service (Apple Inc., United States)**
+  - *Role*: Delivering push notifications to iPhones, relayed by Firebase Cloud Messaging
+  - *Data Involved*: The same notification content and your device's Apple push token
+- **Hammerhead, Garmin, Wahoo (United States)**
+  - *Role*: Sending your routes to your GPS device, only if you connect the service
+  - *Data Involved*: OAuth tokens, and the routes you choose to send (track, name; for Wahoo also start point, distance, climb and descent)
 
 Our server composes each email itself and hands it, complete, to Scaleway's SMTP relay, which therefore receives everything the message contains: the verification link, sign-in code or reset link, the invitation link, the text of a message about an ad, or the content of a notification. Unlike the authentication links and codes, invitation links stay valid for 14 days and notification emails contain lasting links to the content concerned. The provider is contractually bound to use this data only to deliver the email on our behalf.
 
@@ -259,15 +266,27 @@ On the website, a push notification is delivered to your browser by its vendor's
 
 Maps are drawn in your browser or app. The list of map backgrounds, and the style documents of some of them, come from our server; the map images themselves are downloaded by your device directly from the provider of the map style you selected. That provider therefore receives your IP address, your browser or app version, and the coordinates of the map area you are viewing (which reveals, roughly, the area of the route you are looking at). For map backgrounds we send them nothing about you: they only see the request your device makes, and your map-style choice is stored locally on your device. These providers act as independent controllers, under their own policies. Place search, by contrast, goes through our server (see section 2).
 
-| Service | Role | Data Involved |
-|---------|------|--------------|
-| VersaTiles (tiles.versatiles.org) | Vector map background (default style), map fonts and sprites | IP address, map area viewed |
-| Mapterhorn (tiles.mapterhorn.com) | Terrain-elevation and hillshade tiles (3-D relief); also used by our server to correct the altitude of imported tracks | Your browser or app, only when you switch on relief shading or 3-D terrain (both off by default): IP address, map area viewed. Server-side: coordinates of coarse map tiles (~10 km squares) covered by a track and our server's IP address — never your identity, account or IP address |
-| IGN / Géoplateforme (data.geopf.fr, France) | French IGN map, satellite and SCAN 25 backgrounds | IP address, map area viewed |
-| OpenStreetMap Foundation (tile.openstreetmap.org, United Kingdom) | OpenStreetMap map background | IP address, map area viewed |
-| OpenStreetMap France (tile-cyclosm.openstreetmap.fr) | CyclOSM map background | IP address, map area viewed |
-| OpenStreetMap Nominatim (nominatim.openstreetmap.org) | Place search, queried by our server | The text you type and your display language; never your IP address or identity |
-| Esri (server.arcgisonline.com, United States) | "Satellite (ESRI)" map background | IP address, map area viewed |
+- **VersaTiles (tiles.versatiles.org)**
+  - *Role*: Vector map background (default style), map fonts and sprites
+  - *Data Involved*: IP address, map area viewed
+- **Mapterhorn (tiles.mapterhorn.com)**
+  - *Role*: Terrain-elevation and hillshade tiles (3-D relief); also used by our server to correct the altitude of imported tracks
+  - *Data Involved*: Your browser or app, only when you switch on relief shading or 3-D terrain (both off by default): IP address, map area viewed. Server-side: coordinates of coarse map tiles (~10 km squares) covered by a track and our server's IP address — never your identity, account or IP address
+- **IGN / Géoplateforme (data.geopf.fr, France)**
+  - *Role*: French IGN map, satellite and SCAN 25 backgrounds
+  - *Data Involved*: IP address, map area viewed
+- **OpenStreetMap Foundation (tile.openstreetmap.org, United Kingdom)**
+  - *Role*: OpenStreetMap map background
+  - *Data Involved*: IP address, map area viewed
+- **OpenStreetMap France (tile-cyclosm.openstreetmap.fr)**
+  - *Role*: CyclOSM map background
+  - *Data Involved*: IP address, map area viewed
+- **OpenStreetMap Nominatim (nominatim.openstreetmap.org)**
+  - *Role*: Place search, queried by our server
+  - *Data Involved*: The text you type and your display language; never your IP address or identity
+- **Esri (server.arcgisonline.com, United States)**
+  - *Role*: "Satellite (ESRI)" map background
+  - *Data Involved*: IP address, map area viewed
 
 The "Michelin" map background is served by us (tiles.pedalons.fr): choosing it involves no third party.
 
@@ -285,7 +304,7 @@ We may be required to disclose your data if required by law (judicial request, l
 
 ## 5. International Data Transfers
 
-Our servers are hosted by **OVHcloud** (OVH SAS, Roubaix, France) and are located in France. The data we store remains within the European Union.
+Our servers are hosted by **Scaleway** (Scaleway SAS, Vitry-sur-Seine, France) and are located in France. The data we store remains within the European Union.
 
 Some processing you can trigger involves servers outside the European Union:
 
@@ -301,40 +320,38 @@ Some processing you can trigger involves servers outside the European Union:
 
 ## 6. Data Retention
 
-| Data Type | Retention Period |
-|-----------|-----------------|
-| Account data (email address, display name, profile picture, preferences, password hash) | For as long as your account exists; erased as soon as you delete it (see section 7) |
-| Date of acceptance of the terms of service | As long as your account exists |
-| Login sessions (hashed refresh token, IP address, user agent, creation date, last-use date) | 30 days from the sign-in that created the session (the period is not extended by continued use). Expired or signed-out sessions are erased by a nightly clean-up job |
-| Sessions of a paired GPS device (Karoo, Garmin) | 90 days from pairing; the device refreshes its access token from this session without extending it. "Sign out of every device" revokes it; signing out on the device itself does not |
-| Temporary sign-in codes (OTP) | 5 minutes, or until 5 wrong attempts |
-| Email address verification link | 24 hours. Until it is used, this record also holds the display name, the password hash and the time of acceptance of the terms you chose or gave during sign-up |
-| Password reset link | 1 hour |
-| Email change verification link | 24 hours |
-| GPS device pairing codes | Valid for 10 minutes; the record is deleted as soon as the device completes pairing, or by the nightly clean-up if it expired unused |
-| Passkey (WebAuthn) challenges | Valid for 5 minutes; the record is deleted when the challenge is used or a new one is requested, or by the nightly clean-up once expired |
-| Calendar token (secret URL of your .ics feed) | Kept without expiry until you regenerate it |
-| Teams and content (rides, posts, routes, trips, pages) | Deleting an item hides it from members and visitors, but it stays in our database: the team's administrators still see it in their lists, marked "Deleted", and can restore it. The record is kept until permanent erasure is requested |
-| Comments | Erased as soon as you or your team delete them, together with the replies they received |
-| Files attached to content (images, GPX, FIT, generated map images) | As long as the associated record exists in our database. Files uploaded but never attached to any content are automatically erased one day after upload |
-| GPX analysis tool previews (uploaded track, waypoints, generated GPX/FIT files and map thumbnail) | 30 days from creation, then automatically erased together with the stored files (deletable by you at any time) |
-| Notifications (inbox entries, read status, the copy of the content they refer to, the record of email and push sends, and the record of messages posted to team chat channels) | 90 days from creation, then erased by a nightly clean-up. Messages already posted to a team's chat channel stay there under that service's rules |
-| Notification settings (per-type settings, daily digest, muted teams) | As long as your account exists; erased when you delete it |
-| Push registration of a phone or browser (push token, platform, device or browser name, app version, registration and last-seen dates) | Until you sign out of the app on that phone or of the website in that browser, turn off notifications on the website, until a send shows that Firebase Cloud Messaging no longer accepts the token (for example after the app was uninstalled), until another account signs in on that device, or until you delete your account. It is not removed after a period of inactivity |
-| Team chat channel settings (address of the channel, language, last delivery status) | Until the team's administrators remove the channel |
-| Team invitations (invited email address, role offered, who sent it, and when it was accepted, revoked or expired) | Valid for 14 days; the record is kept for 1 year after it was accepted, revoked or expired, so the team can see who invited whom, then deleted by a nightly job |
-| Record of messages sent about a classified ad (sender, ad, date; the message itself is not stored) | As long as the ad is in our database. Deleting an ad only hides it, so in practice the record is kept until the ad is permanently erased |
-| Blocks | Until you unblock the person, or until either of your accounts is deleted |
-| Reports, copy of the reported text, and decision | As long as the account of the person concerned exists, to keep a record of moderation decisions; when the reporter's account is deleted, kept with no link to them (see section 7) |
-| Problem reports and suggestions | 1 year on our servers, or until your account is deleted; the matching GitHub ticket is kept as long as it is useful to track the bug |
-| Automatic error reports | 90 days on our servers, or until your account is deleted; the GitHub ticket, shared by every member hit by the same error, is kept as long as it is useful |
-| Team transfer requests from Biketeam (account that confirmed, Biketeam team, dates, outcome) | 1 year after the transfer ended, or after the request expired if the transfer never started, then deleted by a nightly clean-up; after the account is deleted, the request is no longer linked to anything that identifies the person |
-| Beta programme sign-ups (email address, site, date) | 1 year after sign-up, then deleted by a nightly clean-up; ask privacy@pedalons.fr to be removed sooner |
-| Data export archive (ZIP) | 7 days, then erased by a nightly job (at the latest the following night); like any stored file, a copy can remain in backups for up to 30 more days |
-| Data export request history (request date, status, archive size, expiry date) | 90 days |
-| Server access logs (date and time, IP address, browser or device, requested address without the coordinates or tokens passed as parameters, response code) | 14 days, then deleted automatically |
-| Backups (full copy of the database and of stored files) | One copy per night on a separate server; the 30 most recent copies are retained, older ones are deleted automatically |
-| Data after account deletion | Erased immediately; gone from backups within 30 days (see section 7) |
+- **Account data (email address, display name, profile picture, preferences, password hash)**: For as long as your account exists; erased as soon as you delete it (see section 7)
+- **Date of acceptance of the terms of service**: As long as your account exists
+- **Login sessions (hashed refresh token, IP address, user agent, creation date, last-use date)**: 30 days from the sign-in that created the session (the period is not extended by continued use). Expired or signed-out sessions are erased by a nightly clean-up job
+- **Sessions of a paired GPS device (Karoo, Garmin)**: 90 days from pairing; the device refreshes its access token from this session without extending it. "Sign out of every device" revokes it; signing out on the device itself does not
+- **Temporary sign-in codes (OTP)**: 5 minutes, or until 5 wrong attempts
+- **Email address verification link**: 24 hours. Until it is used, this record also holds the display name, the password hash and the time of acceptance of the terms you chose or gave during sign-up
+- **Password reset link**: 1 hour
+- **Email change verification link**: 24 hours
+- **GPS device pairing codes**: Valid for 10 minutes; the record is deleted as soon as the device completes pairing, or by the nightly clean-up if it expired unused
+- **Passkey (WebAuthn) challenges**: Valid for 5 minutes; the record is deleted when the challenge is used or a new one is requested, or by the nightly clean-up once expired
+- **Calendar token (secret URL of your .ics feed)**: Kept without expiry until you regenerate it
+- **Teams and content (rides, posts, routes, trips, pages)**: Deleting an item hides it from members and visitors, but it stays in our database: the team's administrators still see it in their lists, marked "Deleted", and can restore it. The record is kept until permanent erasure is requested
+- **Comments**: Erased as soon as you or your team delete them, together with the replies they received
+- **Files attached to content (images, GPX, FIT, generated map images)**: As long as the associated record exists in our database. Files uploaded but never attached to any content are automatically erased one day after upload
+- **GPX analysis tool previews (uploaded track, waypoints, generated GPX/FIT files and map thumbnail)**: 30 days from creation, then automatically erased together with the stored files (deletable by you at any time)
+- **Notifications (inbox entries, read status, the copy of the content they refer to, the record of email and push sends, and the record of messages posted to team chat channels)**: 90 days from creation, then erased by a nightly clean-up. Messages already posted to a team's chat channel stay there under that service's rules
+- **Notification settings (per-type settings, daily digest, muted teams)**: As long as your account exists; erased when you delete it
+- **Push registration of a phone or browser (push token, platform, device or browser name, app version, registration and last-seen dates)**: Until you sign out of the app on that phone or of the website in that browser, turn off notifications on the website, until a send shows that Firebase Cloud Messaging no longer accepts the token (for example after the app was uninstalled), until another account signs in on that device, or until you delete your account. It is not removed after a period of inactivity
+- **Team chat channel settings (address of the channel, language, last delivery status)**: Until the team's administrators remove the channel
+- **Team invitations (invited email address, role offered, who sent it, and when it was accepted, revoked or expired)**: Valid for 14 days; the record is kept for 1 year after it was accepted, revoked or expired, so the team can see who invited whom, then deleted by a nightly job
+- **Record of messages sent about a classified ad (sender, ad, date; the message itself is not stored)**: As long as the ad is in our database. Deleting an ad only hides it, so in practice the record is kept until the ad is permanently erased
+- **Blocks**: Until you unblock the person, or until either of your accounts is deleted
+- **Reports, copy of the reported text, and decision**: As long as the account of the person concerned exists, to keep a record of moderation decisions; when the reporter's account is deleted, kept with no link to them (see section 7)
+- **Problem reports and suggestions**: 1 year on our servers, or until your account is deleted; the matching GitHub ticket is kept as long as it is useful to track the bug
+- **Automatic error reports**: 90 days on our servers, or until your account is deleted; the GitHub ticket, shared by every member hit by the same error, is kept as long as it is useful
+- **Team transfer requests from Biketeam (account that confirmed, Biketeam team, dates, outcome)**: 1 year after the transfer ended, or after the request expired if the transfer never started, then deleted by a nightly clean-up; after the account is deleted, the request is no longer linked to anything that identifies the person
+- **Beta programme sign-ups (email address, site, date)**: 1 year after sign-up, then deleted by a nightly clean-up; ask privacy@pedalons.fr to be removed sooner
+- **Data export archive (ZIP)**: 7 days, then erased by a nightly job (at the latest the following night); like any stored file, a copy can remain in backups for up to 30 more days
+- **Data export request history (request date, status, archive size, expiry date)**: 90 days
+- **Server access logs (date and time, IP address, browser or device, requested address without the coordinates or tokens passed as parameters, response code)**: 14 days, then deleted automatically
+- **Backups (full copy of the database and of stored files)**: One copy per night on a separate server; the 30 most recent copies are retained, older ones are deleted automatically
+- **Data after account deletion**: Erased immediately; gone from backups within 30 days (see section 7)
 
 The periods above are the periods during which the data can be used. Records that have expired, been used or been signed out are physically erased from the database by clean-up jobs that run once a night, so they may remain stored for up to 24 hours beyond the period shown.
 
@@ -395,19 +412,50 @@ You may also lodge a complaint with the **CNIL** (French Data Protection Authori
 
 Pedalons uses a minimal number of cookies and local storage items:
 
-| Item | Type | Purpose | Duration |
-|------|------|---------|----------|
-| refresh_token | HttpOnly cookie (website) | Maintain your authenticated session, including on pages built by our server | 30 days, renewed on use (the session itself ends 30 days after sign-in) |
-| refresh_token | iOS Keychain / Android Keystore-encrypted storage (mobile app) | Keep you signed in without re-entering your credentials | Until you sign out (server-side session validity: 30 days) |
-| lang | Cookie | Remember the language you chose, so that pages are displayed in it | 1 year |
-| pedalons-unit-system | localStorage | Remember your unit system | Persistent |
-| mantine-color-scheme-value | localStorage | Remember your theme (light/dark) | Persistent |
-| pedalons-map-style, pedalons-map-terrain3d, pedalons-map-hillshade | localStorage | Remember your map display preferences | Persistent |
-| pedalons-error-reports | localStorage | Remember that you turned off automatic error reports | Persistent |
-| pedalons.webPush.token | localStorage | Unregister this browser from push notifications when you sign out or turn them off | Until you sign out or turn them off |
-| Firebase messaging data | Browser storage (website) | Registration of this browser for push notifications, only once you turn them on | Until you clear your browser data |
-| pedalons.installBanner.dismissedAt | localStorage | Remember that you dismissed the suggestion to install the website as an app | Persistent (the suggestion comes back after 90 days) |
-| pendingInvitationToken, pendingBiketeamMigrationRequest | sessionStorage | Keep a team invitation, or a team transfer request from Biketeam, while you sign in | Until the tab is closed |
+- **refresh_token**
+  - *Type*: HttpOnly cookie (website)
+  - *Purpose*: Maintain your authenticated session, including on pages built by our server
+  - *Duration*: 30 days, renewed on use (the session itself ends 30 days after sign-in)
+- **refresh_token**
+  - *Type*: iOS Keychain / Android Keystore-encrypted storage (mobile app)
+  - *Purpose*: Keep you signed in without re-entering your credentials
+  - *Duration*: Until you sign out (server-side session validity: 30 days)
+- **lang**
+  - *Type*: Cookie
+  - *Purpose*: Remember the language you chose, so that pages are displayed in it
+  - *Duration*: 1 year
+- **pedalons-unit-system**
+  - *Type*: localStorage
+  - *Purpose*: Remember your unit system
+  - *Duration*: Persistent
+- **mantine-color-scheme-value**
+  - *Type*: localStorage
+  - *Purpose*: Remember your theme (light/dark)
+  - *Duration*: Persistent
+- **pedalons-map-style, pedalons-map-terrain3d, pedalons-map-hillshade**
+  - *Type*: localStorage
+  - *Purpose*: Remember your map display preferences
+  - *Duration*: Persistent
+- **pedalons-error-reports**
+  - *Type*: localStorage
+  - *Purpose*: Remember that you turned off automatic error reports
+  - *Duration*: Persistent
+- **pedalons.webPush.token**
+  - *Type*: localStorage
+  - *Purpose*: Unregister this browser from push notifications when you sign out or turn them off
+  - *Duration*: Until you sign out or turn them off
+- **Firebase messaging data**
+  - *Type*: Browser storage (website)
+  - *Purpose*: Registration of this browser for push notifications, only once you turn them on
+  - *Duration*: Until you clear your browser data
+- **pedalons.installBanner.dismissedAt**
+  - *Type*: localStorage
+  - *Purpose*: Remember that you dismissed the suggestion to install the website as an app
+  - *Duration*: Persistent (the suggestion comes back after 90 days)
+- **pendingInvitationToken, pendingBiketeamMigrationRequest**
+  - *Type*: sessionStorage
+  - *Purpose*: Keep a team invitation, or a team transfer request from Biketeam, while you sign in
+  - *Duration*: Until the tab is closed
 
 The language, unit and theme values stored in your browser or app are a local copy: when you are signed in, the value saved in your account takes precedence. The mobile-app row is stored by the app on your device, not as a browser cookie; it is strictly necessary for the app to keep you signed in. For the other data kept by the mobile app (preferences, caches, push token, log of your last actions and pending error reports), and for the tokens stored by the Karoo and Garmin extensions, see "Data Stored Locally on Your Device" in section 1. The mobile app and the website include only the messaging part of Google Firebase, used for push notifications: no Firebase analytics, advertising or tracking component.
 

@@ -190,28 +190,28 @@ En dehors des transferts d'équipes depuis Biketeam, des invitations, des signal
 
 ## 3. Pourquoi nous utilisons vos données
 
-| Finalité | Base légale (RGPD) |
-|----------|-------------------|
-| Fournir le service (compte, authentification, navigation) | Exécution du contrat |
-| Afficher les itinéraires, sorties, voyages et autres contenus de votre équipe | Exécution du contrat |
-| Envoyer des e-mails de vérification et codes de connexion | Exécution du contrat |
-| Afficher les notifications concernant vos équipes dans votre boîte de réception, sur le site et dans l'application | Exécution du contrat |
-| Vous envoyer des notifications par e-mail, selon vos réglages de notifications | Exécution du contrat (réglable à tout moment, type par type) |
-| Vous notifier sur votre téléphone ou dans votre navigateur (notifications push) | Consentement (autorisation donnée sur le téléphone ou dans le navigateur) ; vous pouvez le retirer dans les réglages de votre appareil ou de votre navigateur, ou couper le push type par type dans vos réglages de notifications |
-| Publier les annonces de l'équipe dans le canal de discussion relié par ses administrateurs | Intérêt légitime (l'intérêt de l'équipe à informer ses membres) |
-| Relayer les messages au sujet des petites annonces | Exécution du contrat |
-| Invitations dans une équipe | Intérêt légitime (l'intérêt de l'équipe à inviter ses membres) |
-| Modérer les contenus : traiter les signalements, appliquer vos blocages, filtrer les termes injurieux à la publication | Exécution du contrat (conditions d'utilisation) et intérêt légitime (protéger les membres) |
-| Conserver la preuve de votre acceptation des conditions d'utilisation | Intérêt légitime |
-| Sécuriser votre compte (détection de sessions suspectes) | Intérêt légitime |
-| Synchroniser vos itinéraires avec des appareils GPS connectés | Consentement (connexion volontaire) |
-| Afficher les cartes (fonds de carte téléchargés par votre appareil auprès du fournisseur choisi) | Intérêt légitime |
-| Position approximative (« Autour de moi », facultatif, application mobile) | Consentement, donné via la demande d'autorisation du système d'exploitation ; vous pouvez le retirer dans les réglages de votre appareil |
-| Fournir votre flux calendrier personnel à l'application de calendrier de votre choix | Consentement (abonnement volontaire) |
-| Vous prévenir de l'ouverture d'une bêta de nos applications | Consentement (inscription volontaire) |
-| Traiter vos signalements de problème et corriger les erreurs de l'application | Intérêt légitime (fiabilité du service ; rapports automatiques désactivables) |
-| Assurer la continuité du service pour les équipes venues de la plateforme précédente | Intérêt légitime |
-| Exploiter et assister la plateforme | Intérêt légitime |
+Pour chaque finalité, la base légale (RGPD) sur laquelle elle repose :
+
+- **Fournir le service (compte, authentification, navigation)** : Exécution du contrat
+- **Afficher les itinéraires, sorties, voyages et autres contenus de votre équipe** : Exécution du contrat
+- **Envoyer des e-mails de vérification et codes de connexion** : Exécution du contrat
+- **Afficher les notifications concernant vos équipes dans votre boîte de réception, sur le site et dans l'application** : Exécution du contrat
+- **Vous envoyer des notifications par e-mail, selon vos réglages de notifications** : Exécution du contrat (réglable à tout moment, type par type)
+- **Vous notifier sur votre téléphone ou dans votre navigateur (notifications push)** : Consentement (autorisation donnée sur le téléphone ou dans le navigateur) ; vous pouvez le retirer dans les réglages de votre appareil ou de votre navigateur, ou couper le push type par type dans vos réglages de notifications
+- **Publier les annonces de l'équipe dans le canal de discussion relié par ses administrateurs** : Intérêt légitime (l'intérêt de l'équipe à informer ses membres)
+- **Relayer les messages au sujet des petites annonces** : Exécution du contrat
+- **Invitations dans une équipe** : Intérêt légitime (l'intérêt de l'équipe à inviter ses membres)
+- **Modérer les contenus : traiter les signalements, appliquer vos blocages, filtrer les termes injurieux à la publication** : Exécution du contrat (conditions d'utilisation) et intérêt légitime (protéger les membres)
+- **Conserver la preuve de votre acceptation des conditions d'utilisation** : Intérêt légitime
+- **Sécuriser votre compte (détection de sessions suspectes)** : Intérêt légitime
+- **Synchroniser vos itinéraires avec des appareils GPS connectés** : Consentement (connexion volontaire)
+- **Afficher les cartes (fonds de carte téléchargés par votre appareil auprès du fournisseur choisi)** : Intérêt légitime
+- **Position approximative (« Autour de moi », facultatif, application mobile)** : Consentement, donné via la demande d'autorisation du système d'exploitation ; vous pouvez le retirer dans les réglages de votre appareil
+- **Fournir votre flux calendrier personnel à l'application de calendrier de votre choix** : Consentement (abonnement volontaire)
+- **Vous prévenir de l'ouverture d'une bêta de nos applications** : Consentement (inscription volontaire)
+- **Traiter vos signalements de problème et corriger les erreurs de l'application** : Intérêt légitime (fiabilité du service ; rapports automatiques désactivables)
+- **Assurer la continuité du service pour les équipes venues de la plateforme précédente** : Intérêt légitime
+- **Exploiter et assister la plateforme** : Intérêt légitime
 
 Nous n'utilisons **jamais** vos données pour :
 - De la publicité ciblée
@@ -240,14 +240,21 @@ Nous n'utilisons **jamais** vos données pour :
 
 Nous faisons appel à des services techniques pour le fonctionnement de la plateforme :
 
-| Service | Rôle | Données concernées |
-|---------|------|-------------------|
-| OVHcloud (OVH SAS, France) | Hébergement de l'application, de la base de données et du stockage objet | Toutes les données |
-| Scaleway (Scaleway SAS, France) | Envoi des e-mails transactionnels et des notifications par e-mail, par son relais SMTP Transactional Email | Adresse e-mail, nom d'affichage, et le contenu du message que nous lui demandons de remettre : lien de vérification d'e-mail, code de connexion à usage unique, lien de réinitialisation de mot de passe (ces liens et codes sont à usage unique et à courte durée de vie) ; invitations dans une équipe (l'adresse e-mail de la personne invitée, qui peut ne pas avoir de compte, le nom d'affichage de l'administrateur qui invite, le nom de l'équipe et le lien d'invitation, valide 14 jours) ; messages au sujet des petites annonces (l'adresse e-mail et le nom d'affichage de l'auteur, le nom d'affichage de l'expéditeur, son adresse e-mail comme adresse de réponse, le titre et le lien de l'annonce, et le texte intégral du message) ; e-mails de notification et récapitulatifs quotidiens (votre nom d'affichage, le nom du site, le nom de l'équipe, le titre et la date de la sortie, du voyage ou de la publication concernés, le nom du membre qui l'a déclenchée, pour les commentaires et les réponses un extrait de 280 caractères au maximum, et des liens vers la page concernée et vers vos réglages de notifications) ; et le lien vers votre export de données |
-| GitHub (GitHub, Inc., États-Unis) | Suivi des signalements de problème et des rapports d'erreur, dans un dépôt privé accessible à la seule équipe Pedalons | Texte du signalement, informations techniques, journal des dernières actions, équipe consultée, identifiant technique du compte et domaine |
-| Google Firebase Cloud Messaging (Google Ireland Limited, Irlande) | Acheminement des notifications push vers l'application mobile, via Apple Push Notification service pour les iPhone, et vers votre navigateur | Le jeton push de votre téléphone ou de votre navigateur, l'adresse IP de votre appareil lorsque l'application ou le navigateur contacte Firebase, et le contenu de chaque notification : titre et texte (qui peuvent contenir un nom d'équipe, le titre et la date d'une sortie, d'un voyage ou d'une publication, le nom d'un membre et un extrait de commentaire), ainsi que des données techniques qui permettent d'ouvrir la bonne page (type et identifiant de la notification, identifiants de l'équipe et de la page) |
-| Apple Push Notification service (Apple Inc., États-Unis) | Acheminement des notifications push vers les iPhone, relayées par Firebase Cloud Messaging | Le même contenu de notification et le jeton push Apple de votre appareil |
-| Hammerhead, Garmin, Wahoo (États-Unis) | Envoi de vos itinéraires vers votre appareil GPS, uniquement si vous connectez le service | Jetons OAuth, et les itinéraires que vous choisissez d'envoyer (trace, nom ; pour Wahoo, aussi le point de départ, la distance et les dénivelés) |
+- **Scaleway (Scaleway SAS, France)**
+  - *Rôle* : Hébergement de l'application, de la base de données et du stockage objet ; envoi des e-mails transactionnels et des notifications par e-mail, par son relais SMTP Transactional Email
+  - *Données concernées* : Pour l'hébergement, toutes les données. Pour l'envoi des e-mails : adresse e-mail, nom d'affichage, et le contenu du message que nous lui demandons de remettre : lien de vérification d'e-mail, code de connexion à usage unique, lien de réinitialisation de mot de passe (ces liens et codes sont à usage unique et à courte durée de vie) ; invitations dans une équipe (l'adresse e-mail de la personne invitée, qui peut ne pas avoir de compte, le nom d'affichage de l'administrateur qui invite, le nom de l'équipe et le lien d'invitation, valide 14 jours) ; messages au sujet des petites annonces (l'adresse e-mail et le nom d'affichage de l'auteur, le nom d'affichage de l'expéditeur, son adresse e-mail comme adresse de réponse, le titre et le lien de l'annonce, et le texte intégral du message) ; e-mails de notification et récapitulatifs quotidiens (votre nom d'affichage, le nom du site, le nom de l'équipe, le titre et la date de la sortie, du voyage ou de la publication concernés, le nom du membre qui l'a déclenchée, pour les commentaires et les réponses un extrait de 280 caractères au maximum, et des liens vers la page concernée et vers vos réglages de notifications) ; et le lien vers votre export de données
+- **GitHub (GitHub, Inc., États-Unis)**
+  - *Rôle* : Suivi des signalements de problème et des rapports d'erreur, dans un dépôt privé accessible à la seule équipe Pedalons
+  - *Données concernées* : Texte du signalement, informations techniques, journal des dernières actions, équipe consultée, identifiant technique du compte et domaine
+- **Google Firebase Cloud Messaging (Google Ireland Limited, Irlande)**
+  - *Rôle* : Acheminement des notifications push vers l'application mobile, via Apple Push Notification service pour les iPhone, et vers votre navigateur
+  - *Données concernées* : Le jeton push de votre téléphone ou de votre navigateur, l'adresse IP de votre appareil lorsque l'application ou le navigateur contacte Firebase, et le contenu de chaque notification : titre et texte (qui peuvent contenir un nom d'équipe, le titre et la date d'une sortie, d'un voyage ou d'une publication, le nom d'un membre et un extrait de commentaire), ainsi que des données techniques qui permettent d'ouvrir la bonne page (type et identifiant de la notification, identifiants de l'équipe et de la page)
+- **Apple Push Notification service (Apple Inc., États-Unis)**
+  - *Rôle* : Acheminement des notifications push vers les iPhone, relayées par Firebase Cloud Messaging
+  - *Données concernées* : Le même contenu de notification et le jeton push Apple de votre appareil
+- **Hammerhead, Garmin, Wahoo (États-Unis)**
+  - *Rôle* : Envoi de vos itinéraires vers votre appareil GPS, uniquement si vous connectez le service
+  - *Données concernées* : Jetons OAuth, et les itinéraires que vous choisissez d'envoyer (trace, nom ; pour Wahoo, aussi le point de départ, la distance et les dénivelés)
 
 Notre serveur compose lui-même chaque e-mail et le remet, complet, au relais SMTP de Scaleway, qui reçoit donc tout ce que contient le message : le lien de vérification, le code de connexion ou le lien de réinitialisation, le lien d'invitation, le texte d'un message au sujet d'une annonce, ou le contenu d'une notification. Contrairement aux liens et codes d'authentification, les liens d'invitation restent valides 14 jours et les e-mails de notification contiennent des liens durables vers les contenus concernés. Le prestataire est contractuellement tenu de n'utiliser ces données que pour remettre l'e-mail pour notre compte.
 
@@ -259,15 +266,27 @@ Sur le site, une notification push est remise à votre navigateur par le service
 
 Les cartes sont dessinées dans votre navigateur ou votre application. La liste des fonds de carte, et les documents de style de certains d'entre eux, proviennent de notre serveur ; les images de carte elles-mêmes sont téléchargées par votre appareil directement auprès du fournisseur du style que vous avez sélectionné. Ce fournisseur reçoit donc votre adresse IP, la version de votre navigateur ou application, et les coordonnées de la zone de carte affichée (ce qui révèle, approximativement, la zone de l'itinéraire que vous regardez). Pour les fonds de carte, nous ne lui transmettons rien vous concernant : il ne voit que la requête émise par votre appareil, et votre choix de fond de carte est stocké localement sur votre appareil. Ces fournisseurs agissent en responsables de traitement indépendants, selon leurs propres politiques. La recherche de lieux, en revanche, passe par notre serveur (voir section 2).
 
-| Service | Rôle | Données concernées |
-|---------|------|-------------------|
-| VersaTiles (tiles.versatiles.org) | Fond de carte vectoriel (style par défaut), polices et sprites de carte | Adresse IP, zone de carte affichée |
-| Mapterhorn (tiles.mapterhorn.com) | Tuiles d'altitude et d'ombrage (relief 3D) ; également utilisé par notre serveur pour corriger l'altitude des traces importées | Votre navigateur ou application, uniquement si vous activez l'ombrage du relief ou le relief 3D (tous deux désactivés par défaut) : adresse IP, zone de carte affichée. Côté serveur : coordonnées de tuiles grossières (~10 km de côté) couvertes par une trace et adresse IP de notre serveur — jamais votre identité, votre compte ni votre adresse IP |
-| IGN / Géoplateforme (data.geopf.fr, France) | Fonds IGN, satellite et SCAN 25 | Adresse IP, zone de carte affichée |
-| OpenStreetMap Foundation (tile.openstreetmap.org, Royaume-Uni) | Fond OpenStreetMap | Adresse IP, zone de carte affichée |
-| OpenStreetMap France (tile-cyclosm.openstreetmap.fr) | Fond CyclOSM | Adresse IP, zone de carte affichée |
-| OpenStreetMap Nominatim (nominatim.openstreetmap.org) | Recherche de lieux, interrogée par notre serveur | Le texte que vous saisissez et votre langue d'affichage ; jamais votre adresse IP ni votre identité |
-| Esri (server.arcgisonline.com, États-Unis) | Fond « Satellite (ESRI) » | Adresse IP, zone de carte affichée |
+- **VersaTiles (tiles.versatiles.org)**
+  - *Rôle* : Fond de carte vectoriel (style par défaut), polices et sprites de carte
+  - *Données concernées* : Adresse IP, zone de carte affichée
+- **Mapterhorn (tiles.mapterhorn.com)**
+  - *Rôle* : Tuiles d'altitude et d'ombrage (relief 3D) ; également utilisé par notre serveur pour corriger l'altitude des traces importées
+  - *Données concernées* : Votre navigateur ou application, uniquement si vous activez l'ombrage du relief ou le relief 3D (tous deux désactivés par défaut) : adresse IP, zone de carte affichée. Côté serveur : coordonnées de tuiles grossières (~10 km de côté) couvertes par une trace et adresse IP de notre serveur — jamais votre identité, votre compte ni votre adresse IP
+- **IGN / Géoplateforme (data.geopf.fr, France)**
+  - *Rôle* : Fonds IGN, satellite et SCAN 25
+  - *Données concernées* : Adresse IP, zone de carte affichée
+- **OpenStreetMap Foundation (tile.openstreetmap.org, Royaume-Uni)**
+  - *Rôle* : Fond OpenStreetMap
+  - *Données concernées* : Adresse IP, zone de carte affichée
+- **OpenStreetMap France (tile-cyclosm.openstreetmap.fr)**
+  - *Rôle* : Fond CyclOSM
+  - *Données concernées* : Adresse IP, zone de carte affichée
+- **OpenStreetMap Nominatim (nominatim.openstreetmap.org)**
+  - *Rôle* : Recherche de lieux, interrogée par notre serveur
+  - *Données concernées* : Le texte que vous saisissez et votre langue d'affichage ; jamais votre adresse IP ni votre identité
+- **Esri (server.arcgisonline.com, États-Unis)**
+  - *Rôle* : Fond « Satellite (ESRI) »
+  - *Données concernées* : Adresse IP, zone de carte affichée
 
 Le fond de carte « Michelin » est servi par nos soins (tiles.pedalons.fr) : le choisir n'implique aucun tiers.
 
@@ -285,7 +304,7 @@ Nous pouvons être amenés à communiquer vos données si la loi l'exige (demand
 
 ## 5. Transferts internationaux de données
 
-Nos serveurs sont hébergés par **OVHcloud** (OVH SAS, Roubaix, France) et sont situés en France. Les données que nous stockons restent dans l'Union européenne.
+Nos serveurs sont hébergés par **Scaleway** (Scaleway SAS, Vitry-sur-Seine, France) et sont situés en France. Les données que nous stockons restent dans l'Union européenne.
 
 Certains traitements que vous pouvez déclencher impliquent des serveurs situés hors de l'Union européenne :
 
@@ -301,40 +320,38 @@ Certains traitements que vous pouvez déclencher impliquent des serveurs situés
 
 ## 6. Conservation des données
 
-| Type de données | Durée de conservation |
-|----------------|----------------------|
-| Données de compte (adresse e-mail, nom d'affichage, photo de profil, préférences, hachage du mot de passe) | Tant que votre compte existe ; effacées dès que vous le supprimez (voir section 7) |
-| Date d'acceptation des conditions d'utilisation | Tant que votre compte existe |
-| Sessions de connexion (jeton de rafraîchissement haché, adresse IP, agent utilisateur, dates de création et de dernière utilisation) | 30 jours à compter de la connexion qui a créé la session (la durée n'est pas prolongée par l'utilisation). Les sessions expirées ou déconnectées sont effacées par un nettoyage nocturne |
-| Sessions d'un appareil GPS appairé (Karoo, Garmin) | 90 jours à compter de l'appairage ; l'appareil renouvelle son jeton d'accès sans prolonger la session. « Déconnecter tous les appareils » la révoque ; se déconnecter sur l'appareil lui-même ne la révoque pas |
-| Codes de connexion temporaires (OTP) | 5 minutes, ou jusqu'à 5 tentatives erronées |
-| Lien de vérification d'adresse e-mail | 24 heures. Tant qu'il n'est pas utilisé, cet enregistrement contient aussi le nom d'affichage, le hachage du mot de passe et l'heure d'acceptation des conditions, choisis ou donnés à l'inscription |
-| Lien de réinitialisation de mot de passe | 1 heure |
-| Lien de vérification de changement d'e-mail | 24 heures |
-| Codes d'appairage d'appareils GPS | Valides 10 minutes ; l'enregistrement est supprimé dès que l'appareil termine l'appairage, ou par le nettoyage nocturne s'il a expiré sans servir |
-| Challenges de clés d'accès (WebAuthn) | Valides 5 minutes ; l'enregistrement est supprimé quand le challenge est utilisé ou qu'un nouveau est demandé, ou par le nettoyage nocturne s'il a expiré |
-| Jeton de calendrier (adresse secrète de votre flux .ics) | Sans expiration, jusqu'à régénération |
-| Équipes et contenus (sorties, posts, itinéraires, voyages, pages) | La suppression d'un élément le masque aux membres et aux visiteurs, mais il reste dans notre base : les administrateurs de l'équipe le voient toujours dans leurs listes, marqué « Supprimé », et peuvent le restaurer. L'enregistrement est conservé jusqu'à demande d'effacement définitif |
-| Commentaires | Effacés dès que vous ou votre équipe les supprimez, avec les réponses qu'ils ont reçues |
-| Fichiers attachés au contenu (images, GPX, FIT, images de carte générées) | Tant que l'enregistrement associé existe en base. Les fichiers téléversés mais jamais attachés à un contenu sont effacés automatiquement un jour après l'envoi |
-| Aperçus de l'outil d'analyse GPX (trace téléversée, points, fichiers GPX/FIT générés et vignette de carte) | 30 jours après création, puis effacement automatique avec les fichiers stockés (supprimables par vous à tout moment) |
-| Notifications (entrées de la boîte de réception, statut de lecture, copie du contenu auquel elles renvoient, trace des envois par e-mail et push, et trace des messages publiés dans les canaux de discussion d'équipe) | 90 jours après création, puis effacement par un nettoyage nocturne. Les messages déjà publiés dans le canal de discussion d'une équipe y restent, selon les règles de ce service |
-| Réglages de notifications (réglages par type, récapitulatif quotidien, équipes en sourdine) | Tant que votre compte existe ; effacés à sa suppression |
-| Enregistrement push d'un téléphone ou d'un navigateur (jeton push, plateforme, nom de l'appareil ou du navigateur, version de l'application, dates d'enregistrement et de dernière activité) | Jusqu'à ce que vous vous déconnectiez de l'application sur ce téléphone ou du site dans ce navigateur, ou coupiez les notifications sur le site, jusqu'à ce qu'un envoi montre que Firebase Cloud Messaging n'accepte plus le jeton (par exemple après la désinstallation de l'application), jusqu'à ce qu'un autre compte se connecte sur cet appareil, ou jusqu'à la suppression de votre compte. Il n'est pas supprimé après une période d'inactivité |
-| Réglages du canal de discussion d'une équipe (adresse du canal, langue, état du dernier envoi) | Jusqu'à ce que les administrateurs de l'équipe retirent le canal |
-| Invitations dans une équipe (adresse e-mail invitée, rôle proposé, auteur de l'invitation, et date d'acceptation, de révocation ou d'expiration) | Valables 14 jours ; l'enregistrement est conservé 1 an après l'acceptation, la révocation ou l'expiration, pour que l'équipe sache qui a invité qui, puis supprimé par un nettoyage nocturne |
-| Trace des messages envoyés au sujet d'une petite annonce (expéditeur, annonce, date ; le message lui-même n'est pas stocké) | Tant que l'annonce est dans notre base. Supprimer une annonce ne fait que la masquer : en pratique, la trace est conservée jusqu'à l'effacement définitif de l'annonce |
-| Blocages | Jusqu'à ce que vous débloquiez la personne, ou jusqu'à la suppression du compte de l'un de vous deux |
-| Signalements, copie du texte signalé et décision | Tant que le compte de la personne visée existe, pour garder la trace des décisions de modération ; à la suppression du compte du signaleur, conservés sans lien avec lui (voir section 7) |
-| Signalements de problème et suggestions | 1 an sur nos serveurs, ou jusqu'à la suppression de votre compte ; le ticket GitHub correspondant est conservé tant qu'il est utile au suivi du bug |
-| Rapports d'erreur automatiques | 90 jours sur nos serveurs, ou jusqu'à la suppression de votre compte ; le ticket GitHub, commun à tous les membres touchés par la même erreur, est conservé tant qu'il est utile |
-| Demandes de transfert d'équipe depuis Biketeam (compte qui l'a confirmée, équipe Biketeam, dates, résultat) | 1 an après la fin du transfert, ou après l'expiration de la demande si le transfert n'a jamais été lancé, puis supprimées par un nettoyage nocturne ; après la suppression du compte, la demande n'est plus rattachée à rien qui identifie la personne |
-| Inscriptions aux programmes bêta (adresse e-mail, site, date) | 1 an après l'inscription, puis suppression par un nettoyage nocturne ; écrivez à privacy@pedalons.fr pour être retiré de la liste plus tôt |
-| Archive d'export de vos données (ZIP) | 7 jours, puis effacement par un nettoyage nocturne (au plus tard la nuit suivante) ; comme tout fichier stocké, une copie peut subsister dans les sauvegardes jusqu'à 30 jours de plus |
-| Historique des demandes d'export (date de la demande, statut, taille de l'archive, date d'expiration) | 90 jours |
-| Journaux d'accès du serveur (date et heure, adresse IP, navigateur ou appareil, adresse demandée sans les coordonnées ni les jetons passés en paramètres, code de réponse) | 14 jours, puis suppression automatique |
-| Sauvegardes (copie complète de la base de données et des fichiers stockés) | Une copie par nuit sur un serveur séparé ; les 30 copies les plus récentes sont conservées, les plus anciennes supprimées automatiquement |
-| Données après suppression du compte | Effacement immédiat ; disparition des sauvegardes sous 30 jours (voir section 7) |
+- **Données de compte (adresse e-mail, nom d'affichage, photo de profil, préférences, hachage du mot de passe)** : Tant que votre compte existe ; effacées dès que vous le supprimez (voir section 7)
+- **Date d'acceptation des conditions d'utilisation** : Tant que votre compte existe
+- **Sessions de connexion (jeton de rafraîchissement haché, adresse IP, agent utilisateur, dates de création et de dernière utilisation)** : 30 jours à compter de la connexion qui a créé la session (la durée n'est pas prolongée par l'utilisation). Les sessions expirées ou déconnectées sont effacées par un nettoyage nocturne
+- **Sessions d'un appareil GPS appairé (Karoo, Garmin)** : 90 jours à compter de l'appairage ; l'appareil renouvelle son jeton d'accès sans prolonger la session. « Déconnecter tous les appareils » la révoque ; se déconnecter sur l'appareil lui-même ne la révoque pas
+- **Codes de connexion temporaires (OTP)** : 5 minutes, ou jusqu'à 5 tentatives erronées
+- **Lien de vérification d'adresse e-mail** : 24 heures. Tant qu'il n'est pas utilisé, cet enregistrement contient aussi le nom d'affichage, le hachage du mot de passe et l'heure d'acceptation des conditions, choisis ou donnés à l'inscription
+- **Lien de réinitialisation de mot de passe** : 1 heure
+- **Lien de vérification de changement d'e-mail** : 24 heures
+- **Codes d'appairage d'appareils GPS** : Valides 10 minutes ; l'enregistrement est supprimé dès que l'appareil termine l'appairage, ou par le nettoyage nocturne s'il a expiré sans servir
+- **Challenges de clés d'accès (WebAuthn)** : Valides 5 minutes ; l'enregistrement est supprimé quand le challenge est utilisé ou qu'un nouveau est demandé, ou par le nettoyage nocturne s'il a expiré
+- **Jeton de calendrier (adresse secrète de votre flux .ics)** : Sans expiration, jusqu'à régénération
+- **Équipes et contenus (sorties, posts, itinéraires, voyages, pages)** : La suppression d'un élément le masque aux membres et aux visiteurs, mais il reste dans notre base : les administrateurs de l'équipe le voient toujours dans leurs listes, marqué « Supprimé », et peuvent le restaurer. L'enregistrement est conservé jusqu'à demande d'effacement définitif
+- **Commentaires** : Effacés dès que vous ou votre équipe les supprimez, avec les réponses qu'ils ont reçues
+- **Fichiers attachés au contenu (images, GPX, FIT, images de carte générées)** : Tant que l'enregistrement associé existe en base. Les fichiers téléversés mais jamais attachés à un contenu sont effacés automatiquement un jour après l'envoi
+- **Aperçus de l'outil d'analyse GPX (trace téléversée, points, fichiers GPX/FIT générés et vignette de carte)** : 30 jours après création, puis effacement automatique avec les fichiers stockés (supprimables par vous à tout moment)
+- **Notifications (entrées de la boîte de réception, statut de lecture, copie du contenu auquel elles renvoient, trace des envois par e-mail et push, et trace des messages publiés dans les canaux de discussion d'équipe)** : 90 jours après création, puis effacement par un nettoyage nocturne. Les messages déjà publiés dans le canal de discussion d'une équipe y restent, selon les règles de ce service
+- **Réglages de notifications (réglages par type, récapitulatif quotidien, équipes en sourdine)** : Tant que votre compte existe ; effacés à sa suppression
+- **Enregistrement push d'un téléphone ou d'un navigateur (jeton push, plateforme, nom de l'appareil ou du navigateur, version de l'application, dates d'enregistrement et de dernière activité)** : Jusqu'à ce que vous vous déconnectiez de l'application sur ce téléphone ou du site dans ce navigateur, ou coupiez les notifications sur le site, jusqu'à ce qu'un envoi montre que Firebase Cloud Messaging n'accepte plus le jeton (par exemple après la désinstallation de l'application), jusqu'à ce qu'un autre compte se connecte sur cet appareil, ou jusqu'à la suppression de votre compte. Il n'est pas supprimé après une période d'inactivité
+- **Réglages du canal de discussion d'une équipe (adresse du canal, langue, état du dernier envoi)** : Jusqu'à ce que les administrateurs de l'équipe retirent le canal
+- **Invitations dans une équipe (adresse e-mail invitée, rôle proposé, auteur de l'invitation, et date d'acceptation, de révocation ou d'expiration)** : Valables 14 jours ; l'enregistrement est conservé 1 an après l'acceptation, la révocation ou l'expiration, pour que l'équipe sache qui a invité qui, puis supprimé par un nettoyage nocturne
+- **Trace des messages envoyés au sujet d'une petite annonce (expéditeur, annonce, date ; le message lui-même n'est pas stocké)** : Tant que l'annonce est dans notre base. Supprimer une annonce ne fait que la masquer : en pratique, la trace est conservée jusqu'à l'effacement définitif de l'annonce
+- **Blocages** : Jusqu'à ce que vous débloquiez la personne, ou jusqu'à la suppression du compte de l'un de vous deux
+- **Signalements, copie du texte signalé et décision** : Tant que le compte de la personne visée existe, pour garder la trace des décisions de modération ; à la suppression du compte du signaleur, conservés sans lien avec lui (voir section 7)
+- **Signalements de problème et suggestions** : 1 an sur nos serveurs, ou jusqu'à la suppression de votre compte ; le ticket GitHub correspondant est conservé tant qu'il est utile au suivi du bug
+- **Rapports d'erreur automatiques** : 90 jours sur nos serveurs, ou jusqu'à la suppression de votre compte ; le ticket GitHub, commun à tous les membres touchés par la même erreur, est conservé tant qu'il est utile
+- **Demandes de transfert d'équipe depuis Biketeam (compte qui l'a confirmée, équipe Biketeam, dates, résultat)** : 1 an après la fin du transfert, ou après l'expiration de la demande si le transfert n'a jamais été lancé, puis supprimées par un nettoyage nocturne ; après la suppression du compte, la demande n'est plus rattachée à rien qui identifie la personne
+- **Inscriptions aux programmes bêta (adresse e-mail, site, date)** : 1 an après l'inscription, puis suppression par un nettoyage nocturne ; écrivez à privacy@pedalons.fr pour être retiré de la liste plus tôt
+- **Archive d'export de vos données (ZIP)** : 7 jours, puis effacement par un nettoyage nocturne (au plus tard la nuit suivante) ; comme tout fichier stocké, une copie peut subsister dans les sauvegardes jusqu'à 30 jours de plus
+- **Historique des demandes d'export (date de la demande, statut, taille de l'archive, date d'expiration)** : 90 jours
+- **Journaux d'accès du serveur (date et heure, adresse IP, navigateur ou appareil, adresse demandée sans les coordonnées ni les jetons passés en paramètres, code de réponse)** : 14 jours, puis suppression automatique
+- **Sauvegardes (copie complète de la base de données et des fichiers stockés)** : Une copie par nuit sur un serveur séparé ; les 30 copies les plus récentes sont conservées, les plus anciennes supprimées automatiquement
+- **Données après suppression du compte** : Effacement immédiat ; disparition des sauvegardes sous 30 jours (voir section 7)
 
 Les durées ci-dessus sont les durées pendant lesquelles les données peuvent être utilisées. Les enregistrements expirés, utilisés ou déconnectés sont effacés physiquement de la base par des nettoyages exécutés une fois par nuit : ils peuvent donc rester stockés jusqu'à 24 heures au-delà de la durée indiquée.
 
@@ -395,19 +412,50 @@ Vous pouvez également introduire une réclamation auprès de la **CNIL** (Commi
 
 Pedalons utilise un nombre minimal de cookies et de données de stockage local :
 
-| Élément | Type | Finalité | Durée |
-|---------|------|----------|-------|
-| refresh_token | Cookie HttpOnly (site web) | Maintenir votre session authentifiée, y compris sur les pages construites par notre serveur | 30 jours, renouvelés à l'usage (la session elle-même prend fin 30 jours après la connexion) |
-| refresh_token | Trousseau iOS / stockage chiffré Keystore Android (application mobile) | Vous garder connecté sans ressaisir vos identifiants | Jusqu'à la déconnexion (validité de la session côté serveur : 30 jours) |
-| lang | Cookie | Mémoriser la langue que vous avez choisie, pour afficher les pages dans cette langue | 1 an |
-| pedalons-unit-system | localStorage | Mémoriser votre système d'unités | Persistant |
-| mantine-color-scheme-value | localStorage | Mémoriser votre thème (clair/sombre) | Persistant |
-| pedalons-map-style, pedalons-map-terrain3d, pedalons-map-hillshade | localStorage | Mémoriser vos préférences d'affichage de carte | Persistant |
-| pedalons-error-reports | localStorage | Mémoriser que vous avez désactivé les rapports d'erreur automatiques | Persistant |
-| pedalons.webPush.token | localStorage | Désinscrire ce navigateur des notifications push lorsque vous vous déconnectez ou les coupez | Jusqu'à votre déconnexion ou la coupure des notifications |
-| Données de messagerie Firebase | Stockage du navigateur (site web) | Inscription de ce navigateur aux notifications push, uniquement une fois que vous les avez activées | Jusqu'à l'effacement des données de votre navigateur |
-| pedalons.installBanner.dismissedAt | localStorage | Mémoriser que vous avez fermé la proposition d'installer le site comme une application | Persistant (la proposition revient après 90 jours) |
-| pendingInvitationToken, pendingBiketeamMigrationRequest | sessionStorage | Garder une invitation à une équipe, ou une demande de transfert d'équipe depuis Biketeam, le temps de vous connecter | Jusqu'à la fermeture de l'onglet |
+- **refresh_token**
+  - *Type* : Cookie HttpOnly (site web)
+  - *Finalité* : Maintenir votre session authentifiée, y compris sur les pages construites par notre serveur
+  - *Durée* : 30 jours, renouvelés à l'usage (la session elle-même prend fin 30 jours après la connexion)
+- **refresh_token**
+  - *Type* : Trousseau iOS / stockage chiffré Keystore Android (application mobile)
+  - *Finalité* : Vous garder connecté sans ressaisir vos identifiants
+  - *Durée* : Jusqu'à la déconnexion (validité de la session côté serveur : 30 jours)
+- **lang**
+  - *Type* : Cookie
+  - *Finalité* : Mémoriser la langue que vous avez choisie, pour afficher les pages dans cette langue
+  - *Durée* : 1 an
+- **pedalons-unit-system**
+  - *Type* : localStorage
+  - *Finalité* : Mémoriser votre système d'unités
+  - *Durée* : Persistant
+- **mantine-color-scheme-value**
+  - *Type* : localStorage
+  - *Finalité* : Mémoriser votre thème (clair/sombre)
+  - *Durée* : Persistant
+- **pedalons-map-style, pedalons-map-terrain3d, pedalons-map-hillshade**
+  - *Type* : localStorage
+  - *Finalité* : Mémoriser vos préférences d'affichage de carte
+  - *Durée* : Persistant
+- **pedalons-error-reports**
+  - *Type* : localStorage
+  - *Finalité* : Mémoriser que vous avez désactivé les rapports d'erreur automatiques
+  - *Durée* : Persistant
+- **pedalons.webPush.token**
+  - *Type* : localStorage
+  - *Finalité* : Désinscrire ce navigateur des notifications push lorsque vous vous déconnectez ou les coupez
+  - *Durée* : Jusqu'à votre déconnexion ou la coupure des notifications
+- **Données de messagerie Firebase**
+  - *Type* : Stockage du navigateur (site web)
+  - *Finalité* : Inscription de ce navigateur aux notifications push, uniquement une fois que vous les avez activées
+  - *Durée* : Jusqu'à l'effacement des données de votre navigateur
+- **pedalons.installBanner.dismissedAt**
+  - *Type* : localStorage
+  - *Finalité* : Mémoriser que vous avez fermé la proposition d'installer le site comme une application
+  - *Durée* : Persistant (la proposition revient après 90 jours)
+- **pendingInvitationToken, pendingBiketeamMigrationRequest**
+  - *Type* : sessionStorage
+  - *Finalité* : Garder une invitation à une équipe, ou une demande de transfert d'équipe depuis Biketeam, le temps de vous connecter
+  - *Durée* : Jusqu'à la fermeture de l'onglet
 
 Les valeurs de langue, d'unités et de thème stockées dans votre navigateur ou dans l'application sont une copie locale : lorsque vous êtes connecté, la valeur enregistrée dans votre compte prévaut. La ligne « application mobile » correspond à un stockage effectué par l'application sur votre appareil, pas à un cookie de navigateur ; elle est strictement nécessaire pour vous garder connecté. Pour les autres données conservées par l'application mobile (préférences, caches, jeton push, journal des dernières actions et rapports d'erreur en attente), et pour les jetons stockés par les extensions Karoo et Garmin, voir « Données stockées localement sur votre appareil » à la section 1. L'application mobile et le site n'intègrent que la partie messagerie de Google Firebase, utilisée pour les notifications push : aucun composant Firebase d'analyse, de publicité ou de suivi.
 
