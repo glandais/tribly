@@ -308,6 +308,37 @@ class ModerationResourceTest extends AbstractResourceTest {
         .body("items.excerpt", hasItem("Racine"));
   }
 
+  /** docs/LEDGER_*.md MOD-2: no open report is left on the comments of a removed publication. */
+  @Test
+  void removeContent_ofAPublication_closesTheReportsOfItsComments() {
+    Comment onPost = dataService.createComment(user3, post, "Sous le billet");
+    Post other = dataService.createPost(team1, user1, "Autre billet", yesterday, Visibility.PUBLIC);
+    Comment elsewhere = dataService.createComment(user3, other, "Ailleurs");
+    report(USER3, ReportTargetType.POST, post.getId());
+    report(USER6, ReportTargetType.COMMENT, onPost.getId());
+    report(USER6, ReportTargetType.COMMENT, elsewhere.getId());
+
+    resolve(
+            USER2,
+            teamReports() + "/resolve",
+            ReportTargetType.POST,
+            post.getId(),
+            ModerationAction.REMOVE_CONTENT)
+        .statusCode(204);
+
+    assertEquals(
+        List.of(ReportStatus.REMOVED),
+        dataService.reportStatuses(ReportTargetType.COMMENT, onPost.getId()));
+    // A comment on another publication keeps its report open.
+    assertEquals(
+        List.of(ReportStatus.OPEN),
+        dataService.reportStatuses(ReportTargetType.COMMENT, elsewhere.getId()));
+    get(USER2, teamReports())
+        .statusCode(200)
+        .body("items", hasSize(1))
+        .body("items[0].targetId", equalTo(TsidUtils.toString(elsewhere.getId())));
+  }
+
   @Test
   void dismiss_showsTheContentAgain() {
     report(USER3, ReportTargetType.POST, post.getId());

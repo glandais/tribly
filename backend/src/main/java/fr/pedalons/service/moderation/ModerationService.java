@@ -201,6 +201,10 @@ public class ModerationService {
                     // Decided: the reports no longer hide it. Should a platform admin undelete it,
                     // no open report is left to dismiss — it must not stay hidden for good.
                     entity.setModerationHiddenAt(null);
+                    // Its comments went with it: their open reports are decided too, rather than
+                    // left in the queue pointing at a removed publication.
+                    reportRepository.resolveOpenCommentsOf(
+                        team.getId(), entity.getId(), ReportStatus.REMOVED, moderator, now);
                   });
     }
   }

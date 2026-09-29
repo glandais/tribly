@@ -304,6 +304,30 @@ public class ContentReportRepository implements PanacheRepository<ContentReport>
         .executeUpdate();
   }
 
+  /**
+   * Closes the open reports of every comment on a publication of a team — the publication a
+   * moderator just removed: its comments went with it, and their reports must not stay open on
+   * content nobody can open any more (docs/LEDGER_*.md MOD-2).
+   */
+  public int resolveOpenCommentsOf(
+      Long teamId, Long teamEntityId, ReportStatus status, User resolvedBy, Instant resolvedAt) {
+    return getEntityManager()
+        .createQuery(
+            "update ContentReport r set r.status = :status, r.resolvedBy = :resolvedBy,"
+                + " r.resolvedAt = :resolvedAt"
+                + " where r.team.id = :teamId and r.status = :open and r.targetType = :type"
+                + " and r.targetId in"
+                + " (select c.id from Comment c where c.teamEntity.id = :teamEntityId)")
+        .setParameter("status", status)
+        .setParameter("resolvedBy", resolvedBy)
+        .setParameter("resolvedAt", resolvedAt)
+        .setParameter("teamId", teamId)
+        .setParameter("open", ReportStatus.OPEN)
+        .setParameter("type", ReportTargetType.COMMENT)
+        .setParameter("teamEntityId", teamEntityId)
+        .executeUpdate();
+  }
+
   /** The reports a member filed, for the GDPR export. */
   public List<ContentReport> findByReporter(Long domainId, Long reporterId) {
     return list("reporter.id = ?1 and domain.id = ?2 order by createdAt", reporterId, domainId);
