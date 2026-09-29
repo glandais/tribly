@@ -18,6 +18,17 @@ public record AssetsDto(
     @Nullable @Schema(description = "Light thumbnail") AssetDto thumbnailLight,
     @Nullable @Schema(description = "Dark thumbnail") AssetDto thumbnailDark) {
 
+  /**
+   * Missing lists become empty ones. Jackson builds a record through this constructor, never
+   * through the builder, and {@code required = true} validates nothing: a body with {@code "assets":
+   * {}} used to reach {@code AssetService.updateAssets} with null lists and end in a 500. Normalised
+   * rather than rejected — clients always send both lists (docs/LEDGER_*.md API-28).
+   */
+  public AssetsDto {
+    images = images == null ? new ArrayList<>() : images;
+    attachments = attachments == null ? new ArrayList<>() : attachments;
+  }
+
   public static class AssetsDtoBuilder {
     AssetsDtoBuilder() {
       images = new ArrayList<>();

@@ -14,6 +14,16 @@ public record MediaDto(
     @Schema(description = "Markdown", required = true) @AcceptableText String markdown,
     @Schema(description = "Assets", required = true) @Valid AssetsDto assets) {
 
+  /**
+   * A missing markdown is an empty text and missing assets an empty inventory, as the builder
+   * already had it: Jackson goes through this constructor, and a null here used to end in a 500 in
+   * {@code AssetService.updateAssets} (docs/LEDGER_*.md API-28).
+   */
+  public MediaDto {
+    markdown = markdown == null ? "" : markdown;
+    assets = assets == null ? AssetsDto.builder().build() : assets;
+  }
+
   public static class MediaDtoBuilder {
     MediaDtoBuilder() {
       markdown = "";

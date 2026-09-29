@@ -217,6 +217,20 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   `RideTemplateGroupRequest` reste sans champ, instancier une sortie depuis un gabarit ne désigne
   personne. Le repli sur `createdBy` est interdit (`API-30`).
 
+### Défauts relevés
+
+- `API-28` **NPE 500 sur un `media` incomplet** (2026-09-30) — `POST /api/teams/{slug}/rides` avec
+  `media.assets = {}` levait une `NullPointerException` dans `AssetService.updateAssets` : Jackson
+  construit un record par son constructeur canonique, jamais par le builder qui posait les listes
+  vides, et `@Schema(required = true)` ne valide rien sur `AssetsDto` ni `MediaDto` (pas de
+  `@ValidateSchema`). Les deux records ont maintenant un constructeur compact qui **normalise à
+  vide** : `images` et `attachments` nuls deviennent des listes vides, `assets` nul un inventaire
+  vide, `markdown` nul la chaîne vide (la valeur par défaut du builder et de l'entité, dont la colonne
+  est `NOT NULL`). Normaliser plutôt que répondre 400 : les clients envoient toujours les listes, et le
+  contrat ne change pas. Couvert par `RideResourceTest.createRide_withEmptyAssetsObject_shouldSucceed`
+  et `createRide_withEmptyMediaObject_shouldSucceed`. Un `media` nul, lui, reste un 400 là où la
+  requête porte `@ValidateSchema` (`RideRequest`…).
+
 ### `API-39` T5.4 — Trombinoscope : débloqué par un réglage d'équipe (contrat `3.0.0`)
 
 **Livré, sauf la page web publique** (reste à faire : `WEB-1`). L'oracle

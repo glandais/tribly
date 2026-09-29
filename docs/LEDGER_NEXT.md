@@ -328,16 +328,6 @@ Le meneur de groupe (`API-41`, livré en 1.5.0) et l'URL de tuile (`API-1`) sont
 [`LEDGER_DONE.md`](LEDGER_DONE.md). Les **gabarits de sortie n'ont volontairement pas de meneur** —
 décision produit : `RideTemplateGroupRequest` reste sans champ.
 
-### Défauts relevés
-
-- [ ] `API-28` **NPE 500 sur un `media` incomplet** — relevée le 20 septembre 2026 pendant la
-      recette des notifications : `POST /api/teams/{slug}/rides` avec `media.assets = {}` lève une
-      `NullPointerException` dans `AssetService.updateAssets`, qui déréférence `assets.images()`
-      sans garde ; même risque sur `attachments()`, sur `assets` nul et sur `markdown` nul.
-      `AssetsDto` ne pose ses listes vides que dans son builder, que Jackson n'emprunte pas pour un
-      record, et `@Schema(required = true)` ne valide rien. Invisible depuis les clients (ils
-      envoient toujours des listes) ; répondre 400 ou normaliser à vide.
-
 ---
 
 ## OPS — Exploitation, déploiement, recette du backend

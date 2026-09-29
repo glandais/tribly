@@ -132,6 +132,59 @@ class RideResourceTest extends AbstractResourceTest {
         .body("groupCount", equalTo(3));
   }
 
+  /** docs/LEDGER_*.md API-28: an incomplete media is normalised to empty, not a 500. */
+  @Test
+  void createRide_withEmptyAssetsObject_shouldSucceed() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "name": "Sparse Media Ride",
+              "media": {"markdown": "Hello", "assets": {}},
+              "dateTime": "2025-01-20T00:00:00Z",
+              "status": "DRAFT",
+              "visibility": "PUBLIC",
+              "groups": [{"name": "G1"}]
+            }
+            """)
+        .when()
+        .post("/api/teams/" + team1Slug + "/rides")
+        .then()
+        .statusCode(201)
+        .body("media.markdown", equalTo("Hello"))
+        .body("media.assets.images", empty())
+        .body("media.assets.attachments", empty());
+  }
+
+  /** docs/LEDGER_*.md API-28: neither markdown nor assets — an empty media. */
+  @Test
+  void createRide_withEmptyMediaObject_shouldSucceed() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "name": "No Media Ride",
+              "media": {},
+              "dateTime": "2025-01-20T00:00:00Z",
+              "status": "DRAFT",
+              "visibility": "PUBLIC",
+              "groups": [{"name": "G1"}]
+            }
+            """)
+        .when()
+        .post("/api/teams/" + team1Slug + "/rides")
+        .then()
+        .statusCode(201)
+        .body("media.markdown", equalTo(""))
+        .body("media.assets.images", empty());
+  }
+
   @Test
   void getRide_shouldReturnRideDetails() {
     String rideSlug =
