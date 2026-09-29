@@ -20,9 +20,9 @@ import '../../../../keys.dart';
 /// C'était l'un des deux cul-de-sacs de l'application — la loupe de « Mes
 /// équipes » et le bouton de son état vide menaient à un écran « à venir ».
 ///
-/// **Aucune mention de tri.** `GET /api/teams` n'a aucun paramètre de tri :
-/// annoncer « triées par nombre de membres », comme le fait la maquette, serait
-/// annoncer un ordre qu'on ne contrôle pas.
+/// Le compteur annonce le tri, « triées par nombre de membres » comme la
+/// maquette, **parce que** la requête le demande (`kTeamDiscoverySort`,
+/// `docs/LEDGER_*.md API-13`) : un tri qu'on ne demande pas ne s'annonce pas.
 class TeamsDiscoverPage extends ConsumerStatefulWidget {
   const TeamsDiscoverPage({super.key});
 
@@ -199,7 +199,13 @@ class _TeamsDiscoverPageState extends ConsumerState<TeamsDiscoverPage> {
             4,
           ),
           child: Text(
-            'teams.discovery.count'.plural(total),
+            kTeamDiscoverySort == TeamSortBy.memberCount
+                ? 'teams.discovery.countSortedByMembers'.tr(
+                    namedArgs: <String, String>{
+                      'count': 'teams.discovery.count'.plural(total),
+                    },
+                  )
+                : 'teams.discovery.count'.plural(total),
             style: context.pdlText.count,
           ),
         ),

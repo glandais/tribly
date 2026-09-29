@@ -87,8 +87,8 @@ class TeamRepository {
 
   /// One page of the team directory.
   ///
-  /// `GET /api/teams` n'a **aucun paramètre de tri** : l'ordre est celui du
-  /// serveur, et l'écran de découverte n'annonce donc aucun tri (§5.3).
+  /// Triée par [kTeamDiscoverySort], du plus grand au plus petit — l'ordre
+  /// que l'écran de découverte annonce.
   Future<PageResult<TeamDetailDto>> fetchTeams({
     required TeamDiscoveryFilters filters,
     int page = 0,
@@ -101,6 +101,8 @@ class TeamRepository {
       joinable: filters.scope == TeamDiscoveryScope.joinable ? true : null,
       minRole: filters.scope == TeamDiscoveryScope.mine ? MinRole.member : null,
       search: search == null || search.isEmpty ? null : search,
+      sortBy: kTeamDiscoverySort,
+      sortDir: SortDirection.desc,
     );
     return PageResult<TeamDetailDto>(
       items: response.teams,

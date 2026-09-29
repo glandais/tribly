@@ -3,6 +3,8 @@ package fr.pedalons.repository.team;
 import fr.pedalons.domain.common.SearchClause;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.common.PedalonsPage;
+import fr.pedalons.enums.SortDirection;
+import fr.pedalons.enums.TeamSortBy;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.repository.common.BaseRepository;
 import fr.pedalons.repository.query.OrClause;
@@ -76,7 +78,7 @@ public class TeamRepository implements BaseRepository<Team> {
                     + " t.id) from Team t left join UserTeam ut on ut.team.id ="
                     + " t.id AND ut.user.id = :userId WHERE")
             .and("t.domain.id = :domainId", Map.of("domainId", teamQuery.domainId()))
-            .order("name asc");
+            .order(orderClause(teamQuery));
     if (teamQuery.pinnedTeamId() != null) {
       // A pinned alias host lists only its team, even for platform admins — a site scope like
       // domain.
@@ -121,6 +123,23 @@ public class TeamRepository implements BaseRepository<Team> {
     log.debug("{} {}", stringQuery, params);
     PanacheQuery<TeamAndRole> panacheQuery = find(stringQuery, params).project(TeamAndRole.class);
     return getPage(panacheQuery, teamQuery.page(), teamQuery.size());
+  }
+
+  /**
+   * The requested key, then the team id in the same direction: two teams with the same name or the
+   * same member count must still come back in one fixed order, or offset pagination repeats one and
+   * skips the other.
+   */
+  private static String orderClause(TeamQuery teamQuery) {
+    TeamSortBy sortBy = teamQuery.sortBy();
+    if (sortBy == null) {
+      return "t.name asc, t.id asc";
+    }
+    String dir =
+        (teamQuery.sortDir() != null ? teamQuery.sortDir() : SortDirection.DESC)
+            .name()
+            .toLowerCase();
+    return sortBy.getField() + " " + dir + ", t.id " + dir;
   }
 
   private static SimpleClause visibleTeam(boolean list) {

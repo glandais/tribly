@@ -1,4 +1,6 @@
 import type { MinRole } from './minRole.ts'
+import type { SortDirection } from './sortDirection.ts'
+import type { TeamSortBy } from './teamSortBy.ts'
 
 export type ListTeamsParams = {
   /**
@@ -21,4 +23,12 @@ export type ListTeamsParams = {
    * Page size
    */
   size?: number
+  /**
+   * Sort column (default: name ascending). MEMBER_COUNT orders by the memberCount the rows carry. The team id always ends the key, so the order is total.
+   */
+  sortBy?: TeamSortBy
+  /**
+   * Sort direction when sortBy is set (default: DESC)
+   */
+  sortDir?: SortDirection
 }

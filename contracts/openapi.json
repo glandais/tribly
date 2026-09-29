@@ -5077,6 +5077,10 @@
         "type" : "string",
         "enum" : [ "MEMBER", "ORGANIZER", "ADMIN" ]
       },
+      "TeamSortBy" : {
+        "type" : "string",
+        "enum" : [ "NAME", "MEMBER_COUNT" ]
+      },
       "TeamWebhookDto" : {
         "description" : "The team's outgoing webhook",
         "type" : "object",
@@ -11547,6 +11551,20 @@
             "type" : "integer",
             "format" : "int32",
             "default" : 20
+          }
+        }, {
+          "description" : "Sort column (default: name ascending). MEMBER_COUNT orders by the memberCount the rows carry. The team id always ends the key, so the order is total.",
+          "name" : "sortBy",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/TeamSortBy"
+          }
+        }, {
+          "description" : "Sort direction when sortBy is set (default: DESC)",
+          "name" : "sortDir",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/SortDirection"
           }
         } ],
         "responses" : {
@@ -20014,7 +20032,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "5.11.0",
+    "version" : "5.12.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

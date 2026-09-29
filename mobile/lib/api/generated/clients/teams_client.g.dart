@@ -27,6 +27,8 @@ class _TeamsClient implements TeamsClient {
     bool? joinable,
     MinRole? minRole,
     String? search,
+    TeamSortBy? sortBy,
+    SortDirection? sortDir,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -35,6 +37,8 @@ class _TeamsClient implements TeamsClient {
       r'joinable': joinable,
       r'minRole': minRole?.toJson(),
       r'search': search,
+      r'sortBy': sortBy?.toJson(),
+      r'sortDir': sortDir?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};

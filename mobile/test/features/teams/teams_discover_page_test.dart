@@ -109,7 +109,7 @@ void main() {
     }
   }
 
-  testWidgets('l\'écran liste les équipes et n\'annonce aucun tri', (
+  testWidgets('l\'écran liste les équipes et annonce le tri qu\'il demande', (
     WidgetTester tester,
   ) async {
     await openDiscover(
@@ -118,10 +118,13 @@ void main() {
     );
 
     expect(find.byType(TeamDiscoveryCard), findsNWidgets(3));
-    expect(find.text('3 équipes'), findsOneWidget);
-    // `GET /api/teams` n'a aucun paramètre de tri : rien n'en parle.
-    expect(find.textContaining('tri'), findsNothing);
-    expect(find.textContaining('membres'), findsWidgets);
+    // API-13 : le dépôt demande `sortBy=MEMBER_COUNT` (`kTeamDiscoverySort`),
+    // l'écran peut donc l'annoncer.
+    expect(kTeamDiscoverySort, TeamSortBy.memberCount);
+    expect(
+      find.text('3 équipes · triées par nombre de membres'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('la chip « Ouvertes à l\'adhésion » part bien au serveur', (

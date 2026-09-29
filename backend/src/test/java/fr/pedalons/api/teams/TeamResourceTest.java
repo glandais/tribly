@@ -5,14 +5,17 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.api.AbstractResourceTest;
+import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.SlugChangeRequest;
 import fr.pedalons.dto.teams.request.TeamRequest;
+import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.team.TeamService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -63,6 +66,75 @@ class TeamResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(200)
         .body("teams", is(notNullValue()));
+  }
+
+  /**
+   * {@code sortBy=MEMBER_COUNT} orders the directory by the member count the rows carry, and the
+   * team id ends the key: three teams tied on one member come back in id order, the same on every
+   * page, so paging one row at a time neither repeats nor skips one of them.
+   */
+  @Test
+  void listTeams_sortByMemberCount_isTotalAcrossPages() {
+    Team big = dataService.createTeam(user1, "Tri Grande", "tri-grande", Visibility.PUBLIC);
+    dataService.addUserToTeam(user2, big, TeamRole.MEMBER);
+    dataService.addUserToTeam(user3, big, TeamRole.MEMBER);
+    Team medium = dataService.createTeam(user1, "Tri Moyenne", "tri-moyenne", Visibility.PUBLIC);
+    dataService.addUserToTeam(user2, medium, TeamRole.MEMBER);
+    // Three ties on one member, their names deliberately against the id order.
+    Team tieA = dataService.createTeam(user1, "Tri Zeta", "tri-zeta", Visibility.PUBLIC);
+    Team tieB = dataService.createTeam(user1, "Tri Beta", "tri-beta", Visibility.PUBLIC);
+    Team tieC = dataService.createTeam(user1, "Tri Alpha", "tri-alpha", Visibility.PUBLIC);
+
+    List<String> expected =
+        List.of(big.getSlug(), medium.getSlug(), tieC.getSlug(), tieB.getSlug(), tieA.getSlug());
+    // Descending: the id breaks the ties descending too.
+    List<Long> tieIds = List.of(tieA.getId(), tieB.getId(), tieC.getId());
+    assertTrue(tieIds.get(0) < tieIds.get(1) && tieIds.get(1) < tieIds.get(2));
+
+    List<String> paged = new java.util.ArrayList<>();
+    for (int page = 0; page < 5; page++) {
+      paged.addAll(
+          given()
+              .queryParam("search", "Tri")
+              .queryParam("sortBy", "MEMBER_COUNT")
+              .queryParam("page", page)
+              .queryParam("size", 1)
+              .when()
+              .get("/api/teams")
+              .then()
+              .statusCode(200)
+              .body("total", equalTo(5))
+              .extract()
+              .jsonPath()
+              .getList("teams.slug", String.class));
+    }
+    assertEquals(expected, paged);
+
+    given()
+        .queryParam("search", "Tri")
+        .queryParam("sortBy", "MEMBER_COUNT")
+        .queryParam("sortDir", "ASC")
+        .when()
+        .get("/api/teams")
+        .then()
+        .statusCode(200)
+        .body("teams.slug", equalTo(expected.reversed()))
+        .body("teams.memberCount", equalTo(List.of(1, 1, 1, 2, 3)));
+  }
+
+  /** Without sortBy the directory keeps its name order. */
+  @Test
+  void listTeams_withoutSort_keepsTheNameOrder() {
+    dataService.createTeam(user1, "Tri Zeta", "tri-zeta", Visibility.PUBLIC);
+    dataService.createTeam(user1, "Tri Alpha", "tri-alpha", Visibility.PUBLIC);
+
+    given()
+        .queryParam("search", "Tri")
+        .when()
+        .get("/api/teams")
+        .then()
+        .statusCode(200)
+        .body("teams.slug", equalTo(List.of("tri-alpha", "tri-zeta")));
   }
 
   @Test

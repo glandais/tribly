@@ -281,6 +281,7 @@
         "one": "{} team",
         "other": "{} teams"
       },
+      "countSortedByMembers": "{count} · sorted by member count",
       "searchPlaceholder": "Search a team",
       "scope": {
         "all": "All",

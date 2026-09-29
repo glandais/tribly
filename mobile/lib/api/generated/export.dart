@@ -234,6 +234,7 @@ export 'models/team_page_summary_dto.dart';
 export 'models/team_publication_dto.dart';
 export 'models/team_request.dart';
 export 'models/team_role.dart';
+export 'models/team_sort_by.dart';
 export 'models/team_webhook_dto.dart';
 export 'models/team_webhook_kind.dart';
 export 'models/team_webhook_request.dart';

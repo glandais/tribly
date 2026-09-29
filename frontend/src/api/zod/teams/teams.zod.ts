@@ -18,6 +18,16 @@ export const ListTeamsQueryParams = zod.object({
   page: zod.int().default(listTeamsQueryPageDefault).describe('Page number (0-indexed)'),
   search: zod.string().optional().describe('Search query to filter teams by name'),
   size: zod.int().default(listTeamsQuerySizeDefault).describe('Page size'),
+  sortBy: zod
+    .enum(['NAME', 'MEMBER_COUNT'])
+    .optional()
+    .describe(
+      'Sort column (default: name ascending). MEMBER_COUNT orders by the memberCount the rows carry. The team id always ends the key, so the order is total.'
+    ),
+  sortDir: zod
+    .enum(['ASC', 'DESC'])
+    .optional()
+    .describe('Sort direction when sortBy is set (default: DESC)'),
 })
 
 export const ListTeamsResponse = zod

@@ -5,6 +5,8 @@ import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.teams.request.TeamRequest;
 import fr.pedalons.dto.teams.response.TeamDetailDto;
 import fr.pedalons.dto.teams.response.TeamListResponse;
+import fr.pedalons.enums.SortDirection;
+import fr.pedalons.enums.TeamSortBy;
 import fr.pedalons.service.team.TeamService;
 import fr.pedalons.service.team.request.MinRole;
 import jakarta.annotation.security.PermitAll;
@@ -54,11 +56,21 @@ public class TeamResource {
                       + " visibility rules, never instead of them.")
           @QueryParam("joinable")
           @Nullable Boolean joinable,
+      @Parameter(
+              description =
+                  "Sort column (default: name ascending). MEMBER_COUNT orders by the memberCount"
+                      + " the rows carry. The team id always ends the key, so the order is total.")
+          @QueryParam("sortBy")
+          @Nullable TeamSortBy sortBy,
+      @Parameter(description = "Sort direction when sortBy is set (default: DESC)")
+          @QueryParam("sortDir")
+          @Nullable SortDirection sortDir,
       @Parameter(description = "Page number (0-indexed)") @QueryParam("page") @DefaultValue("0")
           int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    TeamListResponse teams = teamService.listTeams(minRole, search, joinable, page, size);
+    TeamListResponse teams =
+        teamService.listTeams(minRole, search, joinable, sortBy, sortDir, page, size);
     return Response.ok(teams).build();
   }
 

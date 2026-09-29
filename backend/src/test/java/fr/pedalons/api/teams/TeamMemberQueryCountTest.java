@@ -55,4 +55,20 @@ class TeamMemberQueryCountTest extends AbstractQueryCountTest {
         () -> io.restassured.RestAssured.given().auth().oauth2(getAccessToken(USER3)),
         "/api/teams/" + team1Slug + "/members");
   }
+
+  /**
+   * The team directory sorted by member count (ledger API-13): the key is a correlated subquery in
+   * the ORDER BY of the one listing query, never a count per team.
+   */
+  @Test
+  void listTeams_sortedByMemberCount_costDoesNotScaleWithRowCount() {
+    for (int i = 0; i < LARGE_PAGE; i++) {
+      var team =
+          dataService.createTeam(
+              user1, "Budget Team " + i, "budget-team-" + i, fr.pedalons.enums.Visibility.PUBLIC);
+      dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
+    }
+    assertFlatQueryCount(
+        "GET /api/teams?sortBy=MEMBER_COUNT", asUser1(), "/api/teams?sortBy=MEMBER_COUNT");
+  }
 }

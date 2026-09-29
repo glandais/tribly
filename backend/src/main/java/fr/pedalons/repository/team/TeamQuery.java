@@ -1,5 +1,7 @@
 package fr.pedalons.repository.team;
 
+import fr.pedalons.enums.SortDirection;
+import fr.pedalons.enums.TeamSortBy;
 import fr.pedalons.repository.common.PageInterface;
 import fr.pedalons.service.team.request.MinRole;
 import lombok.Builder;
@@ -20,5 +22,9 @@ public record TeamQuery(
      * both. A filter only — it never widens what the visibility rules already allow.
      */
     @Nullable Boolean joinable,
+    /** Null keeps the historical order: name ascending. */
+    @Nullable TeamSortBy sortBy,
+    /** Defaults to DESC when {@code sortBy} is set, as on the other listings. */
+    @Nullable SortDirection sortDir,
     boolean platformAdmin)
     implements PageInterface {}

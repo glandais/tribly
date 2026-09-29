@@ -9,7 +9,7 @@ portage web livré à trois tâches près, et tenu à jour depuis (dernière rel
 Rien ici ne bloque quoi que ce soit. C'est la propriété qui compte : la v2 est livrable en l'état,
 et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de réparer une panne.
 
-**Contrat d'API au 30 septembre 2026 : `5.11.0`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au 30 septembre 2026 : `5.12.0`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
 
@@ -296,7 +296,6 @@ ceux du plan (`API-1`, l'URL de tuile authentifiable, est livré).
 | `API-10` | `ClimbDto.name` | 13, 25 | « Montée N » |
 | `API-11` | Commentaires d'étape | 25 | Section absente, renvoi vers le voyage |
 | `API-12` | Participants paginés et cherchables côté serveur | 24, 34 | Liste complète embarquée, recherche client, pas de pied « N sur M » |
-| `API-13` | Tri sur `GET /api/teams` | 34 | Mention « triées par nombre de membres » retirée |
 | `API-14` | `logoUrl` de service GPS (`GpsServiceConnectionDto`) — `SocialIdentityDto.externalUsername` n'a plus d'objet : la connexion Strava a été retirée (API `5.0.0`) | 33 | Nom du service et « Connecté le *date* », sans logo |
 | `API-15` | `Team.timezone` ou dates zonées au contrat | 22, 24, 25 | Fuseau de l'appareil ; le web applique en plus la préférence `UserDto.timezone`, que le mobile ignore |
 | `API-16` | Statut `TERMINÉE` dans l'enum `Status` | 11, 12, 22 | Dérivé client de `dateTime < now`, centralisé dans `RideDto.isPast` |

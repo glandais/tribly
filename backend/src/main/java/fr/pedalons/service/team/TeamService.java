@@ -15,7 +15,9 @@ import fr.pedalons.dto.teams.response.TeamDetailDto;
 import fr.pedalons.dto.teams.response.TeamListResponse;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
+import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.TeamRole;
+import fr.pedalons.enums.TeamSortBy;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.*;
 import fr.pedalons.repository.team.TeamQuery;
@@ -152,12 +154,13 @@ public class TeamService {
   @CheckAccess(entityType = EntityType.TEAM, action = ActionType.LIST)
   public TeamListResponse listTeams(
       @Nullable MinRole minRole, @Nullable String search, int page, int size) {
-    return listTeams(minRole, search, null, page, size);
+    return listTeams(minRole, search, null, null, null, page, size);
   }
 
   /**
    * @param joinable restricts to teams that do (or do not) accept join requests — the "discover a
    *     team" screen. Null keeps both.
+   * @param sortBy null keeps the name order; the team id always ends the key
    */
   @Transactional
   @CheckAccess(entityType = EntityType.TEAM, action = ActionType.LIST)
@@ -165,6 +168,8 @@ public class TeamService {
       @Nullable MinRole minRole,
       @Nullable String search,
       @Nullable Boolean joinable,
+      @Nullable TeamSortBy sortBy,
+      @Nullable SortDirection sortDir,
       int page,
       int size) {
     boolean platformAdmin = isPlatformAdmin();
@@ -177,6 +182,8 @@ public class TeamService {
                 .minRole(minRole)
                 .search(search)
                 .joinable(joinable)
+                .sortBy(sortBy)
+                .sortDir(sortDir)
                 .page(page)
                 .size(size)
                 .platformAdmin(platformAdmin)

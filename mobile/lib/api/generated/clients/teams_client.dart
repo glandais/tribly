@@ -8,9 +8,11 @@ import 'package:retrofit/error_logger.dart';
 
 import '../models/min_role.dart';
 import '../models/slug_change_request.dart';
+import '../models/sort_direction.dart';
 import '../models/team_detail_dto.dart';
 import '../models/team_list_response.dart';
 import '../models/team_request.dart';
+import '../models/team_sort_by.dart';
 
 part 'teams_client.g.dart';
 
@@ -31,6 +33,10 @@ abstract class TeamsClient {
   /// [search] - Search query to filter teams by name.
   ///
   /// [size] - Page size.
+  ///
+  /// [sortBy] - Sort column (default: name ascending). MEMBER_COUNT orders by the memberCount the rows carry. The team id always ends the key, so the order is total.
+  ///
+  /// [sortDir] - Sort direction when sortBy is set (default: DESC).
   @GET('/api/teams')
   Future<TeamListResponse> listTeams({
     @Query('page') int? page = 0,
@@ -38,6 +44,8 @@ abstract class TeamsClient {
     @Query('joinable') bool? joinable,
     @Query('minRole') MinRole? minRole,
     @Query('search') String? search,
+    @Query('sortBy') TeamSortBy? sortBy,
+    @Query('sortDir') SortDirection? sortDir,
   });
 
   /// Create team.
