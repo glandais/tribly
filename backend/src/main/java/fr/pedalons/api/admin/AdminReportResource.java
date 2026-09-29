@@ -70,9 +70,10 @@ public class AdminReportResource {
       operationId = "resolveAdminReports",
       summary = "Decide about a reported target, in any team",
       description =
-          "Applies the decision to every open report of the target. REMOVE_CONTENT deletes the"
-              + " content (not allowed on a member); DISMISS keeps it, and shows it again if"
-              + " reports had hidden it.")
+          "Applies the decision to every open report of one queue item: the target in the team"
+              + " named by teamSlug, or in every team when teamSlug is omitted. REMOVE_CONTENT"
+              + " deletes the content (not allowed on a member); DISMISS keeps it, and shows it"
+              + " again if reports had hidden it.")
   @APIResponses({
     @APIResponse(responseCode = "204", description = "Decided"),
     @APIResponse(
@@ -85,7 +86,7 @@ public class AdminReportResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "404",
-        description = "No open report on this target",
+        description = "No open report on this target (in this team), or no such team",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response resolveAdminReports(@Valid ModerationDecisionRequest request) {

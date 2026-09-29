@@ -13,7 +13,7 @@ import 'report_target_type.dart';
 part 'moderation_item_dto.freezed.dart';
 part 'moderation_item_dto.g.dart';
 
-/// One reported target in a moderation queue, with all its reports grouped
+/// One reported target in a moderation queue, with all its reports in one team grouped. A member reported in two teams is two items; the item is addressed by targetType, targetId and teamSlug
 @Freezed()
 abstract class ModerationItemDto with _$ModerationItemDto {
   const factory ModerationItemDto({

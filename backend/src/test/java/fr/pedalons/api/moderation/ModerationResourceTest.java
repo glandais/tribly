@@ -339,6 +339,83 @@ class ModerationResourceTest extends AbstractResourceTest {
         .body("items[0].targetId", equalTo(TsidUtils.toString(elsewhere.getId())));
   }
 
+  /**
+   * docs/LEDGER_*.md MOD-1: user3 belongs to team1 and team2, and is reported in both. Two items,
+   * each decided on its own.
+   */
+  @Test
+  void platformQueue_aMemberReportedInTwoTeams_isTwoItems_decidedOneByOne() {
+    report(USER6, ReportTargetType.MEMBER, user3.getId());
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .contentType("application/json")
+        .body(
+            new ReportRequest(
+                team2Slug,
+                ReportTargetType.MEMBER,
+                TsidUtils.toString(user3.getId()),
+                ReportReason.HARASSMENT,
+                null))
+        .when()
+        .post("/api/reports")
+        .then()
+        .statusCode(204);
+
+    get(ADMIN, "/api/admin/reports")
+        .statusCode(200)
+        .body("total", equalTo(2))
+        .body("items.teamSlug", containsInAnyOrder(team1Slug, team2Slug))
+        .body("items.reportCount", equalTo(List.of(1, 1)));
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(ADMIN))
+        .contentType("application/json")
+        .body(
+            new ModerationDecisionRequest(
+                ReportTargetType.MEMBER,
+                TsidUtils.toString(user3.getId()),
+                ModerationAction.DISMISS,
+                team2Slug))
+        .when()
+        .post("/api/admin/reports/resolve")
+        .then()
+        .statusCode(204);
+
+    get(ADMIN, "/api/admin/reports")
+        .statusCode(200)
+        .body("items", hasSize(1))
+        .body("items[0].teamSlug", equalTo(team1Slug))
+        .body("items[0].status", equalTo("OPEN"));
+    get(ADMIN, "/api/admin/reports?status=RESOLVED")
+        .statusCode(200)
+        .body("items", hasSize(1))
+        .body("items[0].teamSlug", equalTo(team2Slug))
+        .body("items[0].status", equalTo("DISMISSED"));
+    // The team queue of team1 still has its item.
+    get(USER1, teamReports()).statusCode(200).body("items", hasSize(1));
+  }
+
+  @Test
+  void platformResolve_withAnUnknownTeam_is404() {
+    report(USER6, ReportTargetType.MEMBER, user3.getId());
+    given()
+        .auth()
+        .oauth2(getAccessToken(ADMIN))
+        .contentType("application/json")
+        .body(
+            new ModerationDecisionRequest(
+                ReportTargetType.MEMBER,
+                TsidUtils.toString(user3.getId()),
+                ModerationAction.DISMISS,
+                "no-such-team"))
+        .when()
+        .post("/api/admin/reports/resolve")
+        .then()
+        .statusCode(404);
+  }
+
   @Test
   void dismiss_showsTheContentAgain() {
     report(USER3, ReportTargetType.POST, post.getId());

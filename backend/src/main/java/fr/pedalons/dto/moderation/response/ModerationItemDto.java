@@ -10,7 +10,11 @@ import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
-@Schema(description = "One reported target in a moderation queue, with all its reports grouped")
+@Schema(
+    description =
+        "One reported target in a moderation queue, with all its reports in one team grouped. A"
+            + " member reported in two teams is two items; the item is addressed by targetType,"
+            + " targetId and teamSlug")
 @ValidateSchema
 public record ModerationItemDto(
     @Schema(description = "Type of the reported target", required = true)

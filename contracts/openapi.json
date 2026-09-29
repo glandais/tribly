@@ -2630,11 +2630,16 @@
             "description" : "REMOVE_CONTENT deletes the content (not allowed on a MEMBER); DISMISS keeps it and shows it again if reports had hidden it",
             "type" : "string",
             "$ref" : "#/components/schemas/ModerationAction"
+          },
+          "teamSlug" : {
+            "type" : "string",
+            "description" : "Slug of the team the reports were filed in — the item's teamSlug. A member can be reported in several teams, one queue item per team: on the platform queue, this decides that item only. Omitted there, the decision applies to the target's open reports in every team. Ignored by a team's queue, whose path names the team.",
+            "examples" : [ "velo-club" ]
           }
         }
       },
       "ModerationItemDto" : {
-        "description" : "One reported target in a moderation queue, with all its reports grouped",
+        "description" : "One reported target in a moderation queue, with all its reports in one team grouped. A member reported in two teams is two items; the item is addressed by targetType, targetId and teamSlug",
         "type" : "object",
         "required" : [ "targetType", "targetId", "teamSlug", "teamName", "targetUser", "reportCount", "reasons", "messages", "firstReportedAt", "lastReportedAt", "hidden", "status" ],
         "properties" : {
@@ -7188,7 +7193,7 @@
     "/api/admin/reports/resolve" : {
       "post" : {
         "summary" : "Decide about a reported target, in any team",
-        "description" : "Applies the decision to every open report of the target. REMOVE_CONTENT deletes the content (not allowed on a member); DISMISS keeps it, and shows it again if reports had hidden it.",
+        "description" : "Applies the decision to every open report of one queue item: the target in the team named by teamSlug, or in every team when teamSlug is omitted. REMOVE_CONTENT deletes the content (not allowed on a member); DISMISS keeps it, and shows it again if reports had hidden it.",
         "operationId" : "resolveAdminReports",
         "tags" : [ "Admin - Reports" ],
         "requestBody" : {
@@ -7226,7 +7231,7 @@
             }
           },
           "404" : {
-            "description" : "No open report on this target",
+            "description" : "No open report on this target (in this team), or no such team",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -19983,7 +19988,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "5.6.0",
+    "version" : "5.7.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

@@ -145,7 +145,9 @@ export const ListTeamReportsResponse = zod
                 "Who reported. Only in the platform queue: always null in a team's queue, where reporters stay anonymous."
               ),
           })
-          .describe('One reported target in a moderation queue, with all its reports grouped')
+          .describe(
+            'One reported target in a moderation queue, with all its reports in one team grouped. A member reported in two teams is two items; the item is addressed by targetType, targetId and teamSlug'
+          )
       )
       .describe('One item per reported target'),
     total: zod.int().describe('How many items'),
@@ -177,6 +179,12 @@ export const ResolveTeamReportsBody = zod
       .enum(['REMOVE_CONTENT', 'DISMISS'])
       .describe(
         'REMOVE_CONTENT deletes the content (not allowed on a MEMBER); DISMISS keeps it and shows it again if reports had hidden it'
+      ),
+    teamSlug: zod
+      .string()
+      .optional()
+      .describe(
+        "Slug of the team the reports were filed in — the item's teamSlug. A member can be reported in several teams, one queue item per team: on the platform queue, this decides that item only. Omitted there, the decision applies to the target's open reports in every team. Ignored by a team's queue, whose path names the team."
       ),
   })
   .describe("A moderator's decision, applied to every open report of one target")

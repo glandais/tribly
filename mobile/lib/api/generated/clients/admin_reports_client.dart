@@ -28,7 +28,7 @@ abstract class AdminReportsClient {
 
   /// Decide about a reported target, in any team.
   ///
-  /// Applies the decision to every open report of the target. REMOVE_CONTENT deletes the content (not allowed on a member); DISMISS keeps it, and shows it again if reports had hidden it.
+  /// Applies the decision to every open report of one queue item: the target in the team named by teamSlug, or in every team when teamSlug is omitted. REMOVE_CONTENT deletes the content (not allowed on a member); DISMISS keeps it, and shows it again if reports had hidden it.
   ///
   /// [body] - Name not received - field will be skipped.
   @POST('/api/admin/reports/resolve')

@@ -9,7 +9,7 @@ portage web livré à trois tâches près, et tenu à jour depuis (dernière rel
 Rien ici ne bloque quoi que ce soit. C'est la propriété qui compte : la v2 est livrable en l'état,
 et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de réparer une panne.
 
-**Contrat d'API au 29 septembre 2026 : `5.6.0`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au 30 septembre 2026 : `5.7.0`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
 
@@ -429,9 +429,6 @@ pièges à ne pas rejouer, sont sous `NOTIF-9` (le ledger du chantier y a été 
 
 Livrée le 24 septembre 2026 (`MOD-6`). Défauts mineurs notés à la livraison, pas encore corrigés :
 
-- [ ] `MOD-1` **File plateforme regroupée par (type, id) seulement** (`ModerationService`) : un
-      membre signalé dans deux équipes devient une seule carte, étiquetée avec la première équipe,
-      et une seule décision clôt les signalements des deux. Regrouper par (type, id, équipe).
 - [ ] `MOD-3` **Seuil de masquage sous concurrence** (`ReportService`) : le nombre de signalants est
       compté dans la transaction de chaque signalement. Deux signalements validés au même instant
       peuvent chacun voir 2 signalants, et le contenu n'est pas masqué avant un 4e. Verrouiller la

@@ -12,6 +12,7 @@ _ModerationDecisionRequest _$ModerationDecisionRequestFromJson(
   targetType: json['targetType'] as String,
   targetId: json['targetId'] as String,
   action: json['action'] as String,
+  teamSlug: json['teamSlug'] as String?,
 );
 
 Map<String, dynamic> _$ModerationDecisionRequestToJson(
@@ -20,4 +21,5 @@ Map<String, dynamic> _$ModerationDecisionRequestToJson(
   'targetType': instance.targetType,
   'targetId': instance.targetId,
   'action': instance.action,
+  'teamSlug': instance.teamSlug,
 };

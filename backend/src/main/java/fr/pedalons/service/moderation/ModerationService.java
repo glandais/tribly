@@ -51,9 +51,11 @@ import org.jspecify.annotations.Nullable;
  * The moderation queues and the decisions taken from them.
  *
  * <p>Two queues over the same reports: a team's, for its organizers and administrators, and the
- * platform's, for {@code PLATFORM_ADMIN}, over the whole domain. Reports are grouped by target — one
- * item per reported thing, however many members reported it. The reporters' identities appear in the
- * platform queue only.
+ * platform's, for {@code PLATFORM_ADMIN}, over the whole domain. Reports are grouped by target and
+ * team — one item per reported thing, however many members reported it. A publication or a comment
+ * belongs to one team; a member does not, and a member reported in two teams is two items, each
+ * decided on its own (docs/LEDGER_*.md MOD-1). The reporters' identities appear in the platform
+ * queue only.
  *
  * <p>A moderator never sees, nor decides about, a report that targets them — their own content, or
  * themselves as a member. A platform admin sees everything.
@@ -100,11 +102,16 @@ public class ModerationService {
     return queue(null, null, status, true);
   }
 
-  /** Decides about one target, in whatever team it was reported. */
+  /**
+   * Decides about one item of the platform queue: the target in the request's team, or in every
+   * team it was reported in when the request names none.
+   */
   @Admin
   @Transactional
   public void resolvePlatformReports(ModerationDecisionRequest request) {
-    resolve(null, null, request, pedalonsContext.getUser());
+    String teamSlug = request.teamSlug();
+    Long teamId = teamSlug == null ? null : teamService.getTeam(teamSlug).getId();
+    resolve(teamId, null, request, pedalonsContext.getUser());
   }
 
   // ------------------------------------------------------------------ access
@@ -145,7 +152,8 @@ public class ModerationService {
     if (reports.isEmpty()) {
       throw new NotFoundException(ErrorCode.NOT_FOUND);
     }
-    // A target belongs to one team, so do all its reports.
+    // Content belongs to one team, so do all its reports. A member does not, but nothing is
+    // removed nor restored about a member: the first report's team serves.
     Team team = reports.getFirst().getTeam();
     Instant now = Instant.now();
     ReportStatus outcome =
@@ -228,10 +236,11 @@ public class ModerationService {
 
   // ------------------------------------------------------------------ queue items
 
-  private record TargetKey(ReportTargetType type, Long id) {}
+  /** One queue item: a member reported in two teams is two items (docs/LEDGER_*.md MOD-1). */
+  private record TargetKey(ReportTargetType type, Long id, Long teamId) {}
 
   /**
-   * One item per target, in the order of the reports (most recent first). Four queries whatever the
+   * One item per target and team, in the order of the reports (most recent first). Four queries whatever the
    * size of the queue: the reports with their teams and users, the publications and the comments
    * they are about — plus the list of targets for the resolved half.
    */
@@ -251,7 +260,8 @@ public class ModerationService {
     Set<Long> entityIds = new HashSet<>();
     Set<Long> commentIds = new HashSet<>();
     for (ContentReport report : reports) {
-      TargetKey key = new TargetKey(report.getTargetType(), report.getTargetId());
+      TargetKey key =
+          new TargetKey(report.getTargetType(), report.getTargetId(), report.getTeam().getId());
       byTarget.computeIfAbsent(key, k -> new ArrayList<>()).add(report);
       switch (report.getTargetType()) {
         case COMMENT -> commentIds.add(report.getTargetId());

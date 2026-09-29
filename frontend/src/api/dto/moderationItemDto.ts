@@ -5,7 +5,7 @@ import type { ReportStatus } from './reportStatus.ts'
 import type { ReportTargetType } from './reportTargetType.ts'
 
 /**
- * One reported target in a moderation queue, with all its reports grouped
+ * One reported target in a moderation queue, with all its reports in one team grouped. A member reported in two teams is two items; the item is addressed by targetType, targetId and teamSlug
  */
 export interface ModerationItemDto {
   /** Type of the reported target */

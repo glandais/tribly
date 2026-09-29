@@ -51,8 +51,9 @@ const STATUS_COLORS: Record<ReportStatus, string> = {
   [ReportStatus.DISMISSED]: 'gray',
 }
 
-const itemKey = (item: Pick<ModerationItemDto, 'targetType' | 'targetId'>) =>
-  `${item.targetType}:${item.targetId}`
+/** A member reported in two teams is two items (docs/LEDGER_*.md MOD-1): the team is part of the key. */
+const itemKey = (item: Pick<ModerationItemDto, 'targetType' | 'targetId' | 'teamSlug'>) =>
+  `${item.targetType}:${item.targetId}:${item.teamSlug}`
 
 /** The page that shows the reported content: the publication itself, or the one a comment is on. */
 function contentPath(item: ModerationItemDto): string | undefined {
@@ -267,7 +268,13 @@ export function ModerationQueue({
   const decide = async (item: ModerationItemDto, action: ModerationAction) => {
     setResolvingKey(itemKey(item))
     try {
-      await resolve({ targetType: item.targetType, targetId: item.targetId, action })
+      await resolve({
+        targetType: item.targetType,
+        targetId: item.targetId,
+        action,
+        // Decides this item only, not the target's reports in its other teams.
+        teamSlug: item.teamSlug,
+      })
       notifications.show({
         message:
           action === ModerationAction.REMOVE_CONTENT
