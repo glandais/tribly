@@ -357,9 +357,9 @@ probes the sites from outside.
 | cadvisor | each container's CPU and memory, against its limit | 256M |
 | loki | logs, **14 days** — as the Caddy access log it receives, see below | 512M |
 | alloy | ships every stack's container logs and the Caddy access logs to Loki | 256M |
-| grafana | dashboards; the only published port (3300) | 512M |
+| grafana | dashboards; the only published port (3300) | 1G |
 
-About 2.2 GB of ceilings, 1 GB or so resident. What Prometheus scrapes:
+About 2.7 GB of ceilings, 1 GB or so resident. What Prometheus scrapes:
 
 - **the host's Caddy** — requests, 5xx and latency per hostname, i.e. what visitors get, from every
   environment at once. It listens on the host, on `:2020`, and Prometheus reaches it through the

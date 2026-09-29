@@ -656,8 +656,9 @@ Ce qui reste ouvert (`MAX_BULK_SLUGS` comme seul garde-fou) est `API-27`.
   les deux labels Swarm sur les quatre stacks, `agroal_awaiting_count` et
   `jvm_gc_live_data_size_bytes` des deux backends, journaux JSON dans Loki (`level`, `job="caddy"`),
   courriel d'alerte reçu (`amtool alert add`). La mise en service a corrigé quatre choses : Grafana
-  13 tient ~235 Mo au repos, la limite passe de 256M à 512M (`ContainerNearMemoryLimit` se
-  déclenchait dès le démarrage) ; `deploy.sh --monitoring` refuse un `ALERT_SMTP_SMARTHOST` sans
+  13 tient ~235 Mo au repos (`ContainerNearMemoryLimit` dès le démarrage à 256M) mais a été
+  tué par l'OOM killer à 512M (`anon-rss` 490 Mo) en calculant quelques gros tableaux de bord à la
+  fois : la limite passe à 1G ; `deploy.sh --monitoring` refuse un `ALERT_SMTP_SMARTHOST` sans
   port, qu'Alertmanager rejette et que Swarm relançait en boucle ; le panneau « Part de 5xx »
   affiche 0 % au lieu de « No data » quand un site n'a aucune erreur ; et surtout la nouvelle alerte
   **`BackendMissing`** — la recette prévue (`scale pedalons-staging_backend=0` → `TargetDown`) ne
