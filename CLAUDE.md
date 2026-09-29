@@ -20,7 +20,7 @@ both clients: changing it in one place only makes them diverge silently.
 | What's left to do, and what was deliberately ruled out | **[docs/LEDGER_NEXT.md](docs/LEDGER_NEXT.md)** — start here |
 | What was delivered, and the decisions not to undo | [docs/LEDGER_DONE.md](docs/LEDGER_DONE.md) |
 | Product roadmap (P0 → Icebox) | [docs/BACKLOG.md](docs/BACKLOG.md) |
-| Notifications (event pipeline, channels, what's left) | design in [docs/plans/archive/2026-09-18-notifications.md](docs/plans/archive/2026-09-18-notifications.md) (delivered, archived); what's left in LEDGER_NEXT §8.3, what shipped in LEDGER_DONE §4.2 |
+| Notifications (event pipeline, channels, what's left) | design in [docs/plans/archive/2026-09-18-notifications.md](docs/plans/archive/2026-09-18-notifications.md) (delivered, archived); what's left is `NOTIF-1`…`NOTIF-4`, what shipped `NOTIF-9` |
 | Why the mobile app / the site / the API look the way they do | [docs/plans/archive/](docs/plans/archive/) — executed plans, kept for their arbitrations |
 | Security audit (September 2026): vulnerabilities and their status | [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md) |
 | Infrastructure, CI/CD and code-quality audit (February 2026, statuses partly refreshed on 2026-09-29) — some rows still open; not the security reference | [docs/plans/2026-02-14-project-audit.md](docs/plans/2026-02-14-project-audit.md) |
@@ -31,22 +31,28 @@ both clients: changing it in one place only makes them diverge silently.
 
 ### Task workflow: `LEDGER_NEXT` → `LEDGER_DONE`
 
-The two ledgers share **the same section numbering**, so a `§x.y` reference names the same topic in
-both — code comments and plans cite them (`docs/LEDGER_DONE.md §1.2` in the e2e specs, for instance).
+Every ledger entry carries a **stable ID, `PREFIX-n`** (`API-21`, `MOB-7`, `NOTIF-9`…). The prefix
+names the domain (`MOB`, `WEB`, `API`, `OPS`, `NOTIF`, `MOD`, `ISSUE`, `MIG`, `BRAND`, `SEC`, `AUD`,
+`LEGAL` — the table and the full rules are at the top of `LEDGER_NEXT.md`), and each ledger has one
+section per prefix, in the same order. References cite the **ID only**, never a title, a section or
+which of the two files holds it: « ledger `WEB-3` » in docs, `docs/LEDGER_*.md WEB-14` in code
+comments. `grep -rn 'WEB-14'` finds the entry and everything that points at it.
 
-- **Creating a task**: add it to [docs/LEDGER_NEXT.md](docs/LEDGER_NEXT.md), in the section it
-  belongs to (recette, reprises, portage, API infrastructure, API gaps, September follow-ups…), as a
-  `- [ ]` item or a bullet that names the degradation it removes, where it lives in the code, and a
-  size when known. A large task gets its own plan in `docs/plans/` and a one-paragraph entry here that
-  links to it. Something deliberately **not** done goes to §6 with its reason, never silently dropped.
+- **Creating a task**: add it to [docs/LEDGER_NEXT.md](docs/LEDGER_NEXT.md), in its prefix's section,
+  with the next free number of that prefix across **both** files
+  (`grep -ohE 'API-[0-9]+' docs/LEDGER_*.md | sort -t- -k2 -n | tail -1`, plus one), as a `- [ ]`
+  item that names the degradation it removes, where it lives in the code, and a size when known. A
+  large task gets its own plan in `docs/plans/` and a one-paragraph entry that links to it. Something
+  deliberately **not** done goes to « Délibérément dehors » with its reason, keeping its domain
+  prefix — never silently dropped.
 - **Resolving a task**: move the entry, in the same commit as the work, to
-  [docs/LEDGER_DONE.md](docs/LEDGER_DONE.md) under the same section number — rewritten in the past
-  tense, with the date, the API version if the contract changed, the test that covers it, and the
-  decisions that must not be undone. Leave nothing behind in `LEDGER_NEXT.md` but a one-line pointer
-  when the section still has open items (or when a stub keeps the numbering), and keep whatever part
-  is still open in `LEDGER_NEXT.md`.
-- **Never renumber** a section of either ledger: add new ones at the end. When a reference in code or
-  in a plan points at an item that moved, repoint it to `LEDGER_DONE.md`.
+  [docs/LEDGER_DONE.md](docs/LEDGER_DONE.md) **under the same ID**, in the same prefix's section —
+  rewritten in the past tense, with the date, the API version if the contract changed, the test that
+  covers it, and the decisions that must not be undone. Keep whatever part is still open in
+  `LEDGER_NEXT.md` (a split keeps the ID on one part and takes a new number for the other).
+  References need no update: they never named the file.
+- **IDs are never renumbered or reused**, and a prefix is never renamed; a new domain adds a prefix
+  to the table and a section to both files. Section headings inside a prefix are free to change.
 - A plan in `docs/plans/` that is fully executed moves to `docs/plans/archive/` (with its row in the
   archive README); its leftovers go to `LEDGER_NEXT.md`.
 

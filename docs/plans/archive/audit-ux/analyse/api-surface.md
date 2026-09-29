@@ -22,7 +22,7 @@
 | Profil | `GET /api/users/me` | `UserDto` | — | oui | oui |
 | Équipes | `GET /api/teams?minRole&search&page&size` | `TeamListResponse` | oui | oui | oui |
 | Équipes | `GET /api/teams/{teamSlug}` | `TeamDetailDto` | — | oui | oui |
-| Équipes | `GET /api/teams/{teamSlug}/members?role&search&page&size` | `MemberListResponse` | oui | oui | oui — gradué par rôle et par `Team.enableMemberDirectory` depuis `3.0.0` (voir LEDGER_DONE.md §3.1) |
+| Équipes | `GET /api/teams/{teamSlug}/members?role&search&page&size` | `MemberListResponse` | oui | oui | oui — gradué par rôle et par `Team.enableMemberDirectory` depuis `3.0.0` (voir ledger `API-39`) |
 | Pages équipe | `GET /api/teams/{teamSlug}/pages` | `TeamPageSummaryDto[]` | — | oui | non (déjà inclus dans `TeamDetailDto.pages`) |
 | Pages équipe | `GET /api/teams/{teamSlug}/pages/{pageSlug}` | `TeamPageDto` | — | oui | oui |
 | Publications | `GET /api/publications?type&search&from&to&minRole&page&size` | `PublicationListResponse` | oui | oui | oui (feed accueil) |

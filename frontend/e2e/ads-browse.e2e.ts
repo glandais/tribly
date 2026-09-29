@@ -9,7 +9,7 @@ import { rawDocument, sessionCookie, ssrOutlet } from './support/ssr'
 import { escapeRegExp, hydrated, pageAs, pageHydrated } from './support/ui'
 
 /**
- * Ads, browsing — docs/LEDGER_DONE.md §1.2 (web): the detail page (gallery, approximate location, no
+ * Ads, browsing — docs/LEDGER_*.md WEB-16 and WEB-17 (web): the detail page (gallery, approximate location, no
  * empty section) and the list's sort and price bounds living in the URL.
  *
  * Every test works in a team of its own, owned by a user of its own: the ads are team-visible, so

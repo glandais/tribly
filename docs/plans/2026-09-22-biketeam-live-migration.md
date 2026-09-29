@@ -1,6 +1,6 @@
 # Migration biketeam → Pédalons, équipe par équipe et en direct
 
-> **Reste à faire** : suivi au §8.6 de [`docs/LEDGER_NEXT.md`](../LEDGER_NEXT.md) (mise en
+> **Reste à faire** : suivi sous le préfixe `MIG` de [`docs/LEDGER_NEXT.md`](../LEDGER_NEXT.md) (mise en
 > production, 302 → 301, domaines personnalisés, liens et logos avant l'arrêt de biketeam, équipe
 > migrée supprimable, données non importées, fin de vie du code) et au §2 (purge de la corbeille,
 > `ssr-audit` sur `notifications`). Ce plan s'archivera après l'arrêt de biketeam.
@@ -111,7 +111,7 @@ deux en HTTPS par Internet, via les entrées publiques (pas de VPN, §3.4).
   admin plateforme biketeam (§9.6).
 - **Pas de purge physique côté Pédalons.** `reset` utilise la suppression logique déjà en place
   (`TeamService.deleteTeam`) et libère le slug ; purger les équipes à la corbeille est un autre
-  chantier (§13, décision 10 ; `docs/LEDGER_NEXT.md`).
+  chantier (§13, décision 10 ; ledger `MIG-9`).
 
 ---
 
@@ -1321,7 +1321,7 @@ avec la connexion Strava, API 5.0.0) ; la phrase de `CLAUDE.md` et
 du README sur les milliers d'adresses réelles d'une base importée (reste vraie tant que ces bases
 existent).
 
-L'entrée prévue pour [`docs/LEDGER_NEXT.md`](../LEDGER_NEXT.md), §2 « Reprises immédiates », disait quand
+L'entrée prévue pour [`docs/LEDGER_NEXT.md`](../LEDGER_NEXT.md) (alors au §2 « Reprises immédiates », livrée depuis sous `MIG-12`) disait quand
 supprimer (la dernière équipe basculée, ou la décision de ne plus rejouer de dump) et comment
 (`git grep` du marqueur, puis vérifier qu'aucune mention de `biketeam_import`, `backend-restore`,
 `BiketeamReader`, `biketeam_fetch` ou `biketeam_restore` ne subsiste hors des plans datés, sans
@@ -1439,7 +1439,7 @@ sections concernées (§0, §1, §6.2, §9.2 à §9.7) sont à jour.
 9. **Une base, plusieurs domaines** (accepté) : une équipe biketeam n'est migrée que vers un domaine
    par base Pédalons (`MIGRATED_IN_OTHER_DOMAIN`).
 10. **Reset = corbeille**, pas purge : données et fichiers S3 de l'ancienne équipe restent. La purge
-    physique des équipes à la corbeille est un chantier séparé (`docs/LEDGER_NEXT.md`).
+    physique des équipes à la corbeille est un chantier séparé (ledger `MIG-9`).
 11. **Domaines personnalisés** (`team_configuration.domain`) : la redirection est faite par
     l'application, sur les chemins `/{teamId}/…` qu'elle reçoit. Si le proxy du domaine personnalisé
     ne réécrit pas vers ce préfixe, ce sera traité au proxy, au cas par cas.

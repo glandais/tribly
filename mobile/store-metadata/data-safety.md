@@ -52,7 +52,7 @@ The capabilities added, and their exact boundary:
   version, and deletes it with `DELETE /api/push-devices/{token}` on sign-out. Nothing else of
   Firebase is initialized: **no Analytics, no Crashlytics, no Performance, no Remote Config, no
   Installations-based measurement** — the Firebase project itself was created with Analytics
-  switched off (`docs/LEDGER_DONE.md` §4.2). The token is requested **only
+  switched off (`docs/LEDGER_*.md` NOTIF-9). The token is requested **only
   after the member grants notification permission from the notifications screen**
   (`lib/features/notifications/providers/push_provider.dart`); the app never asks at launch.
   `device_info_plus` is now on an executed path — it supplies that device name, and nothing else.

@@ -48,7 +48,7 @@ le 29 septembre 2026 après revérification dans le code : la sécurité applica
 qu'ici. S8 et S12 de ce même audit (origines CORS et cookie non `Secure` par défaut) sont des défauts
 de développement surchargés en `%prod`, rangés dans les contrôles conformes.
 
-Les constats ouverts sont suivis, sans détail, au §7.1 de [`LEDGER_NEXT.md`](LEDGER_NEXT.md) : un
+Les constats ouverts sont suivis, sans détail, sous le préfixe `SEC` de [`LEDGER_NEXT.md`](LEDGER_NEXT.md) (colonne « Audit ») : un
 changement de statut ici se reporte là-bas.
 
 **Ordre de correction conseillé** :

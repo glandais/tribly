@@ -1,106 +1,184 @@
 # Le fait — ce qui a été livré depuis la v2
 
-Pendant de [`LEDGER_NEXT.md`](LEDGER_NEXT.md) : quand une ligne du reste à faire est livrée, elle
-vient ici avec les décisions qui la tiennent. Les sections reprennent **la numérotation de
-`LEDGER_NEXT.md`**, pour qu'un renvoi (`§1.2`, `§3.1`…) désigne le même sujet dans les deux
-fichiers. Ce qui a été écarté délibérément n'est pas ici : c'est le §6 de `LEDGER_NEXT.md`.
+Pendant de [`LEDGER_NEXT.md`](LEDGER_NEXT.md) : quand une entrée du reste à faire est livrée, elle
+vient ici avec les décisions qui la tiennent, **sous le même identifiant** (`WEB-14`, `NOTIF-9`…),
+dans la section de son préfixe. La nomenclature — préfixes, attribution des numéros, forme des
+renvois — est décrite en tête de `LEDGER_NEXT.md`, et vaut pour les deux fichiers. Ce qui a été
+écarté délibérément n'est pas ici : c'est la section « Délibérément dehors » de `LEDGER_NEXT.md`.
+
+Une entrée livrée s'écrit au passé, avec sa date, la version d'API si le contrat a changé, le test
+qui la couvre, et les décisions qu'il ne faut pas défaire.
 
 Les plans archivés ([`plans/archive/`](plans/archive/)) gardent le **pourquoi** détaillé ; ce
 fichier garde **ce qui est fait**, et ce qu'il ne faut pas défaire.
 
 ---
 
-## 1. Recette
+## MOB — Application mobile
 
-**Le web (§1.2) est automatisé depuis le 25 septembre 2026** par une suite Playwright qui tourne
-contre l'application entière (SSR, backend, postgres, MinIO, mailpit) sur une base vide :
+- `MOB-21` **Sortie (12), corrigé pendant la passe partielle du 27 juillet 2026** — le bandeau
+  `GROUP_FULL` affichait « Groupe complet. » sans jamais dire lequel : `rides.failure.full` prend
+  maintenant `{group}`, comme les bandeaux voisins. Le reste de la recette de l'écran est `MOB-2`.
+
+---
+
+## WEB — Site web
+
+### La recette web, automatisée
+
+**Le web est automatisé depuis le 25 septembre 2026** par une suite Playwright qui tourne contre
+l'application entière (SSR, backend, postgres, MinIO, mailpit) sur une base vide :
 `scripts/e2e.sh up` puis `scripts/e2e.sh test`, voir `frontend/e2e/README.md`. Elle a trouvé onze
-défauts, tous corrigés sauf un arbitré (la page d'équipe, ci-dessous).
-
-### 1.1 Mobile — corrigé pendant la passe partielle du 27 juillet 2026
-
-- **Sortie (12)** — le bandeau `GROUP_FULL` affichait « Groupe complet. » sans jamais dire lequel :
-  `rides.failure.full` prend maintenant `{group}`, comme les bandeaux voisins.
-
-### 1.2 Web
+défauts, tous corrigés sauf un arbitré (la page d'équipe, `WEB-18`).
 
 Chaque ligne est couverte par un fichier de `frontend/e2e/`, sur desktop et sur mobile (Pixel 7).
 Ce qui reste hors de portée de l'automatisation est dit sous la ligne concernée : c'est ce qu'une
 recette à la main aurait encore à regarder.
 
-- [x] Les 5 écrans qui affichent le tracé complet d'un parcours : détail de parcours, carte plein
-      écran de parcours et d'étape (les 4 via `useGetRoute`), carte de groupe d'une sortie (via
+- [x] `WEB-13` Les 5 écrans qui affichent le tracé complet d'un parcours : détail de parcours, carte
+      plein écran de parcours et d'étape (les 4 via `useGetRoute`), carte de groupe d'une sortie (via
       `useRoutesBulk` sans `geometry:false`, `RoutesMapView.tsx`). — `route-maps.e2e.ts` : chaque
       écran lit la géométrie entière (aucun paramètre qui la réduise, chaque point du GPX à moins
       de 15 m) et la carte dessine le tracé. *Non couvert : une simplification qui serait ajoutée
       plus tard dans le chemin de dessin lui-même — le test compte des pixels, pas des sommets.*
-- [x] « Ma prochaine sortie », badge `Inscrit` et « Mes participations » se rendent **dans le HTML
-      initial** pour une requête porteuse d'un cookie de session, en sont **absents** sans cookie,
-      et survivent à l'hydratation sans erreur `[hydration]`. — `ssr-session.e2e.ts`, dont le
-      contrôle `curl` fait à la lettre (avec `Cache-Control: no-store` et `Vary: Cookie`).
-- [x] Modale « Contacter le vendeur » : les quatre issues, brouillon conservé sur 429 et 500, un
-      seul message (le contact coupe le toast global, `skipErrorToast`), `Alert` persistante sur la
-      page pour le succès et `AD_CONTACT_OPTED_OUT`, bouton absent sur sa propre annonce, 9 et
+- [x] `WEB-14` « Ma prochaine sortie », badge `Inscrit` et « Mes participations » se rendent **dans
+      le HTML initial** pour une requête porteuse d'un cookie de session, en sont **absents** sans
+      cookie, et survivent à l'hydratation sans erreur `[hydration]`. — `ssr-session.e2e.ts`, dont
+      le contrôle `curl` fait à la lettre (avec `Cache-Control: no-store` et `Vary: Cookie`).
+- [x] `WEB-15` Modale « Contacter le vendeur » : les quatre issues, brouillon conservé sur 429 et
+      500, un seul message (le contact coupe le toast global, `skipErrorToast`), `Alert` persistante
+      sur la page pour le succès et `AD_CONTACT_OPTED_OUT`, bouton absent sur sa propre annonce, 9 et
       2 001 caractères refusés sans appel réseau ; le mail relayé porte l'auteur en `Reply-To` et
       ne l'imprime jamais. — `ad-contact.e2e.ts`. *Le 500 est simulé : mailpit accepte tout, la
       pile ne sait pas faire échouer un envoi. Les clés `en` ont été vérifiées à la lecture, la
       suite tourne en `fr`.*
-- [x] Annonces, détail : galerie aux flèches et aux vignettes, **dans l'ordre d'ajout**, plein écran
-      en 1920 ; disque sans punaise, cadré sur son emprise, légendé « à environ 1 km près » ; aucune
-      section vide. — `ads-browse.e2e.ts`. *Le fond de carte (style tiers) est remplacé par un fond
-      uni pendant le test.*
-- [x] Annonces, liste : tri et bornes de prix survivent au retour arrière et au partage du lien,
-      « Effacer les filtres » conserve le tri, et des changements rapprochés arrivent tous dans
-      l'URL. — `ads-browse.e2e.ts`.
-- [x] Page d'équipe en 1440×900 : **arbitré le 25 septembre 2026, l'objectif de 220 px n'est pas
-      tenu** — le contenu commence à ~283 px (~300 avant le portage). Gagner les 60 px restants
-      voudrait dire refaire la navigation d'équipe (le carré de 40 px et son libellé font ~78 px),
-      un chantier de design et non de portage. — `team-misc.e2e.ts` fige **< 300 px** pour attraper
-      une régression.
-- [x] Une sortie à plus de 20 commentaires n'en charge que 20 au premier rendu. — `rides.e2e.ts`,
-      avec la pastille de meneur (absente sans meneur, jamais le créateur), l'inscription et le
-      « Complet ».
-- [x] **Trombinoscope, la matrice rôle × réglage** : réglage désactivé, un membre ordinaire prend un
-      403 ; un organisateur voit la liste sans rôles ni dates ; le sélecteur de meneur propose
-      toujours des candidats. Réglage activé, le membre voit tout. `?search=` avec l'adresse exacte
-      d'un coéquipier ne remonte rien en membre ni en organisateur, et le remonte en admin
+- [x] `WEB-16` Annonces, détail : galerie aux flèches et aux vignettes, **dans l'ordre d'ajout**,
+      plein écran en 1920 ; disque sans punaise, cadré sur son emprise, légendé « à environ 1 km
+      près » ; aucune section vide. — `ads-browse.e2e.ts`. *Le fond de carte (style tiers) est
+      remplacé par un fond uni pendant le test.*
+- [x] `WEB-17` Annonces, liste : tri et bornes de prix survivent au retour arrière et au partage du
+      lien, « Effacer les filtres » conserve le tri, et des changements rapprochés arrivent tous
+      dans l'URL. — `ads-browse.e2e.ts`.
+- [x] `WEB-18` Page d'équipe en 1440×900 : **arbitré le 25 septembre 2026, l'objectif de 220 px
+      n'est pas tenu** — le contenu commence à ~283 px (~300 avant le portage). Gagner les 60 px
+      restants voudrait dire refaire la navigation d'équipe (le carré de 40 px et son libellé font
+      ~78 px), un chantier de design et non de portage. — `team-misc.e2e.ts` fige **< 300 px** pour
+      attraper une régression.
+- [x] `WEB-19` Une sortie à plus de 20 commentaires n'en charge que 20 au premier rendu. —
+      `rides.e2e.ts`, avec la pastille de meneur (absente sans meneur, jamais le créateur),
+      l'inscription et le « Complet ».
+- [x] `WEB-20` **Trombinoscope, la matrice rôle × réglage** : réglage désactivé, un membre ordinaire
+      prend un 403 ; un organisateur voit la liste sans rôles ni dates ; le sélecteur de meneur
+      propose toujours des candidats. Réglage activé, le membre voit tout. `?search=` avec l'adresse
+      exacte d'un coéquipier ne remonte rien en membre ni en organisateur, et le remonte en admin
       d'équipe. — `member-directory.e2e.ts`, sur une équipe de test et non sur `gaby`. *L'entrée
       « Membres » est un écran mobile (`web: false`), hors de portée de Playwright ; sur le web, le
       403 est vérifié sur l'API, l'écran d'admin redirigeant vers la page d'équipe.*
-- [x] **Invitation par e-mail** : réponse et écran identiques avec et sans compte, seul le mail
-      diffère ; « Renvoyer » remplace le jeton, « Annuler » retire l'invitation ; accepter depuis un
-      autre compte donne un message dédié et un bouton « se déconnecter », qui **ramène à
+- [x] `WEB-21` **Invitation par e-mail** : réponse et écran identiques avec et sans compte, seul le
+      mail diffère ; « Renvoyer » remplace le jeton, « Annuler » retire l'invitation ; accepter
+      depuis un autre compte donne un message dédié et un bouton « se déconnecter », qui **ramène à
       l'invitation** ; accepter deux fois ne crée qu'une adhésion, et le lien rejoué dit « Vous
       faites déjà partie de… ». — `invitations.e2e.ts`. *Non couvert : l'invitation expirée
       (14 jours d'horloge).*
-- [x] **Invitation d'une adresse sans compte, parcours complet** : inscription par le lien,
+- [x] `WEB-22` **Invitation d'une adresse sans compte, parcours complet** : inscription par le lien,
       vérification de l'adresse, pas encore membre, invitation visible sur `/equipes`, acceptation.
       — `invitations.e2e.ts`.
 
+### `WEB-26` Audit de couverture e2e du 27 septembre — exécuté
+
+[Archivé](plans/archive/2026-09-27-e2e-coverage-audit.md) : P0, P1 et P2 écrits, 54 défauts
+relevés, tous corrigés ou tranchés sauf un (`WEB-6`). Les idées P2 non retenues sont `WEB-7`.
+
+### Le résidu du portage web
+
+#### `WEB-23` T5.5 — Compléments d'annonces : livrée (juillet 2026)
+
+L'alignement du web sur le mobile est fait :
+
+- **Liste** — tri (les six options à plat, comme la feuille de tri du mobile : personne ne pense
+  « prix, ascendant », on pense « les moins chères d'abord ») et bornes de prix, tous dans la query
+  string via `useUrlFilters` (alias `sort`/`dir`/`pmin`/`pmax`). Le tri **ne participe pas** à
+  `isAdFiltered` et « Effacer les filtres » ne le remet pas à zéro : il ne peut pas vider une liste.
+  La liste passe en `view=COMPACT` et la carte lit `excerpt` / `thumbnailUrl`.
+- **Détail** — galerie sur `AdDto.images` (`Image` + `Group`, vignettes, plein écran en `Modal` —
+  `@mantine/carousel` n'a pas été ajouté pour une galerie), sections Description / Localisation /
+  Annonceur, auteur par `createdByDisplayName`, et `AdLocationMap`.
+- **Contact** — la confirmation est un **état de la page** (`Alert` persistante) et non plus un
+  toast qui disparaît avant d'être lu ; `AD_CONTACT_OPTED_OUT` ferme la modale et **retire** le
+  bouton, puisque réessayer n'y changerait rien. Les échecs récupérables (429, 500) restent traités
+  dans la modale, brouillon en main.
+
+Les deux contraintes qui tenaient la tâche sont respectées et à ne pas perdre : `AdLocationMap` rend
+un **polygone GeoJSON de 500 m** (remplissage translucide, contour 1 px), **aucun `Marker` ni couche
+`symbol`**, cadrage sur l'emprise du cercle via `initialViewState.bounds`, carte non interactive, et
+une légende qui dit « à environ 1 km près ».
+
+#### `WEB-24` T3.5 — Abandonnée, puis tranchée dans l'autre sens (2.0.0)
+
+Alimenter `ElevationChart` par `…/elevation-profile` au lieu de la géométrie complète. **La prémisse
+ne tenait pas** : il n'existe aucune vue web qui rende un profil *sans* rendre de carte, donc la
+géométrie est de toute façon nécessaire et l'appel supplémentaire **ajoutait** une requête au lieu
+d'en retirer une.
+
+C'est finalement l'inverse qui a été fait, et pour la même raison : `…/elevation-profile` a été
+**supprimé** de l'API en 2.0.0, et le mobile dérive désormais son profil de la géométrie comme le
+web le faisait déjà. Voir `API-40`. Ne pas rouvrir : le sujet est clos dans les deux clients.
+
+#### `WEB-25` Refonte sémantique de `NavButtons` — instruite **et livrée** le 31 juillet 2026
+
+**[`plans/archive/2026-07-31-navbuttons.md`](plans/archive/2026-07-31-navbuttons.md)** (mesures prises dans le
+navigateur, pas déduites du code). La prémisse de cette ligne était fausse et le chantier s'est
+re-taillé.
+
+`NavButtons` doit **rester des liens** : chaque item est une URL distincte, rendue par le serveur et
+inscrite dans l'historique. `Tabs` Mantine promettrait des panneaux échangés sur place — c'est
+sémantiquement faux, et la navigation clavier fléchée qui va avec **casserait** la tabulation
+attendue sur des liens. Ce qui manque vraiment est `<nav>` + `<ul>/<li>` + `aria-current="page"` :
+**aucun changement visuel**, donc pas un chantier de design. **S.**
+
+L'inspection a en revanche sorti ce qui n'était pas dans l'énoncé : sur écran large un libellé de
+plusieurs mots **perd tous ses mots sauf le premier** (« Fil d'actualités » rend « Fil… » à 1 722 px,
+`line-clamp: 1` sur une boîte de 80 px), l'item actif **n'est jamais ramené dans le champ** quand la
+rangée déborde, le fondu de bord est **inconditionnel** donc il ment, et les libellés inactifs
+échouent AA dans les deux thèmes (4,04 sombre / 3,32 clair). **S** de plus.
+
+Le menu de débordement est écarté avec un motif : le nombre d'items est plafonné à 8 (3 pages
+d'équipe maximum), donc la rangée **ne déborde jamais** sur écran de bureau, et le repli mobile
+existe déjà — c'est le menu du fil d'Ariane, alimenté par le même `useNavItems`.
+
+**Livré** : repère `nav` + `ul`/`li` + `aria-current="page"`, `maxWidth` à 130 px au-dessus de 48 em
+(mesuré sur le plus large libellé livré, « Modèles de sortie » à 126 px), recalage de l'item actif,
+fondu piloté par la position de défilement, et libellés inactifs sortis du `dimmed` (4,04/3,32 →
+**9,37/21**). L'anneau de focus global, hors de ce chantier, reste ouvert : `WEB-2`.
+
 ---
 
-## 2. Reprises immédiates
+## API — Contrat d'API et backend
+
+### Reprises immédiates
 
 Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT.md` (ex-`NEXT.md`).
 
-- **2.1** Le compteur `GET /api/teams/{teamSlug}/classifieds/count` (contrat `2.3.0`).
-- **2.2** `Retry-After` déclaré sur le 429 de `POST /api/users/me/export` (contrat `2.3.1`).
-- **2.3** Le document d'API archivé, laissé tel quel à `1.5.0` avec une note de tête.
-- **2.4** Les slugs réservés (`SlugService.RESERVED_SLUGS`) — vérifié le 31 juillet 2026 sur la base
-  de production, aucune route ni page d'équipe n'en portait, pas de backfill.
-- **L'ancien import biketeam** a été supprimé le 2026-09-28 : seule la migration en direct reste
-  ([plan](plans/2026-09-22-biketeam-live-migration.md)), en service en staging et dont la mise en
-  production attend biketeam (§10 du plan) ; `biketeam_migration_map` sert encore au direct, et ses
-  lignes `USER`, `USER_TEAM`, `COMMENT`, `…_PARTICIPATION` écrites par l'import restent en base,
-  inertes.
+- `API-35` Le compteur `GET /api/teams/{teamSlug}/classifieds/count` (contrat `2.3.0`).
+- `API-36` `Retry-After` déclaré sur le 429 de `POST /api/users/me/export` (contrat `2.3.1`).
+- `API-37` Le document d'API archivé, laissé tel quel à `1.5.0` avec une note de tête.
+- `API-38` Les slugs réservés (`SlugService.RESERVED_SLUGS`) — vérifié le 31 juillet 2026 sur la
+  base de production, aucune route ni page d'équipe n'en portait, pas de backfill.
 
----
+### Petites évolutions d'API
 
-## 3. Le résidu du portage web
+| ID | Livré | Écrans |
+|---|---|---|
+| `API-1` | URL de tuile authentifiable — **API 2.3.0** : `POST /api/tiles/token` puis `?t=` sur les deux `.mvt`. Le repli GeoJSON et son plafond ont été supprimés, le tap lit les propriétés de la tuile comme le web | 21 |
 
-### 3.1 T5.4 — Trombinoscope : débloqué par un réglage d'équipe (contrat `3.0.0`)
+- `API-41` **Le meneur de groupe** est livré en 1.5.0 (`RideGroupDto.leader`, nullable). Les
+  **gabarits de sortie n'ont volontairement pas de meneur** — décision produit :
+  `RideTemplateGroupRequest` reste sans champ, instancier une sortie depuis un gabarit ne désigne
+  personne. Le repli sur `createdBy` est interdit (`API-30`).
 
-**Livré, sauf la page web publique** (reste à faire : `LEDGER_NEXT.md` §3.1). L'oracle
+### `API-39` T5.4 — Trombinoscope : débloqué par un réglage d'équipe (contrat `3.0.0`)
+
+**Livré, sauf la page web publique** (reste à faire : `WEB-1`). L'oracle
 d'énumération est traité, l'autorisation est graduée, et l'ajout d'un membre par sélection
 d'utilisateur a été remplacé par une invitation par e-mail.
 
@@ -152,78 +230,51 @@ Trois plafonds (`pedalons.teams.invitations.*`) : 20/h par inviteur et 50/j par 
 révélerait à l'admin A que l'admin B, d'une autre équipe, vient d'inviter la même personne.
 
 Le mobile est fonctionnel : l'écran existait déjà, seule l'entrée de navigation a été conditionnée au
-réglage.
+réglage. La recette web est `WEB-20` à `WEB-22`.
 
-### 3.2 T5.5 — Compléments d'annonces : livrée (juillet 2026)
+### `API-40` Coût par parcours de la géométrie — tranché en 2.0.0
 
-L'alignement du web sur le mobile est fait :
+**Résolu autrement que prévu, et il vaut mieux savoir comment.** Ce point demandait de borner
+`simplify` et les climbs, dont un Douglas-Peucker superlinéaire relancé en lecture sur la trace
+stockée (9,9 s pour une trace adverse de 100 k points) et un `simplify=NaN` qui passait les gardes.
 
-- **Liste** — tri (les six options à plat, comme la feuille de tri du mobile : personne ne pense
-  « prix, ascendant », on pense « les moins chères d'abord ») et bornes de prix, tous dans la query
-  string via `useUrlFilters` (alias `sort`/`dir`/`pmin`/`pmax`). Le tri **ne participe pas** à
-  `isAdFiltered` et « Effacer les filtres » ne le remet pas à zéro : il ne peut pas vider une liste.
-  La liste passe en `view=COMPACT` et la carte lit `excerpt` / `thumbnailUrl`.
-- **Détail** — galerie sur `AdDto.images` (`Image` + `Group`, vignettes, plein écran en `Modal` —
-  `@mantine/carousel` n'a pas été ajouté pour une galerie), sections Description / Localisation /
-  Annonceur, auteur par `createdByDisplayName`, et `AdLocationMap`.
-- **Contact** — la confirmation est un **état de la page** (`Alert` persistante) et non plus un
-  toast qui disparaît avant d'être lu ; `AD_CONTACT_OPTED_OUT` ferme la modale et **retire** le
-  bouton, puisque réessayer n'y changerait rien. Les échecs récupérables (429, 500) restent traités
-  dans la modale, brouillon en main.
+La mesure a montré que le paramètre lui-même ne servait à rien : les points stockés sont **déjà**
+rééchantillonnés puis filtrés Douglas-Peucker à l'import (`GpxProcessingService.computeGpx`), ce qui
+les laisse à **88,7 m de médiane entre deux sommets** (p05 59 m, p95 120 m) sur les 5 493 parcours de
+staging — 681 points pour le parcours médian, 65 Ko de JSON. Le mobile demandait `simplify: 5 /
+points: 3000` sur sa fiche : un no-op complet. Et cette passe en lecture est purement 2D, donc elle
+rabotait l'altitude que les mêmes coordonnées transportent en Z et M — d'où l'existence même de
+`…/elevation-profile`.
 
-Les deux contraintes qui tenaient la tâche sont respectées et à ne pas perdre : `AdLocationMap` rend
-un **polygone GeoJSON de 500 m** (remplissage translucide, contour 1 px), **aucun `Marker` ni couche
-`symbol`**, cadrage sur l'emprise du cercle via `initialViewState.bounds`, carte non interactive, et
-une légende qui dit « à environ 1 km près ».
+`simplify`, `points`, `GET …/elevation-profile` et `elevation`/`elevationSamples` ont donc été
+**supprimés**, avec `TrackGeometry`, `GeometryOptions`, `ElevationProfileDto` et tout le budget
+`DEFAULT_BULK_MAX_POINTS_PER_ROUTE` / `perRouteBudget`. D1, D2 et D4 disparaissent avec eux. Un
+drapeau `geometry=false` sur `/routes/bulk` remplace l'astuce `points: 2` des trois écrans web qui ne
+voulaient que les métadonnées.
 
-### 3.3 T3.5 — Abandonnée, puis tranchée dans l'autre sens (2.0.0)
+Côté mobile, la carte de masse ne paie plus ce coût : depuis le passage aux tuiles `.mvt` (API
+2.3.0, `API-1`), elle ne charge plus aucune fiche de géométrie. Seuls les écrans de détail (parcours,
+voyage plafonné à 12 étapes par `kTripTrackStageCap`) lisent la géométrie complète.
 
-Alimenter `ElevationChart` par `…/elevation-profile` au lieu de la géométrie complète. **La prémisse
-ne tenait pas** : il n'existe aucune vue web qui rende un profil *sans* rendre de carte, donc la
-géométrie est de toute façon nécessaire et l'appel supplémentaire **ajoutait** une requête au lieu
-d'en retirer une.
-
-C'est finalement l'inverse qui a été fait, et pour la même raison : `…/elevation-profile` a été
-**supprimé** de l'API en 2.0.0, et le mobile dérive désormais son profil de la géométrie comme le
-web le faisait déjà. Voir §4.5. Ne pas rouvrir : le sujet est clos dans les deux clients.
-
-### 3.4 Refonte sémantique de `NavButtons` — instruite **et livrée** le 31 juillet 2026
-
-**[`plans/archive/2026-07-31-navbuttons.md`](plans/archive/2026-07-31-navbuttons.md)** (mesures prises dans le
-navigateur, pas déduites du code). La prémisse de cette ligne était fausse et le chantier s'est
-re-taillé.
-
-`NavButtons` doit **rester des liens** : chaque item est une URL distincte, rendue par le serveur et
-inscrite dans l'historique. `Tabs` Mantine promettrait des panneaux échangés sur place — c'est
-sémantiquement faux, et la navigation clavier fléchée qui va avec **casserait** la tabulation
-attendue sur des liens. Ce qui manque vraiment est `<nav>` + `<ul>/<li>` + `aria-current="page"` :
-**aucun changement visuel**, donc pas un chantier de design. **S.**
-
-L'inspection a en revanche sorti ce qui n'était pas dans l'énoncé : sur écran large un libellé de
-plusieurs mots **perd tous ses mots sauf le premier** (« Fil d'actualités » rend « Fil… » à 1 722 px,
-`line-clamp: 1` sur une boîte de 80 px), l'item actif **n'est jamais ramené dans le champ** quand la
-rangée déborde, le fondu de bord est **inconditionnel** donc il ment, et les libellés inactifs
-échouent AA dans les deux thèmes (4,04 sombre / 3,32 clair). **S** de plus.
-
-Le menu de débordement est écarté avec un motif : le nombre d'items est plafonné à 8 (3 pages
-d'équipe maximum), donc la rangée **ne déborde jamais** sur écran de bureau, et le repli mobile
-existe déjà — c'est le menu du fil d'Ariane, alimenté par le même `useNavItems`.
-
-**Livré** : repère `nav` + `ul`/`li` + `aria-current="page"`, `maxWidth` à 130 px au-dessus de 48 em
-(mesuré sur le plus large libellé livré, « Modèles de sortie » à 126 px), recalage de l'item actif,
-fondu piloté par la position de défilement, et libellés inactifs sortis du `dimmed` (4,04/3,32 →
-**9,37/21**). L'anneau de focus global, hors de ce chantier, reste ouvert : `LEDGER_NEXT.md` §3.4.
+Ce qui reste ouvert (`MAX_BULK_SLUGS` comme seul garde-fou) est `API-27`.
 
 ---
 
-## 4. Les chantiers d'infrastructure d'API
+## OPS — Exploitation, déploiement, recette du backend
 
-### 4.2 Notifications push — livré, en production depuis le 21 septembre 2026
+Rien de livré depuis l'ouverture du ledger.
+
+---
+
+## NOTIF — Notifications
+
+### `NOTIF-9` Notifications — livrées, en production depuis le 21 septembre 2026
 
 Repris le 18 septembre 2026 par
 [`plans/archive/2026-09-18-notifications.md`](plans/archive/2026-09-18-notifications.md), où le push est devenu un
-canal d'un pipeline commun (boîte de réception, e-mail, push). La phase 5 (dont le rappel J-1) est
-en production depuis le même jour. Ce qui reste est au §8.3 de `LEDGER_NEXT.md`.
+canal d'un pipeline commun (boîte de réception, e-mail, push). Les phases 1 à 5 (dont le rappel J-1)
+sont en production depuis le 21 septembre 2026, le Web Push depuis le 29. Ce qui reste est
+`NOTIF-1` à `NOTIF-4`.
 
 Le ledger du chantier (`plans/2026-09-18-notifications-ledger.md`, phase par phase avec ses
 recettes) a été rapatrié ici et supprimé le 29 septembre 2026 ; il reste dans l'historique git. Les
@@ -299,56 +350,54 @@ cassent en production et pas en test : l'**idempotence** du rappel J-1 (sans mar
 envoyé », un redémarrage renotifie tout le monde) et la purge des jetons périmés (retour
 `UNREGISTERED` de FCM), sans quoi la table grossit indéfiniment.
 
-### 4.5 Coût par parcours de la géométrie — tranché en 2.0.0
+---
 
-**Résolu autrement que prévu, et il vaut mieux savoir comment.** Ce point demandait de borner
-`simplify` et les climbs, dont un Douglas-Peucker superlinéaire relancé en lecture sur la trace
-stockée (9,9 s pour une trace adverse de 100 k points) et un `simplify=NaN` qui passait les gardes.
+## MOD — Modération et signalement
 
-La mesure a montré que le paramètre lui-même ne servait à rien : les points stockés sont **déjà**
-rééchantillonnés puis filtrés Douglas-Peucker à l'import (`GpxProcessingService.computeGpx`), ce qui
-les laisse à **88,7 m de médiane entre deux sommets** (p05 59 m, p95 120 m) sur les 5 493 parcours de
-staging — 681 points pour le parcours médian, 65 Ko de JSON. Le mobile demandait `simplify: 5 /
-points: 3000` sur sa fiche : un no-op complet. Et cette passe en lecture est purement 2D, donc elle
-rabotait l'altitude que les mêmes coordonnées transportent en Z et M — d'où l'existence même de
-`…/elevation-profile`.
-
-`simplify`, `points`, `GET …/elevation-profile` et `elevation`/`elevationSamples` ont donc été
-**supprimés**, avec `TrackGeometry`, `GeometryOptions`, `ElevationProfileDto` et tout le budget
-`DEFAULT_BULK_MAX_POINTS_PER_ROUTE` / `perRouteBudget`. D1, D2 et D4 disparaissent avec eux. Un
-drapeau `geometry=false` sur `/routes/bulk` remplace l'astuce `points: 2` des trois écrans web qui ne
-voulaient que les métadonnées.
-
-Côté mobile, la carte de masse ne paie plus ce coût : depuis le passage aux tuiles `.mvt` (API
-2.3.0), elle ne charge plus aucune fiche de géométrie. Seuls les écrans de détail (parcours, voyage
-plafonné à 12 étapes par `kTripTrackStageCap`) lisent la géométrie complète.
-
-Ce qui reste ouvert (`MAX_BULK_SLUGS` comme seul garde-fou) est au §4.5 de `LEDGER_NEXT.md`.
+- `MOD-6` **Modération** — livrée le 24 septembre 2026 (V41,
+  [spécification archivée](plans/archive/2026-09-24-signalement.md)) : signalement, blocage et
+  filtre de publication exigés par la directive App Store 1.2. Quatre défauts mineurs restent :
+  `MOD-1` à `MOD-4`.
 
 ---
 
-## 5. Petites évolutions d'API
+## ISSUE — Signaler un problème → issues GitHub
 
-| # | Livré | Écrans |
-|---|---|---|
-| 1 | URL de tuile authentifiable — **API 2.3.0** : `POST /api/tiles/token` puis `?t=` sur les deux `.mvt`. Le repli GeoJSON et son plafond ont été supprimés, le tap lit les propriétés de la tuile comme le web | 21 |
-
-**Le meneur de groupe** est livré en 1.5.0 (`RideGroupDto.leader`, nullable). Les **gabarits de
-sortie n'ont volontairement pas de meneur** — décision produit : `RideTemplateGroupRequest` reste
-sans champ, instancier une sortie depuis un gabarit ne désigne personne.
+- `ISSUE-6` **Signaler un problème → issues GitHub (API 4.6.0)** — en service en production
+  (constaté le 29 septembre 2026). Suites possibles : `ISSUE-1` à `ISSUE-5`.
 
 ---
 
-## 8. Chantiers de septembre 2026
+## MIG — Migration biketeam
 
-- **8.1 Signaler un problème → issues GitHub (API 4.6.0)** — en service en production (constaté le
-  29 septembre 2026). Suites possibles : `LEDGER_NEXT.md` §8.1.
-- **8.2 Modération** — livrée le 24 septembre 2026
-  ([spécification archivée](plans/archive/2026-09-24-signalement.md)). Quatre défauts mineurs
-  restent : `LEDGER_NEXT.md` §8.2.
-- **8.3 Notifications** — phases 1 à 5 de
-  [`plans/archive/2026-09-18-notifications.md`](plans/archive/2026-09-18-notifications.md) en production, le Web
-  Push aussi depuis le 29 septembre 2026 ; le détail, rapatrié du ledger du chantier, est au §4.2.
-- **8.4 Audit de couverture e2e du 27 septembre** — exécuté
-  ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md)) : P0, P1 et P2 écrits, 54 défauts
-  relevés, tous corrigés ou tranchés sauf un (`LEDGER_NEXT.md` §8.4).
+- `MIG-12` **L'ancien import biketeam** a été supprimé le 2026-09-28 : seule la migration en direct
+  reste ([plan](plans/2026-09-22-biketeam-live-migration.md)), en service en staging et dont la mise
+  en production attend biketeam (§10 du plan, `MIG-1`) ; `biketeam_migration_map` sert encore au
+  direct, et ses lignes `USER`, `USER_TEAM`, `COMMENT`, `…_PARTICIPATION` écrites par l'import
+  restent en base, inertes.
+
+---
+
+## BRAND — Charte
+
+Rien de livré depuis l'ouverture du ledger.
+
+---
+
+## SEC — Audit de sécurité
+
+Rien de livré depuis l'ouverture du ledger ; les constats corrigés avant sont dans
+[`SECURITY_AUDIT.md`](SECURITY_AUDIT.md).
+
+---
+
+## AUD — Audit d'infrastructure de février
+
+Rien de livré depuis l'ouverture du ledger ; les lignes corrigées avant sont cochées dans
+[`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md).
+
+---
+
+## LEGAL — Politique de confidentialité
+
+Rien de livré depuis l'ouverture du ledger.

@@ -12,9 +12,9 @@
 > référence pour l'infrastructure, la CI/CD et la qualité des modules.
 >
 > **Suivi** : les lignes ouvertes de sécurité (S2 à S12) sont versées dans
-> [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) (H5, M7 à M10, L12 à L14), donc au §7.1 du ledger ;
-> les autres lignes ouvertes sont reprises, une par une, au §7.2 de
-> [`LEDGER_NEXT.md`](../LEDGER_NEXT.md) (I13 et I20 au §1.3), revérifiées dans le code le
+> [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) (H5, M7 à M10, L12 à L14), donc sous le préfixe `SEC` du ledger ;
+> les autres lignes ouvertes sont reprises, une par une, sous le préfixe `AUD` de
+> [`LEDGER_NEXT.md`](../LEDGER_NEXT.md) (I13 et I20 : `OPS-7` et `OPS-8`), revérifiées dans le code le
 > 29 septembre 2026. Une ligne corrigée se coche ici **et** quitte le ledger.
 
 ## Résumé exécutif
@@ -251,14 +251,14 @@ Docker Compose : 7 services par environnement (`docker-compose.yml`) + 2 partag�
 | I10 | `forwardedHeaders.insecure=true` sur Traefik | Important | S | `docker-compose.yml` | |
 | I11 | Frontend Dockerfile : `pnpm install` sans `--frozen-lockfile` | Important | S | `frontend/Dockerfile` | ✅ |
 | I12 | Image nginx tierce `steebchen/nginx-spa:stable` | Important | M | `frontend/Dockerfile` | ✅ (plus de nginx : image `node`, `server.js`) |
-| I13 | Access logs Traefik non persistes (volume manquant) | Important | S | `docker-compose.yml` | (suivi : [`LEDGER_NEXT.md`](../LEDGER_NEXT.md) §1.3) |
+| I13 | Access logs Traefik non persistes (volume manquant) | Important | S | `docker-compose.yml` | (suivi : ledger `OPS-7`) |
 | I14 | Aucune limite de ressources sur les containers | Important | S | `docker-compose.yml` | |
 | I15 | VCL Varnish minimale (pas de purge, grace, ban) | Important | M | `varnish.vcl` | |
 | I16 | `backend/.env` tracke dans git avec MAPBOX_API_KEY | Important | S | `backend/.env` | ✅ |
 | I17 | imgproxy sans signature URL (IMGPROXY_KEY/SALT) | Important | M | `docker-compose.yml` | |
 | I18 | PRs Dependabot non testees (CI desactivee sur develop) | Critique | S | `ci.yml` | ✅ |
 | I19 | Pas de procedure de rotation des secrets | Important | M | Documentation | |
-| I20 | Pas de test de recovery documente | Critique | L | Documentation + scripts | ⚠️ (procédure documentée : `docs/OPERATIONS.md`, « Restore drill from another machine » ; exercice jamais mené — suivi : [`LEDGER_NEXT.md`](../LEDGER_NEXT.md) §1.3) |
+| I20 | Pas de test de recovery documente | Critique | L | Documentation + scripts | ⚠️ (procédure documentée : `docs/OPERATIONS.md`, « Restore drill from another machine » ; exercice jamais mené — suivi : ledger `OPS-8`) |
 
 ---
 

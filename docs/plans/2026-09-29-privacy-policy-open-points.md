@@ -6,7 +6,7 @@ déjà dans `privacy/privacy-policy.{fr,en}.md` : export dans l'app, Web Push, s
 décision. Toute modification se fait **en parité FR/EN**. Le texte est embarqué dans l'app mobile
 (`privacy/` est un asset) : un changement n'y apparaît qu'avec la build suivante.
 
-Suivi : chaque point est repris au §7.3 de [`LEDGER_NEXT.md`](../LEDGER_NEXT.md), avec ses liens
+Suivi : chaque point est repris sous le préfixe `LEGAL` de [`LEDGER_NEXT.md`](../LEDGER_NEXT.md), avec ses liens
 vers les lignes voisines du ledger. Un point tranché quitte les deux fichiers.
 
 ## 1. Import biketeam et « pas de données de tiers »

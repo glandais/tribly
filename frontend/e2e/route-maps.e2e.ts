@@ -21,7 +21,7 @@ import {
 } from './support/routes'
 
 /**
- * The five screens that draw a route's COMPLETE trace (docs/LEDGER_DONE.md §1.2): route detail, the
+ * The five screens that draw a route's COMPLETE trace (docs/LEDGER_*.md WEB-13): route detail, the
  * route's full-screen map, stage detail and the stage's full-screen map (all four through
  * `useGetRoute`), and a ride's group map (`RoutesMapView`, through `useRoutesBulk` WITHOUT
  * `geometry: false`).

@@ -37,7 +37,7 @@ import { entityCard, hydrated, openActionsMenu, pageAs, startsWith, toasts } fro
  * Trips, the nominal journey through the web UI: a team admin creates a trip and its two stages
  * with the form (dates, a route on one of them), reads the trip page (stages in order, map), a
  * member registers and leaves, the team admin edits a stage, deletes another, then deletes the
- * trip. The team calendar lists the stages — never the trip itself, by design (docs/LEDGER_NEXT.md §1.1).
+ * trip. The team calendar lists the stages — never the trip itself, by design (docs/LEDGER_*.md MOB-6).
  *
  * Every test owns its team: a fresh user creates it — and so is its ADMIN, not a mere teamAdmin: a
  * deleted trip stays readable to them — and the platform admin adds the member (a team's own admins

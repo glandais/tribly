@@ -171,7 +171,7 @@ l'inscription. Type et sujet de notification. Message pour `CONTENT_REJECTED`. P
 
 ## Ce qui est écarté
 
-- Un écran de profil public (voir `docs/LEDGER_NEXT.md` §6).
+- Un écran de profil public (voir ledger `MOB-23`).
 - Prévenir le signaleur de l'issue.
 - Modération automatique (IA, images).
 - Blocage par équipe ; masquer au bloqueur les sorties, voyages, parcours ou participants.

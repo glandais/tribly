@@ -190,7 +190,7 @@ public class SlugService {
    * RouteResource}'s {@code @Path("/bulk")} and never resolves that row; it can only be reached by
    * id or by a redirect created after a later rename. This method does not query the database, so
    * it cannot tell you whether such a row exists today — see the "known remaining work" note in
-   * {@code docs/LEDGER_DONE.md} (§2.4) for the backfill this would need if one is ever found.
+   * {@code docs/LEDGER_*.md} (API-38) for the backfill this would need if one is ever found.
    */
   public boolean isReservedSlug(TeamEntityType entityType, String slug) {
     return RESERVED_SLUGS.getOrDefault(entityType, Set.of()).contains(slug);

@@ -16,7 +16,7 @@ Must-have for public launch. Focus on first impressions and core UX.
   - [ ] Still some polish to do ...
 - [X] Pagination — Performance at scale
   - Offset pagination everywhere; infinite scroll on mobile only, deliberately not on the web, and
-    cursor pagination still to do — see [LEDGER_NEXT.md](LEDGER_NEXT.md) §4.1 and §6
+    cursor pagination still to do — see ledger `API-21` and `WEB-8`
 
 ### Discoverability
 - [x] SEO/robots.txt — Phase 1 complete (static meta); `robots.txt` realigned on
@@ -46,7 +46,7 @@ Drive engagement and reduce friction for organizers.
 - [X] User unit system toggle (metric/imperial) — Respect preferences
 - [ ] Ride/trip "Terminated" status — Clarity on past events
   - Both clients derive it from `dateTime < now` today (mobile centralises it in `RideDto.isPast`).
-    A real `TERMINATED` value in the `Status` enum would remove that. See docs/LEDGER_NEXT.md §5.16
+    A real `TERMINATED` value in the `Status` enum would remove that. See ledger `API-16`
 
 ### Content System
 - [ ] Markdown image improvements:
@@ -77,7 +77,7 @@ Features that differentiate and deepen engagement.
     **"not indexed" half is missing** — `frontend/index.html` ships a static
     `<meta name="robots" content="index, follow">` and nothing emits a per-page `noindex`. Since
     unlisted pages are SSR-rendered, a crawler indexes them today. The fix belongs with the `meta()`
-    builders in `routes.config.ts` — tracked in [LEDGER_NEXT.md](LEDGER_NEXT.md) §2
+    builders in `routes.config.ts` — tracked as ledger `WEB-4`
 
 ### Trip Enhancements
 - [ ] Trip stats (save in DB)
@@ -92,12 +92,12 @@ Requires significant architecture work. Spike before committing.
 ### Notifications
 - [x] Versatile notification system
   - **Phases 1 to 5 in production since 2026-09-21** — design in
-    docs/plans/archive/2026-09-18-notifications.md, what shipped in docs/LEDGER_DONE.md §4.2
+    docs/plans/archive/2026-09-18-notifications.md, what shipped in ledger `NOTIF-9`
   - Event types, team/user preferences, in-app inbox, team webhook, daily digest
   - Mobile push: **live in production since 2026-09-21** (FCM, Android + iOS)
   - Web push: **live in production since 2026-09-29** (installable site, same FCM, platform `WEB`)
   - E-mail channel: built, **off in production** by product decision (2026-09-21)
-  - What's left is in docs/LEDGER_NEXT.md §8.3
+  - What's left is ledger `NOTIF-1` to `NOTIF-4`
 
 ### Administration
 - [X] System admin panel
