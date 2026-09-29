@@ -949,7 +949,7 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   contrat inchangé, scindé de `SEC-12`, qui garde le reste) —
   - **L1** : `AuthService.resetPassword` révoque toutes les sessions du compte (navigateurs, app,
     appareils GPS appairés) avant d'ouvrir celle du navigateur qui réinitialise. Avant, pas après :
-    la mise à jour en masse la révoquerait aussi. La politique (§5, sessions d'un appareil GPS) le
+    la mise à jour en masse la révoquerait aussi. La politique (§6, sessions d'un appareil GPS) le
     dit, en parité FR/EN.
   - **L5** : `AssetAccessChecker` exige que l'asset appartienne à l'équipe que nomme l'URL, résolue
     sur le site courant (redirections de slug comprises). L'identifiant seul atteignait l'asset
