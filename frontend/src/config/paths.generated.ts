@@ -40,12 +40,6 @@ export const paths = {
       default: return '/reset-password'
     }
   },
-  completeAccount: () => {
-    switch (getCurrentLocale()) {
-      case 'fr': return '/completer-le-compte'
-      default: return '/complete-account'
-    }
-  },
   deviceVerifyGarmin: () => '/garmin',
   deviceVerifyKaroo: () => '/karoo',
   apps: () => {
@@ -409,7 +403,6 @@ export const pathVariants = {
   biketeamMigration: (): Record<Locale, string> => ({ en: '/biketeam-migration', fr: '/migration-biketeam' }),
   forgotPassword: (): Record<Locale, string> => ({ en: '/forgot-password', fr: '/mot-de-passe-oublie' }),
   resetPassword: (): Record<Locale, string> => ({ en: '/reset-password', fr: '/nouveau-mot-de-passe' }),
-  completeAccount: (): Record<Locale, string> => ({ en: '/complete-account', fr: '/completer-le-compte' }),
   deviceVerifyGarmin: (): Record<Locale, string> => ({ en: '/garmin', fr: '/garmin' }),
   deviceVerifyKaroo: (): Record<Locale, string> => ({ en: '/karoo', fr: '/karoo' }),
   apps: (): Record<Locale, string> => ({ en: '/apps', fr: '/applications' }),

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Outlet, useLocation, useNavigationType } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
@@ -15,7 +15,6 @@ import {
   Stack,
   Divider,
   Box,
-  Alert,
   UnstyledButton,
   Indicator,
   Badge,
@@ -26,7 +25,6 @@ import {
   IconLogout,
   IconShield,
   IconMapSearch,
-  IconMail,
   IconBell,
   IconMessageReport,
   IconDownload,
@@ -62,7 +60,6 @@ export function Layout() {
   const [opened, { toggle, close }] = useDisclosure(false)
   // The bell is desktop-only: below `sm` the burger and the drawer carry the unread count.
   const unreadCount = useUnreadNotificationCount()
-  const [emailBannerDismissed, setEmailBannerDismissed] = useState(false)
   const location = useLocation()
   const { pathname } = location
   const navigationType = useNavigationType()
@@ -71,12 +68,6 @@ export function Layout() {
   // Null until hydrated, and whenever there is nothing to install (already installed, or a
   // browser with neither a prompt nor home-screen instructions).
   const { offer: installOffer, install } = useInstallOffer({ withStore: true })
-
-  const showEmailBanner =
-    isAuthenticated &&
-    user?.requiresEmail === true &&
-    !emailBannerDismissed &&
-    pathname !== paths.completeAccount()
 
   // Mounted before the effect below so its cleanup records the scroll position
   // while the outgoing route is still on screen.
@@ -346,31 +337,7 @@ export function Layout() {
 
       <AppShell.Main id={MAIN_ID} tabIndex={-1} className={classes.main}>
         <Container size="lg" px={0}>
-          {/* One banner at a time: completing the account comes first. */}
-          {!showEmailBanner && <InstallBanner />}
-          {showEmailBanner && (
-            <Alert
-              variant="light"
-              color="orange"
-              icon={<IconMail size={18} />}
-              title={t('auth.completeAccount.banner.title')}
-              withCloseButton
-              onClose={() => setEmailBannerDismissed(true)}
-              mb="md"
-            >
-              <Group justify="space-between" align="center" wrap="wrap">
-                <Text size="sm">{t('auth.completeAccount.banner.message')}</Text>
-                <Button
-                  size="xs"
-                  color="orange"
-                  component={PrefetchLink}
-                  to={paths.completeAccount()}
-                >
-                  {t('auth.completeAccount.banner.action')}
-                </Button>
-              </Group>
-            </Alert>
-          )}
+          <InstallBanner />
           <Breadcrumb items={breadcrumbItems} showBackLink={showBackLink} />
           <Outlet />
         </Container>

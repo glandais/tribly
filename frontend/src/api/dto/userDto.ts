@@ -32,8 +32,6 @@ export interface UserDto {
   platformRole?: PlatformRole
   /** Whether the account's email has been verified */
   emailVerified: boolean
-  /** True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address) */
-  requiresEmail: boolean
   /** Connected GPS services */
   connectedServices?: GpsServiceConnectionDto[]
 }

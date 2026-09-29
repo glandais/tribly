@@ -90,9 +90,9 @@ page and as a `Promise.all` by `routes.config.ts` — see
 [SSR-data-loading.md](SSR-data-loading.md). Closing a gap means editing that module; a new route
 means writing one, never adding a `prefetchXxxQuery` call to `routes.config.ts`.
 
-The 7 still not measured redirect legitimately on load: `completeAccount` (×3 — an account that
-already has an email is sent home; the render loop that redirect used to cause is fixed, see
-`apps` below), `gpxToolsNew` (×3), `teamAdmin/user1`.
+The 7 still not measured redirected legitimately on load: `completeAccount` (×3 — an account that
+already had an email was sent home; that route and its page have since been removed, ledger
+`API-42`), `gpxToolsNew` (×3), `teamAdmin/user1`.
 
 **Every measured route reports `covered`** — public, authenticated, admin and form screens alike.
 The only queries still fetched after hydration anywhere were the two calendars', and the 09:38Z
@@ -151,8 +151,9 @@ zone is guessed — which costs the whole point of prefetching it.
   **Re-open this as a real defect if it comes back with that detail** — until then there is nothing
   actionable, only a page that renders correctly.
 - **`apps` failing for an authenticated user** — collateral from the `CompleteAccountPage` render
-  loop (fixed by `65943432`, 2026-08-03: the page now returns `<Navigate>` instead of calling
-  `navigate()` during render; not re-crawled since). It is the route crawled right after `completeAccount`,
+  loop (fixed by `65943432`, 2026-08-03: the page returned `<Navigate>` instead of calling
+  `navigate()` during render; not re-crawled since — the page itself is gone since ledger `API-42`,
+  so the next crawl can no longer reproduce this). It is the route crawled right after `completeAccount`,
   whose `setState` loop was still spinning when the next `goto` fired, so it inherits the
   pageerrors and a navigation timeout. Reproduced identically for `user1` and `user2` on staging,
   while `apps` is clean for `anonymous` — the failure follows the *previous route*, not the page.

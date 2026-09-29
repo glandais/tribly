@@ -92,11 +92,6 @@ routes:
     web: true
     mobile: true
     deeplink: true
-  - id: completeAccount
-    path:
-      en: /complete-account
-      fr: /completer-le-compte
-    web: true
 
   # --- Device verification (brand names kept as-is) ---
   - id: deviceVerifyGarmin

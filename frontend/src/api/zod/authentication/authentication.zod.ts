@@ -1,7 +1,7 @@
 import * as zod from 'zod'
 
 /**
- * Set/change the account's real email (e.g. recover a migrated account). Sends a verification link to the new address.
+ * Change the signed-in user's email address. Sends a verification link to the new address; the change applies once that link is followed.
  * @summary Request email change
  */
 export const requestEmailChangeBodyEmailMax = 250
@@ -16,7 +16,7 @@ export const RequestEmailChangeBody = zod
       .regex(requestEmailChangeBodyEmailRegExp)
       .describe('New email address'),
   })
-  .describe("Request to set/change the account's real email address")
+  .describe("Request to change the signed-in user's email address")
 
 export const RequestEmailChangeResponse = zod
   .object({
@@ -125,11 +125,6 @@ export const LoginWithPasswordResponse = zod
           .optional()
           .describe('Platform role (null if regular user)'),
         emailVerified: zod.boolean().describe("Whether the account's email has been verified"),
-        requiresEmail: zod
-          .boolean()
-          .describe(
-            'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
-          ),
         connectedServices: zod
           .array(
             zod
@@ -264,11 +259,6 @@ export const VerifyOtpResponse = zod
           .optional()
           .describe('Platform role (null if regular user)'),
         emailVerified: zod.boolean().describe("Whether the account's email has been verified"),
-        requiresEmail: zod
-          .boolean()
-          .describe(
-            'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
-          ),
         connectedServices: zod
           .array(
             zod
@@ -348,11 +338,6 @@ export const RefreshResponse = zod
           .optional()
           .describe('Platform role (null if regular user)'),
         emailVerified: zod.boolean().describe("Whether the account's email has been verified"),
-        requiresEmail: zod
-          .boolean()
-          .describe(
-            'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
-          ),
         connectedServices: zod
           .array(
             zod
@@ -503,11 +488,6 @@ export const ResetPasswordResponse = zod
           .optional()
           .describe('Platform role (null if regular user)'),
         emailVerified: zod.boolean().describe("Whether the account's email has been verified"),
-        requiresEmail: zod
-          .boolean()
-          .describe(
-            'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
-          ),
         connectedServices: zod
           .array(
             zod
@@ -600,11 +580,6 @@ export const VerifyEmailResponse = zod
           .optional()
           .describe('Platform role (null if regular user)'),
         emailVerified: zod.boolean().describe("Whether the account's email has been verified"),
-        requiresEmail: zod
-          .boolean()
-          .describe(
-            'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
-          ),
         connectedServices: zod
           .array(
             zod

@@ -1849,7 +1849,7 @@
         }
       },
       "EmailChangeRequest" : {
-        "description" : "Request to set/change the account's real email address",
+        "description" : "Request to change the signed-in user's email address",
         "type" : "object",
         "required" : [ "email" ],
         "properties" : {
@@ -5787,7 +5787,7 @@
       "UserDto" : {
         "type" : "object",
         "description" : "User profile data",
-        "required" : [ "id", "email", "displayName", "contactableByMembers", "emailVerified", "requiresEmail" ],
+        "required" : [ "id", "email", "displayName", "contactableByMembers", "emailVerified" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -5841,10 +5841,6 @@
           "emailVerified" : {
             "type" : "boolean",
             "description" : "Whether the account's email has been verified"
-          },
-          "requiresEmail" : {
-            "type" : "boolean",
-            "description" : "True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)"
           },
           "connectedServices" : {
             "type" : "array",
@@ -7782,7 +7778,7 @@
     "/api/auth/email/change-request" : {
       "post" : {
         "summary" : "Request email change",
-        "description" : "Set/change the account's real email (e.g. recover a migrated account). Sends a verification link to the new address.",
+        "description" : "Change the signed-in user's email address. Sends a verification link to the new address; the change applies once that link is followed.",
         "operationId" : "requestEmailChange",
         "tags" : [ "Authentication" ],
         "requestBody" : {
@@ -20032,7 +20028,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "5.12.0",
+    "version" : "6.0.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

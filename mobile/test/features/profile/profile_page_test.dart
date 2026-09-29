@@ -31,7 +31,6 @@ const UserDto _user = UserDto(
   displayName: 'Moi',
   contactableByMembers: true,
   emailVerified: true,
-  requiresEmail: false,
 );
 
 class _FakeAuthRepository implements AuthRepository {

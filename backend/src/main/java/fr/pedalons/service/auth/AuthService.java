@@ -149,7 +149,7 @@ public class AuthService {
             .findValidByTokenHash(tokenHash)
             .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
-    // Email-change (account recovery): verifies a new real email on an existing user.
+    // Email change: verifies the new address of an existing user.
     if (authToken.getTokenType() == AuthTokenType.EMAIL_CHANGE) {
       return verifyEmailChange(authToken, userAgent, ipAddress);
     }
@@ -186,9 +186,9 @@ public class AuthService {
   }
 
   /**
-   * Starts collecting a real email for the current user (e.g. a migrated account with a
-   * placeholder address). Sends a verification link to the new address; the change is only applied
-   * once that link is followed. Rejects an address already used by another account in the domain.
+   * Starts changing the signed-in user's email address. Sends a verification link to the new
+   * address; the change is only applied once that link is followed. Rejects an address already
+   * used by another account in the domain.
    *
    * <p>The mail leaves after the commit, and its failure reaches the caller — see {@link
    * #register}.

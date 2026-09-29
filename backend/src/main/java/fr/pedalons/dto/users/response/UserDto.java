@@ -51,12 +51,6 @@ public record UserDto(
         PlatformRole platformRole,
     @Schema(description = "Whether the account's email has been verified", required = true)
         boolean emailVerified,
-    @Schema(
-            description =
-                "True when the account still needs a real, verified email (e.g. a migrated"
-                    + " account with a placeholder address)",
-            required = true)
-        boolean requiresEmail,
     @Schema(description = "Connected GPS services")
         List<GpsServiceConnectionDto> connectedServices) {
 
@@ -78,7 +72,6 @@ public record UserDto(
         user.isContactableByMembers(),
         user.getPlatformRole(),
         user.isEmailVerified(),
-        !user.isEmailVerified(),
         connectedServices);
   }
 }

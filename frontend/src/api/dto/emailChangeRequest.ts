@@ -1,5 +1,5 @@
 /**
- * Request to set/change the account's real email address
+ * Request to change the signed-in user's email address
  */
 export interface EmailChangeRequest {
   /**

@@ -388,6 +388,19 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   **gabarits de sortie n'ont volontairement pas de meneur** — décision produit :
   `RideTemplateGroupRequest` reste sans champ, instancier une sortie depuis un gabarit ne désigne
   personne. Le repli sur `createdBy` est interdit (`API-30`).
+- `API-42` **« Compléter le compte » retiré** (2026-09-29) — **API 6.0.0** : `UserDto.requiresEmail`
+  (qui valait `!user.isEmailVerified()`) a disparu du contrat, avec la page web
+  « Compléter le compte » (`/completer-le-compte`, `CompleteAccountPage`) et le bandeau qui y
+  menait. C'était du code mort : plus aucun compte non vérifié ne peut ouvrir de session —
+  l'inscription et le bootstrap vérifient l'e-mail, l'OTP et la réinitialisation du mot de passe
+  refusent un compte non vérifié (`AuthService`), les comptes migrés non vérifiés n'ont pas de mot
+  de passe, et les comptes factices `strava_<id>@…` ne peuvent plus se connecter depuis le retrait
+  de Strava (`7cd2bf3a`), l'import par dump qui les créait ayant lui-même été retiré (`d93fd3af`).
+  **Décision à ne pas défaire** : `POST /api/auth/email/change-request`,
+  `AuthService.requestEmailChange` et la vérification du changement d'e-mail **restent** — le profil
+  mobile s'en sert (`profile_identity_section.dart`) ; seul le parcours « compléter » est parti. Les
+  comptes `strava_<id>@…` **restent en base**, inertes (aucune migration Flyway ne les touche) : un
+  éventuel rattrapage passerait par une action d'administration, pas par le retour de ce flag.
 
 ### Défauts relevés
 

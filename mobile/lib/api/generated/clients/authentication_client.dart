@@ -26,7 +26,7 @@ abstract class AuthenticationClient {
 
   /// Request email change.
   ///
-  /// Set/change the account's real email (e.g. recover a migrated account). Sends a verification link to the new address.
+  /// Change the signed-in user's email address. Sends a verification link to the new address; the change applies once that link is followed.
   ///
   /// [body] - Name not received - field will be skipped.
   @POST('/api/auth/email/change-request')

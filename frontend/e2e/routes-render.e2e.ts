@@ -181,17 +181,6 @@ const screens: Record<string, Screen> = {
   },
   forgotPassword: { roles: ['anonymous'], sees: heading('Mot de passe oublié') },
   resetPassword: { roles: EVERYONE, sees: heading('Lien invalide') },
-  completeAccount: {
-    roles: [],
-    sees: async () => {},
-    // Every account of the dataset already has a real address — the page only serves accounts
-    // born without one (CompleteAccountPage's <Navigate> home).
-    otherwise: redirects(SIGNED_IN, {
-      why: 'an account with an e-mail has nothing to complete',
-      lands: () => '/',
-      sees: heading('Dernières publications'),
-    }),
-  },
   deviceVerifyGarmin: { roles: SIGNED_IN, sees: heading('Entrez le code') },
   deviceVerifyKaroo: { roles: SIGNED_IN, sees: heading('Entrez le code') },
   apps: { roles: EVERYONE, sees: heading('Applications') },

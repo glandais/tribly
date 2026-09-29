@@ -71,7 +71,6 @@ const AuthState _signedIn = AuthState(
     displayName: 'Moi',
     emailVerified: true,
     contactableByMembers: true,
-    requiresEmail: false,
   ),
   accessToken: 'token',
 );

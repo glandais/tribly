@@ -52,10 +52,6 @@ export const pages = {
     () => import('../pages/auth/ForgotPasswordPage')
   ),
   ResetPasswordPage: lazyPage('ResetPasswordPage', () => import('../pages/auth/ResetPasswordPage')),
-  CompleteAccountPage: lazyPage(
-    'CompleteAccountPage',
-    () => import('../pages/auth/CompleteAccountPage')
-  ),
   UserProfilePage: lazyPage('UserProfilePage', () => import('../pages/auth/UserProfilePage')),
   TeamListPage: lazyPage('TeamListPage', () => import('../pages/team/TeamListPage')),
   CreateTeamPage: lazyPage('CreateTeamPage', () => import('../pages/team/CreateTeamPage')),

@@ -67,11 +67,6 @@ export const UpdateMeResponse = zod
       .optional()
       .describe('Platform role (null if regular user)'),
     emailVerified: zod.boolean().describe("Whether the account's email has been verified"),
-    requiresEmail: zod
-      .boolean()
-      .describe(
-        'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
-      ),
     connectedServices: zod
       .array(
         zod
@@ -134,11 +129,6 @@ export const GetMeResponse = zod
       .optional()
       .describe('Platform role (null if regular user)'),
     emailVerified: zod.boolean().describe("Whether the account's email has been verified"),
-    requiresEmail: zod
-      .boolean()
-      .describe(
-        'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
-      ),
     connectedServices: zod
       .array(
         zod
@@ -211,11 +201,6 @@ export const UploadAvatarResponse = zod
       .optional()
       .describe('Platform role (null if regular user)'),
     emailVerified: zod.boolean().describe("Whether the account's email has been verified"),
-    requiresEmail: zod
-      .boolean()
-      .describe(
-        'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
-      ),
     connectedServices: zod
       .array(
         zod
@@ -278,11 +263,6 @@ export const DeleteAvatarResponse = zod
       .optional()
       .describe('Platform role (null if regular user)'),
     emailVerified: zod.boolean().describe("Whether the account's email has been verified"),
-    requiresEmail: zod
-      .boolean()
-      .describe(
-        'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
-      ),
     connectedServices: zod
       .array(
         zod
@@ -1851,11 +1831,6 @@ export const UpdateMyPreferencesResponse = zod
       .optional()
       .describe('Platform role (null if regular user)'),
     emailVerified: zod.boolean().describe("Whether the account's email has been verified"),
-    requiresEmail: zod
-      .boolean()
-      .describe(
-        'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
-      ),
     connectedServices: zod
       .array(
         zod

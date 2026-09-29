@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
-@Schema(description = "Request to set/change the account's real email address")
+@Schema(description = "Request to change the signed-in user's email address")
 @ValidateSchema
 public record EmailChangeRequest(
     @NotBlank

@@ -221,8 +221,8 @@ A redirect written the obvious way never redirects on the server, and melts down
 client:
 
 ```tsx
-if (user && !user.requiresEmail) {
-  navigate(paths.home(), { replace: true })   // ← in the component body
+if (team.role !== 'ADMIN') {
+  navigate(paths.team(teamSlug!), { replace: true })   // ← in the component body
   return null
 }
 ```
@@ -268,7 +268,7 @@ Consequences of `<Navigate>` worth knowing, both benign here:
   (`routes.yaml`, `web: false`) get a real 302 to their web fallback. Guard pages still use
   `<Navigate>`; moving one to a loader redirect is possible, not done.
 
-Found by `scripts/ssr-audit.mjs` on `/complete-account`; the open list is in
+Found by `scripts/ssr-audit.mjs` on a guard page since removed; the open list is in
 [SSR-BUGS.md](SSR-BUGS.md).
 
 ## Verifying SSR end-to-end

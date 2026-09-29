@@ -32,9 +32,6 @@ abstract class UserDto with _$UserDto {
     /// Whether the account's email has been verified
     required bool emailVerified,
 
-    /// True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)
-    required bool requiresEmail,
-
     /// User avatar URL
     String? avatarUrl,
 

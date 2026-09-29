@@ -73,11 +73,6 @@ export const AuthenticateResponse = zod
           .optional()
           .describe('Platform role (null if regular user)'),
         emailVerified: zod.boolean().describe("Whether the account's email has been verified"),
-        requiresEmail: zod
-          .boolean()
-          .describe(
-            'True when the account still needs a real, verified email (e.g. a migrated account with a placeholder address)'
-          ),
         connectedServices: zod
           .array(
             zod

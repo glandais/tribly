@@ -303,14 +303,6 @@ export const routesConfig: RoutesConfig = [
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.resetPassword.title') },
   },
   {
-    id: 'complete-account',
-    paths: pathVariants.completeAccount(),
-    component: pages.CompleteAccountPage,
-    auth: 'authenticated',
-    parentId: null,
-    breadcrumb: { type: 'static', i18nKey: tRegister('auth.completeAccount.title') },
-  },
-  {
     id: 'profile',
     paths: pathVariants.profile(),
     component: pages.UserProfilePage,
