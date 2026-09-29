@@ -418,9 +418,6 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       gardées que par un verrou interne à la JVM : tant que ce n'est pas fait, `DATA_CACHE_PATH` ne
       se partage pas entre backends. Source : [`OPERATIONS.md`](OPERATIONS.md) (services
       « per-environment on purpose »). (Relevé le 29 septembre 2026.)
-- [ ] `OPS-11` **`.env.example:143` décrit un `BACKUP_KEEP` que rien ne lit** — la rétention est le
-      second argument de `scripts/backup-prune.sh`, sur l'hôte de sauvegarde. Retirer la ligne,
-      comme dans [`OPERATIONS.md`](OPERATIONS.md). (Relevé le 29 septembre 2026.)
 
 ---
 
