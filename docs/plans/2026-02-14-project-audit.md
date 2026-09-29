@@ -85,7 +85,7 @@ En février 2026 : backend Quarkus 3.31.2, Java 21 (compile en Java 25), ~90 fic
 | B12 | Pas de test pour `DeviceAuthService` (device code flow) | Important | M | Nouveau fichier test | ⚠️ (`DeviceAuthServiceTest` ne couvre que l'URL de vérification ; émission, complete et polling non testés) |
 | B13 | Code commente dans `PedalonsException` (~40 lignes) | Mineur | S | `PedalonsException.java:23-65` | ✅ |
 | B14 | Logique cle S3 dupliquee (`AssetService` vs `AssetRemoveListener`) | Mineur | S | `AssetService.java`, `AssetRemoveListener.java` | ✅ |
-| B15 | Indexes redondants avec contraintes UNIQUE sur `device_codes` | Mineur | S | `V5__device_codes.sql` | |
+| B15 | Indexes redondants avec contraintes UNIQUE sur `device_codes` | Mineur | S | `V5__device_codes.sql` | ✅ (30 sept. 2026, `V46`) |
 
 ---
 
@@ -445,8 +445,8 @@ Les deux clients partagent des problemes communs :
 |----------|---------|----------|--------|-------|--------|-------|----------|------|-------|
 | Critique | 0 | 0 | 0 | 3 | 1 | 6 | 1 | 0 | **11** |
 | Important | 4 | 2 | 1 | 3 | 7 | 7 | 5 | 0 | **29** |
-| Mineur | 1 | 0 | 2 | 2 | 2 | 0 | 6 | 0 | **13** |
-| **Total** | **5** | **2** | **3** | **8** | **10** | **13** | **12** | **0** | **53** |
+| Mineur | 0 | 0 | 2 | 2 | 2 | 0 | 6 | 0 | **12** |
+| **Total** | **4** | **2** | **3** | **8** | **10** | **13** | **12** | **0** | **52** |
 
 ### Points corrigés depuis l'audit initial
 
@@ -459,5 +459,5 @@ Les deux clients partagent des problemes communs :
 | Frontend | F4, F5, F6, F9, F10, F11, F15 | Cle i18n LoginPage, FullCalendar retire, titres de page, textes RideEditor traduits, pages CGU/confidentialite, cles `_many` |
 | Mobile | M2, M5, M6, M7, M8 | Fuite de subscription, navigation traduite, widgets dedupliques, couleurs du theme, Markdown |
 | Documentation | D2, D3, D4, D6, D9 | rules.md Riverpod, BACKLOG corrige, PRODUCT_SHEET corrige |
-| Septembre 2026 | I2, I11, I12, F1, F2, F3, F7, F13, F14, M1, M3, M9, M10, G2, G3, G13, D1, D5, D7, D8, D10, D11 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), image frontend sur `node`, zoom rendu au viewport, lien d'evitement, BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
+| Septembre 2026 | I2, I11, I12, F1, F2, F3, F7, F13, F14, M1, M3, M9, M10, G2, G3, G13, D1, D5, D7, D8, D10, D11, B15 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), image frontend sur `node`, zoom rendu au viewport, lien d'evitement, index en double de `device_codes` retires (V46), BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
 | Juin-juillet 2026 | B10, K6, M4 | `PedalonsQueryContext` memorise l'utilisateur (3bb01f32), `registerForActivityResult` (7e2d710f), dependances Riverpod inutilisees retirees (874a3288) |
