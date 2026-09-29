@@ -49,6 +49,12 @@ public class AssetAccessChecker implements AccessChecker {
         if (asset == null) {
           yield false;
         }
+        // The asset must belong to the team the URL names, which was resolved on this site (slug
+        // redirects included): the id alone reached any site's asset, and the role checked below
+        // is the caller's role in the URL's team (docs/LEDGER_*.md SEC-12, audit L5).
+        if (team == null || !asset.getTeam().getId().equals(team.getId())) {
+          yield false;
+        }
         team = asset.getTeam();
         TeamEntity teamEntity = asset.getTeamEntity();
         if (teamEntity == null) {

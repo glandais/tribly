@@ -34,6 +34,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -360,7 +362,7 @@ public class AssetService {
             + "/"
             + TsidUtils.toString(asset.getId())
             + "/"
-            + asset.getFileName();
+            + encodePathSegment(asset.getFileName());
     return new AssetDto(
         TsidUtils.toString(asset.getId()),
         asset.getFileName(),
@@ -368,6 +370,15 @@ public class AssetService {
         url,
         imageUrl,
         assetDimensionsDto);
+  }
+
+  /**
+   * The file name as one path segment. The download endpoint ignores it — it only names the file
+   * for whoever saves it — but raw, a {@code ?}, a {@code #} or a {@code /} in an uploaded name cut
+   * the URL short or sent it elsewhere (docs/LEDGER_*.md SEC-12, audit L9).
+   */
+  static String encodePathSegment(String segment) {
+    return URLEncoder.encode(segment, StandardCharsets.UTF_8).replace("+", "%20");
   }
 
   public String getImageUrl(Asset asset) {

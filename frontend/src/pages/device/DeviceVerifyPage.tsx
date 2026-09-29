@@ -46,7 +46,9 @@ export function DeviceVerifyPage() {
       setIsVerifying(true)
       setCodeValid(false)
       try {
-        const response = await fetch(`/api/device/oauth/verify?code=${userCode}`)
+        const response = await fetch(
+          `/api/device/oauth/verify?code=${encodeURIComponent(userCode)}`
+        )
         if (response.ok) {
           const data = await response.json()
           setCodeValid(true)

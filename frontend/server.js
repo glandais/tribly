@@ -255,11 +255,14 @@ async function createServer() {
         // Continue without it — the client falls back to its own /api/auth/refresh at boot
       }
 
+      // Replacer functions, not strings: a replacement string interprets `$&`, `$'` and `$\``, and
+      // the markup carries user content — a title holding `$'` would splice the rest of the
+      // template into the page (docs/LEDGER_*.md SEC-12, audit L7).
       let finalHtml = currentTemplate
-        .replace('<!--ssr-outlet-->', appHtml)
-        .replace('<!--ssr-state-->', stateScript)
-        .replace('<!--ssr-auth-->', authScript)
-        .replace('<!--ssr-head-->', head || '')
+        .replace('<!--ssr-outlet-->', () => appHtml)
+        .replace('<!--ssr-state-->', () => stateScript)
+        .replace('<!--ssr-auth-->', () => authScript)
+        .replace('<!--ssr-head-->', () => head || '')
 
       // The SSR-built link-preview block (injected above) owns the dynamic <title>. index.html also
       // ships a static fallback <title> for the JS-less dev SPA tab; once the block is present there

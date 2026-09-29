@@ -29,6 +29,11 @@ public class GarminCourseConverter {
     try {
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
       factory.setNamespaceAware(true);
+      // No DOCTYPE, hence no external entity nor entity expansion. The input is GPX we wrote
+      // ourselves, but this parser must stay safe if that ever changes (docs/LEDGER_*.md SEC-14).
+      factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+      factory.setXIncludeAware(false);
+      factory.setExpandEntityReferences(false);
       DocumentBuilder builder = factory.newDocumentBuilder();
       Document doc = builder.parse(new ByteArrayInputStream(gpxContent));
 

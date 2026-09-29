@@ -94,10 +94,13 @@ public class GpsResource {
       @QueryParam("state") @Nullable String state,
       @QueryParam("error") @Nullable String error) {
 
-    // Handle OAuth error
+    // Handle OAuth error. The provider's value is never copied into the redirect: it arrives from
+    // whoever built the link, and would add parameters to it — or make URI.create throw
+    // (docs/LEDGER_*.md SEC-12, audit L8). A fixed key per case, the standard refusal kept apart.
     if (error != null) {
+      String key = "access_denied".equals(error) ? "access_denied" : "provider_error";
       return Response.temporaryRedirect(
-              URI.create(gpsService.getFrontendBaseUrl() + "/profile?gps_error=" + error))
+              URI.create(gpsService.getFrontendBaseUrl() + "/profile?gps_error=" + key))
           .build();
     }
 

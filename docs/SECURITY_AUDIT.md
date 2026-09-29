@@ -109,25 +109,25 @@ changement de statut ici se reporte là-bas.
 
 | # | Constat | Statut |
 |---|---|---|
-| L1 | Réinitialiser le mot de passe ne révoque pas les sessions existantes | Ouvert |
+| L1 | Réinitialiser le mot de passe ne révoque pas les sessions existantes | Corrigé (ledger `SEC-20`) |
 | L2 | L'état OAuth Strava n'était pas lié au navigateur qui avait lancé le flux | Caduc : la connexion Strava a été retirée (API 5.0.0) |
 | L3 | Les comptes existants peuvent être énumérés | Ouvert |
 | L4 | Pré-inscription : un mot de passe fixé avant la vérification de l'e-mail survit à celle-ci | Ouvert |
-| L5 | Le contrôle de domaine est incomplet sur la lecture d'un asset | Ouvert |
-| L6 | Le contrôle de domaine est incomplet sur l'ajout d'un membre à une équipe | Ouvert |
-| L7 | SSR : un contenu utilisateur peut défigurer la page rendue (pas de XSS repérée) | Ouvert |
-| L8 | Un paramètre n'est pas encodé dans une redirection | Ouvert |
-| L9 | Un nom de fichier n'est pas encodé dans une URL | Ouvert |
+| L5 | Le contrôle de domaine est incomplet sur la lecture d'un asset | Corrigé (ledger `SEC-20`) |
+| L6 | Le contrôle de domaine est incomplet sur l'ajout d'un membre à une équipe | Corrigé (ledger `SEC-20`) |
+| L7 | SSR : un contenu utilisateur peut défigurer la page rendue (pas de XSS repérée) | Corrigé (ledger `SEC-20`) |
+| L8 | Un paramètre n'est pas encodé dans une redirection | Corrigé (ledger `SEC-20`) |
+| L9 | Un nom de fichier n'est pas encodé dans une URL | Corrigé (ledger `SEC-20`) |
 | L10 | Karoo : les tokens sont stockés sans chiffrement et inclus dans les sauvegardes | Ouvert |
 | L11 | GitHub Actions : durcissement des workflows | Partiellement corrigé : `ci.yml` est en `permissions: contents: read` par défaut (commit `09c65ecd`) ; le reste est ouvert |
 | L12 | Des jokers ne sont pas échappés dans des recherches (audit de février, S9) | Ouvert |
 | L13 | Un en-tête de réponse est construit sans encodage (audit de février, S10) | Ouvert |
 | L14 | Les échecs de connexion ne sont pas journalisés (audit de février, S11) | Ouvert |
 
-Informationnel (ouverts) :
-- Le markdown web accepte des images externes (pistage de l'IP des lecteurs, sans fuite de token).
-- Un parseur XML n'est pas durci ; ce n'est pas exploitable aujourd'hui.
-- Un paramètre de requête du frontend n'est pas encodé.
+Informationnel :
+- Le markdown web accepte des images externes (pistage de l'IP des lecteurs, sans fuite de token). Ouvert.
+- Un parseur XML n'est pas durci ; ce n'est pas exploitable aujourd'hui. Corrigé (ledger `SEC-21`).
+- Un paramètre de requête du frontend n'est pas encodé. Corrigé (ledger `SEC-21`).
 
 ---
 

@@ -94,9 +94,11 @@ public class TeamMembershipService {
     if (!isPlatformAdmin && !team.isAddMemberAllowed()) {
       throw new BusinessException(ErrorCode.TEAM_ADD_MEMBER_NOT_ALLOWED);
     }
+    // An account of another site is a stranger here, and answered as one: the same 404 as an id
+    // that exists nowhere (docs/LEDGER_*.md SEC-12, audit L6).
     User targetUser =
         userRepository
-            .findActiveById(targetUserId)
+            .findActiveByIdAndDomain(pedalonsContext.getDomainId(), targetUserId)
             .orElseThrow(() -> new NotFoundException(EntityType.USER, targetUserId));
 
     return doAddMember(team, role, targetUser);

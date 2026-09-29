@@ -472,6 +472,10 @@ public class AuthService {
 
     user.setPasswordHash(BcryptUtil.bcryptHash(newPassword));
     user.recordLogin();
+    // A reset is what someone does when the password leaked: every session opened with it —
+    // browsers, the app, paired GPS devices — ends here, and only the one below survives
+    // (docs/LEDGER_*.md SEC-12, audit L1). Before it, not after: this bulk update would revoke it.
+    authSessionRepository.revokeAllByUserId(user.getId());
 
     return createAuthResult(user, userAgent, ipAddress);
   }

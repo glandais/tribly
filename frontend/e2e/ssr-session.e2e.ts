@@ -24,7 +24,7 @@ import {
 } from './support/domains'
 import { expect, test, unique } from './support/fixtures'
 import { joinGroup, newRide, ridePath } from './support/rides'
-import { newPost } from './support/posts'
+import { newPost, postPath } from './support/posts'
 import { newRoute, newTrip, routePath, stagePath, tripPath, windingTrack } from './support/routes'
 import {
   authState,
@@ -735,4 +735,27 @@ test.describe('link previews of public content', () => {
     // Chromium resolves *.localhost, Node does not: the picture is fetched with the site's Host.
     await onHost(OTHER_HOST, undefined, (api) => expectImage(api, image, otherPreview.label))
   })
+})
+
+/**
+ * docs/LEDGER_*.md SEC-12 (audit L7): server.js splices the markup and the dehydrated state into
+ * index.html with String.replace. Given a replacement *string*, `` $` `` and `$'` in user content
+ * would paste the template's head or tail into the page; React escapes `'` but not the backtick,
+ * and the dehydrated JSON escapes neither. The document must come out whole, exactly once.
+ */
+test("user content holding $` and $' is rendered as text, not as a replacement pattern", async () => {
+  const owner = await newUser(unique('Dollar'))
+  const team = await newTeam(owner, unique('Équipe dollar'))
+  const title = unique("Prix $` et $' et $&")
+  const post = await newPost(owner, team.slug, title)
+
+  const document = await rawDocument(postPath(team.slug, post.slug), {
+    cookie: sessionCookie(owner),
+  })
+
+  expect(document.status).toBe(200)
+  expect(document.html.match(/<!doctype html>/gi)).toHaveLength(1)
+  expect(document.html.match(/<\/html>/g)).toHaveLength(1)
+  expect(document.html.match(/<div id="root">/g)).toHaveLength(1)
+  expect(ssrOutlet(document.html)).toContain('Prix $` et $&#x27; et $&amp;')
 })

@@ -296,6 +296,12 @@ test('forgotten password: the mail, a new password, then sign in with it', async
   // The reset signs the browser in.
   await expect(page).toHaveURL(/\/$/)
   const profile = await openProfile(page, email)
+  // The reset ended every session opened before it (docs/LEDGER_*.md SEC-12, audit L1) — the
+  // one sign-up opened stands for a stolen one — but not the browser's, which the reset opened.
+  expect(await sessionIsAlive(user.refreshToken), 'the session opened before the reset').toBe(false)
+  expect(await sessionIsAlive((await sessionCookie(context))!), 'the reset’s own session').toBe(
+    true
+  )
   // The old password is gone, the new one works.
   await expect(loginWithPassword(email, user.password)).rejects.toBeInstanceOf(ApiError)
   expect((await loginWithPassword(email, newPassword)).user.email).toBe(email)
