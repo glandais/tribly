@@ -14,7 +14,7 @@ import '../../support/localization.dart';
 /// elle-même.
 ///
 /// Le point de tout l'étage client est là : l'API n'envoie **aucun texte
-/// rendu** (`docs/plans/2026-09-18-notifications.md` §3), donc un écran qui
+/// rendu** (`docs/plans/archive/2026-09-18-notifications.md` §3), donc un écran qui
 /// afficherait `RIDE_PUBLISHED` tel quel serait passé à côté. Les cas ci-dessous
 /// vérifient la phrase, la destination et la distinction lu / non lu.
 class _StubRepository implements NotificationsRepository {

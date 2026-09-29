@@ -49,7 +49,7 @@ interface TeamWebhookSettingsProps {
 /**
  * The team's outgoing webhook (`/api/teams/{teamSlug}/webhook`, team admins only): the team's
  * announcements posted to Slack, Discord or any https endpoint — see
- * `docs/plans/2026-09-18-notifications.md` §12.
+ * `docs/plans/archive/2026-09-18-notifications.md` §12.
  *
  * **The URL is a secret** (a Slack or Discord webhook URL is enough to post to the channel): the API
  * only ever returns it masked, so the input starts empty, shows the masked URL as its placeholder,

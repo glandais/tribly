@@ -12,7 +12,7 @@ final notificationsRepositoryProvider = Provider<NotificationsRepository>((
 
 /// Tout ce que la boîte de réception demande au serveur.
 ///
-/// Les six endpoints de `docs/plans/2026-09-18-notifications.md` §9, sans
+/// Les six endpoints de `docs/plans/archive/2026-09-18-notifications.md` §9, sans
 /// autre logique : c'est la couche qui traduit une page de l'API en
 /// [PageResult], la forme que [PagedListNotifier] attend.
 class NotificationsRepository {

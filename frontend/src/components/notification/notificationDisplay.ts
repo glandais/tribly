@@ -20,7 +20,7 @@ import { paths } from '@/config/paths'
  * How a notification looks and where it leads.
  *
  * The API deliberately carries **no rendered text** (see
- * `docs/plans/2026-09-18-notifications.md` §3): a notification is a type plus structured fields,
+ * `docs/plans/archive/2026-09-18-notifications.md` §3): a notification is a type plus structured fields,
  * and the client words it in the reader's own language. So this module — not the server — owns the
  * wording key, the icon and the destination, exactly as `ErrorCode` is worded client-side.
  */

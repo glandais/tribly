@@ -16,6 +16,7 @@ des tests gardent (`groupLeader_isNotTheRideCreator`, `…QueryCountTest`, les d
 | [`2026-07-31-navbuttons.md`](2026-07-31-navbuttons.md) | Instruction et livraison de la refonte sémantique de `NavButtons` (web) : liens et non `tablist`, mesures prises dans le navigateur | **Livré** le 31 juillet 2026 (lots A, B, C). L'anneau de focus (lot D) reste ouvert dans `LEDGER_NEXT.md` §3.4 ; les deux autres restes du §7 (`/equipes/{slug}/admin/parametres` en SSR direct, préférence de langue) ont été corrigés le 25 septembre 2026 et sont gardés par `frontend/e2e/team-misc.e2e.ts` |
 | [`2026-09-24-signalement.md`](2026-09-24-signalement.md) | Signalement, blocage et filtre de publication exigés par la directive App Store 1.2 | **Livré** le 24 septembre 2026 (V41). Les quatre défauts mineurs restants sont dans `LEDGER_NEXT.md` §8.2 |
 | [`2026-09-27-e2e-coverage-audit.md`](2026-09-27-e2e-coverage-audit.md) | Audit de couverture e2e Playwright, plan P0/P1/P2, suivi des 54 défauts trouvés (était `frontend/E2E_COVERAGE_AUDIT.md`) | **Exécuté** le 28 septembre 2026 : P0, P1 et P2 écrits, sauf le canal e-mail. Le point 40 (hydratation #418) et les idées P2 non écrites sont dans `LEDGER_NEXT.md` §8.4 |
+| [`2026-09-18-notifications.md`](2026-09-18-notifications.md) | Notifications évènementielles : pipeline évènement → notification → livraison, canaux in-app, e-mail, push mobile et Web Push, webhook d'équipe, résumé quotidien | **Livré** — phases 1 à 5 en production le 21 septembre 2026, Web Push le 29 ; archivé le 29 septembre 2026. Le livré (et son ledger rapatrié) est dans `LEDGER_DONE.md` §4.2, les restes dans `LEDGER_NEXT.md` §8.3. Les migrations V37, V39 et V40 citent encore l'ancien chemin `docs/plans/…` : une migration appliquée ne se modifie pas |
 
 ## Les invariants vérifiés du plan mobile
 
@@ -35,15 +36,15 @@ grep -rn "TeamShell" lib                                   # seuls des commentai
 ## Ce qui n'est *pas* archivé
 
 [`../2026-02-14-project-audit.md`](../2026-02-14-project-audit.md) reste dans `docs/plans/` : son
-plan d'action a encore des lignes ouvertes (rate limiting sur `/api/device/oauth/complete`, pipeline
-CD, `maximum-scale=1.0` du viewport, healthchecks…). Ses statuts ont été rafraîchis en partie le 29
+plan d'action a encore des lignes ouvertes, suivies au §7.2 de `LEDGER_NEXT.md`. Ses statuts ont été rafraîchis en partie le 29
 septembre 2026 ; les backups, notamment, existent. La sécurité applicative est suivie à part, dans
 [`docs/SECURITY_AUDIT.md`](../../SECURITY_AUDIT.md) (septembre 2026).
 
-Les plans de [notifications](../2026-09-18-notifications.md) et de
-[migration biketeam en direct](../2026-09-22-biketeam-live-migration.md) restent aussi dans
-`docs/plans/` : le premier a encore des points ouverts (repris dans `LEDGER_NEXT.md` §8.3, son ledger ayant été rapatrié dans `LEDGER_DONE.md` §4.2), le second
-est le contrat en vigueur avec biketeam.
+Le plan de [migration biketeam en direct](../2026-09-22-biketeam-live-migration.md) reste aussi dans
+`docs/plans/` : c'est le contrat en vigueur avec biketeam, jusqu'à la mise en production et l'arrêt
+de biketeam (`LEDGER_NEXT.md` §8.6). De même pour les
+[points ouverts de la politique de confidentialité](../2026-09-29-privacy-policy-open-points.md),
+qui attendent des décisions (`LEDGER_NEXT.md` §7.3).
 
 [`audit-ux/`](audit-ux/) est l'**entrant** de design (brief, analyse page par page, descriptifs
 des captures) et documente l'état d'avant la v2 ; il ne décrit pas le code actuel. Sa charte et sa

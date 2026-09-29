@@ -7,7 +7,7 @@ import '../../../core/theme/pdl_icons.dart';
 
 /// Ce qu'une notification dit, montre, et où elle mène.
 ///
-/// L'API ne transporte **aucun texte rendu** (`docs/plans/2026-09-18-notifications.md`
+/// L'API ne transporte **aucun texte rendu** (`docs/plans/archive/2026-09-18-notifications.md`
 /// §3) : une notification est un type et des champs structurés, et c'est le
 /// client qui la formule dans la langue du lecteur — même principe que les
 /// `ErrorCode`. Le libellé, l'icône et la destination vivent donc ici, et pas

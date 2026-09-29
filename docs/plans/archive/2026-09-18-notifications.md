@@ -1,15 +1,15 @@
 # Notifications évènementielles
 
-> Écrit le 18 septembre 2026. **Phases 1 à 5 en production depuis le 21 septembre 2026** ; le Web
-> Push l'est depuis le 29 septembre. Les deux points encore ouverts (recette du webhook, décision
-> sur l'e-mail) sont repris au §8.3 de
-> [`docs/LEDGER_NEXT.md`](../LEDGER_NEXT.md) ; ce qui est livré, phase par phase, est au §4.2 de
-> [`docs/LEDGER_DONE.md`](../LEDGER_DONE.md), où le ledger du chantier a été rapatrié le
+> **Archivé le 29 septembre 2026.** Écrit le 18 septembre 2026. **Phases 1 à 5 en production
+> depuis le 21 septembre 2026** ; le Web Push l'est depuis le 29 septembre. Les points encore
+> ouverts (recette du webhook, décision sur l'e-mail, *DNS rebinding* du webhook) sont repris au §8.3 de
+> [`docs/LEDGER_NEXT.md`](../../LEDGER_NEXT.md) ; ce qui est livré, phase par phase, est au §4.2 de
+> [`docs/LEDGER_DONE.md`](../../LEDGER_DONE.md), où le ledger du chantier a été rapatrié le
 > 29 septembre 2026. Ce document porte la conception et ses arbitrages.
 
 Reprend et remplace deux entrées ouvertes : le « Versatile notification system » de
-[`BACKLOG.md`](../BACKLOG.md) (P3) et le §4.2 « Notifications push » de
-[`docs/LEDGER_NEXT.md`](../LEDGER_NEXT.md). Le push n'est plus un chantier à part : c'est un canal parmi d'autres
+[`BACKLOG.md`](../../BACKLOG.md) (P3) et le §4.2 « Notifications push » de
+[`docs/LEDGER_NEXT.md`](../../LEDGER_NEXT.md). Le push n'est plus un chantier à part : c'est un canal parmi d'autres
 d'un même pipeline.
 
 ## 1. Ce qu'on veut
@@ -227,7 +227,7 @@ explicite, par tranches de 500 — `NotificationRetentionService`). La remise en
 
 ## 12. Phase 5 — nouveaux types, préférences par équipe, webhook, résumé
 
-> Écrit le 21 septembre 2026, avant la phase 5. État : [`docs/LEDGER_DONE.md`](../LEDGER_DONE.md) §4.2.
+> Écrit le 21 septembre 2026, avant la phase 5. État : [`docs/LEDGER_DONE.md`](../../LEDGER_DONE.md) §4.2.
 
 ### Cinq types de plus
 

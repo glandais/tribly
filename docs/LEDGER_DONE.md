@@ -221,7 +221,7 @@ fondu piloté par la position de défilement, et libellés inactifs sortis du `d
 ### 4.2 Notifications push — livré, en production depuis le 21 septembre 2026
 
 Repris le 18 septembre 2026 par
-[`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md), où le push est devenu un
+[`plans/archive/2026-09-18-notifications.md`](plans/archive/2026-09-18-notifications.md), où le push est devenu un
 canal d'un pipeline commun (boîte de réception, e-mail, push). La phase 5 (dont le rappel J-1) est
 en production depuis le même jour. Ce qui reste est au §8.3 de `LEDGER_NEXT.md`.
 
@@ -347,7 +347,7 @@ sans champ, instancier une sortie depuis un gabarit ne désigne personne.
   ([spécification archivée](plans/archive/2026-09-24-signalement.md)). Quatre défauts mineurs
   restent : `LEDGER_NEXT.md` §8.2.
 - **8.3 Notifications** — phases 1 à 5 de
-  [`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md) en production, le Web
+  [`plans/archive/2026-09-18-notifications.md`](plans/archive/2026-09-18-notifications.md) en production, le Web
   Push aussi depuis le 29 septembre 2026 ; le détail, rapatrié du ledger du chantier, est au §4.2.
 - **8.4 Audit de couverture e2e du 27 septembre** — exécuté
   ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md)) : P0, P1 et P2 écrits, 54 défauts

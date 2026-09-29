@@ -49,7 +49,7 @@ function cellOf(
  * Only the **channels the server says are configurable** get a column: `IN_APP` never appears (the
  * inbox is always on, and `PUT` refuses it), and `PUSH` only once phase 4 ships an emitter. When
  * that list comes back empty, the matrix is hidden rather than rendered with no columns — see
- * `docs/plans/2026-09-18-notifications.md` §5. The team mutes don't depend on it: muting a team
+ * `docs/plans/archive/2026-09-18-notifications.md` §5. The team mutes don't depend on it: muting a team
  * also keeps its announcements out of the inbox (§12), so they show whenever the user has a team.
  * The section disappears only when there is neither.
  */

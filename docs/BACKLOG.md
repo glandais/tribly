@@ -92,7 +92,7 @@ Requires significant architecture work. Spike before committing.
 ### Notifications
 - [x] Versatile notification system
   - **Phases 1 to 5 in production since 2026-09-21** — design in
-    docs/plans/2026-09-18-notifications.md, what shipped in docs/LEDGER_DONE.md §4.2
+    docs/plans/archive/2026-09-18-notifications.md, what shipped in docs/LEDGER_DONE.md §4.2
   - Event types, team/user preferences, in-app inbox, team webhook, daily digest
   - Mobile push: **live in production since 2026-09-21** (FCM, Android + iOS)
   - Web push: **live in production since 2026-09-29** (installable site, same FCM, platform `WEB`)

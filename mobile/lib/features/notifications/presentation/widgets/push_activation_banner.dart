@@ -19,7 +19,7 @@ import '../../providers/push_provider.dart';
 ///
 /// - **le serveur sait pousser** : `PUSH` figure dans les canaux de la matrice
 ///   de préférences, ce qui n'arrive que quand `FcmClient` est configuré
-///   (`docs/plans/2026-09-18-notifications.md` §5) ;
+///   (`docs/plans/archive/2026-09-18-notifications.md` §5) ;
 /// - **l'appareil n'a pas encore dit oui**.
 ///
 /// Refus définitif : la boîte de dialogue du système ne revient pas, donc le

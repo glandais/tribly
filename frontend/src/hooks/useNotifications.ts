@@ -11,7 +11,7 @@ import { useAuthStore, selectIsAuthenticated } from '@/store/authStore'
 
 /**
  * How often the bell re-asks for the unread count. The plan has no realtime channel in phase 1
- * (`docs/plans/2026-09-18-notifications.md` §9): clients poll this cheap endpoint on focus and at
+ * (`docs/plans/archive/2026-09-18-notifications.md` §9): clients poll this cheap endpoint on focus and at
  * most once a minute. Shortening it buys very little and costs one request per minute per open tab.
  */
 const UNREAD_POLL_INTERVAL_MS = 60_000

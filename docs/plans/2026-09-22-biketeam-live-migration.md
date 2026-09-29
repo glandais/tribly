@@ -1,5 +1,10 @@
 # Migration biketeam → Pédalons, équipe par équipe et en direct
 
+> **Reste à faire** : suivi au §8.6 de [`docs/LEDGER_NEXT.md`](../LEDGER_NEXT.md) (mise en
+> production, 302 → 301, domaines personnalisés, liens et logos avant l'arrêt de biketeam, équipe
+> migrée supprimable, données non importées, fin de vie du code) et au §2 (purge de la corbeille,
+> `ssr-audit` sur `notifications`). Ce plan s'archivera après l'arrêt de biketeam.
+>
 > Écrit le 22 septembre 2026. **Implémenté et fusionné** des deux côtés (V43, suite e2e du 25
 > septembre 2026), **en service en staging** ; la mise en production attend biketeam (§10, « Ordre
 > de mise en production ») ; l'ancien import par dump a été **supprimé le 28 septembre 2026**. Ce document

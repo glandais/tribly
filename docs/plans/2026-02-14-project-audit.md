@@ -10,6 +10,12 @@
 > `forwardedHeaders.insecure`, pipeline CD, healthchecks. La sécurité applicative est désormais
 > suivie dans [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) (septembre 2026) ; ce document reste la
 > référence pour l'infrastructure, la CI/CD et la qualité des modules.
+>
+> **Suivi** : les lignes ouvertes de sécurité (S2 à S12) sont versées dans
+> [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) (H5, M7 à M10, L12 à L14), donc au §7.1 du ledger ;
+> les autres lignes ouvertes sont reprises, une par une, au §7.2 de
+> [`LEDGER_NEXT.md`](../LEDGER_NEXT.md) (I13 et I20 au §1.3), revérifiées dans le code le
+> 29 septembre 2026. Une ligne corrigée se coche ici **et** quitte le ledger.
 
 ## Résumé exécutif
 
@@ -108,7 +114,7 @@ En février 2026 : React 19, TypeScript 5.9, Vite 7, Mantine 8, ~97 composants T
 | F5 | FullCalendar 7.0.0-beta.6 — API instable, pas de support prod | Important | M | `package.json` | ✅ |
 | F6 | Pas de titres de page dynamiques (titre statique partout) | Important | M | Toutes les pages | ✅ |
 | F7 | Skip-to-content non implemente (cle i18n existe) | Important | S | `Layout.tsx` | |
-| F8 | Images sans `loading="lazy"` | Important | S | `CardImage.tsx`, `AssetImage.tsx` | ✅ |
+| F8 | Images sans `loading="lazy"` | Important | S | `CardImage.tsx`, `AssetImage.tsx` | ⚠️ (`CardImage.tsx` fait ; `AssetImage.tsx` n'a pas `loading` — peut-être voulu : l'image est masquée pendant son chargement, et une image `lazy` masquée ne se charge pas) |
 | F9 | "Groupe" hardcode en francais dans RideEditor | Important | S | `RideEditor.tsx:96` | ✅ |
 | F10 | Message validation Zod hardcode en anglais | Important | S | `RideEditor.tsx:42` | ✅ |
 | F11 | Liens `/terms` et `/privacy` vers pages inexistantes | Important | M | `LoginPage.tsx:280-281` | ✅ |
@@ -147,7 +153,7 @@ Flutter, Dart 3.10+, Riverpod 3, GoRouter 17. 8 features (auth, home, teams, rid
 | M9 | Feature parity manquante : Posts, Comments, Publications feed | Important | XL | Nouveaux features | ✅ (`features/posts`, `comments`, `feed`) |
 | M10 | 6 TODOs non implementes (discover teams, delete account, notifications) | Important | L | `profile_page.dart`, `teams_page.dart` | ✅ |
 | M11 | Lint rules trop minimales (`analysis_options.yaml`) | Important | S | `analysis_options.yaml` | |
-| M12 | `debugPrint` au lieu de `dart:developer.log` | Mineur | S | `main.dart` | ✅ |
+| M12 | `debugPrint` au lieu de `dart:developer.log` | Mineur | S | `main.dart` | ⚠️ (`main.dart` propre ; restent des `debugPrint` dans `core/utils/link_launcher.dart` et `screenshots/screenshot_mode.dart`) |
 | M13 | Pas de gestion offline | Mineur | XL | Transversal | |
 
 ---
@@ -245,14 +251,14 @@ Docker Compose : 7 services par environnement (`docker-compose.yml`) + 2 partag�
 | I10 | `forwardedHeaders.insecure=true` sur Traefik | Important | S | `docker-compose.yml` | |
 | I11 | Frontend Dockerfile : `pnpm install` sans `--frozen-lockfile` | Important | S | `frontend/Dockerfile` | ✅ |
 | I12 | Image nginx tierce `steebchen/nginx-spa:stable` | Important | M | `frontend/Dockerfile` | ✅ (plus de nginx : image `node`, `server.js`) |
-| I13 | Access logs Traefik non persistes (volume manquant) | Important | S | `docker-compose.yml` | |
+| I13 | Access logs Traefik non persistes (volume manquant) | Important | S | `docker-compose.yml` | (suivi : [`LEDGER_NEXT.md`](../LEDGER_NEXT.md) §1.3) |
 | I14 | Aucune limite de ressources sur les containers | Important | S | `docker-compose.yml` | |
 | I15 | VCL Varnish minimale (pas de purge, grace, ban) | Important | M | `varnish.vcl` | |
 | I16 | `backend/.env` tracke dans git avec MAPBOX_API_KEY | Important | S | `backend/.env` | ✅ |
 | I17 | imgproxy sans signature URL (IMGPROXY_KEY/SALT) | Important | M | `docker-compose.yml` | |
 | I18 | PRs Dependabot non testees (CI desactivee sur develop) | Critique | S | `ci.yml` | ✅ |
 | I19 | Pas de procedure de rotation des secrets | Important | M | Documentation | |
-| I20 | Pas de test de recovery documente | Critique | L | Documentation + scripts | ⚠️ (procédure documentée : `docs/OPERATIONS.md`, « Restore drill from another machine » ; exercice jamais mené) |
+| I20 | Pas de test de recovery documente | Critique | L | Documentation + scripts | ⚠️ (procédure documentée : `docs/OPERATIONS.md`, « Restore drill from another machine » ; exercice jamais mené — suivi : [`LEDGER_NEXT.md`](../LEDGER_NEXT.md) §1.3) |
 
 ---
 
@@ -277,17 +283,17 @@ Multi-tenancy par domaine HTTP avec filtrage SQL. Auth JWT 15min (web) / 60min (
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
 | S1 | **Endpoint `/api/device/oauth/complete` sans authentification** — userId fourni par le client, permet usurpation d'identite | Critique | S | `DeviceOAuthResource.java:79` | ✅ |
-| S2 | **Aucun rate limiting sur `/complete`** — user code 6 chars bruteforcable | Critique | S | `DeviceOAuthResource.java` | |
-| S3 | Pas de rotation du refresh token au refresh — vol exploitable 30/90 jours | Important | M | `AuthService.java:211-243` | |
-| S4 | `UserRepository.findActiveById()` sans filtre domainId — pattern fragile | Important | S | `UserRepository.java:22-24` | |
-| S5 | `PasskeyRepository.findByCredentialId()` sans filtre domainId | Important | S | `PasskeyRepository.java:12-14` | |
-| S6 | Device JWT 60min — genereux pour un token non-revocable | Important | S | `application.properties` | |
-| S7 | Rate limiting global HTTP absent | Important | M | Configuration infra | |
-| S8 | CORS origines dev en defaut (controllable via variable d'env) | Mineur | S | `application.properties` | ⚠️ |
-| S9 | LIKE wildcards non echappees dans la recherche | Mineur | S | `UserRepository.java` | |
-| S10 | Header injection potentielle dans Content-Disposition | Mineur | S | `DeviceRoutesResource.java` | |
-| S11 | Logs insuffisants pour detecter les tentatives de brute force | Mineur | S | `AuthService.java` | ⚠️ |
-| S12 | Cookie `secure=false` par defaut en dev, `true` en prod | Mineur | S | `application.properties` | ⚠️ |
+| S2 | **Aucun rate limiting sur `/complete`** — user code 6 chars bruteforcable | Critique | S | `DeviceOAuthResource.java` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) H5 |
+| S3 | Pas de rotation du refresh token au refresh — vol exploitable 30/90 jours | Important | M | `AuthService.java:211-243` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M7 |
+| S4 | `UserRepository.findActiveById()` sans filtre domainId — pattern fragile | Important | S | `UserRepository.java:22-24` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M8 |
+| S5 | `PasskeyRepository.findByCredentialId()` sans filtre domainId | Important | S | `PasskeyRepository.java:12-14` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M8 |
+| S6 | Device JWT 60min — genereux pour un token non-revocable | Important | S | `application.properties` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M9 |
+| S7 | Rate limiting global HTTP absent | Important | M | Configuration infra | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M10 |
+| S8 | CORS origines dev en defaut (controllable via variable d'env) | Mineur | S | `application.properties` | ⚠️ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) contrôles conformes |
+| S9 | LIKE wildcards non echappees dans la recherche | Mineur | S | `UserRepository.java` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L12 |
+| S10 | Header injection potentielle dans Content-Disposition | Mineur | S | `DeviceRoutesResource.java` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L13 |
+| S11 | Logs insuffisants pour detecter les tentatives de brute force | Mineur | S | `AuthService.java` | ⚠️ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L14 |
+| S12 | Cookie `secure=false` par defaut en dev, `true` en prod | Mineur | S | `application.properties` | ⚠️ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) contrôles conformes |
 | S13 | DataStore Karoo non chiffre (tokens en clair) | Mineur | M | `AuthManager.kt` | |
 | S14 | Pas de validation/scanning des fichiers uploades | Mineur | L | `AssetService.java` | ✅ |
 
@@ -394,7 +400,7 @@ Les deux clients partagent des problemes communs :
 | # | Action | Composant | Statut |
 |---|--------|-----------|--------|
 | 26 | Refactorer `MainActivity.kt` Karoo (extraire screens, ajouter ViewModel) | Karoo |
-| 27 | Mettre a jour les dependances Karoo (core-ktx) | Karoo |
+| 27 | Mettre a jour les dependances Karoo (core-ktx) | Karoo | ✅ (core-ktx 1.19.1, Compose BOM 2026.09.00, ktor 3.6.0) |
 | 28 | Rendre l'URL Garmin configurable (Properties Connect IQ) | Garmin |
 | 29 | Ajouter des titres de page dynamiques (frontend) | Frontend | ✅ |
 | 30 | Ajouter skip-to-content et aria-labels manquants | Frontend |
@@ -438,9 +444,9 @@ Les deux clients partagent des problemes communs :
 | Severite | Backend | Frontend | Mobile | Karoo | Garmin | Infra | Securite | Docs | Total |
 |----------|---------|----------|--------|-------|--------|-------|----------|------|-------|
 | Critique | 0 | 1 | 0 | 3 | 1 | 6 | 1 | 0 | **12** |
-| Important | 4 | 2 | 1 | 3 | 7 | 7 | 5 | 0 | **29** |
-| Mineur | 1 | 0 | 1 | 2 | 2 | 0 | 6 | 0 | **12** |
-| **Total** | **5** | **3** | **2** | **8** | **10** | **13** | **12** | **0** | **53** |
+| Important | 4 | 3 | 1 | 3 | 7 | 7 | 5 | 0 | **30** |
+| Mineur | 1 | 0 | 2 | 2 | 2 | 0 | 6 | 0 | **13** |
+| **Total** | **5** | **4** | **3** | **8** | **10** | **13** | **12** | **0** | **55** |
 
 ### Points corrigés depuis l'audit initial
 
@@ -450,8 +456,8 @@ Les deux clients partagent des problemes communs :
 | Karoo | K4, K5, K8, K11 | Compose BOM 2026.03.00, ktor 3.4.2, generateQrCode partage, package documente |
 | Infrastructure | I1, I8, I16, I18 | CI sur develop, tests frontend actives, backend/.env dans .gitignore |
 | Securite | S1, S14 | @RolesAllowed sur /complete, Magika pour validation uploads |
-| Frontend | F4, F5, F6, F8, F9, F10, F11, F15 | Cle i18n LoginPage, FullCalendar retire, titres de page, `loading="lazy"`, textes RideEditor traduits, pages CGU/confidentialite, cles `_many` |
-| Mobile | M2, M5, M6, M7, M8, M12 | Fuite de subscription, navigation traduite, widgets dedupliques, couleurs du theme, Markdown, `dart:developer.log` |
+| Frontend | F4, F5, F6, F9, F10, F11, F15 | Cle i18n LoginPage, FullCalendar retire, titres de page, textes RideEditor traduits, pages CGU/confidentialite, cles `_many` |
+| Mobile | M2, M5, M6, M7, M8 | Fuite de subscription, navigation traduite, widgets dedupliques, couleurs du theme, Markdown |
 | Documentation | D2, D3, D4, D6, D9 | rules.md Riverpod, BACKLOG corrige, PRODUCT_SHEET corrige |
 | Septembre 2026 | I2, I11, I12, F2, F3, F13, F14, M1, M3, M9, M10, G2, G3, G13, D1, D5, D7, D8, D10, D11 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), image frontend sur `node`, BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
 | Juin-juillet 2026 | B10, K6, M4 | `PedalonsQueryContext` memorise l'utilisateur (3bb01f32), `registerForActivityResult` (7e2d710f), dependances Riverpod inutilisees retirees (874a3288) |

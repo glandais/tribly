@@ -11,7 +11,7 @@ import '../data/notifications_repository.dart';
 
 /// Le rythme du sondage de la pastille.
 ///
-/// Phase 1 n'a pas de canal temps réel (`docs/plans/2026-09-18-notifications.md`
+/// Phase 1 n'a pas de canal temps réel (`docs/plans/archive/2026-09-18-notifications.md`
 /// §9) : les clients interrogent `unread-count`, qui est fait pour ça, au plus
 /// une fois par minute. Descendre sous cette barre coûte une requête par minute
 /// et par appareil pour un chiffre qui bouge quelques fois par jour.

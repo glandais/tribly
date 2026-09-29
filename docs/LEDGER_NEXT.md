@@ -101,7 +101,7 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       thème, langue, « Être contacté par les membres ») ; un échec revient à la valeur précédente.
       Ajouter une seconde clé d'accès **n'écrase plus les autres**. `logout-all` est câblé.
       La cloche et la section Notifications existent depuis la phase 3 de
-      [`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md) — mais la section
+      [`plans/archive/2026-09-18-notifications.md`](plans/archive/2026-09-18-notifications.md) — mais la section
       reste **non rendue** tant que le serveur ne déclare aucun canal configurable — le défaut en
       dev, plus le cas en prod depuis que le push y est actif : à recetter dans les deux états.
 - [ ] **Deeplinks à froid** — application tuée, ouvrir un lien de sortie, de parcours et d'annonce.
@@ -172,6 +172,12 @@ ce que l'automatisation ne voit pas, dit sous chaque ligne).
       masquage des deux paramètres dans les deux, ou retirer le champ de la requête du journal
       Traefik. Source : [`OPERATIONS.md`](OPERATIONS.md#redacting-credentials-from-access-logs).
       Voir aussi §7.1 (le jeton ICS qui n'expire jamais).
+- [ ] **Journal d'accès Traefik non persisté** (audit de février, I13) — `docker-compose.yml` écrit
+      dans `/var/log/traefik/access.log` sans volume : le journal meurt avec le conteneur. À traiter
+      avec la ligne précédente (même fichier, même décision : persister, filtrer ou couper).
+- [ ] **Exercice de restauration** (audit de février, I20) — la procédure est écrite
+      ([`OPERATIONS.md`](OPERATIONS.md), « Restore drill from another machine ») mais rien ne dit
+      qu'elle a été menée de bout en bout sur une autre machine.
 - [ ] **Copie à froid des données Valhalla** — `~/shared/data/valhalla` (~17 Go, des heures à
       reconstruire) est hors des sauvegardes nocturnes : la copier **une fois** vers l'hôte de
       sauvegarde, puis à chaque changement d'extrait OSM. Rien ne dit que c'est fait, et les données
@@ -211,6 +217,9 @@ Relevés le 29 septembre 2026, en vérifiant `docs/*.md` contre le code :
   n'émet de `noindex` par page ; les pages non listées étant rendues en SSR, un robot les indexe.
   Le correctif va dans les `meta()` de `routes.config.ts`. Source : [`BACKLOG.md`](BACKLOG.md)
   (« Visibility Controls »).
+- **`pnpm ssr-audit:verify` échoue sur `notifications`** — la route est `web: true` dans
+  `contracts/routes.yaml` mais absente de `scripts/routes-ssr.yml`. Relevé pendant la migration
+  biketeam ([plan](plans/2026-09-22-biketeam-live-migration.md), écarts frontend, point 5).
 - **NPE 500 sur un `media` incomplet** — relevée le 20 septembre 2026 pendant la recette des
   notifications : `POST /api/teams/{slug}/rides` avec `media.assets = {}` lève une
   `NullPointerException` dans `AssetService.updateAssets`, qui déréférence `assets.images()` sans
@@ -388,6 +397,7 @@ sont des invariants que le code garde.
 | **Édition et création de contenu au mobile** | Hors brief : la v2 est une version de consultation et de participation | Le sélecteur de meneur dans l'éditeur de groupes existe **côté web** (livré hors plan) ; l'équivalent mobile n'est pas ouvert |
 | **Badge iOS du push** | Écarté, côté serveur comme côté app | Serveur : il faudrait recompter les non-lues à l'envoi, et `NotificationMessage` ne porte ni le domaine ni ce compteur. App : `flutter_local_notifications` ne pose un badge qu'en affichant une notification, et en arrière-plan c'est le système qui affiche celle de FCM — une dépendance de plus pour un compteur que la cloche montre déjà. D'où l'absence de `content-available` (voir `LEDGER_DONE.md` §4.2) |
 | **Isolat de fond du push (`onBackgroundMessage`)** | Non écrit | Le serveur envoie `notification` **et** `data` : le système affiche la bannière sans l'app, un isolat n'aurait rien à faire de plus |
+| **Temps réel des notifications (SSE)** | Non fait : sondage de `unread-count` | Un flux SSE « si le besoin se confirme » ([plan](plans/archive/2026-09-18-notifications.md) §9) ; la cloche sonde au plus une fois par minute |
 | **Tests Vitest de la cloche et de la page Notifications** | Écartés le 29 septembre 2026 | La recette navigateur les a validées ; le mobile a son test de widget (`notifications_page_test.dart`) |
 | **Contenu masqué d'un compte effacé** | Reste masqué | L'effacement supprime les signalements visant le membre, mais ne touche pas `moderationHiddenAt` sur ses sorties, parcours, posts et voyages. Ce contenu, masqué par 3 signalements, n'a plus d'entrée dans la file et reste invisible pour les membres. C'est voulu : le démasquer republierait un contenu signalé 3 fois |
 | **`acceptTerms` obligatoire à l'inscription (contrat `4.1.0`)** | Laissé en mineure | Les builds mobiles qui n'envoient pas le champ reçoivent un 400 `VALIDATION` à l'inscription. La rupture est acceptée sans passer en `5.0.0` |
@@ -403,19 +413,12 @@ restent ouvertes :
   « Terminée » sur les sorties et voyages (qui recoupe le point 16 du §5 ci-dessus) et le système de
   notifications (qui recoupe le §4.2 et le §8.3).
 - [`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md) — audit d'infrastructure,
-  CI/CD et qualité des modules, statuts rafraîchis le 29 septembre 2026. Ses lignes critiques encore
-  ouvertes : rate limiting sur `/api/device/oauth/complete`, pipeline CD, `maximum-scale=1.0` du
-  viewport, healthchecks Docker partiels, `forwardedHeaders.insecure` sur Traefik, URL de
-  production en dur dans l'app Garmin, `MainActivity.kt` monolithique côté Karoo. Les backups
-  PostgreSQL et MinIO existent (`scripts/backup.sh`, `scripts/restore.sh`). Côté tests frontend,
-  une suite e2e existe depuis le 25 septembre 2026 (`frontend/e2e/`, §1.2), mais elle ne tourne
-  qu'en local : aucune CI ne la lance.
+  CI/CD et qualité des modules, statuts rafraîchis le 29 septembre 2026. Ses lignes ouvertes sont
+  suivies au §7.2.
 - [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) — audit de sécurité de septembre 2026 ; il fait foi pour
   les vulnérabilités, l'audit de février pour l'infrastructure.
 - [`plans/2026-09-29-privacy-policy-open-points.md`](plans/2026-09-29-privacy-policy-open-points.md) — ce que la politique de
-  confidentialité ne dit pas encore, ou mal, et qui demande une décision juridique : import
-  biketeam, conservation des messages d'annonce, position précise envoyée par Garmin et Karoo,
-  contenu lisible sans compte, sous-traitants du Web Push.
+  confidentialité ne dit pas encore, ou mal, et qui demande une décision juridique : suivi au §7.3.
 
 ### 7.1 Audit de sécurité — constats ouverts
 
@@ -429,13 +432,15 @@ fichiers (statut et commit dans l'audit, ligne déplacée dans `LEDGER_DONE.md` 
 | 1 | H2 | Élevée | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif |
 | 1 | H3 | Élevée | L'autorisation d'un appareil peut aboutir sans confirmation explicite |
 | 1 | H4 | Élevée | L'app mobile peut transmettre ses identifiants à d'autres hôtes que l'API |
+| — | H5 | Élevée | Un point du flux d'autorisation des appareils n'a aucune limitation de débit (audit de février, S2) |
 | 2 | V1 | **Critique si confirmé** | Clé JWT présente dans l'historique public : vérifier que prod et staging n'en sont pas des copies |
 | 4 | M3 | Moyenne | Traitement GPX non borné en mémoire |
 | 4 | M4 | Moyenne | Connexion par mot de passe sans limitation de débit ni verrouillage |
 | — | M2 | Moyenne | Flou d'~1 km des annonces affinable par requêtes répétées (contredit la décision du §6) |
 | — | M5 | Moyenne | Login CSRF via le lien de vérification d'e-mail |
 | — | M6 | Moyenne | ReDoS sur une expression régulière appliquée au markdown |
-| — | L1, L3–L10 | Faible | Voir la table des constats faibles de l'audit |
+| — | M7 à M10 | Moyenne | Refresh token non renouvelé ; résolution d'identité sans filtre de domaine ; jeton d'appareil long et non révocable ; pas de limitation de débit HTTP globale — voir §4.5 (audit de février, S3 à S7) |
+| — | L1, L3–L10, L12–L14 | Faible | Voir la table des constats faibles de l'audit (L12 à L14 viennent de l'audit de février, S9 à S11) |
 | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | — | Info | — | Images externes dans le markdown, parseur XML non durci, paramètre de requête non encodé |
 | — | V2 | — | Reliquat : les comptes déjà rattachés par l'ancien import biketeam |
@@ -447,6 +452,69 @@ le **jeton du flux ICS n'expire jamais** — seule la régénération manuelle
 ce qui borne sa fuite par un journal.
 
 ---
+
+### 7.2 Audit d'infrastructure de février — lignes ouvertes
+
+[`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md) fait foi pour le détail et
+les statuts ; cette table les suit, revérifiés dans le code le 29 septembre 2026. Quand une ligne
+est corrigée : ✅ dans l'audit, ligne déplacée dans `LEDGER_DONE.md` §7.2. Les identifiants sont
+ceux de l'audit (section « Problèmes » ; `P…` = plan d'action). Deux gestes d'exploitation de
+l'audit sont au §1.3 (I13, I20).
+
+| Thème | # | Gravité | Constat |
+|---|---|---|---|
+| CI/CD | I3 | Critique | Aucun pipeline de déploiement (`ci.yml`, `codeql.yml`, `karoo-release.yml` seulement) |
+| CI/CD | I4 | Critique | Images taguées par environnement (`pedalons-*:${ENV_NAME}`) : pas de retour arrière par version |
+| CI/CD | — | — | La suite e2e (`frontend/e2e/`, §1.2) ne tourne qu'en local : la CI ne lance que `pnpm test run` |
+| CI/CD | I9 | Important | Node 24 en CI, `node:26.9.0-alpine` dans le Dockerfile du frontend |
+| Docker | I5 | Critique | Seul postgres a un healthcheck ; l'endpoint `smallrye-health` du backend existe pourtant |
+| Docker | I10 | Important | `forwardedHeaders.insecure=true` sur Traefik (atténué par l'écoute en loopback) — voir V3 au §7.1 |
+| Docker | I14 | Important | Aucune limite CPU ou mémoire dans les compose |
+| Docker | I15 | Important | VCL Varnish réduite à un `backend default` : ni purge, ni grace, ni ban |
+| Docker | I17 | Important | imgproxy sans signature d'URL (ni `IMGPROXY_KEY` ni `IMGPROXY_SALT`) — même brique que les URLs signées du §4.3 |
+| Docker | I19 | Important | Aucune procédure de rotation des secrets dans `OPERATIONS.md` |
+| Observabilité | I6 | Critique | Aucune collecte de métriques (ni Micrometer, ni Prometheus, ni OpenTelemetry) |
+| Observabilité | I7 | Critique | Aucune alerte |
+| Observabilité | §9.3 | — | Pas de journaux JSON centralisés |
+| Backend | B4 | Important | `@Transactional` sur dix `*Resource`, en double des services |
+| Backend | B9, B11 | Important | `FetchType.EAGER` sur neuf `@ManyToOne` (`Ride`, `RideGroup`, `Trip`, `TripStage`, `UserTeam`) |
+| Backend | B12 | Important | Device flow sans test backend (couvert par `frontend/e2e/flow-device.e2e.ts`) |
+| Backend | B15 | Mineur | Index en double des colonnes `UNIQUE` de `device_codes` (V5) |
+| Web | F1 | Critique | `maximum-scale=1.0` dans le viewport (`frontend/index.html`) : zoom bloqué, WCAG |
+| Web | F7 | Important | Pas de lien d'évitement ; la clé `nav.skipToContent` existe sans usage — voir aussi §3.4 |
+| Mobile | M11 | Important | Lints Flutter par défaut seulement (`analysis_options.yaml`) |
+| Mobile | M13 | Mineur | Pas de hors-ligne — voir §4.3 |
+| Karoo | K1 | Critique | `MainActivity.kt` monolithique (1 625 lignes) |
+| Karoo | K2, K3 | Critique | Aucun test ; aucun `ViewModel` alors que la dépendance est déclarée |
+| Karoo | K7, K9, K10, K13 | Important / mineur | Refresh du jeton en trois endroits ; pas de `slow_down` (RFC 8628) ; routes non paginées ; `navigation-compose` déclaré sans `NavHost` |
+| Garmin | G1 | Critique | `BASE_URL` de production en dur (`ApiClient.mc`) : bloque le multi-tenant |
+| Garmin | G4, G5, G7, G10 | Important | `loadResource()` dans `onUpdate()` ; AM/PM en dur ; état comparé à une chaîne localisée ; `_tokenCallback` partagé entre refresh et polling |
+| Garmin | G6, G8, G9 | Important | Version du SDK en dur dans le Makefile ; pas de `slow_down` ; offsets fixes dans les layouts |
+| Garmin | G11, G12 | Mineur | `System.println` commentés ; chaînes `Back`, `AM`, `PM` inutilisées |
+| Appareils | §9.2 | — | Reprise d'un flow d'autorisation interrompu et résilience réseau pendant le polling, à revérifier |
+
+Suivis ailleurs : les lignes de sécurité S2 à S12 sont versées dans `SECURITY_AUDIT.md`, donc au §7.1
+(H5, M7 à M10, L12 à L14 ; S8 et S12 y sont rangées comme conformes). K12 (= S13, jetons Karoo en
+clair) est L10 au §7.1, P2-44 (en-têtes CSP/HSTS) est
+V4 au §7.1, F12 (sitemap) reste au [`BACKLOG.md`](BACKLOG.md).
+
+### 7.3 Politique de confidentialité — points ouverts
+
+[`plans/2026-09-29-privacy-policy-open-points.md`](plans/2026-09-29-privacy-policy-open-points.md)
+porte le détail et les options ; tous demandent une décision avant d'écrire. Toute modification de
+`privacy/privacy-policy.{fr,en}.md` se fait **en parité FR/EN**, et le texte étant un asset de
+l'app mobile, un changement n'y apparaît qu'avec la build suivante.
+
+| Point du plan | Sujet | Décision attendue | Liens |
+|---|---|---|---|
+| §1 | Import biketeam : la politique affirme « aucune donnée auprès de tiers » | Responsable du traitement, base légale, information des membres importés ; puis une sous-section | V2 au §7.1 (sécurité des mêmes comptes, sujet distinct) |
+| §2 | Conservation de `ad_contacts` (qui a écrit à qui, quand — pas le corps) : aucune durée, seule la suppression du compte l'efface | Annoncer une durée, ou écrire une purge (alors une ligne au §2) ; ajouter la finalité au §3 de la politique | — |
+| §3 | Position **précise** envoyée par l'app Garmin (`ApiClient.mc`, `?lat=&lon=` bruts) ; Karoo a le paramètre mais ne l'envoie pas | Décrire les extensions GPS, ou arrondir côté montre sur la grille d'~1 km | — |
+| §4 | Contenu public et non listé lisible sans compte, alors que la politique dit « tous les utilisateurs de la plateforme » | Correction de texte (formulation proposée dans le plan) | Suppose le `noindex` de `PUBLIC_UNLISTED` (§2) |
+| §5 | Web Push : les services push des navigateurs (Google, Mozilla, Apple, Microsoft) ne sont pas listés | Les déclarer ou non comme sous-traitants, avec leurs transferts | §8.3 |
+| §6 | Wahoo absent de la FAQ et des CGU | Vérifier s'il est actif sur pedalons.fr | — |
+| §6 | Message à l'auteur d'une annonce classé « Other user-generated content » côté Play | Le déclarer aussi en « Messages » ? | `mobile/store-metadata/data-safety.md` |
+| §6 | Jeton de calendrier stocké en clair (`CalendarToken.token`), la politique parle de hachages irréversibles | Hacher (l'URL ne se réaffiche plus), ou exclure ce jeton de la phrase | Jeton ICS au §1.3 et §7.1 |
 
 ## 8. Suites des chantiers de septembre 2026
 
@@ -486,7 +554,7 @@ Livrée le 24 septembre 2026 ([`LEDGER_DONE.md`](LEDGER_DONE.md) §8).
 
 ### 8.3 Notifications — ce qui reste
 
-Les phases 1 à 5 de [`plans/2026-09-18-notifications.md`](plans/2026-09-18-notifications.md) sont en
+Les phases 1 à 5 de [`plans/archive/2026-09-18-notifications.md`](plans/archive/2026-09-18-notifications.md) sont en
 production, le Web Push aussi depuis le 29 septembre 2026 ; ce qui en est livré, et les pièges à ne
 pas rejouer, sont au §4.2 de [`LEDGER_DONE.md`](LEDGER_DONE.md) (le ledger du chantier y a été
 rapatrié le 29 septembre 2026). Restent deux points qui ne sont pas du code, et un qui l'est :
@@ -560,7 +628,9 @@ En service en staging ; la mise en production attend biketeam
 [`MIGRATE_BIKETEAM.md`](MIGRATE_BIKETEAM.md).
 
 - **Déroulé** : poser les secrets des deux côtés en production, puis un essai sur une petite équipe
-  (`gaby`) contre staging, contre la production, et enfin le passage réel.
+  (`gaby`) contre staging, contre la production, et enfin le passage réel. Pour chaque équipe qui a
+  un domaine personnalisé chez biketeam, vérifier que la redirection fonctionne : elle se règle au
+  proxy, au cas par cas (plan §13, décision 11).
 - **Redirections 302 → 301** : une fois les bascules stabilisées, poser
   `PEDALONS_REDIRECT_STATUS=301` côté biketeam. Pas avant : un 301 est mis en cache par les
   navigateurs et ne se rattrape pas.
@@ -570,3 +640,16 @@ En service en staging ; la mise en production attend biketeam
 - **Vignettes régénérées à chaque rejeu** : `updateRide`/`updateTrip` régénèrent les vignettes de
   sortie et de voyage sans condition (`RideService`, `TripService`) ; c'est le dernier coût d'un
   rejeu. Ne régénérer que si le parcours ou l'image en entrée a changé.
+- **Équipe migrée supprimable** : `DELETE /api/teams/{slug}` n'est pas gardé pour une équipe
+  basculée (`TeamService` ne consulte pas `biketeam_migration_map`, alors que la suppression de
+  compte le fait, `SOLE_MIGRATED_TEAM_ADMIN`) : biketeam redirigerait alors vers des 404. Ajouter
+  une garde ou un avertissement.
+- **Données exportées mais non importées** : tags de parcours, ville et pays de l'équipe arrivent
+  dans l'instantané (`BiketeamSnapshot`) sans être utilisés (plan §13, décision 14). À décider.
+- **Avant l'arrêt de biketeam** : outre les liens internes, les logos `/{t}/image` ne sont pas
+  redirigés et restent servis par biketeam (plan, écarts biketeam, point 16).
+- **Après l'arrêt de biketeam** : retirer la migration en direct (endpoints internes, worker, les
+  cinq variables, la page `biketeamMigration`, les codes `BIKETEAM_*`, peut-être
+  `biketeam_migrations`), **sans** retirer `biketeam_migration_map`, dont dépendent encore
+  `UserTeamRepository.findMigratedTeamsAdministeredAlone` (décision 22) et `BiketeamTargetResolver`.
+  Archiver alors le plan, qui reste jusque-là le contrat en vigueur.

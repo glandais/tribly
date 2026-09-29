@@ -28,14 +28,25 @@
 | H2 | **Élevée** | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif (XSS stockée) | Ouvert |
 | H3 | **Élevée** | L'autorisation d'un appareil peut aboutir sans confirmation explicite de l'utilisateur | Ouvert |
 | H4 | **Élevée** | L'app mobile peut transmettre ses identifiants à des hôtes autres que l'API | Ouvert |
+| H5 | **Élevée** | Un point du flux d'autorisation des appareils n'a aucune limitation de débit | Ouvert |
 | M1 | Moyenne (élevée en chaîne) | L'access token n'est pas lié à son domaine : l'utilisateur est résolu par e-mail sur le Host de la requête | Corrigé (commit `6a791794`) |
 | M2 | Moyenne | Le flou d'~1 km de la position des annonces peut être affiné par des requêtes répétées | Ouvert |
 | M3 | Moyenne | Un traitement de tracé GPX n'est pas borné en mémoire (déni de service) | Ouvert |
 | M4 | Moyenne | La connexion par mot de passe n'a ni limitation de débit ni verrouillage | Ouvert |
 | M5 | Moyenne | Un lien de vérification d'e-mail peut connecter la victime à un compte qui n'est pas le sien (login CSRF) | Ouvert |
 | M6 | Moyenne | Une expression régulière appliquée au markdown est exposée au ReDoS | Ouvert |
-| L1–L11 | Faible | Voir la section dédiée | L2 caduc, L11 partiellement corrigé, les autres ouverts |
+| M7 | Moyenne | Le refresh token n'est pas renouvelé à l'usage | Ouvert |
+| M8 | Moyenne | Deux requêtes de résolution d'identité ne filtrent pas par domaine | Ouvert |
+| M9 | Moyenne | Le jeton d'accès des appareils a une durée longue pour un jeton non révocable | Ouvert |
+| M10 | Moyenne | Aucune limitation de débit HTTP globale | Ouvert |
+| L1–L14 | Faible | Voir la section dédiée | L2 caduc, L11 partiellement corrigé, les autres ouverts |
 | V1–V8 | À valider | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | V2 caduc pour l'avenir, les autres à valider |
+
+H5, M7 à M10 et L12 à L14 viennent de l'audit d'infrastructure de février
+([`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md), lignes S2 à S11), versés ici
+le 29 septembre 2026 après revérification dans le code : la sécurité applicative n'est suivie
+qu'ici. S8 et S12 de ce même audit (origines CORS et cookie non `Secure` par défaut) sont des défauts
+de développement surchargés en `%prod`, rangés dans les contrôles conformes.
 
 Les constats ouverts sont suivis, sans détail, au §7.1 de [`LEDGER_NEXT.md`](LEDGER_NEXT.md) : un
 changement de statut ici se reporte là-bas.
@@ -63,6 +74,8 @@ changement de statut ici se reporte là-bas.
 
 ### H4 — Fuite des identifiants mobiles vers des hôtes tiers — **Ouvert**
 
+### H5 — Flux d'autorisation des appareils sans limitation de débit — **Ouvert** (audit de février, S2)
+
 ---
 
 ## Constats de sévérité moyenne
@@ -82,6 +95,14 @@ changement de statut ici se reporte là-bas.
 
 ### M6 — ReDoS sur le markdown — **Ouvert**
 
+### M7 — Pas de rotation du refresh token — **Ouvert** (audit de février, S3)
+
+### M8 — Résolution d'identité sans filtre de domaine — **Ouvert** (audit de février, S4 et S5)
+
+### M9 — Jeton d'accès des appareils trop long pour un jeton non révocable — **Ouvert** (audit de février, S6)
+
+### M10 — Pas de limitation de débit HTTP globale — **Ouvert** (audit de février, S7)
+
 ---
 
 ## Constats de sévérité faible
@@ -99,6 +120,9 @@ changement de statut ici se reporte là-bas.
 | L9 | Un nom de fichier n'est pas encodé dans une URL | Ouvert |
 | L10 | Karoo : les tokens sont stockés sans chiffrement et inclus dans les sauvegardes | Ouvert |
 | L11 | GitHub Actions : durcissement des workflows | Partiellement corrigé : `ci.yml` est en `permissions: contents: read` par défaut (commit `09c65ecd`) ; le reste est ouvert |
+| L12 | Des jokers ne sont pas échappés dans des recherches (audit de février, S9) | Ouvert |
+| L13 | Un en-tête de réponse est construit sans encodage (audit de février, S10) | Ouvert |
+| L14 | Les échecs de connexion ne sont pas journalisés (audit de février, S11) | Ouvert |
 
 Informationnel (ouverts) :
 - Le markdown web accepte des images externes (pistage de l'IP des lecteurs, sans fuite de token).
@@ -125,7 +149,7 @@ Informationnel (ouverts) :
 ## Contrôles vérifiés et conformes
 
 - **Tokens** :
-  - Refresh, vérification, reset et device : 32 octets `SecureRandom`, stockés hachés en SHA-256, à usage unique.
+  - Refresh, vérification, reset et device : 32 octets `SecureRandom`, stockés hachés en SHA-256 ; à usage unique, sauf le refresh token, qui n'est pas renouvelé (M7).
   - Access token de 15 min.
   - Clé de chiffrement AES-256-GCM sans valeur par défaut en prod.
   - Comparaison de l'OTP en temps constant.
@@ -157,6 +181,7 @@ Informationnel (ouverts) :
 - **Infra** :
   - Postgres, Traefik, Mailpit, MinIO et imgproxy exposés sur loopback uniquement.
   - Dashboard Traefik désactivé.
+  - Origines CORS de développement et cookie non `Secure` seulement par défaut : `%prod` les surcharge (audit de février, S8 et S12).
   - `.env` jamais versionné.
   - Staging des sauvegardes en `700`, restauration avec confirmation.
   - Aucun keystore ni `.p8` versionné. `mobile/android/app/google-services.json` l'est depuis le push (commit `0bd0db44`, postérieur à l'audit) : c'est une configuration client Firebase, pas un secret serveur.

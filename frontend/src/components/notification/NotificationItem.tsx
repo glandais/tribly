@@ -18,7 +18,7 @@ interface NotificationItemProps {
  * One inbox entry, shared by the bell dropdown and the notifications page.
  *
  * The wording is built here from the type and the structured fields — the API sends no rendered
- * text (`docs/plans/2026-09-18-notifications.md` §3). An unread entry is marked by a dot and a
+ * text (`docs/plans/archive/2026-09-18-notifications.md` §3). An unread entry is marked by a dot and a
  * heavier title rather than a background tint: the row is a link, and a tinted link fights the
  * hover state.
  */
