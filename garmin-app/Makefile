@@ -16,6 +16,11 @@ DEVELOPER_KEY ?= $(shell \
 		echo "$(HOME)/.Garmin/ConnectIQ/developer_key"; \
 	fi)
 
+# The same SDK as seen from the garmin-sdk-manager container, which mounts ~/.Garmin/ConnectIQ at
+# /root/.Garmin/ConnectIQ: its directory name comes from CIQ_HOME, so the Docker targets follow
+# whatever SDK is installed instead of naming one version (docs/LEDGER_*.md AUD-31, audit G6).
+DOCKER_CIQ_HOME = /root/.Garmin/ConnectIQ/Sdks/$(notdir $(patsubst %/,%,$(CIQ_HOME)))
+
 # Build tools
 MONKEYC = $(CIQ_HOME)bin/monkeybrains.jar
 SIMULATOR = $(CIQ_HOME)bin/simulator
@@ -120,7 +125,7 @@ simulator-docker:
 		-v $(HOME)/.Garmin/ConnectIQ:/root/.Garmin/ConnectIQ \
 		--security-opt label=disable \
 		garmin-sdk-manager \
-		/root/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-8.4.0-2025-12-03-5122605dc/bin/simulator
+		$(DOCKER_CIQ_HOME)/bin/simulator
 	@sleep 2
 	@echo "Simulator started"
 
@@ -138,7 +143,7 @@ run-docker: build
 		-v $(PWD):/app \
 		-w /app \
 		garmin-sdk-manager \
-		/root/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-8.4.0-2025-12-03-5122605dc/bin/monkeydo $(BIN_DIR)/$(PROJECT_NAME)-$(DEVICE).prg $(DEVICE)
+		$(DOCKER_CIQ_HOME)/bin/monkeydo $(BIN_DIR)/$(PROJECT_NAME)-$(DEVICE).prg $(DEVICE)
 
 # Generate developer key using OpenSSL
 keygen:

@@ -212,7 +212,7 @@ App Connect IQ Monkey C pour GPS Edge Garmin. 15 fichiers source, 1838 lignes. 1
 | G3 | Documentation CLAUDE.md incorrecte : `/api/garmin/routes` vs `/api/device/routes` | Critique | S | `garmin-app/CLAUDE.md` | ✅ (corrigé le 29 septembre 2026, 6bb56ab2) |
 | G4 | `loadResource()` appele dans `onUpdate()` — performances | Important | S | `RouteDetailView.mc`, `FormatUtils.mc` | |
 | G5 | AM/PM hardcodes au lieu d'utiliser les strings i18n | Important | S | `FormatUtils.mc:105-106` | ⚠️ |
-| G6 | SDK version hardcodee dans Makefile Docker (connectiq-sdk-lin-8.4.0) | Important | S | `Makefile:123,141` | |
+| G6 | SDK version hardcodee dans Makefile Docker (connectiq-sdk-lin-8.4.0) | Important | S | `Makefile:123,141` | ✅ (chemin dérivé de `CIQ_HOME` : ledger `AUD-31`) |
 | G7 | Comparaison d'etat par chaine localisee — fragile | Important | S | `RouteDetailView.mc:114` | |
 | G8 | Pas de gestion `slow_down` RFC 8628 | Important | S | `ApiClient.mc` | |
 | G9 | Layouts a offsets fixes — mal adaptes aux 3 resolutions d'ecran | Important | M | `LoginView.mc`, `RouteDetailView.mc` | ⚠️ |
