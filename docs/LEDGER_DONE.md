@@ -513,6 +513,18 @@ Ce qui reste ouvert (`MAX_BULK_SLUGS` comme seul garde-fou) est `API-27`.
   gpx2web 1.5.1 les tuiles de carte sont écrites puis renommées. Le commentaire le dit, et garde
   l'interdiction de partager `DATA_CACHE_PATH` entre environnements tant que les tuiles d'élévation
   ne sont pas revues (`OPS-10`, toujours ouvert) : ne pas la lever avant. Pas de test (commentaire).
+- `OPS-6` **Journal d'accès de l'hôte masqué et borné à 14 jours** (2026-09-29) — le Caddy de
+  l'hôte de production journalise `pedalons.fr` (redirection), `www.pedalons.fr` (l'application)
+  et les deux domaines de staging, par le snippet `pedalons_access_log` d'
+  [`OPERATIONS.md`](OPERATIONS.md#access-logs) : `t`, `token`, `code`, `state` → `REDACTED`,
+  coordonnées supprimées, **et `resp_headers>Location` supprimé** — sans lui, la ligne d'une
+  redirection gardait la query brute dans l'en-tête. Un fichier par pile
+  (`pedalons-access.log`, `pedalons-staging-access.log`), rotation par
+  `/etc/logrotate.d/caddy-access`. Vérifié par `curl …?lat=1&t=x` sur les trois domaines :
+  `t=REDACTED`, pas de `lat`, pas de `Location`. Sauvegarde de l'ancienne config :
+  `/etc/caddy/Caddyfile.bak-20260929`. Les jetons dans le **chemin** restent en clair : `API-45`.
+  Ne pas retirer la ligne `Location`, et refaire le `chown caddy:caddy` des fichiers après tout
+  `caddy validate` lancé en root. Pas de test (configuration hors dépôt).
 - `OPS-7` **Journal d'accès Traefik coupé** (2026-09-29, audit de février I13) — il n'était pas
   persisté (pas de volume : il mourait avec le conteneur) et Traefik ne sait pas masquer un
   paramètre de requête. `docker-compose.yml` passe `--accesslog=false` : le journal du Caddy de
@@ -811,7 +823,7 @@ fait.
   [`OPERATIONS.md`](OPERATIONS.md#access-logs) : `t`, `token`, `code`, `state` remplacés par
   `REDACTED`, `lat`, `lon`, `nearLat`, `nearLon` supprimés, rotation par
   `scripts/caddy-access.logrotate` (quotidienne, 13 fichiers + le courant = 14 jours).
-  **L'application sur l'hôte est `OPS-6`, à faire avant la mise en production de la politique.**
+  Appliqué sur l'hôte le même jour (`OPS-6`).
   Les jetons dans le **chemin** (push FCM, export) restent visibles : `API-45`. Ne pas remonter la
   rotation au-delà de 14 jours sans changer le §6. Pas de test (configuration hors dépôt).
 - `LEGAL-12` **Purges des conservations sans borne** (2026-09-29) — nettoyage nocturne : codes

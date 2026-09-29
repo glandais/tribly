@@ -65,9 +65,10 @@ live in the host's Caddy configuration, outside this repository:
 - **14 days**, then deleted.
 
 ```caddyfile
+# {args[0]}: the log file's name, so each stack gets its own file under the logrotate glob.
 (pedalons_access_log) {
 	log {
-		output file /var/log/caddy/pedalons-access.log {
+		output file /var/log/caddy/{args[0]}.log {
 			roll_disabled          # logrotate owns the rotation, below
 		}
 		format filter {
@@ -81,30 +82,63 @@ live in the host's Caddy configuration, outside this repository:
 				delete nearLat
 				delete nearLon
 			}
+			# A redirect's Location repeats the raw query string, filter or not.
+			resp_headers>Location delete
 		}
 	}
 }
 
+# The bare domain only redirects, but {uri} carries the query string: it logs through the snippet too.
 pedalons.fr {
-	import pedalons_access_log
+	import pedalons_access_log pedalons-access
+	redir https://www.pedalons.fr{uri}
+}
+
+www.pedalons.fr {
+	import pedalons_access_log pedalons-access
 	reverse_proxy 127.0.0.1:8090
 }
+
+staging.pedalons.fr, staging.np.pedalons.fr {
+	import pedalons_access_log pedalons-staging-access
+	reverse_proxy 127.0.0.1:8089
+}
 ```
+
+Three traps, each met on the first install (29 September 2026):
+
+- **`www.pedalons.fr` is the application**, `pedalons.fr` a redirect. Both must import the snippet:
+  the redirect sees the same query string.
+- **`resp_headers>Location`**: without its `delete`, the redirect's log line carries
+  `?lat=…&t=…` in clear in the `Location` header, next to a correctly filtered `uri`.
+- **`caddy validate` run as root creates the log files as `root:root 0600`**, which Caddy (user
+  `caddy`) then cannot open on reload. After any `validate`, `chown caddy:caddy` the **files**, not
+  just `/var/log/caddy`.
 
 Credentials are replaced rather than deleted, so a line still shows that one was there; the
 position leaves no trace. Caddy already leaves `Authorization` and `Cookie` headers out of its log.
 Rotation, from the repository like the backup logs:
 
 ```bash
-mkdir -p /var/log/caddy
+mkdir -p /var/log/caddy && chown caddy:caddy /var/log/caddy
 install -m 644 scripts/caddy-access.logrotate /etc/logrotate.d/caddy-access
-logrotate -d /etc/logrotate.d/caddy-access     # dry run
+logrotate -d /etc/logrotate.d/caddy-access     # dry run: must list every *-access.log
 ```
 
-Check it bites after a reload: `curl -s 'https://pedalons.fr/api/version?lat=1&t=x' >/dev/null`,
-then the last line of the log must show `t=REDACTED` and no `lat`. Applying this on the host is
-ledger `OPS-6`; the short TTL of the tile token is what makes any line written before it inert, and
-the reason that TTL must never be raised to hours.
+Check it bites after `systemctl reload caddy`, on the application **and** on the redirect:
+
+```bash
+for h in www.pedalons.fr pedalons.fr staging.pedalons.fr; do
+  curl -s -o /dev/null "https://$h/api/version?lat=1&t=x"
+done
+tail -n 3 /var/log/caddy/pedalons-access.log /var/log/caddy/pedalons-staging-access.log
+```
+
+Every line must show `t=REDACTED`, no `lat`, and no `Location` header. Keep
+`/etc/caddy/Caddyfile.bak-<date>` until then; rolling back is restoring it and reloading. Installed
+on the production host on 29 September 2026 (ledger `OPS-6`). The short TTL of the tile token is
+what makes any line written before that inert, and the reason that TTL must never be raised to
+hours.
 
 ### Seeding the shared Valhalla data
 

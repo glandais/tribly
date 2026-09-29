@@ -405,13 +405,6 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
 
 ### Exploitation
 
-- [ ] `OPS-6` **Appliquer la configuration du journal d'accès sur l'hôte** — depuis le
-      29 septembre 2026, la politique (§1, §6) promet un journal d'accès sans les coordonnées ni les
-      jetons passés en paramètres, gardé 14 jours (`LEGAL-10`). Le journal de Traefik est coupé ;
-      reste celui du Caddy de l'hôte, hors dépôt : y poser le filtre et `roll_disabled`, installer
-      `scripts/caddy-access.logrotate`, et faire la vérification décrite. **À faire avant que la
-      politique parte en production.** Source : [`OPERATIONS.md`](OPERATIONS.md#access-logs). Voir
-      aussi `SEC-17` (le jeton ICS qui n'expire jamais) et `API-45` (les jetons dans le chemin).
 - [ ] `OPS-13` **Sauvegardes non chiffrées au repos** — l'hôte de sauvegarde est au domicile du
       responsable du traitement, et les 30 copies nocturnes (base complète : e-mails, hachages de
       mots de passe, adresses IP, traces ; fichiers téléversés) y sont en clair. Un vol du matériel
@@ -585,7 +578,7 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 | `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | `SEC-14` | — | Info | — | Images externes dans le markdown, parseur XML non durci, paramètre de requête non encodé |
 | `SEC-16` | — | V3–V8 | À valider | Configuration hors dépôt : proxy de l'hôte, hôte de sauvegarde, SMTP, imgproxy |
-| `SEC-17` | — | *hors audit* | — | Le **jeton du flux ICS n'expire jamais** — seule la régénération manuelle (`CalendarService.regenerateToken`) le révoque. Une expiration, ou au moins le masquage d'`OPS-6`, est ce qui borne sa fuite par un journal. Relevé dans [`OPERATIONS.md`](OPERATIONS.md#access-logs) |
+| `SEC-17` | — | *hors audit* | — | Le **jeton du flux ICS n'expire jamais** — seule la régénération manuelle (`CalendarService.regenerateToken`) le révoque. Le masquage du journal d'accès (`OPS-6`, en place) borne sa fuite par ce journal ; reste à l'expirer. Relevé dans [`OPERATIONS.md`](OPERATIONS.md#access-logs) |
 
 ---
 
