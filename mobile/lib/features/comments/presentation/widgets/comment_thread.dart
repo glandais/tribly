@@ -472,15 +472,25 @@ class _NearViewportTriggerState extends State<_NearViewportTrigger> {
     super.didChangeDependencies();
     final ScrollPosition? position = Scrollable.maybeOf(context)?.position;
     if (position != _position) {
-      _position?.removeListener(_check);
-      _position = position?..addListener(_check);
+      _position?.removeListener(_onScroll);
+      _position = position?..addListener(_onScroll);
     }
   }
 
   @override
   void dispose() {
-    _position?.removeListener(_check);
+    _position?.removeListener(_onScroll);
     super.dispose();
+  }
+
+  /// Le défilement prévient **avant** la mise en page de sa frame : mesuré là,
+  /// le déclencheur est encore à sa place d'avant, en retard d'un cran. Au
+  /// dernier cran — le bas de la page, sans rebond qui relance l'écoute comme
+  /// sur iOS — il se croyait encore loin et la page suivante ne venait jamais.
+  /// La mesure attend donc la fin de la frame.
+  void _onScroll() {
+    if (_fired) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _check());
   }
 
   void _check() {

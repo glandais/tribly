@@ -111,15 +111,17 @@ void main() {
         child: MaterialApp(
           theme: PedalonsTheme.build(Brightness.light),
           home: Scaffold(
-            body: SingleChildScrollView(
-              child: Column(
-                children: <Widget>[
-                  // Ce qui précède le fil sur une vraie page : le pied du fil
-                  // commence hors de l'écran.
-                  const SizedBox(height: 600),
-                  CommentThread(target: _target, canComment: false),
-                ],
-              ),
+            // Une liste à slivers, comme les pages : son décalage de peinture
+            // vient de la mise en page, pas directement de `pixels` comme dans
+            // un `SingleChildScrollView` — c'est ce qui rendait le pied
+            // « en retard d'un cran » quand il se mesurait trop tôt.
+            body: ListView(
+              children: <Widget>[
+                // Ce qui précède le fil sur une vraie page : le pied du fil
+                // commence hors de l'écran.
+                const SizedBox(height: 600),
+                CommentThread(target: _target, canComment: false),
+              ],
             ),
           ),
         ),
@@ -151,6 +153,27 @@ void main() {
     expect(find.byKey(keys.comments.comment('c20')), findsOneWidget);
     expect(find.byKey(keys.comments.loadMoreButton), findsNothing);
   });
+
+  // Le défilement prévient avant la mise en page de sa frame. Mesuré à ce
+  // moment-là, le pied était encore à sa place d'avant : au dernier cran, sans
+  // rebond pour relancer l'écoute (Android), la page suivante ne venait jamais.
+  testWidgets(
+    'un seul cran jusqu\'en bas, sans rebond, charge la page suivante',
+    (WidgetTester tester) async {
+      final _StubCommentRepository repository = await openThread(
+        tester,
+        count: 21,
+      );
+      final ScrollPosition position = tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+
+      position.jumpTo(position.maxScrollExtent);
+      await tester.pumpAndSettle();
+
+      expect(repository.pagesAsked, <int>[0, 1]);
+    },
+  );
 
   testWidgets('chaque page en appelle une seule autre, jamais toutes', (
     WidgetTester tester,
