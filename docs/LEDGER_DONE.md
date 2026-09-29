@@ -459,8 +459,14 @@ Rien de livré depuis l'ouverture du ledger ; les constats corrigés avant sont 
 
 ## AUD — Audit d'infrastructure de février
 
-Rien de livré depuis l'ouverture du ledger ; les lignes corrigées avant sont cochées dans
-[`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md).
+Les lignes corrigées avant l'ouverture du ledger sont cochées dans
+[`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md), qui porte aussi le ✅ de
+celles d'ici. Même colonnes que la table de `LEDGER_NEXT.md`, le constat remplacé par ce qui a été
+fait.
+
+| ID | Thème | Audit | Gravité | Livré |
+|---|---|---|---|---|
+| `AUD-18` | Web | F1 | Critique | **Zoom rendu** (2026-09-30) — `maximum-scale=1.0` retiré du viewport de `frontend/index.html`, seul gabarit HTML du frontend : le SSR (`server.js`) injecte son rendu dans ce même fichier, bâti en `dist/client/index.html`. Ne pas le remettre, ni `user-scalable=no` (WCAG 1.4.4). Conséquence connue et acceptée : iOS Safari zoome sur un champ dont la police fait moins de 16 px, ce qui est le cas des champs Mantine `sm` ; la parade est une taille de police, pas un viewport bloqué. Pas de test : aucune assertion ne lit le viewport ; `pnpm typecheck`, `pnpm lint` et `npx vitest run` passent |
 
 ---
 

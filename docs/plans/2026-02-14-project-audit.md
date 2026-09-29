@@ -6,7 +6,7 @@
 > le code ce jour-là (backups, tests frontend et mobile, SSR, staging, déconnexion Garmin, image
 > frontend, BACKLOG_old, documentation Garmin, dépendances mobile…) ; les autres gardent leur statut
 > d'avril. Les comptages de fin de document sont recalculés à partir de ces statuts. Restent ouverts, entre autres : rate limiting de
-> `/api/device/oauth/complete`, `maximum-scale=1.0`, URL Garmin en dur, `MainActivity.kt` Karoo,
+> `/api/device/oauth/complete`, URL Garmin en dur, `MainActivity.kt` Karoo,
 > `forwardedHeaders.insecure`, pipeline CD, healthchecks. La sécurité applicative est désormais
 > suivie dans [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) (septembre 2026) ; ce document reste la
 > référence pour l'infrastructure, la CI/CD et la qualité des modules.
@@ -33,7 +33,7 @@ Pedalons est une plateforme multi-tenant mature pour equipes cyclistes, comprena
 | 6 | **Corriger le bug `TeamEntityType.AD` hardcode dans `updateSlug()`** — slug redirects ne fonctionnent pas pour les non-ads | Backend | CRITIQUE | S | ✅ |
 | 7 | **Ajouter rate limiting sur `/api/device/oauth/complete`** — brute force possible sur les user codes | Securite | CRITIQUE | S | |
 | 8 | **Creer un pipeline CD** — aucun deploiement automatise, images tagguees `:latest` | Infra | CRITIQUE | L | |
-| 9 | **Retirer `maximum-scale=1.0`** du viewport — bloque le zoom pour les malvoyants | Frontend | CRITIQUE | S | |
+| 9 | **Retirer `maximum-scale=1.0`** du viewport — bloque le zoom pour les malvoyants | Frontend | CRITIQUE | S | ✅ (30 sept. 2026) |
 | 10 | **Ajouter des healthchecks Docker** a tous les services | Infra | CRITIQUE | M | *(ouvert : seul postgres a un healthcheck)* |
 
 ---
@@ -107,7 +107,7 @@ En février 2026 : React 19, TypeScript 5.9, Vite 7, Mantine 8, ~97 composants T
 
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
-| F1 | `maximum-scale=1.0` dans viewport — bloque le zoom, violation WCAG 2.1 | Critique | S | `index.html:8` | |
+| F1 | `maximum-scale=1.0` dans viewport — bloque le zoom, violation WCAG 2.1 | Critique | S | `index.html:8` | ✅ (30 sept. 2026 : retiré de `index.html`, seul gabarit HTML du frontend, SSR compris) |
 | F2 | 0 tests reels malgre Vitest + testing-library installes (1 test fictif present) | Critique | L | `src/**/*.test.ts(x)` | ✅ (sept. 2026 : 21 fichiers Vitest, plus une suite e2e Playwright de 33 specs dans `frontend/e2e/`, lancee en local seulement) |
 | F3 | Configuration Vitest manquante (pas de vitest.config.ts) | Critique | S | `vite.config.ts` ou nouveau fichier | ✅ (bloc `test` de `vite.config.ts`) |
 | F4 | Cle i18n `common.back` inexistante dans LoginPage (devrait etre `actions.back`) | Critique | S | `LoginPage.tsx:385,440` | ✅ |
@@ -368,7 +368,7 @@ Les deux clients partagent des problemes communs :
 | 2 | Ajouter rate limiting sur `/api/device/oauth/complete` | Securite | |
 | 3 | Changer `branches: ['tmp']` en `['develop']` dans `ci.yml` | Infra | ✅ |
 | 4 | Corriger le bug `TeamEntityType.AD` dans `TeamEntityService.updateSlug()` | Backend | ✅ |
-| 5 | Retirer `maximum-scale=1.0` de `index.html` | Frontend | |
+| 5 | Retirer `maximum-scale=1.0` de `index.html` | Frontend | ✅ |
 | 6 | Corriger la cle i18n `common.back` → `actions.back` dans LoginPage | Frontend | ✅ |
 | 7 | Corriger "Groupe" hardcode et validation Zod non traduite dans RideEditor | Frontend | ✅ |
 | 8 | Corriger le memory leak stream subscription dans `main.dart` (mobile) | Mobile | ✅ |
@@ -437,16 +437,16 @@ Les deux clients partagent des problemes communs :
 
 ---
 
-## Comptage par sévérité (recalculé le 29 septembre 2026 à partir des statuts ci-dessus)
+## Comptage par sévérité (recalculé le 30 septembre 2026 à partir des statuts ci-dessus)
 
 ### Problèmes restants ouverts ou partiels
 
 | Severite | Backend | Frontend | Mobile | Karoo | Garmin | Infra | Securite | Docs | Total |
 |----------|---------|----------|--------|-------|--------|-------|----------|------|-------|
-| Critique | 0 | 1 | 0 | 3 | 1 | 6 | 1 | 0 | **12** |
+| Critique | 0 | 0 | 0 | 3 | 1 | 6 | 1 | 0 | **11** |
 | Important | 4 | 3 | 1 | 3 | 7 | 7 | 5 | 0 | **30** |
 | Mineur | 1 | 0 | 2 | 2 | 2 | 0 | 6 | 0 | **13** |
-| **Total** | **5** | **4** | **3** | **8** | **10** | **13** | **12** | **0** | **55** |
+| **Total** | **5** | **3** | **3** | **8** | **10** | **13** | **12** | **0** | **54** |
 
 ### Points corrigés depuis l'audit initial
 
@@ -459,5 +459,5 @@ Les deux clients partagent des problemes communs :
 | Frontend | F4, F5, F6, F9, F10, F11, F15 | Cle i18n LoginPage, FullCalendar retire, titres de page, textes RideEditor traduits, pages CGU/confidentialite, cles `_many` |
 | Mobile | M2, M5, M6, M7, M8 | Fuite de subscription, navigation traduite, widgets dedupliques, couleurs du theme, Markdown |
 | Documentation | D2, D3, D4, D6, D9 | rules.md Riverpod, BACKLOG corrige, PRODUCT_SHEET corrige |
-| Septembre 2026 | I2, I11, I12, F2, F3, F13, F14, M1, M3, M9, M10, G2, G3, G13, D1, D5, D7, D8, D10, D11 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), image frontend sur `node`, BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
+| Septembre 2026 | I2, I11, I12, F1, F2, F3, F13, F14, M1, M3, M9, M10, G2, G3, G13, D1, D5, D7, D8, D10, D11 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), image frontend sur `node`, zoom rendu au viewport, BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
 | Juin-juillet 2026 | B10, K6, M4 | `PedalonsQueryContext` memorise l'utilisateur (3bb01f32), `registerForActivityResult` (7e2d710f), dependances Riverpod inutilisees retirees (874a3288) |
