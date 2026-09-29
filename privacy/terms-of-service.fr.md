@@ -30,7 +30,6 @@ Les fichiers analysés avec les outils GPX sont conservés 30 jours puis supprim
 
 - Pour créer un compte vous-même, vous devez fournir une adresse e-mail valide et la confirmer en cliquant sur le lien que nous vous envoyons.
 - Vous devez accepter les présentes conditions pour créer un compte.
-- Certains comptes n'ont pas été créés ainsi : les comptes importés lors de la migration d'une plateforme précédente vers Pedalons peuvent porter une adresse e-mail technique non fonctionnelle générée à partir de l'identifiant Strava du membre (`strava_…`). Il n'est plus possible de se connecter à ces comptes : leurs titulaires doivent nous contacter pour y rattacher une adresse e-mail réelle, ou pour les faire supprimer.
 - Vous êtes responsable de la sécurité de votre compte et de vos moyens d'authentification.
 - Vous devez avoir au moins 16 ans pour utiliser le service.
 

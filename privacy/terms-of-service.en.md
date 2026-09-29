@@ -30,7 +30,6 @@ Files analysed with the GPX tools are kept for 30 days and then deleted automati
 
 - To create an account yourself, you must provide a valid email address and confirm it by clicking the link we send you.
 - You must accept these terms to create an account.
-- Some accounts were not created this way: accounts imported when a previous platform was migrated to Pedalons may hold a technical, non-working email address generated from the member's Strava identifier (`strava_…`). Those accounts can no longer be signed in to: their holders must contact us to attach a real email address to the account, or to have it deleted.
 - You are responsible for the security of your account and authentication methods.
 - You must be at least 16 years old to use the service.
 

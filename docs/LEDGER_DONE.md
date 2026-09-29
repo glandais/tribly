@@ -398,9 +398,10 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   de Strava (`7cd2bf3a`), l'import par dump qui les créait ayant lui-même été retiré (`d93fd3af`).
   **Décision à ne pas défaire** : `POST /api/auth/email/change-request`,
   `AuthService.requestEmailChange` et la vérification du changement d'e-mail **restent** — le profil
-  mobile s'en sert (`profile_identity_section.dart`) ; seul le parcours « compléter » est parti. Les
-  comptes `strava_<id>@…` **restent en base**, inertes (aucune migration Flyway ne les touche) : un
-  éventuel rattrapage passerait par une action d'administration, pas par le retour de ce flag.
+  mobile s'en sert (`profile_identity_section.dart`) ; seul le parcours « compléter » est parti. Aucune
+  migration Flyway ne supprime les comptes `strava_<id>@…`, mais staging et prod n'en ont plus
+  (vérifié le 2026-09-29 : aucun compte factice ni non vérifié, bases reparties de zéro depuis
+  l'import) ; seule une vieille base locale ou une restauration antérieure en porterait encore.
 
 ### Défauts relevés
 
@@ -672,8 +673,8 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
 - `MIG-12` **L'ancien import biketeam** a été supprimé le 2026-09-28 : seule la migration en direct
   reste ([plan](plans/2026-09-22-biketeam-live-migration.md)), en service en staging et dont la mise
   en production attend biketeam (§10 du plan, `MIG-1`) ; `biketeam_migration_map` sert encore au
-  direct, et ses lignes `USER`, `USER_TEAM`, `COMMENT`, `…_PARTICIPATION` écrites par l'import
-  restent en base, inertes.
+  direct, et les lignes `USER`, `USER_TEAM`, `COMMENT`, `…_PARTICIPATION` qu'écrivait l'import n'existent
+  plus en staging ni en prod (vérifié le 2026-09-29, bases reparties de zéro).
 - `MIG-10` **Javadoc de `contentVisibility` corrigée** (2026-09-30, `BiketeamMigrationService`) —
   elle disait que rabattre le `PUBLIC_UNLISTED` de l'équipe sur ses contenus ne changerait rien ;
   elle dit maintenant que le fil de l'équipe se viderait, les listes limitées à l'équipe exigeant
