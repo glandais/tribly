@@ -78,6 +78,12 @@ void main() {
       await openLink($, Paths.home());
       await modules.home.waitUntilShown();
       await modules.home.waitUntilUpcomingHas(twoGroupsSlug);
+      // The registration refetches the home, and the answer lands a moment after the tabs are
+      // back: « Ma prochaine sortie » appears above the carousel and pushes it ~500 px down. Taken
+      // before, the carousel was scrolled into view at its old place, and its buttons ended under
+      // the tab bar — out of reach of a horizontal scroll. The home has to have settled first.
+      await modules.home.waitUntilNextRideIs(soonestSlug);
+      await modules.home.waitUntilUpcomingShowsRegistered(soonestSlug);
       await modules.home.chooseGroupFromUpcoming(twoGroupsSlug);
       await modules.ride.waitUntilShown();
       await modules.ride.settle();
