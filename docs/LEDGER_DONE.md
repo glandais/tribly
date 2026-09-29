@@ -717,6 +717,11 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
 
 Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md).
 
+- `SEC-15` **Reliquat V2 (comptes rattachés par l'ancien import biketeam) : sans objet**
+  (2026-09-29) — vérifié en staging et en prod : aucun compte venu de l'import (ni adresse factice,
+  ni compte non vérifié, aucune ligne `USER` dans `biketeam_migration_map`) ; les bases sont
+  reparties de zéro depuis l'import par dump, retiré par `d93fd3af`. Même constat que `LEGAL-1`.
+
 - `SEC-18` **Le filtre de rôle du trombinoscope révélait des rôles masqués** (2026-09-30, **API
   5.7.1**, hors audit) — relevé en livrant `WEB-1`. Quand la réponse masque les rôles (un lecteur
   que `API-39` n'autorise pas à les voir), `GET /api/teams/{slug}/members` refuse désormais le
@@ -754,4 +759,12 @@ fait.
 
 ## LEGAL — Politique de confidentialité
 
-Rien de livré depuis l'ouverture du ledger.
+- `LEGAL-1` **Import biketeam et « pas de données de tiers » : sans objet** (2026-09-29) — la
+  question (responsable du traitement, base légale, information des membres importés) portait sur
+  les comptes créés par l'import par dump. Il n'en reste aucun : staging et prod n'ont ni compte à
+  adresse factice `strava_`/`facebook_`/`google_` ni compte non vérifié, et `biketeam_migration_map`
+  n'y a aucune ligne `USER` (bases reparties de zéro depuis l'import, qui a été retiré par
+  `d93fd3af`). La migration en direct n'importe aucune personne ; la politique (§1 « Équipes venues
+  de Biketeam », §2) ne décrit plus que ce transfert d'équipe. Si une restauration antérieure ou
+  une nouvelle forme d'import ramenait des comptes de membres, la question se rouvre sous un nouvel
+  identifiant.

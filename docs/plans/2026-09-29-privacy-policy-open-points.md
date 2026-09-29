@@ -21,6 +21,8 @@ vers les lignes voisines du ledger. Un point tranché quitte les deux fichiers.
 - **Contexte** : l'import par dump a été retiré le 2026-09-28. La migration en direct
   ([plan](2026-09-22-biketeam-live-migration.md)) n'importe aucune personne, mais les comptes
   déjà créés restent en base.
+- **Clos le 2026-09-29 (`LEGAL-1`, sans objet)** : vérification faite, staging et prod n'ont plus
+  aucun compte venu de l'import ; la politique ne décrit plus que le transfert d'équipe.
 
 ## 2. Relais des messages vers l'auteur d'une annonce (`AdContact`)
 

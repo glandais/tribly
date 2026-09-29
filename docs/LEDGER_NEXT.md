@@ -556,7 +556,6 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 | `SEC-12` | — | L1, L3–L10, L12–L14 | Faible | Voir la table des constats faibles de l'audit (L12 à L14 viennent de l'audit de février, S9 à S11) |
 | `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | `SEC-14` | — | Info | — | Images externes dans le markdown, parseur XML non durci, paramètre de requête non encodé |
-| `SEC-15` | — | V2 | — | Reliquat : les comptes déjà rattachés par l'ancien import biketeam |
 | `SEC-16` | — | V3–V8 | À valider | Configuration hors dépôt : proxy de l'hôte, hôte de sauvegarde, SMTP, imgproxy |
 | `SEC-17` | — | *hors audit* | — | Le **jeton du flux ICS n'expire jamais** — seule la régénération manuelle (`CalendarService.regenerateToken`) le révoque. Une expiration, ou au moins le masquage d'`OPS-6`, est ce qui borne sa fuite par un journal. Relevé dans [`OPERATIONS.md`](OPERATIONS.md#redacting-credentials-from-access-logs) |
 
@@ -612,7 +611,6 @@ l'app mobile, un changement n'y apparaît qu'avec la build suivante.
 
 | ID | Point du plan | Sujet | Décision attendue | Liens |
 |---|---|---|---|---|
-| `LEGAL-1` | §1 | Import biketeam : la politique affirme « aucune donnée auprès de tiers » | Responsable du traitement, base légale, information des membres importés ; puis une sous-section | `SEC-15` (sécurité des mêmes comptes, sujet distinct) |
 | `LEGAL-2` | §2 | Conservation de `ad_contacts` (qui a écrit à qui, quand — pas le corps) : aucune durée, seule la suppression du compte l'efface | Annoncer une durée, ou écrire une purge (alors une entrée `API`) ; ajouter la finalité au §3 de la politique | — |
 | `LEGAL-3` | §3 | Position **précise** envoyée par l'app Garmin (`ApiClient.mc`, `?lat=&lon=` bruts) ; Karoo a le paramètre mais ne l'envoie pas | Décrire les extensions GPS, ou arrondir côté montre sur la grille d'~1 km | — |
 | `LEGAL-4` | §4 | Contenu public et non listé lisible sans compte, alors que la politique dit « tous les utilisateurs de la plateforme » | Correction de texte (formulation proposée dans le plan) | Suppose le `noindex` de `PUBLIC_UNLISTED` (`WEB-4`) |

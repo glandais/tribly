@@ -126,7 +126,8 @@ with stale facts updated. Candidates for `LEGAL-n` / `SEC-n` entries in `docs/LE
 Name the source platform operator and the legal basis relied on for the earlier dump imports
 (contract / legitimate interest), state the date range of those imports, and confirm whether the
 members concerned were informed individually (GDPR Art. 14 requires notice within one month of
-obtaining data indirectly) — tracked as `LEGAL-1`.
+obtaining data indirectly) — `LEGAL-1`, closed 2026-09-29 as moot: no imported member account remains
+in staging or prod, and the policy now describes team transfers only.
 
 Updated: the dump import no longer exists on develop (d93fd3af removed it, including
 `BiketeamMigrationService.updateUser`/`createUser`), so the "still being re-run from fresh dumps"
@@ -134,8 +135,8 @@ remark and the "deleted-on-Biketeam account imported active" bug are moot; the r
 The live migration (01968985) imports no member data. Open: `biketeam_migrations` rows are never
 deleted (`BiketeamMigrationJobRepository`: "Nothing is ever deleted") and are not touched by
 `AccountErasureService` — the policy now says so; decide on a retention period or anonymise them.
-Placeholder `strava_…`/`facebook_…`/`google_…` accounts can no longer sign in at all since Strava
-sign-in was removed (7cd2bf3a); the policy tells holders to write to privacy@.
+No placeholder `strava_…`/`facebook_…`/`google_…` account remains in staging or prod (checked
+2026-09-29); the policy's paragraphs about them were removed.
 
 ### §1 Session Data — server logs
 

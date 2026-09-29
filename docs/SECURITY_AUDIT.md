@@ -136,7 +136,7 @@ Informationnel (ouverts) :
 | # | Hypothèse | Statut |
 |---|---|---|
 | V1 | Une clé privée JWT a figuré dans l'historique public du dépôt : vérifier que les clés de production et de staging n'en sont pas des copies (**critique** si c'est le cas) | À valider |
-| V2 | La migration biketeam par dump pouvait rattacher un compte Pedalons existant sur une preuve d'e-mail insuffisante | Caduc pour l'avenir : l'import par dump a été retiré (commit `d93fd3af`) et la migration en direct n'importe aucune personne. Reste la question des comptes déjà importés |
+| V2 | La migration biketeam par dump pouvait rattacher un compte Pedalons existant sur une preuve d'e-mail insuffisante | Caduc pour l'avenir : l'import par dump a été retiré (commit `d93fd3af`) et la migration en direct n'importe aucune personne. Les comptes déjà importés n'existent plus en staging ni en prod (vérifié le 2026-09-29, `SEC-15`) |
 | V3 | La confiance accordée aux en-têtes `X-Forwarded-*` dépend de la configuration du proxy de l'hôte | À valider |
 | V4 | Les en-têtes de sécurité HTTP dépendent de la configuration du proxy de l'hôte | À valider |
 | V5 | L'intégrité de l'historique des sauvegardes dépend de la configuration de l'hôte de sauvegarde | À valider |
