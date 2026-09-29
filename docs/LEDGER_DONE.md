@@ -167,6 +167,17 @@ existe déjà — c'est le menu du fil d'Ariane, alimenté par le même `useNavI
 fondu piloté par la position de défilement, et libellés inactifs sortis du `dimmed` (4,04/3,32 →
 **9,37/21**). L'anneau de focus global, hors de ce chantier, reste ouvert : `WEB-2`.
 
+### Outillage
+
+- `WEB-5` **`pnpm ssr-audit:verify` repasse** (2026-09-30) — `notifications`, `web: true` dans
+  `contracts/routes.yaml`, manquait à `scripts/routes-ssr.yml` ; la vérification a sorti trois
+  autres absentes, venues avec le signalement et le support : `support`, `teamAdminReports`,
+  `adminReports`. Les quatre y sont, rangées comme leurs voisines : `notifications` pour les trois
+  comptes connectés (la boîte est par utilisateur), `support` pour tous (page publique),
+  `teamAdminReports` pour `user1` sur `gaby`, `adminReports` pour `admin`. Couvert par
+  `pnpm ssr-audit:verify` lui-même (69 routes), qui tourne sans pile ; le crawl, lui, n'a pas été
+  relancé.
+
 ---
 
 ## API — Contrat d'API et backend

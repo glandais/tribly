@@ -191,9 +191,6 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       n'émet de `noindex` par page ; les pages non listées étant rendues en SSR, un robot les
       indexe. Le correctif va dans les `meta()` de `routes.config.ts`. Source :
       [`BACKLOG.md`](BACKLOG.md) (« Visibility Controls »). (Relevé le 29 septembre 2026.)
-- [ ] `WEB-5` **`pnpm ssr-audit:verify` échoue sur `notifications`** — la route est `web: true` dans
-      `contracts/routes.yaml` mais absente de `scripts/routes-ssr.yml`. Relevé pendant la migration
-      biketeam ([plan](plans/2026-09-22-biketeam-live-migration.md), écarts frontend, point 5).
 - [ ] `WEB-27` **Le SSR de `/calendrier` croît en carré des sorties d'une semaine, et gèle le
       serveur Node pendant ce temps (S–M)** — `@mantine/schedule` 9.6.2 place chaque événement du
       mois en le comparant à tous ceux déjà posés dans sa semaine (`findAvailableRow`, avec un

@@ -83,6 +83,7 @@ routes:
   - id: apps
   - id: privacy
   - id: terms
+  - id: support
   - id: allRoutes
   - id: allRoutesMap
 
@@ -96,6 +97,8 @@ routes:
   - id: profile
     users: [user1, user2, admin]
   - id: calendar
+    users: [user1, user2, admin]
+  - id: notifications
     users: [user1, user2, admin]
 
   # --- GPX tools ---
@@ -137,6 +140,10 @@ routes:
     params:
       teamSlug: gaby
   - id: teamAdminPages
+    users: [user1]
+    params:
+      teamSlug: gaby
+  - id: teamAdminReports
     users: [user1]
     params:
       teamSlug: gaby
@@ -221,4 +228,6 @@ routes:
   - id: adminUsers
     users: [admin]
   - id: adminBetaSignups
+    users: [admin]
+  - id: adminReports
     users: [admin]
