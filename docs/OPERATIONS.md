@@ -18,8 +18,7 @@ resident). One instance serves every environment. It owns the `pedalons-shared` 
 
 `docker-compose.yml` holds everything that must stay isolated per environment: traefik, backend,
 frontend, postgres, minio, imgproxy and varnish. Its `backend` also joins `pedalons-shared` to reach
-the two shared services — under the same hostnames as before, since `valhalla` and `tileserver` are
-their service names.
+the two shared services, by their service names `valhalla` and `tileserver`.
 
 Each environment's `.env` differs from a workstation's in five keys only — see
 [The `.env`, on a workstation and on a server](../README.md#the-env-on-a-workstation-and-on-a-server).
@@ -98,8 +97,8 @@ at deploy time and a new value rolls the backend.
 ### Only Caddy may reach traefik
 
 **Swarm cannot publish a port on the loopback.** Given `127.0.0.1:8090:80`, it drops the address
-with a mere warning and listens on every interface — which is why `docker-compose.yml` no longer
-pretends to. And `ufw` cannot close it either: Docker inserts its rules ahead of ufw's. The rule has
+with a mere warning and listens on every interface — which is why `docker-compose.yml` does not
+pretend to. And `ufw` cannot close it either: Docker inserts its rules ahead of ufw's. The rule has
 to go into the `DOCKER-USER` chain, which Docker consults first and never rewrites — one per
 environment port, on the public interface.
 
@@ -140,64 +139,6 @@ on the host itself can tell: the loopback is not filtered, so a local `curl` suc
 Postgres, for the same reason, publishes no port at all on a host — a raw Postgres guarded by a
 password alone has no business on a public interface. Reach it through `docker exec` (see
 [Running SQL](../README.md#running-sql)); a workstation still gets `127.0.0.1:5432` from the overlay.
-
-### Moving a host from compose to Swarm
-
-Done once per host. The data needs moving, not just the services: compose named the volumes after the
-project, i.e. the checkout directory (`prod_postgres_data`), a stack names them after itself
-(`pedalons-prod_postgres_data`). A stack deployed without the move would boot on two new empty
-volumes — Flyway on an empty schema and a freshly bootstrapped Domain — with the real data left
-where nothing reads it. Take a backup first (`scripts/backup.sh`), then, after `git pull` in every
-checkout:
-
-```bash
-# 1. each environment: stop its compose containers (volumes kept) and copy its data across
-cd ~/prod && scripts/migrate-to-swarm.sh
-cd ~/staging && scripts/migrate-to-swarm.sh
-
-# 2. the firewall unit of "Only Caddy may reach traefik" above, then the swarm: from the next step
-#    on, a published port listens on every interface
-#    ... the install commands above, then `iptables -S DOCKER-USER`
-docker swarm init --advertise-addr <public IPv4>   # the flag only if the host has several addresses
-
-# 3. the shared stack. Its old project name came from the `name:` the file no longer carries, and
-#    its bridge network must be gone before Swarm creates the overlay of the same name
-cd ~/shared && docker compose -p pedalons-shared -f docker-compose.shared.yml down
-scripts/deploy.sh --shared
-
-# 4. each environment, as a stack
-cd ~/prod && scripts/deploy.sh
-cd ~/staging && scripts/deploy.sh
-```
-
-5. From **another machine**: `curl -m 5 http://<host>:8090` (and `:8089`) must time out, and
-   `nc -zv -w 3 <host> 2377` fail. If one answers, the rules are missing or name the wrong interface
-   — fix that before anything else.
-
-The old volumes stay behind as the way back; drop them (`docker volume rm prod_postgres_data …`)
-once the site has been checked, photos included.
-
-#### One environment at a time
-
-The environments may move separately — staging first, prod once staging has proved itself. Only the
-environment that moves runs step 1 and step 4; steps 2 and 3 are the host's and happen once. The
-catch is step 3: the environment still under compose has its backend on the `pedalons-shared`
-bridge, which must be gone before the overlay replaces it, and must then join the overlay — which a
-compose container can only do because the shared stack declares it `attachable`. So step 3 becomes,
-with prod still under compose:
-
-```bash
-docker network disconnect pedalons-shared pedalons-prod-backend
-cd ~/shared && docker compose -p pedalons-shared -f docker-compose.shared.yml down
-docker network inspect pedalons-shared >/dev/null 2>&1 && echo "still there"   # must print nothing
-scripts/deploy.sh --shared
-docker network connect pedalons-shared pedalons-prod-backend
-docker exec pedalons-prod-backend getent hosts valhalla tileserver             # two addresses
-```
-
-Valhalla and the tile server are down for prod meanwhile, the time for valhalla to load its tiles. A
-later `docker compose up` of prod rejoins the overlay by itself: its file declares the network
-`external`.
 
 ### Services that stay per-environment
 
