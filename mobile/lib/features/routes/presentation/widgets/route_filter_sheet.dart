@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../keys.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
@@ -97,6 +98,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
           child: PdlButton(
+            key: keys.routes.filterApplyButton,
             fullWidth: true,
             label: count == null
                 ? 'routes.filters.applyUnknown'.tr()
@@ -314,6 +316,7 @@ class _ChoiceSection<T> extends StatelessWidget {
             ),
             for (final value in values)
               ChoiceChip(
+                key: keys.routes.filterChoice(value as Object),
                 label: Text(labelOf(value)),
                 selected: selected == value,
                 onSelected: (isSelected) =>

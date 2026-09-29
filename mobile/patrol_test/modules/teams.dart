@@ -75,6 +75,11 @@ final class Teams extends Module {
     return DateTime.now().difference(start);
   }
 
+  /// « Réessayer » of the team's error state.
+  Future<void> retryLoad() async {
+    await $(keys.team.loadErrorRetryButton).tap();
+  }
+
   // ── « Mes équipes » and its pending invitations ────────────────────────
 
   /// Waits for « Accepter » on the invitation to [teamSlug], in the card atop « Mes équipes ».

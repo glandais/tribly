@@ -94,23 +94,28 @@ class _DataExportCardState extends ConsumerState<DataExportCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         Text('profile.data.export'.tr(), style: t.bodyStrong),
-                        Text(switch (status) {
-                          null => 'profile.data.never'.tr(),
-                          UserExportStatus.ready when expires != null =>
-                            'profile.data.readyUntil'.tr(
-                              namedArgs: <String, String>{
-                                'date': AppFormatters.formatLongDate(expires),
-                              },
-                            ),
-                          UserExportStatus.ready => 'profile.data.ready'.tr(),
-                          UserExportStatus.expired =>
-                            'profile.data.expired'.tr(),
-                          UserExportStatus.failed => 'profile.data.failed'.tr(),
-                          UserExportStatus.pending ||
-                          UserExportStatus.processing ||
-                          UserExportStatus.$unknown =>
-                            'profile.data.preparing'.tr(),
-                        }, style: t.xs),
+                        Text(
+                          key: keys.profile.dataExportStatus,
+                          switch (status) {
+                            null => 'profile.data.never'.tr(),
+                            UserExportStatus.ready when expires != null =>
+                              'profile.data.readyUntil'.tr(
+                                namedArgs: <String, String>{
+                                  'date': AppFormatters.formatLongDate(expires),
+                                },
+                              ),
+                            UserExportStatus.ready => 'profile.data.ready'.tr(),
+                            UserExportStatus.expired =>
+                              'profile.data.expired'.tr(),
+                            UserExportStatus.failed =>
+                              'profile.data.failed'.tr(),
+                            UserExportStatus.pending ||
+                            UserExportStatus.processing ||
+                            UserExportStatus.$unknown =>
+                              'profile.data.preparing'.tr(),
+                          },
+                          style: t.xs,
+                        ),
                       ],
                     ),
                   ),
@@ -125,6 +130,7 @@ class _DataExportCardState extends ConsumerState<DataExportCard> {
               Text('profile.data.byEmail'.tr(), style: t.xs),
               const SizedBox(height: PdlSpacing.cardTight),
               PdlButton(
+                key: keys.profile.dataExportButton,
                 label: ready
                     ? 'profile.data.newExport'.tr()
                     : 'profile.data.request'.tr(),
@@ -301,6 +307,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
           ),
           const SizedBox(height: PdlSpacing.chipGap),
           PdlButton(
+            key: keys.profile.logoutAllButton,
             label: 'profile.account.logoutAll'.tr(),
             variant: PdlButtonVariant.outline,
             fullWidth: true,

@@ -12,6 +12,7 @@ import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
+import '../../../../keys.dart';
 
 /// Hauteur de la carte de localisation d'une annonce.
 const double _kMapHeight = 140;
@@ -94,6 +95,7 @@ class AdLocationMap extends ConsumerWidget {
                       fit: StackFit.expand,
                       children: <Widget>[
                         PdlMap(
+                          key: keys.ad.locationMap,
                           styleUrl: style.url,
                           credit: servedMapCredit(style),
                           initialCenter: PdlMapPoint(lon: _lon, lat: _lat),
@@ -103,7 +105,10 @@ class AdLocationMap extends ConsumerWidget {
                           // l'adresse.
                           gestures: const MapGestures.none(),
                         ),
-                        const IgnorePointer(child: Center(child: _Sector())),
+                        IgnorePointer(
+                          key: keys.ad.locationSector,
+                          child: const Center(child: _Sector()),
+                        ),
                       ],
                     ),
             ),
@@ -111,7 +116,11 @@ class AdLocationMap extends ConsumerWidget {
         ),
         const SizedBox(height: PdlSpacing.chipGap),
         ExcludeSemantics(
-          child: Text('ads.detail.locationApproximate'.tr(), style: t.xs),
+          child: Text(
+            'ads.detail.locationApproximate'.tr(),
+            key: keys.ad.locationCaption,
+            style: t.xs,
+          ),
         ),
       ],
     );

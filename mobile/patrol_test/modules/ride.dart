@@ -1,3 +1,6 @@
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
+
 import 'module.dart';
 
 /// The ride page: its groups, their leaders, and joining one.
@@ -19,6 +22,14 @@ final class Ride extends Module {
     await $(keys.ride.loadError).waitUntilExists(timeout: timeout);
     return DateTime.now().difference(start);
   }
+
+  /// « Réessayer » of the page's error state.
+  Future<void> retryLoad() async {
+    await $(keys.ride.loadErrorRetryButton).tap();
+  }
+
+  /// Whether the error state reads [text].
+  bool loadErrorShows(String text) => shows(keys.ride.loadError, text);
 
   /// The ride's name as the page shows it, or null when no ride is shown.
   String? get title =>
@@ -88,6 +99,97 @@ final class Ride extends Module {
   }
 
   bool get showsFailure => isShown(keys.ride.registrationFailure);
+
+  // ── Past and cancelled rides ────────────────────────────────────────────
+
+  /// Whether the ride is marked « Terminée ».
+  bool get saysFinished => isShown(keys.ride.finishedBadge);
+
+  /// Whether the « Sortie annulée » banner is shown.
+  bool get saysCancelled => isShown(keys.ride.cancelledBanner);
+
+  Future<void> waitUntilCancelled() async {
+    await $(keys.ride.cancelledBanner).waitUntilVisible();
+  }
+
+  /// Scrolls the card of [groupId] into view, for the checks made on it afterwards.
+  Future<void> showGroup(String groupId) async {
+    await scrolledTo(keys.ride.group(groupId));
+  }
+
+  /// Whether the card of [groupId] offers any action at all: « Rejoindre », « Quitter » or
+  /// « Complet ».
+  bool offersAnyAction(String groupId) =>
+      offersJoin(groupId) || offersLeave(groupId) || offersFull(groupId);
+
+  // ── Participants ────────────────────────────────────────────────────────
+
+  /// « Voir la liste » of the meta block: the sheet of the whole ride's participants.
+  Future<void> openParticipants() async {
+    await (await scrolledTo(keys.ride.participantsButton)).tap();
+    await $(keys.participants.count).waitUntilVisible();
+  }
+
+  /// Closes the participants sheet by flinging it down by its header.
+  Future<void> closeParticipants() async {
+    await $.tester.fling(
+      find.byKey(keys.participants.count),
+      const Offset(0, 600),
+      2000,
+    );
+    await waitUntilGone(keys.participants.count);
+  }
+
+  /// Whether the open participants sheet has a row for [userId].
+  bool participantsListRow(String userId) =>
+      isShown(keys.participants.person(userId));
+
+  /// The total the participants sheet reads in its header.
+  String? get participantsCount => $(keys.participants.count).$(Text).text;
+
+  // ── Exports ─────────────────────────────────────────────────────────────
+
+  /// Scrolls to the card of [groupId] and waits for its « GPX »: the exports show once the
+  /// group's route — loaded with the map's batch — is there.
+  Future<void> waitUntilGpxExportIsOffered(String groupId) async {
+    await scrolledTo(keys.ride.group(groupId));
+    await $(keys.ride.groupExportGpx(groupId)).waitUntilExists();
+  }
+
+  bool offersFitExport(String groupId) =>
+      isShown(keys.ride.groupExportFit(groupId));
+
+  bool offersSendToDevice(String groupId) =>
+      isShown(keys.ride.groupSendToDevice(groupId));
+
+  /// Taps « GPX » on the card of [groupId]: the app downloads the file, then hands it to the
+  /// system share sheet.
+  Future<void> exportGpx(String groupId) async {
+    await (await scrolledTo(keys.ride.groupExportGpx(groupId))).tap();
+  }
+
+  // ── Groups map ──────────────────────────────────────────────────────────
+
+  /// Waits until the groups map's pill names [groupName] — the selected group.
+  Future<void> waitUntilMapSelects(
+    String groupName, {
+    Duration timeout = const Duration(seconds: 20),
+  }) async {
+    final deadline = DateTime.now().add(timeout);
+    while (!shows(keys.ride.groupsMapPill, groupName)) {
+      if (DateTime.now().isAfter(deadline)) {
+        throw TestFailure(
+          'the groups map does not select $groupName after $timeout',
+        );
+      }
+      await $.pump(const Duration(milliseconds: 200));
+    }
+  }
+
+  /// Taps the card of [groupId] — which selects it for the map, the legend and the profile.
+  Future<void> selectGroup(String groupId) async {
+    await (await scrolledTo(keys.ride.group(groupId))).tap();
+  }
 
   /// Lets the refetch that follows a registration settle.
   Future<void> settle() async {

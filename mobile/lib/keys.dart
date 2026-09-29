@@ -1,14 +1,21 @@
 import 'core/adaptive/keys.dart';
 import 'features/ads/keys.dart';
+import 'features/apps/keys.dart';
 import 'features/auth/keys.dart';
+import 'features/calendar/keys.dart';
 import 'features/comments/keys.dart';
 import 'features/device/keys.dart';
+import 'features/feed/keys.dart';
+import 'features/feedback/keys.dart';
 import 'features/home/keys.dart';
+import 'features/legal/keys.dart';
 import 'features/moderation/keys.dart';
 import 'features/notifications/keys.dart';
+import 'features/participants/keys.dart';
 import 'features/posts/keys.dart';
 import 'features/profile/keys.dart';
 import 'features/rides/keys.dart';
+import 'features/routes/keys.dart';
 import 'features/teams/keys.dart';
 import 'features/trips/keys.dart';
 
@@ -24,7 +31,12 @@ class Keys {
   final teamsDiscover = TeamsDiscoverKeys();
   final team = TeamPageKeys();
   final ride = RideDetailKeys();
+  final participants = ParticipantsSheetKeys();
   final ad = AdDetailKeys();
+  final adContact = AdContactKeys();
+  final apps = AppsPageKeys();
+  final feedback = FeedbackKeys();
+  final legal = LegalPageKeys();
   final post = PostDetailKeys();
   final comments = CommentKeys();
   final moderation = ModerationKeys();
@@ -32,4 +44,9 @@ class Keys {
   final device = DeviceVerifyKeys();
   final home = HomeKeys();
   final trip = TripDetailKeys();
+  final calendar = CalendarKeys();
+  final routes = RoutesKeys();
+  final routeDetail = RouteDetailKeys();
+  final feed = FeedKeys();
+  final adsList = AdsListKeys();
 }

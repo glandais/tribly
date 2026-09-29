@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../keys.dart';
 import '../../../../core/theme/enum_colors.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
@@ -40,6 +41,7 @@ class AdCard extends StatelessWidget {
     );
 
     return PdlCard(
+      key: keys.adsList.card(ad.slug),
       padding: PdlCardPadding.none,
       onTap: () => context.push(Paths.ad(ad.team.slug, ad.slug)),
       child: Column(

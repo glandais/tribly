@@ -20,6 +20,105 @@ fichier garde **ce qui est fait**, et ce qu'il ne faut pas défaire.
   `GROUP_FULL` affichait « Groupe complet. » sans jamais dire lequel : `rides.failure.full` prend
   maintenant `{group}`, comme les bandeaux voisins. Le reste de la recette de l'écran est `MOB-2`.
 
+### Couverture e2e Patrol
+
+Écrits le 29 septembre 2026 par-dessus les P0 de l'audit de couverture e2e (`WEB-26`), un test
+Patrol par scénario sous `mobile/patrol_test/` (tableau « Coverage » de son README). Ils ont trouvé
+sept défauts de l'app, tous corrigés le même jour et nommés dans les entrées qui les ont trouvés,
+plus un huitième hors scénario : un appui au-dessus d'une `PdlSheet` ne la refermait pas (la feuille
+couvrait la barrière modale, dd207d81). Ce que chaque entrée laisse de côté est dit en « Non
+couvert » ; les tests ne tournent qu'en local (`MOB-37`).
+
+- [x] `MOB-25` **Annonces : carte de localisation et contact du vendeur** (29 septembre 2026) — la
+  carte d'une annonce localisée montre son lieu, la légende « Localisation approximative », un
+  secteur sur une carte qui ne dessine aucun point (ni repère, ni départ, ni arrivée, ni
+  surcouche), centrée sur la cellule floutée à moins d'un kilomètre du point saisi et jamais
+  dessus ; une annonce sans lieu n'a ni en-tête « Localisation », ni carte, ni secteur. Le contact :
+  9, 2 001 et dix espaces laissent « Envoyer » désactivé, 10 et 2 000 l'activent ; un envoi réussi
+  ferme la feuille et remplace le bouton par la confirmation, un seul mail relayé porte le
+  brouillon, `Reply-To` l'acheteur, `From` jamais l'acheteur, aucune des deux adresses dans le
+  corps, et l'annonce lue par l'API ne porte pas l'adresse du vendeur ; `AD_CONTACT_OPTED_OUT`
+  (vendeur non contactable) ferme la feuille, pose le bandeau à la place du bouton et n'envoie
+  rien ; le 11ᵉ message de l'heure (`RATE_LIMITED`, `Retry-After` 3 600) dit « Réessayez dans
+  1 heure », garde le brouillon, passe le bouton à « Réessayer » et la page garde « Contacter le
+  vendeur » — `ad_location_map_test.dart`, `ad_contact_test.dart`,
+  `ad_contact_opted_out_test.dart`, `ad_contact_rate_limited_test.dart`. *Non couvert :
+  `DELIVERY_FAILED` (500) — mailpit accepte tout, la stack réelle ne sait pas faire échouer le
+  relais sans un crochet de test (le web le simule par `page.route`) ; le rendu en pixels du
+  secteur (le web mesure la teinte du canvas, ici seul l'arbre de widgets est vérifié).*
+- [x] `MOB-27` **Sorties passées et annulées** (29 septembre 2026) — une sortie de la veille, restée
+  `PUBLISHED`, affiche « Terminée » et aucun de ses deux groupes ne propose « Rejoindre », « Quitter »
+  ni « Complet » ; une sortie annulée derrière l'app (PUT du `RideRequest` complet, statut
+  `CANCELLED`, comme l'éditeur web) affiche son bandeau, et la carte du groupe n'offre rien, pas même
+  « Quitter » à un inscrit que l'API compte toujours comme tel — `ride_past_cancelled_test.dart`.
+  *Non couvert : le refus `409 RIDE_PAST` de l'API (couvert côté web), la carte « Ma prochaine sortie »
+  d'une sortie annulée.*
+- [x] `MOB-28` **Écrans d'erreur sur un 5xx** (29 septembre 2026) — un 500 sur l'équipe puis sur la
+  sortie est retenté trois fois par `providerRetry` (au moins 3 s, quatre requêtes pour la sortie),
+  puis la page affiche son erreur — « Erreur de chargement » pour la sortie, pas l'« introuvable »
+  d'un 404 ; une fois le serveur rétabli, « Réessayer » charge la page — `load_error_retry_test.dart`.
+  Le 500 est fabriqué côté app par un intercepteur que le test ajoute au `Dio` authentifié
+  (`patrol_test/server_errors.dart`), comme `page.route` côté web : la stack e2e ne sait pas échouer
+  à la demande, et `lib/` ne porte aucun crochet de test. *Non couvert : un 5xx réellement émis par
+  le serveur, l'erreur hors ligne (`errors.offline`), les autres écrans en erreur (voyage, article,
+  parcours, annonce).*
+- [x] `MOB-29` **Notifications des autres sujets** (29 septembre 2026) — `RIDE_CANCELLED` : une
+  sortie annulée par son organisatrice (PUT du `RideRequest`, statut `CANCELLED`) n'atteint que
+  l'inscrit, jamais le membre non inscrit ; l'entrée dit « Une sortie est annulée » avec le nom de la
+  sortie, et ouvre la sortie sous son bandeau d'annulation — `notification_ride_cancelled_test.dart`.
+  `RIDE_JOINED` : un cycliste s'inscrit depuis l'app ; la notification, qui nomme le cycliste et porte
+  le groupe en `excerpt`, atteint le créateur de la sortie **et** le meneur du groupe
+  (`RideGroupDto.leader`, distinct du créateur), jamais le cycliste lui-même ; l'entrée lue par le
+  meneur nomme le cycliste et le groupe, et ouvre la sortie — `notification_ride_joined_test.dart`.
+  *Non couvert : les autres types du sujet sortie (`RIDE_PUBLISHED`, `RIDE_UPDATED` et ses variantes
+  de libellé, `RIDE_REMINDER`, `RIDE_GROUP_REMOVED`), `TRIP_*`, `CONTENT_REPORTED` (qui ouvre le web),
+  et la réception push (FCM absent de la stack e2e).*
+- [x] `MOB-30` **Parcours** (29 septembre 2026) — un cycliste d'aucune équipe cherche dans l'onglet Parcours : le parcours public d'une équipe publique sort, jamais son parcours réservé aux membres ni celui d'une équipe privée (aussi vérifié par `/api/routes`) ; la bascule liste/carte garde la recherche ; la fiche du parcours dessine son profil altimétrique (tiré du GPX téléversé) et « Utilisée dans » ne nomme que la sortie publique. Un membre trouve les deux parcours de l'équipe ; un filtre de revêtement réduit la liste, un filtre sans résultat mène à l'état vide filtré ; « Utilisée dans » ajoute la sortie réservée aux membres et le voyage (« via l'étape … »), jamais la sortie sans parcours — `routes_visibility_test.dart`. *Non couvert : le tracé sur la carte et le popup de la vue Carte (tuiles et valhalla absents de la stack e2e, seule la présence de la vue est vérifiée), la section Parcours d'une équipe, les autres filtres (distance, dénivelé, vent, « Autour de moi »), le tri et la densité.*
+- [x] `MOB-31` **Calendrier** (29 septembre 2026) — l'onglet Calendrier d'un membre de deux équipes montre les sorties des deux, jamais la sortie publique d'une équipe publique dont il n'est pas ; chaque carte nomme son équipe, « Inscrit · Groupe A » sur la seule sortie rejointe ; un événement ouvre sa sortie. La section Calendrier de l'équipe ne montre que cette équipe ; « Copier le lien » met au presse-papiers l'URL du flux d'équipe (`teamFeedUrlTemplate`, slug inséré, chemin `/api/teams/{slug}/calendar/ics`), « Régénérer le lien » change le jeton (vérifié par l'API) et la copie suivante donne la nouvelle URL — `calendar_test.dart`. *Non couvert : « S'abonner » (`webcal://`, rien pour le recevoir sur le simulateur), le contenu du flux ICS lui-même (déjà couvert côté web), les étapes de voyage et les filtres de type du calendrier.*
+- [x] `MOB-32` **Réglages du profil** (29 septembre 2026) — le nom affiché s'enregistre ; unités
+  impériales (l'exemple chiffré passe en milles), thème sombre (l'app se redessine en sombre),
+  « Être contacté par les membres » coupé et langue anglaise (la ligne dit « English »), puis
+  retour au français : tout arrive sur `/api/users/me`, et l'interrupteur coupé fait refuser le
+  relais d'annonce `AD_CONTACT_OPTED_OUT`. L'export de données : « Jamais demandé », « Demander
+  un export » → « En préparation… », le mail du scheduler porte le lien de téléchargement, et le
+  profil rouvert dit « Prêt » (l'API `READY`) — `profile_preferences_test.dart`, `profile_data_export_test.dart`.
+  « Déconnecter tous les appareils » ramène à la connexion, refuse le refresh token de cet
+  appareil et celui d'un autre, et le mot de passe connecte toujours —
+  `profile_logout_all_test.dart`. Trois défauts trouvés en chemin et corrigés le même jour : un export `READY` restait « En préparation… » (le
+  code attendait un statut `COMPLETED` absent du contrat, 8ef911d0) ; `logout-all` partait sans jeton et
+  ne révoquait rien (1dab921c) ; les appels authentifiés sous `/api/auth/` (`getMe`,
+  gestion des clés d'accès, `logout-all`) ne rafraîchissaient pas un jeton expiré (08aa46ef). *Non couvert : l'avatar (sélecteur de photos natif du
+  système) ; les services GPS connectés (OAuth Strava/Garmin hors stack) ; le téléchargement de
+  l'archive (lien du mail, pas de bouton dans l'app).*
+- [x] `MOB-33` **Signalement au-delà des publications et commentaires, suppression par un modérateur** (29 septembre 2026) — un membre signale une sortie, un voyage, un parcours et une annonce depuis leur `⋯` (`showDetailModerationMenu`) : chaque page se ferme derrière le signalement et l'administrateur de l'équipe trouve chacun dans la file ouverte (`/api/teams/{slug}/reports`) — `report_details_test.dart` ; il signale un coéquipier depuis la section « Membres » (le menu propose aussi de le bloquer) et un participant depuis la feuille des participants d'une sortie, les deux signalements de membre arrivant dans la file — `report_members_test.dart` ; un organisateur (pas l'auteur de l'article) supprime le commentaire d'un membre depuis son `⋯`, qui le retire du fil et de l'API — `comment_moderator_delete_test.dart`. *Non couvert : le signalement depuis une étape de voyage et depuis la feuille des participants d'un voyage, ce que le modérateur voit de la file dans l'app (elle n'a pas d'écran de file : vérifié par l'API).*
+- [x] `MOB-34` **Listes : pagination et filtres** (29 septembre 2026) — sous une équipe dédiée, le défilement atteint l'entrée que l'API place en page 2 (demandée à l'API, pas déduite du tri) : fil d'équipe et fil d'accueil (21 articles et une sortie), annonces (22), membres (22), commentaires d'un article (21) ; les puces de type du fil (« Sorties », « Articles ») et des annonces (« Recherche ») filtrent, une recherche sans résultat mène à l'état vide filtré (fil, annonces), la recherche des membres réduit la liste à un nom — `feed_pagination_test.dart`, `ads_members_pagination_test.dart`, `comments_pagination_test.dart`. Le test des commentaires a mis au jour un défaut, corrigé le même jour (231c2188) : le fil ne chargeait jamais sa deuxième page, les commentaires au-delà du 20ᵉ étaient inaccessibles. *Non couvert : la portée « rôle minimum » du fil d'accueil, les filtres de prix et de proximité des annonces, les puces de rôle des membres, le bouton « Voir plus de commentaires » (défiler suffit), les listes de découverte des équipes et de mes participations.*
+- [x] `MOB-35` **Détail d'une sortie : participants et exports** (29 septembre 2026) — « Voir la
+  liste » réunit les inscrits des deux groupes (total 2, une ligne chacun, ni le lecteur ni le
+  créateur) ; la pastille de la carte des groupes nomme le premier groupe, puis celui dont on touche
+  la carte ; la carte de groupe propose « GPX » (et « FIT » si le parcours en a un) d'après les assets
+  du parcours, pas « Envoyer vers un appareil » sans service GPS connecté, et « GPX » ouvre la feuille
+  de partage du système sur un fichier GPX (lue dans l'arbre natif) — `ride_participants_map_test.dart`.
+  Deux défauts trouvés en chemin et corrigés : les exports n'étaient pas câblés sur la carte de groupe
+  (05b20faf), et changer de groupe levait « pdl-track-src already exists » (poses de la carte non
+  sérialisées, ec5df0df). *Non couvert : l'envoi vers un appareil (il faut un service GPS connecté
+  par OAuth, hors de portée de la stack e2e), l'export FIT jusqu'à la feuille de partage, les tracés
+  eux-mêmes (vue native MapLibre, illisible par Patrol) et le plein écran de la carte.*
+- [x] `MOB-36` **Écrans périphériques** (29 septembre 2026) — la page Applications, ouverte depuis le
+  profil, refuse une adresse mal formée (« Email invalide ») et enregistre l'inscription à la
+  bêta (« Inscription enregistrée ») ; la même adresse en capitales répond pareil et la liste
+  d'administration ne la compte qu'une fois. Déconnecté, depuis le formulaire d'inscription,
+  « Confidentialité » et « Lire les conditions » ouvrent leur texte et le retour ramène au
+  formulaire. « Signaler un problème » garde « Envoyer » désactivé sous 10 caractères, envoie
+  une suggestion (`POST /api/feedback`), se ferme et remercie. Sans `PUSH` dans les canaux du
+  serveur, la boîte de réception ne montre aucun bandeau d'activation —
+  `apps_beta_signup_test.dart`, `legal_pages_test.dart`, `report_problem_test.dart`,
+  `push_banner_absent_test.dart`. *Non couvert : le bandeau d'activation du push dans ses états
+  `notDetermined` → dialogue système → `granted`, et `denied`. Il faudrait une stack e2e qui
+  pousse (compte de service FCM, `PEDALONS_PUSH_ENABLED=true`) et des APNs sur le simulateur.
+  Le signalement n'est vérifié que par le 204 et l'interface : aucune API ne relit un
+  signalement (il part en issue GitHub). Le bouton « Télécharger l'APK » ouvre un lien externe
+  et n'est pas suivi.*
+
 ---
 
 ## WEB — Site web

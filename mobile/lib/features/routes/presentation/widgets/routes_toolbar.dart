@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../keys.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
@@ -62,6 +63,7 @@ class RoutesToolbar extends ConsumerWidget {
             children: <Widget>[
               Expanded(
                 child: PdlSearchField(
+                  key: keys.routes.searchField,
                   value: filters.search,
                   hintText: 'routes.filters.searchPlaceholder'.tr(),
                   clearTooltip: 'common.cancel'.tr(),
@@ -71,6 +73,7 @@ class RoutesToolbar extends ConsumerWidget {
               ),
               const SizedBox(width: 10),
               PdlFilterButton(
+                key: keys.routes.filterButton,
                 onPressed: onOpenFilters,
                 semanticLabel: 'routes.filters.title'.tr(),
                 activeCount: filters.activeCount,
@@ -98,11 +101,13 @@ class RoutesToolbar extends ConsumerWidget {
             onChanged: onViewChanged,
             segments: <PdlSegment<RouteViewMode>>[
               PdlSegment<RouteViewMode>(
+                key: keys.routes.listViewSegment,
                 value: RouteViewMode.list,
                 label: 'routes.view.list'.tr(),
                 icon: PdlIcons.list,
               ),
               PdlSegment<RouteViewMode>(
+                key: keys.routes.mapViewSegment,
                 value: RouteViewMode.map,
                 label: 'routes.view.map'.tr(),
                 icon: PdlIcons.map,

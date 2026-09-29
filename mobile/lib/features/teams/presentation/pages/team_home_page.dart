@@ -91,6 +91,7 @@ class TeamHomePage extends ConsumerWidget {
               message: getErrorMessage(error),
               actions: <Widget>[
                 PdlButton(
+                  key: keys.team.loadErrorRetryButton,
                   label: 'common.retry'.tr(),
                   onPressed: () => ref.invalidate(teamDetailProvider(teamSlug)),
                 ),

@@ -6,6 +6,7 @@ import '../../../../api/generated/export.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
+import '../../../../keys.dart';
 import '../../domain/push_message.dart';
 import '../../providers/notifications_provider.dart';
 import '../../providers/push_provider.dart';
@@ -73,6 +74,7 @@ class PushActivationBanner extends ConsumerWidget {
         0,
       ),
       child: PdlBanner(
+        key: keys.notifications.pushActivationBanner,
         tone: PdlBannerTone.info,
         icon: PdlIcons.notifications,
         title: 'notifications.push.title'.tr(),

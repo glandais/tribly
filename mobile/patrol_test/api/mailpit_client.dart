@@ -32,6 +32,16 @@ final class MailpitClient {
     throw StateError('mailpit: no new mail for $to within $timeout');
   }
 
+  /// Every mail to [to], newest first, whole: `From`, `ReplyTo`, `Subject`, `Text`, `HTML`… as
+  /// mailpit's `/api/v1/message/{id}` serves them — for a test that checks the envelope, not only
+  /// the body.
+  Future<List<Map<String, dynamic>>> messagesTo(String to) async => [
+    for (final message in await _search(to))
+      (await _dio.get<Map<String, dynamic>>(
+        '/api/v1/message/${message['ID']}',
+      )).data!,
+  ];
+
   /// The 6-digit one-time code in [mail].
   String otpCodeIn(String mail) {
     final match = RegExp(r'\b(\d{6})\b').firstMatch(mail);

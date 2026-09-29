@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../keys.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
@@ -31,6 +32,7 @@ class CompactRouteRow extends ConsumerWidget {
     final UnitSystem units = ref.watch(unitSystemProvider);
 
     return PdlCard(
+      key: keys.routes.card(route.slug),
       padding: PdlCardPadding.tight,
       onTap:
           onTap ?? () => context.push(Paths.route(route.team.slug, route.slug)),

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../../keys.dart';
 
 enum LegalPageType { privacy, terms }
 
@@ -43,7 +44,10 @@ class _LegalPageState extends State<LegalPage> {
         : 'profile.terms'.tr();
 
     return Scaffold(
-      appBar: AppBar(title: Text(title), leading: const BackOrHomeButton()),
+      appBar: AppBar(
+        title: Text(title),
+        leading: BackOrHomeButton(key: keys.legal.backButton),
+      ),
       // The page owns the scroll view so it attaches to the route's
       // PrimaryScrollController — that is what makes the iOS status bar tap
       // scroll back to the top.
@@ -52,7 +56,10 @@ class _LegalPageState extends State<LegalPage> {
           : SingleChildScrollView(
               child: ContentWidthConstraint(
                 padding: const EdgeInsets.all(16),
-                child: MarkdownContent(data: _markdown!),
+                child: MarkdownContent(
+                  key: keys.legal.content,
+                  data: _markdown!,
+                ),
               ),
             ),
     );

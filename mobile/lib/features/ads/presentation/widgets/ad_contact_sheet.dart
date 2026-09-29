@@ -10,6 +10,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../keys.dart';
 import '../../data/ad_repository.dart';
 
 /// Bornes du message, imposées par `AdContactRequest` au contrat.
@@ -181,6 +182,7 @@ class _AdContactSheetState extends ConsumerState<_AdContactSheet> {
               ),
               const SizedBox(height: PdlSpacing.cardTight),
               TextField(
+                key: keys.adContact.messageField,
                 controller: _controller,
                 onChanged: (_) => setState(() {}),
                 minLines: 4,
@@ -253,7 +255,11 @@ class _AdContactSheetState extends ConsumerState<_AdContactSheet> {
               ),
               if (_error != null) ...<Widget>[
                 const SizedBox(height: PdlSpacing.cardTight),
-                PdlBanner(tone: PdlBannerTone.danger, message: _error!),
+                PdlBanner(
+                  key: keys.adContact.error,
+                  tone: PdlBannerTone.danger,
+                  message: _error!,
+                ),
               ],
             ],
           ),
@@ -269,6 +275,7 @@ class _AdContactSheetState extends ConsumerState<_AdContactSheet> {
             PdlSpacing.chipGap,
           ),
           child: PdlButton(
+            key: keys.adContact.sendButton,
             label: _error == null
                 ? 'ads.contact.send'.tr()
                 : 'common.retry'.tr(),

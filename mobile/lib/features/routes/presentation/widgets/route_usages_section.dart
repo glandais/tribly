@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../keys.dart';
 import '../../../../core/theme/enum_colors.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
@@ -65,6 +66,7 @@ class _UsageCard extends StatelessWidget {
     final DateTime? at = DateTime.tryParse(usage.dateTime)?.toLocal();
 
     return PdlCard(
+      key: keys.routeDetail.usage(usage.slug),
       padding: PdlCardPadding.tight,
       onTap: () => _open(context),
       child: Row(

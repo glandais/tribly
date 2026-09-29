@@ -13,6 +13,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../keys.dart';
 
 /// La couleur d'un événement de calendrier.
 ///
@@ -80,6 +81,7 @@ class AgendaCard extends ConsumerWidget {
     ];
 
     final Widget card = PdlCard(
+      key: keys.calendar.agendaCard(event.entitySlug),
       padding: PdlCardPadding.none,
       onTap: _onTap(context),
       child: IntrinsicHeight(
@@ -155,6 +157,7 @@ class AgendaCard extends ConsumerWidget {
   List<Widget> _badges(PdlColors c) => <Widget>[
     if (event.registered)
       PdlBadge(
+        key: keys.calendar.agendaRegisteredBadge(event.entitySlug),
         // « Inscrit · Chill route long » : le groupe rejoint est la moitié
         // utile de l'information, et `groupName` la porte depuis la 1.5.0.
         label: event.groupName == null

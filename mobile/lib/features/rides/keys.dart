@@ -5,7 +5,26 @@ class _RideDetailKey extends ValueKey<String> {
 }
 
 class RideDetailKeys {
+  /// Le bandeau « Sortie annulée » sous l'identité.
+  final cancelledBanner = const _RideDetailKey('cancelledBanner');
+
+  /// Le badge « Terminée » d'une sortie passée.
+  final finishedBadge = const _RideDetailKey('finishedBadge');
+
+  /// La pastille de la carte des groupes, qui nomme le groupe sélectionné.
+  final groupsMapPill = const _RideDetailKey('groupsMapPill');
+
   final loadError = const _RideDetailKey('loadError');
+
+  /// « Réessayer » de l'état d'erreur.
+  final loadErrorRetryButton = const _RideDetailKey('loadErrorRetryButton');
+
+  /// Le `⋯` de l'app bar : signaler la sortie.
+  final moreButton = const _RideDetailKey('moreButton');
+
+  /// « Voir la liste » du bloc méta : les participants de toute la sortie.
+  final participantsButton = const _RideDetailKey('participantsButton');
+
   final title = const _RideDetailKey('title');
 
   /// Le bandeau d'échec d'inscription de la section Groupes, quel qu'en soit

@@ -248,6 +248,7 @@ class _AboutCard extends ConsumerWidget {
             showDivider: true,
           ),
           PdlSettingRow(
+            key: keys.profile.reportProblemRow,
             icon: PdlIcons.bug,
             title: 'feedback.reportProblem'.tr(),
             onTap: () => showFeedbackSheet(context),
@@ -259,6 +260,7 @@ class _AboutCard extends ConsumerWidget {
             showDivider: true,
           ),
           PdlSettingRow(
+            key: keys.profile.appsRow,
             title: 'profile.apps'.tr(),
             onTap: () => context.push(Paths.apps()),
             showDivider: true,

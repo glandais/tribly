@@ -142,6 +142,7 @@ class _RideDetailContent extends ConsumerWidget {
             onPressed: () => _share(context),
           ),
           PdlAppBarAction(
+            key: keys.ride.moreButton,
             icon: PdlIcons.more,
             semanticLabel: 'moderation.more'.tr(),
             onPressed: () => showDetailModerationMenu(
@@ -161,6 +162,7 @@ class _RideDetailContent extends ConsumerWidget {
         if (ride.isCancelled)
           SliverToBoxAdapter(
             child: PdlBanner(
+              key: keys.ride.cancelledBanner,
               tone: PdlBannerTone.danger,
               icon: PdlIcons.cancelled,
               title: 'rides.cancelledTitle'.tr(),
@@ -267,6 +269,7 @@ class _RideDetailContent extends ConsumerWidget {
             children: <Widget>[
               if (ride.isPast && !ride.isCancelled)
                 PdlBadge(
+                  key: keys.ride.finishedBadge,
                   label: 'rides.finished'.tr(),
                   tone: PdlDerivedTones.done(c),
                 )
@@ -337,6 +340,7 @@ class _RideDetailContent extends ConsumerWidget {
             : Align(
                 alignment: Alignment.centerLeft,
                 child: PdlButton(
+                  key: keys.ride.participantsButton,
                   label: 'rides.viewParticipants'.tr(),
                   variant: PdlButtonVariant.text,
                   size: PdlButtonSize.sm,
@@ -559,6 +563,7 @@ class _RideDetailError extends ConsumerWidget {
           message: resolved.message,
           actions: <Widget>[
             PdlButton(
+              key: keys.ride.loadErrorRetryButton,
               label: 'common.retry'.tr(),
               variant: PdlButtonVariant.outline,
               onPressed: () => ref.invalidate(rideDetailProvider(rideKey)),

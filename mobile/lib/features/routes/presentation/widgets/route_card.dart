@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../keys.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/enum_colors.dart';
 import '../../../../core/theme/pdl_colors.dart';
@@ -44,6 +45,7 @@ class RouteCard extends ConsumerWidget {
         route.thumbnailUrl;
 
     return PdlCard(
+      key: keys.routes.card(route.slug),
       padding: PdlCardPadding.none,
       onTap: onTap ?? () => _open(context),
       child: Column(

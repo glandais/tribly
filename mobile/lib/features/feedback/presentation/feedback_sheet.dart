@@ -13,6 +13,7 @@ import '../../../core/theme/pdl_icons.dart';
 import '../../../core/theme/pdl_tokens.dart';
 import '../../../core/theme/pdl_typography.dart';
 import '../../../core/utils/api_error_handler.dart';
+import '../../../keys.dart';
 import '../data/feedback_repository.dart';
 
 /// Bornes du message, imposées par `FeedbackRequest` au contrat.
@@ -35,7 +36,11 @@ Future<bool> showFeedbackSheet(
     builder: (BuildContext sheetContext) => FeedbackSheet(error: error),
   );
   if (sent == true) {
-    messenger?.showSnackBar(SnackBar(content: Text('feedback.sent'.tr())));
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(key: keys.feedback.sentMessage, 'feedback.sent'.tr()),
+      ),
+    );
   }
   return sent == true;
 }
@@ -171,10 +176,12 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
                     setState(() => _kind = value),
                 segments: <PdlSegment<FeedbackKind>>[
                   PdlSegment<FeedbackKind>(
+                    key: keys.feedback.kind(FeedbackKind.bug),
                     value: FeedbackKind.bug,
                     label: 'feedback.kind.bug'.tr(),
                   ),
                   PdlSegment<FeedbackKind>(
+                    key: keys.feedback.kind(FeedbackKind.suggestion),
                     value: FeedbackKind.suggestion,
                     label: 'feedback.kind.suggestion'.tr(),
                   ),
@@ -191,6 +198,7 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
                 const SizedBox(height: PdlSpacing.cardTight),
               ],
               TextField(
+                key: keys.feedback.messageField,
                 controller: _controller,
                 onChanged: (_) => setState(() {}),
                 minLines: 4,
@@ -304,6 +312,7 @@ class _FeedbackSheetState extends ConsumerState<FeedbackSheet> {
             PdlSpacing.chipGap,
           ),
           child: PdlButton(
+            key: keys.feedback.sendButton,
             label: _error == null ? 'feedback.send'.tr() : 'common.retry'.tr(),
             loadingLabel: 'feedback.sending'.tr(),
             loading: _sending,

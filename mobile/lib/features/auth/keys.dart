@@ -59,4 +59,8 @@ class LoginPageKeys {
   /// L'écran « lien invalide » : jeton déjà servi, expiré ou inconnu.
   final resetInvalidState = const _LoginPageKey('resetInvalidState');
   final resetRequestNewButton = const _LoginPageKey('resetRequestNewButton');
+
+  // Les pages légales, sous la case des conditions.
+  final privacyLink = const _LoginPageKey('privacyLink');
+  final termsLink = const _LoginPageKey('termsLink');
 }

@@ -13,6 +13,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../../keys.dart';
 import '../../data/profile_repository.dart';
 
 /// Identité : photo, nom affiché, adresse e-mail.
@@ -176,6 +177,7 @@ class _ProfileIdentitySectionState
           Text('profile.identity.displayName'.tr(), style: t.xs),
           const SizedBox(height: 4),
           PdlSearchField(
+            key: keys.profile.displayNameField,
             value: _name.text,
             hintText: 'profile.identity.displayName'.tr(),
             errorText: _nameError,
@@ -205,6 +207,7 @@ class _ProfileIdentitySectionState
               ),
               const SizedBox(width: PdlSpacing.chipGap),
               PdlButton(
+                key: keys.profile.displayNameSave,
                 label: 'profile.identity.save'.tr(),
                 loadingLabel: 'profile.identity.saving'.tr(),
                 size: PdlButtonSize.sm,
