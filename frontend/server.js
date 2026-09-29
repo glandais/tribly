@@ -161,6 +161,52 @@ async function createServer() {
   let vite
   let template
   let render
+  let renderSitemap
+
+  const publicHost = (req) =>
+    String(req.headers['x-forwarded-host'] || req.headers.host || 'localhost')
+
+  // robots.txt, served here rather than as a static file so it can name this host's sitemap: the
+  // protocol wants an absolute URL, and every tenant has its own host. The rules themselves stay in
+  // public/robots.txt.
+  const robotsPath = isProduction
+    ? path.resolve(__dirname, 'dist/client/robots.txt')
+    : path.resolve(__dirname, 'public/robots.txt')
+  app.get('/robots.txt', (req, res) => {
+    const rules = fs.readFileSync(robotsPath, 'utf-8').trimEnd()
+    res
+      .set({
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600',
+        Vary: 'Host, X-Forwarded-Host',
+      })
+      .send(`${rules}\n\nSitemap: ${req.protocol}://${publicHost(req)}/sitemap.xml\n`)
+  })
+
+  // The public pages of this host's site (docs/LEDGER_DONE.md WEB-31). Anonymous and the same for
+  // every visitor of a host, hence cacheable, unlike the HTML pages below.
+  app.get('/sitemap.xml', async (req, res) => {
+    try {
+      const sitemapRenderer = isProduction
+        ? renderSitemap
+        : (await vite.ssrLoadModule('/src/entry-server.tsx')).renderSitemap
+      const xml = await sitemapRenderer({
+        host: publicHost(req),
+        'x-forwarded-host': publicHost(req),
+        'x-forwarded-proto': req.protocol,
+      })
+      res
+        .set({
+          'Content-Type': 'application/xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600',
+          Vary: 'Host, X-Forwarded-Host',
+        })
+        .send(xml)
+    } catch (err) {
+      console.error('[sitemap] Failed to build the sitemap:', err.message)
+      res.status(503).set('Cache-Control', 'no-store').send('Sitemap unavailable')
+    }
+  })
 
   if (isProduction) {
     app.use(compression())
@@ -180,6 +226,7 @@ async function createServer() {
     template = fs.readFileSync(path.resolve(__dirname, 'dist/client/index.html'), 'utf-8')
     const serverModule = await import(path.resolve(__dirname, 'dist/server/entry-server.js'))
     render = serverModule.render
+    renderSitemap = serverModule.renderSitemap
   } else {
     const { createServer: createViteServer } = await import('vite')
     vite = await createViteServer({

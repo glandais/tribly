@@ -29,6 +29,8 @@ import { buildMetaTags, type RouteMeta, type RouteMetaContext, type RouteMetaFn 
 import { withIndexing } from './config/routeMeta'
 import type { RouteParams } from './config/routes.types'
 import { mapThemePreference } from './lib/theme'
+import { getSitemap } from './api/endpoints/sitemap/sitemap'
+import { buildSitemapXml } from './lib/sitemap'
 
 // Bridge the SSR per-request store (AsyncLocalStorage) to the client-safe getter used by
 // axiosInstance / appConfig / locale-context. Called once at module load.
@@ -252,6 +254,29 @@ export async function render(url: string, headers: Record<string, string> = {}) 
     } finally {
       queryClient.clear()
     }
+  })
+}
+
+/**
+ * The `sitemap.xml` of the site the request arrived on, for server.js.
+ *
+ * Only the host headers go to the API: the list is anonymous by construction, and a visitor's
+ * cookie must not reach a response that server.js lets caches keep. The config is needed for the
+ * pinned host, whose URLs lose the team prefix like every link of that site.
+ */
+export async function renderSitemap(headers: Record<string, string> = {}): Promise<string> {
+  const hostHeaders: Record<string, string> = {}
+  for (const name of ['host', 'x-forwarded-host', 'x-forwarded-proto']) {
+    if (headers[name]) hostHeaders[name] = headers[name]
+  }
+  const store: SsrRequestStore = { headers: hostHeaders, locale: 'fr', config: undefined }
+  return requestContext.run(store, async () => {
+    const [config, sitemap] = await Promise.all([getConfig(), getSitemap()])
+    store.config = config
+    const origin = headers['x-forwarded-proto']
+      ? `${headers['x-forwarded-proto']}://${headers['x-forwarded-host'] || headers['host'] || 'localhost'}`
+      : `http://${headers['host'] || 'localhost'}`
+    return buildSitemapXml(sitemap.entries, origin, getPinnedTeamSlug() ? toBrowser : undefined)
   })
 }
 

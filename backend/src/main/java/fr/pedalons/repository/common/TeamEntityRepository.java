@@ -158,6 +158,30 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
         new QueryShape("te", getEntityType().getTypeName() + " te left join fetch te.team", true));
   }
 
+  /**
+   * The rows a search engine may index: what an anonymous visitor finds in a cross-team listing,
+   * narrowed to {@code PUBLIC} teams even on a pinned host — where the listing lets an unlisted
+   * team's content through, but every page of that team is {@code noindex} (ledger {@code WEB-4}).
+   *
+   * <p>Goes through the listing's own query so the sitemap can never announce a page the site would
+   * refuse; only the projection changes. Newest first, so a truncated sitemap keeps the fresh ones.
+   *
+   * @param projection columns over the alias {@code te}, e.g. {@code te.team.slug, te.slug}
+   */
+  default List<Object[]> findIndexable(Q query, String projection, int limit) {
+    if (query.userId() != null) {
+      throw new IllegalArgumentException("An indexable listing is anonymous");
+    }
+    PedalonsQuery pedalonsQuery =
+        getPedalonsQuery(
+            query, true, new QueryShape(projection, getEntityType().getTypeName() + " te", false));
+    pedalonsQuery.and("te.team.visibility = 'PUBLIC'", Map.of()).order("te.updatedAt desc");
+    TypedQuery<Object[]> typedQuery =
+        getEntityManager().createQuery(pedalonsQuery.getStringQuery(), Object[].class);
+    pedalonsQuery.getParams().forEach(typedQuery::setParameter);
+    return typedQuery.setMaxResults(limit).getResultList();
+  }
+
   default PedalonsQuery getPedalonsQuery(Q query, boolean list, QueryShape shape) {
     // Build base query
     PedalonsQuery pedalonsQuery;

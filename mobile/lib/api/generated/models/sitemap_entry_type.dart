@@ -1,0 +1,46 @@
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, unused_import, invalid_annotation_target, unnecessary_import
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+@JsonEnum()
+enum SitemapEntryType {
+  @JsonValue('TEAM')
+  team('TEAM'),
+  @JsonValue('TEAM_ABOUT')
+  teamAbout('TEAM_ABOUT'),
+  @JsonValue('TEAM_PAGE')
+  teamPage('TEAM_PAGE'),
+  @JsonValue('RIDE')
+  ride('RIDE'),
+  @JsonValue('POST')
+  post('POST'),
+  @JsonValue('TRIP')
+  trip('TRIP'),
+  @JsonValue('TRIP_STAGE')
+  tripStage('TRIP_STAGE'),
+  @JsonValue('ROUTE')
+  route('ROUTE'),
+
+  /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
+  $unknown(null);
+
+  const SitemapEntryType(this.json);
+
+  factory SitemapEntryType.fromJson(String json) => values.firstWhere(
+    (e) => e.json == json,
+    orElse: () => $unknown,
+  );
+
+  final String? json;
+
+  String toJson() => json ?? 'null';
+
+  @override
+  String toString() => json ?? super.toString();
+
+  /// Returns all defined enum values excluding the $unknown value.
+  static List<SitemapEntryType> get $valuesDefined =>
+      values.where((value) => value != $unknown).toList();
+}

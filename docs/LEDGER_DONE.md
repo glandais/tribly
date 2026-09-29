@@ -346,6 +346,17 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   suite e2e ne mesurent un style au survol ; `pnpm typecheck`, `pnpm lint` et `npx vitest run`
   passent, et la sortie de `postcss-preset-mantine` sur le module a été vérifiée.
 
+- `WEB-32` **Une image se glisse ou se colle dans l'éditeur** (2026-09-30, sans changement de
+  contrat) — seul le bouton de la barre d'outils téléversait une image. `MarkdownEditor` prend
+  maintenant les fichiers déposés (`handleDrop`, à l'endroit du lâcher) et collés (`handlePaste`, au
+  curseur) par le même téléversement : `tiptap/insertAsset.ts` (`imageFiles`, `uploadAndInsert`),
+  que le bouton utilise aussi. Plusieurs images arrivent dans l'ordre, **l'une après l'autre** : chaque
+  téléversement ajoute à la liste d'assets du formulaire, des écritures parallèles s'y
+  marcheraient dessus. Un fichier qui n'est pas une image, un éditeur sans équipe ou en lecture
+  seule laissent l'événement à ProseMirror ; un déplacement d'image à l'intérieur de l'éditeur
+  aussi. Couvert par `tiptap/insertAsset.test.ts` (filtre, HEIC sans type MIME, ordre, échec
+  isolé) ; le glisser-déposer réel n'a pas de test e2e.
+
 ### Référencement
 
 - `WEB-4` **`PUBLIC_UNLISTED` n'est plus indexé** (2026-09-30) — `frontend/index.html` servait un
@@ -375,6 +386,27 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   marche chez le destinataire. Pas de bouton sur les annonces, comme au mobile : elles ne se lisent
   qu'entre membres. Couvert par `ShareButton.test.tsx` (feuille, fermeture sans bandeau, copie,
   copie refusée).
+
+- `WEB-31` **Un `sitemap.xml` par site** (2026-09-30, API `6.2.0`) — `GET /api/sitemap`
+  (`SitemapService`) liste ce qu'un moteur peut indexer sur le site de la requête : les équipes
+  `PUBLIC`, leur page « à propos », leurs pages, sorties, articles, voyages, étapes et parcours
+  publics. Chaque type passe par la requête de liste de son dépôt (`TeamEntityRepository.findIndexable`,
+  requête anonyme, projection seule) : visibilité, statut, modération et modules sont ceux de la
+  liste, le sitemap ne peut pas annoncer une page que le site refuserait. S'y ajoute
+  `te.team.visibility = 'PUBLIC'` même sur un hôte épinglé, où la liste laisse passer une équipe non
+  listée dont toutes les pages sont pourtant `noindex` (`WEB-4`). Une étape n'a pas de visibilité
+  propre : elle est listée sous un voyage qui l'est. Plafond de 50 000 entrées (limite du protocole),
+  les plus récentes d'abord. **Jamais les annonces** (lues entre membres seulement) **ni les pages
+  carte** (`…/carte`) : aucun type d'entrée ne les désigne. Le serveur SSR sert `/sitemap.xml`
+  (`renderSitemap` dans `entry-server.tsx`, XML par `lib/sitemap.ts`) avec les chemins **français**
+  seulement — la langue servie à un robot, et les deux variantes de chemin rendent la même page —,
+  sans préfixe d'équipe sur un hôte épinglé (`toBrowser`), en cache public une heure ; et
+  `/robots.txt`, dont les règles restent dans `public/robots.txt`, avec la ligne `Sitemap:` de l'hôte
+  ajoutée à la volée (le protocole veut une URL absolue). Couvert par `SitemapServiceTest`
+  (contenu, annonces, contenu non public, équipes non publiques, étapes d'un voyage caché, hôte
+  épinglé, hôte épinglé d'une équipe non listée) et `lib/sitemap.test.ts` (chemins, aucune page
+  carte, hôte épinglé, échappement). Ne pas y ajouter les pages carte ni les annonces ; ne pas
+  construire les entrées par une requête écrite à la main plutôt que par `findIndexable`.
 
 ---
 

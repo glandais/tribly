@@ -24,7 +24,8 @@ Must-have for public launch. Focus on first impressions and core UX.
   - [ ] llms.txt
 - [X] SSR/Dynamic meta — shipped without Next.js: Express server-side rendering of the React app
       (`frontend/docs/SSR.md`) and per-page Open Graph/Twitter tags (`frontend/docs/LINK_PREVIEW.md`)
-- [ ] Dynamic sitemap.xml — Requires backend endpoint
+- [x] Dynamic sitemap.xml — `/sitemap.xml` per host, public content of public teams, no ads, no
+      map pages (ledger `WEB-31`)
 - [x] Share URL (Social) — Viral loop — share button on the web detail pages and team header
       (ledger `WEB-30`); the mobile app already shared links
 
@@ -53,7 +54,7 @@ Drive engagement and reduce friction for organizers.
 - [ ] Markdown image improvements:
   - [X] Use image asset endpoint in display
   - [X] Allow any image format (heic, ...)
-  - [ ] Drag/drop image support
+  - [x] Drag/drop image support — drop or paste into the editor (ledger `WEB-32`)
 - [ ] Tags on Ride, Post, Trip, Route, Ad — Filtering/discovery (one tag set per type)
 
 ---

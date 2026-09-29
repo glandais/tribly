@@ -149,6 +149,7 @@ Hard invariants — keep these when touching SSR-reachable code:
 
 - **`public/sw.js` caches nothing and has no `fetch` handler — keep it that way.** The SSR HTML is per-visitor and embeds an access token; a caching worker would serve one member's page to the next. It only makes the site installable and shows web push notifications. `server.js` serves it `no-cache` on its own route (`express.static` would cache it 31 days).
 - **The manifest is per domain**: `GET /manifest.webmanifest` is built by `server.js` from `/api/config` (the installed app carries the site's name). Don't add a static `manifest.json` to `public/`.
+- **`/robots.txt` and `/sitemap.xml` are per host too**, served by `server.js`: the rules stay in `public/robots.txt` and the `Sitemap:` line is appended for the request's host; the sitemap comes from `GET /api/sitemap` through `renderSitemap` (`entry-server.tsx`, French paths, stripped on a pinned host). It never lists ads or map pages (docs/LEDGER_DONE.md WEB-31).
 - Install offers (`lib/install/useInstallOffer`) and the web push status (`lib/push/webPush`) are **null/unknown on the first render** and computed in effects: they depend on the user agent, `beforeinstallprompt` and localStorage, none of which SSR knows.
 - Firebase is only ever imported dynamically, from `lib/push/webPush.ts`, and has its own chunk (`firebase-vendor` in `vite.config.ts`) so it never rides along with a page.
 
