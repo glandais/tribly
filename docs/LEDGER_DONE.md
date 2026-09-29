@@ -919,8 +919,8 @@ fait.
 - `LEGAL-11` **Garanties de transfert confirmées, §5 réécrit** (2026-09-29) — vérifiées service
   par service, sources publiques : Garmin International, Esri, GitHub, Slack, Discord et Cloudflare
   adhèrent au Data Privacy Framework ; Firebase (FCM) repose sur ses *Data Processing and Security
-  Terms* (clauses types ; leur acceptation se vérifie dans la console Firebase, Settings → Usage
-  and billing → Manage Data Processing settings) et sur le DPF de Google LLC ; Apple
+  Terms* (clauses types), qui s'appliquent d'office avec les conditions de Firebase — aucune
+  acceptation séparée dans la console, vérifié le 29/09/2026 —, et sur le DPF de Google LLC ; Apple
   répond pour l'Europe par Apple Distribution International (Irlande), dont les transferts reposent
   sur les clauses types, **pas** sur le DPF ; Google Play Console aussi sur les clauses types ;
   l'adéquation du Royaume-Uni (fond OSM) a été renouvelée le 19/12/2025 jusqu'en 2031. Décisions à
