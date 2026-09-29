@@ -405,8 +405,16 @@ class PdlMapController extends ChangeNotifier {
   String? _massTileUrl;
   String _massColorHex = '#1D32A8';
 
-  /// Les couches réellement posées, dans leur ordre de dessin.
+  /// Les couches de tracé réellement posées dans le style, dans leur ordre de
+  /// dessin. Elles y restent jusqu'au prochain [_applyAll], qui doit les
+  /// retirer **avant** leur source : MapLibre refuse de retirer une source
+  /// encore employée par une couche (sur iOS, en silence), et l'`addSource`
+  /// suivant lève alors « already exists ».
   final List<String> _drawnLayers = <String>[];
+
+  /// La pose en cours, s'il y en a une ; voir [_applyAll].
+  Future<void>? _applying;
+  bool _applyRequested = false;
 
   String get _sourceId => '$layerPrefix-src';
   String get _pointsSourceId => '$layerPrefix-points';
@@ -482,10 +490,7 @@ class PdlMapController extends ChangeNotifier {
     if (_selectedId == null && tracks.length == 1) {
       _selectedId = tracks.first.id;
     }
-    if (_style != null) {
-      _drawnLayers.clear();
-      await _applyAll();
-    }
+    if (_style != null) await _applyAll();
     notifyListeners();
   }
 
@@ -497,10 +502,7 @@ class PdlMapController extends ChangeNotifier {
   Future<void> setHillshade(PdlHillshade? hillshade) async {
     if (_hillshade == hillshade) return;
     _hillshade = hillshade;
-    if (_style != null) {
-      _drawnLayers.clear();
-      await _applyAll();
-    }
+    if (_style != null) await _applyAll();
     notifyListeners();
   }
 
@@ -526,7 +528,6 @@ class PdlMapController extends ChangeNotifier {
     _massTileUrl = template;
     _massColorHex = nextColor;
     if (_style == null) return;
-    _drawnLayers.clear();
     await _applyAll();
   }
 
@@ -591,9 +592,15 @@ class PdlMapController extends ChangeNotifier {
     _selectedId = trackId;
     notifyListeners();
 
+    // Une pose en cours retire et rajoute la source : pousser dedans entre les
+    // deux lèverait. La pose finira de toute façon sur la sélection à jour.
+    await _applying;
     final StyleController? style = _style;
-    if (style == null) return;
-    await style.updateGeoJsonSource(id: _sourceId, data: _tracksGeoJson());
+    // Pas de couche de tracé posée, pas de source à mettre à jour.
+    if (style == null || _drawnLayers.isEmpty) return;
+    await _safe(
+      () => style.updateGeoJsonSource(id: _sourceId, data: _tracksGeoJson()),
+    );
     if (trackId != null) await _raise(trackId);
   }
 
@@ -606,6 +613,7 @@ class PdlMapController extends ChangeNotifier {
   Future<void> setCursor(PdlMapPoint? point) async {
     if (_cursor == point) return;
     _cursor = point;
+    await _applying;
     final StyleController? style = _style;
     if (style == null) return;
     await _safe(
@@ -735,7 +743,33 @@ class PdlMapController extends ChangeNotifier {
 
   // ── Pose des couches ──────────────────────────────────────────────────
 
-  Future<void> _applyAll() async {
+  /// Repose toutes les couches. **Sérialisé** : `PdlMap` appelle
+  /// [setContent] sans l'attendre à chaque mise à jour du widget, et deux
+  /// poses entrelacées (l'une retire la source pendant que l'autre la
+  /// rajoute) finissaient sur « A Source with the id … already exists »
+  /// (`docs/LEDGER_*.md MOB-35`). Une demande qui arrive pendant une pose en
+  /// relance une seule autre à la fin, sur l'état le plus récent ; toutes les
+  /// demandes de l'intervalle se fondent en elle.
+  Future<void> _applyAll() {
+    _applyRequested = true;
+    return _applying ??= _drainApplies();
+  }
+
+  Future<void> _drainApplies() async {
+    try {
+      while (_applyRequested) {
+        _applyRequested = false;
+        await _applyOnce();
+      }
+    } finally {
+      // Remis à null ici, dans la même boucle d'événements que la dernière
+      // vérification de [_applyRequested] : une demande arrivée après repart
+      // sur une pose neuve au lieu d'attendre celle qui s'achève.
+      _applying = null;
+    }
+  }
+
+  Future<void> _applyOnce() async {
     final StyleController? style = _style;
     if (style == null) return;
 
@@ -752,8 +786,12 @@ class PdlMapController extends ChangeNotifier {
     // Une **seule** source pour tous les tracés (§1.0.3-7) ; c'est le
     // `layerId` qui porte l'identité, chaque couche étant filtrée sur son
     // `trackId`.
+    for (final String id in List<String>.of(_drawnLayers)) {
+      await _safe(() => style.removeLayer(id));
+    }
+    _drawnLayers.clear();
+    await _safe(() => style.removeSource(_sourceId));
     if (_tracks.isNotEmpty) {
-      await _safe(() => style.removeSource(_sourceId));
       await style.addSource(
         GeoJsonSource(id: _sourceId, data: _tracksGeoJson()),
       );
