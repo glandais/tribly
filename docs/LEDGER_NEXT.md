@@ -411,13 +411,14 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       sauvegarde, puis à chaque changement d'extrait OSM. Rien ne dit que c'est fait, et les données
       tileserver, nommées comme « à reconstruire à la main », ne sont couvertes par aucune
       procédure. Source : [`OPERATIONS.md`](OPERATIONS.md#cold-backup-of-the-shared-stack).
-- [ ] `OPS-10` **Cache gpx2web : commentaire périmé et tuiles d'élévation non revues** —
-      `.env.example:51-52` dit encore que gpx2web écrit les tuiles directement à leur chemin final ;
-      depuis gpx2web 1.5.1 (le dépôt est en 1.5.2) les tuiles de carte sont écrites puis renommées.
-      Corriger le commentaire. Les tuiles d'élévation, elles, n'ont pas été revues et ne sont
-      gardées que par un verrou interne à la JVM : tant que ce n'est pas fait, `DATA_CACHE_PATH` ne
-      se partage pas entre backends. Source : [`OPERATIONS.md`](OPERATIONS.md) (services
-      « per-environment on purpose »). (Relevé le 29 septembre 2026.)
+- [ ] `OPS-10` **Cache gpx2web : tuiles d'élévation non revues** — elles ne sont gardées que par un
+      verrou interne à la JVM : tant que ce n'est pas revu, `DATA_CACHE_PATH` ne se partage pas entre
+      backends. Piste pour la revue : gpx2web 1.5.2 (la version du dépôt) contient
+      « fix(gpx): never cache a partial elevation tile download » (`HttpTileFetcher` écrit dans un
+      `.part` puis renomme), reste à vérifier ce que deux backends font en téléchargeant la même
+      tuile. Le commentaire périmé de `.env.example` qui en faisait partie est `OPS-12`. Source :
+      [`OPERATIONS.md`](OPERATIONS.md) (services « per-environment on purpose »). (Relevé le
+      29 septembre 2026.)
 
 ---
 
