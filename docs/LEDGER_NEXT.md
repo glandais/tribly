@@ -169,9 +169,6 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
 (`WEB-13` à `WEB-22`, livrés, avec ce que l'automatisation ne voit pas) : voir
 `frontend/e2e/README.md`.
 
-- [ ] `WEB-2` **Anneau de focus global sous le seuil de contraste** — resté ouvert après
-      `NavButtons` (`WEB-25`) : l'anneau de focus global est à 2,74:1 en thème sombre, sous le seuil
-      de 3,0 de SC 1.4.11 — il vient de `lib/theme.ts` et vaut pour tout le site.
 - [ ] `WEB-27` **Le SSR de `/calendrier` croît en carré des sorties d'une semaine, et gèle le
       serveur Node pendant ce temps (S–M)** — `@mantine/schedule` 9.6.2 place chaque événement du
       mois en le comparant à tous ceux déjà posés dans sa semaine (`findAvailableRow`, avec un

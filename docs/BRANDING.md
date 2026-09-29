@@ -191,6 +191,7 @@ Valeurs exactes issues de Mantine 9 (palettes par défaut inchangées depuis Man
 | Primaire — survol | `#4263eb` | `#364fc7` | `primary` rempli survol |
 | Primaire — fond doux | `#dbe4ff` | `#1b2864` | `primary` variante *light* |
 | Primaire — texte sur fond doux | `#364fc7` | `#edf2ff` | `primary-light-color` |
+| Anneau de focus | `#4c6ef5` | `#748ffc` | `primary-text` (`index.css`) — 4,32:1 sur blanc, 5,23:1 sur `#242424`, 4,58:1 sur `#2e2e2e` |
 | Succès | `#40c057` | `#2f9e44` | `success` → green |
 | Succès — fond doux | `#d3f9d8` | `#16451f` | green variante *light* |
 | Alerte / avertissement | `#fab005` | `#f08c00` | `warning` → yellow |
