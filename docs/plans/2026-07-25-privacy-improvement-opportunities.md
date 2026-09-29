@@ -1,12 +1,17 @@
 # Privacy Improvement Opportunities — 2026-07-25
 
-Companion to [2026-07-25-privacy-policy-audit.md](2026-07-25-privacy-policy-audit.md). The audit fixed the
+> **Tracking moved to the ledger (2026-09-29).** What is still open here is followed under
+> `LEGAL-9` to `LEGAL-13`, `SEC-7`, `SEC-12` (Karoo token store), `SEC-17` and `WEB-28` in `docs/LEDGER_NEXT.md`; this
+> file keeps the options and their rationale. #3 is moot (`LEGAL-1`), #27 is moot (the dump import is
+> gone), #15's acceptance trail shipped with the moderation work.
+
+Companion to [2026-07-25-privacy-policy-audit.md](archive/2026-07-25-privacy-policy-audit.md). The audit fixed the
 *documentation*; this report lists opportunities to improve the *product* so users' privacy actually gets
 better — and so several uncomfortable disclosures added to the policy can be deleted again. Each item names
 the code touchpoints and, where relevant, the policy text it would allow simplifying.
 
 Refreshed on 2026-09-21 against develop (see
-[2026-09-21-privacy-policy-refresh.md](2026-09-21-privacy-policy-refresh.md)): done items are struck
+[2026-09-21-privacy-policy-refresh.md](archive/2026-09-21-privacy-policy-refresh.md)): done items are struck
 through with a **Done** note, and #20–#27 are new.
 
 Legend: **[GDPR]** = compliance obligation or strong expectation · **[Minimize]** = data minimisation /

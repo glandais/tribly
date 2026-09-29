@@ -5,7 +5,7 @@ landed on develop since `da38f5ce` (notifications pipeline, self-service export,
 session, served basemaps, mobile location, invitations, beta sign-ups, ad contact relay, biketeam
 migration, Garmin logout). Findings were verified against code; this is the evidence ledger.
 "PP" = `privacy/privacy-policy.{en,fr}.md` (kept strictly parallel), "ToS" =
-`privacy/terms-of-service.{en,fr}.md`, "Opp" = `2026-07-25-privacy-improvement-opportunities.md`.
+`privacy/terms-of-service.{en,fr}.md`, "Opp" = `../2026-07-25-privacy-improvement-opportunities.md`.
 Both policies and both ToS now read "Last updated: September 21, 2026".
 Finding IDs (`NTF-nn`, `ACT-nn`, `MAP-nn`, `CLI-nn`, `Rn`) are local to this document, not ledger IDs.
 `docs/SECURITY_AUDIT.md` H1 has since been fixed (a code is burnt after 5 wrong attempts); M4 is still open.
@@ -119,7 +119,7 @@ were folded into the applied wording).
 Removed during the rebase onto develop (2026-09-29): the policy files are rendered verbatim on the
 public /privacy page (react-markdown without rehype-raw) and in the app, so HTML comments showed up
 as text. The branch had 16 per language; FR carried the same notes. Text below is the EN version,
-with stale facts updated. Candidates for `LEGAL-n` / `SEC-n` entries in `docs/LEDGER_NEXT.md`.
+with stale facts updated. Each open point is now a ledger entry (`LEGAL-9` to `LEGAL-13`, `WEB-28`; the Karoo token store is `SEC-12`).
 
 ### §1 Account Data — Accounts Imported from a Previous Platform (now "Accounts and Teams Coming from Biketeam")
 

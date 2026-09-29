@@ -210,6 +210,11 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       que les événements de la grille visible, ou ne pas rendre la grille côté serveur. La suite e2e
       ne l'exerce plus (routes-render promeut un admin plateforme neuf).
 
+- [ ] `WEB-28` **Pas de « Se déconnecter de tous les appareils » sur le site (S)** — seule l'app
+      mobile l'offre ; le client web généré a `logoutAll`, aucune page ne l'appelle. La politique
+      de confidentialité (§1, stockage local) renvoie donc à l'app. Un bouton dans le profil web
+      permettrait de citer les deux.
+
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
 L'audit ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md), `WEB-26`) est exécuté : P0, P1
@@ -611,13 +616,14 @@ l'app mobile, un changement n'y apparaît qu'avec la build suivante.
 
 | ID | Point du plan | Sujet | Décision attendue | Liens |
 |---|---|---|---|---|
-| `LEGAL-2` | §2 | Conservation de `ad_contacts` (qui a écrit à qui, quand — pas le corps) : aucune durée, seule la suppression du compte l'efface | Annoncer une durée, ou écrire une purge (alors une entrée `API`) ; ajouter la finalité au §3 de la politique | — |
-| `LEGAL-3` | §3 | Position **précise** envoyée par l'app Garmin (`ApiClient.mc`, `?lat=&lon=` bruts) ; Karoo a le paramètre mais ne l'envoie pas | Décrire les extensions GPS, ou arrondir côté montre sur la grille d'~1 km | — |
-| `LEGAL-4` | §4 | Contenu public et non listé lisible sans compte, alors que la politique dit « tous les utilisateurs de la plateforme » | Correction de texte (formulation proposée dans le plan) | Suppose le `noindex` de `PUBLIC_UNLISTED` (`WEB-4`) |
 | `LEGAL-5` | §5 | Web Push : les services push des navigateurs (Google, Mozilla, Apple, Microsoft) ne sont pas listés | Les déclarer ou non comme sous-traitants, avec leurs transferts | `NOTIF-9` |
-| `LEGAL-6` | §6 | Wahoo absent de la FAQ et des CGU | Vérifier s'il est actif sur pedalons.fr | — |
+| `LEGAL-6` | §6 | Wahoo cité par les CGU (§2) depuis le 29 septembre 2026, mais absent de la FAQ `privacy/support.{fr,en}.md` | Vérifier qu'il est actif sur pedalons.fr (`DomainFormModal`), puis l'ajouter à la FAQ — ou le retirer des CGU | — |
 | `LEGAL-7` | §6 | Message à l'auteur d'une annonce classé « Other user-generated content » côté Play | Le déclarer aussi en « Messages » ? | `mobile/store-metadata/data-safety.md` |
-| `LEGAL-8` | §6 | Jeton de calendrier stocké en clair (`CalendarToken.token`), la politique parle de hachages irréversibles | Hacher (l'URL ne se réaffiche plus), ou exclure ce jeton de la phrase | Jeton ICS : `OPS-6`, `SEC-17` |
+| `LEGAL-9` | — | Les fichiers téléversés gardent leurs métadonnées : EXIF des photos (position GPS comprise), horodatage et capteurs (fréquence cardiaque) des GPX | Les retirer à l'import, puis simplifier le §1 de la politique ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #5, #6) | — |
+| `LEGAL-10` | — | Logs d'accès : aucune durée de conservation configurée sur l'hôte, et ils contiennent les coordonnées passées en paramètres (`lat`/`lon` Garmin, `nearLat`/`nearLon` mobile) | Fixer la rotation et l'annoncer au §6 ; sortir ou arrondir les coordonnées ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #7, #13, #25) | `SEC-16` |
+| `LEGAL-11` | §5 | Garanties de transfert non confirmées : DPA Google (FCM), Apple (APNs, TestFlight), Garmin Connect IQ, hébergement de Mapterhorn et du CyclOSM d'OpenStreetMap France ; webhooks d'équipe vers Slack/Discord présentés comme le choix de l'équipe | Confirmer chaque garantie et compléter le §5, ou auto-héberger les tuiles de relief | `LEGAL-5` |
+| `LEGAL-12` | §6 | Conservations sans borne : inscriptions bêta, demandes de transfert biketeam (`biketeam_migrations`, « Nothing is ever deleted »), codes d'appairage et défis WebAuthn expirés jamais purgés ; hébergement et chiffrement des sauvegardes non déclarés | Choisir des durées et écrire les purges (entrées `API`), puis simplifier le §6 ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #13, #26) | — |
+| `LEGAL-13` | §4, §11 | Gouvernance : nombre d'admins plateforme et journalisation de leurs accès, notification des changements de politique (aucun type de notification ne l'annonce, le §11 ne promet que l'e-mail), responsable du traitement en multi-tenant, contrôle de l'âge | Décider, puis compléter les §4, §10 et §11 ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #15 à #17, #19) | — |
 
 ---
 
@@ -668,3 +674,7 @@ restent ouvertes :
 - [`plans/2026-09-29-privacy-policy-open-points.md`](plans/2026-09-29-privacy-policy-open-points.md) —
   ce que la politique de confidentialité ne dit pas encore, ou mal, et qui demande une décision
   juridique : suivi sous `LEGAL`.
+- [`plans/2026-07-25-privacy-improvement-opportunities.md`](plans/2026-07-25-privacy-improvement-opportunities.md) —
+  les options d'amélioration de la vie privée et leur justification ; ce qui en reste ouvert est
+  suivi sous `LEGAL-9` à `LEGAL-13` et `WEB-28` (le chiffrement des jetons Karoo est `SEC-12`). L'audit de juillet et la mise à jour de
+  septembre qui ont réécrit la politique sont archivés.

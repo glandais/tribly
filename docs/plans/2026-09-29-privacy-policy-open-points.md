@@ -26,6 +26,8 @@ vers les lignes voisines du ledger. Un point tranché quitte les deux fichiers.
 
 ## 2. Relais des messages vers l'auteur d'une annonce (`AdContact`)
 
+> **Clos le 2026-09-29 (`LEGAL-2`)** : durée et finalité annoncées dans la politique, sans purge.
+
 - **Constat** : la table `ad_contacts` n'a aucune purge. Une ligne vit tant que le compte de
   l'expéditeur existe, ou jusqu'à la suppression physique de l'annonce. Le corps du message n'est
   pas stocké : il est relayé par e-mail.
@@ -36,6 +38,8 @@ vers les lignes voisines du ledger. Un point tranché quitte les deux fichiers.
     pour la limitation des abus ?
 
 ## 3. Position précise envoyée par l'app Garmin
+
+> **Clos le 2026-09-29 (`LEGAL-3`)** : la politique décrit l'app Garmin (§1). Les logs : `LEGAL-10`.
 
 - **Constat** : `garmin-app/source/ApiClient.mc` envoie la position GPS précise de l'appareil
   (`?lat=&lon=`) pour trier les parcours par proximité. Le client Karoo
@@ -50,6 +54,8 @@ vers les lignes voisines du ledger. Un point tranché quitte les deux fichiers.
     Le texte existant resterait alors vrai.
 
 ## 4. Contenu public et non listé lisible sans compte
+
+> **Clos le 2026-09-29 (`LEGAL-4`)** : formulation reprise au §4 de la politique.
 
 - **Constat** : le §4 dit que le contenu public est accessible « à tous les utilisateurs de la
   plateforme ». Or le rendu serveur anonyme et la visibilité `PUBLIC_UNLISTED` rendent un contenu
@@ -68,12 +74,12 @@ vers les lignes voisines du ledger. Un point tranché quitte les deux fichiers.
 
 ## 6. Points mineurs
 
-- **Wahoo** : il s'active par domaine (`DomainFormModal`). S'il est actif sur pedalons.fr, il faut
+- **Wahoo** (`LEGAL-6` ; les CGU le citent depuis le 29 septembre 2026, reste la FAQ) : il s'active par domaine (`DomainFormModal`). S'il est actif sur pedalons.fr, il faut
   l'ajouter à la dernière FAQ de `privacy/support.{fr,en}.md` et au §2 des CGU, qui ne citent que
   Karoo et Garmin.
 - **Classement Play du message à l'auteur d'une annonce** : il est rattaché à « Other user-generated
   content » dans `mobile/store-metadata/data-safety.md` (#20). Faut-il le déclarer plutôt, ou en
   plus, en « Messages → Other in-app messages » ?
-- **Jeton de calendrier** : il est stocké en clair (`CalendarToken.token`). La politique (§9) parle
+- **Jeton de calendrier** (clos le 2026-09-29, `LEGAL-8` : exclu de la phrase du §9) : il est stocké en clair (`CalendarToken.token`). La politique (§9) parle
   de jetons « stored as irreversible hashes ». Elle ne décrit pour l'instant ce jeton que comme une
   clé secrète régénérable. Il faut soit le hacher, soit l'exclure explicitement de cette phrase.

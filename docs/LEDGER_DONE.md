@@ -768,3 +768,20 @@ fait.
   de Biketeam », §2) ne décrit plus que ce transfert d'équipe. Si une restauration antérieure ou
   une nouvelle forme d'import ramenait des comptes de membres, la question se rouvre sous un nouvel
   identifiant.
+- `LEGAL-2` **Relais des messages d'annonce : finalité et durée annoncées** (2026-09-29) — la
+  politique dit au §3 « Relay messages about classified ads | Performance of contract » et au §6
+  que la trace (expéditeur, annonce, date — le message n'est pas stocké) vit tant que l'annonce est
+  en base, donc jusqu'à son effacement définitif. Option retenue : annoncer, pas de purge ; une
+  purge raccourcirait la ligne du §6 (voir `LEGAL-12`).
+- `LEGAL-3` **Position précise de l'app Garmin décrite** (2026-09-29) — §1 de la politique : lue à
+  l'affichage de l'écran principal et au chargement des parcours, envoyée pour les trier par
+  distance, soumise à la permission « Positioning » ; base légale au §3 (consentement, connexion
+  volontaire). La phrase « we do not track your real-time location » a disparu. Qu'elle finisse
+  dans les logs d'accès est `LEGAL-10`.
+- `LEGAL-4` **Contenu public et non listé lisible sans compte** (2026-09-29) — §4 de la politique :
+  « unlisted » lisible par quiconque a le lien, sans compte ; « public » accessible à tous, rendu
+  par le serveur et indexable.
+- `LEGAL-8` **Jeton de calendrier exclu de la phrase sur les hachages** (2026-09-29) — option
+  « exclure » : le §9 dit que deux secrets font exception et sont stockés lisibles, dont ce jeton,
+  décrit au §1 et au §4 comme une clé qui ne s'expire pas et se régénère. Le hacher reste possible
+  (l'URL ne se réafficherait plus) ; son expiration est `SEC-17`.
