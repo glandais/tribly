@@ -28,12 +28,11 @@ describe('sitemapPath', () => {
     expect(sitemapPath(entry(SitemapEntryType.TRIP_STAGE, 'j1', 'alpes'))).toBe(
       '/equipes/np/voyages/alpes/etapes/j1'
     )
-    expect(sitemapPath(entry(SitemapEntryType.ROUTE, 'boucle'))).toBe('/equipes/np/parcours/boucle')
   })
 
-  it('never produces a map page', () => {
+  it('never produces a route or a map page', () => {
     for (const type of Object.values(SitemapEntryType)) {
-      expect(sitemapPath(entry(type, 'x', 'y')) ?? '').not.toMatch(/\/(carte|map)$/)
+      expect(sitemapPath(entry(type, 'x', 'y')) ?? '').not.toMatch(/\/(carte|map)$|\/parcours\//)
     }
   })
 

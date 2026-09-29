@@ -24,8 +24,8 @@ Must-have for public launch. Focus on first impressions and core UX.
   - [ ] llms.txt
 - [X] SSR/Dynamic meta — shipped without Next.js: Express server-side rendering of the React app
       (`frontend/docs/SSR.md`) and per-page Open Graph/Twitter tags (`frontend/docs/LINK_PREVIEW.md`)
-- [x] Dynamic sitemap.xml — `/sitemap.xml` per host, public content of public teams, no ads, no
-      map pages (ledger `WEB-31`)
+- [x] Dynamic sitemap.xml — `/sitemap.xml` per host, public content of public teams, no ads,
+      no routes, no map pages (ledger `WEB-31`)
 - [x] Share URL (Social) — Viral loop — share button on the web detail pages and team header
       (ledger `WEB-30`); the mobile app already shared links
 

@@ -20,8 +20,6 @@ enum SitemapEntryType {
   trip('TRIP'),
   @JsonValue('TRIP_STAGE')
   tripStage('TRIP_STAGE'),
-  @JsonValue('ROUTE')
-  route('ROUTE'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

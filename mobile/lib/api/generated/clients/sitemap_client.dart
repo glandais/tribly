@@ -16,7 +16,7 @@ abstract class SitemapClient {
 
   /// Get the indexable pages of this site.
   ///
-  /// Public teams and their public content, as an anonymous visitor sees it, for the site the request arrived on (a pinned host lists its one team). Classified ads are never listed. Anonymous by construction: the caller's session does not widen it.
+  /// Public teams and their public content, as an anonymous visitor sees it, for the site the request arrived on (a pinned host lists its one team). Classified ads and routes are never listed. Anonymous by construction: the caller's session does not widen it.
   @GET('/api/sitemap')
   Future<SitemapDto> getSitemap();
 }

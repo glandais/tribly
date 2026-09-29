@@ -1,7 +1,7 @@
 import * as zod from 'zod'
 
 /**
- * Public teams and their public content, as an anonymous visitor sees it, for the site the request arrived on (a pinned host lists its one team). Classified ads are never listed. Anonymous by construction: the caller's session does not widen it.
+ * Public teams and their public content, as an anonymous visitor sees it, for the site the request arrived on (a pinned host lists its one team). Classified ads and routes are never listed. Anonymous by construction: the caller's session does not widen it.
  * @summary Get the indexable pages of this site
  */
 export const GetSitemapResponse = zod
@@ -11,16 +11,7 @@ export const GetSitemapResponse = zod
         zod
           .object({
             type: zod
-              .enum([
-                'TEAM',
-                'TEAM_ABOUT',
-                'TEAM_PAGE',
-                'RIDE',
-                'POST',
-                'TRIP',
-                'TRIP_STAGE',
-                'ROUTE',
-              ])
+              .enum(['TEAM', 'TEAM_ABOUT', 'TEAM_PAGE', 'RIDE', 'POST', 'TRIP', 'TRIP_STAGE'])
               .describe('Which page this is'),
             teamSlug: zod.string().describe('Slug of the team the page belongs to'),
             tripSlug: zod
@@ -42,5 +33,5 @@ export const GetSitemapResponse = zod
       .describe('Indexable pages'),
   })
   .describe(
-    "Every page of the site a search engine may index: the public content of public teams, without classified ads. Capped at 50,000 entries, the sitemap protocol's limit; newest first within each type."
+    "Every page of the site a search engine may index: the public content of public teams, without classified ads nor routes. Capped at 50,000 entries, the sitemap protocol's limit; newest first within each type."
   )

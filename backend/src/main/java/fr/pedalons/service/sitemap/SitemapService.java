@@ -7,8 +7,6 @@ import fr.pedalons.enums.Visibility;
 import fr.pedalons.repository.common.TeamEntityQueryBasic;
 import fr.pedalons.repository.post.PostRepository;
 import fr.pedalons.repository.ride.RideRepository;
-import fr.pedalons.repository.route.RouteQuery;
-import fr.pedalons.repository.route.RouteRepository;
 import fr.pedalons.repository.team.TeamPageQuery;
 import fr.pedalons.repository.team.TeamPageRepository;
 import fr.pedalons.repository.team.TeamRepository;
@@ -28,9 +26,9 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Public teams, and their public content as an anonymous visitor lists it: each type goes
  * through its repository's listing query ({@code findIndexable}), so the visibility, status,
- * moderation and module rules are the listing's own. Two things are deliberately left out: ads,
- * which only members read, and the full-screen map pages, which the client does not derive from
- * these entries. Stages carry no visibility of their own: they are listed under a trip that is.
+ * moderation and module rules are the listing's own. Three things are deliberately left out: ads,
+ * which only members read; routes, whose pages are a map and a GPX file rather than text to
+ * index; and the full-screen map pages, which the client does not derive from these entries. Stages carry no visibility of their own: they are listed under a trip that is.
  */
 @ApplicationScoped
 public class SitemapService {
@@ -50,7 +48,6 @@ public class SitemapService {
   @Inject RideRepository rideRepository;
   @Inject PostRepository postRepository;
   @Inject TripRepository tripRepository;
-  @Inject RouteRepository routeRepository;
 
   @Public
   public SitemapDto getSitemap() {
@@ -83,13 +80,6 @@ public class SitemapService {
     List<Object[]> trips = tripRepository.findIndexable(basic, ROW + ", te.id", MAX_ENTRIES);
     addRows(entries, SitemapEntryType.TRIP, trips);
     addStages(entries, trips.stream().map(row -> (Long) row[3]).toList());
-
-    RouteQuery routeQuery =
-        RouteQuery.builder().domainId(domainId).pinnedTeamId(pinnedTeamId).build();
-    addRows(
-        entries,
-        SitemapEntryType.ROUTE,
-        routeRepository.findIndexable(routeQuery, ROW, MAX_ENTRIES));
 
     // Each query is bounded on its own; the file as a whole is cut here, teams and pages first.
     return new SitemapDto(

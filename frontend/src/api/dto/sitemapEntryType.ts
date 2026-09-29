@@ -8,5 +8,4 @@ export const SitemapEntryType = {
   POST: 'POST',
   TRIP: 'TRIP',
   TRIP_STAGE: 'TRIP_STAGE',
-  ROUTE: 'ROUTE',
 } as const

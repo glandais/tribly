@@ -4463,8 +4463,8 @@ components:
       - SLUG
     SitemapDto:
       description: "Every page of the site a search engine may index: the public content\
-        \ of public teams, without classified ads. Capped at 50,000 entries, the sitemap\
-        \ protocol's limit; newest first within each type."
+        \ of public teams, without classified ads nor routes. Capped at 50,000 entries,\
+        \ the sitemap protocol's limit; newest first within each type."
       type: object
       required:
       - entries
@@ -4511,7 +4511,6 @@ components:
       - POST
       - TRIP
       - TRIP_STAGE
-      - ROUTE
     SlugChangeRequest:
       description: Slug change request
       type: object
@@ -9833,8 +9832,8 @@ paths:
       summary: Get the indexable pages of this site
       description: "Public teams and their public content, as an anonymous visitor\
         \ sees it, for the site the request arrived on (a pinned host lists its one\
-        \ team). Classified ads are never listed. Anonymous by construction: the caller's\
-        \ session does not widen it."
+        \ team). Classified ads and routes are never listed. Anonymous by construction:\
+        \ the caller's session does not widen it."
       operationId: getSitemap
       tags:
       - Sitemap

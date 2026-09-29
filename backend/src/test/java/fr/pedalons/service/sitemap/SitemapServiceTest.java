@@ -70,7 +70,6 @@ class SitemapServiceTest extends AbstractBaseTest {
     Instant now = Instant.now();
     dataService.createRide(publicTeam, owner, "Sortie", "sortie", now);
     dataService.createPost(publicTeam, owner, "Article", now);
-    dataService.createRoute(publicTeam, owner, "Boucle", Visibility.PUBLIC);
     dataService.createAdditionalPage(publicTeam, owner, "Charte", 0);
     Trip trip = dataService.createTrip(publicTeam, owner, "Voyage", now);
     dataService.createTripStage(owner, trip, "Etape");
@@ -80,10 +79,16 @@ class SitemapServiceTest extends AbstractBaseTest {
     assertTrue(entries.containsAll(PUBLIC_TEAM), entries::toString);
     assertTrue(entries.contains("RIDE public-team/sortie"), entries::toString);
     assertTrue(entries.contains("POST public-team/article"), entries::toString);
-    assertTrue(entries.contains("ROUTE public-team/boucle"), entries::toString);
     assertTrue(entries.contains("TEAM_PAGE public-team/charte"), entries::toString);
     assertTrue(entries.contains("TRIP public-team/voyage"), entries::toString);
     assertTrue(entries.contains("TRIP_STAGE public-team/voyage/etape"), entries::toString);
+  }
+
+  @Test
+  void leavesOutRoutesEvenPublicOnes() {
+    dataService.createRoute(publicTeam, owner, "Boucle", Visibility.PUBLIC);
+
+    assertEquals(PUBLIC_TEAM, entries());
   }
 
   @Test

@@ -8,6 +8,5 @@ public enum SitemapEntryType {
   RIDE,
   POST,
   TRIP,
-  TRIP_STAGE,
-  ROUTE
+  TRIP_STAGE
 }

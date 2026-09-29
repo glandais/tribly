@@ -8,7 +8,7 @@ import { pathVariants } from '@/config/paths'
  * page because both locale variants render the same page: listing the two would announce every
  * page twice.
  *
- * Map pages (`…/carte`) and ads have no entry type, so they can never be listed.
+ * Routes, map pages (`…/carte`) and ads have no entry type, so they can never be listed.
  */
 export function sitemapPath(entry: SitemapEntryDto): string | null {
   const { teamSlug, tripSlug, slug } = entry
@@ -27,8 +27,6 @@ export function sitemapPath(entry: SitemapEntryDto): string | null {
       return slug ? pathVariants.trip(teamSlug, slug).fr : null
     case SitemapEntryType.TRIP_STAGE:
       return slug && tripSlug ? pathVariants.stage(teamSlug, tripSlug, slug).fr : null
-    case SitemapEntryType.ROUTE:
-      return slug ? pathVariants.route(teamSlug, slug).fr : null
     default:
       // A type added to the contract after this build: skip it rather than guess its URL.
       return null
