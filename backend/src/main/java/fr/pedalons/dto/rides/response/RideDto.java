@@ -144,6 +144,15 @@ public class RideDto implements PublicationDto {
   @Nullable
   @Schema(
       description =
+          "Capacity of the whole ride: the sum of its groups' maxParticipants, to render"
+              + " participantCount against it (\"12/40\"). Null when the ride has no group, or when"
+              + " at least one group has no maxParticipants — the ride then has no overall limit,"
+              + " and is never full. Set on list rows too, where groups is empty.")
+  final Integer maxParticipants;
+
+  @Nullable
+  @Schema(
+      description =
           "Number of comments, replies included. Absent when the caller may not read the comments"
               + " of this ride — comments are members-only, so an outsider is told nothing, not"
               + " even zero.")
@@ -175,6 +184,7 @@ public class RideDto implements PublicationDto {
       boolean registered,
       @Nullable String registeredGroupId,
       boolean full,
+      @Nullable Integer maxParticipants,
       @Nullable Integer commentCount) {
     super();
     this.team = team;
@@ -202,6 +212,7 @@ public class RideDto implements PublicationDto {
     this.registered = registered;
     this.registeredGroupId = registeredGroupId;
     this.full = full;
+    this.maxParticipants = maxParticipants;
     this.commentCount = commentCount;
   }
 
@@ -252,6 +263,7 @@ public class RideDto implements PublicationDto {
         assetService,
         participations.registeredGroupId(ride.getId()),
         summary.full(),
+        summary.maxParticipants(),
         commentCounts.forEntity(ride.getId()),
         view);
   }
@@ -313,6 +325,12 @@ public class RideDto implements PublicationDto {
     // query. A ride with no group is not full.
     List<RideGroup> groups = ride.getGroups();
     boolean full = !groups.isEmpty() && groups.stream().noneMatch(RideGroup::hasCapacity);
+    // Same rule as RideSummaryRepository on the list path: the sum of the capacities, null as soon
+    // as one group is uncapped (or there is no group).
+    Integer maxParticipants =
+        groups.isEmpty() || groups.stream().anyMatch(g -> g.getMaxParticipants() == null)
+            ? null
+            : groups.stream().mapToInt(RideGroup::getMaxParticipants).sum();
 
     return build(
         ride,
@@ -323,6 +341,7 @@ public class RideDto implements PublicationDto {
         assetService,
         registeredGroupId,
         full,
+        maxParticipants,
         commentCounts.forEntity(ride.getId()),
         ListViewMode.FULL);
   }
@@ -336,6 +355,7 @@ public class RideDto implements PublicationDto {
       AssetService assetService,
       @Nullable Long registeredGroupId,
       boolean full,
+      @Nullable Integer maxParticipants,
       @Nullable Integer commentCount,
       @Nullable ListViewMode view) {
     Place startPlace = ride.getStart();
@@ -388,6 +408,7 @@ public class RideDto implements PublicationDto {
         registeredGroupId != null,
         registeredGroupId != null ? TsidUtils.toString(registeredGroupId) : null,
         full,
+        maxParticipants,
         commentCount);
   }
 }

@@ -75,3 +75,16 @@ UpcomingAction upcomingAction(PublicationDtoRide ride) {
       ? UpcomingAction.join
       : UpcomingAction.chooseGroup;
 }
+
+/// Le compteur de participants d'une sortie de carrousel : « 12/40 » quand la
+/// sortie a une capacité (`docs/LEDGER_*.md API-5`), le nombre seul sinon.
+///
+/// `maxParticipants` est nul dès qu'un groupe est sans limite : la sortie n'a
+/// alors pas de plafond, et un « N/M » compté sur les seuls groupes plafonnés
+/// mentirait.
+String upcomingParticipants(PublicationDtoRide ride) {
+  final int? max = ride.maxParticipants;
+  return max == null
+      ? '${ride.participantCount}'
+      : '${ride.participantCount}/$max';
+}

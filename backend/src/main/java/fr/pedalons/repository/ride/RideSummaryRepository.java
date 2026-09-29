@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Bulk-loads the group/participant summary a ride list row needs.
@@ -47,6 +48,8 @@ public class RideSummaryRepository {
 
     Map<Long, int[]> counts = new HashMap<>();
     Map<Long, Boolean> full = new HashMap<>();
+    // Sum of the capacities; a ride with one uncapped group has no overall limit, marked by -1.
+    Map<Long, Integer> capacity = new HashMap<>();
     for (Object[] row : loadGroupCounts(rideIds)) {
       Long rideId = (Long) row[0];
       Integer maxParticipants = (Integer) row[2];
@@ -59,6 +62,10 @@ public class RideSummaryRepository {
       // enough to keep the whole ride open.
       boolean groupFull = maxParticipants != null && participants >= maxParticipants;
       full.merge(rideId, groupFull, Boolean::logicalAnd);
+      capacity.merge(
+          rideId,
+          maxParticipants != null ? maxParticipants : -1,
+          RideSummaryRepository::addCapacity);
     }
 
     Map<Long, RideListSummary> summaries = new HashMap<>();
@@ -70,15 +77,25 @@ public class RideSummaryRepository {
                     rideCounts[0],
                     rideCounts[1],
                     full.getOrDefault(rideId, false),
+                    toMaxParticipants(capacity.get(rideId)),
                     topParticipants.getOrDefault(rideId, List.of()))));
     return summaries;
+  }
+
+  private static int addCapacity(int a, int b) {
+    return a < 0 || b < 0 ? -1 : a + b;
+  }
+
+  private static @Nullable Integer toMaxParticipants(@Nullable Integer capacity) {
+    return capacity == null || capacity < 0 ? null : capacity;
   }
 
   /**
    * One row per group: {@code (rideId, groupId, maxParticipants, participantCount)}. The left join
    * keeps groups with no participants.
    *
-   * <p>Grouping by group rather than by ride is what makes {@code full} computable: capacity is a
+   * <p>Grouping by group rather than by ride is what makes {@code full} and {@code maxParticipants}
+   * computable: capacity is a
    * per-group property, so a per-ride aggregate cannot express "every group is at capacity" without
    * a second pass. Rides have a handful of groups, so the extra rows are free — and it is still one
    * query for the whole page.

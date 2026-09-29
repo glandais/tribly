@@ -143,12 +143,7 @@ class _UpcomingCard extends ConsumerWidget {
               value: 'rides.groupCount'.plural(r.groupCount),
               icon: PdlIcons.terrain,
             ),
-          PdlStat(
-            // « N participants » et non « 2/48 » : la capacité agrégée
-            // n'existe pas sur une ligne de liste (§5.2-5).
-            value: '${r.participantCount}',
-            icon: PdlIcons.people,
-          ),
+          PdlStat(value: upcomingParticipants(r), icon: PdlIcons.people),
         ],
       ],
       action: switch (action) {

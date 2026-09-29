@@ -63,6 +63,8 @@ export interface RideDto {
   registeredGroupId?: string
   /** Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants. */
   full: boolean
+  /** Capacity of the whole ride: the sum of its groups' maxParticipants, to render participantCount against it ("12/40"). Null when the ride has no group, or when at least one group has no maxParticipants — the ride then has no overall limit, and is never full. Set on list rows too, where groups is empty. */
+  maxParticipants?: number
   /** Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero. */
   commentCount?: number
 }

@@ -140,6 +140,43 @@ class RideMeFieldsTest extends AbstractResourceTest {
         .body("full", equalTo(true));
   }
 
+  /**
+   * The ride's capacity is the sum of its groups', and null as soon as one group is uncapped — on
+   * the list row (loaded in bulk, where {@code groups} is empty) exactly as on the detail.
+   */
+  @Test
+  void maxParticipants_sumsTheGroupCapacities_nullWhenOneGroupIsUncapped_listAndDetailAgree() {
+    Ride capped =
+        dataService.createRide(
+            team1, user1, "Capped", "capped-ride", Instant.now().plus(8, ChronoUnit.DAYS));
+    RideGroup twelve = dataService.createRideGroupWithMaxParticipants(user1, capped, "Twelve", 12);
+    dataService.createRideGroupWithMaxParticipants(user1, capped, "Eight", 8);
+    dataService.createParticipation(twelve, user2);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/teams/" + team1Slug + "/rides/capped-ride")
+        .then()
+        .statusCode(200)
+        .body("maxParticipants", equalTo(20))
+        .body("full", equalTo(false));
+    // "sunday-ride" has one capped group ("Fast", 1 seat) and one uncapped ("Social").
+    getRide(USER1).body("$", not(hasKey("maxParticipants")));
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/teams/" + team1Slug + "/publications?type=RIDE")
+        .then()
+        .statusCode(200)
+        .body("publications.find { it.slug == 'capped-ride' }.maxParticipants", equalTo(20))
+        .body("publications.find { it.slug == 'capped-ride' }.participantCount", equalTo(1))
+        .body("publications.find { it.slug == 'sunday-ride' }", not(hasKey("maxParticipants")));
+  }
+
   @Test
   void getRide_groupWithARoute_shouldCarryDistanceAndElevationGain() {
     getRide(null)

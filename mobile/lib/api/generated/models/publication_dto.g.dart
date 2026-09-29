@@ -41,6 +41,7 @@ PublicationDtoRide _$PublicationDtoRideFromJson(Map<String, dynamic> json) =>
       thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
       registeredGroupId: json['registeredGroupId'] as String?,
+      maxParticipants: (json['maxParticipants'] as num?)?.toInt(),
       commentCount: (json['commentCount'] as num?)?.toInt(),
       $type: json['type'] as String?,
     );
@@ -73,6 +74,7 @@ Map<String, dynamic> _$PublicationDtoRideToJson(
   'thumbnailDarkUrl': instance.thumbnailDarkUrl,
   'thumbnailUrl': instance.thumbnailUrl,
   'registeredGroupId': instance.registeredGroupId,
+  'maxParticipants': instance.maxParticipants,
   'commentCount': instance.commentCount,
   'type': instance.$type,
 };

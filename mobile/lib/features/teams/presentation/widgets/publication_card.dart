@@ -226,11 +226,11 @@ class _SocialLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // **Pas de barre de places ici.** La capacité agrégée n'existe pas sur une
-    // ligne de liste (§5.2-5), et une barre remplie au hasard vaut moins que
-    // pas de barre du tout. Le compteur brut est dans la rangée de
-    // statistiques ; la barre revient sur la carte « Ma prochaine sortie »,
-    // qui connaît le groupe et donc sa capacité.
+    // **Pas de barre de places ici.** Le compteur brut est dans la rangée de
+    // statistiques ; la barre est sur la carte « Ma prochaine sortie », qui
+    // connaît le groupe et donc sa capacité. La capacité de la sortie entière
+    // existe sur la ligne de liste (`RideDto.maxParticipants`,
+    // `docs/LEDGER_*.md API-5`) : le carrousel de l'accueil la rend en « N/M ».
     if (people.isEmpty) return const SizedBox.shrink();
     return PdlAvatarStack(
       people: <PdlAvatarEntry>[

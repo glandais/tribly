@@ -100,6 +100,9 @@ abstract class RideDto with _$RideDto {
     /// ID (TSID) of the group the current user joined, null if not registered
     String? registeredGroupId,
 
+    /// Capacity of the whole ride: the sum of its groups' maxParticipants, to render participantCount against it ("12/40"). Null when the ride has no group, or when at least one group has no maxParticipants — the ride then has no overall limit, and is never full. Set on list rows too, where groups is empty.
+    int? maxParticipants,
+
     /// Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.
     int? commentCount,
   }) = _RideDto;

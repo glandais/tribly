@@ -3721,6 +3721,14 @@ components:
           description: "Whether every group of the ride has reached its capacity.\
             \ False when the ride has no group, or when at least one group has no\
             \ maxParticipants."
+        maxParticipants:
+          type: integer
+          format: int32
+          description: "Capacity of the whole ride: the sum of its groups' maxParticipants,\
+            \ to render participantCount against it (\"12/40\"). Null when the ride\
+            \ has no group, or when at least one group has no maxParticipants — the\
+            \ ride then has no overall limit, and is never full. Set on list rows\
+            \ too, where groups is empty."
         commentCount:
           type: integer
           format: int32
@@ -15806,7 +15814,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 5.10.0
+  version: 5.11.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

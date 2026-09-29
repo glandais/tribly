@@ -14,6 +14,7 @@ void main() {
     bool registered = false,
     bool full = false,
     int groupCount = 1,
+    int? maxParticipants,
   }) => PublicationDtoRide(
     team: const TeamPublicationDto(
       id: 't1',
@@ -38,6 +39,7 @@ void main() {
     deleted: false,
     registered: registered,
     full: full,
+    maxParticipants: maxParticipants,
   );
 
   test('inscrit : un badge, pas de bouton', () {
@@ -72,5 +74,13 @@ void main() {
     // C'est le fait qui interdit à « Rejoindre » d'inscrire sur place :
     // l'identifiant du groupe unique n'existe pas ici.
     expect(ride().groups, isEmpty);
+  });
+
+  test('API-5 : « N/M » quand la sortie a une capacité', () {
+    expect(upcomingParticipants(ride(maxParticipants: 48)), '2/48');
+  });
+
+  test('API-5 : le nombre seul quand un groupe est sans limite', () {
+    expect(upcomingParticipants(ride()), '2');
   });
 }

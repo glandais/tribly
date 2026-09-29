@@ -825,6 +825,12 @@ export const ListMyParticipationsResponse = zod
                   .describe(
                     'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
                   ),
+                maxParticipants: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Capacity of the whole ride: the sum of its groups\' maxParticipants, to render participantCount against it ("12/40"). Null when the ride has no group, or when at least one group has no maxParticipants — the ride then has no overall limit, and is never full. Set on list rows too, where groups is empty.'
+                  ),
                 commentCount: zod
                   .int()
                   .optional()

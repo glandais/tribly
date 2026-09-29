@@ -9,28 +9,17 @@ interface PublicationCardProgressProps {
 export function PublicationCardProgress({ ride }: PublicationCardProgressProps) {
   const { t } = useTranslation()
 
-  // Calculate total capacity from groups
-  const groups = ride.groups || []
-  const hasCapacity = groups.some(
-    (g) => g.maxParticipants !== undefined && g.maxParticipants !== null
-  )
-
-  if (!hasCapacity) {
-    // No capacity limits defined - don't show progress
+  // The ride's capacity comes from the server (docs/LEDGER_*.md API-5): a list row carries no
+  // `groups`, so summing them here always gave nothing. Null when a group is uncapped — the ride
+  // then has no overall limit, and no bar is drawn.
+  const totalMax = ride.maxParticipants
+  if (totalMax === undefined || totalMax === null || totalMax === 0) {
     return null
   }
 
-  const totalMax = groups.reduce((sum, g) => sum + (g.maxParticipants ?? 0), 0)
   const current = ride.participantCount
-
-  if (totalMax === 0) {
-    return null
-  }
-
   const percentage = Math.min((current / totalMax) * 100, 100)
-  // `full` is computed server-side (contract 1.3.0); fall back on the local sum only
-  // for a ride whose groups carry no capacity at all.
-  const isFull = ride.full ?? totalMax - current <= 0
+  const isFull = ride.full
 
   // Color based on fill percentage
   const color = isFull ? 'red' : percentage >= 80 ? 'yellow' : 'green'
