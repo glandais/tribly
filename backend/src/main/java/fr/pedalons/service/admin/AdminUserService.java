@@ -1,5 +1,6 @@
 package fr.pedalons.service.admin;
 
+import fr.pedalons.common.LikePatterns;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.ForbiddenException;
 import fr.pedalons.common.exception.NotFoundException;
@@ -40,9 +41,18 @@ public class AdminUserService {
     }
 
     if (search != null && !search.isBlank()) {
-      queryBuilder.append(" and (LOWER(email) LIKE LOWER(?").append(paramIndex).append(")");
-      queryBuilder.append(" or LOWER(displayName) LIKE LOWER(?").append(paramIndex).append("))");
-      params.add("%" + search.trim() + "%");
+      queryBuilder
+          .append(" and (LOWER(email) LIKE LOWER(?")
+          .append(paramIndex)
+          .append(") ")
+          .append(LikePatterns.ESCAPE);
+      queryBuilder
+          .append(" or LOWER(displayName) LIKE LOWER(?")
+          .append(paramIndex)
+          .append(") ")
+          .append(LikePatterns.ESCAPE)
+          .append(")");
+      params.add(LikePatterns.contains(search.trim()));
       paramIndex++;
     }
 

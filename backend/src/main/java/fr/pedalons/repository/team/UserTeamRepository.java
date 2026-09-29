@@ -1,5 +1,6 @@
 package fr.pedalons.repository.team;
 
+import fr.pedalons.common.LikePatterns;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.user.User;
@@ -39,13 +40,17 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
             .and("user.deleted = false", Map.of())
             .and("team.deleted = false", Map.of());
     if (search != null && !search.isBlank()) {
-      String searchParam = "%" + search.toLowerCase() + "%";
+      String searchParam = LikePatterns.contains(search.toLowerCase());
       OrClause orClause = new OrClause();
       orClause.add(
-          new SimpleClause("LOWER(user.displayName) LIKE :search", Map.of("search", searchParam)));
+          new SimpleClause(
+              "LOWER(user.displayName) LIKE :search " + LikePatterns.ESCAPE,
+              Map.of("search", searchParam)));
       if (searchEmail) {
         orClause.add(
-            new SimpleClause("LOWER(user.email) LIKE :search", Map.of("search", searchParam)));
+            new SimpleClause(
+                "LOWER(user.email) LIKE :search " + LikePatterns.ESCAPE,
+                Map.of("search", searchParam)));
       }
       pedalonsQuery.and(orClause);
     }

@@ -1,5 +1,6 @@
 package fr.pedalons.domain.common;
 
+import fr.pedalons.common.LikePatterns;
 import fr.pedalons.repository.query.OrClause;
 import fr.pedalons.repository.query.PedalonsQuery;
 import fr.pedalons.repository.query.SimpleClause;
@@ -16,14 +17,15 @@ public class SearchClause {
       int i = 0;
       for (String term : terms) {
         String trimmed = term.trim();
-        String searchPattern = "%" + trimmed.toLowerCase() + "%";
+        String searchPattern = LikePatterns.contains(trimmed.toLowerCase());
 
         OrClause orClause = new OrClause();
         String param = "search" + i;
         for (String field : on) {
           orClause.add(
               new SimpleClause(
-                  "lower(" + field + ") like :" + param, Map.of(param, searchPattern)));
+                  "lower(" + field + ") like :" + param + " " + LikePatterns.ESCAPE,
+                  Map.of(param, searchPattern)));
         }
 
         pedalonsQuery = pedalonsQuery.and(orClause);

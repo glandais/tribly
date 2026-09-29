@@ -1,5 +1,6 @@
 package fr.pedalons.repository.ridetemplate;
 
+import fr.pedalons.common.LikePatterns;
 import fr.pedalons.domain.ridetemplate.RideTemplate;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.repository.common.BaseRepository;
@@ -28,7 +29,8 @@ public class RideTemplateRepository implements BaseRepository<RideTemplate> {
 
     if (search != null && !search.isBlank()) {
       pedalonsQuery.and(
-          "LOWER(name) LIKE :search", Map.of("search", "%" + search.toLowerCase() + "%"));
+          "LOWER(name) LIKE :search " + LikePatterns.ESCAPE,
+          Map.of("search", LikePatterns.contains(search.toLowerCase())));
     }
 
     return getPage(pedalonsQuery, page, size);

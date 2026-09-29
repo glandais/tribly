@@ -1,5 +1,6 @@
 package fr.pedalons.repository.place;
 
+import fr.pedalons.common.LikePatterns;
 import fr.pedalons.domain.place.Place;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.repository.common.BaseRepository;
@@ -23,10 +24,14 @@ public class PlaceRepository implements BaseRepository<Place> {
     PedalonsQuery pedalonsQuery =
         new PedalonsQuery().and("team.id = :teamId", Map.of("teamId", teamId));
     if (search != null && !search.isBlank()) {
-      String searchParam = "%" + search.toLowerCase() + "%";
+      String searchParam = LikePatterns.contains(search.toLowerCase());
       OrClause orClause = new OrClause();
-      orClause.add(new SimpleClause("LOWER(name) LIKE :search", Map.of("search", searchParam)));
-      orClause.add(new SimpleClause("LOWER(address) LIKE :search", Map.of("search", searchParam)));
+      orClause.add(
+          new SimpleClause(
+              "LOWER(name) LIKE :search " + LikePatterns.ESCAPE, Map.of("search", searchParam)));
+      orClause.add(
+          new SimpleClause(
+              "LOWER(address) LIKE :search " + LikePatterns.ESCAPE, Map.of("search", searchParam)));
       pedalonsQuery.and(orClause);
     }
     if (filterStart) {

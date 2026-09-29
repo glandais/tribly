@@ -93,7 +93,7 @@ public class DeviceRoutesResource {
 
     InputStream fitContent = deviceRouteService.getFitContent(teamSlug, routeSlug);
 
-    String fileName = routeSlug + ".fit";
+    String fileName = safeFileName(routeSlug) + ".fit";
     return Response.ok(fitContent)
         .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
         .header("Content-Type", "application/vnd.ant.fit")
@@ -131,7 +131,7 @@ public class DeviceRoutesResource {
 
     InputStream gpxContent = deviceRouteService.getGpxContent(teamSlug, routeSlug);
 
-    String fileName = routeSlug + ".gpx";
+    String fileName = safeFileName(routeSlug) + ".gpx";
     return Response.ok(gpxContent)
         .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
         .header("Content-Type", "application/gpx+xml")
@@ -181,5 +181,14 @@ public class DeviceRoutesResource {
       case "wahoo" -> GpsServiceType.WAHOO;
       default -> throw new BadRequestException("Unknown GPS service type: " + type);
     };
+  }
+
+  /**
+   * The slug as it goes into Content-Disposition: a real slug has nothing to replace, but the path
+   * parameter is what the caller sent, and a quote would end the header's filename early
+   * (docs/LEDGER_*.md SEC-22, audit L13).
+   */
+  private static String safeFileName(String slug) {
+    return slug.replaceAll("[^a-zA-Z0-9._-]", "_");
   }
 }

@@ -120,8 +120,8 @@ changement de statut ici se reporte là-bas.
 | L9 | Un nom de fichier n'est pas encodé dans une URL | Corrigé (ledger `SEC-20`) |
 | L10 | Karoo : les tokens sont stockés sans chiffrement et inclus dans les sauvegardes | Ouvert |
 | L11 | GitHub Actions : durcissement des workflows | Partiellement corrigé : `ci.yml` est en `permissions: contents: read` par défaut (commit `09c65ecd`) ; le reste est ouvert |
-| L12 | Des jokers ne sont pas échappés dans des recherches (audit de février, S9) | Ouvert |
-| L13 | Un en-tête de réponse est construit sans encodage (audit de février, S10) | Ouvert |
+| L12 | Des jokers ne sont pas échappés dans des recherches (audit de février, S9) | Corrigé (ledger `SEC-22`) |
+| L13 | Un en-tête de réponse est construit sans encodage (audit de février, S10) | Corrigé (ledger `SEC-22`) |
 | L14 | Les échecs de connexion ne sont pas journalisés (audit de février, S11) | Ouvert |
 
 Informationnel :

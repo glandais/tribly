@@ -623,7 +623,7 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 | `SEC-8` | — | M2 | Moyenne | Flou d'~1 km des annonces affinable par requêtes répétées (contredit la décision `API-31`) |
 | `SEC-9` | — | M5 | Moyenne | Login CSRF via le lien de vérification d'e-mail |
 | `SEC-11` | — | M7 à M10 | Moyenne | Refresh token non renouvelé ; résolution d'identité sans filtre de domaine ; jeton d'appareil long et non révocable ; pas de limitation de débit HTTP globale — voir `API-27` (audit de février, S3 à S7) |
-| `SEC-12` | — | L3, L4, L10, L12–L14 | Faible | Voir la table des constats faibles de l'audit (L12 à L14 viennent de l'audit de février, S9 à S11) ; L1 et L5 à L9 sont livrés sous `SEC-20` |
+| `SEC-12` | — | L3, L4, L10, L14 | Faible | Voir la table des constats faibles de l'audit (L14 vient de l'audit de février, S11) ; L1 et L5 à L9 sont livrés sous `SEC-20`, L12 et L13 sous `SEC-22` |
 | `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | `SEC-14` | — | Info | — | Images externes dans le markdown ; le parseur XML et le paramètre non encodé sont livrés sous `SEC-21` |
 | `SEC-16` | — | V3–V8 | À valider | Configuration hors dépôt : proxy de l'hôte, hôte de sauvegarde, SMTP, imgproxy |

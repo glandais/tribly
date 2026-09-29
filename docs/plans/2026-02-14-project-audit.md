@@ -290,8 +290,8 @@ Multi-tenancy par domaine HTTP avec filtrage SQL. Auth JWT 15min (web) / 60min (
 | S6 | Device JWT 60min — genereux pour un token non-revocable | Important | S | `application.properties` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M9 |
 | S7 | Rate limiting global HTTP absent | Important | M | Configuration infra | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M10 |
 | S8 | CORS origines dev en defaut (controllable via variable d'env) | Mineur | S | `application.properties` | ⚠️ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) contrôles conformes |
-| S9 | LIKE wildcards non echappees dans la recherche | Mineur | S | `UserRepository.java` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L12 |
-| S10 | Header injection potentielle dans Content-Disposition | Mineur | S | `DeviceRoutesResource.java` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L13 |
+| S9 | LIKE wildcards non echappees dans la recherche | Mineur | S | `UserRepository.java` | ✅ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L12 (ledger `SEC-22`) |
+| S10 | Header injection potentielle dans Content-Disposition | Mineur | S | `DeviceRoutesResource.java` | ✅ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L13 (ledger `SEC-22`) |
 | S11 | Logs insuffisants pour detecter les tentatives de brute force | Mineur | S | `AuthService.java` | ⚠️ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L14 |
 | S12 | Cookie `secure=false` par defaut en dev, `true` en prod | Mineur | S | `application.properties` | ⚠️ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) contrôles conformes |
 | S13 | DataStore Karoo non chiffre (tokens en clair) | Mineur | M | `AuthManager.kt` | |
