@@ -251,11 +251,11 @@ class _RideDetailContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          // Le logo d'équipe est absent : la sortie porte un
-          // `TeamPublicationDto`, qui n'a pas de `logoUrl` (§5.2-2). Repli sur
-          // les initiales teintées, pas sur une image inventée.
+          // Le logo d'équipe quand elle en a un (`TeamPublicationDto.logoUrl`,
+          // API 5.8.0), sinon les initiales teintées.
           PdlTeamLine(
             label: ride.team.name,
+            imageUrl: ride.team.logoUrl,
             onTap: () => context.push(Paths.team(ride.team.slug)),
           ),
           const SizedBox(height: 2),

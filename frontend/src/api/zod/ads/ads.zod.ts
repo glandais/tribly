@@ -60,6 +60,12 @@ export const ListAdsResponse = zod
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Whether the team is public'),
+                logoUrl: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                  ),
               })
               .describe('Team'),
             id: zod.string().describe('Ad ID (TSID)'),
@@ -470,6 +476,12 @@ export const CreateAdResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     id: zod.string().describe('Ad ID (TSID)'),
@@ -908,6 +920,12 @@ export const UpdateAdResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     id: zod.string().describe('Ad ID (TSID)'),
@@ -1128,6 +1146,12 @@ export const GetAdResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     id: zod.string().describe('Ad ID (TSID)'),
@@ -1388,6 +1412,12 @@ export const GetAdEditResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     id: zod.string().describe('Ad ID (TSID)'),
@@ -1593,6 +1623,12 @@ export const ChangeAdSlugResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     id: zod.string().describe('Ad ID (TSID)'),
@@ -1813,6 +1849,12 @@ export const UndeleteAdResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     id: zod.string().describe('Ad ID (TSID)'),

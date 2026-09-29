@@ -20,6 +20,7 @@ class TeamBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return PdlTeamLine(
       label: team.name,
+      imageUrl: team.logoUrl,
       onTap: () => context.push(Paths.team(team.slug)),
     );
   }

@@ -210,6 +210,49 @@ class PostResourceTest extends AbstractResourceTest {
         .body("name", equalTo("NonMember Get Post"));
   }
 
+  /**
+   * A publication names its team's logo, the very URL the team detail serves (docs/LEDGER_*.md
+   * API-2) — on the detail and on a list row alike, and nothing at all when the team has none.
+   */
+  @Test
+  void getPost_carriesTheTeamLogo_sameAsTheTeamDetail() {
+    String postSlug = createTestPost("Logo Post");
+
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug + "/posts/" + postSlug)
+        .then()
+        .statusCode(200)
+        .body("team.logoUrl", nullValue());
+
+    dataService.attachTeamLogo(team1, user1);
+    String teamLogoUrl =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .when()
+            .get("/api/teams/" + team1Slug)
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("logoUrl");
+    org.junit.jupiter.api.Assertions.assertNotNull(
+        teamLogoUrl, "the fixture logo must reach the team detail");
+
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug + "/posts/" + postSlug)
+        .then()
+        .statusCode(200)
+        .body("team.logoUrl", equalTo(teamLogoUrl));
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug + "/publications?type=POST&view=COMPACT")
+        .then()
+        .statusCode(200)
+        .body("publications[0].team.logoUrl", equalTo(teamLogoUrl));
+  }
+
   @Test
   void getPost_nonexistent_shouldReturn404() {
     given()

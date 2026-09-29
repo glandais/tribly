@@ -125,6 +125,7 @@ class _UpcomingCard extends ConsumerWidget {
       tone: PdlMediaTone.ride,
       icon: PdlIcons.ride,
       teamName: r.team.name,
+      teamLogoUrl: r.team.logoUrl,
       title: r.name,
       rows: <List<PdlStat>>[
         <PdlStat>[
@@ -208,6 +209,7 @@ class _UpcomingCard extends ConsumerWidget {
       tone: PdlMediaTone.trip,
       icon: PdlIcons.trip,
       teamName: t.team.name,
+      teamLogoUrl: t.team.logoUrl,
       title: t.name,
       rows: <List<PdlStat>>[
         <PdlStat>[
@@ -265,6 +267,7 @@ class _UpcomingCard extends ConsumerWidget {
     required List<List<PdlStat>> rows,
     required Widget action,
     String? imageUrl,
+    String? teamLogoUrl,
   }) {
     final PdlTypography t = context.pdlText;
     return PdlCard(
@@ -286,7 +289,11 @@ class _UpcomingCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  PdlTeamLine(label: teamName, showChevron: false),
+                  PdlTeamLine(
+                    label: teamName,
+                    imageUrl: teamLogoUrl,
+                    showChevron: false,
+                  ),
                   Text(
                     title,
                     style: t.cardTitle.copyWith(fontSize: 15),

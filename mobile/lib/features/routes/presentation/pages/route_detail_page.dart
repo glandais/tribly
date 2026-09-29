@@ -347,7 +347,11 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
           valueWidget: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              PdlAvatar(name: route.team.name, size: 20),
+              PdlAvatar(
+                name: route.team.name,
+                imageUrl: route.team.logoUrl,
+                size: 20,
+              ),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(

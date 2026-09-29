@@ -29,9 +29,10 @@ PostDto _post({
   String markdown = 'Un corps de publication.',
   List<AssetDto> attachments = const <AssetDto>[],
   int? commentCount = 0,
+  TeamPublicationDto team = _team,
 }) => PostDto(
   type: 'POST',
-  team: _team,
+  team: team,
   id: 'p-$slug',
   slug: slug,
   name: name,
@@ -105,6 +106,31 @@ void main() {
     // maquette n'est pas alimentable, et rien ne doit en tenir lieu — seule la
     // date longue reste.
     expect(find.byType(PdlPersonRow), findsNothing);
+  });
+
+  testWidgets('la ligne d\'équipe porte le logo, les initiales sans logo', (
+    WidgetTester tester,
+  ) async {
+    await openPost(tester, _post());
+    expect(
+      tester.widget<PdlTeamLine>(find.byType(PdlTeamLine)).imageUrl,
+      isNull,
+    );
+
+    const String logo = '/api/download/public/images/n-peloton/l1/{size}';
+    await openPost(
+      tester,
+      _post(
+        team: const TeamPublicationDto(
+          id: 't1',
+          slug: 'n-peloton',
+          name: 'N-Peloton',
+          visibility: 'PUBLIC',
+          logoUrl: logo,
+        ),
+      ),
+    );
+    expect(tester.widget<PdlTeamLine>(find.byType(PdlTeamLine)).imageUrl, logo);
   });
 
   testWidgets('une pièce jointe nomme son fichier dans son action', (

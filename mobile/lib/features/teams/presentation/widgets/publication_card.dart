@@ -98,6 +98,7 @@ class _CardShell extends StatelessWidget {
     this.imageUrl,
     this.teamName,
     this.teamSlug,
+    this.teamLogoUrl,
     this.excerpt,
     this.trailingThumbnailUrl,
     this.social,
@@ -112,6 +113,9 @@ class _CardShell extends StatelessWidget {
   final String? imageUrl;
   final String? teamName;
   final String? teamSlug;
+
+  /// Logo de l'équipe (`TeamPublicationDto.logoUrl`) ; initiales sinon.
+  final String? teamLogoUrl;
   final String? excerpt;
 
   /// La vignette carrée du parcours, à droite de la ligne sociale.
@@ -147,6 +151,7 @@ class _CardShell extends StatelessWidget {
                 if (teamName != null)
                   PdlTeamLine(
                     label: teamName!,
+                    imageUrl: teamLogoUrl,
                     onTap: teamSlug == null
                         ? null
                         : () => context.push(Paths.team(teamSlug!)),
@@ -274,6 +279,7 @@ class _RideBody extends ConsumerWidget {
       imageUrl: _themed(context, ride.thumbnailLightUrl, ride.thumbnailDarkUrl),
       teamName: showTeamLine ? ride.team.name : null,
       teamSlug: ride.team.slug,
+      teamLogoUrl: ride.team.logoUrl,
       title: ride.name,
       // **`excerpt`, pas `media.markdown`** : en vue compacte le corps n'est
       // même pas envoyé, et l'aplatir côté client rendait des liens bruts.
@@ -361,6 +367,7 @@ class _PostBody extends StatelessWidget {
       imageUrl: post.thumbnailUrl,
       teamName: showTeamLine ? post.team.name : null,
       teamSlug: post.team.slug,
+      teamLogoUrl: post.team.logoUrl,
       title: post.name,
       excerpt: post.excerpt,
       badges: <Widget>[
@@ -416,6 +423,7 @@ class _TripBody extends ConsumerWidget {
       imageUrl: _themed(context, trip.thumbnailLightUrl, trip.thumbnailDarkUrl),
       teamName: showTeamLine ? trip.team.name : null,
       teamSlug: trip.team.slug,
+      teamLogoUrl: trip.team.logoUrl,
       title: trip.name,
       excerpt: trip.excerpt,
       badges: <Widget>[

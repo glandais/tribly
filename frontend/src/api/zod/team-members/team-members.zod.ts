@@ -40,6 +40,12 @@ export const GetMembersResponse = zod
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Whether the team is public'),
+                logoUrl: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                  ),
               })
               .describe('Team'),
             id: zod.string().describe('Membership ID (TSID)'),
@@ -98,6 +104,12 @@ export const AddMemberResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     id: zod.string().describe('Membership ID (TSID)'),
@@ -139,6 +151,12 @@ export const JoinTeamResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     id: zod.string().describe('Membership ID (TSID)'),
@@ -197,6 +215,12 @@ export const UpdateMemberRoleResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     id: zod.string().describe('Membership ID (TSID)'),

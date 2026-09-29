@@ -10,11 +10,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Point;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SQLRestriction;
 import org.jspecify.annotations.Nullable;
 
@@ -55,6 +57,35 @@ public class Team extends BaseEntity {
   @JoinColumn(name = "description_id")
   @NotNullableDbValue
   private TeamPage aboutPage;
+
+  /**
+   * Id of the logo on the about page, read in the same SELECT as the team itself.
+   *
+   * <p>Every publication list row carries its team ({@code TeamPublicationDto}) and, since API
+   * 5.8.0, the team's logo. Walking {@link #aboutPage} and its assets for that would undo why the
+   * about page is LAZY; a lookup map would have to be threaded through a dozen DTO factories. A
+   * formula costs no statement and no entity: it rides along whenever a Team is loaded, batched or
+   * not (docs/LEDGER_*.md API-2). {@code min} rather than a {@code limit}: a team holds at most one
+   * logo, and an aggregate keeps the subquery scalar.
+   *
+   * <p>Read-only and computed at load: an entity loaded before its logo changed keeps the old value
+   * for the rest of that request.
+   */
+  @Formula(
+      "(select min(a.id) from assets a where a.team_entity_id = description_id"
+          + " and a.type = 'LOGO')")
+  @Setter(AccessLevel.NONE)
+  @Nullable
+  private Long logoAssetId;
+
+  /**
+   * Visibility of the about page, which is what an image URL of one of its assets encodes (see
+   * {@code AssetService.getImageUrl}). Loaded with {@link #logoAssetId}, for the same reason.
+   */
+  @Formula("(select te.visibility from team_entities te where te.id = description_id)")
+  @Setter(AccessLevel.NONE)
+  @Nullable
+  private String aboutPageVisibility;
 
   @OneToMany(mappedBy = "team")
   @SQLRestriction("is_about_page = false AND deleted = false")

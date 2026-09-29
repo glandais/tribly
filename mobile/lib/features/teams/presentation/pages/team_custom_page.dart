@@ -62,7 +62,7 @@ class TeamCustomPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              PdlTeamLine(label: page.team.name),
+              PdlTeamLine(label: page.team.name, imageUrl: page.team.logoUrl),
               const SizedBox(height: PdlSpacing.chipGap),
               Text(
                 page.title,

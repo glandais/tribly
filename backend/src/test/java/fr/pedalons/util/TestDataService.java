@@ -800,6 +800,13 @@ public class TestDataService {
     managed.getAboutPage().setMarkdown(markdown);
   }
 
+  /** Gives a team a logo, on its about page where the team editor puts it. */
+  @Transactional
+  public Asset attachTeamLogo(Team team, User createdBy) {
+    Team managed = teamRepository.findById(team.getId());
+    return attachAsset(managed.getAboutPage(), createdBy, AssetType.LOGO, "logo.png");
+  }
+
   /** Gives any team entity a markdown body — what {@code excerpt} and {@code view} are about. */
   @Transactional
   public void setMarkdown(TeamEntity entity, String markdown) {

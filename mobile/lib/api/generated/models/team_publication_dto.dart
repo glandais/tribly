@@ -24,6 +24,9 @@ abstract class TeamPublicationDto with _$TeamPublicationDto {
 
     /// Whether the team is public
     required String visibility,
+
+    /// URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team.
+    String? logoUrl,
   }) = _TeamPublicationDto;
 
   factory TeamPublicationDto.fromJson(Map<String, Object?> json) =>

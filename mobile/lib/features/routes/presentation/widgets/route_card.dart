@@ -71,6 +71,7 @@ class RouteCard extends ConsumerWidget {
                 // et `PdlTeamLine` retombe alors sur son icône.
                 PdlTeamLine(
                   label: route.team.name,
+                  imageUrl: route.team.logoUrl,
                   onTap: () => context.push(Paths.team(route.team.slug)),
                 ),
                 const SizedBox(height: 4),

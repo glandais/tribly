@@ -9,7 +9,7 @@ portage web livré à trois tâches près, et tenu à jour depuis (dernière rel
 Rien ici ne bloque quoi que ce soit. C'est la propriété qui compte : la v2 est livrable en l'état,
 et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de réparer une panne.
 
-**Contrat d'API au 30 septembre 2026 : `5.7.1`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au 30 septembre 2026 : `5.8.0`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
 
@@ -292,7 +292,6 @@ ceux du plan (`API-1`, l'URL de tuile authentifiable, est livré).
 
 | ID | Manque | Écrans | Dégradation actuelle |
 |---|---|---|---|
-| `API-2` | `logoUrl` sur `TeamPublicationDto` (`TeamDetailDto` l'a déjà) | 11, 12, 13, 24, 31, 32 | Avatar d'initiales à teinte hachée |
 | `API-3` | `RideGroupDto.thumbnailUrl` | 11 | Vignette de la sortie au lieu de celle du parcours du groupe |
 | `API-4` | `groups[]` ou un `registeredGroup` compact sur les lignes de liste | 11 | Un `getRide` supplémentaire pour la seule prochaine sortie |
 | `API-5` | Capacité agrégée sur `RideDto` de liste | 11 | « N participants » au lieu de « N/M » |

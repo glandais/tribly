@@ -244,6 +244,7 @@ class _PostDetailContent extends ConsumerWidget {
       children: <Widget>[
         PdlTeamLine(
           label: post.team.name,
+          imageUrl: post.team.logoUrl,
           onTap: () => context.push(Paths.team(post.team.slug)),
         ),
         const SizedBox(height: PdlSpacing.chipGap),

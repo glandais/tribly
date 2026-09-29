@@ -19,8 +19,9 @@ import org.jspecify.annotations.Nullable;
  * <p>Trimmed, not emptied: a compact row keeps the logo, the first image and the themed thumbnails,
  * because no list DTO hoists them. {@code thumbnailUrl} is the map preview on a ride or a trip, not
  * the header photo; {@code RouteDto} collapses its themed thumbnails into one light-else-dark URL,
- * so a card that themes its picture cannot rebuild the dark one; and no {@code logoUrl} exists
- * outside {@code TeamDetailDto}. An inventory emptied wholesale left a card unable to draw its own
+ * so a card that themes its picture cannot rebuild the dark one; and the only {@code logoUrl}
+ * fields are the team's ({@code TeamDetailDto}, {@code TeamPublicationDto}), never the row's own
+ * logo. An inventory emptied wholesale left a card unable to draw its own
  * logo, which made the mode unusable for the lists it was built for.
  */
 public enum ListViewMode {

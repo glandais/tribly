@@ -61,8 +61,8 @@ public record MediaDto(
    * <p>They are kept rather than dropped because no list DTO hoists them: {@code thumbnailUrl} is
    * the map preview on a ride or a trip, not the header photo; {@code RouteDto} collapses its two
    * themed thumbnails into a single light-else-dark URL, so a card that themes its own picture
-   * cannot rebuild the dark one; and no {@code logoUrl} exists anywhere outside {@code
-   * TeamDetailDto}. An inventory emptied wholesale left a compact card unable to draw its own logo,
+   * cannot rebuild the dark one; and the only {@code logoUrl} fields are the team's ({@code
+   * TeamDetailDto}, {@code TeamPublicationDto}), never the entity's own logo. An inventory emptied wholesale left a compact card unable to draw its own logo,
    * which made the mode unusable for the very lists it was built for.
    *
    * <p>What compact still drops is all the bulk: the markdown body, the attachments, the GPX and FIT

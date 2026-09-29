@@ -107,6 +107,7 @@ class NextRideCard extends ConsumerWidget {
                     const SizedBox(height: 6),
                     PdlTeamLine(
                       label: ride.team.name,
+                      imageUrl: ride.team.logoUrl,
                       onTap: () => context.push(Paths.team(ride.team.slug)),
                     ),
                     const SizedBox(height: 2),

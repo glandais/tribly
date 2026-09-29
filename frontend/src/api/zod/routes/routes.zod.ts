@@ -78,6 +78,12 @@ export const ListAllRoutesResponse = zod
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Whether the team is public'),
+                logoUrl: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                  ),
               })
               .describe('Team'),
             name: zod.string().describe('Route name'),
@@ -513,6 +519,12 @@ export const ListRoutesResponse = zod
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Whether the team is public'),
+                logoUrl: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                  ),
               })
               .describe('Team'),
             name: zod.string().describe('Route name'),
@@ -900,6 +912,12 @@ export const CreateRouteResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     name: zod.string().describe('Route name'),
@@ -1179,6 +1197,12 @@ export const GetRoutesBulkResponse = zod
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Whether the team is public'),
+                logoUrl: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                  ),
               })
               .describe('Team'),
             name: zod.string().describe('Route name'),
@@ -1756,6 +1780,12 @@ export const UpdateRouteResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     name: zod.string().describe('Route name'),
@@ -1957,6 +1987,12 @@ export const GetRouteResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     name: zod.string().describe('Route name'),
@@ -2255,6 +2291,12 @@ export const ChangeRouteSlugResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     name: zod.string().describe('Route name'),
@@ -2528,6 +2570,12 @@ export const UndeleteRouteResponse = zod
         visibility: zod
           .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
           .describe('Whether the team is public'),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+          ),
       })
       .describe('Team'),
     name: zod.string().describe('Route name'),

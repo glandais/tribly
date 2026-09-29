@@ -379,6 +379,7 @@ class _TripDetailContent extends ConsumerWidget {
         children: <Widget>[
           PdlTeamLine(
             label: trip.team.name,
+            imageUrl: trip.team.logoUrl,
             onTap: () => context.push(Paths.team(trip.team.slug)),
           ),
           const SizedBox(height: 2),
