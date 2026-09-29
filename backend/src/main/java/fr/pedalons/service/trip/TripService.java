@@ -35,6 +35,7 @@ import fr.pedalons.service.thumbnail.ThumbnailService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -210,6 +211,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     Trip trip = findBySlug(team, tripSlug);
     User user = pedalonsContext.getUser();
     Status previousStatus = trip.getStatus();
+    List<List<Long>> previousThumbnailInput = ThumbnailService.tripInput(trip);
 
     // Validate visibility: private teams can only have team-only trips
     validateVisibility(team, request);
@@ -255,7 +257,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
 
     tripRepository.persist(trip);
 
-    thumbnailService.generateTripThumbnails(trip);
+    thumbnailService.refreshTripThumbnails(trip, previousThumbnailInput);
     notificationPublisher.publicationStatusChanged(trip, previousStatus, user);
 
     return toDto(trip);

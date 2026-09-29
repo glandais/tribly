@@ -232,6 +232,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     Status previousStatus = ride.getStatus();
     Instant previousDateTime = ride.getDateTime();
     Long previousStartPlaceId = ride.getStart() != null ? ride.getStart().getId() : null;
+    List<List<Long>> previousThumbnailInput = ThumbnailService.rideInput(ride);
 
     validateVisibility(team, request);
     ride.setVisibility(request.visibility());
@@ -291,7 +292,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
     rideRepository.persist(ride);
 
-    thumbnailService.generateRideThumbnails(ride);
+    thumbnailService.refreshRideThumbnails(ride, previousThumbnailInput);
     notificationPublisher.publicationStatusChanged(ride, previousStatus, user);
     // Only a ride that stays published has riders to warn; the resolver compares the state before
     // with the state after the delay, so an edit undone in the meantime notifies nobody.

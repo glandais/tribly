@@ -23,8 +23,10 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import org.jboss.logging.Logger;
 
 @ApplicationScoped
@@ -52,6 +54,74 @@ public class ThumbnailService {
 
   @Inject AssetService assetService;
 
+  /**
+   * What a ride's thumbnails are drawn from: its routes in drawing order, each with its tracks. A
+   * track is never edited in place — a new GPX replaces the route's tracks with new rows — so their
+   * ids change exactly when the geometry does. Read it before an edit, hand it to {@link
+   * #refreshRideThumbnails} after.
+   */
+  public static List<List<Long>> rideInput(Ride ride) {
+    return input(collectRideRoutes(ride));
+  }
+
+  /** {@link #rideInput} for a trip: its own route, then its live stages' in order. */
+  public static List<List<Long>> tripInput(Trip trip) {
+    return input(collectTripRoutes(trip));
+  }
+
+  /**
+   * Redraws a ride's thumbnails only when what they are drawn from changed since {@code before}
+   * ({@link #rideInput}), or when they are missing — a render that failed last time is retried. A
+   * migration replay rewrites every ride with the same routes: drawing them again each time was its
+   * last cost (docs/LEDGER_*.md MIG-4).
+   */
+  public void refreshRideThumbnails(Ride ride, List<List<Long>> before) {
+    if (unchanged(ride, before, rideInput(ride), RIDE_TYPES)) {
+      return;
+    }
+    generateRideThumbnails(ride);
+  }
+
+  /** {@link #refreshRideThumbnails} for a trip. */
+  public void refreshTripThumbnails(Trip trip, List<List<Long>> before) {
+    if (unchanged(trip, before, tripInput(trip), TRIP_TYPES)) {
+      return;
+    }
+    generateTripThumbnails(trip);
+  }
+
+  private static final Set<AssetType> RIDE_TYPES =
+      Set.of(AssetType.RIDE_THUMBNAIL_LIGHT, AssetType.RIDE_THUMBNAIL_DARK);
+  private static final Set<AssetType> TRIP_TYPES =
+      Set.of(AssetType.TRIP_THUMBNAIL_LIGHT, AssetType.TRIP_THUMBNAIL_DARK);
+
+  private static boolean unchanged(
+      TeamEntity entity, List<List<Long>> before, List<List<Long>> after, Set<AssetType> types) {
+    if (!before.equals(after)) {
+      return false;
+    }
+    // No route, nothing to draw — as generateThumbnails itself decides.
+    if (after.isEmpty()) {
+      return true;
+    }
+    Set<AssetType> present = new HashSet<>();
+    for (var asset : entity.getAssets()) {
+      present.add(asset.getType());
+    }
+    return present.containsAll(types);
+  }
+
+  private static List<List<Long>> input(List<Route> routes) {
+    List<List<Long>> input = new ArrayList<>();
+    for (Route route : routes) {
+      List<Long> ids = new ArrayList<>();
+      ids.add(route.getId());
+      route.getTracks().stream().map(GpxTrack::getId).sorted().forEach(ids::add);
+      input.add(ids);
+    }
+    return input;
+  }
+
   public void generateRideThumbnails(Ride ride) {
     List<Route> routes = collectRideRoutes(ride);
     generateThumbnails(ride, routes, AssetType.RIDE_THUMBNAIL_LIGHT, AssetType.RIDE_THUMBNAIL_DARK);
@@ -75,7 +145,7 @@ public class ThumbnailService {
         ROUTE_TRACK_COLORS);
   }
 
-  private List<Route> collectRideRoutes(Ride ride) {
+  private static List<Route> collectRideRoutes(Ride ride) {
     LinkedHashSet<Long> seenIds = new LinkedHashSet<>();
     List<Route> routes = new ArrayList<>();
 
@@ -93,7 +163,7 @@ public class ThumbnailService {
     return routes;
   }
 
-  private List<Route> collectTripRoutes(Trip trip) {
+  private static List<Route> collectTripRoutes(Trip trip) {
     LinkedHashSet<Long> seenIds = new LinkedHashSet<>();
     List<Route> routes = new ArrayList<>();
 

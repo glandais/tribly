@@ -460,9 +460,6 @@ En service en staging ; la mise en production attend biketeam
       d'équipe (FAQ, descriptions) restent pointés vers biketeam et redirigent tant qu'il tourne. À
       corriger — à la main, par l'équipe, ou par une réécriture depuis la table d'URL — **avant**
       l'arrêt de biketeam.
-- [ ] `MIG-4` **Vignettes régénérées à chaque rejeu** : `updateRide`/`updateTrip` régénèrent les
-      vignettes de sortie et de voyage sans condition (`RideService`, `TripService`) ; c'est le
-      dernier coût d'un rejeu. Ne régénérer que si le parcours ou l'image en entrée a changé.
 - [ ] `MIG-5` **Équipe migrée supprimable** : `DELETE /api/teams/{slug}` n'est pas gardé pour une
       équipe basculée (`TeamService` ne consulte pas `biketeam_migration_map`, alors que la
       suppression de compte le fait, `SOLE_MIGRATED_TEAM_ADMIN`) : biketeam redirigerait alors vers
