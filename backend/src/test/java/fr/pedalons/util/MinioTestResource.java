@@ -37,6 +37,8 @@ public class MinioTestResource implements QuarkusTestResourceLifecycleManager {
             .withEnv("AWS_SECRET_ACCESS_KEY", "bar")
             .withEnv("IMGPROXY_S3_ENDPOINT", "http://s3mock:9090")
             .withEnv("AWS_REGION", "us-east-1")
+            // As in docker-compose.yml: the default, 1, flattens an animated GIF to its first frame
+            .withEnv("IMGPROXY_MAX_ANIMATION_FRAMES", "100")
             .waitingFor(new HttpWaitStrategy().forPath("/health").forPort(8080));
     imgproxy.start();
 
