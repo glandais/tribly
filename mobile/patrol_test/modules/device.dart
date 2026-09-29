@@ -4,12 +4,20 @@ import 'module.dart';
 final class Device extends Module {
   Device(super.$);
 
+  /// Existence, not hit-testing: the success state is a column of spaced blocks, and its centre
+  /// can fall on one of the gaps between them — in French on an Android phone it does, and the
+  /// column was never « visible » although fully on screen.
   Future<void> waitUntilPaired() async {
-    await $(keys.device.success).waitUntilVisible();
+    await $(
+      keys.device.success,
+    ).waitUntilExists(timeout: const Duration(seconds: 10));
   }
 
+  /// Existence too: the error state is the same kind of spaced column.
   Future<void> waitUntilCodeIsRefused() async {
-    await $(keys.device.error).waitUntilVisible();
+    await $(
+      keys.device.error,
+    ).waitUntilExists(timeout: const Duration(seconds: 10));
   }
 
   Future<void> tryAgain() async {
