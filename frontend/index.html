@@ -8,7 +8,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="keywords" content="cycling, team, club, rides, routes, GPX, bike" />
     <meta name="author" content="Pédalons" />
-    <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#228be6" />
     <!--
       Installable as an app. The manifest is served per domain by server.js (the app is named after
@@ -20,7 +19,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
     <!--
-      Per-route page title and Open Graph / Twitter tags are emitted server-side (early in HEAD,
+      Per-route page title, robots directive and Open Graph / Twitter tags are emitted server-side (early in HEAD,
       within Slack's ~32KB / WhatsApp's ~300KB budgets) at the placeholder below. server.js injects
       the block built by src/lib/seo.ts and strips the static fallback title so exactly one, dynamic
       title survives. The static one below is a fallback for the JS-less dev SPA tab only (no SSR).

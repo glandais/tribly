@@ -51,6 +51,12 @@ export interface RouteMeta {
   }
   /** Optional <link rel="canonical"> when it should differ from og:url (near-duplicate pages). */
   canonical?: string
+  /**
+   * Keep the page out of search indexes (`<meta name="robots" content="noindex">`): set for
+   * content or a team that is not `PUBLIC` — `PUBLIC_UNLISTED` is shareable by link, not indexed
+   * (docs/LEDGER_*.md WEB-4). Absent: `index, follow`.
+   */
+  noindex?: boolean
 }
 
 /** Everything a route's `meta()` needs; assembled per-request in entry-server. */
@@ -230,6 +236,9 @@ export function buildMetaTags(meta: RouteMeta | undefined, ctx: RouteMetaContext
     property('og:image:alt', image.alt || appName),
     image.width ? property('og:image:width', String(image.width)) : null,
     image.height ? property('og:image:height', String(image.height)) : null,
+    // The only robots tag of the page: index.html ships none, so there is never a static
+    // `index, follow` left beside a per-page `noindex` (docs/LEDGER_*.md WEB-4).
+    named('robots', meta?.noindex ? 'noindex' : 'index, follow'),
     named('twitter:card', 'summary_large_image'),
     // The name under the icon once the site is added to an iOS home screen (the manifest's name
     // plays that part elsewhere).

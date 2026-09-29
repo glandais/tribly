@@ -13,7 +13,7 @@ import type {
   TripDto,
   RideDto,
 } from '@/api/dto'
-import type { Instant } from '@/api/dto'
+import type { Instant, Visibility } from '@/api/dto'
 import type { Locale } from '@/config/paths'
 import {
   buildMetaTags as _buildMetaTags,
@@ -23,6 +23,7 @@ import {
   imgFromTemplate,
   stripMarkdown,
   truncate,
+  type RouteMeta,
   type RouteMetaContext,
   type RouteMetaFn,
 } from '@/lib/seo'
@@ -38,6 +39,33 @@ import { getGetPreviewQueryKey } from '@/api/endpoints/gpx-previews/gpx-previews
 export const buildMetaTags = _buildMetaTags
 
 const appNameOf = (ctx: RouteMetaContext): string => ctx.config?.appName || 'Pédalons'
+
+/**
+ * Only `PUBLIC` is indexable. `PUBLIC_UNLISTED` is readable by anyone holding the link but must
+ * stay out of search engines; `TEAM` only renders for a member's session, never for a crawler, and
+ * is not indexable either. docs/LEDGER_*.md WEB-4.
+ */
+const notIndexable = (visibility: Visibility | undefined): boolean =>
+  visibility !== undefined && visibility !== 'PUBLIC'
+
+/**
+ * The robots decision for the whole request, applied by entry-server on top of the route's own
+ * `meta()`: a page is `noindex` when its content says so, **or** when it belongs to a team that is
+ * not `PUBLIC` — every team-scoped page (lists, calendar, members…, most of which have no `meta()`)
+ * has the team in the per-request cache, since entry-server reads it for the 404/301 decision.
+ * Never throws.
+ */
+export function withIndexing(
+  meta: RouteMeta | undefined,
+  ctx: RouteMetaContext
+): RouteMeta | undefined {
+  const teamSlug = ctx.params.teamSlug
+  const team = teamSlug
+    ? ctx.queryClient.getQueryData<TeamDetailDto>(getGetTeamQueryKey(teamSlug))
+    : undefined
+  if (meta?.noindex || !notIndexable(team?.visibility)) return meta
+  return { ...meta, noindex: true }
+}
 
 /** Localised long date (day + month + year), matching the resolved SSR locale — not the browser. */
 function formatDate(instant: Instant | undefined, locale: Locale): string | undefined {
@@ -121,7 +149,7 @@ export const teamDetailMeta: RouteMetaFn = (ctx) => {
   const appName = appNameOf(ctx)
   const composed = `${team.name} · ${appName}`
   const title = team.name.length > 60 ? truncate(team.name, 65) : truncate(composed, 70)
-  return { type: 'website', title, ...teamBase(team, ctx) }
+  return { type: 'website', title, ...teamBase(team, ctx), noindex: notIndexable(team.visibility) }
 }
 
 // === team-about =============================================================================
@@ -134,6 +162,7 @@ export const teamAboutMeta: RouteMetaFn = (ctx) => {
     title: truncate(ctx.t('seo.teamAbout.title', { name: team.name }), 65),
     description: base.description,
     image: { ...base.image, alt: ctx.t('seo.teamAbout.imageAlt', { name: team.name }) },
+    noindex: notIndexable(team.visibility),
   }
 }
 
@@ -157,6 +186,7 @@ export const teamPageMeta: RouteMetaFn = (ctx) => {
       imgFromAssets(ctx.origin, page.media?.assets, page.title) ??
       imgFromAsset(ctx.origin, team?.about?.assets?.logo, teamName) ??
       defaultImage(ctx.origin, appNameOf(ctx)),
+    noindex: notIndexable(page.visibility),
   }
 }
 
@@ -180,6 +210,7 @@ export const postMeta: RouteMetaFn = (ctx) => {
       imgFromAsset(ctx.origin, team?.about?.assets?.logo, alt) ??
       defaultImage(ctx.origin, appNameOf(ctx)),
     article: { publishedTime: publishedTime(post.publishAt, post.createdAt) },
+    noindex: notIndexable(post.visibility),
   }
 }
 
@@ -215,6 +246,7 @@ export const rideMeta: RouteMetaFn = (ctx) => {
       imgFromAsset(ctx.origin, team?.about?.assets?.logo, alt) ??
       defaultImage(ctx.origin, appNameOf(ctx)),
     article: { publishedTime: publishedTime(ride.publishAt, ride.createdAt) },
+    noindex: notIndexable(ride.visibility),
   }
 }
 
@@ -253,6 +285,7 @@ export const tripMeta: RouteMetaFn = (ctx) => {
       publishedTime: publishedTime(trip.publishAt, trip.createdAt),
       section: ctx.t('seo.trip.section'),
     },
+    noindex: notIndexable(trip.visibility),
   }
 }
 
@@ -276,6 +309,7 @@ export const stageMeta: RouteMetaFn = (ctx) => {
         imgFromTemplate(ctx.origin, trip.thumbnailLightUrl, trip.name) ??
         imgFromAssets(ctx.origin, trip.media?.assets, trip.name) ??
         defaultImage(ctx.origin, appNameOf(ctx)),
+      noindex: notIndexable(trip.visibility),
     }
   }
 
@@ -307,6 +341,8 @@ export const stageMeta: RouteMetaFn = (ctx) => {
       section: trip.name,
       author: teamName,
     },
+    // A stage has no visibility of its own: it is its trip's.
+    noindex: notIndexable(trip.visibility),
   }
 }
 
@@ -335,6 +371,7 @@ export const routeMeta: RouteMetaFn = (ctx) => {
       imgFromAsset(ctx.origin, route.media?.assets?.thumbnailLight, alt) ??
       imgFromAsset(ctx.origin, team?.about?.assets?.logo, route.name) ??
       defaultImage(ctx.origin, appNameOf(ctx)),
+    noindex: notIndexable(route.visibility),
   }
 }
 

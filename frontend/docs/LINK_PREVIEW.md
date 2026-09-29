@@ -110,6 +110,12 @@ exactly that reason — don't reinstate one without opening the endpoint first.
   real pixel dimensions through imgproxy's `rs:fit` box; template-only image URLs (no source
   dims) omit width/height rather than guess. (The reference project shipped 1200×600 tags for
   a 768×512 image — do not repeat that.)
+- **One robots tag per page, and it comes from `seo.ts`.** `index.html` carries none;
+  `buildMetaTags` always emits `<meta name="robots">`, `noindex` when `RouteMeta.noindex` is set.
+  Builders set it from the content's `visibility`, and `withIndexing` (`routeMeta.ts`, applied by
+  `entry-server`) adds it for every page of a team that is not `PUBLIC`: `PUBLIC_UNLISTED` is
+  shareable, not indexed (ledger `WEB-4`, `src/config/routeMeta.test.ts`). Never put a static
+  robots tag back in `index.html`: it would sit beside the per-page one and contradict it.
 - **Respect the resolved SSR locale**, not the browser. Dates, numbers, and `og:locale` use
   `ctx.locale`/`ctx.t` from the per-request i18next instance.
 

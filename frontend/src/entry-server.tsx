@@ -26,6 +26,7 @@ import { getPinnedTeamSlug } from './config/appConfig'
 import { toRouter, toBrowser } from './config/pinnedHistory'
 import type { Locale } from './config/paths'
 import { buildMetaTags, type RouteMeta, type RouteMetaContext, type RouteMetaFn } from './lib/seo'
+import { withIndexing } from './config/routeMeta'
 import type { RouteParams } from './config/routes.types'
 import { mapThemePreference } from './lib/theme'
 
@@ -207,6 +208,8 @@ export async function render(url: string, headers: Record<string, string> = {}) 
       } catch (metaErr) {
         console.error(`[SSR] meta() failed for ${url}:`, metaErr)
       }
+      // noindex for anything not PUBLIC — the content's own visibility (from meta()) or its team's.
+      routeMeta = withIndexing(routeMeta, metaCtx)
       const head = buildMetaTags(routeMeta, metaCtx)
 
       const html = await renderAppToString(

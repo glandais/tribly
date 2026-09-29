@@ -72,12 +72,11 @@ Features that differentiate and deepen engagement.
 - [ ] Custom cycling map style (Maplibre)
 
 ### Visibility Controls
-- [ ] PUBLIC_UNLISTED visibility — Shareable but not indexed
-  - Half done: the enum value exists, both editors offer it, and both clients badge it orange. The
-    **"not indexed" half is missing** — `frontend/index.html` ships a static
-    `<meta name="robots" content="index, follow">` and nothing emits a per-page `noindex`. Since
-    unlisted pages are SSR-rendered, a crawler indexes them today. The fix belongs with the `meta()`
-    builders in `routes.config.ts` — tracked as ledger `WEB-4`
+- [x] PUBLIC_UNLISTED visibility — Shareable but not indexed
+  - The enum value exists, both editors offer it, and both clients badge it orange. The "not
+    indexed" half shipped with ledger `WEB-4`: the SSR head carries a per-page
+    `<meta name="robots" content="noindex">` for unlisted content and for every page of an
+    unlisted team, and `frontend/index.html` no longer ships a static robots tag.
 
 ### Trip Enhancements
 - [ ] Trip stats (save in DB)
