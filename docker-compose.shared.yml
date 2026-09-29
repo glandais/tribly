@@ -38,6 +38,10 @@ services:
       build_time_zones: "True"
       server_threads: "4"
       serve_tiles: "True"
+    # Pas de limite memoire, a dessein : le meme conteneur reconstruit les tuiles quand tile_urls
+    # change, et ce build de plusieurs heures a besoin de bien plus que le service. Une limite le
+    # tuerait a mi-parcours. En service, les 17 Go de tuiles sont lus par mmap, donc en cache de
+    # pages recuperable, pas en memoire propre (ledger AUD-7).
 
   tileserver:
     image: maptiler/tileserver-gl:v5.6.0
@@ -45,6 +49,11 @@ services:
       - shared
     volumes:
       - ./data/tileserver:/data
+    # ~1,8 Go residents en production (rendu raster cote serveur).
+    deploy:
+      resources:
+        limits:
+          memory: 3G
 
 networks:
   shared:

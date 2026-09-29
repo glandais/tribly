@@ -94,6 +94,51 @@ to), and drops the older ones; `--rev` of a dropped commit means `git checkout` 
 A `.env` value changed on the host takes effect on the next `scripts/deploy.sh`: `env_file` is read
 at deploy time and a new value rolls the backend.
 
+### Memory
+
+Every service carries a memory limit under `deploy.resources.limits` — Swarm and compose both
+apply it, so a workstation runs under the same ceilings as a host. A container that crosses its
+limit is killed by the kernel (`OOMKilled` in `docker inspect`, `task: non-zero exit (137)` in
+`docker stack ps`) and Swarm starts a new one.
+
+| Service | Limit | What it covers |
+|---|---|---|
+| backend | `BACKEND_MEMORY`, 1536M | JVM heap = 60 % of the limit; the rest is metaspace (capped at 256 MB), code cache, threads, Netty buffers, Magika's ONNX runtime |
+| varnish | `VARNISH_MEMORY`, 1536M | the image cache, **in memory**: `VARNISH_SIZE`, 1G |
+| imgproxy | 1536M | 4 images at once (`IMGPROXY_WORKERS`), each up to 50 Mpx |
+| postgres | 1G | `shared_buffers` 128 MB, 20 pooled connections, autovacuum |
+| minio | 1G | |
+| frontend | 512M | Node sizes its heap from the limit |
+| traefik | 256M | |
+| tileserver (shared) | 3G | ~1.8 GB resident |
+| valhalla (shared) | none | the rebuild after a `tile_urls` change needs far more than the service |
+
+**The backend has no `-Xmx`.** The image's entrypoint (`run-java.sh`, from the Jib base image
+`ubi9/openjdk-25-runtime`) passes `-XX:MaxRAMPercentage=$JAVA_MAX_MEM_RATIO`, and the ratio is
+baked into the image by `quarkus.jib.environment-variables` in `application.properties`. The heap
+therefore follows `BACKEND_MEMORY` on its own; raising the limit is the one knob. Without any limit
+the same entrypoint would size the heap on the whole host: 80 % of its RAM. Check what a running
+backend got:
+
+```bash
+docker exec "$(docker ps -qf name=${ENV_NAME}_backend)" sh -c \
+  'java -XX:+PrintFlagsFinal -XX:MaxRAMPercentage=${JAVA_MAX_MEM_RATIO} -version | grep MaxHeapSize'
+docker stats --no-stream        # usage against each limit
+```
+
+**Varnish's cache size and its limit go together.** `VARNISH_SIZE` is malloc storage, so it is
+resident memory once the cache fills; keep `VARNISH_MEMORY` about half as much again. It used to be
+20 G with no limit at all. A smaller cache only costs imgproxy CPU on a miss.
+
+**What a host must hold**: these are ceilings, not usage — but a host should hold the sum of them.
+Per environment, 7.3 GB, plus 2 GB during a rolling update (a second backend and frontend run
+beside the old ones, see above); on top, the shared stack's tileserver (3 GB) and valhalla, whose
+17 GB of tiles live in the page cache. Two environments with the defaults come to about 21 GB with
+the host's own share (Caddy, Docker, the OS): a 32 GB host holds them with room left for that page
+cache. A staging environment can take less through its own `.env` (`BACKEND_MEMORY=1G`,
+`VARNISH_SIZE=256M`, `VARNISH_MEMORY=512M`); prod, more `BACKEND_MEMORY` if `docker stats` shows the
+backend near its limit.
+
 ### Only Caddy may reach traefik
 
 **Swarm cannot publish a port on the loopback.** Given `127.0.0.1:8090:80`, it drops the address

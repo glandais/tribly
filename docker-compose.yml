@@ -10,6 +10,9 @@
 # others), and reads the Traefik routing labels from `deploy.labels`; compose reads them from
 # `labels`. `profiles` and a top-level `name` are the opposite case: they make `docker stack deploy`
 # fail outright, so neither may appear here.
+#
+# Every service has a memory limit, under `deploy.resources.limits`, which both tools apply. Figures,
+# what each one covers and what a host must hold: docs/OPERATIONS.md, « Memory ».
 services:
   # Reverse proxy
   traefik:
@@ -53,6 +56,9 @@ services:
       placement:
         constraints:
           - node.role == manager
+      resources:
+        limits:
+          memory: 256M
 
   backend:
     # BACKEND_IMAGE_SUFFIX is "-<commit>", set by scripts/deploy.sh (see scripts/_image_tag.sh).
@@ -117,6 +123,12 @@ services:
       # back up, and on a service whose file says nothing, `docker stack deploy` keeps the current
       # count — a restore that died halfway would leave them at 0 through every later deploy.
       replicas: 1
+      # The JVM heap is 60 % of this (JAVA_MAX_MEM_RATIO, set in the image by
+      # backend/src/main/resources/application.properties): never an -Xmx of its own, which would
+      # have to be kept in step with the limit by hand.
+      resources:
+        limits:
+          memory: ${BACKEND_MEMORY:-1536M}
       labels: *backend-labels
 
   frontend:
@@ -149,6 +161,10 @@ services:
       update_config: *rolling-update
       rollback_config:
         order: start-first
+      # Node sizes V8's heap from the cgroup limit on its own.
+      resources:
+        limits:
+          memory: 512M
       labels: *frontend-labels
 
   postgres:
@@ -174,6 +190,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    # shared_buffers stays at its 128 MB default; the rest is the backend's 20 pooled connections
+    # (work_mem 4 MB each, per sort) and autovacuum. The page cache counts toward the limit, but the
+    # kernel reclaims it before it kills anything.
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
   imgproxy:
     image: ghcr.io/imgproxy/imgproxy:v4.0.16
@@ -196,6 +219,14 @@ services:
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
       IMGPROXY_S3_ENDPOINT: http://minio:9000
       AWS_REGION: us-east-1
+      # Images processed at once — by default twice the host's CPUs, each of which may decode a
+      # source up to IMGPROXY_MAX_SRC_RESOLUTION (50 Mpx, ~200 MB uncompressed). Fixed, so that the
+      # limit below holds whatever the host.
+      IMGPROXY_WORKERS: "4"
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
 
   varnish:
     image: varnish:9.1.0-2
@@ -216,8 +247,15 @@ services:
       # varnishd runs as uid/gid 1000; a root-owned tmpfs leaves it unable to create its working dir
       - /var/lib/varnish:exec,uid=1000,gid=1000
     environment:
-      - VARNISH_SIZE=20G
+      # The cache lives in memory (malloc storage): keep VARNISH_MEMORY about half as much again as
+      # VARNISH_SIZE, for per-object overhead, allocator slack and varnishd's own threads. A full
+      # cache that exceeds the limit is killed and restarts empty.
+      - VARNISH_SIZE=${VARNISH_SIZE:-1G}
     command: "-p default_ttl=86400"
+    deploy:
+      resources:
+        limits:
+          memory: ${VARNISH_MEMORY:-1536M}
 
   minio:
     # pgsty/minio, fork communautaire maintenu : l'image officielle a quitte Docker Hub en septembre
@@ -235,6 +273,9 @@ services:
       - minio_data:/data
     deploy:
       replicas: 1
+      resources:
+        limits:
+          memory: 1G
 
 volumes:
   postgres_data:

@@ -252,7 +252,7 @@ Docker Compose : 7 services par environnement (`docker-compose.yml`) + 2 partag�
 | I11 | Frontend Dockerfile : `pnpm install` sans `--frozen-lockfile` | Important | S | `frontend/Dockerfile` | ✅ |
 | I12 | Image nginx tierce `steebchen/nginx-spa:stable` | Important | M | `frontend/Dockerfile` | ✅ (plus de nginx : image `node`, `server.js`) |
 | I13 | Access logs Traefik non persistes (volume manquant) | Important | S | `docker-compose.yml` | (suivi : ledger `OPS-7`) |
-| I14 | Aucune limite de ressources sur les containers | Important | S | `docker-compose.yml` | |
+| I14 | Aucune limite de ressources sur les containers | Important | S | `docker-compose.yml` | ⚠️ (mémoire bornée : ledger `AUD-7` ; CPU : `AUD-30`) |
 | I15 | VCL Varnish minimale (pas de purge, grace, ban) | Important | M | `varnish.vcl` | |
 | I16 | `backend/.env` tracke dans git avec MAPBOX_API_KEY | Important | S | `backend/.env` | ✅ |
 | I17 | imgproxy sans signature URL (IMGPROXY_KEY/SALT) | Important | M | `docker-compose.yml` | |
