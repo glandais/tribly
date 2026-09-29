@@ -113,7 +113,7 @@ En février 2026 : React 19, TypeScript 5.9, Vite 7, Mantine 8, ~97 composants T
 | F4 | Cle i18n `common.back` inexistante dans LoginPage (devrait etre `actions.back`) | Critique | S | `LoginPage.tsx:385,440` | ✅ |
 | F5 | FullCalendar 7.0.0-beta.6 — API instable, pas de support prod | Important | M | `package.json` | ✅ |
 | F6 | Pas de titres de page dynamiques (titre statique partout) | Important | M | Toutes les pages | ✅ |
-| F7 | Skip-to-content non implemente (cle i18n existe) | Important | S | `Layout.tsx` | |
+| F7 | Skip-to-content non implemente (cle i18n existe) | Important | S | `Layout.tsx` | ✅ (30 sept. 2026 : lien « Aller au contenu principal » en tête de `Layout.tsx`, vers `<main>` ; `frontend/e2e/smoke.e2e.ts`) |
 | F8 | Images sans `loading="lazy"` | Important | S | `CardImage.tsx`, `AssetImage.tsx` | ⚠️ (`CardImage.tsx` fait ; `AssetImage.tsx` n'a pas `loading` — peut-être voulu : l'image est masquée pendant son chargement, et une image `lazy` masquée ne se charge pas) |
 | F9 | "Groupe" hardcode en francais dans RideEditor | Important | S | `RideEditor.tsx:96` | ✅ |
 | F10 | Message validation Zod hardcode en anglais | Important | S | `RideEditor.tsx:42` | ✅ |
@@ -403,7 +403,7 @@ Les deux clients partagent des problemes communs :
 | 27 | Mettre a jour les dependances Karoo (core-ktx) | Karoo | ✅ (core-ktx 1.19.1, Compose BOM 2026.09.00, ktor 3.6.0) |
 | 28 | Rendre l'URL Garmin configurable (Properties Connect IQ) | Garmin |
 | 29 | Ajouter des titres de page dynamiques (frontend) | Frontend | ✅ |
-| 30 | Ajouter skip-to-content et aria-labels manquants | Frontend |
+| 30 | Ajouter skip-to-content et aria-labels manquants | Frontend | ⚠️ (skip-to-content fait le 30 sept. 2026 ; aria-labels traités au fil de la suite e2e) |
 | 31 | Ajouter `loading="lazy"` sur les images | Frontend | ✅ |
 | 32 | Ajouter JOIN FETCH / entity graphs pour les listings | Backend | ⚠️ (lookups par page, voir B9) |
 | 33 | Extraire le traitement fichier/S3 hors transaction GPX | Backend | ✅ |
@@ -444,9 +444,9 @@ Les deux clients partagent des problemes communs :
 | Severite | Backend | Frontend | Mobile | Karoo | Garmin | Infra | Securite | Docs | Total |
 |----------|---------|----------|--------|-------|--------|-------|----------|------|-------|
 | Critique | 0 | 0 | 0 | 3 | 1 | 6 | 1 | 0 | **11** |
-| Important | 4 | 3 | 1 | 3 | 7 | 7 | 5 | 0 | **30** |
+| Important | 4 | 2 | 1 | 3 | 7 | 7 | 5 | 0 | **29** |
 | Mineur | 1 | 0 | 2 | 2 | 2 | 0 | 6 | 0 | **13** |
-| **Total** | **5** | **3** | **3** | **8** | **10** | **13** | **12** | **0** | **54** |
+| **Total** | **5** | **2** | **3** | **8** | **10** | **13** | **12** | **0** | **53** |
 
 ### Points corrigés depuis l'audit initial
 
@@ -459,5 +459,5 @@ Les deux clients partagent des problemes communs :
 | Frontend | F4, F5, F6, F9, F10, F11, F15 | Cle i18n LoginPage, FullCalendar retire, titres de page, textes RideEditor traduits, pages CGU/confidentialite, cles `_many` |
 | Mobile | M2, M5, M6, M7, M8 | Fuite de subscription, navigation traduite, widgets dedupliques, couleurs du theme, Markdown |
 | Documentation | D2, D3, D4, D6, D9 | rules.md Riverpod, BACKLOG corrige, PRODUCT_SHEET corrige |
-| Septembre 2026 | I2, I11, I12, F1, F2, F3, F13, F14, M1, M3, M9, M10, G2, G3, G13, D1, D5, D7, D8, D10, D11 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), image frontend sur `node`, zoom rendu au viewport, BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
+| Septembre 2026 | I2, I11, I12, F1, F2, F3, F7, F13, F14, M1, M3, M9, M10, G2, G3, G13, D1, D5, D7, D8, D10, D11 | Backups et restauration scriptes, tests Vitest + e2e Playwright, SSR, tests mobile (+ Patrol), parite mobile, deconnexion Garmin, doc Garmin (endpoints, README), image frontend sur `node`, zoom rendu au viewport, lien d'evitement, BACKLOG_old supprime, `docs/OPERATIONS.md` ; staging en service |
 | Juin-juillet 2026 | B10, K6, M4 | `PedalonsQueryContext` memorise l'utilisateur (3bb01f32), `registerForActivityResult` (7e2d710f), dependances Riverpod inutilisees retirees (874a3288) |

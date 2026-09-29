@@ -1,0 +1,30 @@
+/*
+ * Skip link (WCAG 2.4.1): first focusable element of every page, off-screen until focused, so a
+ * keyboard user can jump over the header and the navigation.
+ */
+.skipLink {
+  position: fixed;
+  top: var(--mantine-spacing-xs);
+  left: var(--mantine-spacing-xs);
+  /* Above the AppShell header, which sits at --mantine-z-index-app. */
+  z-index: calc(var(--mantine-z-index-app) + 1);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--mantine-color-body);
+  color: var(--mantine-color-anchor);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 2 * var(--mantine-spacing-xs)));
+
+  &:focus {
+    transform: none;
+  }
+}
+
+/* The skip link's target. It takes focus only programmatically (tabIndex -1) and is no control:
+   a ring around the whole page would only read as a glitch. */
+.main:focus {
+  outline: none;
+}

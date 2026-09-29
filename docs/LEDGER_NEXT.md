@@ -606,7 +606,6 @@ Deux gestes d'exploitation de l'audit sont sous `OPS` : I13 (`OPS-7`) et I20 (`O
 | `AUD-15` | Backend | B9, B11 | Important | `FetchType.EAGER` sur neuf `@ManyToOne` (`Ride`, `RideGroup`, `Trip`, `TripStage`, `UserTeam`) |
 | `AUD-16` | Backend | B12 | Important | Device flow sans test backend (couvert par `frontend/e2e/flow-device.e2e.ts`) |
 | `AUD-17` | Backend | B15 | Mineur | Index en double des colonnes `UNIQUE` de `device_codes` (V5) |
-| `AUD-19` | Web | F7 | Important | Pas de lien d'évitement ; la clé `nav.skipToContent` existe sans usage — voir aussi `WEB-2` |
 | `AUD-20` | Mobile | M11 | Important | Lints Flutter par défaut seulement (`analysis_options.yaml`) |
 | `AUD-21` | Mobile | M13 | Mineur | Pas de hors-ligne — voir `API-22` à `API-25` |
 | `AUD-22` | Karoo | K1 | Critique | `MainActivity.kt` monolithique (1 625 lignes) |

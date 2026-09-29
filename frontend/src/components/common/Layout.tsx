@@ -48,6 +48,10 @@ import { NotificationBell } from '@/components/notification/NotificationBell'
 import { useUnreadNotificationCount } from '@/hooks/useNotifications'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { paths } from '@/config/paths'
+import classes from './Layout.module.css'
+
+/** Target of the skip link; the page's `<main>`. */
+const MAIN_ID = 'main-content'
 
 export function Layout() {
   const { t } = useTranslation()
@@ -116,6 +120,18 @@ export function Layout() {
       navbar={{ width: 300, breakpoint: 'sm', collapsed: { desktop: true, mobile: !opened } }}
       padding={{ base: 'xs', sm: 'md' }}
     >
+      {/* The href alone would work, but through a hash change React Router reads as a POP
+          navigation (and useScrollRestoration with it); focusing the target directly doesn't. */}
+      <a
+        href={`#${MAIN_ID}`}
+        className={classes.skipLink}
+        onClick={(event) => {
+          event.preventDefault()
+          document.getElementById(MAIN_ID)?.focus()
+        }}
+      >
+        {t('nav.skipToContent')}
+      </a>
       <AppShell.Header>
         <Container size="lg" h="100%">
           <Group h="100%" justify="space-between">
@@ -328,7 +344,7 @@ export function Layout() {
         </Stack>
       </AppShell.Navbar>
 
-      <AppShell.Main>
+      <AppShell.Main id={MAIN_ID} tabIndex={-1} className={classes.main}>
         <Container size="lg" px={0}>
           {/* One banner at a time: completing the account comes first. */}
           {!showEmailBanner && <InstallBanner />}

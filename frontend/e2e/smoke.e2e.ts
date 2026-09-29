@@ -21,6 +21,25 @@ test.describe('anonymous, without JavaScript', () => {
   })
 })
 
+test.describe('keyboard', () => {
+  // WCAG 2.4.1: the skip link is the page's first stop, and it lands on <main>.
+  test('the first Tab reaches the skip link, which moves focus to the main content', async ({
+    page,
+    seed,
+  }) => {
+    await page.goto(`/equipes/${seed.team.slug}`)
+    await pageHydrated(page)
+
+    await page.keyboard.press('Tab')
+    const skip = page.getByRole('link', { name: 'Aller au contenu principal' })
+    await expect(skip).toBeFocused()
+    await expect(skip).toBeInViewport()
+
+    await page.keyboard.press('Enter')
+    await expect(page.getByRole('main')).toBeFocused()
+  })
+})
+
 test.describe('rider', () => {
   test.use(as('rider'))
 
