@@ -750,6 +750,12 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
 
 ## MIG — Migration biketeam
 
+- `MIG-13` **Une équipe migrée naît avec le planificateur d'itinéraire** (2026-09-29,
+  `BiketeamMigrationService.createTargetTeam`) — `enableRoutePlanner` restait à `false` ; il est
+  maintenant `true`, à côté de `addMemberAllowed` et `visibilityEditable` (déjà `true`). `joinable`
+  garde sa règle : toute visibilité sauf `TEAM`. À la création seulement : un rejeu ne touche pas
+  aux réglages Pédalons, et les équipes déjà migrées n'ont pas été rattrapées. Pas de changement de
+  contrat. Couvert par `BiketeamLiveMigrationTest.firstRun_createsTheTeam_…` (`TeamFlags`).
 - `MIG-12` **L'ancien import biketeam** a été supprimé le 2026-09-28 : seule la migration en direct
   reste ([plan](plans/2026-09-22-biketeam-live-migration.md)), en service en staging et dont la mise
   en production attend biketeam (§10 du plan, `MIG-1`) ; `biketeam_migration_map` sert encore au

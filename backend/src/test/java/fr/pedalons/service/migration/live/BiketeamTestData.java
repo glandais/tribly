@@ -301,6 +301,19 @@ public class BiketeamTestData {
     return new TeamSettings(t.getVisibility(), t.isJoinable());
   }
 
+  public record TeamFlags(
+      boolean enableRoutePlanner,
+      boolean addMemberAllowed,
+      boolean visibilityEditable,
+      boolean joinable) {}
+
+  @Transactional
+  public TeamFlags flagsOf(long teamId) {
+    Team t = em.find(Team.class, teamId);
+    return new TeamFlags(
+        t.isEnableRoutePlanner(), t.isAddMemberAllowed(), t.isVisibilityEditable(), t.isJoinable());
+  }
+
   @Transactional
   public void setSettings(long teamId, Visibility visibility, boolean joinable) {
     Team t = em.find(Team.class, teamId);

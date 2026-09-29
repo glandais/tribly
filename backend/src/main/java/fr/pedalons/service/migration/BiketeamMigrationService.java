@@ -377,6 +377,7 @@ public class BiketeamMigrationService {
     team.setEnableTrips(true);
     team.setEnablePosts(true);
     team.setEnableAds(false);
+    team.setEnableRoutePlanner(true);
     team.setVisibilityEditable(true);
     // Biketeam gates /join behind authorizePublicAccess, so a private team can't be self-joined.
     team.setJoinable(visibility != Visibility.TEAM);

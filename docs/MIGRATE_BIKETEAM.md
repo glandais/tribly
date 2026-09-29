@@ -26,6 +26,9 @@ images. What does **not**: users, memberships, participations, comments, registr
 ratings and favourites. The Pédalons account that confirmed becomes the team's **ADMIN** and the
 author (`createdBy`) of everything; members join afterwards through the usual invitation link or,
 for a `joinable` team, on their own. Ride groups have no leader (`RideGroupDto.leader` is null).
+A new team also starts with the route planner on, admins allowed to add members, and its
+visibility editable (`enableRoutePlanner`, `addMemberAllowed`, `visibilityEditable`); a replay
+leaves these settings alone.
 
 The team lands in the domain the admin confirmed on (its parent domain, if they came through an
 alias), at the slug derived from the biketeam team id (`BiketeamTargetResolver.targetSlug`: every
