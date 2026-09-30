@@ -1,4 +1,4 @@
-package fr.pedalons.service.device;
+package fr.pedalons.dto.device.response;
 
 import java.time.Instant;
 

@@ -6,6 +6,7 @@ import fr.pedalons.domain.auth.DeviceCode;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.device.response.DeviceCodeResponse;
 import fr.pedalons.dto.device.response.DeviceTokenResponse;
+import fr.pedalons.dto.device.response.PendingDeviceCode;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.repository.auth.AuthSessionRepository;
 import fr.pedalons.repository.auth.DeviceCodeRepository;
