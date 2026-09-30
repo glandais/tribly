@@ -35,7 +35,8 @@ void main() {
       await modules.profile.waitUntilShown();
       await modules.profileSettings.waitUntilExportStatusSays('Prêt');
 
-      expect(mail.contains('/api/export/download/'), isTrue);
+      // The token rides in the query, which the access log masks, not in the path (API-45).
+      expect(mail.contains('/api/export/download?token='), isTrue);
       expect(export?['status'], 'READY');
     },
   );

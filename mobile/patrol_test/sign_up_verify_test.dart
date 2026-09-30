@@ -37,7 +37,7 @@ void main() {
 
       await openLink($, '${Paths.verifyEmail()}?token=$token');
       // The link opens nothing on its own: the page shows the address and asks for the password.
-      expect(modules.auth.showsActivationFor(email), isTrue);
+      expect(await modules.auth.showsActivationFor(email), isTrue);
       expect(await backend.loginStatus(email, password), isNot(200));
       await modules.auth.activateAccount(password);
       await modules.auth.continueAfterVerification();

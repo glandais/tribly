@@ -71,10 +71,13 @@ final class Auth extends Module {
     await (await scrolledTo(keys.login.verifyActivateButton)).tap();
   }
 
-  /// The address the activation page shows.
-  bool showsActivationFor(String email) =>
-      ($(keys.login.verifyAddress).evaluate().first.widget as Text).data!
-          .contains(email);
+  /// The address the activation page shows, once it has loaded (the page first previews the
+  /// link, SEC-24).
+  Future<bool> showsActivationFor(String email) async {
+    await $(keys.login.verifyAddress).waitUntilVisible();
+    return ($(keys.login.verifyAddress).evaluate().first.widget as Text).data!
+        .contains(email);
+  }
 
   /// Waits for the verification page to succeed, then leaves it: « Continuer », or « Plus tard »
   /// when the page first offers a passkey — depending on whether the simulator supports them.
