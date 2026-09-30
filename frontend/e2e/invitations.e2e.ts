@@ -391,19 +391,24 @@ test.describe('invitee side', () => {
     await page.getByRole('button', { name: 'Créer un compte' }).click()
     await page.getByRole('textbox', { name: 'Email' }).fill(email)
     await page.getByRole('textbox', { name: "Nom d'affichage" }).fill('Nouvelle recrue')
-    await page.getByLabel('Mot de passe', { exact: true }).fill('e2e-password')
-    await page.getByLabel('Confirmer le mot de passe').fill('e2e-password')
     await page.getByRole('checkbox').check()
     const seen = await mailbox(email)
     await page.getByRole('button', { name: 'Créer un compte' }).click()
     await expect(
-      page.getByText("Cliquez sur le lien dans l'email pour activer votre compte.")
+      page.getByText(
+        "Cliquez sur le lien dans l'email pour choisir votre mot de passe et activer votre compte."
+      )
     ).toBeVisible()
 
-    // Verify the address from the mail.
+    // Verify the address from the mail: the password is chosen there (SEC-24).
     const verification = linkTokenIn(await waitForNewMail(email, seen))
     await page.goto(`/verifier-email?token=${verification}`)
-    const verified = page.getByRole('heading', { name: 'Email vérifié !' })
+    const main = page.getByRole('main')
+    await expect(main.getByRole('heading', { name: 'Activer votre compte' })).toBeVisible()
+    await main.getByRole('textbox', { name: 'Mot de passe', exact: true }).fill('e2e-password')
+    await main.getByRole('textbox', { name: 'Confirmer le mot de passe' }).fill('e2e-password')
+    await main.getByRole('button', { name: 'Activer mon compte' }).click()
+    const verified = page.getByRole('heading', { name: 'Compte activé !' })
     const passkeyPrompt = page.getByRole('heading', { name: 'Sécurisez votre compte' })
     await expect(verified.or(passkeyPrompt)).toBeVisible()
     if (await passkeyPrompt.isVisible())
