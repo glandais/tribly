@@ -957,6 +957,20 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
 
 Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md).
 
+- `SEC-23` **Les échecs de connexion sont journalisés : L14** (2026-09-30, contrat inchangé,
+  scindé de `SEC-12`) — chaque échec de connexion par mot de passe, code OTP ou passkey écrit une
+  ligne `WARN` `Login failed method=… reason=… email=… domain=… ip=…` (`AuthService.logFailedLogin`),
+  que Loki garde 14 jours : `{stack="pedalons-prod", service="backend"} |= "Login failed"`. Le motif
+  distingue ce que la réponse au visiteur confond à dessein (`unknown_account`, `no_password`,
+  `wrong_password` ; `no_valid_code`, `wrong_code` ; pour une passkey, le code d'erreur, sans
+  adresse). **Jamais le mot de passe ni le code dans cette ligne** : la politique de confidentialité
+  promet qu'aucun identifiant de connexion n'est écrit dans les journaux (elle annonce déjà « parfois
+  votre adresse e-mail » et l'IP). L'IP est celle que lit `AuthResource.getClientIp`, donc aussi
+  fiable que les en-têtes `X-Forwarded-*` (V3, `SEC-16`). Journaliser ne limite rien : la limitation
+  reste `SEC-7`. Tests : `AuthServiceTest` (`…_logsTheFailureWithout…`, `…_unknownAccount_isLoggedToo`,
+  `…_success_logsNoFailure`, `…_unknownCredential_isLogged`), qui capturent le journal de
+  `AuthService`.
+
 - `SEC-22` **Recherches sans jokers, nom de fichier d'appareil sûr : L12 et L13** (2026-09-30,
   contrat inchangé, scindé de `SEC-12`) — **L12** : les cinq recherches qui bâtissaient un motif
   `LIKE` à partir de la saisie (`SearchClause`, donc publications, annonces, parcours… ;

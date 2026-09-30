@@ -27,6 +27,12 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import org.jboss.logmanager.ExtLogRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -421,6 +427,134 @@ class AuthServiceTest extends AbstractBaseTest {
     assertThrows(
         BadRequestException.class,
         () -> authService.loginWithPassword("login2@example.com", "wrongpass", "Agent", "IP"));
+  }
+
+  // --- Failed sign-in log (docs/LEDGER_*.md SEC-23, audit L14) ---
+
+  @Test
+  void loginWithPassword_wrongPassword_logsTheFailureWithoutThePassword() {
+    createVerifiedUserWithPassword("stuffed@example.com", "Login User", "correctpass");
+
+    List<String> lines =
+        failedLoginLines(
+            () ->
+                assertThrows(
+                    BadRequestException.class,
+                    () ->
+                        authService.loginWithPassword(
+                            "stuffed@example.com", "guessedpass", "Agent", "203.0.113.7")));
+
+    assertEquals(1, lines.size());
+    String line = lines.getFirst();
+    assertTrue(line.contains("method=password"), line);
+    assertTrue(line.contains("reason=wrong_password"), line);
+    assertTrue(line.contains("email=stuffed@example.com"), line);
+    assertTrue(line.contains("ip=203.0.113.7"), line);
+    assertFalse(line.contains("guessedpass"), line);
+  }
+
+  @Test
+  void loginWithPassword_unknownAccount_isLoggedToo() {
+    List<String> lines =
+        failedLoginLines(
+            () ->
+                assertThrows(
+                    BadRequestException.class,
+                    () ->
+                        authService.loginWithPassword(
+                            "nobody@example.com", "anypass", "Agent", "203.0.113.7")));
+
+    assertEquals(1, lines.size());
+    assertTrue(lines.getFirst().contains("reason=unknown_account"), lines.getFirst());
+  }
+
+  @Test
+  void loginWithPassword_success_logsNoFailure() {
+    createVerifiedUserWithPassword("fine@example.com", "Login User", "correctpass");
+
+    List<String> lines =
+        failedLoginLines(
+            () -> authService.loginWithPassword("fine@example.com", "correctpass", "Agent", "IP"));
+
+    assertTrue(lines.isEmpty(), lines.toString());
+  }
+
+  @Test
+  void verifyOtp_wrongCode_logsTheFailureWithoutTheCode() {
+    User user = dataService.createVerifiedUser("otp-log@example.com", "OTP User");
+    createOtpToken(user, "123456");
+
+    List<String> lines =
+        failedLoginLines(
+            () ->
+                assertThrows(
+                    BadRequestException.class,
+                    () ->
+                        authService.verifyOtp(
+                            "otp-log@example.com", "654321", "Agent", "203.0.113.7")));
+
+    assertEquals(1, lines.size());
+    String line = lines.getFirst();
+    assertTrue(line.contains("method=otp"), line);
+    assertTrue(line.contains("reason=wrong_code"), line);
+    assertFalse(line.contains("654321"), line);
+    assertFalse(line.contains("123456"), line);
+  }
+
+  @Test
+  void authenticateWithPasskey_unknownCredential_isLogged() {
+    var response =
+        java.util.Map.of(
+            "id",
+            "dW5rbm93bg",
+            "response",
+            java.util.Map.of(
+                "clientDataJSON", "e30",
+                "authenticatorData", "AAAA",
+                "signature", "AAAA"));
+
+    List<String> lines =
+        failedLoginLines(
+            () ->
+                assertThrows(
+                    NotFoundException.class,
+                    () -> authService.authenticateWithPasskey(response, "Agent", "203.0.113.7")));
+
+    assertEquals(1, lines.size());
+    assertTrue(lines.getFirst().contains("method=passkey"), lines.getFirst());
+    assertTrue(lines.getFirst().contains("reason=PASSKEY_NOT_FOUND"), lines.getFirst());
+  }
+
+  /** The "Login failed" lines {@link AuthService} logs while {@code action} runs. */
+  private List<String> failedLoginLines(Runnable action) {
+    List<String> lines = new CopyOnWriteArrayList<>();
+    Handler handler =
+        new Handler() {
+          @Override
+          public void publish(LogRecord record) {
+            String message =
+                record instanceof ExtLogRecord ext
+                    ? ext.getFormattedMessage()
+                    : record.getMessage();
+            if (message != null && message.startsWith("Login failed")) {
+              lines.add(message);
+            }
+          }
+
+          @Override
+          public void flush() {}
+
+          @Override
+          public void close() {}
+        };
+    Logger logger = Logger.getLogger(AuthService.class.getName());
+    logger.addHandler(handler);
+    try {
+      action.run();
+    } finally {
+      logger.removeHandler(handler);
+    }
+    return lines;
   }
 
   // --- RequestPasswordReset tests ---

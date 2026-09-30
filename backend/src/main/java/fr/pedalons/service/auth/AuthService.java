@@ -8,6 +8,7 @@ import fr.pedalons.common.exception.BadRequestException;
 import fr.pedalons.common.exception.ForbiddenException;
 import fr.pedalons.common.exception.InternalException;
 import fr.pedalons.common.exception.NotFoundException;
+import fr.pedalons.common.exception.PedalonsException;
 import fr.pedalons.domain.auth.AuthSession;
 import fr.pedalons.domain.auth.AuthToken;
 import fr.pedalons.domain.platform.Domain;
@@ -346,13 +347,18 @@ public class AuthService {
     AuthToken authToken =
         authTokenRepository
             .findValidByEmailAndType(email, AuthTokenType.OTP, domainId)
-            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
+            .orElse(null);
+    if (authToken == null) {
+      logFailedLogin("otp", "no_valid_code", email, ipAddress);
+      throw new BadRequestException(ErrorCode.TOKEN_INVALID);
+    }
 
     // Verify the code matches (constant-time comparison to prevent timing attacks)
     if (!MessageDigest.isEqual(
         authToken.getTokenHash().getBytes(StandardCharsets.UTF_8),
         tokenHash.getBytes(StandardCharsets.UTF_8))) {
       authToken.recordFailedAttempt(otpMaxVerifyAttempts);
+      logFailedLogin("otp", "wrong_code", email, ipAddress);
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
 
@@ -373,18 +379,21 @@ public class AuthService {
   public AuthResult loginWithPassword(
       String email, String password, String userAgent, String ipAddress) {
     Domain domain = domainResolver.getDomain();
-    User user =
-        userRepository
-            .findByEmailAndDomain(domain.getId(), email)
-            .orElseThrow(() -> new BadRequestException(ErrorCode.INVALID_CREDENTIALS));
+    User user = userRepository.findByEmailAndDomain(domain.getId(), email).orElse(null);
+    if (user == null) {
+      logFailedLogin("password", "unknown_account", email, ipAddress);
+      throw new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
+    }
 
     if (user.getPasswordHash() == null) {
       // Return INVALID_CREDENTIALS to avoid leaking whether the account exists
       // (same response as user-not-found above)
+      logFailedLogin("password", "no_password", email, ipAddress);
       throw new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
     }
 
     if (!BcryptUtil.matches(password, user.getPasswordHash())) {
+      logFailedLogin("password", "wrong_password", email, ipAddress);
       throw new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
     }
 
@@ -484,7 +493,14 @@ public class AuthService {
   @Public
   public AuthResult authenticateWithPasskey(
       Map<String, Object> response, String userAgent, String ipAddress) {
-    User user = passkeyService.verifyAuthentication(response);
+    User user;
+    try {
+      user = passkeyService.verifyAuthentication(response);
+    } catch (PedalonsException e) {
+      // No address here: the assertion names a credential, and a failed one names nobody sure.
+      logFailedLogin("passkey", e.getErrorCode().name(), null, ipAddress);
+      throw e;
+    }
     userRepository.recordLogin(user.getId());
     return createAuthResult(user, userAgent, ipAddress);
   }
@@ -541,6 +557,20 @@ public class AuthService {
   public void logoutAll() {
     Long userId = queryContext.getUserId();
     authSessionRepository.revokeAllByUserId(userId);
+  }
+
+  /**
+   * One WARN line per failed sign-in, so that brute force and credential stuffing show up in Loki
+   * (docs/LEDGER_*.md SEC-23, audit L14). The answer to the visitor stays the same whatever the
+   * reason — only this line tells an unknown account from a wrong password. Never the password nor
+   * the code: the privacy policy promises no credential in the logs, and a typo'd password is often
+   * one digit away from the real one.
+   */
+  private void logFailedLogin(
+      String method, String reason, @Nullable String email, String ipAddress) {
+    Log.warnf(
+        "Login failed method=%s reason=%s email=%s domain=%d ip=%s",
+        method, reason, email, domainResolver.getDomainId(), ipAddress);
   }
 
   public User getUserByEmail(String email) {

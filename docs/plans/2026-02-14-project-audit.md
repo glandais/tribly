@@ -292,7 +292,7 @@ Multi-tenancy par domaine HTTP avec filtrage SQL. Auth JWT 15min (web) / 60min (
 | S8 | CORS origines dev en defaut (controllable via variable d'env) | Mineur | S | `application.properties` | ⚠️ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) contrôles conformes |
 | S9 | LIKE wildcards non echappees dans la recherche | Mineur | S | `UserRepository.java` | ✅ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L12 (ledger `SEC-22`) |
 | S10 | Header injection potentielle dans Content-Disposition | Mineur | S | `DeviceRoutesResource.java` | ✅ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L13 (ledger `SEC-22`) |
-| S11 | Logs insuffisants pour detecter les tentatives de brute force | Mineur | S | `AuthService.java` | ⚠️ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L14 |
+| S11 | Logs insuffisants pour detecter les tentatives de brute force | Mineur | S | `AuthService.java` | ✅ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L14 (ledger `SEC-23`) |
 | S12 | Cookie `secure=false` par defaut en dev, `true` en prod | Mineur | S | `application.properties` | ⚠️ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) contrôles conformes |
 | S13 | DataStore Karoo non chiffre (tokens en clair) | Mineur | M | `AuthManager.kt` | |
 | S14 | Pas de validation/scanning des fichiers uploades | Mineur | L | `AssetService.java` | ✅ |
