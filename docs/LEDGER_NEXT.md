@@ -617,7 +617,6 @@ Deux gestes d'exploitation de l'audit sont sous `OPS` : I13 (`OPS-7`) et I20 (`O
 | ID | Thème | Audit | Gravité | Constat |
 |---|---|---|---|---|
 | `AUD-1` | CI/CD | I3 | Critique | Aucun pipeline de déploiement (`ci.yml`, `codeql.yml`, `karoo-release.yml` seulement) |
-| `AUD-3` | CI/CD | — | — | La suite e2e (`frontend/e2e/`, `WEB-13` à `WEB-22`) ne tourne qu'en local : la CI ne lance que `pnpm test run` |
 | `AUD-6` | Docker | I10 | Important | `forwardedHeaders.insecure=true` sur Traefik (atténué par les règles `DOCKER-USER` qui ne laissent que Caddy le joindre : sous Swarm il écoute sur toutes les interfaces, voir [`OPERATIONS.md`](OPERATIONS.md#only-caddy-may-reach-traefik)) — voir V3, `SEC-16` |
 | `AUD-30` | Docker | I14 | Mineur | Aucune limite **CPU** dans les compose (la mémoire est bornée : `AUD-7`). À poser une fois les charges mesurées : une limite trop basse sur le backend rallonge le démarrage (Flyway, Magika) au-delà du `start_period`, et le JVM dimensionne ses threads de GC sur elle. valhalla n'a pas non plus de limite mémoire, à dessein (son rebuild) |
 | `AUD-8` | Docker | I15 | Important | VCL Varnish réduite à un `backend default` : ni purge, ni grace, ni ban |

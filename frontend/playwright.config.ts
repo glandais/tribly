@@ -10,6 +10,9 @@ import { stack } from './e2e/support/stack'
 export default defineConfig({
   testDir: './e2e',
   testMatch: '**/*.e2e.ts',
+  // E2E_NO_ROUTING: a stack without valhalla — the CI's (.github/workflows/e2e.yml) never borrows
+  // the workstation's 17 GB of routing tiles. Only the planner draws through POST /api/router.
+  testIgnore: process.env.E2E_NO_ROUTING ? ['**/gpx-planner.e2e.ts'] : [],
   globalSetup: './e2e/global-setup.ts',
   // Wiped at the start of every run: parallel runs need one each (E2E_OUTPUT=/tmp/e2e-mine).
   outputDir: process.env.E2E_OUTPUT ?? './e2e/.results',
