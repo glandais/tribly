@@ -28,9 +28,10 @@ public class AbstractDownloadAssetResource {
     DownloadableAsset downloadableAsset =
         assetService.getDownloadableAsset(teamSlug, TsidUtils.toLong(assetId));
 
-    return Response.ok(downloadableAsset.content())
-        .type(downloadableAsset.contentType())
-        .header("Content-Disposition", "inline")
+    return UploadedContentHeaders.download(
+            Response.ok(downloadableAsset.content()).type(downloadableAsset.contentType()),
+            downloadableAsset.contentType(),
+            downloadableAsset.fileName())
         .build();
   }
 
@@ -44,6 +45,9 @@ public class AbstractDownloadAssetResource {
       @PathParam("assetId") String assetId,
       @PathParam("size") int size) {
 
-    return assetService.getImage(teamSlug, TsidUtils.toLong(assetId), size, accept);
+    return UploadedContentHeaders.image(
+            Response.fromResponse(
+                assetService.getImage(teamSlug, TsidUtils.toLong(assetId), size, accept)))
+        .build();
   }
 }

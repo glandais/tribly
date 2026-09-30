@@ -15,9 +15,15 @@ class FileTypeCategoryTest {
 
     @Test
     void acceptsCommonImageLabels() {
-      for (String label : new String[] {"png", "jpeg", "gif", "webp", "bmp", "ico", "svg"}) {
+      for (String label : new String[] {"png", "jpeg", "gif", "webp", "bmp", "ico"}) {
         assertTrue(FileTypeCategory.IMAGE.accepts(label), label);
       }
+    }
+
+    @Test
+    void rejectsSvg() {
+      // docs/LEDGER_*.md SEC-1: a document that can carry script, not a picture
+      assertFalse(FileTypeCategory.IMAGE.accepts("svg"));
     }
 
     @Test
@@ -112,7 +118,7 @@ class FileTypeCategoryTest {
 
     @Test
     void acceptsImageLabels() {
-      for (String label : new String[] {"png", "jpeg", "gif", "webp", "bmp", "ico", "svg"}) {
+      for (String label : new String[] {"png", "jpeg", "gif", "webp", "bmp", "ico"}) {
         assertTrue(FileTypeCategory.ATTACHMENT.accepts(label), label);
       }
     }
@@ -132,7 +138,7 @@ class FileTypeCategoryTest {
 
     @Test
     void acceptsPlainTextLabels() {
-      for (String label : new String[] {"txt", "csv", "tsv", "json", "xml", "yaml", "ics"}) {
+      for (String label : new String[] {"txt", "csv", "tsv", "json", "yaml", "ics"}) {
         assertTrue(FileTypeCategory.ATTACHMENT.accepts(label), label);
       }
     }
@@ -171,7 +177,10 @@ class FileTypeCategoryTest {
             "perl",
             "ruby",
             "python",
-            "html"
+            "html",
+            // docs/LEDGER_*.md SEC-1: both render as documents that can run script
+            "svg",
+            "xml"
           }) {
         assertFalse(FileTypeCategory.ATTACHMENT.accepts(label), label);
       }

@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
@@ -110,9 +111,10 @@ public class FileTypeDetector {
       return image;
     }
     DetectedFileType detected = detect(file, fileName);
+    refuseActiveDocument(detected, fileName, assetType, category);
     boolean acceptedByLabel = category.accepts(detected.label());
     if (!acceptedByLabel) {
-      if (!matchesByExtension(category, fileName)) {
+      if (!matchesByExtension(category, fileName, detected.label())) {
         LOG.warnf(
             "Rejecting upload fileName=%s assetType=%s detectedLabel=%s category=%s %s=%s",
             fileName,
@@ -169,6 +171,28 @@ public class FileTypeDetector {
         format.name().toLowerCase(Locale.ROOT), 1f, format.storedMimeType());
   }
 
+  /**
+   * The content types a browser renders as a document that can run script, refused in images and
+   * attachments whatever label Magika gave: a small SVG it reads as {@code txt} would otherwise be
+   * stored as {@code image/svg+xml} on the strength of its file name (docs/LEDGER_*.md SEC-1).
+   */
+  private static final Set<String> ACTIVE_DOCUMENT_TYPES =
+      Set.of("image/svg+xml", "application/xml", "text/xml", "text/html", "application/xhtml+xml");
+
+  private static void refuseActiveDocument(
+      DetectedFileType detected,
+      @Nullable String fileName,
+      AssetType assetType,
+      FileTypeCategory category) {
+    if ((category == FileTypeCategory.IMAGE || category == FileTypeCategory.ATTACHMENT)
+        && ACTIVE_DOCUMENT_TYPES.contains(detected.mimeType())) {
+      LOG.warnf(
+          "Rejecting upload fileName=%s assetType=%s: served as %s, a document that can run script",
+          fileName, assetType, detected.mimeType());
+      throw new BadRequestException(ErrorCode.FILE_TYPE_REJECTED);
+    }
+  }
+
   private static String policyKey(FileTypeCategory category) {
     return category.isExcludeMode() ? "excluded" : "allowed";
   }
@@ -207,7 +231,8 @@ public class FileTypeDetector {
     return null;
   }
 
-  private static boolean matchesByExtension(FileTypeCategory category, @Nullable String fileName) {
+  private static boolean matchesByExtension(
+      FileTypeCategory category, @Nullable String fileName, String label) {
     if (fileName == null) {
       return false;
     }
@@ -215,7 +240,11 @@ public class FileTypeDetector {
     return switch (category) {
       case GPX -> lower.endsWith(".gpx");
       case FIT -> lower.endsWith(".fit");
-      case IMAGE, ATTACHMENT -> false;
+      // An attached GPX: the xml label ATTACHMENT refuses, let through on its name only. It is
+      // stored as application/gpx+xml after TrackAttachmentSanitizer rewrote it from its tracks —
+      // nothing else of the upload survives (docs/LEDGER_*.md SEC-1, API-49).
+      case ATTACHMENT -> "xml".equals(label) && lower.endsWith(".gpx");
+      case IMAGE -> false;
     };
   }
 }

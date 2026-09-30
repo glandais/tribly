@@ -2,18 +2,25 @@ package fr.pedalons.api.assets;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.startsWith;
 
 import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.common.TsidUtils;
+import fr.pedalons.domain.asset.Asset;
 import fr.pedalons.dto.common.asset.AssetDto;
 import fr.pedalons.dto.common.asset.AssetsDto;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.posts.request.PostRequest;
 import fr.pedalons.dto.posts.response.PostDto;
+import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.repository.asset.AssetRepository;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import java.io.File;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -23,6 +30,8 @@ import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class AssetResourceTest extends AbstractResourceTest {
+
+  @Inject AssetRepository assetRepository;
 
   @Override
   @BeforeEach
@@ -211,6 +220,60 @@ class AssetResourceTest extends AbstractResourceTest {
 
     // Download without auth should work for public team assets
     given().when().get(assetUrl).then().statusCode(200).contentType("application/gpx+xml");
+  }
+
+  /** docs/LEDGER_*.md SEC-1: an attachment that is not a raster image or a PDF is saved. */
+  @Test
+  void downloadAsset_aGpxIsSavedSandboxed_neverRenderedInPlace() {
+    AssetDto assetDto =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .multiPart("file", new File("src/test/resources/example.gpx"), "application/gpx+xml")
+            .when()
+            .queryParam("assetType", "ATTACHMENT")
+            .post("/api/teams/" + team1Slug + "/assets")
+            .then()
+            .statusCode(201)
+            .extract()
+            .as(AssetDto.class);
+    createTestPost("post1", assetDto);
+
+    given()
+        .when()
+        .get(assetDto.url())
+        .then()
+        .statusCode(200)
+        .header("Content-Disposition", startsWith("attachment;"))
+        .header("X-Content-Type-Options", equalTo("nosniff"))
+        .header("Content-Security-Policy", containsString("sandbox"));
+  }
+
+  /**
+   * docs/LEDGER_*.md SEC-1: an SVG stored before uploads refused them is served as a file to save,
+   * sandboxed — it never runs in the application's origin.
+   */
+  @Test
+  void downloadAsset_anSvgStoredBeforeTheFix_isSavedSandboxed() {
+    Asset legacy = dataService.createAsset(team1, user1, AssetType.ATTACHMENT, "legacy.svg");
+    QuarkusTransaction.requiringNew()
+        .run(() -> assetRepository.findById(legacy.getId()).setContentType("image/svg+xml"));
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get(
+            "/api/download/team/assets/"
+                + team1Slug
+                + "/"
+                + TsidUtils.toString(legacy.getId())
+                + "/legacy.svg")
+        .then()
+        .statusCode(200)
+        .header("Content-Disposition", startsWith("attachment;"))
+        .header("X-Content-Type-Options", equalTo("nosniff"))
+        .header("Content-Security-Policy", containsString("sandbox"));
   }
 
   @Test

@@ -310,7 +310,7 @@ public class AssetService {
   public DownloadableAsset getDownloadableAsset(String teamSlug, Long assetId) {
     Asset asset = getAsset(assetId);
     InputStream content = getAssetContent(asset);
-    return new DownloadableAsset(content, asset.getContentType());
+    return new DownloadableAsset(content, asset.getContentType(), asset.getFileName());
   }
 
   @CheckAccess(entityType = EntityType.ASSET, action = ActionType.READ)

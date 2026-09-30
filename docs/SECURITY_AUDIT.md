@@ -25,7 +25,7 @@
 | # | Sévérité | Constat | Statut |
 |---|---|---|---|
 | H1 | **Élevée** | Le code OTP à 6 chiffres se brute-force sans limite : prise de compte, admin plateforme compris | Corrigé (commit `911e93a2`) |
-| H2 | **Élevée** | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif (XSS stockée) | Ouvert |
+| H2 | **Élevée** | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif (XSS stockée) | Corrigé (ledger `SEC-1`) |
 | H3 | **Élevée** | L'autorisation d'un appareil peut aboutir sans confirmation explicite de l'utilisateur | Ouvert |
 | H4 | **Élevée** | L'app mobile peut transmettre ses identifiants à des hôtes autres que l'API | Ouvert |
 | H5 | **Élevée** | Un point du flux d'autorisation des appareils n'a aucune limitation de débit | Corrigé (ledger `SEC-4`) |
@@ -52,7 +52,7 @@ Les constats ouverts sont suivis, sans détail, sous le préfixe `SEC` de [`LEDG
 changement de statut ici se reporte là-bas.
 
 **Ordre de correction conseillé** :
-1. ~~H1~~ (corrigé), H2, H3 et H4.
+1. ~~H1~~ et ~~H2~~ (corrigés), H3 et H4.
 2. Vérifier V1.
 3. ~~M1~~ (corrigé).
 4. M3 et ~~M4~~ (corrigé).
@@ -68,7 +68,14 @@ changement de statut ici se reporte là-bas.
 - **Correctif appliqué** : colonne `failed_attempts` sur `auth_tokens` (migration V42), incrémentée même quand la vérification échoue (`@Transactional(dontRollbackOn = BadRequestException.class)`). Le code est brûlé après `pedalons.auth.otp.max-verify-attempts` échecs (5 par défaut). Test de régression dans `AuthServiceTest`.
 - La limitation de débit de la connexion par mot de passe relève de M4, corrigé à son tour (ledger `SEC-7`).
 
-### H2 — XSS stockée via un fichier téléversé — **Ouvert**
+### H2 — XSS stockée via un fichier téléversé — **Corrigé (ledger `SEC-1`)**
+
+- **Acteur** : tout membre d'une équipe, qui peut téléverser une image ou une pièce jointe.
+- **Constat d'origine** : un SVG était accepté comme image et comme pièce jointe, un XML comme pièce jointe. La route de téléchargement (`AbstractDownloadAssetResource`) servait tout fichier `inline`, sous son type d'origine, sur l'origine de l'application, sans `X-Content-Type-Options` ni `Content-Security-Policy`. Un document que le navigateur rend en page (SVG, XML) pouvait donc y exécuter du script avec les droits du lecteur.
+- **Correctif appliqué** :
+  - **Au service** (`UploadedContentHeaders`) : seuls les images matricielles (PNG, JPEG, GIF, WebP, AVIF) et le PDF s'ouvrent dans le navigateur ; tout le reste part en `Content-Disposition: attachment`. Chaque réponse porte `X-Content-Type-Options: nosniff`, et toutes sauf le PDF une CSP `default-src 'none'; … sandbox` (le PDF en est exempté parce qu'elle empêche la visionneuse du navigateur de démarrer). Les images redimensionnées par imgproxy portent les mêmes `nosniff` et CSP. Cela couvre aussi les fichiers déjà stockés.
+  - **À l'envoi** : le SVG est refusé comme image et comme pièce jointe, le XML comme pièce jointe, y compris quand Magika ne donne qu'une étiquette textuelle et que le type viendrait du seul nom de fichier. Seule exception : un GPX joint, réécrit intégralement depuis sa trace avant stockage (ledger `API-49`).
+- **Tests** : `UploadedContentHeadersTest`, `AssetResourceTest` (un GPX joint et un SVG stocké avant le correctif partent en téléchargement, sous CSP), `FileTypeDetectorTest.ActiveDocuments`, `FileTypeCategoryTest`.
 
 ### H3 — Approbation d'un appareil sans confirmation — **Ouvert**
 

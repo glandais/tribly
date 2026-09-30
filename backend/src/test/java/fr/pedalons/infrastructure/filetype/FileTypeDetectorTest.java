@@ -141,6 +141,67 @@ class FileTypeDetectorTest extends AbstractBaseTest {
     }
   }
 
+  /** docs/LEDGER_*.md SEC-1: nothing a browser renders as a scripted document is stored. */
+  @Nested
+  class ActiveDocuments {
+
+    private static final String SVG =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\""
+            + " viewBox=\"0 0 100 100\">\n"
+            + "  <rect x=\"10\" y=\"10\" width=\"80\" height=\"80\" fill=\"#228be6\"/>\n"
+            + "  <circle cx=\"50\" cy=\"50\" r=\"30\" fill=\"#ffffff\"/>\n"
+            + "</svg>\n";
+
+    @Test
+    void refusesAnSvgAsAnImageOrAnAttachment() throws IOException {
+      File svg = writeText("logo.svg", SVG);
+      for (AssetType type : new AssetType[] {AssetType.IMAGE, AssetType.ATTACHMENT}) {
+        PedalonsException ex =
+            assertThrows(
+                PedalonsException.class,
+                () -> detector.detectAndValidate(svg, "logo.svg", type),
+                type.name());
+        assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode(), type.name());
+      }
+    }
+
+    @Test
+    void refusesATinySvgMagikaReadsAsText() throws IOException {
+      // Too short for a confident label: its name alone would make it image/svg+xml
+      File svg = writeText("dot.svg", "<svg xmlns=\"http://www.w3.org/2000/svg\"/>");
+      PedalonsException ex =
+          assertThrows(
+              PedalonsException.class,
+              () -> detector.detectAndValidate(svg, "dot.svg", AssetType.ATTACHMENT));
+      assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode());
+    }
+
+    @Test
+    void refusesAnXmlAttachment() throws IOException {
+      File xml =
+          writeText(
+              "data.xml",
+              "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<catalog>\n"
+                  + "  <book id=\"b1\"><title>Le Tour</title><year>1903</year></book>\n"
+                  + "  <book id=\"b2\"><title>Paris-Roubaix</title><year>1896</year></book>\n"
+                  + "</catalog>\n");
+      PedalonsException ex =
+          assertThrows(
+              PedalonsException.class,
+              () -> detector.detectAndValidate(xml, "data.xml", AssetType.ATTACHMENT));
+      assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode());
+    }
+
+    @Test
+    void stillAcceptsAnAttachedGpx() {
+      // Labelled xml, let through on its name: API-49 rewrites it from its tracks before storing
+      DetectedFileType detected =
+          detector.detectAndValidate(gpxFile(), "example.gpx", AssetType.ATTACHMENT);
+      assertEquals("application/gpx+xml", detected.mimeType());
+    }
+  }
+
   @Nested
   class DetectAndValidate {
 

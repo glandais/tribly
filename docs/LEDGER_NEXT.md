@@ -362,12 +362,12 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       `API-54`) : il ajoute une mise à jour incrémentale réversible, le dictionnaire Info reste dans
       les octets, et l'EXIF des JPEG embarqués est intact. Seule voie : réécriture complète (PDFBox)
       en faisant réencoder les JPEG embarqués comme les images (`API-43`).
-- [ ] `API-48` **SVG et ICO stockés tels quels** — tous deux sont dans la liste blanche `IMAGE` et
-      ne sont pas réencodés par imgproxy : un SVG peut embarquer une photo en base64 avec
-      son EXIF/GPS (Inkscape le fait pour une image importée), un ICO des PNG avec `tEXt`/`eXIf`.
-      Cas marginal, que la politique couvre (« images SVG ou ICO » conservées telles quelles). Refuser
-      les SVG à image embarquée, faire réencoder les ICO (imgproxy les lit), ou nettoyer le PNG/JPEG
-      qu'un SVG contient. Taille : S à M.
+- [ ] `API-48` **ICO stockés tels quels, et les SVG d'avant `SEC-1`** — un ICO est dans la liste
+      blanche `IMAGE` sans être réencodé par imgproxy : il peut porter des PNG avec `tEXt`/`eXIf`.
+      Les SVG, qui pouvaient embarquer une photo en base64 avec son EXIF/GPS, sont **refusés à
+      l'envoi depuis `SEC-1`** ; ceux déjà stockés restent tels quels (servis en téléchargement,
+      sous CSP). Reste : faire réencoder les ICO (imgproxy les lit), et décider du sort des SVG
+      existants. Taille : S.
 - [ ] `API-50` **Le rédacteur GPX de gpx2web écrit un `creator` fixe et une heure epoch** — la
       bibliothèque (gpx 1.5.x) écrit `creator="https://www.mapstogpx.com/strava"` (trompeur, pas
       personnel) et `<time>1970-01-01T00:00:00Z</time>` sur chaque point depuis `API-44`. Ne pas
@@ -594,7 +594,6 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 
 | ID | Priorité (audit) | Audit | Sévérité | Constat |
 |---|---|---|---|---|
-| `SEC-1` | 1 | H2 | Élevée | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif |
 | `SEC-2` | 1 | H3 | Élevée | L'autorisation d'un appareil peut aboutir sans confirmation explicite |
 | `SEC-3` | 1 | H4 | Élevée | L'app mobile peut transmettre ses identifiants à d'autres hôtes que l'API |
 | `SEC-5` | 2 | V1 | **Critique si confirmé** | Clé JWT présente dans l'historique public : vérifier que prod et staging n'en sont pas des copies |

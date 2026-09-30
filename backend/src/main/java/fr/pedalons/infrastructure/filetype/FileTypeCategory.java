@@ -24,7 +24,8 @@ import java.util.Set;
 public enum FileTypeCategory {
   // JPEG, PNG, GIF, WebP, TIFF, HEIC, AVIF and JPEG XL are accepted by their first bytes before
   // Magika is asked, and re-encoded by storage — see FileTypeDetector, docs/LEDGER_*.md API-43
-  IMAGE(Set.of("png", "jpeg", "gif", "webp", "bmp", "ico", "svg"), false),
+  // No SVG: it is a document that can carry script, not a picture — docs/LEDGER_*.md SEC-1
+  IMAGE(Set.of("png", "jpeg", "gif", "webp", "bmp", "ico"), false),
   // Magika labels GPX as `xml`. The `.gpx` extension fallback in FileTypeDetector covers
   // small/empty GPX files where Magika cannot reach a confident decision.
   GPX(Set.of("xml", "gpx"), false),
@@ -92,8 +93,12 @@ public enum FileTypeCategory {
           "awk",
           "tcl",
           "coffeescript",
-          // Web-executable markup
+          // Web-executable markup. SVG and generic XML render as documents that can run script
+          // (docs/LEDGER_*.md SEC-1); an attached GPX, which Magika labels xml, is let through by
+          // FileTypeDetector on its extension, and rewritten whole before it is stored (API-49).
           "html",
+          "svg",
+          "xml",
           "mht",
           "asp",
           "erb",
