@@ -367,7 +367,14 @@ test.describe('changing group', () => {
     await expect(firstCard.getByText('0/10 participants')).toBeVisible()
     const join = secondCard.getByRole('button', { name: 'Rejoindre' })
     await expect(join).toBeEnabled()
+    // The card says « Inscrit » optimistically, before the server has answered: the API read below
+    // waits for that answer, or it can go out while the join is still in flight.
+    const joined = page.waitForResponse(
+      (r) =>
+        r.request().method() === 'POST' && r.url().endsWith(`/groups/${groupId(ride, second)}/join`)
+    )
     await join.click()
+    expect((await joined).ok(), 'the server accepted the join').toBe(true)
     await expect(secondCard.getByText('Inscrit', { exact: true })).toBeVisible()
     await expect(secondCard.getByText('1/10 participants')).toBeVisible()
     await expect(firstCard.getByRole('button', { name: 'Rejoindre' })).toHaveCount(0)
