@@ -206,9 +206,18 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       rendu est synchrone, et c'est le même processus qui sert `/assets` : un chunk demandé pendant ce
       temps attend 7,6 s au lieu de 17 ms (mesuré le 29 septembre 2026 sur la pile e2e, où l'admin
       bootstrap avait accumulé 2 520 équipes). Sans effet à l'échelle d'un vrai compte (quelques
-      dizaines de sorties par semaine), mais rien ne borne le cas. Pistes : ne passer à `Schedule`
-      que les événements de la grille visible, ou ne pas rendre la grille côté serveur. La suite e2e
-      ne l'exerce plus (routes-render promeut un admin plateforme neuf).
+      dizaines de sorties par semaine), mais rien ne borne le cas. La suite e2e ne l'exerce plus
+      (routes-render promeut un admin plateforme neuf).
+      **En cours côté Mantine** (depuis le 30 septembre 2026) : une issue et une PR sont en
+      préparation sur `mantinedev/mantine`. Elles remplacent le rebalayage de la semaine dans
+      `findAvailableRow` par un index d'occupation de 7 jours, soit O(7) par événement au lieu de
+      O(n), pour le même placement. La tâche se ferme quand une version corrigée de
+      `@mantine/schedule` est publiée, que `frontend/` y passe et qu'une mesure confirme le gain ;
+      noter alors ici les liens de l'issue et de la PR. **Piste écartée** : ne passer à `Schedule`
+      que les événements de la grille visible, qui est déjà le cas (`getVisibleRange` borne la
+      requête) et ne change rien quand tout tombe dans une même semaine. **Repli** si l'amont
+      tarde : un seuil au rendu serveur (au-delà de N événements, grille vide au premier rendu et
+      remplie après montage), ou ne pas rendre la grille côté serveur.
 
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
