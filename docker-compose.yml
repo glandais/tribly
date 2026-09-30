@@ -110,6 +110,11 @@ services:
       # A task that is booting, or that got SIGTERM (quarkus.shutdown.delay), gets no traffic.
       - "traefik.http.services.quarkus.loadbalancer.healthcheck.path=/q/health/ready"
       - "traefik.http.services.quarkus.loadbalancer.healthcheck.interval=3s"
+      # traefik drops a server on its first failed check, and its default timeout is 5 s: one slow
+      # answer under load took the only task out, and all of /api answered 503 (OPS-25). A draining
+      # task answers DOWN at once, but a slow check already in flight at SIGTERM delays that by up
+      # to interval + timeout: 13 s, under quarkus.shutdown.delay (15 s).
+      - "traefik.http.services.quarkus.loadbalancer.healthcheck.timeout=10s"
       # Global per-client rate limit (audit M10, docs/LEDGER_*.md SEC-28): 429 past it. The client is
       # the last X-Forwarded-For hop, the one the host's Caddy sets — the only way in, see
       # docs/OPERATIONS.md « Rate limiting ». Wide on purpose: a map pans in bursts of tiles.
@@ -124,7 +129,7 @@ services:
       timeout: 3s
       retries: 3
       start_period: 180s
-    # Above quarkus.shutdown.delay + quarkus.shutdown.timeout (10s + 20s).
+    # Above quarkus.shutdown.delay + quarkus.shutdown.timeout (15s + 20s).
     stop_grace_period: 40s
     deploy:
       # Rolling update: the new task starts beside the old one, which is stopped only once the new
@@ -165,6 +170,8 @@ services:
       - "traefik.http.routers.frontend.priority=1"
       - "traefik.http.services.frontend.loadbalancer.healthcheck.path=/health"
       - "traefik.http.services.frontend.loadbalancer.healthcheck.interval=3s"
+      # Same reason and bound as the backend's (OPS-25): 3 s + 10 s, under server.js's 15 s drain.
+      - "traefik.http.services.frontend.loadbalancer.healthcheck.timeout=10s"
       # Same limit as the API's (see the backend labels), wider: a first visit loads every chunk,
       # and each document costs server-side renders that reach the backend without passing here.
       - "traefik.http.routers.frontend.middlewares=ratelimit-frontend"
@@ -177,8 +184,8 @@ services:
       timeout: 3s
       retries: 3
       start_period: 30s
-    # Above server.js's SIGTERM drain.
-    stop_grace_period: 20s
+    # Above server.js's SIGTERM drain (15s, then at most 5s to close).
+    stop_grace_period: 25s
     deploy:
       replicas: 1
       update_config: *rolling-update

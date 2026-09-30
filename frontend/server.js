@@ -421,11 +421,12 @@ async function createServer() {
   if (isProduction)
     process.once('SIGTERM', () => {
       draining = true
+      // Longer than traefik's health-check interval + timeout (3 s + 10 s, docker-compose.yml).
       setTimeout(() => {
         server.close(() => process.exit(0))
         server.closeIdleConnections()
         setTimeout(() => process.exit(0), 5000).unref()
-      }, 10000)
+      }, 15000)
     })
 }
 

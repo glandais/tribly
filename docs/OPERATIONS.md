@@ -67,7 +67,7 @@ images built on the host are all Swarm needs, and it merely warns that it cannot
 A deploy of a new commit changes the image in the backend and frontend specs, and Swarm rolls them
 **start-first**: the new task boots beside the old one, which keeps serving until the new one's
 healthcheck passes (`/q/health/ready`, i.e. after Flyway). traefik health-checks both too, and the
-old task reports itself not ready for 10 s after SIGTERM (`quarkus.shutdown.delay`; `/health` in
+old task reports itself not ready for 15 s after SIGTERM (`quarkus.shutdown.delay`; `/health` in
 the frontend's `server.js`) before it drains, so no request lands on a stopping task. A new task
 that never turns healthy is rolled back on its own (`failure_action: rollback`), and
 `scripts/deploy.sh` waits for that outcome: it returns once backend and frontend both run the new
