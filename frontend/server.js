@@ -162,6 +162,7 @@ async function createServer() {
   let template
   let render
   let renderSitemap
+  let renderLlmsTxt
 
   const publicHost = (req) =>
     String(req.headers['x-forwarded-host'] || req.headers.host || 'localhost')
@@ -208,6 +209,31 @@ async function createServer() {
     }
   })
 
+  // llms.txt (https://llmstxt.org): this host's public teams and its sitemap, for a language model
+  // (docs/LEDGER_DONE.md WEB-34). Nothing the sitemap does not already expose; cacheable likewise.
+  app.get('/llms.txt', async (req, res) => {
+    try {
+      const llmsTxtRenderer = isProduction
+        ? renderLlmsTxt
+        : (await vite.ssrLoadModule('/src/entry-server.tsx')).renderLlmsTxt
+      const txt = await llmsTxtRenderer({
+        host: publicHost(req),
+        'x-forwarded-host': publicHost(req),
+        'x-forwarded-proto': req.protocol,
+      })
+      res
+        .set({
+          'Content-Type': 'text/markdown; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600',
+          Vary: 'Host, X-Forwarded-Host',
+        })
+        .send(txt)
+    } catch (err) {
+      console.error('[llms.txt] Failed to build llms.txt:', err.message)
+      res.status(503).set('Cache-Control', 'no-store').send('llms.txt unavailable')
+    }
+  })
+
   if (isProduction) {
     app.use(compression())
     app.use(
@@ -227,6 +253,7 @@ async function createServer() {
     const serverModule = await import(path.resolve(__dirname, 'dist/server/entry-server.js'))
     render = serverModule.render
     renderSitemap = serverModule.renderSitemap
+    renderLlmsTxt = serverModule.renderLlmsTxt
   } else {
     const { createServer: createViteServer } = await import('vite')
     vite = await createViteServer({

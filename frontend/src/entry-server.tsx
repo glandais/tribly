@@ -31,6 +31,9 @@ import type { RouteParams } from './config/routes.types'
 import { mapThemePreference } from './lib/theme'
 import { getSitemap } from './api/endpoints/sitemap/sitemap'
 import { buildSitemapXml } from './lib/sitemap'
+import { listTeams } from './api/endpoints/teams/teams'
+import { TeamSortBy, SortDirection } from './api/dto'
+import { buildLlmsTxt } from './lib/llmsTxt'
 
 // Bridge the SSR per-request store (AsyncLocalStorage) to the client-safe getter used by
 // axiosInstance / appConfig / locale-context. Called once at module load.
@@ -257,6 +260,13 @@ export async function render(url: string, headers: Record<string, string> = {}) 
   })
 }
 
+/** `https://host` of the request, as the public address bar shows it. */
+function requestOrigin(headers: Record<string, string>): string {
+  return headers['x-forwarded-proto']
+    ? `${headers['x-forwarded-proto']}://${headers['x-forwarded-host'] || headers['host'] || 'localhost'}`
+    : `http://${headers['host'] || 'localhost'}`
+}
+
 /**
  * The `sitemap.xml` of the site the request arrived on, for server.js.
  *
@@ -273,10 +283,42 @@ export async function renderSitemap(headers: Record<string, string> = {}): Promi
   return requestContext.run(store, async () => {
     const [config, sitemap] = await Promise.all([getConfig(), getSitemap()])
     store.config = config
-    const origin = headers['x-forwarded-proto']
-      ? `${headers['x-forwarded-proto']}://${headers['x-forwarded-host'] || headers['host'] || 'localhost'}`
-      : `http://${headers['host'] || 'localhost'}`
-    return buildSitemapXml(sitemap.entries, origin, getPinnedTeamSlug() ? toBrowser : undefined)
+    return buildSitemapXml(
+      sitemap.entries,
+      requestOrigin(headers),
+      getPinnedTeamSlug() ? toBrowser : undefined
+    )
+  })
+}
+
+/** How many public teams `llms.txt` names; the sitemap lists them all. */
+const LLMS_TXT_TEAMS = 200
+
+/**
+ * The `llms.txt` of the host the request arrived on (docs/LEDGER_DONE.md WEB-34): its name and its
+ * public teams, the largest first. Anonymous like the sitemap — only the host headers go through.
+ */
+export async function renderLlmsTxt(headers: Record<string, string> = {}): Promise<string> {
+  const hostHeaders: Record<string, string> = {}
+  for (const name of ['host', 'x-forwarded-host', 'x-forwarded-proto']) {
+    if (headers[name]) hostHeaders[name] = headers[name]
+  }
+  const store: SsrRequestStore = { headers: hostHeaders, locale: 'fr', config: undefined }
+  return requestContext.run(store, async () => {
+    const config = await getConfig()
+    store.config = config
+    const teams = await listTeams({
+      size: LLMS_TXT_TEAMS,
+      sortBy: TeamSortBy.MEMBER_COUNT,
+      sortDir: SortDirection.DESC,
+    })
+    return buildLlmsTxt({
+      appName: config.appName,
+      origin: requestOrigin(headers),
+      teams: teams.teams,
+      totalTeams: teams.total,
+      toBrowser: getPinnedTeamSlug() ? toBrowser : undefined,
+    })
   })
 }
 
