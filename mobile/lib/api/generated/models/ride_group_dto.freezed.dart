@@ -19,7 +19,7 @@ mixin _$RideGroupDto {
 /// Group ID (TSID)
  String get id;/// Group name
  String get name;/// Current number of participants
- int get countParticipants;/// Participants, empty if not access
+ int get countParticipants;/// The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.
  List<PublicUserDto> get participants;/// Sort order
  int get sortOrder;/// Whether the current user is registered in THIS group. False if anonymous.
  bool get registered;/// Whether the group has reached maxParticipants. False when maxParticipants is not set.
@@ -268,9 +268,9 @@ class _RideGroupDto implements RideGroupDto {
 @override final  String name;
 /// Current number of participants
 @override final  int countParticipants;
-/// Participants, empty if not access
+/// The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.
  final  List<PublicUserDto> _participants;
-/// Participants, empty if not access
+/// The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.
 @override List<PublicUserDto> get participants {
   if (_participants is EqualUnmodifiableListView) return _participants;
   // ignore: implicit_dynamic_type

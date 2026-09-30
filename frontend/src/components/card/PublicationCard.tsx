@@ -216,7 +216,12 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
           <Group justify="space-between" align="center" mb="md" wrap="nowrap">
             <Group style={{ flex: 1 }}>
               {participants.length > 0 && (
-                <UserAvatarGroup users={participants} max={5} size="sm" />
+                <UserAvatarGroup
+                  users={participants}
+                  total={(publication as RideDto | TripDto).participantCount}
+                  max={5}
+                  size="sm"
+                />
               )}
               {publication.type === 'RIDE' && (
                 <PublicationCardProgress ride={publication as RideDto} />

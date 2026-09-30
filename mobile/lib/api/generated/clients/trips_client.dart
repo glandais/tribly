@@ -6,6 +6,7 @@ import 'package:dio/dio.dart' hide Headers;
 import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
+import '../models/participant_list_response.dart';
 import '../models/slug_change_request.dart';
 import '../models/trip_dto.dart';
 import '../models/trip_participation_dto.dart';
@@ -96,6 +97,28 @@ abstract class TripsClient {
   Future<void> leaveTrip({
     @Path('teamSlug') required String teamSlug,
     @Path('tripSlug') required String tripSlug,
+  });
+
+  /// List trip participants.
+  ///
+  /// One page of the people registered to the trip, earliest registrations first, searchable by display name. The trip detail only embeds the first few; this is the whole list, with its total. Readable by whoever may read the trip.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [tripSlug] - Trip URL slug.
+  ///
+  /// [page] - Page number (0-based).
+  ///
+  /// [search] - Search by display name.
+  ///
+  /// [size] - Page size.
+  @GET('/api/teams/{teamSlug}/trips/{tripSlug}/participants')
+  Future<ParticipantListResponse> getTripParticipants({
+    @Path('teamSlug') required String teamSlug,
+    @Path('tripSlug') required String tripSlug,
+    @Query('search') String? search,
+    @Query('page') int? page = 0,
+    @Query('size') int? size = 50,
   });
 
   /// Change trip slug.

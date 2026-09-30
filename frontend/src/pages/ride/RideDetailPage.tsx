@@ -530,6 +530,7 @@ export function RideDetailPage() {
                     key={group.id}
                     group={group}
                     teamSlug={teamSlug!}
+                    rideSlug={ride.slug}
                     rideRouteSlug={ride.routeSlug}
                     routesBySlug={groupRoutesBySlug}
                     canJoin={canJoinRide}

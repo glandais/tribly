@@ -1167,7 +1167,9 @@
     "noMatchTitle": "Aucun participant trouvé",
     "noMatchMessage": "Aucun nom ne correspond à « {search} ».",
     "groupOrganizer": "Organisateur du groupe",
-    "emptyTripMessage": "Personne n'est encore inscrit à ce voyage."
+    "emptyTripMessage": "Personne n'est encore inscrit à ce voyage.",
+    "loadMore": "Afficher plus",
+    "noun": "participants"
   },
   "status": {
     "draft": "Brouillon",

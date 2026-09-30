@@ -16,6 +16,8 @@ import type {
 
 import type {
   ErrorResponse,
+  GetRideParticipantsParams,
+  ParticipantListResponse,
   RideDto,
   RideParticipationDto,
   RideRequest,
@@ -625,6 +627,178 @@ export const useLeaveGroup = <TError = ErrorType<ErrorResponse | void>, TContext
 > => {
   return useMutation(getLeaveGroupMutationOptions(options), queryClient)
 }
+/**
+ * One page of the people registered to the ride, or to one of its groups, earliest registrations first, searchable by display name. The ride detail only embeds the first few; this is the whole list, with its total. Readable by whoever may read the ride.
+ * @summary List ride participants
+ */
+export const getRideParticipants = (
+  teamSlug: string,
+  rideSlug: string,
+  params?: GetRideParticipantsParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<ParticipantListResponse>(
+    { url: `/api/teams/${teamSlug}/rides/${rideSlug}/participants`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getGetRideParticipantsQueryKey = (
+  teamSlug: string,
+  rideSlug: string,
+  params?: GetRideParticipantsParams
+) => {
+  return [
+    `/api/teams/${teamSlug}/rides/${rideSlug}/participants`,
+    ...(params ? [params] : []),
+  ] as const
+}
+
+export const getGetRideParticipantsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRideParticipants>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  params?: GetRideParticipantsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRideParticipants>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetRideParticipantsQueryKey(teamSlug, rideSlug, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRideParticipants>>> = ({ signal }) =>
+    getRideParticipants(teamSlug, rideSlug, params, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && rideSlug !== null && rideSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getRideParticipants>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type GetRideParticipantsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getRideParticipants>>
+>
+export type GetRideParticipantsQueryError = ErrorType<ErrorResponse>
+
+export function useGetRideParticipants<
+  TData = Awaited<ReturnType<typeof getRideParticipants>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  params: undefined | GetRideParticipantsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getRideParticipants>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRideParticipants>>,
+          TError,
+          Awaited<ReturnType<typeof getRideParticipants>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRideParticipants<
+  TData = Awaited<ReturnType<typeof getRideParticipants>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  params?: GetRideParticipantsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getRideParticipants>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRideParticipants>>,
+          TError,
+          Awaited<ReturnType<typeof getRideParticipants>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRideParticipants<
+  TData = Awaited<ReturnType<typeof getRideParticipants>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  params?: GetRideParticipantsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRideParticipants>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List ride participants
+ */
+
+export function useGetRideParticipants<
+  TData = Awaited<ReturnType<typeof getRideParticipants>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  params?: GetRideParticipantsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRideParticipants>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetRideParticipantsQueryOptions(teamSlug, rideSlug, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary List ride participants
+ */
+export const prefetchGetRideParticipantsQuery = async <
+  TData = Awaited<ReturnType<typeof getRideParticipants>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  rideSlug: string,
+  params?: GetRideParticipantsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRideParticipants>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetRideParticipantsQueryOptions(teamSlug, rideSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
 /**
  * Change ride URL slug. Requires organizer permissions.
  * @summary Change ride slug

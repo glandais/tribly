@@ -200,7 +200,7 @@ class _RideDetailContent extends ConsumerWidget {
               selectedGroupId: selected,
               onSelect: select,
               onShowParticipants: (RideGroupDto g) =>
-                  ParticipantsSheet.open(context, g, team: ride.team),
+                  ParticipantsSheet.open(context, ride, g),
               onViewRoute: (RideGroupDto g) {
                 final String? slug = g.routeSlug ?? ride.routeSlug;
                 if (slug != null) {

@@ -529,7 +529,9 @@ export const CreateRideResponse = zod
                   })
                   .describe('Public user information (limited fields)')
               )
-              .describe('Participants, empty if not access'),
+              .describe(
+                'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+              ),
             sortOrder: zod.int().describe('Sort order'),
             registered: zod
               .boolean()
@@ -1192,7 +1194,9 @@ export const UpdateRideResponse = zod
                   })
                   .describe('Public user information (limited fields)')
               )
-              .describe('Participants, empty if not access'),
+              .describe(
+                'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+              ),
             sortOrder: zod.int().describe('Sort order'),
             registered: zod
               .boolean()
@@ -1593,7 +1597,9 @@ export const GetRideResponse = zod
                   })
                   .describe('Public user information (limited fields)')
               )
-              .describe('Participants, empty if not access'),
+              .describe(
+                'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+              ),
             sortOrder: zod.int().describe('Sort order'),
             registered: zod
               .boolean()
@@ -1766,6 +1772,51 @@ export const LeaveGroupParams = zod.object({
 })
 
 export const LeaveGroupResponse = zod.void()
+
+/**
+ * One page of the people registered to the ride, or to one of its groups, earliest registrations first, searchable by display name. The ride detail only embeds the first few; this is the whole list, with its total. Readable by whoever may read the ride.
+ * @summary List ride participants
+ */
+export const GetRideParticipantsParams = zod.object({
+  rideSlug: zod.string().describe('Ride URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const getRideParticipantsQueryPageDefault = 0
+export const getRideParticipantsQuerySizeDefault = 50
+
+export const GetRideParticipantsQueryParams = zod.object({
+  groupId: zod
+    .string()
+    .optional()
+    .describe('Only this group of the ride (TSID); every group when absent'),
+  page: zod.int().default(getRideParticipantsQueryPageDefault).describe('Page number (0-based)'),
+  search: zod.string().optional().describe('Search by display name'),
+  size: zod.int().default(getRideParticipantsQuerySizeDefault).describe('Page size'),
+})
+
+export const GetRideParticipantsResponse = zod
+  .object({
+    participants: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('User ID (TSID)'),
+            displayName: zod.string().describe('User display name'),
+            avatarUrl: zod.string().optional().describe('User avatar URL'),
+          })
+          .describe('Public user information (limited fields)')
+      )
+      .describe('Participants of this page, in registration order (earliest first)'),
+    total: zod
+      .int()
+      .describe(
+        'Number of participants matching the search, over every page — the M of « N of M »'
+      ),
+    page: zod.int().describe('Current page number (0-based)'),
+    size: zod.int().describe('Page size actually applied'),
+  })
+  .describe('Paginated list of the people registered to a ride, a ride group or a trip')
 
 /**
  * Change ride URL slug. Requires organizer permissions.
@@ -2049,7 +2100,9 @@ export const ChangeRideSlugResponse = zod
                   })
                   .describe('Public user information (limited fields)')
               )
-              .describe('Participants, empty if not access'),
+              .describe(
+                'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+              ),
             sortOrder: zod.int().describe('Sort order'),
             registered: zod
               .boolean()
@@ -2450,7 +2503,9 @@ export const UndeleteRideResponse = zod
                   })
                   .describe('Public user information (limited fields)')
               )
-              .describe('Participants, empty if not access'),
+              .describe(
+                'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+              ),
             sortOrder: zod.int().describe('Sort order'),
             registered: zod
               .boolean()

@@ -1227,7 +1227,9 @@ export const CreateTripResponse = zod
           })
           .describe('Public user information (limited fields)')
       )
-      .describe('Trip participants'),
+      .describe(
+        'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+      ),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
     thumbnailUrl: zod
@@ -2477,7 +2479,9 @@ export const UpdateTripResponse = zod
           })
           .describe('Public user information (limited fields)')
       )
-      .describe('Trip participants'),
+      .describe(
+        'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+      ),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
     thumbnailUrl: zod
@@ -3286,7 +3290,9 @@ export const GetTripResponse = zod
           })
           .describe('Public user information (limited fields)')
       )
-      .describe('Trip participants'),
+      .describe(
+        'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+      ),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
     thumbnailUrl: zod
@@ -3346,6 +3352,47 @@ export const LeaveTripParams = zod.object({
 })
 
 export const LeaveTripResponse = zod.void()
+
+/**
+ * One page of the people registered to the trip, earliest registrations first, searchable by display name. The trip detail only embeds the first few; this is the whole list, with its total. Readable by whoever may read the trip.
+ * @summary List trip participants
+ */
+export const GetTripParticipantsParams = zod.object({
+  teamSlug: zod.string().describe('Team URL slug'),
+  tripSlug: zod.string().describe('Trip URL slug'),
+})
+
+export const getTripParticipantsQueryPageDefault = 0
+export const getTripParticipantsQuerySizeDefault = 50
+
+export const GetTripParticipantsQueryParams = zod.object({
+  page: zod.int().default(getTripParticipantsQueryPageDefault).describe('Page number (0-based)'),
+  search: zod.string().optional().describe('Search by display name'),
+  size: zod.int().default(getTripParticipantsQuerySizeDefault).describe('Page size'),
+})
+
+export const GetTripParticipantsResponse = zod
+  .object({
+    participants: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('User ID (TSID)'),
+            displayName: zod.string().describe('User display name'),
+            avatarUrl: zod.string().optional().describe('User avatar URL'),
+          })
+          .describe('Public user information (limited fields)')
+      )
+      .describe('Participants of this page, in registration order (earliest first)'),
+    total: zod
+      .int()
+      .describe(
+        'Number of participants matching the search, over every page — the M of « N of M »'
+      ),
+    page: zod.int().describe('Current page number (0-based)'),
+    size: zod.int().describe('Page size actually applied'),
+  })
+  .describe('Paginated list of the people registered to a ride, a ride group or a trip')
 
 /**
  * Change trip URL slug. Requires organizer permissions.
@@ -4148,7 +4195,9 @@ export const ChangeTripSlugResponse = zod
           })
           .describe('Public user information (limited fields)')
       )
-      .describe('Trip participants'),
+      .describe(
+        'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+      ),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
     thumbnailUrl: zod
@@ -4957,7 +5006,9 @@ export const UndeleteTripResponse = zod
           })
           .describe('Public user information (limited fields)')
       )
-      .describe('Trip participants'),
+      .describe(
+        'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+      ),
     thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
     thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
     thumbnailUrl: zod

@@ -361,6 +361,14 @@ class _TripDetailContent extends ConsumerWidget {
                   tone: PdlDerivedTones.registered(c),
                   size: PdlBadgeSize.lg,
                 ),
+              // `participants` n'est que l'aperçu des premiers inscrits
+              // (ledger `API-12`) : le reste est dans la feuille.
+              if (trip.participantCount > trip.participants.length)
+                PdlBadge(
+                  label: '+${trip.participantCount - trip.participants.length}',
+                  tone: PdlDerivedTones.registered(c),
+                  size: PdlBadgeSize.lg,
+                ),
             ],
           ),
         ],

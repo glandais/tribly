@@ -4,7 +4,6 @@ import fr.pedalons.common.MarkdownExcerpt;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.trip.Trip;
-import fr.pedalons.domain.trip.TripParticipation;
 import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.dto.comments.response.CommentCounts;
 import fr.pedalons.dto.common.asset.MediaDto;
@@ -18,6 +17,7 @@ import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
+import fr.pedalons.service.common.ParticipantPreviewLookup.ParticipantPreview;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -117,7 +117,12 @@ public class TripDto implements PublicationDto {
   @Schema(description = "Trip stages", required = true)
   final List<TripStageDto> stages;
 
-  @Schema(description = "Trip participants", required = true)
+  @Schema(
+      description =
+          "The first participants of the trip (at most 8), earliest registrations first — enough to"
+              + " draw avatars; empty on a list row. participantCount is the total; the whole list"
+              + " is paginated and searched by GET …/trips/{tripSlug}/participants.",
+      required = true)
   final List<PublicUserDto> participants;
 
   @Nullable
@@ -261,16 +266,17 @@ public class TripDto implements PublicationDto {
         view);
   }
 
-  public static TripDto from(Trip trip, boolean stageDetails, AssetService assetService) {
-    return from(trip, stageDetails, assetService, UserParticipations.NONE, CommentCounts.NONE);
-  }
-
+  /**
+   * @param participants the count and first participants of the trip, resolved by {@code
+   *     ParticipantPreviewLookup} — never by walking {@code trip.getParticipations()}, which
+   *     hydrates every registration (docs/LEDGER_*.md API-12)
+   */
   public static TripDto from(
       Trip trip,
-      boolean stageDetails,
       AssetService assetService,
       UserParticipations participations,
-      CommentCounts commentCounts) {
+      CommentCounts commentCounts,
+      ParticipantPreview participants) {
     List<TripStage> liveStages =
         trip.getStages().stream()
             .filter(s -> !s.isDeleted())
@@ -278,28 +284,18 @@ public class TripDto implements PublicationDto {
             .toList();
 
     List<TripStageDto> stageDtos =
-        stageDetails
-            ? IntStream.range(0, liveStages.size())
-                .mapToObj(
-                    i ->
-                        TripStageDto.from(
-                            liveStages.get(i), assetService, i + 1, liveStages.size()))
-                .toList()
-            : List.of();
-    List<PublicUserDto> participantDtos =
-        stageDetails
-            ? trip.getParticipations().stream()
-                .map(TripParticipation::getUser)
-                .map(PublicUserDto::from)
-                .toList()
-            : List.of();
+        IntStream.range(0, liveStages.size())
+            .mapToObj(
+                i -> TripStageDto.from(liveStages.get(i), assetService, i + 1, liveStages.size()))
+            .toList();
+    List<PublicUserDto> participantDtos = participants.users();
 
     return build(
         trip,
         stageDtos,
         participantDtos,
         trip.getStageCount(),
-        trip.getParticipantCount(),
+        participants.count(),
         totalOf(liveStages, Route::getDistance),
         totalOf(liveStages, Route::getElevationGain),
         endDateOf(liveStages),

@@ -5,7 +5,6 @@ import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
-import fr.pedalons.domain.ride.RideParticipation;
 import fr.pedalons.dto.comments.response.CommentCounts;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.places.response.PlaceDetailDto;
@@ -20,12 +19,15 @@ import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
+import fr.pedalons.service.common.ParticipantPreviewLookup.ParticipantPreview;
+import fr.pedalons.service.common.ParticipantPreviewLookup.PreviewedParticipant;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import lombok.Getter;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -278,63 +280,62 @@ public class RideDto implements PublicationDto {
         view);
   }
 
-  public static RideDto from(Ride ride, boolean groupDetails, AssetService assetService) {
-    return from(ride, groupDetails, assetService, UserParticipations.NONE, CommentCounts.NONE);
-  }
-
-  public static RideDto from(
-      Ride ride,
-      boolean groupDetails,
-      AssetService assetService,
-      UserParticipations participations,
-      CommentCounts commentCounts) {
-    return from(ride, groupDetails, assetService, participations, commentCounts, Map.of());
-  }
-
   /**
    * @param routeThumbnails route id → thumbnail, for the routes of this ride's groups, resolved in
    *     one query by {@code ThumbnailLookup} — never one lookup per group
+   * @param groupParticipants group id → count and first participants, for every group of this
+   *     ride, resolved by {@code ParticipantPreviewLookup} in two queries. Counts, capacity and the
+   *     avatars all come from it: walking {@code group.getParticipations()} here would hydrate every
+   *     registration of the ride (docs/LEDGER_*.md API-12).
    */
   public static RideDto from(
       Ride ride,
-      boolean groupDetails,
       AssetService assetService,
       UserParticipations participations,
       CommentCounts commentCounts,
-      Map<Long, ThemedThumbnail> routeThumbnails) {
+      Map<Long, ThemedThumbnail> routeThumbnails,
+      Map<Long, ParticipantPreview> groupParticipants) {
     Long registeredGroupId = participations.registeredGroupId(ride.getId());
+    List<RideGroup> groups =
+        ride.getGroups().stream().sorted(Comparator.comparing(RideGroup::getSortOrder)).toList();
+    Function<RideGroup, ParticipantPreview> preview =
+        group -> groupParticipants.getOrDefault(group.getId(), ParticipantPreview.EMPTY);
 
     List<RideGroupDto> groupDtos =
-        groupDetails
-            ? ride.getGroups().stream()
-                .sorted(Comparator.comparing(RideGroup::getSortOrder))
-                .map(
-                    group ->
-                        RideGroupDto.from(
-                            group,
-                            registeredGroupId,
-                            group.getRoute() != null
-                                ? routeThumbnails.get(group.getRoute().getId())
-                                : null))
-                .toList()
-            : List.of();
-
-    // Extract top 5 unique participants across all groups
-    Set<Long> seenUserIds = new HashSet<>();
-    List<PublicUserDto> topParticipants =
-        ride.getGroups().stream()
-            .flatMap(g -> g.getParticipations().stream())
-            .sorted(Comparator.comparing(RideParticipation::getRegisteredAt))
-            .map(RideParticipation::getUser)
-            .filter(user -> seenUserIds.add(user.getId()))
-            .limit(5)
-            .map(PublicUserDto::from)
+        groups.stream()
+            .map(
+                group ->
+                    RideGroupDto.from(
+                        group,
+                        registeredGroupId,
+                        group.getRoute() != null
+                            ? routeThumbnails.get(group.getRoute().getId())
+                            : null,
+                        preview.apply(group)))
             .toList();
 
-    // The detail path already holds the groups, so "every group is at capacity" is a fold, not a
-    // query. A ride with no group is not full.
-    List<RideGroup> groups = ride.getGroups();
-    boolean full = !groups.isEmpty() && groups.stream().noneMatch(RideGroup::hasCapacity);
+    // The first 5 registrations of the ride. Each group's preview holds its own earliest ones, so
+    // merging them is enough; a member is in one group of a ride at most, the distinct is a guard.
+    Set<String> seenUserIds = new HashSet<>();
+    List<PublicUserDto> topParticipants =
+        groups.stream()
+            .flatMap(group -> preview.apply(group).first().stream())
+            .sorted(Comparator.comparing(PreviewedParticipant::registeredAt))
+            .map(PreviewedParticipant::user)
+            .filter(user -> seenUserIds.add(user.id()))
+            .limit(5)
+            .toList();
+
+    // "Every group is at capacity" is a fold over the previews' counts, not a query. A ride with no
+    // group is not full.
+    boolean full =
+        !groups.isEmpty()
+            && groups.stream()
+                .allMatch(
+                    g ->
+                        g.getMaxParticipants() != null
+                            && preview.apply(g).count() >= g.getMaxParticipants());
+    int participantCount = groups.stream().mapToInt(g -> preview.apply(g).count()).sum();
     // Same rule as RideSummaryRepository on the list path: the sum of the capacities, null as soon
     // as one group is uncapped (or there is no group).
     Integer maxParticipants =
@@ -345,8 +346,8 @@ public class RideDto implements PublicationDto {
     return build(
         ride,
         groupDtos,
-        ride.getGroupCount(),
-        ride.getParticipantCount(),
+        groups.size(),
+        participantCount,
         topParticipants,
         assetService,
         registeredGroupId,

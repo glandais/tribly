@@ -60,7 +60,7 @@ abstract class TripDto with _$TripDto {
     /// Trip stages
     required List<TripStageDto> stages,
 
-    /// Trip participants
+    /// The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.
     required List<PublicUserDto> participants,
 
     /// Whether the trip is soft-deleted

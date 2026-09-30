@@ -272,6 +272,7 @@ class NextRideCard extends ConsumerWidget {
               for (final PublicUserDto p in g.participants)
                 PdlAvatarEntry(name: p.displayName, imageUrl: p.avatarUrl),
             ],
+            total: g.countParticipants,
           ),
         if (g.maxParticipants != null) ...<Widget>[
           const SizedBox(width: PdlSpacing.cardTight),

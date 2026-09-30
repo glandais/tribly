@@ -35,11 +35,13 @@ public interface BaseRepository<T> extends PanacheRepository<T> {
     return getPage(panacheQuery, page, size);
   }
 
+  /** The page size actually applied to a requested one: the default for 0, then clamped. */
+  static int effectivePageSize(int size) {
+    return Math.clamp(size == 0 ? DEFAULT_PAGE_SIZE : size, 1, MAX_PAGE_SIZE);
+  }
+
   default <X> PedalonsPage<X> getPage(PanacheQuery<X> panacheQuery, int page, int size) {
-    if (size == 0) {
-      size = DEFAULT_PAGE_SIZE;
-    }
-    size = Math.clamp(size, 1, MAX_PAGE_SIZE);
+    size = effectivePageSize(size);
     return new PedalonsPage<>(panacheQuery.page(page, size).list(), panacheQuery.count());
   }
 

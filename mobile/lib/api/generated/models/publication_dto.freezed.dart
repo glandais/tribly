@@ -691,9 +691,9 @@ class PublicationDtoTrip implements PublicationDto {
   return EqualUnmodifiableListView(_stages);
 }
 
-/// Trip participants
+/// The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.
  final  List<PublicUserDto> _participants;
-/// Trip participants
+/// The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.
  List<PublicUserDto> get participants {
   if (_participants is EqualUnmodifiableListView) return _participants;
   // ignore: implicit_dynamic_type

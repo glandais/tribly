@@ -224,6 +224,7 @@ class TripSummaryCard extends ConsumerWidget {
                       ),
                   ],
                   max: 3,
+                  total: trip.participantCount,
                 ),
                 const SizedBox(width: PdlSpacing.chipGap),
               ],

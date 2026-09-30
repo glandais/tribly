@@ -3143,6 +3143,35 @@ components:
           - user@example.com
           pattern: \S
           maxLength: 250
+    ParticipantListResponse:
+      description: "Paginated list of the people registered to a ride, a ride group\
+        \ or a trip"
+      type: object
+      required:
+      - participants
+      - total
+      - page
+      - size
+      properties:
+        participants:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicUserDto"
+          description: "Participants of this page, in registration order (earliest\
+            \ first)"
+        total:
+          type: integer
+          format: int64
+          description: "Number of participants matching the search, over every page\
+            \ — the M of « N of M »"
+        page:
+          type: integer
+          format: int32
+          description: Current page number (0-based)
+        size:
+          type: integer
+          format: int32
+          description: Page size actually applied
     PasskeyAuthenticationRequest:
       description: Request for passkey authentication options
       type: object
@@ -3873,7 +3902,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicUserDto"
-          description: "Participants, empty if not access"
+          description: "The first participants of the group (at most 8), earliest\
+            \ registrations first — enough to draw avatars. countParticipants is the\
+            \ total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=."
         sortOrder:
           type: integer
           format: int32
@@ -5528,7 +5559,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicUserDto"
-          description: Trip participants
+          description: "The first participants of the trip (at most 8), earliest registrations\
+            \ first — enough to draw avatars; empty on a list row. participantCount\
+            \ is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants."
         thumbnailLightUrl:
           type: string
           description: Thumbnail URL (light)
@@ -13714,6 +13747,66 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{teamSlug}/rides/{rideSlug}/participants:
+    get:
+      summary: List ride participants
+      description: "One page of the people registered to the ride, or to one of its\
+        \ groups, earliest registrations first, searchable by display name. The ride\
+        \ detail only embeds the first few; this is the whole list, with its total.\
+        \ Readable by whoever may read the ride."
+      operationId: getRideParticipants
+      tags:
+      - Rides
+      parameters:
+      - description: Ride URL slug
+        name: rideSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Only this group of the ride (TSID); every group when absent
+        name: groupId
+        in: query
+        schema:
+          type: string
+      - description: Page number (0-based)
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Search by display name
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 50
+      responses:
+        "200":
+          description: Participants retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParticipantListResponse"
+        "404":
+          description: Team or ride not found (or group not in this ride)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{teamSlug}/rides/{rideSlug}/slug:
     patch:
       summary: Change ride slug
@@ -15341,6 +15434,61 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{teamSlug}/trips/{tripSlug}/participants:
+    get:
+      summary: List trip participants
+      description: "One page of the people registered to the trip, earliest registrations\
+        \ first, searchable by display name. The trip detail only embeds the first\
+        \ few; this is the whole list, with its total. Readable by whoever may read\
+        \ the trip."
+      operationId: getTripParticipants
+      tags:
+      - Trips
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Trip URL slug
+        name: tripSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Page number (0-based)
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Search by display name
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 50
+      responses:
+        "200":
+          description: Participants retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParticipantListResponse"
+        "404":
+          description: Team or trip not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{teamSlug}/trips/{tripSlug}/slug:
     patch:
       summary: Change trip slug
@@ -16217,7 +16365,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 8.0.1
+  version: 9.0.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

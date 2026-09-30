@@ -6,6 +6,7 @@ import 'package:dio/dio.dart' hide Headers;
 import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
+import '../models/participant_list_response.dart';
 import '../models/ride_dto.dart';
 import '../models/ride_participation_dto.dart';
 import '../models/ride_request.dart';
@@ -102,6 +103,31 @@ abstract class RidesClient {
     @Path('groupId') required String groupId,
     @Path('rideSlug') required String rideSlug,
     @Path('teamSlug') required String teamSlug,
+  });
+
+  /// List ride participants.
+  ///
+  /// One page of the people registered to the ride, or to one of its groups, earliest registrations first, searchable by display name. The ride detail only embeds the first few; this is the whole list, with its total. Readable by whoever may read the ride.
+  ///
+  /// [rideSlug] - Ride URL slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [groupId] - Only this group of the ride (TSID); every group when absent.
+  ///
+  /// [page] - Page number (0-based).
+  ///
+  /// [search] - Search by display name.
+  ///
+  /// [size] - Page size.
+  @GET('/api/teams/{teamSlug}/rides/{rideSlug}/participants')
+  Future<ParticipantListResponse> getRideParticipants({
+    @Path('rideSlug') required String rideSlug,
+    @Path('teamSlug') required String teamSlug,
+    @Query('page') int? page = 0,
+    @Query('size') int? size = 50,
+    @Query('groupId') String? groupId,
+    @Query('search') String? search,
   });
 
   /// Change ride slug.

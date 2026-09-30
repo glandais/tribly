@@ -3,27 +3,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../core/pagination/pagination.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/enum_colors.dart';
 import '../../../../core/theme/pdl_colors.dart';
+import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
+import '../../../../core/utils/api_error_handler.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../moderation/presentation/moderation_menu.dart';
 import '../../../../keys.dart';
+import '../../domain/participant_query.dart';
+import '../../providers/participant_list_provider.dart';
 
-/// La feuille « Participants » d'un groupe de sortie ou d'un voyage.
+/// La feuille « Participants » d'un groupe de sortie, d'une sortie entière ou
+/// d'un voyage.
 ///
-/// **Recherche côté client** : les participants sont embarqués dans le détail
-/// de la sortie comme dans celui du voyage, non paginés (§5.2-12). Filtrer
-/// localement une liste déjà en mémoire est la bonne réponse ; un pied
-/// « N sur M » serait un mensonge puisqu'il n'y a pas de seconde page — le
-/// titre porte donc le total simple.
+/// **Lue et cherchée côté serveur** (ledger `API-12`) : le détail n'embarque
+/// que les premiers participants, de quoi dessiner des avatars. La feuille
+/// lit la liste complète page par page, la recherche part au serveur, et le
+/// pied dit « N participants sur M » — M étant le total que le serveur renvoie
+/// avec la page.
 class ParticipantsSheet extends ConsumerStatefulWidget {
   const ParticipantsSheet({
     super.key,
     required this.subtitle,
-    required this.people,
+    required this.source,
     required this.count,
     this.organizerId,
     this.emptyMessageKey = 'participants.emptyMessage',
@@ -37,10 +43,10 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
   /// Ce à quoi ces gens participent : le nom du groupe, ou celui du voyage.
   final String subtitle;
 
-  final List<PublicUserDto> people;
+  /// De qui lister les participants.
+  final ParticipantSource source;
 
-  /// Le total affiché en pastille — celui du serveur, pas `people.length`, qui
-  /// vaut zéro sans droit de lecture.
+  /// Le total affiché en pastille, connu du détail avant la première page.
   final int count;
 
   /// Le meneur **désigné**, quand il y en a un. `null` est le cas courant, et
@@ -56,17 +62,21 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
   /// passaient sous la barre.
   static Future<void> open(
     BuildContext context,
-    RideGroupDto group, {
-    required TeamPublicationDto team,
-  }) {
+    RideDto ride,
+    RideGroupDto group,
+  ) {
     return PdlSheet.show<void>(
       context: context,
       builder: (BuildContext _) => ParticipantsSheet(
         subtitle: group.name,
-        people: group.participants,
+        source: RideParticipantSource(
+          teamSlug: ride.team.slug,
+          rideSlug: ride.slug,
+          groupId: group.id,
+        ),
         count: group.countParticipants,
         organizerId: group.leader?.id,
-        team: team,
+        team: ride.team,
       ),
     );
   }
@@ -74,23 +84,19 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
   /// La même feuille pour une sortie entière, tous groupes confondus.
   ///
   /// Le bouton « voir la liste » affiche le total de la sortie
-  /// (`ride.participantCount`) : la feuille doit donc réunir les participants
-  /// de **chaque** groupe, pas seulement celui de l'utilisateur ou le premier
-  /// de la liste. `organizerId` reste nul — une sortie n'a pas de meneur
+  /// (`ride.participantCount`) : la feuille liste donc les participants de
+  /// **chaque** groupe. `organizerId` reste nul — une sortie n'a pas de meneur
   /// unique, chaque groupe a le sien (ou aucun), et rien ne justifie d'en
   /// mettre un en avant ici.
   static Future<void> openRide(BuildContext context, RideDto ride) {
-    final Map<String, PublicUserDto> byId = <String, PublicUserDto>{};
-    for (final RideGroupDto group in ride.groups) {
-      for (final PublicUserDto person in group.participants) {
-        byId[person.id] = person;
-      }
-    }
     return PdlSheet.show<void>(
       context: context,
       builder: (BuildContext _) => ParticipantsSheet(
         subtitle: ride.name,
-        people: byId.values.toList(),
+        source: RideParticipantSource(
+          teamSlug: ride.team.slug,
+          rideSlug: ride.slug,
+        ),
         count: ride.participantCount,
         team: ride.team,
       ),
@@ -103,7 +109,10 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
       context: context,
       builder: (BuildContext _) => ParticipantsSheet(
         subtitle: trip.name,
-        people: trip.participants,
+        source: TripParticipantSource(
+          teamSlug: trip.team.slug,
+          tripSlug: trip.slug,
+        ),
         count: trip.participantCount,
         emptyMessageKey: 'participants.emptyTripMessage',
         team: trip.team,
@@ -116,6 +125,7 @@ class ParticipantsSheet extends ConsumerStatefulWidget {
 }
 
 class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
+  /// La recherche partie au serveur — `PdlSearchField` débat déjà la saisie.
   String _search = '';
 
   Future<void> _openMemberMenu(PublicUserDto person) {
@@ -143,16 +153,16 @@ class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
       authProvider.select((AuthState s) => s.user?.id),
     );
 
-    final List<PublicUserDto> all = widget.people;
-    final String needle = _search.trim().toLowerCase();
-    final List<PublicUserDto> shown = needle.isEmpty
-        ? all
-        : all
-              .where(
-                (PublicUserDto p) =>
-                    p.displayName.toLowerCase().contains(needle),
-              )
-              .toList();
+    final ParticipantQuery query = ParticipantQuery(
+      widget.source,
+      search: _search,
+    );
+    final PagedListState<PublicUserDto> state = ref.watch(
+      participantListProvider(query),
+    );
+    final ParticipantListNotifier notifier = ref.read(
+      participantListProvider(query).notifier,
+    );
 
     // `leader` nul est le **cas courant** : la plupart des groupes n'en
     // désignent pas. Rien n'est alors rendu — et surtout jamais un repli sur
@@ -185,23 +195,45 @@ class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
         ],
       ),
       children: <Widget>[
-        if (all.length > 8)
+        // Au-delà de ce que le détail embarque, la liste ne tient plus d'un
+        // coup d'œil : la recherche devient utile.
+        if (widget.count > 8)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: PdlSearchField(
               value: _search,
               hintText: 'participants.search'.tr(),
-              onChanged: (String? v) => setState(() => _search = v ?? ''),
+              onChanged: (String? v) =>
+                  setState(() => _search = (v ?? '').trim()),
               clearTooltip: 'common.clearSearch'.tr(),
             ),
           ),
-        if (all.isEmpty)
+        if (state.isLoadingInitial && state.items.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator.adaptive()),
+          )
+        else if (state.initialError != null)
+          PdlEmptyState(
+            variant: PdlEmptyVariant.error,
+            title: 'common.loadError'.tr(),
+            message: getErrorMessage(state.initialError!),
+            actions: <Widget>[
+              PdlButton(
+                label: 'common.retry'.tr(),
+                variant: PdlButtonVariant.outline,
+                size: PdlButtonSize.sm,
+                onPressed: notifier.loadFirstPage,
+              ),
+            ],
+          )
+        else if (state.items.isEmpty && _search.isEmpty)
           PdlEmptyState(
             variant: PdlEmptyVariant.empty,
             title: 'participants.emptyTitle'.tr(),
             message: widget.emptyMessageKey.tr(),
           )
-        else if (shown.isEmpty)
+        else if (state.items.isEmpty)
           PdlEmptyState(
             variant: PdlEmptyVariant.filtered,
             title: 'participants.noMatchTitle'.tr(),
@@ -216,8 +248,8 @@ class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
               ),
             ],
           )
-        else
-          for (final PublicUserDto person in shown)
+        else ...<Widget>[
+          for (final PublicUserDto person in state.items)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: PdlPersonRow(
@@ -238,6 +270,46 @@ class _ParticipantsSheetState extends ConsumerState<ParticipantsSheet> {
                     : () => _openMemberMenu(person),
               ),
             ),
+          // Un bouton plutôt qu'un préchargement au défilement : la feuille
+          // construit toutes ses lignes d'un coup, un déclenchement « à trois
+          // lignes de la fin » y chargerait toutes les pages d'affilée.
+          if (state.hasMore && !state.isLoadingNext && state.nextError == null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Column(
+                children: <Widget>[
+                  // Le pied commun se tait entre deux pages ; ici la liste
+                  // attend un geste, elle doit dire où on en est.
+                  Text(
+                    'pagination.progressNamed'.tr(
+                      namedArgs: <String, String>{
+                        'loaded': '${state.items.length}',
+                        'noun': 'participants.noun'.tr(),
+                        'total': '${state.total ?? widget.count}',
+                      },
+                    ),
+                    key: keys.participants.progress,
+                    textAlign: TextAlign.center,
+                    style: t.xs,
+                  ),
+                  const SizedBox(height: PdlSpacing.chipGap),
+                  PdlButton(
+                    key: keys.participants.loadMore,
+                    label: 'participants.loadMore'.tr(),
+                    variant: PdlButtonVariant.outline,
+                    size: PdlButtonSize.sm,
+                    onPressed: notifier.loadNextPage,
+                  ),
+                ],
+              ),
+            ),
+          PagedListFooter(
+            key: keys.participants.footer,
+            state: state,
+            onRetry: notifier.retryNextPage,
+            itemNoun: 'participants.noun'.tr(),
+          ),
+        ],
       ],
     );
   }
