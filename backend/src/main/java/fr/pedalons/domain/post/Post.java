@@ -18,6 +18,15 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Post extends Publication {
 
+  /**
+   * Signed by the team: readers are not told who wrote it, only the team's administrators and the
+   * author themself are. Defaults to the team's {@link
+   * fr.pedalons.domain.team.Team#isPostsAsTeamByDefault()} when a post is created. docs/LEDGER_*.md
+   * API-6.
+   */
+  @Column(name = "signed_as_team")
+  private boolean signedAsTeam = true;
+
   public Post(
       User createdBy,
       Team team,

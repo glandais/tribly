@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.pedalons.api.AbstractQueryCountTest;
+import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.route.Route;
@@ -73,6 +74,37 @@ class PublicationQueryCountTest extends AbstractQueryCountTest {
         dataService.createTripParticipation(trip, participant);
       }
     }
+  }
+
+  /**
+   * docs/LEDGER_*.md API-6: posts by as many distinct authors as rows, half signed by the team — so
+   * a per-row walk of {@code createdBy}, or a per-row membership check, would show.
+   */
+  private void seedPostsByDistinctAuthors(int count) {
+    Instant base = Instant.now().minus(1, ChronoUnit.DAYS);
+    for (int i = 0; i < count; i++) {
+      User author = dataService.createUser("author" + i + "@example.com", "Author " + i);
+      Post post = dataService.createPost(team1, author, "Budget Post " + i, base.plusSeconds(i));
+      dataService.setPostSignedAsTeam(post, i % 2 == 0);
+    }
+  }
+
+  @Test
+  void listTeamPosts_authorsCostAPageNotARow() {
+    seedPostsByDistinctAuthors(LARGE_PAGE);
+    assertFlatQueryCount(
+        "GET /api/teams/{teamSlug}/publications?type=POST",
+        asUser1(),
+        "/api/teams/" + team1Slug + "/publications?type=POST");
+  }
+
+  @Test
+  void listTeamPostsAnonymous_authorsCostAPageNotARow() {
+    seedPostsByDistinctAuthors(LARGE_PAGE);
+    assertFlatQueryCount(
+        "GET /api/teams/{teamSlug}/publications?type=POST anonymous",
+        anonymous(),
+        "/api/teams/" + team1Slug + "/publications?type=POST");
   }
 
   @Test

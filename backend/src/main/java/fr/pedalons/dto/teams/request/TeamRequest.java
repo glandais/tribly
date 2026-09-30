@@ -42,6 +42,12 @@ public record TeamRequest(
             examples = "false",
             required = true)
         boolean enableMemberDirectory,
+    @Nullable
+        @Schema(
+            description =
+                "Whether a new post starts signed by the team rather than by its author. Omitted:"
+                    + " left as it is (on for a new team).")
+        Boolean postsAsTeamByDefault,
     @Schema(
             description = "Team location coordinates [longitude, latitude]",
             implementation = GeoJsonPoint.class)

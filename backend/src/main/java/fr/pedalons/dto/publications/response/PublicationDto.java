@@ -7,6 +7,7 @@ import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.dto.comments.response.CommentCounts;
+import fr.pedalons.dto.posts.response.PostAuthors;
 import fr.pedalons.dto.posts.response.PostDto;
 import fr.pedalons.dto.rides.response.RideDto;
 import fr.pedalons.dto.trips.response.TripDto;
@@ -78,7 +79,13 @@ public interface PublicationDto {
       UserParticipations participations,
       CommentCounts commentCounts) {
     return from(
-        publication, assetService, summaries, participations, commentCounts, ListViewMode.FULL);
+        publication,
+        assetService,
+        summaries,
+        participations,
+        commentCounts,
+        PostAuthors.NONE,
+        ListViewMode.FULL);
   }
 
   /**
@@ -88,6 +95,7 @@ public interface PublicationDto {
    *     every row — a feed of twenty publications stops carrying twenty full articles for forty
    *     rendered lines. {@code excerpt} and {@code thumbnailUrl} are what a compact row reads, and
    *     they are present either way.
+   * @param postAuthors who wrote each post of the page the caller may know of, loaded in bulk
    */
   static PublicationDto from(
       Publication publication,
@@ -95,9 +103,10 @@ public interface PublicationDto {
       PublicationListSummaries summaries,
       UserParticipations participations,
       CommentCounts commentCounts,
+      PostAuthors postAuthors,
       @Nullable ListViewMode view) {
     return switch (publication) {
-      case Post post -> PostDto.from(post, assetService, commentCounts, view);
+      case Post post -> PostDto.from(post, assetService, commentCounts, postAuthors, view);
       case Ride ride ->
           RideDto.fromListItem(
               ride,

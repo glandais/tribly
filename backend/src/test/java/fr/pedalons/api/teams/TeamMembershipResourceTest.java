@@ -40,6 +40,7 @@ class TeamMembershipResourceTest extends AbstractResourceTest {
             true,
             true,
             false,
+            null,
             null);
     return given()
         .auth()
@@ -380,6 +381,7 @@ class TeamMembershipResourceTest extends AbstractResourceTest {
             true,
             true,
             false,
+            null,
             null);
 
     given()

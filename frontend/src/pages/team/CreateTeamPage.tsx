@@ -37,6 +37,8 @@ export function CreateTeamPage() {
     // The one enable_* that starts off: opening the roster to every member is a decision, not a
     // default. Matches the column's DEFAULT FALSE.
     enableMemberDirectory: false,
+    // Posts start signed by the team, as the column's DEFAULT TRUE (docs/LEDGER_*.md API-6)
+    postsAsTeamByDefault: true,
   }
 
   return (

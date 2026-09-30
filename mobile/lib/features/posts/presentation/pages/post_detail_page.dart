@@ -276,10 +276,26 @@ class _PostDetailContent extends ConsumerWidget {
             ),
           ],
         ),
-        if (at != null) ...<Widget>[
+        // Le bloc auteur de la maquette : avatar, nom, date. `createdBy` est
+        // nul quand l'équipe signe la publication et que le lecteur n'en est
+        // ni administrateur ni l'auteur (ledger `API-6`) — la ligne d'équipe
+        // au-dessus est alors la signature, et seule la date reste.
+        if (post.createdBy case final PublicUserDto author) ...<Widget>[
+          const SizedBox(height: PdlSpacing.chipGap),
+          PdlPersonRow(
+            name: author.displayName,
+            imageUrl: author.avatarUrl,
+            avatarSize: 32,
+            subtitle: <String>[
+              if (at != null) AppFormatters.formatFullDate(at),
+              // Un administrateur voit qui a écrit une publication que
+              // l'équipe signe : il doit savoir que les lecteurs, eux, ne le
+              // voient pas.
+              if (post.signedAsTeam) 'posts.onBehalfOfTeam'.tr(),
+            ].join(' · '),
+          ),
+        ] else if (at != null) ...<Widget>[
           const SizedBox(height: 4),
-          // La seule chose que la maquette mettait dans son bloc auteur et que
-          // le contrat porte réellement.
           Text(AppFormatters.formatFullDate(at), style: t.sub),
         ],
       ],

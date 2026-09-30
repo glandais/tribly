@@ -13,9 +13,9 @@ import '../../support/localization.dart';
 /// S31-1 à S31-3 — l'écran d'une publication.
 ///
 /// Ce qui compte ici est autant ce qui est rendu que **ce qui ne l'est pas** :
-/// aucun bloc auteur (`PostDto` n'expose ni `createdBy` ni `createdById`),
-/// aucun poids de pièce jointe (`AssetDto` porte `contentType`, pas d'octets),
-/// et aucun bloc de navigation en ouverture froide.
+/// l'auteur seulement quand le contrat le nomme (ledger `API-6` : une
+/// publication signée par l'équipe le tait aux lecteurs), et aucun bloc de
+/// navigation en ouverture froide.
 const TeamPublicationDto _team = TeamPublicationDto(
   id: 't1',
   slug: 'n-peloton',
@@ -30,6 +30,8 @@ PostDto _post({
   List<AssetDto> attachments = const <AssetDto>[],
   int? commentCount = 0,
   TeamPublicationDto team = _team,
+  bool signedAsTeam = true,
+  PublicUserDto? createdBy,
 }) => PostDto(
   type: 'POST',
   team: team,
@@ -45,6 +47,8 @@ PostDto _post({
   visibility: 'TEAM',
   deleted: false,
   commentCount: commentCount,
+  signedAsTeam: signedAsTeam,
+  createdBy: createdBy,
 );
 
 class _StubPostRepository implements PostRepository {
@@ -94,18 +98,53 @@ void main() {
     }
   }
 
-  testWidgets('le titre, la date et l\'équipe — et aucun bloc auteur', (
+  testWidgets(
+    'signée par l\'équipe : le titre, la date et l\'équipe, sans auteur',
+    (WidgetTester tester) async {
+      await openPost(tester, _post());
+
+      expect(find.text('Le compte rendu'), findsOneWidget);
+      expect(find.text('N-Peloton'), findsOneWidget);
+      expect(find.textContaining('3 mai'), findsOneWidget);
+      // `createdBy` nul : la ligne d'équipe signe, rien n'invente un auteur.
+      expect(find.byType(PdlPersonRow), findsNothing);
+    },
+  );
+
+  testWidgets('signée par son auteur : avatar, nom et date', (
     WidgetTester tester,
   ) async {
-    await openPost(tester, _post());
+    await openPost(
+      tester,
+      _post(
+        signedAsTeam: false,
+        createdBy: const PublicUserDto(id: 'u1', displayName: 'Camille Martin'),
+      ),
+    );
 
-    expect(find.text('Le compte rendu'), findsOneWidget);
-    expect(find.text('N-Peloton'), findsOneWidget);
-    expect(find.textContaining('3 mai'), findsOneWidget);
-    // `PostDto` ne porte aucun auteur : le bloc « avatar + nom + date » de la
-    // maquette n'est pas alimentable, et rien ne doit en tenir lieu — seule la
-    // date longue reste.
-    expect(find.byType(PdlPersonRow), findsNothing);
+    final PdlPersonRow row = tester.widget<PdlPersonRow>(
+      find.byType(PdlPersonRow),
+    );
+    expect(row.name, 'Camille Martin');
+    expect(row.subtitle, contains('3 mai'));
+    expect(row.subtitle, isNot(contains('Au nom de l\'équipe')));
+  });
+
+  testWidgets('un administrateur voit l\'auteur, et que l\'équipe signe', (
+    WidgetTester tester,
+  ) async {
+    await openPost(
+      tester,
+      _post(
+        createdBy: const PublicUserDto(id: 'u1', displayName: 'Camille Martin'),
+      ),
+    );
+
+    final PdlPersonRow row = tester.widget<PdlPersonRow>(
+      find.byType(PdlPersonRow),
+    );
+    expect(row.name, 'Camille Martin');
+    expect(row.subtitle, contains('Au nom de l\'équipe'));
   });
 
   testWidgets('la ligne d\'équipe porte le logo, les initiales sans logo', (

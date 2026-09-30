@@ -249,6 +249,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             true,
             false,
+            null,
             null);
     given()
         .auth()
@@ -277,6 +278,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             true,
             false,
+            null,
             null);
     given()
         .contentType("application/json")
@@ -338,6 +340,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             true,
             false,
+            null,
             null);
 
     given()
@@ -366,6 +369,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             true,
             false,
+            null,
             null);
 
     given()
@@ -436,6 +440,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             true,
             false,
+            null,
             null);
     String firstSlug =
         given()

@@ -24,4 +24,6 @@ export interface PostRequest {
   visibility: Visibility
   /** Publication timestamp (for scheduled publishing) */
   publishAt?: Instant
+  /** Sign the post as the team rather than as its author. Omitted: on creation, the team's postsAsTeamByDefault; on an update, left as it is. */
+  signedAsTeam?: boolean
 }

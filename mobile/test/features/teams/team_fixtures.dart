@@ -36,6 +36,7 @@ TeamDetailDto fixtureTeam({
   joinable: joinable,
   addMemberAllowed: true,
   enableMemberDirectory: false,
+  postsAsTeamByDefault: true,
   enableRoutePlanner: false,
   memberCount: memberCount,
   upcomingRideCount: 3,

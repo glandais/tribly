@@ -52,6 +52,8 @@ export function CreatePostPage() {
     visibility: team.visibility,
     status: Status.DRAFT,
     publishAt: undefined,
+    // The team decides how a post starts out signed; the author may change it (docs/LEDGER_*.md API-6)
+    signedAsTeam: team.postsAsTeamByDefault,
   }
 
   const handleSubmit = (data: PostRequest) => {

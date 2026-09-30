@@ -40,6 +40,7 @@ class AssetResourceTest extends AbstractResourceTest {
         Instant.now().plus(7, ChronoUnit.DAYS),
         Status.PUBLISHED,
         Visibility.PUBLIC,
+        null,
         null);
   }
 

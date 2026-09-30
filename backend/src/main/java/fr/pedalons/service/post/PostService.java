@@ -2,6 +2,7 @@ package fr.pedalons.service.post;
 
 import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.team.Team;
+import fr.pedalons.dto.comments.response.CommentCounts;
 import fr.pedalons.dto.posts.request.PostRequest;
 import fr.pedalons.dto.posts.response.PostDto;
 import fr.pedalons.enums.ActionType;
@@ -25,6 +26,8 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
 
   @Inject NotificationPublisher notificationPublisher;
 
+  @Inject PostAuthorLookup postAuthorLookup;
+
   @Override
   protected PostRepository getRepository() {
     return postRepository;
@@ -32,7 +35,11 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
 
   @Override
   protected PostDto toDto(Post entity) {
-    return PostDto.from(entity, assetService, commentCountLookup.forEntity(entity));
+    return PostDto.from(
+        entity,
+        assetService,
+        commentCountLookup.forEntity(entity),
+        postAuthorLookup.forPost(entity));
   }
 
   @Override
@@ -69,6 +76,8 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
     } else {
       post.setPublishAt(null);
     }
+    post.setSignedAsTeam(
+        request.signedAsTeam() != null ? request.signedAsTeam() : team.isPostsAsTeamByDefault());
 
     postRepository.persistAndFlush(post);
 
@@ -77,7 +86,7 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
     postRepository.persist(post);
     notificationPublisher.publicationStatusChanged(post, null, post.getCreatedBy());
 
-    return PostDto.from(post, assetService);
+    return written(post);
   }
 
   @Transactional
@@ -99,13 +108,16 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
     } else {
       post.setPublishAt(null);
     }
+    if (request.signedAsTeam() != null) {
+      post.setSignedAsTeam(request.signedAsTeam());
+    }
 
     updateMedia(post, request.media());
 
     postRepository.persist(post);
     notificationPublisher.publicationStatusChanged(post, previousStatus, pedalonsContext.getUser());
 
-    return PostDto.from(post, assetService);
+    return written(post);
   }
 
   @CheckAccess(entityType = EntityType.POST, action = ActionType.UPDATE)
@@ -133,6 +145,11 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
     requireNotRemovedByModeration(post);
     post.setDeleted(false);
     postRepository.persist(post);
-    return PostDto.from(post, assetService);
+    return written(post);
+  }
+
+  /** What a write answers: the post as its writer sees it, without a comment count as before. */
+  private PostDto written(Post post) {
+    return PostDto.from(post, assetService, CommentCounts.NONE, postAuthorLookup.forPost(post));
   }
 }

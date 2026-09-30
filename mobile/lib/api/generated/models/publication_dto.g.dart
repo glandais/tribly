@@ -90,11 +90,15 @@ PublicationDtoPost _$PublicationDtoPostFromJson(Map<String, dynamic> json) =>
       status: json['status'] as String,
       visibility: json['visibility'] as String,
       deleted: json['deleted'] as bool,
+      signedAsTeam: json['signedAsTeam'] as bool,
       excerpt: json['excerpt'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
       publishAt: json['publishAt'] as String?,
       createdAt: json['createdAt'] as String?,
       commentCount: (json['commentCount'] as num?)?.toInt(),
+      createdBy: json['createdBy'] == null
+          ? null
+          : PublicUserDto.fromJson(json['createdBy'] as Map<String, dynamic>),
       $type: json['type'] as String?,
     );
 
@@ -109,11 +113,13 @@ Map<String, dynamic> _$PublicationDtoPostToJson(PublicationDtoPost instance) =>
       'status': instance.status,
       'visibility': instance.visibility,
       'deleted': instance.deleted,
+      'signedAsTeam': instance.signedAsTeam,
       'excerpt': instance.excerpt,
       'thumbnailUrl': instance.thumbnailUrl,
       'publishAt': instance.publishAt,
       'createdAt': instance.createdAt,
       'commentCount': instance.commentCount,
+      'createdBy': instance.createdBy?.toJson(),
       'type': instance.$type,
     };
 

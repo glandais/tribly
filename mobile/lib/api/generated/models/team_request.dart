@@ -42,6 +42,9 @@ abstract class TeamRequest with _$TeamRequest {
     /// Member directory readable by every member, not just administrators. Organisers always see the directory; what this flag adds for them is the role and join date of each member.
     required bool enableMemberDirectory,
 
+    /// Whether a new post starts signed by the team rather than by its author. Omitted: left as it is (on for a new team).
+    bool? postsAsTeamByDefault,
+
     /// Team location coordinates [longitude, latitude]
     TeamRequestGeometry? geometry,
   }) = _TeamRequest;

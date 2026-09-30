@@ -281,6 +281,11 @@ export const ListTeamsResponse = zod
               .describe(
                 "Whether the member directory is readable by every member and not just by administrators. Clients use it to decide whether to offer the directory at all: an entry that always leads to a 403 is worse than no entry. Organisers see the directory whatever its value, but only get each member's role and join date when it is true."
               ),
+            postsAsTeamByDefault: zod
+              .boolean()
+              .describe(
+                "Whether a new post starts signed by the team rather than by its author — the initial value of the editor's « on behalf of the team » box."
+              ),
             visibilityEditable: zod
               .boolean()
               .describe('Whether visibility is editable by team admins'),
@@ -547,6 +552,12 @@ export const CreateTeamBody = zod
       .describe(
         'Member directory readable by every member, not just administrators. Organisers always see the directory; what this flag adds for them is the role and join date of each member.'
       ),
+    postsAsTeamByDefault: zod
+      .boolean()
+      .optional()
+      .describe(
+        'Whether a new post starts signed by the team rather than by its author. Omitted: left as it is (on for a new team).'
+      ),
     geometry: zod
       .object({
         type: zod.enum(['Point']),
@@ -800,6 +811,11 @@ export const CreateTeamResponse = zod
       .boolean()
       .describe(
         "Whether the member directory is readable by every member and not just by administrators. Clients use it to decide whether to offer the directory at all: an entry that always leads to a 403 is worse than no entry. Organisers see the directory whatever its value, but only get each member's role and join date when it is true."
+      ),
+    postsAsTeamByDefault: zod
+      .boolean()
+      .describe(
+        "Whether a new post starts signed by the team rather than by its author — the initial value of the editor's « on behalf of the team » box."
       ),
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
@@ -1062,6 +1078,12 @@ export const UpdateTeamBody = zod
       .describe(
         'Member directory readable by every member, not just administrators. Organisers always see the directory; what this flag adds for them is the role and join date of each member.'
       ),
+    postsAsTeamByDefault: zod
+      .boolean()
+      .optional()
+      .describe(
+        'Whether a new post starts signed by the team rather than by its author. Omitted: left as it is (on for a new team).'
+      ),
     geometry: zod
       .object({
         type: zod.enum(['Point']),
@@ -1315,6 +1337,11 @@ export const UpdateTeamResponse = zod
       .boolean()
       .describe(
         "Whether the member directory is readable by every member and not just by administrators. Clients use it to decide whether to offer the directory at all: an entry that always leads to a 403 is worse than no entry. Organisers see the directory whatever its value, but only get each member's role and join date when it is true."
+      ),
+    postsAsTeamByDefault: zod
+      .boolean()
+      .describe(
+        "Whether a new post starts signed by the team rather than by its author — the initial value of the editor's « on behalf of the team » box."
       ),
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
@@ -1601,6 +1628,11 @@ export const GetTeamResponse = zod
       .boolean()
       .describe(
         "Whether the member directory is readable by every member and not just by administrators. Clients use it to decide whether to offer the directory at all: an entry that always leads to a 403 is worse than no entry. Organisers see the directory whatever its value, but only get each member's role and join date when it is true."
+      ),
+    postsAsTeamByDefault: zod
+      .boolean()
+      .describe(
+        "Whether a new post starts signed by the team rather than by its author — the initial value of the editor's « on behalf of the team » box."
       ),
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),
@@ -1911,6 +1943,11 @@ export const ChangeTeamSlugResponse = zod
       .boolean()
       .describe(
         "Whether the member directory is readable by every member and not just by administrators. Clients use it to decide whether to offer the directory at all: an entry that always leads to a 403 is worse than no entry. Organisers see the directory whatever its value, but only get each member's role and join date when it is true."
+      ),
+    postsAsTeamByDefault: zod
+      .boolean()
+      .describe(
+        "Whether a new post starts signed by the team rather than by its author — the initial value of the editor's « on behalf of the team » box."
       ),
     visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
     joinable: zod.boolean().describe('Whether any domain user can join this team'),

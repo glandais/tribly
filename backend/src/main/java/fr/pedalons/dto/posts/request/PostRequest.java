@@ -26,5 +26,11 @@ public record PostRequest(
     @Schema(description = "Post status", required = true) Status status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Nullable @Schema(description = "Publication timestamp (for scheduled publishing)")
-        Instant publishAt)
+        Instant publishAt,
+    @Nullable
+        @Schema(
+            description =
+                "Sign the post as the team rather than as its author. Omitted: on creation, the"
+                    + " team's postsAsTeamByDefault; on an update, left as it is.")
+        Boolean signedAsTeam)
     implements WithVisibility {}

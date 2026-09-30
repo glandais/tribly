@@ -47,6 +47,7 @@ class PublicationResourceTest extends AbstractResourceTest {
             Instant.now().plus(7, ChronoUnit.DAYS),
             Status.PUBLISHED,
             getVisibility(teamSlug),
+            null,
             null);
 
     given()

@@ -59,6 +59,12 @@ public record TeamDetailDto(
                     + " join date when it is true.",
             required = true)
         boolean enableMemberDirectory,
+    @Schema(
+            description =
+                "Whether a new post starts signed by the team rather than by its author — the"
+                    + " initial value of the editor's « on behalf of the team » box.",
+            required = true)
+        boolean postsAsTeamByDefault,
     @Schema(description = "Whether visibility is editable by team admins", required = true)
         boolean visibilityEditable,
     @Schema(description = "Whether any domain user can join this team", required = true)
@@ -129,6 +135,7 @@ public record TeamDetailDto(
         team.isEnableRides(),
         team.isEnableRoutes(),
         team.isEnableMemberDirectory(),
+        team.isPostsAsTeamByDefault(),
         team.isVisibilityEditable(),
         team.isJoinable(),
         team.isAddMemberAllowed(),

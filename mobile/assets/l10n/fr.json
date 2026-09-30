@@ -384,7 +384,8 @@
     "openCover": "Ouvrir l'image de couverture",
     "previous": "Publication précédente",
     "next": "Publication suivante",
-    "commentsMembersOnly": "Les commentaires sont réservés aux membres de l'équipe."
+    "commentsMembersOnly": "Les commentaires sont réservés aux membres de l'équipe.",
+    "onBehalfOfTeam": "Au nom de l'équipe"
   },
   "ads": {
     "title": "Annonces",

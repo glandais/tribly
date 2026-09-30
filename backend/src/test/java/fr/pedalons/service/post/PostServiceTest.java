@@ -116,6 +116,7 @@ class PostServiceTest extends AbstractBaseTest {
               dateTime,
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null);
 
       userService.setUserForTest(organizer);
@@ -137,6 +138,7 @@ class PostServiceTest extends AbstractBaseTest {
               dateTime,
               Status.DRAFT,
               Visibility.PUBLIC,
+              null,
               null);
 
       userService.setUserForTest(organizer);
@@ -156,7 +158,8 @@ class PostServiceTest extends AbstractBaseTest {
               dateTime,
               Status.DRAFT,
               Visibility.PUBLIC,
-              publishAt);
+              publishAt,
+              null);
 
       userService.setUserForTest(organizer);
       PostDto result = postService.createPost(publicTeam.getSlug(), request);
@@ -173,6 +176,7 @@ class PostServiceTest extends AbstractBaseTest {
               Instant.now(),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null);
 
       userService.setUserForTest(member);
@@ -189,6 +193,7 @@ class PostServiceTest extends AbstractBaseTest {
               Instant.now(),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null);
 
       userService.setUserForTest(admin);
@@ -205,6 +210,7 @@ class PostServiceTest extends AbstractBaseTest {
               Instant.now(),
               Status.PUBLISHED,
               Visibility.TEAM,
+              null,
               null);
 
       userService.setUserForTest(admin);
@@ -224,6 +230,7 @@ class PostServiceTest extends AbstractBaseTest {
               now,
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null);
       PostRequest request2 =
           new PostRequest(
@@ -232,6 +239,7 @@ class PostServiceTest extends AbstractBaseTest {
               now,
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null);
 
       userService.setUserForTest(organizer);
@@ -258,6 +266,7 @@ class PostServiceTest extends AbstractBaseTest {
               newDateTime,
               Status.DRAFT,
               Visibility.TEAM,
+              null,
               null);
 
       userService.setUserForTest(organizer);
@@ -279,6 +288,7 @@ class PostServiceTest extends AbstractBaseTest {
               Instant.now(),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null);
 
       userService.setUserForTest(organizer);
@@ -298,6 +308,7 @@ class PostServiceTest extends AbstractBaseTest {
               Instant.now(),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null);
 
       userService.setUserForTest(member);
@@ -317,6 +328,7 @@ class PostServiceTest extends AbstractBaseTest {
               Instant.now(),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null);
 
       userService.setUserForTest(admin);
@@ -336,6 +348,7 @@ class PostServiceTest extends AbstractBaseTest {
               Instant.now(),
               Status.PUBLISHED,
               Visibility.TEAM,
+              null,
               null);
 
       userService.setUserForTest(admin);
@@ -356,6 +369,7 @@ class PostServiceTest extends AbstractBaseTest {
               Instant.now(),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null);
 
       userService.setUserForTest(admin);

@@ -283,6 +283,9 @@ public class TeamService {
     team.setEnableRides(request.enableRides());
     team.setEnableRoutes(request.enableRoutes());
     team.setEnableMemberDirectory(request.enableMemberDirectory());
+    if (request.postsAsTeamByDefault() != null) {
+      team.setPostsAsTeamByDefault(request.postsAsTeamByDefault());
+    }
   }
 
   @Transactional
