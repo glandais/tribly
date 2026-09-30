@@ -4,6 +4,8 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'instant.dart';
+
 part 'verify_response.freezed.dart';
 part 'verify_response.g.dart';
 
@@ -13,6 +15,12 @@ abstract class VerifyResponse with _$VerifyResponse {
   const factory VerifyResponse({
     /// User code
     required String userCode,
+
+    /// Which kind of device asks (e.g. 'karoo', 'garmin'), to name it on the confirmation screen
+    required String clientId,
+
+    /// When the device asked for the code: a code the user did not request themselves a moment ago stands out
+    required String requestedAt,
 
     /// Whether authorization is already completed
     bool? authorized,

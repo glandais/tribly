@@ -18,6 +18,7 @@ void main() {
       await modules.auth.waitUntilLoginPageIsVisible();
       await modules.auth.logInWithPassword(rider.email, rider.password);
 
+      await modules.device.authorize();
       await modules.device.waitUntilPaired();
       final tokens = await backend.pollDeviceToken(
         flow['deviceCode'] as String,

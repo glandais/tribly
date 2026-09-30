@@ -8,12 +8,15 @@ import '../../../../api/generated/export.dart';
 import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../core/utils/formatters.dart';
+import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../keys.dart';
 
 /// Device verification page for Karoo/Garmin device code flow.
-/// The user enters or receives a 6-character code from their GPS device
-/// and this page authorizes the device.
+/// The user enters or receives a 6-character code from their GPS device,
+/// then explicitly authorizes or denies it: opening a link that carries a code
+/// is never enough to pair a device (docs/LEDGER_*.md SEC-2, audit H3).
 class DeviceVerifyPage extends ConsumerStatefulWidget {
   final String? code;
 
@@ -26,7 +29,12 @@ class DeviceVerifyPage extends ConsumerStatefulWidget {
 class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
   bool _isVerifying = false;
   bool _isCompleting = false;
+  bool _isDenying = false;
   bool _completed = false;
+  bool _denied = false;
+
+  /// The code the backend knows, awaiting the rider's answer.
+  VerifyResponse? _pending;
   String? _errorMessage;
   final _codeController = TextEditingController();
 
@@ -63,8 +71,10 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
             _completed = true;
           });
         } else {
-          setState(() => _isVerifying = false);
-          _completeAuthorization(code);
+          setState(() {
+            _isVerifying = false;
+            _pending = response;
+          });
         }
       }
     } catch (e) {
@@ -85,7 +95,9 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
         ref.read(dioProvider),
         baseUrl: ref.read(dioProvider).options.baseUrl,
       );
-      await client.deviceComplete(body: CompleteRequest(userCode: code));
+      await client.deviceComplete(
+        body: CompleteRequest(userCode: code, confirmed: true),
+      );
       if (mounted) {
         setState(() {
           _isCompleting = false;
@@ -96,6 +108,31 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
       if (mounted) {
         setState(() {
           _isCompleting = false;
+          _errorMessage = getErrorMessage(e);
+        });
+      }
+    }
+  }
+
+  Future<void> _denyAuthorization(String code) async {
+    setState(() => _isDenying = true);
+
+    try {
+      final client = DeviceOAuthClient(
+        ref.read(dioProvider),
+        baseUrl: ref.read(dioProvider).options.baseUrl,
+      );
+      await client.deviceDeny(body: DenyRequest(userCode: code));
+      if (mounted) {
+        setState(() {
+          _isDenying = false;
+          _denied = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isDenying = false;
           _errorMessage = getErrorMessage(e);
         });
       }
@@ -131,7 +168,7 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
   }
 
   Widget _buildContent(ThemeData theme) {
-    if (_isVerifying || _isCompleting) {
+    if (_isVerifying || _isCompleting || _isDenying) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -177,6 +214,28 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
       );
     }
 
+    if (_denied) {
+      return Column(
+        key: keys.device.denied,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.block, size: 80, color: theme.colorScheme.outline),
+          const SizedBox(height: 24),
+          Text(
+            'device.denied.title'.tr(),
+            style: theme.textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 16),
+          Text('device.denied.message'.tr(), textAlign: TextAlign.center),
+          const SizedBox(height: 24),
+          FilledButton(
+            onPressed: () => context.go(Paths.home()),
+            child: Text('common.continue'.tr()),
+          ),
+        ],
+      );
+    }
+
     if (_errorMessage != null) {
       return Column(
         key: keys.device.error,
@@ -201,12 +260,18 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
               setState(() {
                 _codeController.clear();
                 _errorMessage = null;
+                _pending = null;
               });
             },
             child: Text('device.manualEntry.tryAgain'.tr()),
           ),
         ],
       );
+    }
+
+    final pending = _pending;
+    if (pending != null) {
+      return _buildConfirmation(theme, pending);
     }
 
     // Manual code entry
@@ -256,6 +321,91 @@ class _DeviceVerifyPageState extends ConsumerState<DeviceVerifyPage> {
           key: keys.device.submitButton,
           onPressed: _submitCode,
           child: Text('common.continue'.tr()),
+        ),
+      ],
+    );
+  }
+
+  /// Explicit confirmation (RFC 8628 §5.4): which device, which account, which
+  /// code, how long ago it was asked for — then the rider decides.
+  Widget _buildConfirmation(ThemeData theme, VerifyResponse pending) {
+    final deviceName = switch (pending.clientId) {
+      'karoo' => 'device.client.karoo'.tr(),
+      'garmin' => 'device.client.garmin'.tr(),
+      _ => 'device.client.other'.tr(),
+    };
+    final accountName = ref.read(authProvider).user?.displayName ?? '';
+    final requestedAt = DateTime.tryParse(pending.requestedAt);
+
+    return Column(
+      key: keys.device.confirm,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.devices, size: 64, color: theme.colorScheme.primary),
+        const SizedBox(height: 24),
+        Text(
+          'device.confirm.title'.tr(),
+          style: theme.textTheme.headlineSmall,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'device.confirm.question'.tr(
+            namedArgs: {'device': deviceName, 'name': accountName},
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          pending.userCode,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            letterSpacing: 8,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        if (requestedAt != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            'device.confirm.requestedAt'.tr(
+              namedArgs: {'when': AppFormatters.formatRelative(requestedAt)},
+            ),
+            style: theme.textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+        ],
+        const SizedBox(height: 16),
+        Card(
+          color: theme.colorScheme.errorContainer,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'device.confirm.warning'.tr(),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onErrorContainer,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                key: keys.device.denyButton,
+                onPressed: () => _denyAuthorization(pending.userCode),
+                child: Text('device.confirm.deny'.tr()),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: FilledButton(
+                key: keys.device.authorizeButton,
+                onPressed: () => _completeAuthorization(pending.userCode),
+                child: Text('device.confirm.authorize'.tr()),
+              ),
+            ),
+          ],
         ),
       ],
     );

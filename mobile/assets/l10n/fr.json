@@ -982,6 +982,23 @@
       "title": "Connexion réussie !",
       "message": "Votre appareil a été autorisé avec succès.",
       "returnToDevice": "Vous pouvez maintenant retourner sur votre appareil. Il devrait se connecter automatiquement."
+    },
+    "confirm": {
+      "title": "Autoriser cet appareil ?",
+      "question": "Autoriser {device} à accéder au compte {name} ?",
+      "requestedAt": "Code demandé {when}.",
+      "warning": "Vérifiez que ce code est bien celui affiché sur votre appareil, devant vous. Si quelqu'un vous a envoyé ce lien, refusez : il obtiendrait l'accès à votre compte.",
+      "authorize": "Autoriser",
+      "deny": "Refuser"
+    },
+    "client": {
+      "karoo": "un Karoo",
+      "garmin": "un appareil Garmin",
+      "other": "un appareil GPS"
+    },
+    "denied": {
+      "title": "Demande refusée",
+      "message": "Ce code n'est plus valable : l'appareil ne pourra pas s'en servir. Pour connecter votre propre appareil, relancez la connexion depuis celui-ci."
     }
   },
   "errors": {

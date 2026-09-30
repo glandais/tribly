@@ -26,7 +26,7 @@
 |---|---|---|---|
 | H1 | **Élevée** | Le code OTP à 6 chiffres se brute-force sans limite : prise de compte, admin plateforme compris | Corrigé (commit `911e93a2`) |
 | H2 | **Élevée** | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif (XSS stockée) | Ouvert |
-| H3 | **Élevée** | L'autorisation d'un appareil peut aboutir sans confirmation explicite de l'utilisateur | Ouvert |
+| H3 | **Élevée** | L'autorisation d'un appareil peut aboutir sans confirmation explicite de l'utilisateur | Corrigé (ledger `SEC-2`) |
 | H4 | **Élevée** | L'app mobile peut transmettre ses identifiants à des hôtes autres que l'API | Ouvert |
 | H5 | **Élevée** | Un point du flux d'autorisation des appareils n'a aucune limitation de débit | Corrigé (ledger `SEC-4`) |
 | M1 | Moyenne (élevée en chaîne) | L'access token n'est pas lié à son domaine : l'utilisateur est résolu par e-mail sur le Host de la requête | Corrigé (commit `6a791794`) |
@@ -52,7 +52,7 @@ Les constats ouverts sont suivis, sans détail, sous le préfixe `SEC` de [`LEDG
 changement de statut ici se reporte là-bas.
 
 **Ordre de correction conseillé** :
-1. ~~H1~~ (corrigé), H2, H3 et H4.
+1. ~~H1~~ (corrigé), H2, ~~H3~~ (corrigé) et H4.
 2. Vérifier V1.
 3. ~~M1~~ (corrigé).
 4. M3 et ~~M4~~ (corrigé).
@@ -70,7 +70,7 @@ changement de statut ici se reporte là-bas.
 
 ### H2 — XSS stockée via un fichier téléversé — **Ouvert**
 
-### H3 — Approbation d'un appareil sans confirmation — **Ouvert**
+### H3 — Approbation d'un appareil sans confirmation — **Corrigé** (ledger `SEC-2`)
 
 ### H4 — Fuite des identifiants mobiles vers des hôtes tiers — **Ouvert**
 

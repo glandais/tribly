@@ -17,7 +17,8 @@ T _$identity<T>(T value) => value;
 mixin _$CompleteRequest {
 
 /// User code from device display
- String get userCode;
+ String get userCode;/// Must be true: the user explicitly confirmed, on a screen showing the code
+ bool get confirmed;
 /// Create a copy of CompleteRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -31,20 +32,20 @@ $CompleteRequestCopyWith<CompleteRequest> get copyWith => _$CompleteRequestCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as CompleteRequest;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompleteRequest&&(identical(other.userCode, _this.userCode) || other.userCode == _this.userCode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompleteRequest&&(identical(other.userCode, _this.userCode) || other.userCode == _this.userCode)&&(identical(other.confirmed, _this.confirmed) || other.confirmed == _this.confirmed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as CompleteRequest;
-  return Object.hash(runtimeType,_this.userCode);
+  return Object.hash(runtimeType,_this.userCode,_this.confirmed);
 }
 
 @override
 String toString() {
   final _this = this as CompleteRequest;
-  return 'CompleteRequest(userCode: ${_this.userCode})';
+  return 'CompleteRequest(userCode: ${_this.userCode}, confirmed: ${_this.confirmed})';
 }
 
 
@@ -55,7 +56,7 @@ abstract mixin class $CompleteRequestCopyWith<$Res>  {
   factory $CompleteRequestCopyWith(CompleteRequest value, $Res Function(CompleteRequest) _then) = _$CompleteRequestCopyWithImpl;
 @useResult
 $Res call({
- String userCode
+ String userCode, bool confirmed
 });
 
 
@@ -72,10 +73,11 @@ class _$CompleteRequestCopyWithImpl<$Res>
 
 /// Create a copy of CompleteRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? userCode = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? userCode = null,Object? confirmed = null,}) {
   return _then(CompleteRequest(
 userCode: null == userCode ? _self.userCode : userCode // ignore: cast_nullable_to_non_nullable
-as String,
+as String,confirmed: null == confirmed ? _self.confirmed : confirmed // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -160,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userCode)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userCode,  bool confirmed)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CompleteRequest() when $default != null:
-return $default(_that.userCode);case _:
+return $default(_that.userCode,_that.confirmed);case _:
   return orElse();
 
 }
@@ -181,10 +183,10 @@ return $default(_that.userCode);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userCode)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userCode,  bool confirmed)  $default,) {final _that = this;
 switch (_that) {
 case _CompleteRequest():
-return $default(_that.userCode);case _:
+return $default(_that.userCode,_that.confirmed);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +203,10 @@ return $default(_that.userCode);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userCode)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userCode,  bool confirmed)?  $default,) {final _that = this;
 switch (_that) {
 case _CompleteRequest() when $default != null:
-return $default(_that.userCode);case _:
+return $default(_that.userCode,_that.confirmed);case _:
   return null;
 
 }
@@ -216,11 +218,13 @@ return $default(_that.userCode);case _:
 @JsonSerializable()
 
 class _CompleteRequest implements CompleteRequest {
-  const _CompleteRequest({required this.userCode});
+  const _CompleteRequest({required this.userCode, required this.confirmed});
   factory _CompleteRequest.fromJson(Map<String, dynamic> json) => _$CompleteRequestFromJson(json);
 
 /// User code from device display
 @override final  String userCode;
+/// Must be true: the user explicitly confirmed, on a screen showing the code
+@override final  bool confirmed;
 
 /// Create a copy of CompleteRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -235,18 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompleteRequest&&(identical(other.userCode, userCode) || other.userCode == userCode));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompleteRequest&&(identical(other.userCode, userCode) || other.userCode == userCode)&&(identical(other.confirmed, confirmed) || other.confirmed == confirmed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,userCode);
+    return Object.hash(runtimeType,userCode,confirmed);
 }
 
 @override
 String toString() {
-    return 'CompleteRequest(userCode: $userCode)';
+    return 'CompleteRequest(userCode: $userCode, confirmed: $confirmed)';
 }
 
 
@@ -257,7 +261,7 @@ abstract mixin class _$CompleteRequestCopyWith<$Res> implements $CompleteRequest
   factory _$CompleteRequestCopyWith(_CompleteRequest value, $Res Function(_CompleteRequest) _then) = __$CompleteRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String userCode
+ String userCode, bool confirmed
 });
 
 
@@ -274,10 +278,11 @@ class __$CompleteRequestCopyWithImpl<$Res>
 
 /// Create a copy of CompleteRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? userCode = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? userCode = null,Object? confirmed = null,}) {
   return _then(_CompleteRequest(
 userCode: null == userCode ? _self.userCode : userCode // ignore: cast_nullable_to_non_nullable
-as String,
+as String,confirmed: null == confirmed ? _self.confirmed : confirmed // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

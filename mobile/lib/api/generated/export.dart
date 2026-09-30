@@ -102,6 +102,7 @@ export 'models/create_domain_alias_request.dart';
 export 'models/create_domain_request.dart';
 export 'models/create_gps_credential_request.dart';
 export 'models/create_invitation_request.dart';
+export 'models/deny_request.dart';
 export 'models/device_code_response.dart';
 export 'models/device_request.dart';
 export 'models/device_ride_dto.dart';

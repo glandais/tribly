@@ -1388,10 +1388,15 @@ components:
       type: object
       required:
       - userCode
+      - confirmed
       properties:
         userCode:
           type: string
           description: User code from device display
+        confirmed:
+          type: boolean
+          description: "Must be true: the user explicitly confirmed, on a screen showing\
+            \ the code"
     ConfigDto:
       description: Application configuration
       type: object
@@ -1580,6 +1585,15 @@ components:
           examples:
           - MEMBER
           $ref: "#/components/schemas/TeamRole"
+    DenyRequest:
+      description: Deny device authorization request
+      type: object
+      required:
+      - userCode
+      properties:
+        userCode:
+          type: string
+          description: User code from device display
     DeviceCodeResponse:
       description: Device code response (RFC 8628)
       type: object
@@ -5969,6 +5983,8 @@ components:
       type: object
       required:
       - userCode
+      - clientId
+      - requestedAt
       properties:
         userCode:
           type: string
@@ -5976,6 +5992,15 @@ components:
         authorized:
           type: boolean
           description: Whether authorization is already completed
+        clientId:
+          type: string
+          description: "Which kind of device asks (e.g. 'karoo', 'garmin'), to name\
+            \ it on the confirmation screen"
+        requestedAt:
+          description: "When the device asked for the code: a code the user did not\
+            \ request themselves a moment ago stands out"
+          type: string
+          $ref: "#/components/schemas/Instant"
     VerifyTokenRequest:
       description: Token verification request
       type: object
@@ -8025,6 +8050,46 @@ paths:
       responses:
         "200":
           description: Authorization completed
+          content:
+            application/json:
+              schema: {}
+        "400":
+          description: Invalid or expired code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: "DEVICE_CODE_RATE_LIMITED — too many unknown codes lately,\
+            \ on this account or on the site"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/device/oauth/deny:
+    post:
+      summary: Deny device authorization
+      description: "The signed-in user refuses to pair the device showing this code:\
+        \ the code expires at once, and the device polling /token is told TOKEN_EXPIRED"
+      operationId: deviceDeny
+      tags:
+      - Device OAuth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DenyRequest"
+        required: true
+      responses:
+        "200":
+          description: Code expired
           content:
             application/json:
               schema: {}
@@ -16150,7 +16215,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 7.3.0
+  version: 8.0.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

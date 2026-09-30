@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test'
 import { newUser, signIn } from './support/data'
 import {
   countCompletions,
+  countDenials,
   DEVICE_PAGE,
   deviceMe,
   deviceOwner,
@@ -19,13 +20,21 @@ import { escapeRegExp, hydrated } from './support/ui'
 /**
  * Pairing a Garmin or Karoo with an account — the only way the apps sign in. The device (played from
  * Node through support/device.ts) asks for a code and polls `/token`; the rider opens
- * `/garmin?code=…` or `/karoo?code=…` (the QR code the device shows), signs in if needed, and the
- * page authorizes the code by itself. Every test pairs a fresh account: `/token` opens a session on
- * it and records a login.
+ * `/garmin?code=…` or `/karoo?code=…` (the QR code the device shows), signs in if needed, reads
+ * the code and presses « Autoriser » — never less: opening a link that carries a code must not be
+ * enough to pair a stranger's device (docs/LEDGER_*.md SEC-2, audit H3). Every test pairs a fresh
+ * account: `/token` opens a session on it and records a login.
  */
 
 const heading = (page: Page, name: string) =>
   page.getByRole('main').getByRole('heading', { name, exact: true })
+
+/** Presses « Autoriser » on the confirmation card, once hydrated. */
+async function authorize(page: Page) {
+  const button = page.getByRole('main').getByRole('button', { name: 'Autoriser', exact: true })
+  await hydrated(button)
+  await button.click()
+}
 
 /** The URL of the verification page, path and query, for `toHaveURL`. */
 const verificationUrl = (path: string, userCode: string) =>
@@ -43,9 +52,11 @@ test('an anonymous rider scanning the Garmin code signs in, comes back to the sa
   // The device polls before anyone authorized it; the code is known, not authorized, and matched
   // whatever its case.
   expect(await pollError(flow.deviceCode)).toBe('AUTHORIZATION_PENDING')
-  expect(await verifyUserCode(flow.userCode.toLowerCase())).toEqual({
+  expect(await verifyUserCode(flow.userCode.toLowerCase())).toMatchObject({
     userCode: flow.userCode,
     authorized: false,
+    clientId: 'garmin',
+    requestedAt: expect.any(String),
   })
 
   // Signed out, the page is protected: the login form, and the code must survive the detour.
@@ -64,8 +75,16 @@ test('an anonymous rider scanning the Garmin code signs in, comes back to the sa
   await main.getByRole('textbox', { name: 'Mot de passe' }).fill(rider.password)
   await submit.click()
 
-  // Back on the Garmin page with the code intact, authorized without another click.
+  // Back on the Garmin page with the code intact — and asked, not authorized: signing in is not a
+  // consent to pairing.
   await expect(page).toHaveURL(verificationUrl('/garmin', flow.userCode))
+  await expect(heading(page, DEVICE_PAGE.confirm)).toBeVisible()
+  await expect(main.getByText('un appareil Garmin', { exact: false })).toBeVisible()
+  await expect(main.getByText(flow.userCode, { exact: true })).toBeVisible()
+  expect(completions()).toBe(0)
+  expect(await pollError(flow.deviceCode)).toBe('AUTHORIZATION_PENDING')
+
+  await authorize(page)
   await expect(heading(page, DEVICE_PAGE.success)).toBeVisible()
   await expect(
     main.getByText('Vous pouvez maintenant retourner sur votre appareil.', { exact: false })
@@ -98,7 +117,7 @@ test('an anonymous rider scanning the Garmin code signs in, comes back to the sa
   expect(await deviceOwner(refreshed.accessToken)).toMatchObject({ id: rider.user.id })
 })
 
-test('a signed-in rider opening the Karoo link authorizes it with a single call, and a reload does not authorize it again', async ({
+test('a signed-in rider opening the Karoo link is asked first, authorizes it with one click, and a reload does not authorize it again', async ({
   page,
   context,
 }) => {
@@ -111,10 +130,21 @@ test('a signed-in rider opening the Karoo link authorizes it with a single call,
 
   const completions = countCompletions(page)
   await page.goto(`${pathname}${search}`)
+  // The link alone authorizes nothing: the card names the device, the account and the code.
+  await expect(heading(page, DEVICE_PAGE.confirm)).toBeVisible()
+  await expect(
+    page.getByRole('main').getByText(`un Karoo à accéder au compte ${rider.user.displayName}`, {
+      exact: false,
+    })
+  ).toBeVisible()
+  expect(completions()).toBe(0)
+  expect(await pollError(flow.deviceCode)).toBe('AUTHORIZATION_PENDING')
+
+  await authorize(page)
   await expect(heading(page, DEVICE_PAGE.success)).toBeVisible()
   await expect(page).toHaveURL(verificationUrl('/karoo', flow.userCode))
   expect(completions()).toBe(1)
-  expect(await verifyUserCode(flow.userCode)).toEqual({
+  expect(await verifyUserCode(flow.userCode)).toMatchObject({
     userCode: flow.userCode,
     authorized: true,
   })
@@ -157,13 +187,42 @@ test('an unknown code shows the error, « Réessayer » opens the manual entry, 
   await boxes.first().click()
   await page.keyboard.type(flow.userCode.toLowerCase())
 
-  // Converted to uppercase: the URL carries the code as issued, and the pairing goes through.
+  // Converted to uppercase: the URL carries the code as issued, and the pairing goes through once
+  // confirmed.
   await expect(page).toHaveURL(verificationUrl('/garmin', flow.userCode))
+  await expect(heading(page, DEVICE_PAGE.confirm)).toBeVisible()
+  await authorize(page)
   await expect(heading(page, DEVICE_PAGE.success)).toBeVisible()
   expect(completions()).toBe(1)
 
   const tokens = await pollToken(flow.deviceCode)
   expect(await deviceOwner(tokens.accessToken)).toMatchObject({ id: rider.user.id })
+})
+
+test('a rider who did not ask for the code refuses it: the device is told the code expired', async ({
+  page,
+  context,
+}) => {
+  const rider = await newUser('device denying rider')
+  await signIn(context, rider)
+  const flow = await startDeviceFlow('karoo')
+
+  const completions = countCompletions(page)
+  const denials = countDenials(page)
+  await page.goto(`/karoo?code=${flow.userCode}`)
+  await expect(heading(page, DEVICE_PAGE.confirm)).toBeVisible()
+
+  const deny = page.getByRole('main').getByRole('button', { name: 'Refuser', exact: true })
+  await hydrated(deny)
+  await deny.click()
+  await expect(heading(page, DEVICE_PAGE.denied)).toBeVisible()
+  expect(denials()).toBe(1)
+  expect(completions()).toBe(0)
+
+  // Dead for everyone: the page cannot find it any more, and the device hears the answer Karoo and
+  // Garmin already handle by starting over.
+  expect(await verifyUserCode(flow.userCode)).toBeNull()
+  expect(await pollError(flow.deviceCode)).toBe('TOKEN_EXPIRED')
 })
 
 /**

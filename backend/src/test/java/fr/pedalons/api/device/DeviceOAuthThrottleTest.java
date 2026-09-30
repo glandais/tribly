@@ -49,7 +49,7 @@ class DeviceOAuthThrottleTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(user))
         .contentType(ContentType.JSON)
-        .body("{\"userCode\": \"" + userCode + "\"}")
+        .body("{\"userCode\": \"" + userCode + "\", \"confirmed\": true}")
         .when()
         .post("/api/device/oauth/complete")
         .then();
