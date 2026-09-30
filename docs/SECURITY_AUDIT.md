@@ -39,7 +39,7 @@
 | M8 | Moyenne | Deux requêtes de résolution d'identité ne filtrent pas par domaine | Ouvert |
 | M9 | Moyenne | Le jeton d'accès des appareils a une durée longue pour un jeton non révocable | Ouvert |
 | M10 | Moyenne | Aucune limitation de débit HTTP globale | Ouvert |
-| L1–L14 | Faible | Voir la section dédiée | L2 caduc, L11 partiellement corrigé, les autres ouverts |
+| L1–L14 | Faible | Voir la section dédiée | L1, L5 à L9 et L12 à L14 corrigés, L2 caduc, L11 partiellement corrigé ; L3, L4 et L10 ouverts |
 | V1–V8 | À valider | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | V2 caduc pour l'avenir, les autres à valider |
 
 H5, M7 à M10 et L12 à L14 viennent de l'audit d'infrastructure de février
@@ -122,7 +122,7 @@ changement de statut ici se reporte là-bas.
 | L11 | GitHub Actions : durcissement des workflows | Partiellement corrigé : `ci.yml` est en `permissions: contents: read` par défaut (commit `09c65ecd`) ; le reste est ouvert |
 | L12 | Des jokers ne sont pas échappés dans des recherches (audit de février, S9) | Corrigé (ledger `SEC-22`) |
 | L13 | Un en-tête de réponse est construit sans encodage (audit de février, S10) | Corrigé (ledger `SEC-22`) |
-| L14 | Les échecs de connexion ne sont pas journalisés (audit de février, S11) | Ouvert |
+| L14 | Les échecs de connexion ne sont pas journalisés (audit de février, S11) | Corrigé (ledger `SEC-23`) |
 
 Informationnel :
 - Le markdown web accepte des images externes (pistage de l'IP des lecteurs, sans fuite de token). Ouvert.
