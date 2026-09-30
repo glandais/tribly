@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../api/credential_scope.dart';
 import '../../api/pedalons_api_client.dart';
 import '../../config/app_config.dart';
 import '../pdl/pdl_skeleton.dart';
@@ -33,7 +34,8 @@ String resolveImageUrl(String url, {int size = 400}) {
 /// A general-purpose image widget that includes the Authorization header.
 ///
 /// Uses [CachedNetworkImage] for caching and the [accessTokenHolderProvider]
-/// to add the Bearer token to requests.
+/// to add the Bearer token — to requests for the API's origin only
+/// ([authHeadersFor]): a markdown image can point anywhere.
 class AuthenticatedImage extends ConsumerWidget {
   /// The URL of the image to display (can be a template with {size}).
   final String imageUrl;
@@ -71,9 +73,11 @@ class AuthenticatedImage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final token = ref.watch(accessTokenHolderProvider);
 
+    final String url = resolveImageUrl(imageUrl, size: size);
+
     return CachedNetworkImage(
-      imageUrl: resolveImageUrl(imageUrl, size: size),
-      httpHeaders: token != null ? {'Authorization': 'Bearer $token'} : null,
+      imageUrl: url,
+      httpHeaders: authHeadersFor(url, token),
       fit: fit,
       width: width,
       height: height,
@@ -133,9 +137,11 @@ class AuthenticatedCircleAvatar extends ConsumerWidget {
 
     final token = ref.watch(accessTokenHolderProvider);
 
+    final String url = resolveImageUrl(imageUrl!, size: size);
+
     return CachedNetworkImage(
-      imageUrl: resolveImageUrl(imageUrl!, size: size),
-      httpHeaders: token != null ? {'Authorization': 'Bearer $token'} : null,
+      imageUrl: url,
+      httpHeaders: authHeadersFor(url, token),
       imageBuilder: (context, imageProvider) => CircleAvatar(
         radius: radius,
         backgroundColor: backgroundColor,
@@ -172,9 +178,10 @@ class AuthenticatedDecorationImage {
   /// Returns null if [url] is null.
   static ImageProvider? fromUrl(String? url, String? token, {int size = 400}) {
     if (url == null) return null;
+    final String resolved = resolveImageUrl(url, size: size);
     return CachedNetworkImageProvider(
-      resolveImageUrl(url, size: size),
-      headers: token != null ? {'Authorization': 'Bearer $token'} : null,
+      resolved,
+      headers: authHeadersFor(resolved, token),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/data/secure_storage.dart';
+import '../credential_scope.dart';
 import '../generated/export.dart';
 import '../pedalons_api_client.dart';
 
@@ -40,9 +41,11 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // Add auth token if available - read from simple token holder to avoid circular dep
+    // Add auth token if available - read from simple token holder to avoid circular dep.
+    // Only towards the API's origin: an absolute URL on another host (a
+    // download, an image) must not receive it (docs/LEDGER_*.md SEC-3).
     final accessToken = _ref.read(accessTokenHolderProvider);
-    if (accessToken != null) {
+    if (accessToken != null && carriesCredentials(options.uri)) {
       options.headers['Authorization'] = 'Bearer $accessToken';
     }
 
@@ -66,6 +69,12 @@ class AuthInterceptor extends Interceptor {
     // Don't try to refresh the public auth endpoints: their 401 means bad
     // credentials, not an expired token.
     if (!refreshesOn401(requestOptions.path)) {
+      return handler.next(err);
+    }
+
+    // A 401 from another host says nothing about our token, and the retry
+    // would carry the fresh one there.
+    if (!carriesCredentials(requestOptions.uri)) {
       return handler.next(err);
     }
 

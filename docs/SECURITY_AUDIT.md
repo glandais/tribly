@@ -27,7 +27,7 @@
 | H1 | **Élevée** | Le code OTP à 6 chiffres se brute-force sans limite : prise de compte, admin plateforme compris | Corrigé (commit `911e93a2`) |
 | H2 | **Élevée** | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif (XSS stockée) | Corrigé (ledger `SEC-1`) |
 | H3 | **Élevée** | L'autorisation d'un appareil peut aboutir sans confirmation explicite de l'utilisateur | Ouvert |
-| H4 | **Élevée** | L'app mobile peut transmettre ses identifiants à des hôtes autres que l'API | Ouvert |
+| H4 | **Élevée** | L'app mobile peut transmettre ses identifiants à des hôtes autres que l'API | Corrigé (ledger `SEC-3`) |
 | H5 | **Élevée** | Un point du flux d'autorisation des appareils n'a aucune limitation de débit | Corrigé (ledger `SEC-4`) |
 | M1 | Moyenne (élevée en chaîne) | L'access token n'est pas lié à son domaine : l'utilisateur est résolu par e-mail sur le Host de la requête | Corrigé (commit `6a791794`) |
 | M2 | Moyenne | Le flou d'~1 km de la position des annonces peut être affiné par des requêtes répétées | Ouvert |
@@ -52,7 +52,7 @@ Les constats ouverts sont suivis, sans détail, sous le préfixe `SEC` de [`LEDG
 changement de statut ici se reporte là-bas.
 
 **Ordre de correction conseillé** :
-1. ~~H1~~ et ~~H2~~ (corrigés), H3 et H4.
+1. ~~H1~~, ~~H2~~ et ~~H4~~ (corrigés), H3.
 2. Vérifier V1.
 3. ~~M1~~ (corrigé).
 4. M3 et ~~M4~~ (corrigé).
@@ -79,7 +79,7 @@ changement de statut ici se reporte là-bas.
 
 ### H3 — Approbation d'un appareil sans confirmation — **Ouvert**
 
-### H4 — Fuite des identifiants mobiles vers des hôtes tiers — **Ouvert**
+### H4 — Fuite des identifiants mobiles vers des hôtes tiers — **Corrigé** (ledger `SEC-3`)
 
 ### H5 — Flux d'autorisation des appareils sans limitation de débit — **Corrigé** (ledger `SEC-4` ; audit de février, S2)
 
