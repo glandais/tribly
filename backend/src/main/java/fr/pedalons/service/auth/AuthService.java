@@ -18,6 +18,7 @@ import fr.pedalons.dto.auth.request.RegisterRequest;
 import fr.pedalons.dto.auth.response.AuthResponse;
 import fr.pedalons.dto.auth.response.AuthResult;
 import fr.pedalons.dto.auth.response.EmailLinkPreviewResponse;
+import fr.pedalons.dto.auth.response.RefreshResult;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.users.response.UserDto;
 import fr.pedalons.enums.AuthTokenType;
@@ -631,12 +632,6 @@ public class AuthService {
         .user(UserDto.from(user))
         .build();
   }
-
-  /**
-   * What a refresh gives back: the response body without any refresh token, and the new refresh
-   * token when this refresh rotated it — null inside the grace of a rotation made by another one.
-   */
-  public record RefreshResult(AuthResponse response, @Nullable String refreshToken) {}
 
   @Transactional
   @Public

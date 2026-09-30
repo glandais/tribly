@@ -12,6 +12,7 @@ import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.auth.request.OtpRequest;
 import fr.pedalons.dto.auth.request.RegisterRequest;
 import fr.pedalons.dto.auth.response.AuthResult;
+import fr.pedalons.dto.auth.response.RefreshResult;
 import fr.pedalons.enums.AuthTokenType;
 import fr.pedalons.repository.auth.AuthSessionRepository;
 import fr.pedalons.repository.auth.AuthTokenRepository;
@@ -244,7 +245,7 @@ class AuthServiceTest extends AbstractBaseTest {
     User user = dataService.createVerifiedUser("refresh@example.com", "Refresh User");
     String refreshToken = dataService.createRefreshTokenForUser(user);
 
-    AuthService.RefreshResult result = authService.refreshToken(refreshToken);
+    RefreshResult result = authService.refreshToken(refreshToken);
 
     assertNotNull(result.response().accessToken());
     assertEquals("refresh@example.com", result.response().user().email());
@@ -274,7 +275,7 @@ class AuthServiceTest extends AbstractBaseTest {
     String second = authService.refreshToken(first).refreshToken();
 
     // The other tab, whose refresh left with the same token and lost the race.
-    AuthService.RefreshResult late = authService.refreshToken(first);
+    RefreshResult late = authService.refreshToken(first);
 
     assertNotNull(late.response().accessToken());
     assertNull(late.refreshToken());

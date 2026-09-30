@@ -13,6 +13,7 @@ import fr.pedalons.dto.auth.response.AuthResponse;
 import fr.pedalons.dto.auth.response.AuthResult;
 import fr.pedalons.dto.auth.response.EmailLinkPreviewResponse;
 import fr.pedalons.dto.auth.response.MessageResponse;
+import fr.pedalons.dto.auth.response.RefreshResult;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.service.auth.AuthService;
 import fr.pedalons.service.auth.RefreshTokenCookieFactory;
@@ -313,7 +314,7 @@ public class AuthResource {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    AuthService.RefreshResult result = authService.refreshToken(refreshToken);
+    RefreshResult result = authService.refreshToken(refreshToken);
     String nextToken = result.refreshToken();
     if (!fromCookie) {
       // Mobile: the new token travels in the body, the only place the app reads it from.
