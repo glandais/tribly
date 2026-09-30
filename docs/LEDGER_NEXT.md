@@ -361,11 +361,6 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       Cas marginal, que la politique couvre (« images SVG ou ICO » conservées telles quelles). Refuser
       les SVG à image embarquée, faire réencoder les ICO (imgproxy les lit), ou nettoyer le PNG/JPEG
       qu'un SVG contient. Taille : S à M.
-- [ ] `API-49` **Un GPX ou un FIT joint en pièce jointe n'est pas nettoyé** — `API-44` ne couvre
-      que le pipeline des parcours et de l'outil GPX ; un `.gpx`/`.fit` déposé comme `ATTACHMENT`
-      (liste noire qui accepte xml/fit) garde horodatages et capteurs. La politique le dit (§1,
-      pièces jointes gardées telles quelles). Soit le passer par `GpxSanitizer` dans `store()`,
-      soit le laisser et garder la phrase. Taille : S.
 - [ ] `API-50` **Le rédacteur GPX de gpx2web écrit un `creator` fixe et une heure epoch** — la
       bibliothèque (gpx 1.5.x) écrit `creator="https://www.mapstogpx.com/strava"` (trompeur, pas
       personnel) et `<time>1970-01-01T00:00:00Z</time>` sur chaque point depuis `API-44`. Ne pas
@@ -426,10 +421,11 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
 
 - [ ] `OPS-14` **Recette des deux rattrapages de métadonnées après le déploiement** —
       `AssetMetadataBackfillScheduler` (toutes les 5 min) vide `assets.metadata_pending` (V47) ;
-      `GpxSanitizationBackfill` (4 h 15) écrit `maintenance/api-44-gpx-sanitized` après une passe
+      `GpxSanitizationBackfill` (4 h 15) écrit `maintenance/api-49-gpx-sanitized` après une passe
       sans échec. Vérifier `SELECT count(*) FROM assets WHERE metadata_pending` à zéro, le journal
       « GPX sanitization backfill: N file sets checked, M rewritten, 0 failed » et le marqueur dans
-      le bucket. Les TIFF/HEIF déjà stockés sont convertis en JPEG par le rattrapage ; restent les
+      le bucket ; les pièces jointes GPX/FIT illisibles (`API-49`, `API-55`) sont laissées telles
+      quelles avec un WARN « Track attachment … left as is » : décider de les supprimer. Les TIFF/HEIF déjà stockés sont convertis en JPEG par le rattrapage ; restent les
       JPEG 2000 et les images qu'imgproxy ne sait pas lire (journal WARN « cannot be re-encoded »
       ou « imgproxy cannot decode », résultat `UNREADABLE`) : décider de les supprimer ou de les
       convertir à la main. Redémarrer varnish pour qu'il charge le `pass` des réencodages

@@ -26,8 +26,12 @@ import fr.pedalons.repository.post.PostRepository;
 import fr.pedalons.service.asset.response.AssetWithFile;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
+import fr.pedalons.util.GpxPrivacyAssertions;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
+import io.github.glandais.gpx.data.GPX;
+import io.github.glandais.gpx.io.read.GPXFileReader;
+import io.github.glandais.gpx.io.write.FitFileWriter;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -36,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -54,6 +59,8 @@ class AssetServiceTest extends AbstractBaseTest {
   @Inject StorageService storageService;
   @Inject AssetRepository assetRepository;
   @Inject PostRepository postRepository;
+  @Inject GPXFileReader gpxFileReader;
+  @Inject FitFileWriter fitFileWriter;
 
   private Domain domain;
   private Team team;
@@ -102,6 +109,27 @@ class AssetServiceTest extends AbstractBaseTest {
     InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream("image.png");
     assertNotNull(resourceAsStream, "image.png not found in test resources");
     return resourceAsStream;
+  }
+
+  /** What a device records: the activity fixture as a FIT, with its clock and power. */
+  private byte[] activityFit() throws Exception {
+    GPX dirty;
+    try (InputStream is = Files.newInputStream(GpxPrivacyAssertions.activityGpx())) {
+      dirty = gpxFileReader.parseGPX(is);
+    }
+    java.nio.file.Path fit = Files.createTempFile("attachment-test-", ".fit");
+    try {
+      fitFileWriter.writeGPX(dirty, fit.toFile());
+      return Files.readAllBytes(fit);
+    } finally {
+      Files.deleteIfExists(fit);
+    }
+  }
+
+  private byte[] readStored(Asset asset) throws IOException {
+    try (InputStream is = storageService.retrieve(getAssetKey(team, asset.getFileId()))) {
+      return is.readAllBytes();
+    }
   }
 
   private InputStream getSampleTxtStream() {
@@ -168,6 +196,57 @@ class AssetServiceTest extends AbstractBaseTest {
       assertEquals(
           storageService.size(getAssetKey(team, result.asset().getFileId())),
           result.asset().getFileSize());
+    }
+
+    // docs/LEDGER_*.md API-49, API-55: a track file attached as a plain attachment is cleaned
+    // like a route's before it is stored.
+
+    @Test
+    void shouldStripClockSensorsAndAuthorFromAnAttachedGpx() throws Exception {
+      queryContext.setUserForTest(member);
+      AssetWithFile result =
+          assetService.addAssetStream(
+              team,
+              AssetType.ATTACHMENT,
+              null,
+              Files.newInputStream(GpxPrivacyAssertions.activityGpx()),
+              "sortie.gpx");
+
+      assertEquals("application/gpx+xml", result.asset().getContentType());
+      String stored = new String(readStored(result.asset()), StandardCharsets.UTF_8);
+      GpxPrivacyAssertions.assertGpxHasNoPersonalData(stored);
+      assertTrue(stored.contains("<trkpt lat=\"47.20626\" lon=\"-1.54564\">"), "geometry lost");
+      // docs/LEDGER_*.md API-7: the recorded size is that of the cleaned file
+      assertEquals(
+          storageService.size(getAssetKey(team, result.asset().getFileId())),
+          result.asset().getFileSize());
+    }
+
+    @Test
+    void shouldStripClockAndSensorsFromAnAttachedFit() throws Exception {
+      queryContext.setUserForTest(member);
+      AssetWithFile result =
+          assetService.addAssetStream(
+              team,
+              AssetType.ATTACHMENT,
+              null,
+              new ByteArrayInputStream(activityFit()),
+              "sortie.fit");
+
+      assertEquals("application/vnd.ant.fit", result.asset().getContentType());
+      GpxPrivacyAssertions.assertFitHasNoPersonalData(readStored(result.asset()));
+    }
+
+    @Test
+    void shouldRefuseAGpxAttachmentThatIsNotAGpx() {
+      queryContext.setUserForTest(member);
+      PedalonsException ex =
+          assertThrows(
+              PedalonsException.class,
+              () ->
+                  assetService.addAssetStream(
+                      team, AssetType.ATTACHMENT, null, getSampleTxtStream(), "notes.gpx"));
+      assertEquals(ErrorCode.GPX_FAILURE, ex.getErrorCode());
     }
 
     @Test

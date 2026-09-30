@@ -19,6 +19,7 @@ import fr.pedalons.infrastructure.imgproxy.ImgProxyService;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.asset.AssetRepository;
 import fr.pedalons.service.asset.response.AssetWithFile;
+import fr.pedalons.service.gpx.TrackAttachmentSanitizer;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.team.TeamService;
@@ -85,6 +86,8 @@ public class AssetService {
 
   @Inject FileTypeDetector fileTypeDetector;
 
+  @Inject TrackAttachmentSanitizer trackAttachmentSanitizer;
+
   @CheckAccess(entityType = EntityType.ASSET, action = ActionType.CREATE)
   public AssetDto createAsset(
       String teamSlug, AssetType assetType, InputStream inputStream, String fileName)
@@ -126,6 +129,18 @@ public class AssetService {
       Files.copy(content, tempFile.toPath());
       contentType = detectAndValidate(tempFile, fileName, type);
       storedName = storedFileName(tempFile, fileName);
+      if (TrackAttachmentSanitizer.applies(type, contentType)) {
+        // docs/LEDGER_*.md API-49, API-55: an attached GPX or FIT loses its clock and sensors
+        // like a route's.
+        byte[] raw = Files.readAllBytes(tempFile.toPath());
+        try {
+          Files.write(tempFile.toPath(), trackAttachmentSanitizer.sanitize(raw, contentType));
+        } catch (RuntimeException e) {
+          // Refused: nothing is stored, and the upload's copy must not stay on disk either.
+          deleteTempFile(tempFile);
+          throw e;
+        }
+      }
 
       // Upload to S3 with metadata
       String key = getAssetKey(team, fileId);
