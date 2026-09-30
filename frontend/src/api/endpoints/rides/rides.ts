@@ -22,6 +22,7 @@ import type {
   RideParticipationDto,
   RideRequest,
   SlugChangeRequest,
+  StatusChangeRequest,
 } from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance.ts'
@@ -628,6 +629,157 @@ export const useLeaveGroup = <TError = ErrorType<ErrorResponse | void>, TContext
   return useMutation(getLeaveGroupMutationOptions(options), queryClient)
 }
 /**
+ * One VEVENT for the ride, to add it on its own to a calendar. Readable by whoever may read the ride; no calendar token.
+ * @summary Download ride as a calendar file
+ */
+export const downloadRideIcs = (
+  teamSlug: string,
+  rideSlug: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<string>(
+    { url: `/api/teams/${teamSlug}/rides/${rideSlug}/ics`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getDownloadRideIcsQueryKey = (teamSlug: string, rideSlug: string) => {
+  return [`/api/teams/${teamSlug}/rides/${rideSlug}/ics`] as const
+}
+
+export const getDownloadRideIcsQueryOptions = <
+  TData = Awaited<ReturnType<typeof downloadRideIcs>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRideIcs>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getDownloadRideIcsQueryKey(teamSlug, rideSlug)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadRideIcs>>> = ({ signal }) =>
+    downloadRideIcs(teamSlug, rideSlug, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && rideSlug !== null && rideSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof downloadRideIcs>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type DownloadRideIcsQueryResult = NonNullable<Awaited<ReturnType<typeof downloadRideIcs>>>
+export type DownloadRideIcsQueryError = ErrorType<ErrorResponse>
+
+export function useDownloadRideIcs<
+  TData = Awaited<ReturnType<typeof downloadRideIcs>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRideIcs>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadRideIcs>>,
+          TError,
+          Awaited<ReturnType<typeof downloadRideIcs>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadRideIcs<
+  TData = Awaited<ReturnType<typeof downloadRideIcs>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRideIcs>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadRideIcs>>,
+          TError,
+          Awaited<ReturnType<typeof downloadRideIcs>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadRideIcs<
+  TData = Awaited<ReturnType<typeof downloadRideIcs>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRideIcs>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download ride as a calendar file
+ */
+
+export function useDownloadRideIcs<
+  TData = Awaited<ReturnType<typeof downloadRideIcs>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRideIcs>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getDownloadRideIcsQueryOptions(teamSlug, rideSlug, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Download ride as a calendar file
+ */
+export const prefetchDownloadRideIcsQuery = async <
+  TData = Awaited<ReturnType<typeof downloadRideIcs>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  rideSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRideIcs>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getDownloadRideIcsQueryOptions(teamSlug, rideSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * One page of the people registered to the ride, or to one of its groups, earliest registrations first, searchable by display name. The ride detail only embeds the first few; this is the whole list, with its total. Readable by whoever may read the ride.
  * @summary List ride participants
  */
@@ -890,6 +1042,100 @@ export const useChangeRideSlug = <TError = ErrorType<ErrorResponse>, TContext = 
   TContext
 > => {
   return useMutation(getChangeRideSlugMutationOptions(options), queryClient)
+}
+/**
+ * Change the ride's status and nothing else — what a list row can do without the full ride. Same side effects as a status change through the update. Requires organizer permissions.
+ * @summary Change ride status
+ */
+export const changeRideStatus = (
+  teamSlug: string,
+  rideSlug: string,
+  statusChangeRequest: BodyType<StatusChangeRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<RideDto>(
+    {
+      url: `/api/teams/${teamSlug}/rides/${rideSlug}/status`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: statusChangeRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getChangeRideStatusMutationKey = () => ['changeRideStatus'] as const
+
+export const getChangeRideStatusMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof changeRideStatus>>,
+    TError,
+    ChangeRideStatusMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof changeRideStatus>>,
+  TError,
+  ChangeRideStatusMutationVariables,
+  TContext
+> => {
+  const mutationKey = getChangeRideStatusMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof changeRideStatus>>,
+    ChangeRideStatusMutationVariables
+  > = (props) => {
+    const { teamSlug, rideSlug, data } = props ?? {}
+
+    return changeRideStatus(teamSlug, rideSlug, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ChangeRideStatusMutationResult = NonNullable<
+  Awaited<ReturnType<typeof changeRideStatus>>
+>
+export type ChangeRideStatusMutationBody = BodyType<StatusChangeRequest>
+export type ChangeRideStatusMutationError = ErrorType<ErrorResponse>
+export type ChangeRideStatusMutationVariables = {
+  teamSlug: string
+  rideSlug: string
+  data: BodyType<StatusChangeRequest>
+}
+
+/**
+ * @summary Change ride status
+ */
+export const useChangeRideStatus = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof changeRideStatus>>,
+      TError,
+      ChangeRideStatusMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof changeRideStatus>>,
+  TError,
+  ChangeRideStatusMutationVariables,
+  TContext
+> => {
+  return useMutation(getChangeRideStatusMutationOptions(options), queryClient)
 }
 /**
  * Restore a soft-deleted ride. Requires organizer permissions.

@@ -17,6 +17,7 @@ import '../models/count_response.dart';
 import '../models/list_view_mode.dart';
 import '../models/slug_change_request.dart';
 import '../models/sort_direction.dart';
+import '../models/status_change_request.dart';
 
 part 'ads_client.g.dart';
 
@@ -211,6 +212,22 @@ abstract class AdsClient {
     @Path('slug') required String slug,
     @Path('teamSlug') required String teamSlug,
     @Body() required SlugChangeRequest body,
+  });
+
+  /// Change ad status.
+  ///
+  /// Change the ad's status and nothing else — what a list row can do without the full ad. Same side effects as a status change through the update. Requires the team admin or the ad's author.
+  ///
+  /// [slug] - Ad URL slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @PATCH('/api/teams/{teamSlug}/classifieds/{slug}/status')
+  Future<AdDto> changeAdStatus({
+    @Path('slug') required String slug,
+    @Path('teamSlug') required String teamSlug,
+    @Body() required StatusChangeRequest body,
   });
 
   /// Restore ad.

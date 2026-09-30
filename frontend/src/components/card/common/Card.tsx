@@ -8,13 +8,27 @@ import classes from './Card.module.css'
 interface CardProps {
   to: string
   children: ReactNode
+  /**
+   * A `⋯` menu (`CardActionsMenu`) pinned to the top-right corner. It is a sibling of the link,
+   * not a child: a button inside an `<a>` is invalid HTML, and its clicks would open the card.
+   */
+  actions?: ReactNode
 }
 
-export function Card({ to, children }: CardProps) {
-  return (
+export function Card({ to, children, actions }: CardProps) {
+  const link = (
     <Paper component={PrefetchLink} to={to} withBorder radius="md" className={classes.card}>
       {children}
     </Paper>
+  )
+  if (!actions) {
+    return link
+  }
+  return (
+    <Box className={classes.withActions}>
+      {link}
+      <Box className={classes.actions}>{actions}</Box>
+    </Box>
   )
 }
 

@@ -9,6 +9,7 @@ import { useRouteListData } from './routeListData'
 import { resolveRouteDensity } from '../../hooks/filters/routeFilters'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
+import { RouteCardActions } from '../../components/card'
 import { ResultCount } from '@/components/common/ResultCount'
 import { RouteDensityToggle } from '@/components/route/RouteDensityToggle'
 import { RouteDeadEnd } from '@/components/route/RouteDeadEnd'
@@ -87,6 +88,7 @@ export function RouteListPage() {
 
         <RouteListContent
           density={density}
+          cardActions={(route) => <RouteCardActions route={route} canManage={canCreateRoute} />}
           deadEnd={
             <RouteDeadEnd
               filters={filters}

@@ -359,6 +359,26 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     return toDto(ride);
   }
 
+  /**
+   * Changes the status alone — groups, route and media stay as they are. Same side effects as a
+   * status change through {@link #updateRide}: a scheduled publication is dropped unless the ride
+   * goes back to draft, and the transition is announced through the notification outbox.
+   */
+  @Transactional
+  @CheckAccess(entityType = EntityType.RIDE, action = ActionType.UPDATE)
+  public RideDto updateStatus(String teamSlug, String rideSlug, Status status) {
+    Team team = teamService.getTeam(teamSlug);
+    Ride ride = findBySlug(team, rideSlug);
+    Status previousStatus = ride.getStatus();
+    ride.setStatus(status);
+    if (status != Status.DRAFT) {
+      ride.setPublishAt(null);
+    }
+    rideRepository.persist(ride);
+    notificationPublisher.publicationStatusChanged(ride, previousStatus, pedalonsContext.getUser());
+    return toDto(ride);
+  }
+
   @Transactional
   @CheckAccess(entityType = EntityType.RIDE, action = ActionType.UPDATE)
   public RideDto updateSlug(String teamSlug, String slug, String newSlug) {

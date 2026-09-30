@@ -25,6 +25,8 @@ interface RouteListContentProps {
   deadEnd?: ReactNode
   emptyAction?: ReactNode
   density?: RouteDensity
+  /** The `⋯` menu of each card — given by a team's own list, which knows the reader's role. */
+  cardActions?: (route: RouteDto) => ReactNode
 }
 
 export function RouteListContent({
@@ -40,6 +42,7 @@ export function RouteListContent({
   deadEnd,
   emptyAction,
   density = 'card',
+  cardActions,
 }: RouteListContentProps) {
   const { t } = useTranslation()
   const { listTopRef, scrollToListTop } = useScrollToListTop()
@@ -82,7 +85,12 @@ export function RouteListContent({
         ) : (
           <SimpleGrid ref={listTopRef} cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
             {routes.map((route) => (
-              <RouteCard key={route.id} route={route} showTeam={showTeam} />
+              <RouteCard
+                key={route.id}
+                route={route}
+                showTeam={showTeam}
+                actions={cardActions?.(route)}
+              />
             ))}
           </SimpleGrid>
         )}

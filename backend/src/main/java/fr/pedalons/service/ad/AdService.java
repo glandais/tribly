@@ -216,6 +216,20 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
     return AdDto.from(ad, assetService);
   }
 
+  /** Changes the status alone. An ad is a draft or published, never cancelled (see verifyAd). */
+  @Transactional
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.UPDATE)
+  public AdDto updateStatus(String teamSlug, String adSlug, Status status) {
+    if (status == Status.CANCELLED) {
+      throw new BusinessException(ErrorCode.STATUS_INVALID);
+    }
+    Team team = teamService.getTeam(teamSlug);
+    Ad ad = findBySlug(team, adSlug);
+    ad.setStatus(status);
+    adRepository.persist(ad);
+    return AdDto.from(ad, assetService);
+  }
+
   @CheckAccess(entityType = EntityType.AD, action = ActionType.UPDATE)
   @Transactional
   public AdDto updateSlug(String teamSlug, String slug, String newSlug) {

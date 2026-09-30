@@ -25,6 +25,7 @@ import type {
   ErrorResponse,
   ListAdsParams,
   SlugChangeRequest,
+  StatusChangeRequest,
 } from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance.ts'
@@ -1090,6 +1091,98 @@ export const useChangeAdSlug = <TError = ErrorType<ErrorResponse>, TContext = un
   TContext
 > => {
   return useMutation(getChangeAdSlugMutationOptions(options), queryClient)
+}
+/**
+ * Change the ad's status and nothing else — what a list row can do without the full ad. Same side effects as a status change through the update. Requires the team admin or the ad's author.
+ * @summary Change ad status
+ */
+export const changeAdStatus = (
+  teamSlug: string,
+  slug: string,
+  statusChangeRequest: BodyType<StatusChangeRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<AdDto>(
+    {
+      url: `/api/teams/${teamSlug}/classifieds/${slug}/status`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: statusChangeRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getChangeAdStatusMutationKey = () => ['changeAdStatus'] as const
+
+export const getChangeAdStatusMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof changeAdStatus>>,
+    TError,
+    ChangeAdStatusMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof changeAdStatus>>,
+  TError,
+  ChangeAdStatusMutationVariables,
+  TContext
+> => {
+  const mutationKey = getChangeAdStatusMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof changeAdStatus>>,
+    ChangeAdStatusMutationVariables
+  > = (props) => {
+    const { teamSlug, slug, data } = props ?? {}
+
+    return changeAdStatus(teamSlug, slug, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ChangeAdStatusMutationResult = NonNullable<Awaited<ReturnType<typeof changeAdStatus>>>
+export type ChangeAdStatusMutationBody = BodyType<StatusChangeRequest>
+export type ChangeAdStatusMutationError = ErrorType<ErrorResponse>
+export type ChangeAdStatusMutationVariables = {
+  teamSlug: string
+  slug: string
+  data: BodyType<StatusChangeRequest>
+}
+
+/**
+ * @summary Change ad status
+ */
+export const useChangeAdStatus = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof changeAdStatus>>,
+      TError,
+      ChangeAdStatusMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof changeAdStatus>>,
+  TError,
+  ChangeAdStatusMutationVariables,
+  TContext
+> => {
+  return useMutation(getChangeAdStatusMutationOptions(options), queryClient)
 }
 /**
  * Restore a soft-deleted ad. Only the creator or an admin can restore.

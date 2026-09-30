@@ -14,7 +14,13 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
-import type { ErrorResponse, PostDto, PostRequest, SlugChangeRequest } from '../../dto'
+import type {
+  ErrorResponse,
+  PostDto,
+  PostRequest,
+  SlugChangeRequest,
+  StatusChangeRequest,
+} from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance.ts'
 import type { ErrorType, BodyType } from '../../../lib/axiosInstance.ts'
@@ -538,6 +544,100 @@ export const useChangePostSlug = <TError = ErrorType<ErrorResponse | void>, TCon
   TContext
 > => {
   return useMutation(getChangePostSlugMutationOptions(options), queryClient)
+}
+/**
+ * Change the post's status and nothing else — what a list row can do without the full post. Same side effects as a status change through the update. Requires organizer permissions.
+ * @summary Change post status
+ */
+export const changePostStatus = (
+  teamSlug: string,
+  postSlug: string,
+  statusChangeRequest: BodyType<StatusChangeRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<PostDto>(
+    {
+      url: `/api/teams/${teamSlug}/posts/${postSlug}/status`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: statusChangeRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getChangePostStatusMutationKey = () => ['changePostStatus'] as const
+
+export const getChangePostStatusMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof changePostStatus>>,
+    TError,
+    ChangePostStatusMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof changePostStatus>>,
+  TError,
+  ChangePostStatusMutationVariables,
+  TContext
+> => {
+  const mutationKey = getChangePostStatusMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof changePostStatus>>,
+    ChangePostStatusMutationVariables
+  > = (props) => {
+    const { teamSlug, postSlug, data } = props ?? {}
+
+    return changePostStatus(teamSlug, postSlug, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ChangePostStatusMutationResult = NonNullable<
+  Awaited<ReturnType<typeof changePostStatus>>
+>
+export type ChangePostStatusMutationBody = BodyType<StatusChangeRequest>
+export type ChangePostStatusMutationError = ErrorType<ErrorResponse>
+export type ChangePostStatusMutationVariables = {
+  teamSlug: string
+  postSlug: string
+  data: BodyType<StatusChangeRequest>
+}
+
+/**
+ * @summary Change post status
+ */
+export const useChangePostStatus = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof changePostStatus>>,
+      TError,
+      ChangePostStatusMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof changePostStatus>>,
+  TError,
+  ChangePostStatusMutationVariables,
+  TContext
+> => {
+  return useMutation(getChangePostStatusMutationOptions(options), queryClient)
 }
 /**
  * Restore a soft-deleted post. Requires organizer permissions.

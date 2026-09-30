@@ -8,6 +8,7 @@ import fr.pedalons.dto.ads.response.AdEditDto;
 import fr.pedalons.dto.ads.response.AdListResponse;
 import fr.pedalons.dto.common.CountResponse;
 import fr.pedalons.dto.common.request.SlugChangeRequest;
+import fr.pedalons.dto.common.request.StatusChangeRequest;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.enums.AdSortBy;
 import fr.pedalons.enums.AdType;
@@ -420,6 +421,47 @@ public class AdResource {
       @Parameter(description = "Ad URL slug") @PathParam("slug") String slug) {
     AdEditDto dto = adService.undeleteAd(teamSlug, slug);
     return Response.ok(dto).build();
+  }
+
+  // ── Status alone, and calendar file (docs/LEDGER_DONE.md WEB-33) ──────────────────────────
+
+  @PATCH
+  @Path("/{slug}/status")
+  @Operation(
+      operationId = "changeAdStatus",
+      summary = "Change ad status",
+      description =
+          "Change the ad's status and nothing else — what a list row can do without the full ad."
+              + " Same side effects as a status change through the update. Requires the team admin"
+              + " or the ad's author.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Status changed",
+        content = @Content(schema = @Schema(implementation = AdDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid status — an ad is never CANCELLED",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not authorized to change this ad's status",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or ad not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response changeStatus(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Ad URL slug") @PathParam("slug") String slug,
+      @Valid StatusChangeRequest request) {
+    AdDto ad = adService.updateStatus(teamSlug, slug, request.status());
+    return Response.ok(ad).build();
   }
 
   @PATCH

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { IconCalendar, IconMapPin, IconCurrencyEuro } from '@tabler/icons-react'
 import { Group, Box, Stack } from '@mantine/core'
@@ -10,9 +11,11 @@ import { AdDto, AdType, RentalPeriod } from '@/api/dto'
 
 interface AdCardProps {
   ad: AdDto
+  /** The `⋯` menu (`AdCardActions`). */
+  actions?: ReactNode
 }
 
-export function AdCard({ ad }: AdCardProps) {
+export function AdCard({ ad, actions }: AdCardProps) {
   const { t } = useTranslation()
 
   const formatPrice = (price: number | undefined, adType: AdType, rentalPeriod?: RentalPeriod) => {
@@ -34,7 +37,7 @@ export function AdCard({ ad }: AdCardProps) {
   }
 
   return (
-    <Card to={paths.ad(ad.team.slug, ad.slug)}>
+    <Card to={paths.ad(ad.team.slug, ad.slug)} actions={actions}>
       {/* Header image. `thumbnailUrl` is the ad's first picture, computed server-side, and is
           present whatever the list `view` — `media.assets` is trimmed in COMPACT. */}
       <CardImage

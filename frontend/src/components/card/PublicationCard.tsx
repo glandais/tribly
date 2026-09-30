@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   IconCalendar,
@@ -28,9 +29,14 @@ import type { PublicationDto, RideDto, TripDto } from '@/api/dto'
 interface PublicationCardProps {
   publication: PublicationDto
   showTeam: boolean
+  /**
+   * The `⋯` menu (`PublicationCardActions`), given by a list that knows the reader's role in the
+   * team — a team's own feed. Left out, the card has no actions.
+   */
+  actions?: ReactNode
 }
 
-export function PublicationCard({ publication, showTeam }: PublicationCardProps) {
+export function PublicationCard({ publication, showTeam, actions }: PublicationCardProps) {
   const { t } = useTranslation()
   // Read the server-computed flag — never recompute registration client-side.
   const isRegistered =
@@ -160,7 +166,7 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
   const headerImageUrl = publication.type === 'POST' ? publication.thumbnailUrl : undefined
 
   return (
-    <Card to={getPublicationPath()}>
+    <Card to={getPublicationPath()} actions={actions}>
       {/* Featured image with fallback chain */}
       <CardImage
         media={publication.media}

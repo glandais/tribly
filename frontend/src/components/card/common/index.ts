@@ -5,4 +5,4 @@ export { Badge, TypeBadge, StatusBadge, RoleBadge, SurfaceBadge, DeletedBadge } 
 export { VisibilityBadge } from './VisibilityBadge'
 export { Stat, StatGroup } from './Stat'
 export { CardSkeleton } from './CardSkeleton'
-export { CardAction } from './CardAction'
+export { CardActionsMenu } from './CardActionsMenu'

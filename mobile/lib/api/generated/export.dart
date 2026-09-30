@@ -233,6 +233,7 @@ export 'models/slug_change_request.dart';
 export 'models/sort_direction.dart';
 export 'models/stage_request.dart';
 export 'models/status.dart';
+export 'models/status_change_request.dart';
 export 'models/surface_type.dart';
 export 'models/team_detail_dto.dart';
 export 'models/team_invitation_dto.dart';

@@ -19,6 +19,7 @@ import type {
   GetTripParticipantsParams,
   ParticipantListResponse,
   SlugChangeRequest,
+  StatusChangeRequest,
   TripDto,
   TripParticipationDto,
   TripRequest,
@@ -456,6 +457,157 @@ export const useDeleteTrip = <TError = ErrorType<ErrorResponse>, TContext = unkn
   return useMutation(getDeleteTripMutationOptions(options), queryClient)
 }
 /**
+ * One all-day VEVENT per stage, to add the trip on its own to a calendar. Readable by whoever may read the trip; no calendar token.
+ * @summary Download trip as a calendar file
+ */
+export const downloadTripIcs = (
+  teamSlug: string,
+  tripSlug: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<string>(
+    { url: `/api/teams/${teamSlug}/trips/${tripSlug}/ics`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getDownloadTripIcsQueryKey = (teamSlug: string, tripSlug: string) => {
+  return [`/api/teams/${teamSlug}/trips/${tripSlug}/ics`] as const
+}
+
+export const getDownloadTripIcsQueryOptions = <
+  TData = Awaited<ReturnType<typeof downloadTripIcs>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  tripSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTripIcs>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getDownloadTripIcsQueryKey(teamSlug, tripSlug)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadTripIcs>>> = ({ signal }) =>
+    downloadTripIcs(teamSlug, tripSlug, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && tripSlug !== null && tripSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof downloadTripIcs>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type DownloadTripIcsQueryResult = NonNullable<Awaited<ReturnType<typeof downloadTripIcs>>>
+export type DownloadTripIcsQueryError = ErrorType<ErrorResponse>
+
+export function useDownloadTripIcs<
+  TData = Awaited<ReturnType<typeof downloadTripIcs>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  tripSlug: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTripIcs>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadTripIcs>>,
+          TError,
+          Awaited<ReturnType<typeof downloadTripIcs>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadTripIcs<
+  TData = Awaited<ReturnType<typeof downloadTripIcs>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  tripSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTripIcs>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadTripIcs>>,
+          TError,
+          Awaited<ReturnType<typeof downloadTripIcs>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadTripIcs<
+  TData = Awaited<ReturnType<typeof downloadTripIcs>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  tripSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTripIcs>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download trip as a calendar file
+ */
+
+export function useDownloadTripIcs<
+  TData = Awaited<ReturnType<typeof downloadTripIcs>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  tripSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTripIcs>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getDownloadTripIcsQueryOptions(teamSlug, tripSlug, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Download trip as a calendar file
+ */
+export const prefetchDownloadTripIcsQuery = async <
+  TData = Awaited<ReturnType<typeof downloadTripIcs>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  tripSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTripIcs>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getDownloadTripIcsQueryOptions(teamSlug, tripSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
  * Join a trip as a participant
  * @summary Join trip
  */
@@ -880,6 +1032,100 @@ export const useChangeTripSlug = <TError = ErrorType<ErrorResponse>, TContext = 
   TContext
 > => {
   return useMutation(getChangeTripSlugMutationOptions(options), queryClient)
+}
+/**
+ * Change the trip's status and nothing else — what a list row can do without the full trip. Same side effects as a status change through the update. Requires organizer permissions. The stages follow the trip.
+ * @summary Change trip status
+ */
+export const changeTripStatus = (
+  teamSlug: string,
+  tripSlug: string,
+  statusChangeRequest: BodyType<StatusChangeRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<TripDto>(
+    {
+      url: `/api/teams/${teamSlug}/trips/${tripSlug}/status`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: statusChangeRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getChangeTripStatusMutationKey = () => ['changeTripStatus'] as const
+
+export const getChangeTripStatusMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof changeTripStatus>>,
+    TError,
+    ChangeTripStatusMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof changeTripStatus>>,
+  TError,
+  ChangeTripStatusMutationVariables,
+  TContext
+> => {
+  const mutationKey = getChangeTripStatusMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof changeTripStatus>>,
+    ChangeTripStatusMutationVariables
+  > = (props) => {
+    const { teamSlug, tripSlug, data } = props ?? {}
+
+    return changeTripStatus(teamSlug, tripSlug, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ChangeTripStatusMutationResult = NonNullable<
+  Awaited<ReturnType<typeof changeTripStatus>>
+>
+export type ChangeTripStatusMutationBody = BodyType<StatusChangeRequest>
+export type ChangeTripStatusMutationError = ErrorType<ErrorResponse>
+export type ChangeTripStatusMutationVariables = {
+  teamSlug: string
+  tripSlug: string
+  data: BodyType<StatusChangeRequest>
+}
+
+/**
+ * @summary Change trip status
+ */
+export const useChangeTripStatus = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof changeTripStatus>>,
+      TError,
+      ChangeTripStatusMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof changeTripStatus>>,
+  TError,
+  ChangeTripStatusMutationVariables,
+  TContext
+> => {
+  return useMutation(getChangeTripStatusMutationOptions(options), queryClient)
 }
 /**
  * Restore a soft-deleted trip. Requires organizer permissions.

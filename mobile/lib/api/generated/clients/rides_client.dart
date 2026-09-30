@@ -11,6 +11,7 @@ import '../models/ride_dto.dart';
 import '../models/ride_participation_dto.dart';
 import '../models/ride_request.dart';
 import '../models/slug_change_request.dart';
+import '../models/status_change_request.dart';
 
 part 'rides_client.g.dart';
 
@@ -105,6 +106,19 @@ abstract class RidesClient {
     @Path('teamSlug') required String teamSlug,
   });
 
+  /// Download ride as a calendar file.
+  ///
+  /// One VEVENT for the ride, to add it on its own to a calendar. Readable by whoever may read the ride; no calendar token.
+  ///
+  /// [rideSlug] - Ride URL slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  @GET('/api/teams/{teamSlug}/rides/{rideSlug}/ics')
+  Future<String> downloadRideIcs({
+    @Path('rideSlug') required String rideSlug,
+    @Path('teamSlug') required String teamSlug,
+  });
+
   /// List ride participants.
   ///
   /// One page of the people registered to the ride, or to one of its groups, earliest registrations first, searchable by display name. The ride detail only embeds the first few; this is the whole list, with its total. Readable by whoever may read the ride.
@@ -144,6 +158,22 @@ abstract class RidesClient {
     @Path('rideSlug') required String rideSlug,
     @Path('teamSlug') required String teamSlug,
     @Body() required SlugChangeRequest body,
+  });
+
+  /// Change ride status.
+  ///
+  /// Change the ride's status and nothing else — what a list row can do without the full ride. Same side effects as a status change through the update. Requires organizer permissions.
+  ///
+  /// [rideSlug] - Ride URL slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @PATCH('/api/teams/{teamSlug}/rides/{rideSlug}/status')
+  Future<RideDto> changeRideStatus({
+    @Path('rideSlug') required String rideSlug,
+    @Path('teamSlug') required String teamSlug,
+    @Body() required StatusChangeRequest body,
   });
 
   /// Restore ride.

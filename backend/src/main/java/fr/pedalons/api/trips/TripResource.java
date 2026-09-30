@@ -1,11 +1,13 @@
 package fr.pedalons.api.trips;
 
 import fr.pedalons.dto.common.request.SlugChangeRequest;
+import fr.pedalons.dto.common.request.StatusChangeRequest;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.trips.request.TripRequest;
 import fr.pedalons.dto.trips.response.TripDto;
 import fr.pedalons.dto.trips.response.TripParticipationDto;
 import fr.pedalons.dto.users.response.ParticipantListResponse;
+import fr.pedalons.service.calendar.PublicationIcsService;
 import fr.pedalons.service.trip.TripService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -16,6 +18,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
@@ -31,6 +34,7 @@ import org.jspecify.annotations.Nullable;
 public class TripResource {
 
   @Inject TripService tripService;
+  @Inject PublicationIcsService publicationIcsService;
 
   @POST
   @Operation(summary = "Create trip", description = "Create a new trip with optional stages")
@@ -277,6 +281,79 @@ public class TripResource {
     tripService.leaveTrip(teamSlug, tripSlug);
 
     return Response.noContent().build();
+  }
+
+  // ── Status alone, and calendar file (docs/LEDGER_DONE.md WEB-33) ──────────────────────────
+
+  @PATCH
+  @Path("/{tripSlug}/status")
+  @Operation(
+      operationId = "changeTripStatus",
+      summary = "Change trip status",
+      description =
+          "Change the trip's status and nothing else — what a list row can do without the full"
+              + " trip. Same side effects as a status change through the update. Requires organizer"
+              + " permissions. The stages follow the trip.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Status changed",
+        content = @Content(schema = @Schema(implementation = TripDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid status",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not authorized to change this trip's status",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or trip not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @RolesAllowed("user")
+  public Response changeStatus(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Trip URL slug") @PathParam("tripSlug") String slug,
+      @Valid StatusChangeRequest request) {
+    TripDto trip = tripService.updateStatus(teamSlug, slug, request.status());
+    return Response.ok(trip).build();
+  }
+
+  @GET
+  @Path("/{tripSlug}/ics")
+  @Produces("text/calendar")
+  @Operation(
+      operationId = "downloadTripIcs",
+      summary = "Download trip as a calendar file",
+      description =
+          "One all-day VEVENT per stage, to add the trip on its own to a calendar. Readable by"
+              + " whoever may read the trip; no calendar token.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "iCalendar file",
+        content =
+            @Content(mediaType = "text/calendar", schema = @Schema(type = SchemaType.STRING))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or trip not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @PermitAll
+  public Response downloadTripIcs(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Trip URL slug") @PathParam("tripSlug") String slug) {
+    String ics = publicationIcsService.tripIcs(teamSlug, slug);
+    return Response.ok(ics)
+        .type("text/calendar; charset=utf-8")
+        .header("Content-Disposition", "attachment; filename=\"" + slug + ".ics\"")
+        .build();
   }
 
   @PATCH
