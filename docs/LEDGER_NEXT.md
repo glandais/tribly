@@ -184,12 +184,6 @@ navigateur), la connexion par code e-mailé et une préférence de fuseau.
 - [ ] `MOB-37` **Les tests Patrol ne tournent qu'en local** — aucun workflow de `.github/` ne les
       lance : `ci.yml` ne passe que les tests unitaires. Il faudrait un runner macOS (simulateur) ou un
       émulateur Android, plus la stack e2e (`scripts/e2e.sh up`) dans le job. Pendant web : `AUD-3`.
-- [ ] `MOB-38` **Un jeton d'accès expiré, de bout en bout** — 08aa46ef fait rafraîchir le jeton aux
-      appels authentifiés sous `/api/auth/` (`getMe`, gestion des clés d'accès, `logout-all`) ; ses
-      tests unitaires vérifient la table des chemins, pas le cycle 401 → refresh → nouvel essai, que
-      l'intercepteur fait sur une instance `Dio` qu'un test ne peut pas intercepter. Un test Patrol
-      ouvrirait l'app avec un jeton d'accès invalide dans la session stockée (`openAppSignedIn`) et
-      vérifierait que le profil charge et que « Déconnecter tous les appareils » aboutit. (S)
 
 ---
 
