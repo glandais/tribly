@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
+import 'package:pedalons/api/pedalons_api_client.dart';
 import 'package:pedalons/app.dart';
 import 'package:pedalons/features/auth/data/secure_storage.dart';
 import 'package:pedalons/features/notifications/providers/push_provider.dart';
@@ -95,6 +96,19 @@ Future<void> openLink(PatrolIntegrationTester $, String path) async {
   container.read(pendingPushRouteProvider.notifier).state = path;
   await $.pump();
 }
+
+/// The access token the running app sends — the one its authentication interceptor reads.
+String? currentAccessToken(PatrolIntegrationTester $) =>
+    _container($).read(accessTokenHolderProvider);
+
+/// Swaps the running app's access token for [token], as if it had expired while the app sat open:
+/// the refresh token in the keychain is left alone, so the next 401 can be recovered from.
+void replaceAccessToken(PatrolIntegrationTester $, String token) {
+  _container($).read(accessTokenHolderProvider.notifier).state = token;
+}
+
+ProviderContainer _container(PatrolIntegrationTester $) =>
+    ProviderScope.containerOf($.tester.element(find.byType(PedalonsApp)));
 
 /// Polls [read] until it returns a value [until] accepts, and returns that value.
 ///
