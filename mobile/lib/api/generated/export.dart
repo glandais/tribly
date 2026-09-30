@@ -186,6 +186,7 @@ export 'models/publication_dto.dart';
 export 'models/publication_list_response.dart';
 export 'models/publication_type.dart';
 export 'models/push_device_registration.dart';
+export 'models/push_device_unregistration.dart';
 export 'models/push_platform.dart';
 export 'models/register_request.dart';
 export 'models/rental_period.dart';

@@ -235,6 +235,8 @@ live in the host's Caddy configuration, outside this repository:
 				replace token REDACTED
 				replace code REDACTED
 				replace state REDACTED
+				# A path to come back to after signing in — it can hold a token (an export link).
+				replace next REDACTED
 				delete lat
 				delete lon
 				delete nearLat
@@ -242,6 +244,8 @@ live in the host's Caddy configuration, outside this repository:
 			}
 			# A redirect's Location repeats the raw query string, filter or not.
 			resp_headers>Location delete
+			# So does the Referer of every asset a page loads: the page's full URL, query and all.
+			request>headers>Referer delete
 		}
 	}
 }
@@ -269,6 +273,10 @@ Three traps, each met on the first install (29 September 2026):
   the redirect sees the same query string.
 - **`resp_headers>Location`**: without its `delete`, the redirect's log line carries
   `?lat=…&t=…` in clear in the `Location` header, next to a correctly filtered `uri`.
+- **`next` and `Referer`** (ledger `OPS-24`): a data-export link opened without a session is sent
+  to `/login?next=/api/export/download?token=…`, so the token rides in `next`, which no `replace`
+  named; and the login page's assets then carry that whole URL as their `Referer`. A token must
+  never be in a URL path (ledger `API-45`): a query parameter is the only place this filter reaches.
 - **`caddy validate` run as root creates the log files as `root:root 0600`**, which Caddy (user
   `caddy`) then cannot open on reload. After any `validate`, `chown caddy:caddy` the **files**, not
   just `/var/log/caddy`.

@@ -10,8 +10,10 @@ import fr.pedalons.dto.notifications.request.PushDeviceRegistration;
 import fr.pedalons.enums.PushPlatform;
 import fr.pedalons.util.PushDeviceTestData;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -56,8 +58,10 @@ class PushDeviceResourceTest extends AbstractResourceTest {
     given()
         .auth()
         .oauth2(getAccessToken(USER1))
+        .contentType(ContentType.JSON)
+        .body(Map.of("token", TOKEN))
         .when()
-        .delete("/api/push-devices/" + TOKEN)
+        .post("/api/push-devices/unregister")
         .then()
         .statusCode(204);
 
@@ -96,12 +100,46 @@ class PushDeviceResourceTest extends AbstractResourceTest {
     given()
         .auth()
         .oauth2(getAccessToken(USER2))
+        .contentType(ContentType.JSON)
+        .body(Map.of("token", TOKEN))
+        .when()
+        .post("/api/push-devices/unregister")
+        .then()
+        .statusCode(204);
+
+    assertEquals(1, devices.of(user1).size());
+  }
+
+  /**
+   * The former form, the token in the path, still works for the app builds already installed
+   * (docs/LEDGER_*.md API-45; API-56 removes it).
+   */
+  @Test
+  void unregisteringThroughTheDeprecatedPath_stillWorks() {
+    register(USER1, registration(TOKEN, "Pixel 8a"), 204);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
         .when()
         .delete("/api/push-devices/" + TOKEN)
         .then()
         .statusCode(204);
 
-    assertEquals(1, devices.of(user1).size());
+    assertTrue(devices.of(user1).isEmpty());
+  }
+
+  @Test
+  void unregisteringABlankToken_isRejected() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType(ContentType.JSON)
+        .body(Map.of("token", " "))
+        .when()
+        .post("/api/push-devices/unregister")
+        .then()
+        .statusCode(400);
   }
 
   @Test

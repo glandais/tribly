@@ -1,5 +1,6 @@
 package fr.pedalons.api.users;
 
+import fr.pedalons.common.exception.NotFoundException;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.users.response.DownloadableExport;
 import fr.pedalons.service.user.UserExportService;
@@ -9,6 +10,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -18,6 +20,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Download endpoint for a completed GDPR data export.
@@ -34,7 +37,7 @@ public class UserExportDownloadResource {
   @Inject UserExportService userExportService;
 
   @GET
-  @Path("/download/{token}")
+  @Path("/download")
   @PermitAll
   @Produces("application/zip")
   @Operation(
@@ -42,7 +45,8 @@ public class UserExportDownloadResource {
       summary = "Download a personal data export",
       description =
           "Download a prepared data export archive using the token from the notification email."
-              + " Only its owner, signed in, may download it.")
+              + " Only its owner, signed in, may download it. The token is a query parameter,"
+              + " which the access log masks; a path segment would be logged in clear.")
   @APIResponses({
     @APIResponse(responseCode = "200", description = "The export archive"),
     @APIResponse(responseCode = "303", description = "No session: sent to sign in first"),
@@ -53,8 +57,46 @@ public class UserExportDownloadResource {
   })
   public Response download(
       @Parameter(description = "Download token from the notification email", required = true)
+          @QueryParam("token")
+          @Nullable String token) {
+    if (token == null || token.isBlank()) {
+      throw new NotFoundException();
+    }
+    return serve(token);
+  }
+
+  /**
+   * The former link, the token in the path — hence in the access log. Kept for the links already
+   * emailed, valid 7 days; to remove after that (docs/LEDGER_*.md API-45, API-56).
+   */
+  @GET
+  @Path("/download/{token}")
+  @PermitAll
+  @Produces("application/zip")
+  @Deprecated
+  @Operation(
+      operationId = "downloadDataExportByPath",
+      deprecated = true,
+      summary = "Download a personal data export (deprecated)",
+      description =
+          "Deprecated: puts the token in the URL path, which the access log records. Use GET"
+              + " /api/export/download?token=.")
+  @APIResponses({
+    @APIResponse(responseCode = "200", description = "The export archive"),
+    @APIResponse(responseCode = "303", description = "No session: sent to sign in first"),
+    @APIResponse(
+        responseCode = "404",
+        description = "Unknown, expired or already-purged export",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response downloadByPath(
+      @Parameter(description = "Download token from the notification email", required = true)
           @PathParam("token")
           String token) {
+    return serve(token);
+  }
+
+  private Response serve(String token) {
     URI signIn = userExportService.signInFirst(token);
     if (signIn != null) {
       return Response.seeOther(signIn).build();

@@ -10,6 +10,7 @@ import '../models/notification_list_response.dart';
 import '../models/notification_preferences_dto.dart';
 import '../models/notification_preferences_request.dart';
 import '../models/push_device_registration.dart';
+import '../models/push_device_unregistration.dart';
 import '../models/unread_count_dto.dart';
 
 part 'notifications_client.g.dart';
@@ -81,11 +82,22 @@ abstract class NotificationsClient {
 
   /// Stop sending push notifications to a device.
   ///
-  /// Called on sign-out. Idempotent, and silent about tokens that are not the caller's.
+  /// Called on sign-out. Idempotent, and silent about tokens that are not the caller's. The token is in the body so that it never reaches the access log.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/push-devices/unregister')
+  Future<void> unregisterPushDevice({
+    @Body() required PushDeviceUnregistration body,
+  });
+
+  /// Stop sending push notifications to a device (deprecated).
+  ///
+  /// Deprecated: puts the token in the URL, which the access log records. Use POST /api/push-devices/unregister.
   ///
   /// [token] - The FCM registration token to drop.
+  @Deprecated('This method is marked as deprecated')
   @DELETE('/api/push-devices/{token}')
-  Future<void> unregisterPushDevice({
+  Future<void> unregisterPushDeviceByPath({
     @Path('token') required String token,
   });
 }

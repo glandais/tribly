@@ -109,7 +109,7 @@ class UserExportServiceTest extends AbstractBaseTest {
     String body = messages.getFirst().getText();
     assertNotNull(body);
     assertTrue(
-        body.contains(domain.getBaseUrl() + "/api/export/download/"),
+        body.contains(domain.getBaseUrl() + "/api/export/download?token="),
         "email should carry a download link built from the snapshotted base URL, was: " + body);
   }
 
@@ -238,7 +238,8 @@ class UserExportServiceTest extends AbstractBaseTest {
   private static String extractToken(List<io.vertx.ext.mail.MailMessage> messages) {
     String body = messages.getFirst().getText();
     assertNotNull(body);
-    int start = body.indexOf("/api/export/download/") + "/api/export/download/".length();
+    int start =
+        body.indexOf("/api/export/download?token=") + "/api/export/download?token=".length();
     int end = start;
     while (end < body.length() && !Character.isWhitespace(body.charAt(end))) {
       end++;

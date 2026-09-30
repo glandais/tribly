@@ -2,6 +2,7 @@ package fr.pedalons.api.notifications;
 
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.notifications.request.PushDeviceRegistration;
+import fr.pedalons.dto.notifications.request.PushDeviceUnregistration;
 import fr.pedalons.service.notification.PushDeviceService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -56,13 +57,44 @@ public class PushDeviceResource {
     return Response.noContent().build();
   }
 
-  @DELETE
-  @Path("/{token}")
+  @POST
+  @Path("/unregister")
   @Operation(
       operationId = "unregisterPushDevice",
       summary = "Stop sending push notifications to a device",
       description =
-          "Called on sign-out. Idempotent, and silent about tokens that are not the caller's.")
+          "Called on sign-out. Idempotent, and silent about tokens that are not the caller's. The"
+              + " token is in the body so that it never reaches the access log.")
+  @APIResponses({
+    @APIResponse(responseCode = "204", description = "Device unregistered"),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid request",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response unregister(@Valid PushDeviceUnregistration unregistration) {
+    pushDeviceService.unregister(unregistration.token());
+    return Response.noContent().build();
+  }
+
+  /**
+   * The former form, the token in the path — hence in the access log. Kept for the app builds
+   * already installed; to remove once none calls it (docs/LEDGER_*.md API-45, API-56).
+   */
+  @DELETE
+  @Path("/{token}")
+  @Deprecated
+  @Operation(
+      operationId = "unregisterPushDeviceByPath",
+      deprecated = true,
+      summary = "Stop sending push notifications to a device (deprecated)",
+      description =
+          "Deprecated: puts the token in the URL, which the access log records. Use POST"
+              + " /api/push-devices/unregister.")
   @APIResponses({
     @APIResponse(responseCode = "204", description = "Device unregistered"),
     @APIResponse(
@@ -70,7 +102,7 @@ public class PushDeviceResource {
         description = "Unauthorized",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
-  public Response unregister(
+  public Response unregisterByPath(
       @Parameter(description = "The FCM registration token to drop") @PathParam("token")
           String token) {
     pushDeviceService.unregister(token);

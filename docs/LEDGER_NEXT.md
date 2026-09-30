@@ -9,7 +9,7 @@ portage web livré à trois tâches près, et tenu à jour depuis (dernière rel
 Rien ici ne bloque quoi que ce soit. C'est la propriété qui compte : la v2 est livrable en l'état,
 et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de réparer une panne.
 
-**Contrat d'API au 30 septembre 2026 : `6.3.0`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au 30 septembre 2026 : `6.5.0`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
 
@@ -367,13 +367,12 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       émettre `<time>` quand l'instant est `EPOCH` donnerait des fichiers plus propres. Changement de
       bibliothèque, pas de Pédalons ; `GpxSanitizationBackfill.isDirty` accepte déjà l'absence de
       `<time>`. Taille : S.
-- [ ] `API-45` **Des jetons dans le chemin d'URL finissent dans le journal d'accès** — le masquage
-      de `LEGAL-10` ne porte que sur les paramètres de requête : `DELETE
-      /api/push-devices/{token}` (jeton FCM) et le téléchargement d'export
-      (`UserExportDownloadResource`, `/{token}`, valable 7 jours) restent en clair pendant 14 jours.
-      Passer le jeton FCM dans un corps, l'autre en paramètre (masqué) ou en en-tête
-      ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #25). Taille : S, mais
-      l'export touche le contrat.
+- [ ] `API-56` **Retirer les deux formes dépréciées de `API-45`** — `DELETE
+      /api/push-devices/{token}` (`unregisterPushDeviceByPath`) et `GET
+      /api/export/download/{token}` (`downloadDataExportByPath`) restent servies, jetons dans le
+      chemin donc dans le journal d'accès, pour les builds mobiles installés et les liens d'export
+      déjà envoyés. À retirer (contrat **majeur**) quand les liens envoyés avant le déploiement de
+      6.5.0 ont expiré (7 jours) **et** que le mobile a été republié. Taille : XS.
 
 ---
 
@@ -446,6 +445,14 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       frontend SSR (ni métriques Node ni temps de rendu : seul Caddy le voit, par hôte), et les
       erreurs côté client web et mobile (un GlitchTip, compatible Sentry, pèserait une base et un
       Redis de plus : à ne faire que si le besoin se confirme). Taille : M.
+- [ ] `OPS-24` **Masquer `next` et `Referer` dans le journal de Caddy** — le snippet
+      `pedalons_access_log` d'[`OPERATIONS.md`](OPERATIONS.md#access-logs) a gagné
+      `replace next REDACTED` et `request>headers>Referer delete` (`API-45`) : un lien d'export
+      ouvert sans session renvoie vers `/login?next=/api/export/download?token=…`, et les
+      ressources de cette page repartent avec l'URL entière en `Referer`. Reste à l'appliquer au
+      Caddyfile de l'hôte, puis `caddy validate` et `chown caddy:caddy` des fichiers de journal
+      (le piège décrit sous le snippet) ; vérifier par un `curl …/login?next=/x?token=abc -H
+      'Referer: https://…?token=abc'` que la ligne ne porte ni l'un ni l'autre. Taille : XS.
 - [ ] `OPS-23` **Les alertes partent par le relais de l'application** — `ALERT_SMTP_*` (`.env` de
       `~/shared`) pointe sur Scaleway TEM, comme `QUARKUS_MAILER_*` : une panne de TEM, ou un
       compte suspendu, tairait les alertes qui devraient la signaler. Le `Watchdog`, qui passe par

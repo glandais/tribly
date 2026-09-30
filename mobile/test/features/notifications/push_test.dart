@@ -267,7 +267,7 @@ void main() {
 
     await controller.onAuthChanged(false);
 
-    // C'est `AuthNotifier` qui appelle `DELETE /api/push-devices/{token}`
+    // C'est `AuthNotifier` qui appelle `POST /api/push-devices/unregister`
     // avant d'effacer la session ; ici, seul l'état côté app est vérifié.
     expect(container.read(registeredPushTokenProvider), isNull);
   });

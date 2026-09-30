@@ -119,7 +119,7 @@ async function register(config: WebPushConfigDto): Promise<void> {
   const previous = storedToken()
   if (previous && previous !== token) {
     // The token rotated: drop the old row rather than wait for FCM to reject it.
-    await unregisterPushDevice(previous).catch(() => undefined)
+    await unregisterPushDevice({ token: previous }).catch(() => undefined)
   }
   await registerPushDevice({ token, platform: PushPlatform.WEB, deviceName: deviceName() })
   storeToken(token)
@@ -155,7 +155,7 @@ export async function disableWebPush(): Promise<void> {
   const token = storedToken()
   if (!token) return
   storeToken(null)
-  await unregisterPushDevice(token).catch(() => undefined)
+  await unregisterPushDevice({ token }).catch(() => undefined)
   try {
     const registration = await navigator.serviceWorker?.getRegistration('/')
     const subscription = await registration?.pushManager.getSubscription()

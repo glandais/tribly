@@ -32,7 +32,7 @@ public class UserExportEmailService {
         Map.of(
             "displayName", ctx.displayName(),
             "appName", ctx.siteName(),
-            "downloadUrl", ctx.baseUrl() + "/api/export/download/" + token,
+            "downloadUrl", ctx.baseUrl() + UserExportService.downloadPath(token),
             "expiresAt", EXPIRY_FORMAT.format(expiresAt),
             "fileSize", humanReadable(sizeBytes)));
   }
