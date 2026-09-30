@@ -9,8 +9,21 @@ import java.util.Optional;
 @ApplicationScoped
 public class PasskeyRepository implements PanacheRepository<Passkey> {
 
-  public Optional<Passkey> findByCredentialId(byte[] credentialId) {
-    return find("credentialId = ?1", (Object) credentialId).firstResultOptional();
+  /**
+   * The passkey a sign-in on this site presents. A credential registered by an account of another
+   * site is not found at all (audit M8, docs/LEDGER_*.md SEC-25).
+   */
+  public Optional<Passkey> findByCredentialIdAndDomain(byte[] credentialId, Long domainId) {
+    return find("credentialId = ?1 and user.domain.id = ?2", credentialId, domainId)
+        .firstResultOptional();
+  }
+
+  /**
+   * Whether any account, on any site, already holds this credential: the column is unique across
+   * the whole table, so a registration must look everywhere before inserting.
+   */
+  public boolean existsByCredentialId(byte[] credentialId) {
+    return count("credentialId = ?1", (Object) credentialId) > 0;
   }
 
   public List<Passkey> findByUserId(Long userId) {

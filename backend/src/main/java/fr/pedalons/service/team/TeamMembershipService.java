@@ -167,7 +167,7 @@ public class TeamMembershipService {
     TeamRole teamRole = context.teamRole();
     User targetUser =
         userRepository
-            .findActiveById(targetUserId)
+            .findActiveByIdAndDomain(pedalonsContext.getDomainId(), targetUserId)
             .orElseThrow(() -> new NotFoundException(EntityType.USER, targetUserId));
     requireCanRemoveMember(actingUser, teamRole, targetUser);
 

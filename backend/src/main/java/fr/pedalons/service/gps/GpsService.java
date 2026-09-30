@@ -129,12 +129,12 @@ public class GpsService {
       authUrl = client.getAuthorizationUrl(state, redirectUri);
     }
 
+    Long domainId = pedalonsContext.getDomainId();
+
     User user =
         userRepository
-            .findActiveById(userId)
+            .findActiveByIdAndDomain(domainId, userId)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-    Long domainId = pedalonsContext.getDomainId();
 
     oauthStateRepository.persist(
         new GpsOAuthState(
@@ -189,7 +189,7 @@ public class GpsService {
     // Get user from stored userId (user is not authenticated during callback)
     User user =
         userRepository
-            .findActiveById(userId)
+            .findActiveByIdAndDomain(currentDomainId, userId)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
     // Create or update connection

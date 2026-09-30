@@ -169,7 +169,9 @@ components:
             \ address. Enough to tell a nearby ad from a distant one, and the same\
             \ value on every read so repeated calls cannot be averaged back to the\
             \ exact position. Null when the ad has no location. The exact point stays\
-            \ on AdEditDto, which only the owner reads."
+            \ on AdEditDto, which only the seller and the team's admins can read.\
+            \ Proximity filters measure from this blurred point too, never from the\
+            \ exact one."
           type: object
           required:
           - type
@@ -16215,7 +16217,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 8.0.0
+  version: 8.0.1
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

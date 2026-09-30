@@ -59,21 +59,21 @@ class UserRepositoryTest extends AbstractBaseTest {
   }
 
   @Test
-  void findActiveById_shouldReturnUser() {
+  void findActiveByIdOnAnyDomain_shouldReturnUser() {
     User user = dataService.createUser("active@example.com", "Active User");
 
-    Optional<User> result = userRepository.findActiveById(user.getId());
+    Optional<User> result = userRepository.findActiveByIdOnAnyDomain(user.getId());
 
     assertTrue(result.isPresent());
     assertEquals(user.getId(), result.get().getId());
   }
 
   @Test
-  void findActiveById_shouldReturnEmptyForDeletedUser() {
+  void findActiveByIdOnAnyDomain_shouldReturnEmptyForDeletedUser() {
     User user = dataService.createUser("inactive@example.com", "Inactive User");
     dataService.deleteUser(user);
 
-    Optional<User> result = userRepository.findActiveById(user.getId());
+    Optional<User> result = userRepository.findActiveByIdOnAnyDomain(user.getId());
 
     assertTrue(result.isEmpty());
   }
@@ -87,6 +87,17 @@ class UserRepositoryTest extends AbstractBaseTest {
     assertTrue(result.isPresent());
     assertEquals(user.getId(), result.get().getId());
     assertEquals("Active User", result.get().getDisplayName());
+  }
+
+  @Test
+  void findActiveByIdAndDomain_shouldNotReachAnotherSitesAccount() {
+    Domain otherDomain =
+        dataService.createDomain("other.example.com", "Other", "https://other.example.com");
+    User elsewhere = dataService.createUser(otherDomain, "active@example.com", "Elsewhere");
+
+    assertTrue(userRepository.findActiveByIdAndDomain(domain.getId(), elsewhere.getId()).isEmpty());
+    assertTrue(
+        userRepository.findActiveByIdAndDomain(otherDomain.getId(), elsewhere.getId()).isPresent());
   }
 
   @Test

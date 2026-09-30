@@ -35,7 +35,7 @@ mixin _$AdDto {
  String? get thumbnailUrl;/// Price
  num? get price;/// Period the price applies to, for a rental — render as 'price / period'. Null for a sale, and for a rental whose period has not been set.
  String? get rentalPeriod;/// Location description
- String? get locationDescription;/// Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the owner reads.
+ String? get locationDescription;/// Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the seller and the team's admins can read. Proximity filters measure from this blurred point too, never from the exact one.
  AdDtoLocationGeometry? get locationGeometry;
 /// Create a copy of AdDto
 /// with the given fields replaced by the non-null parameter values.
@@ -332,7 +332,7 @@ class _AdDto implements AdDto {
 @override final  String? rentalPeriod;
 /// Location description
 @override final  String? locationDescription;
-/// Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the owner reads.
+/// Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the seller and the team's admins can read. Proximity filters measure from this blurred point too, never from the exact one.
 @override final  AdDtoLocationGeometry? locationGeometry;
 
 /// Create a copy of AdDto

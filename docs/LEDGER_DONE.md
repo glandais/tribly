@@ -1154,7 +1154,7 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
 Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md).
 
 - `SEC-8` **Le filtre de proximité des annonces mesure depuis la position floutée : M2**
-  (2026-09-30, contrat : description d'`AdDto.locationGeometry` seulement, aucune migration) — la
+  (2026-09-30, **API 8.0.1**, patch : description d'`AdDto.locationGeometry` seulement, aucune migration) — la
   décision `API-31` quantifiait la sonde et le rayon sur la grille du flou, mais le filtre mesurait
   encore depuis la position **exacte** : chaque réponse coupait la cellule le long d'un cercle, et
   des cercles de centres différents la découpaient plus fin qu'elle. `AdRepository` mesure
@@ -1168,6 +1168,23 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   `blur` se reporte dans `SQL_PATTERN`. Tests : `CoarseLocationSqlTest` (parité Java/SQL, pôles,
   hémisphères, bords de cellule), `AdDetailsAndFiltersTest.list_withProximity_neverTellsApartTwoAdsOfTheSameCell`.
   Le point annexe de l'audit, la position exacte servie aux admins par l'édition, est `SEC-26`.
+
+- `SEC-25` **Un identifiant ne résout plus un compte ni une passkey d'un autre site : M8**
+  (2026-09-30, contrat inchangé, pas de migration ; détaché de `SEC-11`) — `UserRepository.findActiveById`
+  et `PasskeyRepository.findByCredentialId` cherchaient sur toute la table, et chaque appelant
+  devait penser à comparer le domaine après coup. `findActiveById` est remplacé par
+  `findActiveByIdAndDomain` partout où l'on sert un site : utilisateur de la requête et du jeton de
+  tuiles (`PedalonsQueryContext`), retrait d'un membre (`TeamMembershipService`), connexion GPS et
+  son retour OAuth (`GpsService`), migration biketeam en direct (`BiketeamLiveMigrationWorker`, le
+  domaine du job). Seule l'administration plateforme, transverse par construction, garde une
+  recherche tous sites, renommée `findActiveByIdOnAnyDomain` pour que l'exception se voie. La
+  connexion par passkey cherche par `findByCredentialIdAndDomain` ; la vérification de domaine qui
+  suivait reste en seconde barrière. L'enregistrement garde une recherche tous sites
+  (`existsByCredentialId`) : la colonne `credential_id` est unique sur toute la table. Tests :
+  `UserRepositoryTest.findActiveByIdAndDomain_shouldNotReachAnotherSitesAccount`,
+  `PasskeyRepositoryTest.findByCredentialIdAndDomain_shouldNotFindAnotherSitesPasskey` —
+  **écrits sans avoir été lancés**. Ne pas réintroduire de recherche par identifiant sans domaine
+  dans un chemin de requête.
 
 - `SEC-1` **Un fichier téléversé ne s'exécute plus dans l'origine de l'application : H2**
   (2026-09-30, contrat inchangé, pas de migration) — la route de téléchargement des assets servait
