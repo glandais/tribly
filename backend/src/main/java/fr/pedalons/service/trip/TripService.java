@@ -288,6 +288,28 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     return toDto(trip);
   }
 
+  /**
+   * Changes the status alone. The stages follow, as {@link #setStageProperties} makes them do on a
+   * full update: the calendar and its ICS feeds read a stage's own status.
+   */
+  @Transactional
+  @CheckAccess(entityType = EntityType.TRIP, action = ActionType.UPDATE)
+  public TripDto updateStatus(String teamSlug, String tripSlug, Status status) {
+    Team team = teamService.getTeam(teamSlug);
+    Trip trip = findBySlug(team, tripSlug);
+    Status previousStatus = trip.getStatus();
+    trip.setStatus(status);
+    if (status != Status.DRAFT) {
+      trip.setPublishAt(null);
+    }
+    for (TripStage stage : trip.getStages()) {
+      stage.setStatus(status);
+    }
+    tripRepository.persist(trip);
+    notificationPublisher.publicationStatusChanged(trip, previousStatus, pedalonsContext.getUser());
+    return toDto(trip);
+  }
+
   @Transactional
   @CheckAccess(entityType = EntityType.TRIP, action = ActionType.UPDATE)
   public TripDto updateSlug(String teamSlug, String slug, String newSlug) {

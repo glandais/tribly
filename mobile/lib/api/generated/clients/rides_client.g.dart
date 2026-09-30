@@ -190,6 +190,36 @@ class _RidesClient implements RidesClient {
   }
 
   @override
+  Future<String> downloadRideIcs({
+    required String rideSlug,
+    required String teamSlug,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<String>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/teams/${teamSlug}/rides/${rideSlug}/ics',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<String>(_options);
+    late String _value;
+    try {
+      _value = _result.data!;
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<ParticipantListResponse> getRideParticipants({
     required String rideSlug,
     required String teamSlug,
@@ -245,6 +275,38 @@ class _RidesClient implements RidesClient {
           .compose(
             _dio.options,
             '/api/teams/${teamSlug}/rides/${rideSlug}/slug',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late RideDto _value;
+    try {
+      _value = RideDto.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<RideDto> changeRideStatus({
+    required String rideSlug,
+    required String teamSlug,
+    required StatusChangeRequest body,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body.toJson());
+    final _options = _setStreamType<RideDto>(
+      Options(method: 'PATCH', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/teams/${teamSlug}/rides/${rideSlug}/status',
             queryParameters: queryParameters,
             data: _data,
           )

@@ -40,7 +40,7 @@ Drive engagement and reduce friction for organizers.
 ### Organizer Productivity
 - [X] Multi-GPX upload (one route per file) — Huge time saver
 - [X] Team location (init route planner) — Better defaults
-- [ ] Card CTAs (modify, publish, delete, add to calendar)
+- [X] Card CTAs (modify, publish, delete, add to calendar) — ledger `WEB-33`
 - [ ] Team dashboard (drafts count, what's next, activity feed)
 
 ### Member Engagement

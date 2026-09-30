@@ -1,6 +1,7 @@
 package fr.pedalons.api.posts;
 
 import fr.pedalons.dto.common.request.SlugChangeRequest;
+import fr.pedalons.dto.common.request.StatusChangeRequest;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.posts.request.PostRequest;
 import fr.pedalons.dto.posts.response.PostDto;
@@ -185,6 +186,48 @@ public class PostResource {
       @Parameter(description = "Post URL slug") @PathParam("postSlug") String postSlug) {
     PostDto dto = postService.undeletePost(teamSlug, postSlug);
     return Response.ok(dto).build();
+  }
+
+  // ── Status alone, and calendar file (docs/LEDGER_DONE.md WEB-33) ──────────────────────────
+
+  @PATCH
+  @Path("/{postSlug}/status")
+  @Operation(
+      operationId = "changePostStatus",
+      summary = "Change post status",
+      description =
+          "Change the post's status and nothing else — what a list row can do without the full"
+              + " post. Same side effects as a status change through the update. Requires organizer"
+              + " permissions.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Status changed",
+        content = @Content(schema = @Schema(implementation = PostDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid status",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not authorized to change this post's status",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or post not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @RolesAllowed("user")
+  public Response changeStatus(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Post URL slug") @PathParam("postSlug") String slug,
+      @Valid StatusChangeRequest request) {
+    PostDto post = postService.updateStatus(teamSlug, slug, request.status());
+    return Response.ok(post).build();
   }
 
   @PATCH

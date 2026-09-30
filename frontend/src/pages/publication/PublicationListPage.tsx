@@ -16,7 +16,11 @@ import {
   SimpleGrid,
 } from '@mantine/core'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
-import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
+import {
+  PublicationCard,
+  PublicationCardActions,
+  PublicationCardSkeleton,
+} from '../../components/card'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { EmptyState } from '../../components/common/EmptyState'
 import { Pagination } from '../../components/common/Pagination'
@@ -192,7 +196,14 @@ export function PublicationListPage() {
           <Stack gap="xl">
             <SimpleGrid ref={listTopRef} cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
               {publicationsData.publications.map((publication) => (
-                <PublicationCard key={publication.id} publication={publication} showTeam={false} />
+                <PublicationCard
+                  key={publication.id}
+                  publication={publication}
+                  showTeam={false}
+                  actions={
+                    <PublicationCardActions publication={publication} canManage={canCreate} />
+                  }
+                />
               ))}
             </SimpleGrid>
 

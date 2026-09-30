@@ -17,6 +17,18 @@
   }
 }
 
+/* A grid of one, so the link still fills the grid cell the wrapper now occupies. */
+.withActions {
+  position: relative;
+  display: grid;
+}
+
+.actions {
+  position: absolute;
+  top: var(--mantine-spacing-xs);
+  right: var(--mantine-spacing-xs);
+}
+
 .teamLink {
   display: flex;
   align-items: center;

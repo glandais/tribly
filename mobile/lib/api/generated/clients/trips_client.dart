@@ -8,6 +8,7 @@ import 'package:retrofit/error_logger.dart';
 
 import '../models/participant_list_response.dart';
 import '../models/slug_change_request.dart';
+import '../models/status_change_request.dart';
 import '../models/trip_dto.dart';
 import '../models/trip_participation_dto.dart';
 import '../models/trip_request.dart';
@@ -69,6 +70,19 @@ abstract class TripsClient {
   /// [tripSlug] - Trip URL slug.
   @DELETE('/api/teams/{teamSlug}/trips/{tripSlug}')
   Future<void> deleteTrip({
+    @Path('teamSlug') required String teamSlug,
+    @Path('tripSlug') required String tripSlug,
+  });
+
+  /// Download trip as a calendar file.
+  ///
+  /// One all-day VEVENT per stage, to add the trip on its own to a calendar. Readable by whoever may read the trip; no calendar token.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [tripSlug] - Trip URL slug.
+  @GET('/api/teams/{teamSlug}/trips/{tripSlug}/ics')
+  Future<String> downloadTripIcs({
     @Path('teamSlug') required String teamSlug,
     @Path('tripSlug') required String tripSlug,
   });
@@ -135,6 +149,22 @@ abstract class TripsClient {
     @Path('teamSlug') required String teamSlug,
     @Path('tripSlug') required String tripSlug,
     @Body() required SlugChangeRequest body,
+  });
+
+  /// Change trip status.
+  ///
+  /// Change the trip's status and nothing else — what a list row can do without the full trip. Same side effects as a status change through the update. Requires organizer permissions. The stages follow the trip.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [tripSlug] - Trip URL slug.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @PATCH('/api/teams/{teamSlug}/trips/{tripSlug}/status')
+  Future<TripDto> changeTripStatus({
+    @Path('teamSlug') required String teamSlug,
+    @Path('tripSlug') required String tripSlug,
+    @Body() required StatusChangeRequest body,
   });
 
   /// Restore trip.

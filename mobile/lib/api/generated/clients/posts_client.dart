@@ -9,6 +9,7 @@ import 'package:retrofit/error_logger.dart';
 import '../models/post_dto.dart';
 import '../models/post_request.dart';
 import '../models/slug_change_request.dart';
+import '../models/status_change_request.dart';
 
 part 'posts_client.g.dart';
 
@@ -85,6 +86,22 @@ abstract class PostsClient {
     @Path('postSlug') required String postSlug,
     @Path('teamSlug') required String teamSlug,
     @Body() required SlugChangeRequest body,
+  });
+
+  /// Change post status.
+  ///
+  /// Change the post's status and nothing else — what a list row can do without the full post. Same side effects as a status change through the update. Requires organizer permissions.
+  ///
+  /// [postSlug] - Post URL slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @PATCH('/api/teams/{teamSlug}/posts/{postSlug}/status')
+  Future<PostDto> changePostStatus({
+    @Path('postSlug') required String postSlug,
+    @Path('teamSlug') required String teamSlug,
+    @Body() required StatusChangeRequest body,
   });
 
   /// Restore post.

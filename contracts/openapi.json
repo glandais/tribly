@@ -4794,6 +4794,18 @@
         "type" : "string",
         "enum" : [ "DRAFT", "PUBLISHED", "CANCELLED" ]
       },
+      "StatusChangeRequest" : {
+        "description" : "Status change request",
+        "type" : "object",
+        "required" : [ "status" ],
+        "properties" : {
+          "status" : {
+            "description" : "New status",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Status"
+          }
+        }
+      },
       "SurfaceType" : {
         "type" : "string",
         "enum" : [ "ROAD", "GRAVEL", "MTB", "MIXED" ]
@@ -13310,6 +13322,96 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/classifieds/{slug}/status" : {
+      "patch" : {
+        "summary" : "Change ad status",
+        "description" : "Change the ad's status and nothing else — what a list row can do without the full ad. Same side effects as a status change through the update. Requires the team admin or the ad's author.",
+        "operationId" : "changeAdStatus",
+        "tags" : [ "Ads" ],
+        "parameters" : [ {
+          "description" : "Ad URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StatusChangeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Status changed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid status — an ad is never CANCELLED",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not authorized to change this ad's status",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or ad not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/teams/{teamSlug}/classifieds/{slug}/undelete" : {
       "post" : {
         "summary" : "Restore ad",
@@ -15616,6 +15718,96 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/posts/{postSlug}/status" : {
+      "patch" : {
+        "summary" : "Change post status",
+        "description" : "Change the post's status and nothing else — what a list row can do without the full post. Same side effects as a status change through the update. Requires organizer permissions.",
+        "operationId" : "changePostStatus",
+        "tags" : [ "Posts" ],
+        "parameters" : [ {
+          "description" : "Post URL slug",
+          "name" : "postSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StatusChangeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Status changed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid status",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not authorized to change this post's status",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or post not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/teams/{teamSlug}/posts/{postSlug}/undelete" : {
       "post" : {
         "summary" : "Restore post",
@@ -17027,6 +17219,53 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/rides/{rideSlug}/ics" : {
+      "get" : {
+        "summary" : "Download ride as a calendar file",
+        "description" : "One VEVENT for the ride, to add it on its own to a calendar. Readable by whoever may read the ride; no calendar token.",
+        "operationId" : "downloadRideIcs",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "iCalendar file",
+            "content" : {
+              "text/calendar" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or ride not found",
+            "content" : {
+              "text/calendar" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/teams/{teamSlug}/rides/{rideSlug}/participants" : {
       "get" : {
         "summary" : "List ride participants",
@@ -17192,6 +17431,96 @@
           },
           "409" : {
             "description" : "Slug already in use",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{teamSlug}/rides/{rideSlug}/status" : {
+      "patch" : {
+        "summary" : "Change ride status",
+        "description" : "Change the ride's status and nothing else — what a list row can do without the full ride. Same side effects as a status change through the update. Requires organizer permissions.",
+        "operationId" : "changeRideStatus",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StatusChangeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Status changed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RideDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid status",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not authorized to change this ride's status",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or ride not found",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -19227,6 +19556,53 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/trips/{tripSlug}/ics" : {
+      "get" : {
+        "summary" : "Download trip as a calendar file",
+        "description" : "One all-day VEVENT per stage, to add the trip on its own to a calendar. Readable by whoever may read the trip; no calendar token.",
+        "operationId" : "downloadTripIcs",
+        "tags" : [ "Trips" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Trip URL slug",
+          "name" : "tripSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "iCalendar file",
+            "content" : {
+              "text/calendar" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or trip not found",
+            "content" : {
+              "text/calendar" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/teams/{teamSlug}/trips/{tripSlug}/join" : {
       "post" : {
         "summary" : "Join trip",
@@ -19514,6 +19890,96 @@
           },
           "409" : {
             "description" : "Slug already in use",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{teamSlug}/trips/{tripSlug}/status" : {
+      "patch" : {
+        "summary" : "Change trip status",
+        "description" : "Change the trip's status and nothing else — what a list row can do without the full trip. Same side effects as a status change through the update. Requires organizer permissions. The stages follow the trip.",
+        "operationId" : "changeTripStatus",
+        "tags" : [ "Trips" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Trip URL slug",
+          "name" : "tripSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StatusChangeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Status changed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TripDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid status",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not authorized to change this trip's status",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or trip not found",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -20657,7 +21123,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "9.0.0",
+    "version" : "9.1.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

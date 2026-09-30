@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { IconMap, IconArrowUp, IconMessageCircle } from '@tabler/icons-react'
 import { useUnits } from '@/hooks/useUnits'
@@ -19,9 +20,11 @@ import { paths } from '@/config/paths'
 interface RouteCardProps {
   route: RouteDto
   showTeam: boolean
+  /** The `⋯` menu (`RouteCardActions`), from a team's own route list. */
+  actions?: ReactNode
 }
 
-export function RouteCard({ route, showTeam }: RouteCardProps) {
+export function RouteCard({ route, showTeam, actions }: RouteCardProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
   const colorScheme = useResolvedColorScheme()
@@ -32,7 +35,7 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
   const thumbnailUrl = themedThumbnail?.imageUrl ?? route.thumbnailUrl
 
   return (
-    <Card to={paths.route(route.team.slug, route.slug)}>
+    <Card to={paths.route(route.team.slug, route.slug)} actions={actions}>
       <Image src={thumbnailUrl?.replace('{size}', '400')} alt={route.name} />
 
       <CardContent>

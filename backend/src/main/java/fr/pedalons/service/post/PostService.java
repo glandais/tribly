@@ -120,6 +120,22 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
     return written(post);
   }
 
+  /** Changes the status alone, with the side effects of a status change through the update. */
+  @Transactional
+  @CheckAccess(entityType = EntityType.POST, action = ActionType.UPDATE)
+  public PostDto updateStatus(String teamSlug, String postSlug, Status status) {
+    Team team = teamService.getTeam(teamSlug);
+    Post post = findBySlug(team, postSlug);
+    Status previousStatus = post.getStatus();
+    post.setStatus(status);
+    if (status != Status.DRAFT) {
+      post.setPublishAt(null);
+    }
+    postRepository.persist(post);
+    notificationPublisher.publicationStatusChanged(post, previousStatus, pedalonsContext.getUser());
+    return written(post);
+  }
+
   @CheckAccess(entityType = EntityType.POST, action = ActionType.UPDATE)
   @Transactional
   public PostDto updateSlug(String teamSlug, String slug, String newSlug) {

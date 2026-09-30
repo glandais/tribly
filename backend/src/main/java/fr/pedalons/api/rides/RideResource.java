@@ -2,10 +2,12 @@ package fr.pedalons.api.rides;
 
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.dto.common.request.SlugChangeRequest;
+import fr.pedalons.dto.common.request.StatusChangeRequest;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.rides.request.*;
 import fr.pedalons.dto.rides.response.*;
 import fr.pedalons.dto.users.response.ParticipantListResponse;
+import fr.pedalons.service.calendar.PublicationIcsService;
 import fr.pedalons.service.ride.RideService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -16,6 +18,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
@@ -31,6 +34,7 @@ import org.jspecify.annotations.Nullable;
 public class RideResource {
 
   @Inject RideService rideService;
+  @Inject PublicationIcsService publicationIcsService;
 
   @POST
   @Operation(summary = "Create ride", description = "Create a new ride with optional groups")
@@ -232,6 +236,79 @@ public class RideResource {
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug) {
     RideDto dto = rideService.undeleteRide(teamSlug, rideSlug);
     return Response.ok(dto).build();
+  }
+
+  // ── Status alone, and calendar file (docs/LEDGER_DONE.md WEB-33) ──────────────────────────
+
+  @PATCH
+  @Path("/{rideSlug}/status")
+  @Operation(
+      operationId = "changeRideStatus",
+      summary = "Change ride status",
+      description =
+          "Change the ride's status and nothing else — what a list row can do without the full"
+              + " ride. Same side effects as a status change through the update. Requires organizer"
+              + " permissions.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Status changed",
+        content = @Content(schema = @Schema(implementation = RideDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid status",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not authorized to change this ride's status",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or ride not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @RolesAllowed("user")
+  public Response changeStatus(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String slug,
+      @Valid StatusChangeRequest request) {
+    RideDto ride = rideService.updateStatus(teamSlug, slug, request.status());
+    return Response.ok(ride).build();
+  }
+
+  @GET
+  @Path("/{rideSlug}/ics")
+  @Produces("text/calendar")
+  @Operation(
+      operationId = "downloadRideIcs",
+      summary = "Download ride as a calendar file",
+      description =
+          "One VEVENT for the ride, to add it on its own to a calendar. Readable by whoever may"
+              + " read the ride; no calendar token.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "iCalendar file",
+        content =
+            @Content(mediaType = "text/calendar", schema = @Schema(type = SchemaType.STRING))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or ride not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @PermitAll
+  public Response downloadRideIcs(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String slug) {
+    String ics = publicationIcsService.rideIcs(teamSlug, slug);
+    return Response.ok(ics)
+        .type("text/calendar; charset=utf-8")
+        .header("Content-Disposition", "attachment; filename=\"" + slug + ".ics\"")
+        .build();
   }
 
   @PATCH

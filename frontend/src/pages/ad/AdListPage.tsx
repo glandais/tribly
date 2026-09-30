@@ -21,6 +21,7 @@ import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
 import { isAdFiltered } from '../../hooks/filters/adFilters'
 import { AdCard, AdCardSkeleton } from '../../components/ad'
+import { AdCardActions } from '../../components/card'
 import {
   AD_SORT_OPTIONS,
   adSortOptionByValue,
@@ -230,7 +231,11 @@ export function AdListPage() {
             style={{ opacity: isFetching ? 0.5 : 1 }}
           >
             {adsList.map((ad) => (
-              <AdCard key={ad.id} ad={ad} />
+              <AdCard
+                key={ad.id}
+                ad={ad}
+                actions={<AdCardActions ad={ad} isTeamAdmin={teamData.role === 'ADMIN'} />}
+              />
             ))}
           </SimpleGrid>
 
