@@ -10,6 +10,7 @@ import {
   type AuthResponse,
 } from './support/api'
 import { teamRequest } from './support/data'
+import { ensureOtherAdmin } from './support/domains'
 import { seedPath, stack } from './support/stack'
 import type { Seed } from './support/fixtures'
 
@@ -62,6 +63,10 @@ export default async function globalSetup() {
     team,
   }
   writeFileAtomic(seedPath, JSON.stringify(seed, null, 2))
+
+  // After the seed: it signs the admin in (roleSession reads the seed). Before the workers: see
+  // ensureOtherAdmin for why not in each of them.
+  await ensureOtherAdmin()
 }
 
 async function assertStackUp() {

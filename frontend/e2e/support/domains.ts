@@ -224,9 +224,9 @@ let otherAdminSession: Promise<AuthResponse> | undefined
 /**
  * Runs `call` again (up to three times, after a short random pause) when it fails with a 500.
  *
- * Only for the other admin's promotion, which every worker of both projects runs at once on a
- * fresh stack: concurrent updates of one `User` row lose the optimistic lock on all but one
- * transaction. (Concurrent logins no longer do: since 6ba4d460 a login records `lastLoginAt`
+ * Only for the other admin's promotion. global-setup runs it once per run, but two runs may share a
+ * stack (writeFileAtomic): concurrent updates of one `User` row lose the optimistic lock on all but
+ * one transaction. (Concurrent logins no longer do: since 6ba4d460 a login records `lastLoginAt`
  * without bumping the user's version.)
  */
 async function retryOn500<T>(call: () => Promise<T>): Promise<T> {
@@ -240,45 +240,46 @@ async function retryOn500<T>(call: () => Promise<T>): Promise<T> {
   }
 }
 
-/** Logs the other admin in, signing it up first when the account does not exist yet. */
-async function logInOtherAdmin(): Promise<AuthResponse> {
-  const login = () => loginOn(OTHER_HOST, OTHER_ADMIN.email, OTHER_ADMIN.password)
+const logInOtherAdmin = () => loginOn(OTHER_HOST, OTHER_ADMIN.email, OTHER_ADMIN.password)
+
+/**
+ * Creates `autre.localhost` and its platform admin — signed up there, then promoted by the admin of
+ * `localhost`, whose admin API reaches every domain's users. Run **once, by global-setup**, before
+ * any worker starts.
+ *
+ * Not per worker: finding out whether the account exists takes a password login, and on a fresh
+ * stack that login fails. Every failure counts towards the password throttle (docs/LEDGER_*.md
+ * SEC-7, unknown addresses included): all the workers of both projects probing at once closed the
+ * address for 15 minutes at the fifth, and the next ones got 429 LOGIN_RATE_LIMITED. Here, serially,
+ * the one failed probe of a fresh stack is wiped by the login that follows.
+ */
+export async function ensureOtherAdmin(): Promise<void> {
+  await otherDomain()
+  let auth: AuthResponse
   try {
-    return await login()
+    auth = await logInOtherAdmin()
   } catch (e) {
     if (!(e instanceof ApiError) || e.status !== 400) throw e
+    auth = await registerOn(OTHER_HOST, OTHER_ADMIN)
   }
-  try {
-    return await registerOn(OTHER_HOST, OTHER_ADMIN)
-  } catch (e) {
-    // Another worker signed it up first: its password is ours too.
-    if (!(e instanceof ApiError)) throw e
-    return login()
-  }
+  const admin = await roleSession('admin')
+  const user = `/api/admin/users/${auth.user.id}`
+  if ((await apiGet<AdminUserDto>(admin, user)).platformRole !== 'PLATFORM_ADMIN')
+    await retryOn500(() =>
+      apiPut(admin, `${user}/platform-role`, {
+        role: 'PLATFORM_ADMIN',
+      } satisfies AssignPlatformRoleRequest)
+    )
 }
 
 /**
- * A platform admin of `autre.localhost` (cached per worker, signed in by password): signed up there
- * on first use, then promoted by the admin of `localhost` — whose admin
- * API reaches every domain's users. Needed for anything only a platform admin may do on that domain
- * (a public team, say).
+ * A platform admin of `autre.localhost`, which global-setup created (ensureOtherAdmin): signed in by
+ * password, cached per worker — a login per worker, never a session saved between runs, whose token
+ * would rotate under every worker that refreshed it (docs/LEDGER_*.md SEC-27). Needed for anything
+ * only a platform admin may do on that domain (a public team, say).
  */
 export function otherAdmin(): Promise<AuthResponse> {
-  otherAdminSession ??= (async () => {
-    await otherDomain()
-    // A login per worker, never a session saved between runs: its token would rotate under every
-    // worker that refreshed it, and turn into a replay for the next (docs/LEDGER_*.md SEC-27).
-    const auth = await logInOtherAdmin()
-    const admin = await roleSession('admin')
-    const user = `/api/admin/users/${auth.user.id}`
-    if ((await apiGet<AdminUserDto>(admin, user)).platformRole !== 'PLATFORM_ADMIN')
-      await retryOn500(() =>
-        apiPut(admin, `${user}/platform-role`, {
-          role: 'PLATFORM_ADMIN',
-        } satisfies AssignPlatformRoleRequest)
-      )
-    return auth
-  })()
+  otherAdminSession ??= logInOtherAdmin()
   otherAdminSession.catch(() => (otherAdminSession = undefined))
   return otherAdminSession
 }
