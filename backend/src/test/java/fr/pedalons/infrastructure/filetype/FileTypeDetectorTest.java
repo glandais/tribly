@@ -202,6 +202,69 @@ class FileTypeDetectorTest extends AbstractBaseTest {
     }
   }
 
+  /** docs/LEDGER_*.md API-46: a video is refused by its container, whatever Magika says. */
+  @Nested
+  class Videos {
+
+    private File writeBytes(String name, byte[] head) throws IOException {
+      byte[] content = java.util.Arrays.copyOf(head, 4096);
+      for (int i = head.length; i < content.length; i++) {
+        content[i] = (byte) (i * 31);
+      }
+      Path path = tempDir.resolve(name);
+      Files.write(path, content);
+      return path.toFile();
+    }
+
+    private void assertRefused(File file, String name) {
+      for (AssetType type : new AssetType[] {AssetType.IMAGE, AssetType.ATTACHMENT}) {
+        PedalonsException ex =
+            assertThrows(
+                PedalonsException.class,
+                () -> detector.detectAndValidate(file, name, type),
+                name + " as " + type);
+        assertEquals(ErrorCode.FILE_TYPE_REJECTED, ex.getErrorCode(), name + " as " + type);
+      }
+    }
+
+    @Test
+    void refusesAnMp4AMovAnd3gp() throws IOException {
+      assertRefused(
+          writeBytes("ride.mp4", ascii("\0\0\0\u0020ftypisom\0\0\u0002\0isomiso2mp41")),
+          "ride.mp4");
+      assertRefused(
+          writeBytes("IMG_0001.MOV", ascii("\0\0\0\u0014ftypqt  \0\0\0\0qt  ")), "IMG_0001.MOV");
+      assertRefused(writeBytes("clip.3gp", ascii("\0\0\0\u0018ftyp3gp4\0\0\0\0")), "clip.3gp");
+    }
+
+    @Test
+    void refusesAWebmAnAviAndAnFlv() throws IOException {
+      assertRefused(
+          writeBytes("clip.webm", new byte[] {0x1A, 0x45, (byte) 0xDF, (byte) 0xA3, 0, 0, 0, 0}),
+          "clip.webm");
+      assertRefused(writeBytes("clip.avi", ascii("RIFF\0\0\0\0AVI LIST")), "clip.avi");
+      assertRefused(writeBytes("clip.flv", ascii("FLV\u0001\u0005\0\0\0\u0009")), "clip.flv");
+    }
+
+    @Test
+    void theContainerDecides_notTheName() throws IOException {
+      assertRefused(
+          writeBytes("notes.pdf", ascii("\0\0\0\u0020ftypisom\0\0\u0002\0isomiso2mp41")),
+          "notes.pdf");
+    }
+
+    @Test
+    void aStillImageInTheSameContainerIsNoVideo() {
+      assertTrue(
+          !FileTypeDetector.isVideoContainer(ascii("RIFF\0\0\0\0WEBPVP8 ")), "a WebP is RIFF too");
+      assertTrue(!FileTypeDetector.isVideoContainer(ascii("%PDF-1.7\n%\u00e2\u00e3")));
+    }
+
+    private static byte[] ascii(String s) {
+      return s.getBytes(StandardCharsets.ISO_8859_1);
+    }
+  }
+
   @Nested
   class DetectAndValidate {
 

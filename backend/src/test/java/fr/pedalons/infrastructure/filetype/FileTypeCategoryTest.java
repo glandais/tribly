@@ -187,6 +187,14 @@ class FileTypeCategoryTest {
     }
 
     @Test
+    void rejectsVideoLabels() {
+      // docs/LEDGER_*.md API-46: a recording carries where it was made
+      for (String label : new String[] {"mp4", "qt", "3gp", "mkv", "webm", "flv"}) {
+        assertFalse(FileTypeCategory.ATTACHMENT.accepts(label), label);
+      }
+    }
+
+    @Test
     void rejectsUnknownAndEmpty() {
       assertFalse(FileTypeCategory.ATTACHMENT.accepts("unknown"));
       assertFalse(FileTypeCategory.ATTACHMENT.accepts("empty"));
