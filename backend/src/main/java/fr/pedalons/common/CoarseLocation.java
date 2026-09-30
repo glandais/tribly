@@ -4,6 +4,7 @@ import static org.geolatte.geom.builder.DSL.g;
 import static org.geolatte.geom.builder.DSL.point;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
+import java.math.BigDecimal;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Point;
 import org.jspecify.annotations.Nullable;
@@ -37,6 +38,28 @@ public final class CoarseLocation {
    * the poles; 0.05 caps it at 20× the cell height, reached around 87° of latitude.
    */
   private static final double MIN_COS_LATITUDE = 0.05;
+
+  /**
+   * {@link #blur} in SQL, over the geometry {@code ?1}, as an HQL function pattern (registered as
+   * {@code coarse_location} by {@code PedalonsFunctionContributor}).
+   *
+   * <p>A query that filters on the ad's position must read the point the API publishes, never the
+   * exact one: a proximity filter over the exact column answers "is this ad within R of C?" for
+   * the seller's address, and enough probes pin it down however coarse C and R are
+   * (docs/LEDGER_*.md SEC-8). Built from the same constants as {@link #blur}; the six-decimal
+   * rounding is left out, a few centimetres that no cell boundary cares about. Kept in step by
+   * {@code CoarseLocationSqlTest}.
+   */
+  public static final String SQL_PATTERN;
+
+  static {
+    String cell = BigDecimal.valueOf(CELL_DEGREES).toPlainString();
+    String minCos = BigDecimal.valueOf(MIN_COS_LATITUDE).toPlainString();
+    String lat = "((floor(st_y(?1) / " + cell + ") + 0.5) * " + cell + ")";
+    String lonStep = "(" + cell + " / greatest(cos(radians(" + lat + ")), " + minCos + "))";
+    String lon = "((floor(st_x(?1) / " + lonStep + ") + 0.5) * " + lonStep + ")";
+    SQL_PATTERN = "st_setsrid(st_makepoint(" + lon + ", " + lat + "), 4326)";
+  }
 
   private CoarseLocation() {}
 
