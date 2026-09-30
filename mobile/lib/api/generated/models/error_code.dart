@@ -74,6 +74,8 @@ enum ErrorCode {
   publicRidePrivateRoute('PUBLIC_RIDE_PRIVATE_ROUTE'),
   @JsonValue('INVALID_CREDENTIALS')
   invalidCredentials('INVALID_CREDENTIALS'),
+  @JsonValue('LOGIN_RATE_LIMITED')
+  loginRateLimited('LOGIN_RATE_LIMITED'),
   @JsonValue('EMAIL_NOT_VERIFIED')
   emailNotVerified('EMAIL_NOT_VERIFIED'),
   @JsonValue('EMAIL_ALREADY_EXISTS')
@@ -116,6 +118,8 @@ enum ErrorCode {
   gpxNotFound('GPX_NOT_FOUND'),
   @JsonValue('AUTHORIZATION_PENDING')
   authorizationPending('AUTHORIZATION_PENDING'),
+  @JsonValue('DEVICE_CODE_RATE_LIMITED')
+  deviceCodeRateLimited('DEVICE_CODE_RATE_LIMITED'),
   @JsonValue('GPS_CREDENTIAL_ALREADY_EXISTS')
   gpsCredentialAlreadyExists('GPS_CREDENTIAL_ALREADY_EXISTS'),
   @JsonValue('GPS_TOKEN_EXCHANGE_FAILED')

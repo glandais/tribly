@@ -470,6 +470,76 @@ class AuthResourceTest extends AbstractResourceTest {
         .body("code", equalTo("INVALID_CREDENTIALS"));
   }
 
+  // --- Password throttle (docs/LEDGER_*.md SEC-7, audit M4) ---
+
+  private io.restassured.response.ValidatableResponse login(String email, String password) {
+    return given()
+        .contentType(ContentType.JSON)
+        .body("{\"email\": \"" + email + "\", \"password\": \"" + password + "\"}")
+        .when()
+        .post("/api/auth/login")
+        .then();
+  }
+
+  @Test
+  void login_afterFiveWrongPasswords_isRefusedEvenWithTheRightOne() {
+    createVerifiedUserWithPassword("stuffed@example.com", "Login User", "mypassword123");
+    for (int i = 0; i < 5; i++) {
+      login("stuffed@example.com", "guess" + i).statusCode(400);
+    }
+
+    login("stuffed@example.com", "mypassword123")
+        .statusCode(429)
+        .header("Retry-After", "900")
+        .body("code", equalTo("LOGIN_RATE_LIMITED"));
+  }
+
+  @Test
+  void login_throttleIgnoresTheCaseOfTheAddress() {
+    createVerifiedUserWithPassword("stuffed@example.com", "Login User", "mypassword123");
+    for (int i = 0; i < 5; i++) {
+      login(i % 2 == 0 ? "Stuffed@Example.com" : "stuffed@example.com", "guess" + i)
+          .statusCode(400);
+    }
+
+    login("stuffed@example.com", "mypassword123").statusCode(429);
+  }
+
+  @Test
+  void login_unknownAddress_isThrottledLikeAnAccount() {
+    // Answering 400 for ever here while an account locks would tell which addresses exist.
+    for (int i = 0; i < 5; i++) {
+      login("ghost@example.com", "guess" + i).statusCode(400);
+    }
+
+    login("ghost@example.com", "guess").statusCode(429).body("code", equalTo("LOGIN_RATE_LIMITED"));
+  }
+
+  @Test
+  void login_rightPassword_wipesTheEarlierFailures() {
+    createVerifiedUserWithPassword("typo@example.com", "Login User", "mypassword123");
+    for (int i = 0; i < 4; i++) {
+      login("typo@example.com", "typo" + i).statusCode(400);
+    }
+    login("typo@example.com", "mypassword123").statusCode(200);
+
+    for (int i = 0; i < 4; i++) {
+      login("typo@example.com", "typo" + i).statusCode(400);
+    }
+    login("typo@example.com", "mypassword123").statusCode(200);
+  }
+
+  @Test
+  void login_throttleIsPerAddress() {
+    createVerifiedUserWithPassword("stuffed@example.com", "Login User", "mypassword123");
+    createVerifiedUserWithPassword("bystander@example.com", "Other User", "mypassword123");
+    for (int i = 0; i < 5; i++) {
+      login("stuffed@example.com", "guess" + i).statusCode(400);
+    }
+
+    login("bystander@example.com", "mypassword123").statusCode(200);
+  }
+
   @Test
   void login_withNoPasswordSet_shouldReturn400WithInvalidCredentials() {
     dataService.createVerifiedUser("nopassword@example.com", "No Password User");

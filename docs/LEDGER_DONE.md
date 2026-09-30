@@ -1025,6 +1025,44 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
 
 Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md).
 
+- `SEC-7` **La connexion par mot de passe se ferme après cinq échecs : M4** (2026-09-30, API
+  6.4.0, mineur : `LOGIN_RATE_LIMITED`, réponse 429 sur `POST /api/auth/login` ; migration
+  `V50__auth_failures`) — chaque mot de passe erroné, adresse inconnue comprise, est noté dans
+  `auth_failures` (`AuthThrottle`) ; au cinquième en 15 minutes pour une adresse, `/login` répond
+  `429 LOGIN_RATE_LIMITED` avec `Retry-After: 900`, **avant** tout bcrypt : la rafale ne coûte plus
+  de CPU. Un bon mot de passe efface les échecs de l'adresse. Décisions à garder : le compteur est
+  **par adresse** (casse ignorée), jamais par IP — le premier `X-Forwarded-For` est celui que le
+  client envoie (`forwardedHeaders.insecure`), une limite par IP n'arrêterait que les attaquants
+  honnêtes ; il compte aussi les adresses sans compte, sinon la limite dirait lesquelles existent ;
+  la table ne garde qu'une **empreinte SHA-256** de l'adresse, 24 heures (purge dans
+  `AuthCleanupScheduler`, annoncée par la politique de confidentialité, §1, §6, §9) ; l'échec est
+  écrit dans sa **propre transaction** (`QuarkusTransaction.requiringNew`), sans quoi le rollback de
+  l'erreur l'effacerait ; en base et non en mémoire, puisque deux backends coexistent pendant un
+  déploiement. Le prix assumé : un tiers peut fermer 15 minutes la connexion *par mot de passe*
+  d'une adresse — le code par e-mail et les passkeys restent ouverts. Reste hors de portée le
+  bourrage d'identifiants réparti sur beaucoup d'adresses : c'est la limite globale de M10
+  (`SEC-11`). Tests : `AuthResourceTest` (bloc « Password throttle » : refus même avec le bon mot de
+  passe, casse, adresse inconnue, remise à zéro, indépendance des adresses) — **écrits sans avoir
+  été lancés**. Seuils réglables : `pedalons.auth.password.max-failures`,
+  `…failure-window-minutes`.
+
+- `SEC-4` **Les codes d'appairage ne se devinent plus : H5** (2026-09-30, API 6.4.0, mineur :
+  `DEVICE_CODE_RATE_LIMITED`, réponse 429 sur `POST /api/device/oauth/complete` et
+  `GET /api/device/oauth/verify` ; même table que `SEC-7`) — un code à 6 caractères (32⁶) se
+  devinait sans limite : par `/complete` pour rattacher l'appareil d'un autre à son compte, ou par
+  `/verify`, anonyme, qui révélait les codes en attente. Chaque code inconnu compte désormais contre
+  le compte (5 en 10 minutes, durée de vie d'un code) et contre le **domaine entier** (300 en
+  10 minutes, signés ou non) ; au-delà, 429 avant la recherche. Le budget par domaine est ce qui
+  arrête une foule de comptes jetables — et `/verify`, qui n'a pas d'autre clé fiable ; son prix,
+  assumé : une rafale ferme l'appairage du domaine le temps que la fenêtre glisse (300 essais
+  trouvent un code donné une fois sur 3,5 millions de fenêtres). `/verify` filtre en outre par
+  domaine (`DeviceCodeRepository.findValidByUserCode(domainId, …)`) : le code d'un autre site y
+  répondait. `/token` n'est pas freiné (`device_code` de 256 bits) : pas de `slow_down`, voir
+  `AUD-27`. Tests : `DeviceOAuthThrottleTest` (limite par compte même avec le bon code, codes justes
+  jamais comptés, budget du domaine sur `/verify` puis `/complete`, budget propre à chaque domaine,
+  code d'un autre domaine inconnu) — **écrits sans avoir été lancés**. Seuils :
+  `pedalons.auth.device-code.*`.
+
 - `SEC-23` **Les échecs de connexion sont journalisés : L14** (2026-09-30, contrat inchangé,
   scindé de `SEC-12`) — chaque échec de connexion par mot de passe, code OTP ou passkey écrit une
   ligne `WARN` `Login failed method=… reason=… email=… domain=… ip=…` (`AuthService.logFailedLogin`),

@@ -36,6 +36,7 @@ Pour sécuriser l'accès à votre compte, nous traitons :
 - **Codes à usage unique (OTP)** : hachés, valides 5 minutes, invalidés après 5 tentatives erronées.
 - **Liens envoyés par e-mail** (vérification d'inscription, changement d'adresse, réinitialisation du mot de passe) : jetons hachés, à usage unique, valides 24 heures (1 heure pour la réinitialisation). À l'inscription, votre e-mail, votre nom, votre mot de passe haché et la date d'acceptation des conditions sont gardés en attente : le compte n'est créé, ou la nouvelle adresse appliquée, qu'une fois le lien suivi.
 - **Codes d'appairage d'appareils GPS** : codes temporaires (10 minutes) pour connecter un Karoo ou un Garmin.
+- **Tentatives échouées** : chaque mot de passe erroné et chaque code d'appairage inconnu sont notés avec leur date, pour bloquer quelques minutes les essais répétés. Nous ne notons ni le mot de passe ni le code essayés, ni votre adresse e-mail en clair (seulement une empreinte irréversible), ni votre adresse IP ; pour un code d'appairage saisi une fois connecté, l'identifiant technique de votre compte.
 - **Jeton de calendrier** : si vous vous abonnez au calendrier, un jeton aléatoire, sans expiration, intégré à l'adresse de votre flux. Il est stocké en clair pour que votre application de calendrier puisse l'utiliser ; vous pouvez le régénérer à tout moment (voir « Abonnements calendrier » à la section 4).
 
 ### Données de session
@@ -307,6 +308,7 @@ Certains traitements que vous pouvez déclencher impliquent des serveurs situés
 - **Lien de vérification de changement d'e-mail** : 24 heures
 - **Codes d'appairage d'appareils GPS** : 10 minutes au plus
 - **Challenges de clés d'accès** : 5 minutes au plus
+- **Tentatives de connexion et d'appairage échouées** : 24 heures
 - **Jeton de calendrier (adresse secrète de votre flux .ics)** : Sans expiration, jusqu'à régénération
 - **Équipes et contenus (sorties, posts, itinéraires, voyages, pages)** : La suppression d'un élément le masque aux membres et aux visiteurs, mais il reste dans notre base : les administrateurs de l'équipe le voient toujours dans leurs listes, marqué « Supprimé », et peuvent le restaurer. L'enregistrement est conservé jusqu'à demande d'effacement définitif
 - **Commentaires** : Effacés dès que vous ou votre équipe les supprimez, avec les réponses qu'ils ont reçues ; l'extrait copié dans une notification subsiste jusqu'à l'expiration de celle-ci (90 jours)
@@ -451,6 +453,7 @@ Nous mettons en œuvre les mesures suivantes pour protéger vos données :
 - **Cookie de session** : illisible par les scripts de la page, envoyé uniquement en HTTPS, et protégé contre son utilisation par un autre site pour modifier vos données.
 - **Isolation entre sites** : les données de chaque site sont isolées dans la base de données ; seuls les administrateurs de la plateforme font exception (voir section 4).
 - **Limitation des codes de connexion** : le nombre de codes et de liens de connexion pouvant être demandés pour une même adresse est plafonné, et chacun expire rapidement.
+- **Limitation des essais** : après plusieurs mots de passe erronés pour une même adresse, la connexion par mot de passe est suspendue un quart d'heure (la connexion par code e-mail et par clé d'accès reste possible) ; de même, les codes d'appairage d'appareils GPS inconnus sont limités.
 - **Sauvegardes** : chiffrées en transit vers un serveur séparé. La base de données est chiffrée avant de quitter nos serveurs, et seule une clé conservée hors ligne peut la déchiffrer ; l'ensemble est stocké sur un volume chiffré.
 
 Aucun système n'est infaillible. Si vous constatez une activité suspecte sur votre compte, contactez-nous immédiatement.

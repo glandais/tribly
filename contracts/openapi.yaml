@@ -1827,6 +1827,7 @@ components:
       - STATUS_INVALID
       - PUBLIC_RIDE_PRIVATE_ROUTE
       - INVALID_CREDENTIALS
+      - LOGIN_RATE_LIMITED
       - EMAIL_NOT_VERIFIED
       - EMAIL_ALREADY_EXISTS
       - TOKEN_INVALID
@@ -1848,6 +1849,7 @@ components:
       - GPS_STATE_EXPIRED
       - GPX_NOT_FOUND
       - AUTHORIZATION_PENDING
+      - DEVICE_CODE_RATE_LIMITED
       - GPS_CREDENTIAL_ALREADY_EXISTS
       - GPS_TOKEN_EXCHANGE_FAILED
       - ENCRYPTION_FAILED
@@ -7262,6 +7264,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: LOGIN_RATE_LIMITED — too many wrong passwords lately for this
+            address; Retry-After gives the wait
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/auth/logout:
     post:
       summary: Logout
@@ -7876,6 +7885,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: "DEVICE_CODE_RATE_LIMITED — too many unknown codes lately,\
+            \ on this account or on the site"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Not Authorized
         "403":
@@ -7958,6 +7974,13 @@ paths:
                 $ref: "#/components/schemas/VerifyResponse"
         "404":
           description: Code not found or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: DEVICE_CODE_RATE_LIMITED — too many unknown codes lately on
+            the site
           content:
             application/json:
               schema:
@@ -15903,7 +15926,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 6.3.0
+  version: 6.4.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

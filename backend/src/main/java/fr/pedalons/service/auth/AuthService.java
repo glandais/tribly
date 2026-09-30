@@ -54,6 +54,7 @@ public class AuthService {
   @Inject DomainResolver domainResolver;
   @Inject fr.pedalons.repository.platform.DomainRepository domainRepository;
   @Inject PedalonsQueryContext queryContext;
+  @Inject AuthThrottle authThrottle;
 
   @ConfigProperty(name = "pedalons.auth.refresh-token.expiry-days", defaultValue = "30")
   int refreshTokenExpiryDays;
@@ -374,29 +375,36 @@ public class AuthService {
     return createAuthResult(user, userAgent, ipAddress);
   }
 
+  /**
+   * Past {@code pedalons.auth.password.max-failures} wrong passwords for the address, answers 429
+   * without looking further (docs/LEDGER_*.md SEC-7, audit M4). Every failure counts, an unknown
+   * address's too: the limit must not tell which addresses have an account.
+   */
   @Transactional
   @Public
   public AuthResult loginWithPassword(
       String email, String password, String userAgent, String ipAddress) {
     Domain domain = domainResolver.getDomain();
+    authThrottle.checkPassword(domain.getId(), email);
     User user = userRepository.findByEmailAndDomain(domain.getId(), email).orElse(null);
     if (user == null) {
       logFailedLogin("password", "unknown_account", email, domain.getId(), ipAddress);
-      throw new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
+      throw invalidPassword(domain, email);
     }
 
     if (user.getPasswordHash() == null) {
       // Return INVALID_CREDENTIALS to avoid leaking whether the account exists
       // (same response as user-not-found above)
       logFailedLogin("password", "no_password", email, domain.getId(), ipAddress);
-      throw new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
+      throw invalidPassword(domain, email);
     }
 
     if (!BcryptUtil.matches(password, user.getPasswordHash())) {
       logFailedLogin("password", "wrong_password", email, domain.getId(), ipAddress);
-      throw new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
+      throw invalidPassword(domain, email);
     }
 
+    authThrottle.clearPassword(domain.getId(), email);
     userRepository.recordLogin(user.getId());
     return createAuthResult(user, userAgent, ipAddress);
   }
@@ -576,6 +584,11 @@ public class AuthService {
     Log.warnf(
         "Login failed method=%s reason=%s email=%s domain=%d ip=%s",
         method, reason, email, domainId, ipAddress);
+  }
+
+  private BadRequestException invalidPassword(Domain domain, String email) {
+    authThrottle.recordPasswordFailure(domain.getId(), email);
+    return new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
   }
 
   public User getUserByEmail(String email) {

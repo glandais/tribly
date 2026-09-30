@@ -17,8 +17,12 @@ public class DeviceCodeRepository implements PanacheRepository<DeviceCode> {
     return find("userCode", userCode.toUpperCase()).firstResultOptional();
   }
 
-  public Optional<DeviceCode> findValidByUserCode(String userCode) {
-    return find("userCode = ?1 and expiresAt > CURRENT_TIMESTAMP", userCode.toUpperCase())
+  /** A pending code of {@code domainId}: another domain's code is as unknown as a wrong one. */
+  public Optional<DeviceCode> findValidByUserCode(Long domainId, String userCode) {
+    return find(
+            "domainId = ?1 and userCode = ?2 and expiresAt > CURRENT_TIMESTAMP",
+            domainId,
+            userCode.toUpperCase())
         .firstResultOptional();
   }
 

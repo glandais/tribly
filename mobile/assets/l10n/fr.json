@@ -1003,6 +1003,8 @@
       "RIDE_PAST": "Cette sortie est passée : on ne peut plus s'y inscrire",
       "INTERNAL_ERROR": "Erreur interne du serveur",
       "INVALID_CREDENTIALS": "Email ou mot de passe incorrect",
+      "LOGIN_RATE_LIMITED": "Trop de mots de passe erronés pour cette adresse. Réessayez dans un quart d'heure, ou connectez-vous avec un code reçu par e-mail.",
+      "DEVICE_CODE_RATE_LIMITED": "Trop de codes d'appareil erronés récemment. Réessayez dans quelques minutes.",
       "INVALID_FORMAT": "Le format du fichier est invalide",
       "INVALID_SLUG": "L'URL personnalisée est invalide",
       "INVALID_VISIBILITY": "Le paramètre de visibilité est invalide",

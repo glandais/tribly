@@ -10,6 +10,7 @@ import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.repository.auth.AuthSessionRepository;
 import fr.pedalons.repository.auth.DeviceCodeRepository;
 import fr.pedalons.repository.user.UserRepository;
+import fr.pedalons.service.auth.AuthThrottle;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
@@ -59,6 +60,7 @@ public class DeviceAuthService {
   @Inject UserRepository userRepository;
   @Inject DomainResolver domainResolver;
   @Inject PedalonsQueryContext pedalonsQueryContext;
+  @Inject AuthThrottle authThrottle;
 
   @Public
   public String getFrontendBaseUrl() {
@@ -118,6 +120,10 @@ public class DeviceAuthService {
    * Complete the device code flow after user authenticates. Called by frontend after OTP
    * verification.
    *
+   * <p>An unknown code counts against the account and the domain, and past either limit the call
+   * answers 429 before looking the code up: six characters are guessable online otherwise
+   * (docs/LEDGER_*.md SEC-4, audit H5).
+   *
    * @param userCode The user code displayed on device
    */
   @Transactional
@@ -126,18 +132,18 @@ public class DeviceAuthService {
     Long userId = pedalonsQueryContext.getUserId();
     Long domainId = domainResolver.getDomainId();
 
+    authThrottle.checkDeviceCode(domainId, userId);
     DeviceCode deviceCode =
         deviceCodeRepository
-            .findValidByUserCode(userCode)
-            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
+            .findValidByUserCode(domainId, userCode)
+            .orElseThrow(
+                () -> {
+                  authThrottle.recordDeviceCodeFailure(domainId, userId);
+                  return new BadRequestException(ErrorCode.TOKEN_INVALID);
+                });
 
     if (!deviceCode.isValid()) {
       throw new BadRequestException(ErrorCode.TOKEN_EXPIRED);
-    }
-
-    // Verify domain matches
-    if (!deviceCode.getDomainId().equals(domainId)) {
-      throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
 
     // Get user and authorize device code
@@ -233,7 +239,7 @@ public class DeviceAuthService {
    */
   @Public
   public Optional<DeviceCode> getDeviceCodeByUserCode(String userCode) {
-    return deviceCodeRepository.findValidByUserCode(userCode);
+    return deviceCodeRepository.findValidByUserCode(domainResolver.getDomainId(), userCode);
   }
 
   /**
@@ -244,7 +250,15 @@ public class DeviceAuthService {
    */
   @Public
   public Optional<Boolean> isUserCodeAuthorized(String userCode) {
-    return deviceCodeRepository.findValidByUserCode(userCode).map(DeviceCode::isAuthorized);
+    // Anonymous, so only the domain's budget bounds it: without one, this lookup alone would find
+    // the pending codes that completeDeviceCodeFlow then needs a single try to take (SEC-4).
+    Long domainId = domainResolver.getDomainId();
+    authThrottle.checkDeviceCode(domainId, null);
+    Optional<DeviceCode> deviceCode = deviceCodeRepository.findValidByUserCode(domainId, userCode);
+    if (deviceCode.isEmpty()) {
+      authThrottle.recordDeviceCodeFailure(domainId, null);
+    }
+    return deviceCode.map(DeviceCode::isAuthorized);
   }
 
   private DeviceTokenResponse createTokenResponse(User user, String clientId) {

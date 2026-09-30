@@ -283,7 +283,7 @@ Multi-tenancy par domaine HTTP avec filtrage SQL. Auth JWT 15min (web) / 60min (
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
 | S1 | **Endpoint `/api/device/oauth/complete` sans authentification** — userId fourni par le client, permet usurpation d'identite | Critique | S | `DeviceOAuthResource.java:79` | ✅ |
-| S2 | **Aucun rate limiting sur `/complete`** — user code 6 chars bruteforcable | Critique | S | `DeviceOAuthResource.java` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) H5 |
+| S2 | **Aucun rate limiting sur `/complete`** — user code 6 chars bruteforcable | Critique | S | `DeviceOAuthResource.java` | ✅ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) H5 (ledger `SEC-4`) |
 | S3 | Pas de rotation du refresh token au refresh — vol exploitable 30/90 jours | Important | M | `AuthService.java:211-243` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M7 |
 | S4 | `UserRepository.findActiveById()` sans filtre domainId — pattern fragile | Important | S | `UserRepository.java:22-24` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M8 |
 | S5 | `PasskeyRepository.findByCredentialId()` sans filtre domainId | Important | S | `PasskeyRepository.java:12-14` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M8 |

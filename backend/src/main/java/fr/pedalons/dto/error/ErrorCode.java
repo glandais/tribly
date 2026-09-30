@@ -41,6 +41,8 @@ public enum ErrorCode {
   PUBLIC_RIDE_PRIVATE_ROUTE,
   // Auth errors
   INVALID_CREDENTIALS,
+  /** Too many wrong passwords lately for this address (SEC-7). */
+  LOGIN_RATE_LIMITED,
   EMAIL_NOT_VERIFIED,
   EMAIL_ALREADY_EXISTS,
   TOKEN_INVALID,
@@ -64,6 +66,8 @@ public enum ErrorCode {
   GPX_NOT_FOUND,
   // Device code flow errors (RFC 8628)
   AUTHORIZATION_PENDING,
+  /** Too many unknown pairing codes lately, on this account or on the whole domain (SEC-4). */
+  DEVICE_CODE_RATE_LIMITED,
   // Admin errors
   GPS_CREDENTIAL_ALREADY_EXISTS,
   GPS_TOKEN_EXCHANGE_FAILED,

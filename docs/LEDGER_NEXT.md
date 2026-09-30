@@ -584,10 +584,8 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 | `SEC-1` | 1 | H2 | Élevée | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif |
 | `SEC-2` | 1 | H3 | Élevée | L'autorisation d'un appareil peut aboutir sans confirmation explicite |
 | `SEC-3` | 1 | H4 | Élevée | L'app mobile peut transmettre ses identifiants à d'autres hôtes que l'API |
-| `SEC-4` | — | H5 | Élevée | Un point du flux d'autorisation des appareils n'a aucune limitation de débit (audit de février, S2) |
 | `SEC-5` | 2 | V1 | **Critique si confirmé** | Clé JWT présente dans l'historique public : vérifier que prod et staging n'en sont pas des copies |
 | `SEC-6` | 4 | M3 | Moyenne | Traitement GPX non borné en mémoire |
-| `SEC-7` | 4 | M4 | Moyenne | Connexion par mot de passe sans limitation de débit ni verrouillage |
 | `SEC-8` | — | M2 | Moyenne | Flou d'~1 km des annonces affinable par requêtes répétées (contredit la décision `API-31`) |
 | `SEC-9` | — | M5 | Moyenne | Login CSRF via le lien de vérification d'e-mail |
 | `SEC-11` | — | M7 à M10 | Moyenne | Refresh token non renouvelé ; résolution d'identité sans filtre de domaine ; jeton d'appareil long et non révocable ; pas de limitation de débit HTTP globale — voir `API-27` (audit de février, S3 à S7) |
@@ -625,11 +623,11 @@ Deux gestes d'exploitation de l'audit sont sous `OPS` : I13 (`OPS-7`) et I20 (`O
 | `AUD-24` | Karoo | K7, K9, K10 | Important | Refresh du jeton en trois endroits ; pas de `slow_down` (RFC 8628 — le backend n'en émet aucun à ce jour, voir `AUD-27`) ; routes non paginées. K13 est livré sous `AUD-32` |
 | `AUD-25` | Garmin | G1 | Critique | `BASE_URL` de production en dur (`ApiClient.mc`) : bloque le multi-tenant |
 | `AUD-26` | Garmin | G4, G5, G7, G10 | Important | `loadResource()` dans `onUpdate()` ; AM/PM en dur ; état comparé à une chaîne localisée ; `_tokenCallback` partagé entre refresh et polling |
-| `AUD-27` | Garmin | G8, G9 | Important | Pas de `slow_down` (le backend n'en émet aucun à ce jour — relevé le 30 septembre 2026 : `grep slow_down backend/` ne trouve rien, le point ne mord qu'avec `SEC-4`) ; offsets fixes dans les layouts. G6 est livré sous `AUD-31` |
+| `AUD-27` | Garmin | G8, G9 | Important | Pas de `slow_down` (le backend n'en émet aucun à ce jour — relevé le 30 septembre 2026 : `grep slow_down backend/` ne trouve rien ; `SEC-4` a limité `/complete` et `/verify`, pas `/token`, dont le `device_code` de 256 bits n'a rien à deviner : le point ne mordra que si `/token` est un jour freiné) ; offsets fixes dans les layouts. G6 est livré sous `AUD-31` |
 | `AUD-29` | Appareils | §9.2 | — | Reprise d'un flow d'autorisation interrompu et résilience réseau pendant le polling, à revérifier |
 
 Suivis ailleurs : les lignes de sécurité S2 à S12 sont versées dans `SECURITY_AUDIT.md`, donc sous
-`SEC` (H5 = `SEC-4`, M7 à M10 = `SEC-11`, L12 et L13 livrés sous `SEC-22`, L14 sous `SEC-23` ; S8 et S12 y sont rangées comme
+`SEC` (H5 livré sous `SEC-4`, M7 à M10 = `SEC-11`, L12 et L13 livrés sous `SEC-22`, L14 sous `SEC-23` ; S8 et S12 y sont rangées comme
 conformes). K12 (= S13, jetons Karoo en clair) est L10, dans `SEC-12` ; P2-44 (en-têtes CSP/HSTS) est
 V4, dans `SEC-16` ; F12 (sitemap) est livré sous `WEB-31`.
 

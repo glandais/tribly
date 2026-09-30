@@ -28,11 +28,11 @@
 | H2 | **Élevée** | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif (XSS stockée) | Ouvert |
 | H3 | **Élevée** | L'autorisation d'un appareil peut aboutir sans confirmation explicite de l'utilisateur | Ouvert |
 | H4 | **Élevée** | L'app mobile peut transmettre ses identifiants à des hôtes autres que l'API | Ouvert |
-| H5 | **Élevée** | Un point du flux d'autorisation des appareils n'a aucune limitation de débit | Ouvert |
+| H5 | **Élevée** | Un point du flux d'autorisation des appareils n'a aucune limitation de débit | Corrigé (ledger `SEC-4`) |
 | M1 | Moyenne (élevée en chaîne) | L'access token n'est pas lié à son domaine : l'utilisateur est résolu par e-mail sur le Host de la requête | Corrigé (commit `6a791794`) |
 | M2 | Moyenne | Le flou d'~1 km de la position des annonces peut être affiné par des requêtes répétées | Ouvert |
 | M3 | Moyenne | Un traitement de tracé GPX n'est pas borné en mémoire (déni de service) | Ouvert |
-| M4 | Moyenne | La connexion par mot de passe n'a ni limitation de débit ni verrouillage | Ouvert |
+| M4 | Moyenne | La connexion par mot de passe n'a ni limitation de débit ni verrouillage | Corrigé (ledger `SEC-7`) |
 | M5 | Moyenne | Un lien de vérification d'e-mail peut connecter la victime à un compte qui n'est pas le sien (login CSRF) | Ouvert |
 | M6 | Moyenne | Une expression régulière appliquée au markdown est exposée au ReDoS | Corrigé : l'expression est linéaire (ledger `SEC-10`), le markdown borné à 100 000 caractères (ledger `SEC-19`) |
 | M7 | Moyenne | Le refresh token n'est pas renouvelé à l'usage | Ouvert |
@@ -55,7 +55,7 @@ changement de statut ici se reporte là-bas.
 1. ~~H1~~ (corrigé), H2, H3 et H4.
 2. Vérifier V1.
 3. ~~M1~~ (corrigé).
-4. M3 et M4.
+4. M3 et ~~M4~~ (corrigé).
 
 ---
 
@@ -66,7 +66,7 @@ changement de statut ici se reporte là-bas.
 - **Acteur** : anonyme qui connaît l'e-mail d'un utilisateur vérifié.
 - **Constat d'origine** : la vérification de l'OTP (`AuthService.java`) ne comptait pas les échecs. Le code a 6 chiffres et reste valide 5 minutes ; `otpMaxAttempts` ne limitait que le nombre d'*envois* de code, jamais le nombre de *vérifications*. L'admin plateforme créé au bootstrap se connecte par OTP : la prise de ce compte donnait accès à tous les tenants.
 - **Correctif appliqué** : colonne `failed_attempts` sur `auth_tokens` (migration V42), incrémentée même quand la vérification échoue (`@Transactional(dontRollbackOn = BadRequestException.class)`). Le code est brûlé après `pedalons.auth.otp.max-verify-attempts` échecs (5 par défaut). Test de régression dans `AuthServiceTest`.
-- La limitation de débit sur l'API d'authentification relève de M4, toujours ouvert.
+- La limitation de débit de la connexion par mot de passe relève de M4, corrigé à son tour (ledger `SEC-7`).
 
 ### H2 — XSS stockée via un fichier téléversé — **Ouvert**
 
@@ -74,7 +74,7 @@ changement de statut ici se reporte là-bas.
 
 ### H4 — Fuite des identifiants mobiles vers des hôtes tiers — **Ouvert**
 
-### H5 — Flux d'autorisation des appareils sans limitation de débit — **Ouvert** (audit de février, S2)
+### H5 — Flux d'autorisation des appareils sans limitation de débit — **Corrigé** (ledger `SEC-4` ; audit de février, S2)
 
 ---
 
@@ -89,7 +89,7 @@ changement de statut ici se reporte là-bas.
 
 ### M3 — DoS mémoire sur le traitement GPX — **Ouvert**
 
-### M4 — Pas de throttling sur la connexion par mot de passe — **Ouvert**
+### M4 — Pas de throttling sur la connexion par mot de passe — **Corrigé** (ledger `SEC-7`)
 
 ### M5 — Login CSRF via le lien de vérification d'e-mail — **Ouvert**
 

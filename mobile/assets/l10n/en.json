@@ -1003,6 +1003,8 @@
       "RIDE_PAST": "This ride is over: registration is closed",
       "INTERNAL_ERROR": "Internal server error",
       "INVALID_CREDENTIALS": "Invalid email or password",
+      "LOGIN_RATE_LIMITED": "Too many wrong passwords for this address. Try again in a quarter of an hour, or sign in with a code sent by email.",
+      "DEVICE_CODE_RATE_LIMITED": "Too many wrong device codes lately. Try again in a few minutes.",
       "INVALID_FORMAT": "The file format is invalid",
       "INVALID_SLUG": "The custom URL is invalid",
       "INVALID_VISIBILITY": "The visibility setting is invalid",

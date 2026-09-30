@@ -157,6 +157,12 @@ public class AuthResource {
     @APIResponse(
         responseCode = "400",
         description = "Invalid credentials or password not set",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "429",
+        description =
+            "LOGIN_RATE_LIMITED — too many wrong passwords lately for this address; Retry-After"
+                + " gives the wait",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response loginWithPassword(

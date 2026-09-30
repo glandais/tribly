@@ -36,6 +36,7 @@ To secure access to your account, we process:
 - **One-time passwords (OTP)**: hashed, valid for 5 minutes, and invalidated after 5 wrong attempts.
 - **Links sent by email** (sign-up verification, email change, password reset): hashed, single-use tokens, valid for 24 hours (1 hour for a password reset). At sign-up, your email address, your name, your password hash and the date you accepted the terms are held pending: the account is only created, or the new address applied, once you follow the link.
 - **GPS device pairing codes**: temporary codes (10 minutes) to connect a Karoo or a Garmin.
+- **Failed attempts**: each wrong password and each unknown pairing code is recorded with its date, to block repeated guesses for a few minutes. We record neither the password nor the code tried, nor your email address in clear (only an irreversible fingerprint), nor your IP address; for a pairing code entered while signed in, your account's technical identifier.
 - **Calendar token**: if you subscribe to the calendar, a random token, with no expiry, embedded in your feed address. It is stored in readable form so that your calendar application can use it; you can regenerate it at any time (see "Calendar subscriptions" in section 4).
 
 ### Session Data
@@ -307,6 +308,7 @@ Some processing you can trigger involves servers outside the European Union:
 - **Email change verification link**: 24 hours
 - **GPS device pairing codes**: 10 minutes at most
 - **Passkey challenges**: 5 minutes at most
+- **Failed sign-in and pairing attempts**: 24 hours
 - **Calendar token (secret URL of your .ics feed)**: No expiry, until regenerated
 - **Teams and content (rides, posts, routes, trips, pages)**: Deleting an item hides it from members and visitors, but it stays in our database: the team's administrators still see it in their lists, marked "Deleted", and can restore it. The record is kept until permanent erasure is requested
 - **Comments**: Erased as soon as you or your team delete them, together with the replies they received; the extract copied into a notification remains until that notification expires (90 days)
@@ -451,6 +453,7 @@ We implement the following measures to protect your data:
 - **Session cookie**: unreadable by the page's scripts, sent over HTTPS only, and protected against use by another website to change your data.
 - **Isolation between sites**: each site's data is isolated in the database; platform administrators are the only exception (see section 4).
 - **Limits on sign-in codes**: the number of sign-in codes and links that can be requested for the same address is capped, and each one expires quickly.
+- **Limits on guesses**: after several wrong passwords for the same address, password sign-in is suspended for a quarter of an hour (sign-in by email code and by passkey remain available); unknown GPS device pairing codes are limited likewise.
 - **Backups**: encrypted in transit to a separate server. The database is encrypted before it leaves our servers, and only a key kept offline can decrypt it; everything is stored on an encrypted volume.
 
 No system is infallible. If you notice suspicious activity on your account, contact us immediately.

@@ -88,6 +88,12 @@ public class DeviceOAuthResource {
     @APIResponse(
         responseCode = "400",
         description = "Invalid or expired code",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "429",
+        description =
+            "DEVICE_CODE_RATE_LIMITED — too many unknown codes lately, on this account or on the"
+                + " site",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response complete(@Valid CompleteRequest request) {
@@ -164,6 +170,10 @@ public class DeviceOAuthResource {
     @APIResponse(
         responseCode = "404",
         description = "Code not found or expired",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "429",
+        description = "DEVICE_CODE_RATE_LIMITED — too many unknown codes lately on the site",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response verify(@QueryParam("code") String userCode) {
