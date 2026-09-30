@@ -120,20 +120,52 @@ export async function register(account: {
 }
 
 /**
- * A fresh access token for a saved session, or null once the session is gone (stack reset: the
- * backend answers 4xx). Any other failure throws — concurrent refreshes of one session used to
+ * Sets the password of an account through the mailed reset link, as a member who forgot it would.
+ * The reset ends every session of the account.
+ */
+export async function resetPassword(email: string, newPassword: string): Promise<void> {
+  const seen = await mailbox(email)
+  await apiPost(undefined, '/api/auth/forgot-password', { email })
+  const token = linkTokenIn(await waitForNewMail(email, seen))
+  await apiPost(undefined, '/api/auth/reset-password', { token, newPassword })
+}
+
+/**
+ * A fresh access token for a session, or null once the session is gone (stack reset, revocation:
+ * the backend answers 4xx). Any other failure throws — concurrent refreshes of one session used to
  * answer 500 (optimistic lock on User, fixed 2026-09-25) and auth.e2e.ts pins that they no longer do,
  * so there is nothing to retry.
+ *
+ * **The refresh rotates the token** (docs/LEDGER_*.md SEC-27): `refreshToken` of the result is the
+ * one to use next — the one passed in only survives a minute, and presented after that it revokes
+ * the session. Within that minute, or when a concurrent refresh already rotated it, the backend
+ * sends no new token and the one passed in is given back. A session is therefore held by one
+ * owner: the test (an AuthResponse), or a browser context (its cookie), never both — see signIn().
  */
 export async function refresh(refreshToken: string): Promise<AuthResponse | null> {
   return withApi(undefined, async (api) => {
     const response = await api.post('/api/auth/refresh', {
       headers: { 'X-Refresh-Token': refreshToken },
     })
-    if (response.ok()) return { ...(await response.json()), refreshToken }
+    if (response.ok()) {
+      const auth = (await response.json()) as Omit<AuthResponse, 'refreshToken'> & {
+        refreshToken?: string | null
+      }
+      return { ...auth, refreshToken: auth.refreshToken ?? refreshToken }
+    }
     if (response.status() < 500) return null
     throw new Error(`POST /api/auth/refresh → ${response.status()}: ${await response.text()}`)
   })
+}
+
+/**
+ * Refreshes the session `holder` owns and keeps the rotated token in it, so that the next refresh
+ * through the same holder presents the current token rather than a replay.
+ */
+export async function refreshHeld(holder: { refreshToken: string }): Promise<AuthResponse | null> {
+  const auth = await refresh(holder.refreshToken)
+  if (auth) holder.refreshToken = auth.refreshToken
+  return auth
 }
 
 /**
@@ -142,29 +174,27 @@ export async function refresh(refreshToken: string): Promise<AuthResponse | null
  * cookies to http://localhost, which counts as a secure context.
  */
 export function writeStorageState(path: string, refreshToken: string) {
+  writeFileAtomic(path, JSON.stringify(storageStateOf(refreshToken), null, 2))
+}
+
+/** The same storageState as an object, for a `storageState` fixture. */
+export function storageStateOf(refreshToken: string) {
   const { hostname } = new URL(stack.baseURL)
-  writeFileAtomic(
-    path,
-    JSON.stringify(
+  return {
+    cookies: [
       {
-        cookies: [
-          {
-            name: 'refresh_token',
-            value: refreshToken,
-            domain: hostname,
-            path: '/',
-            expires: Math.floor(Date.now() / 1000) + 30 * 24 * 3600,
-            httpOnly: true,
-            secure: true,
-            sameSite: 'Lax',
-          },
-        ],
-        origins: [],
+        name: 'refresh_token',
+        value: refreshToken,
+        domain: hostname,
+        path: '/',
+        expires: Math.floor(Date.now() / 1000) + 30 * 24 * 3600,
+        httpOnly: true,
+        secure: true,
+        sameSite: 'Lax' as const,
       },
-      null,
-      2
-    )
-  )
+    ],
+    origins: [],
+  }
 }
 
 /**

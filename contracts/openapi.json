@@ -924,7 +924,7 @@
           },
           "refreshToken" : {
             "type" : "string",
-            "description" : "Refresh token (for mobile clients)"
+            "description" : "Refresh token, for mobile clients. On a refresh, the rotated token — absent when the refresh came within the grace of a rotation made by another one, whose token stands."
           }
         }
       },
@@ -8590,7 +8590,7 @@
     "/api/auth/refresh" : {
       "post" : {
         "summary" : "Refresh access token",
-        "description" : "Get a new access token using the refresh token cookie",
+        "description" : "Get a new access token from the refresh token (cookie on the web, X-Refresh-Token header on mobile). The refresh token is rotated: the new one comes back in the cookie, or in refreshToken for the header flow, and the one presented is then only honoured for a short grace, without rotating again (refreshToken absent). Presented after that grace, it revokes the session.",
         "operationId" : "refresh",
         "tags" : [ "Authentication" ],
         "parameters" : [ {
@@ -21123,7 +21123,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "9.1.0",
+    "version" : "9.1.1",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

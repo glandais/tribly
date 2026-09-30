@@ -164,7 +164,12 @@ export const LoginWithPasswordResponse = zod
       })
       .optional()
       .describe('Authenticated user'),
-    refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
+    refreshToken: zod
+      .string()
+      .optional()
+      .describe(
+        'Refresh token, for mobile clients. On a refresh, the rotated token — absent when the refresh came within the grace of a rotation made by another one, whose token stands.'
+      ),
   })
   .describe('Authentication response')
 
@@ -298,12 +303,17 @@ export const VerifyOtpResponse = zod
       })
       .optional()
       .describe('Authenticated user'),
-    refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
+    refreshToken: zod
+      .string()
+      .optional()
+      .describe(
+        'Refresh token, for mobile clients. On a refresh, the rotated token — absent when the refresh came within the grace of a rotation made by another one, whose token stands.'
+      ),
   })
   .describe('Authentication response')
 
 /**
- * Get a new access token using the refresh token cookie
+ * Get a new access token from the refresh token (cookie on the web, X-Refresh-Token header on mobile). The refresh token is rotated: the new one comes back in the cookie, or in refreshToken for the header flow, and the one presented is then only honoured for a short grace, without rotating again (refreshToken absent). Presented after that grace, it revokes the session.
  * @summary Refresh access token
  */
 export const RefreshHeader = zod.object({
@@ -377,7 +387,12 @@ export const RefreshResponse = zod
       })
       .optional()
       .describe('Authenticated user'),
-    refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
+    refreshToken: zod
+      .string()
+      .optional()
+      .describe(
+        'Refresh token, for mobile clients. On a refresh, the rotated token — absent when the refresh came within the grace of a rotation made by another one, whose token stands.'
+      ),
   })
   .describe('Authentication response')
 
@@ -517,7 +532,12 @@ export const ResetPasswordResponse = zod
       })
       .optional()
       .describe('Authenticated user'),
-    refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
+    refreshToken: zod
+      .string()
+      .optional()
+      .describe(
+        'Refresh token, for mobile clients. On a refresh, the rotated token — absent when the refresh came within the grace of a rotation made by another one, whose token stands.'
+      ),
   })
   .describe('Authentication response')
 
@@ -621,7 +641,12 @@ export const ActivateAccountResponse = zod
       })
       .optional()
       .describe('Authenticated user'),
-    refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
+    refreshToken: zod
+      .string()
+      .optional()
+      .describe(
+        'Refresh token, for mobile clients. On a refresh, the rotated token — absent when the refresh came within the grace of a rotation made by another one, whose token stands.'
+      ),
   })
   .describe('Authentication response')
 

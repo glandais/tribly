@@ -1,10 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { test as base } from '@playwright/test'
-import { seedPath, storageStatePath, type Role } from './stack'
+import { storageStateOf } from './api'
+import { loginAs } from './data'
+import { seedPath, type Role } from './stack'
 
 /** What global-setup seeded — see e2e/global-setup.ts. */
 export interface Seed {
-  admin: { email: string; displayName: string }
+  admin: { email: string; displayName: string; password: string }
   rider: { email: string; displayName: string; password: string }
   team: { slug: string; name: string }
 }
@@ -32,5 +34,18 @@ export function unique(label: string): string {
   return `${label} ${project.name}-${workerIndex}-${counter}-${Date.now().toString(36)}`
 }
 
-/** `test.use(as('rider'))` — the tests of that block start signed in as that role. */
-export const as = (role: Role) => ({ storageState: storageStatePath(role) })
+/**
+ * `test.use(as('rider'))` — the tests of that block start signed in as that role, each context with
+ * a session of its own: the refresh token rotates (docs/LEDGER_*.md SEC-27), so one saved session
+ * shared by every test would be revoked as a replay the first time two of them refreshed it.
+ */
+export const as = (role: Role) => ({
+  storageState: async (
+    // Playwright requires the destructuring (see `seed` above).
+    // oxlint-disable-next-line no-empty-pattern
+    {},
+    provide: (state: ReturnType<typeof storageStateOf>) => Promise<void>
+  ) => {
+    await provide(storageStateOf((await loginAs(role)).refreshToken))
+  },
+})

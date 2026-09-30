@@ -11,7 +11,6 @@ import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.auth.request.OtpRequest;
 import fr.pedalons.dto.auth.request.RegisterRequest;
-import fr.pedalons.dto.auth.response.AuthResponse;
 import fr.pedalons.dto.auth.response.AuthResult;
 import fr.pedalons.enums.AuthTokenType;
 import fr.pedalons.repository.auth.AuthSessionRepository;
@@ -22,9 +21,11 @@ import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
 import io.quarkus.mailer.MockMailbox;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -243,10 +244,91 @@ class AuthServiceTest extends AbstractBaseTest {
     User user = dataService.createVerifiedUser("refresh@example.com", "Refresh User");
     String refreshToken = dataService.createRefreshTokenForUser(user);
 
-    AuthResponse response = authService.refreshToken(refreshToken);
+    AuthService.RefreshResult result = authService.refreshToken(refreshToken);
 
-    assertNotNull(response.accessToken());
-    assertEquals("refresh@example.com", response.user().email());
+    assertNotNull(result.response().accessToken());
+    assertEquals("refresh@example.com", result.response().user().email());
+    assertNull(result.response().refreshToken());
+  }
+
+  // --- Refresh token rotation (audit M7, docs/LEDGER_*.md SEC-27) ---
+
+  @Test
+  void refreshToken_rotatesTheRefreshToken() {
+    User user = dataService.createVerifiedUser("rotate@example.com", "Rotate User");
+    String first = dataService.createRefreshTokenForUser(user);
+
+    String second = authService.refreshToken(first).refreshToken();
+
+    assertNotNull(second);
+    assertNotEquals(first, second);
+    String third = authService.refreshToken(second).refreshToken();
+    assertNotNull(third);
+    assertNotEquals(second, third);
+  }
+
+  @Test
+  void refreshToken_previousTokenWithinTheGrace_refreshesWithoutRotatingAgain() {
+    User user = dataService.createVerifiedUser("grace@example.com", "Grace User");
+    String first = dataService.createRefreshTokenForUser(user);
+    String second = authService.refreshToken(first).refreshToken();
+
+    // The other tab, whose refresh left with the same token and lost the race.
+    AuthService.RefreshResult late = authService.refreshToken(first);
+
+    assertNotNull(late.response().accessToken());
+    assertNull(late.refreshToken());
+    // The winner's token is untouched: it still refreshes, and rotates.
+    assertNotNull(authService.refreshToken(second).refreshToken());
+  }
+
+  @Test
+  void refreshToken_previousTokenAfterTheGrace_revokesTheSession() {
+    User user = dataService.createVerifiedUser("replay@example.com", "Replay User");
+    String first = dataService.createRefreshTokenForUser(user);
+    String second = authService.refreshToken(first).refreshToken();
+    assertNotNull(second);
+    backdateRotation(first, Duration.ofMinutes(5));
+
+    assertThrows(ForbiddenException.class, () -> authService.refreshToken(first));
+
+    // A replayed copy ends the session for everyone holding it, the owner included.
+    assertThrows(ForbiddenException.class, () -> authService.refreshToken(second));
+  }
+
+  @Test
+  void refreshToken_aTokenTwoRotationsBack_isRefused() {
+    User user = dataService.createVerifiedUser("stale@example.com", "Stale User");
+    String first = dataService.createRefreshTokenForUser(user);
+    String second = authService.refreshToken(first).refreshToken();
+    assertNotNull(second);
+    String third = authService.refreshToken(second).refreshToken();
+    assertNotNull(third);
+
+    assertThrows(ForbiddenException.class, () -> authService.refreshToken(first));
+    assertNotNull(authService.refreshToken(third).refreshToken());
+  }
+
+  @Test
+  void logout_withTheTokenARefreshJustRotatedAway_endsTheSession() {
+    User user = dataService.createVerifiedUser("logout-rotated@example.com", "User");
+    String first = dataService.createRefreshTokenForUser(user);
+    String second = authService.refreshToken(first).refreshToken();
+
+    authService.logout(first);
+
+    assertThrows(ForbiddenException.class, () -> authService.refreshToken(second));
+  }
+
+  /** Moves the rotation that made {@code previousToken} the previous one {@code by} into the past. */
+  private void backdateRotation(String previousToken, Duration by) {
+    QuarkusTransaction.requiringNew()
+        .run(
+            () ->
+                authSessionRepository.update(
+                    "rotatedAt = ?1 where previousRefreshTokenHash = ?2",
+                    Instant.now().minus(by),
+                    hashToken(previousToken)));
   }
 
   @Test
@@ -265,7 +347,7 @@ class AuthServiceTest extends AbstractBaseTest {
         authSessionRepository
             .getEntityManager()
             .createQuery(
-                "select s.lastUsedAt from AuthSession s where s.refreshTokenHash = :hash",
+                "select s.lastUsedAt from AuthSession s where s.previousRefreshTokenHash = :hash",
                 Instant.class)
             .setParameter("hash", hashToken(refreshToken))
             .getSingleResult();

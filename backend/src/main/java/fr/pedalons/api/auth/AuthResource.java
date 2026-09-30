@@ -284,7 +284,12 @@ public class AuthResource {
   @PermitAll
   @Operation(
       summary = "Refresh access token",
-      description = "Get a new access token using the refresh token cookie")
+      description =
+          "Get a new access token from the refresh token (cookie on the web, X-Refresh-Token"
+              + " header on mobile). The refresh token is rotated: the new one comes back in the"
+              + " cookie, or in refreshToken for the header flow, and the one presented is then"
+              + " only honoured for a short grace, without rotating again (refreshToken absent)."
+              + " Presented after that grace, it revokes the session.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -308,13 +313,22 @@ public class AuthResource {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    AuthResponse authResponse = authService.refreshToken(refreshToken);
-    Response.ResponseBuilder response = Response.ok(authResponse);
-    if (fromCookie) {
-      // Re-issue on path=/ and drop any leftover path=/api cookie. The token itself is unchanged
-      // (refresh does not rotate it); this is what migrates a pre-existing session to the new path
-      // without forcing a reconnection.
-      response.cookie(refreshTokenCookies.issue(refreshToken));
+    AuthService.RefreshResult result = authService.refreshToken(refreshToken);
+    String nextToken = result.refreshToken();
+    if (!fromCookie) {
+      // Mobile: the new token travels in the body, the only place the app reads it from.
+      return Response.ok(
+              nextToken == null
+                  ? result.response()
+                  : result.response().toBuilder().refreshToken(nextToken).build())
+          .build();
+    }
+    // Web: the new token stays in the HttpOnly cookie, never in a body script can read. Inside the
+    // grace of another refresh's rotation there is none, and the cookie that refresh set stands.
+    // issue() also drops any leftover path=/api cookie.
+    Response.ResponseBuilder response = Response.ok(result.response());
+    if (nextToken != null) {
+      response.cookie(refreshTokenCookies.issue(nextToken));
     }
     return response.build();
   }

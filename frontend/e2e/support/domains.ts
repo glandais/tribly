@@ -1,4 +1,3 @@
-import { existsSync, readFileSync } from 'node:fs'
 import { request, type APIRequestContext, type BrowserContext } from '@playwright/test'
 import type {
   AdminDomainAliasDto,
@@ -11,19 +10,11 @@ import type {
   TeamDetailDto,
   UpdateDomainAliasRequest,
 } from '../../src/api/dto'
-import {
-  ApiError,
-  apiGet,
-  apiPost,
-  apiPut,
-  expectOk,
-  writeFileAtomic,
-  type AuthResponse,
-} from './api'
+import { ApiError, apiGet, apiPost, apiPut, expectOk, type AuthResponse } from './api'
 import { roleSession, teamRequest } from './data'
 import { linkTokenIn, mailbox, waitForNewMail } from './mailpit'
-import type { RawDocument } from './ssr'
-import { authDir, stack } from './stack'
+import { keepRotatedSession, type RawDocument } from './ssr'
+import { stack } from './stack'
 
 /**
  * Other sites than `localhost` on the one e2e stack (multi-tenancy.e2e.ts, pinned-host.e2e.ts).
@@ -119,12 +110,16 @@ export const hostStatus = (
 export async function registerOn(
   host: string,
   account: { email: string; displayName: string; password: string }
-): Promise<AuthResponse> {
+): Promise<AuthResponse & { password: string }> {
   const { password, ...signUp } = account
   const seen = await mailbox(account.email)
   await hostPost(host, undefined, '/api/auth/register', { ...signUp, acceptTerms: true })
   const token = linkTokenIn(await waitForNewMail(account.email, seen))
-  return hostPost<AuthResponse>(host, undefined, '/api/auth/verify-email', { token, password })
+  const auth = await hostPost<AuthResponse>(host, undefined, '/api/auth/verify-email', {
+    token,
+    password,
+  })
+  return { ...auth, password }
 }
 
 export const loginOn = (host: string, email: string, password: string) =>
@@ -138,7 +133,11 @@ export const refreshOn = (host: string, refreshToken: string) =>
     const response = await api.post('/api/auth/refresh', {
       headers: { 'X-Refresh-Token': refreshToken },
     })
-    if (response.ok()) return { ...(await response.json()), refreshToken } as AuthResponse
+    if (response.ok()) {
+      // Rotated (docs/LEDGER_*.md SEC-27): the token to use next, or the same one inside the grace.
+      const auth = (await response.json()) as AuthResponse
+      return { ...auth, refreshToken: auth.refreshToken ?? refreshToken }
+    }
     if (response.status() < 500) return null
     throw new Error(`POST /api/auth/refresh on ${host} → ${response.status()}`)
   })
@@ -146,12 +145,28 @@ export const refreshOn = (host: string, refreshToken: string) =>
 /**
  * Signs a browser context in on `host`: the refresh_token cookie the backend would have set there.
  * Cookies are host-only, so a session on one host never travels to another.
+ *
+ * Like data.ts signIn(), the browser gets a session of its own when `auth` carries its password —
+ * logged in on `host`: the token rotates at every refresh (docs/LEDGER_*.md SEC-27). A session
+ * carried to a host that is not its own is handed over as it is — that host refuses it, which is
+ * what such a test checks — even when the same address and password open another account there.
  */
-export async function signInOn(context: BrowserContext, host: string, auth: AuthResponse) {
+export async function signInOn(
+  context: BrowserContext,
+  host: string,
+  auth: AuthResponse & { password?: string }
+) {
+  const login = auth.password
+    ? await loginOn(host, auth.user.email, auth.password).catch((e: unknown) => {
+        if (e instanceof ApiError && e.status === 400) return undefined
+        throw e
+      })
+    : undefined
+  const own = login?.user.id === auth.user.id ? login : undefined
   await context.addCookies([
     {
       name: 'refresh_token',
-      value: auth.refreshToken,
+      value: (own ?? auth).refreshToken,
       domain: host,
       path: '/',
       httpOnly: true,
@@ -206,9 +221,6 @@ const OTHER_ADMIN = {
 
 let otherAdminSession: Promise<AuthResponse> | undefined
 
-/** Where the other admin's session is kept between runs, next to the roles' (global-setup). */
-const otherAdminPath = `${authDir}admin-autre.json`
-
 /**
  * Runs `call` again (up to three times, after a short random pause) when it fails with a 500.
  *
@@ -246,22 +258,17 @@ async function logInOtherAdmin(): Promise<AuthResponse> {
 }
 
 /**
- * A platform admin of `autre.localhost` (cached per worker, and its session saved between runs like
- * the roles'): signed up there on first use, then promoted by the admin of `localhost` — whose admin
+ * A platform admin of `autre.localhost` (cached per worker, signed in by password): signed up there
+ * on first use, then promoted by the admin of `localhost` — whose admin
  * API reaches every domain's users. Needed for anything only a platform admin may do on that domain
  * (a public team, say).
  */
 export function otherAdmin(): Promise<AuthResponse> {
   otherAdminSession ??= (async () => {
     await otherDomain()
-    const saved = existsSync(otherAdminPath)
-      ? (JSON.parse(readFileSync(otherAdminPath, 'utf8')) as { refreshToken: string })
-      : undefined
-    let auth = saved && (await refreshOn(OTHER_HOST, saved.refreshToken))
-    if (!auth) {
-      auth = await logInOtherAdmin()
-      writeFileAtomic(otherAdminPath, JSON.stringify({ refreshToken: auth.refreshToken }))
-    }
+    // A login per worker, never a session saved between runs: its token would rotate under every
+    // worker that refreshed it, and turn into a replay for the next (docs/LEDGER_*.md SEC-27).
+    const auth = await logInOtherAdmin()
     const admin = await roleSession('admin')
     const user = `/api/admin/users/${auth.user.id}`
     if ((await apiGet<AdminUserDto>(admin, user)).platformRole !== 'PLATFORM_ADMIN')
@@ -365,6 +372,7 @@ export const hostDocument = (host: string, path: string, { cookie }: { cookie?: 
         ...(cookie ? { Cookie: cookie } : {}),
       },
     })
+    keepRotatedSession(cookie, response.headersArray())
     return { status: response.status(), headers: response.headers(), html: await response.text() }
   })
 

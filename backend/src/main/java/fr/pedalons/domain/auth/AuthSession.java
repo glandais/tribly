@@ -25,6 +25,19 @@ public class AuthSession {
   @Column(name = "refresh_token_hash", nullable = false, length = 100)
   private String refreshTokenHash;
 
+  /**
+   * The token this session held before its last refresh, still honoured for a short grace so that
+   * refreshes already in flight (other tabs, the SSR, an app resuming) do not end the session.
+   * Presented after that grace, it is a replayed copy: the session is revoked (docs/LEDGER_*.md
+   * SEC-27).
+   */
+  @Column(name = "previous_refresh_token_hash", length = 100)
+  private @Nullable String previousRefreshTokenHash;
+
+  /** When the refresh token was last rotated — the start of the previous token's grace. */
+  @Column(name = "rotated_at")
+  private @Nullable Instant rotatedAt;
+
   @Column(name = "expires_at", nullable = false)
   private Instant expiresAt;
 

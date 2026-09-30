@@ -19,13 +19,19 @@ const TIMEOUT_MS = 3_000
  * Any failure returns undefined and the page renders anonymously, exactly as it did before SSR
  * became session-aware. A revoked or expired token is the normal case here, not an incident.
  *
+ * The refresh rotates the session's token (docs/LEDGER_*.md SEC-27): the backend's `Set-Cookie`
+ * is handed to `onSetCookie` as soon as the answer arrives, whatever becomes of the render, and the
+ * document response must carry it. Lost, the browser would keep a token that turns into a replay
+ * once the rotation's grace is over — and a replay revokes the session.
+ *
  * Note on migration: sessions created before the cookie moved to `path=/` are invisible here (the
  * browser does not send them on a document request). Those renders stay anonymous until the client's
  * own `/api/auth/refresh` call re-issues the cookie on the new path — from the next navigation on,
  * SSR sees it. No reconnection required.
  */
 export async function resolveSsrSession(
-  headers: Record<string, string>
+  headers: Record<string, string>,
+  onSetCookie: (cookies: string[]) => void = () => {}
 ): Promise<SsrAuthSnapshot | undefined> {
   const cookie = headers['cookie']
   if (!cookie || !new RegExp(`(?:^|;\\s*)${REFRESH_TOKEN_COOKIE}=`).test(cookie)) {
@@ -46,6 +52,8 @@ export async function resolveSsrSession(
       headers: outbound,
       signal: AbortSignal.timeout(TIMEOUT_MS),
     })
+    const setCookies = response.headers.getSetCookie()
+    if (setCookies.length > 0) onSetCookie(setCookies)
 
     if (!response.ok) {
       // 401/403 just means "no usable session" — expected, not worth a log line.

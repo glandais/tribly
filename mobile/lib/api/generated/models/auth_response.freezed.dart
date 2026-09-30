@@ -19,7 +19,7 @@ mixin _$AuthResponse {
 /// JWT access token
  String? get accessToken;/// Token expiry in seconds
  int? get expiresIn;/// Authenticated user
- UserDto? get user;/// Refresh token (for mobile clients)
+ UserDto? get user;/// Refresh token, for mobile clients. On a refresh, the rotated token — absent when the refresh came within the grace of a rotation made by another one, whose token stands.
  String? get refreshToken;
 /// Create a copy of AuthResponse
 /// with the given fields replaced by the non-null parameter values.
@@ -243,7 +243,7 @@ class _AuthResponse implements AuthResponse {
 @override final  int? expiresIn;
 /// Authenticated user
 @override final  UserDto? user;
-/// Refresh token (for mobile clients)
+/// Refresh token, for mobile clients. On a refresh, the rotated token — absent when the refresh came within the grace of a rotation made by another one, whose token stands.
 @override final  String? refreshToken;
 
 /// Create a copy of AuthResponse

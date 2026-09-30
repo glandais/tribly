@@ -22,7 +22,7 @@ abstract class AuthResponse with _$AuthResponse {
     /// Authenticated user
     UserDto? user,
 
-    /// Refresh token (for mobile clients)
+    /// Refresh token, for mobile clients. On a refresh, the rotated token — absent when the refresh came within the grace of a rotation made by another one, whose token stands.
     String? refreshToken,
   }) = _AuthResponse;
 

@@ -92,7 +92,12 @@ export const AuthenticateResponse = zod
       })
       .optional()
       .describe('Authenticated user'),
-    refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
+    refreshToken: zod
+      .string()
+      .optional()
+      .describe(
+        'Refresh token, for mobile clients. On a refresh, the rotated token — absent when the refresh came within the grace of a rotation made by another one, whose token stands.'
+      ),
   })
   .describe('Authentication response')
 

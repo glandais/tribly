@@ -1,28 +1,29 @@
-import { existsSync, readFileSync } from 'node:fs'
 import type { AddMemberRequest, TeamDetailDto } from '../src/api/dto'
 import {
   ApiError,
   apiContext,
   expectOk,
-  loginWithOtp,
   loginWithPassword,
-  refresh,
   register,
+  resetPassword,
   writeFileAtomic,
-  writeStorageState,
   type AuthResponse,
 } from './support/api'
 import { teamRequest } from './support/data'
-import { seedPath, stack, storageStatePath, type Role } from './support/stack'
+import { seedPath, stack } from './support/stack'
 import type { Seed } from './support/fixtures'
 
 /**
- * Brings the e2e stack to a known state before the suite: one session per role, saved as a
- * Playwright storageState, and the shared data every test may rely on.
+ * Brings the e2e stack to a known state before the suite: a password for each role, and the shared
+ * data every test may rely on.
  *
- * Idempotent, so a run against a stack that already went through it only refreshes the saved
- * sessions — the admin's OTP is rate-limited (3 per 5 minutes), which rules out logging in again on
- * every run. After `scripts/e2e.sh reset` the sessions no longer refresh and everything is redone.
+ * No session is saved for the tests to share: the refresh token rotates at every refresh
+ * (docs/LEDGER_*.md SEC-27), and a token shared by several tests turns into a replay — which revokes
+ * the session — as soon as one of them refreshes. Each browser context and each worker signs in on
+ * its own instead (fixtures.ts `as`, data.ts `roleSession`), by password, which nothing rate-limits
+ * but failures; hence a password for the admin too, whom the bootstrap creates without one.
+ *
+ * Idempotent: on a stack that already went through it, the logins succeed and nothing is redone.
  * Tests create their own data on top of this; nothing here is meant to be modified by a test.
  */
 
@@ -32,27 +33,31 @@ const RIDER = {
   password: 'e2e-rider-password',
 }
 
+const ADMIN_PASSWORD = 'e2e-admin-password'
+
 // `slug` is what the backend derives from `name` — how an earlier, interrupted run's team is found.
 const TEAM = { name: 'Peloton E2E', slug: 'peloton-e2e' }
 
 export default async function globalSetup() {
   await assertStackUp()
 
-  const admin = await session('admin', () => loginWithOtp(stack.adminEmail))
-  const rider = await session('rider', async () => {
-    try {
-      return await loginWithPassword(RIDER.email, RIDER.password)
-    } catch (e) {
-      if (!(e instanceof ApiError) || e.status !== 400) throw e
-      return register(RIDER)
-    }
+  // The bootstrap admin has no password: it gets one, once per stack, through the mailed reset link.
+  const admin = await passwordSession(stack.adminEmail, ADMIN_PASSWORD, () =>
+    resetPassword(stack.adminEmail, ADMIN_PASSWORD)
+  )
+  const rider = await passwordSession(RIDER.email, RIDER.password, async () => {
+    await register(RIDER)
   })
 
   const team = await ensureTeam(admin)
   await ensureMember(admin, rider, team.slug)
 
   const seed: Seed = {
-    admin: { email: stack.adminEmail, displayName: admin.user.displayName },
+    admin: {
+      email: stack.adminEmail,
+      displayName: admin.user.displayName,
+      password: ADMIN_PASSWORD,
+    },
     rider: { email: RIDER.email, displayName: RIDER.displayName, password: RIDER.password },
     team,
   }
@@ -73,17 +78,19 @@ async function assertStackUp() {
   }
 }
 
-/** The saved session of `role` if it still refreshes, else a new login saved in its place. */
-async function session(role: Role, login: () => Promise<AuthResponse>): Promise<AuthResponse> {
-  const path = storageStatePath(role)
-  if (existsSync(path)) {
-    const saved = JSON.parse(readFileSync(path, 'utf8')) as { cookies: { value: string }[] }
-    const refreshed = saved.cookies[0] && (await refresh(saved.cookies[0].value))
-    if (refreshed) return refreshed
+/** A password login, once `prepare` has made it possible if it was not yet (a wrong password: 400). */
+async function passwordSession(
+  email: string,
+  password: string,
+  prepare: () => Promise<void>
+): Promise<AuthResponse> {
+  try {
+    return await loginWithPassword(email, password)
+  } catch (e) {
+    if (!(e instanceof ApiError) || e.status !== 400) throw e
   }
-  const auth = await login()
-  writeStorageState(path, auth.refreshToken)
-  return auth
+  await prepare()
+  return loginWithPassword(email, password)
 }
 
 async function ensureTeam(admin: AuthResponse): Promise<Seed['team']> {
