@@ -647,7 +647,7 @@ Deux gestes d'exploitation de l'audit sont sous `OPS` : I13 (`OPS-7`) et I20 (`O
 | `AUD-21` | Mobile | M13 | Mineur | Pas de hors-ligne — voir `API-22` à `API-25` |
 | `AUD-22` | Karoo | K1 | Critique | `MainActivity.kt` monolithique (1 625 lignes) |
 | `AUD-23` | Karoo | K2, K3 | Critique | Aucun test ; aucun `ViewModel` alors que la dépendance est déclarée |
-| `AUD-24` | Karoo | K7, K9, K10, K13 | Important / mineur | Refresh du jeton en trois endroits ; pas de `slow_down` (RFC 8628) ; routes non paginées ; `navigation-compose` déclaré sans `NavHost` |
+| `AUD-24` | Karoo | K7, K9, K10 | Important | Refresh du jeton en trois endroits ; pas de `slow_down` (RFC 8628 — le backend n'en émet aucun à ce jour, voir `AUD-27`) ; routes non paginées. K13 est livré sous `AUD-32` |
 | `AUD-25` | Garmin | G1 | Critique | `BASE_URL` de production en dur (`ApiClient.mc`) : bloque le multi-tenant |
 | `AUD-26` | Garmin | G4, G5, G7, G10 | Important | `loadResource()` dans `onUpdate()` ; AM/PM en dur ; état comparé à une chaîne localisée ; `_tokenCallback` partagé entre refresh et polling |
 | `AUD-27` | Garmin | G8, G9 | Important | Pas de `slow_down` (le backend n'en émet aucun à ce jour — relevé le 30 septembre 2026 : `grep slow_down backend/` ne trouve rien, le point ne mord qu'avec `SEC-4`) ; offsets fixes dans les layouts. G6 est livré sous `AUD-31` |

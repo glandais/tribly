@@ -186,7 +186,7 @@ Extension Kotlin/Compose pour Hammerhead Karoo. Package `fr.pedalons.karoo`. 7 f
 | K10 | Pas de pagination des routes — risque depassement 100KB | Important | M | `PedalonsApiClient.kt` | |
 | K11 | Package `fr.pedalons.karoo` vs `com.tribly.karoo` dans CLAUDE.md | Mineur | S | Documentation | ✅ |
 | K12 | DataStore non chiffre (tokens en clair) | Mineur | M | `AuthManager.kt` | |
-| K13 | Navigation Compose non utilisee malgre la dependance | Mineur | S | `build.gradle.kts` | |
+| K13 | Navigation Compose non utilisee malgre la dependance | Mineur | S | `build.gradle.kts` | ✅ (dépendance retirée : ledger `AUD-32`) |
 
 ---
 

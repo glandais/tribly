@@ -94,7 +94,6 @@ dependencies {
     implementation(libs.lifecycle.runtime)
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.activity.compose)
-    implementation(libs.navigation.compose)
 
     // DataStore for encrypted token storage
     implementation(libs.datastore)
