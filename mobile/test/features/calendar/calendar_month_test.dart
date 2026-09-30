@@ -21,6 +21,7 @@ CalendarEventDto event({
   registered: registered,
   status: status,
   groupName: groupName,
+  finished: DateTime.parse(start).isBefore(DateTime.now()),
 );
 
 void main() {

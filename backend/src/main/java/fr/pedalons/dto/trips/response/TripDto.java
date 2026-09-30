@@ -72,6 +72,14 @@ public class TripDto implements PublicationDto {
   @Schema(description = "Publication status", required = true)
   final Status status;
 
+  @Schema(
+      description =
+          "Whether the trip is over, computed by the server when the response is built: its last"
+              + " stage (endDate, or dateTime when there is none) has started. Independent of"
+              + " status — a past cancelled trip is both CANCELLED and finished.",
+      required = true)
+  final boolean finished;
+
   @Schema(description = "Visibility level", required = true)
   final Visibility visibility;
 
@@ -180,6 +188,8 @@ public class TripDto implements PublicationDto {
     this.dateTime = dateTime;
     this.endDate = endDate;
     this.status = status;
+    // docs/LEDGER_*.md API-16: the one rule the clients used to derive each on its own.
+    this.finished = (endDate != null ? endDate : dateTime).isBefore(Instant.now());
     this.visibility = visibility;
     this.publishAt = publishAt;
     this.createdAt = createdAt;

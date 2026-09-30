@@ -47,6 +47,9 @@ sealed class PublicationDto with _$PublicationDto {
     /// Publication status
     required String status,
 
+    /// Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.
+    required bool finished,
+
     /// Visibility level
     required String visibility,
 
@@ -181,6 +184,9 @@ sealed class PublicationDto with _$PublicationDto {
 
     /// Publication status
     required String status,
+
+    /// Whether the trip is over, computed by the server when the response is built: its last stage (endDate, or dateTime when there is none) has started. Independent of status — a past cancelled trip is both CANCELLED and finished.
+    required bool finished,
 
     /// Visibility level
     required String visibility,

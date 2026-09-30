@@ -1034,7 +1034,7 @@
       "CalendarEventDto" : {
         "description" : "Calendar event data",
         "type" : "object",
-        "required" : [ "id", "title", "start", "allDay", "type", "teamSlug", "teamName", "entitySlug", "registered", "status" ],
+        "required" : [ "id", "title", "start", "allDay", "type", "teamSlug", "teamName", "entitySlug", "registered", "status", "finished" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -1117,6 +1117,10 @@
             "description" : "Publication status of the ride or stage",
             "type" : "string",
             "$ref" : "#/components/schemas/Status"
+          },
+          "finished" : {
+            "type" : "boolean",
+            "description" : "Whether the ride or stage is over, computed by the server when the response is built: its end (or its start, when it has no end) has passed. Independent of status."
           }
         }
       },
@@ -3719,7 +3723,7 @@
       "RideDto" : {
         "description" : "Ride summary data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "participantCount", "groupCount", "groups", "topParticipants", "deleted", "registered", "full" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "finished", "visibility", "participantCount", "groupCount", "groups", "topParticipants", "deleted", "registered", "full" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -3761,6 +3765,10 @@
             "description" : "Publication status",
             "type" : "string",
             "$ref" : "#/components/schemas/Status"
+          },
+          "finished" : {
+            "type" : "boolean",
+            "description" : "Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished."
           },
           "visibility" : {
             "description" : "Visibility level",
@@ -5488,7 +5496,7 @@
       "TripDto" : {
         "description" : "Trip data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "participantCount", "stageCount", "stages", "participants", "deleted", "registered" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "finished", "visibility", "participantCount", "stageCount", "stages", "participants", "deleted", "registered" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -5535,6 +5543,10 @@
             "description" : "Publication status",
             "type" : "string",
             "$ref" : "#/components/schemas/Status"
+          },
+          "finished" : {
+            "type" : "boolean",
+            "description" : "Whether the trip is over, computed by the server when the response is built: its last stage (endDate, or dateTime when there is none) has started. Independent of status — a past cancelled trip is both CANCELLED and finished."
           },
           "visibility" : {
             "description" : "Visibility level",
@@ -20384,7 +20396,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "7.2.0",
+    "version" : "7.3.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

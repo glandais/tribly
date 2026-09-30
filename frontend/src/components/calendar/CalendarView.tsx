@@ -210,10 +210,11 @@ export function CalendarView({
   const renderEvent = useCallback<RenderEvent>(
     (event, props) => {
       const dto = getPayloadDto(event)
-      // From the DTO's instants: `event.start`/`end` are wall-clock strings in `tz`, which a bare
-      // `dayjs()` would read in the process's zone — UTC on the server, the browser's on the client.
+      // The server says it (docs/LEDGER_*.md API-16): the same answer in the server render and at
+      // hydration. Without a DTO, from `event`'s wall-clock strings, read in `tz` — a bare `dayjs()`
+      // would read them in the process's zone.
       const isPast = dto
-        ? dayjs(dto.end ?? dto.start).isBefore(dayjs())
+        ? dto.finished
         : dayjs.tz(String(event.end ?? event.start), tz).isBefore(dayjs())
       // Themed variants are separate assets (contract 3.3.0) — the map tile is rendered per
       // scheme server-side, so it cannot be derived from the other one. `thumbnailUrl` stays the

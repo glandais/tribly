@@ -95,4 +95,5 @@ RideDto _asRide(PublicationDtoRide p) => RideDto(
   registered: p.registered,
   registeredGroupId: p.registeredGroupId,
   full: p.full,
+  finished: p.finished,
 );

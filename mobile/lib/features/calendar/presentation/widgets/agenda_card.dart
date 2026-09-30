@@ -40,16 +40,15 @@ IconData calendarEventIcon(String type) => switch (type) {
 /// `GET /api/calendar/events` du mois. C'est le gain principal de l'écran, et
 /// il se perd à la première lecture qui rappellerait l'API depuis ici.
 class AgendaCard extends ConsumerWidget {
-  const AgendaCard({super.key, required this.event, this.now});
+  const AgendaCard({super.key, required this.event});
 
   final CalendarEventDto event;
 
-  /// Injectable pour les tests ; à défaut, l'heure de l'appareil.
-  final DateTime? now;
-
   DateTime get _start => DateTime.parse(event.start).toLocal();
 
-  bool get _isPast => _start.isBefore(now ?? DateTime.now());
+  /// Dit par le serveur (`docs/LEDGER_*.md API-16`) : fin de l'événement, ou
+  /// son début quand il n'a pas de fin.
+  bool get _isPast => event.finished;
 
   bool get _isCancelled => event.status == 'CANCELLED';
 

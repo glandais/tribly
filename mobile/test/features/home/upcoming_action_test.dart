@@ -31,6 +31,7 @@ void main() {
     ),
     dateTime: '2099-08-05T19:30:00Z',
     status: 'PUBLISHED',
+    finished: false,
     visibility: 'PUBLIC',
     participantCount: 2,
     groupCount: groupCount,

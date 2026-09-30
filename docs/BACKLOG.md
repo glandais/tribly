@@ -46,9 +46,9 @@ Drive engagement and reduce friction for organizers.
 ### Member Engagement
 - [X] Calendar view (rides, trips) + sync URL export
 - [X] User unit system toggle (metric/imperial) — Respect preferences
-- [ ] Ride/trip "Terminated" status — Clarity on past events
-  - Both clients derive it from `dateTime < now` today (mobile centralises it in `RideDto.isPast`).
-    A real `TERMINATED` value in the `Status` enum would remove that. See ledger `API-16`
+- [X] Ride/trip "Terminated" status — Clarity on past events
+  - The server says it: a computed `finished` boolean on rides, trips and calendar events, next to
+    `Status` rather than in it (a past cancelled ride is both). See ledger `API-16`
 
 ### Content System
 - [ ] Markdown image improvements:

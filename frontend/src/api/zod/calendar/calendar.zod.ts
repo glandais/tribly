@@ -73,6 +73,11 @@ export const GetEventsResponse = zod
             status: zod
               .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
               .describe('Publication status of the ride or stage'),
+            finished: zod
+              .boolean()
+              .describe(
+                'Whether the ride or stage is over, computed by the server when the response is built: its end (or its start, when it has no end) has passed. Independent of status.'
+              ),
           })
           .describe('Calendar event data')
       )
@@ -191,6 +196,11 @@ export const GetTeamEventsResponse = zod
             status: zod
               .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
               .describe('Publication status of the ride or stage'),
+            finished: zod
+              .boolean()
+              .describe(
+                'Whether the ride or stage is over, computed by the server when the response is built: its end (or its start, when it has no end) has passed. Independent of status.'
+              ),
           })
           .describe('Calendar event data')
       )

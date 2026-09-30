@@ -29,6 +29,8 @@ export interface RideDto {
   dateTime: Instant
   /** Publication status */
   status: Status
+  /** Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished. */
+  finished: boolean
   /** Visibility level */
   visibility: Visibility
   /** Publication timestamp */

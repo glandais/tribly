@@ -1,5 +1,6 @@
 package fr.pedalons.dto.calendar.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.Status;
 import java.time.Instant;
@@ -84,4 +85,20 @@ public record CalendarEventDto(
                     + " always null for trip stages, which have no groups.")
         String groupName,
     @Schema(description = "Publication status of the ride or stage", required = true)
-        Status status) {}
+        Status status) {
+
+  /**
+   * Whether the ride or stage is over: its end, or its start when it has none, has passed. Derived
+   * at serialisation rather than a
+   * component, so that no caller has to compute it (docs/LEDGER_*.md API-16).
+   */
+  @JsonProperty("finished")
+  @Schema(
+      description =
+          "Whether the ride or stage is over, computed by the server when the response is built:"
+              + " its end (or its start, when it has no end) has passed. Independent of status.",
+      required = true)
+  public boolean finished() {
+    return (end != null ? end : start).isBefore(Instant.now());
+  }
+}
