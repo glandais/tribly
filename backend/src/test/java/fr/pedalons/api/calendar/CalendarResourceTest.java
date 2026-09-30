@@ -2,13 +2,20 @@ package fr.pedalons.api.calendar;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.domain.calendar.CalendarToken;
 import fr.pedalons.domain.ride.Ride;
+import fr.pedalons.repository.calendar.CalendarTokenRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -254,5 +261,112 @@ class CalendarResourceTest extends AbstractResourceTest {
         .body(containsString("PRODID:-//Pedalons//Calendar//EN"))
         .body(containsString("BEGIN:VEVENT"))
         .body(containsString("END:VEVENT"));
+  }
+
+  // ==================== Token inactivity (docs/LEDGER_*.md SEC-17) ====================
+
+  @Inject EntityManager entityManager;
+  @Inject CalendarTokenRepository calendarTokenRepository;
+
+  /** Ages the token: {@code lastUsedDaysAgo} null leaves the column null (never fetched). */
+  @Transactional
+  void age(CalendarToken calendarToken, int createdDaysAgo, @Nullable Integer lastUsedDaysAgo) {
+    Instant now = Instant.now();
+    entityManager
+        .createNativeQuery(
+            "update calendar_tokens set created_at = ?1, last_used_at = ?2 where id = ?3")
+        .setParameter(1, now.minus(createdDaysAgo, ChronoUnit.DAYS))
+        .setParameter(
+            2, lastUsedDaysAgo == null ? null : now.minus(lastUsedDaysAgo, ChronoUnit.DAYS))
+        .setParameter(3, calendarToken.getId())
+        .executeUpdate();
+  }
+
+  @Transactional
+  @Nullable Instant lastUsedAt(CalendarToken calendarToken) {
+    return calendarTokenRepository
+        .findByIdOptional(calendarToken.getId())
+        .map(CalendarToken::getLastUsedAt)
+        .orElse(null);
+  }
+
+  private io.restassured.response.ValidatableResponse fetchFeed() {
+    return given().queryParam("token", token.getToken()).when().get("/api/calendar/ics").then();
+  }
+
+  @Test
+  void icsFeed_tokenSilentFor91Days_isRefused() {
+    age(token, 200, 91);
+
+    fetchFeed().statusCode(403);
+    given()
+        .queryParam("token", token.getToken())
+        .when()
+        .get("/api/teams/" + team1Slug + "/calendar/ics")
+        .then()
+        .statusCode(403);
+  }
+
+  @Test
+  void icsFeed_tokenNeverFetched_livesFromItsCreation() {
+    age(token, 91, null);
+    fetchFeed().statusCode(403);
+  }
+
+  @Test
+  void icsFeed_oldTokenStillPolled_staysAlive() {
+    // Created long ago, fetched 89 days ago: a subscription is never cut for its age.
+    age(token, 400, 89);
+
+    fetchFeed().statusCode(200);
+    Instant lastUsed = lastUsedAt(token);
+    assertNotNull(lastUsed);
+    assertTrue(lastUsed.isAfter(Instant.now().minus(1, ChronoUnit.HOURS)), lastUsed.toString());
+  }
+
+  @Test
+  void icsFeed_fetchIsRecordedAtMostOnceADay() {
+    age(token, 10, 0);
+    Instant before = lastUsedAt(token);
+
+    fetchFeed().statusCode(200);
+
+    assertEquals(before, lastUsedAt(token));
+  }
+
+  @Test
+  void getToken_deadToken_isReplacedByALiveOne() {
+    age(token, 200, 91);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/calendar/token")
+        .then()
+        .statusCode(200)
+        .body("token", not(equalTo(token.getToken())));
+  }
+
+  @Test
+  void purge_deletesOnlyDeadTokens() {
+    CalendarToken alive = dataService.createCalendarToken(user2, "alive-calendar-token-456");
+    age(token, 200, 91);
+    age(alive, 200, 3);
+
+    long deleted =
+        io.quarkus.narayana.jta.QuarkusTransaction.requiringNew()
+            .call(
+                () ->
+                    calendarTokenRepository.deleteInactiveSince(
+                        Instant.now().minus(90, ChronoUnit.DAYS)));
+
+    assertEquals(1, deleted);
+    given()
+        .queryParam("token", "alive-calendar-token-456")
+        .when()
+        .get("/api/calendar/ics")
+        .then()
+        .statusCode(200);
   }
 }

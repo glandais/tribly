@@ -602,7 +602,6 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 | `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | `SEC-14` | — | Info | — | Images externes dans le markdown ; le parseur XML et le paramètre non encodé sont livrés sous `SEC-21` |
 | `SEC-16` | — | V3–V8 | À valider | Configuration hors dépôt : proxy de l'hôte, hôte de sauvegarde, SMTP, imgproxy |
-| `SEC-17` | — | *hors audit* | — | Le **jeton du flux ICS n'expire jamais** — seule la régénération manuelle (`CalendarService.regenerateToken`) le révoque. Le masquage du journal d'accès (`OPS-6`, en place) borne sa fuite par ce journal ; reste à l'expirer. Relevé dans [`OPERATIONS.md`](OPERATIONS.md#access-logs) |
 
 ---
 
