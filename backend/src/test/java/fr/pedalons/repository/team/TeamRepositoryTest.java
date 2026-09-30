@@ -165,11 +165,23 @@ class TeamRepositoryTest extends AbstractBaseTest {
 
     TeamQuery query =
         new TeamQuery(
-            0, 10, domain.getId(), null, null, null, null, "%cycling%", null, null, null, false);
+            0, 10, domain.getId(), null, null, null, null, "cycling", null, null, null, false);
     PedalonsPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());
     assertEquals("cycling-club", result.items().getFirst().team().getSlug());
+  }
+
+  /** docs/LEDGER_*.md SEC-22: a typed {@code %} is a character to find, not a wildcard. */
+  @Test
+  void find_searchTreatsPercentAsALiteral() {
+    dataService.createTeam(user1, "Cycling Club", "cycling-club", Visibility.PUBLIC);
+    dataService.createTeam(user1, "Running Club", "running-club", Visibility.PUBLIC);
+
+    TeamQuery query =
+        new TeamQuery(0, 10, domain.getId(), null, null, null, null, "%", null, null, null, false);
+
+    assertEquals(0, teamRepository.find(query).items().size());
   }
 
   @Test
