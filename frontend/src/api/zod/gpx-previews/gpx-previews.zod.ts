@@ -509,6 +509,12 @@ export const CreateRouteFromPreviewBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Logo'),
@@ -527,6 +533,12 @@ export const CreateRouteFromPreviewBody = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Images'),
@@ -545,6 +557,12 @@ export const CreateRouteFromPreviewBody = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Attachments'),
@@ -562,6 +580,12 @@ export const CreateRouteFromPreviewBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Original GPX'),
@@ -579,6 +603,12 @@ export const CreateRouteFromPreviewBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('GPX'),
@@ -596,6 +626,12 @@ export const CreateRouteFromPreviewBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('FIT'),
@@ -613,6 +649,12 @@ export const CreateRouteFromPreviewBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Light thumbnail'),
@@ -630,6 +672,12 @@ export const CreateRouteFromPreviewBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Dark thumbnail'),
@@ -693,6 +741,12 @@ export const CreateRouteFromPreviewResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Logo'),
@@ -711,6 +765,12 @@ export const CreateRouteFromPreviewResponse = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Images'),
@@ -729,6 +789,12 @@ export const CreateRouteFromPreviewResponse = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Attachments'),
@@ -746,6 +812,12 @@ export const CreateRouteFromPreviewResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Original GPX'),
@@ -763,6 +835,12 @@ export const CreateRouteFromPreviewResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('GPX'),
@@ -780,6 +858,12 @@ export const CreateRouteFromPreviewResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('FIT'),
@@ -797,6 +881,12 @@ export const CreateRouteFromPreviewResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Light thumbnail'),
@@ -814,6 +904,12 @@ export const CreateRouteFromPreviewResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Dark thumbnail'),

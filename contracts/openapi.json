@@ -811,6 +811,11 @@
             "description" : "image dimensions",
             "type" : "object",
             "$ref" : "#/components/schemas/AssetDimensionsDto"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests."
           }
         }
       },
@@ -20028,7 +20033,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "6.1.0",
+    "version" : "6.3.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

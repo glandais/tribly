@@ -1084,7 +1084,11 @@
     "elevationGain": "elev. +",
     "elevationLoss": "elev. −",
     "elevationGainLong": "Elevation gain",
-    "elevationLossLong": "Elevation loss"
+    "elevationLossLong": "Elevation loss",
+    "byte": "B",
+    "kilobyte": "kB",
+    "megabyte": "MB",
+    "gigabyte": "GB"
   },
   "map": {
     "fullscreen": "Fullscreen",

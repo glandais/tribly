@@ -22,7 +22,8 @@ mixin _$AssetDto {
  String get contentType;/// url
  String get url;/// image template url
  String? get imageUrl;/// image dimensions
- AssetDimensionsDto? get imageDimensions;
+ AssetDimensionsDto? get imageDimensions;/// Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.
+ int? get size;
 /// Create a copy of AssetDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -36,20 +37,20 @@ $AssetDtoCopyWith<AssetDto> get copyWith => _$AssetDtoCopyWithImpl<AssetDto>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as AssetDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.fileName, _this.fileName) || other.fileName == _this.fileName)&&(identical(other.contentType, _this.contentType) || other.contentType == _this.contentType)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.imageUrl, _this.imageUrl) || other.imageUrl == _this.imageUrl)&&(identical(other.imageDimensions, _this.imageDimensions) || other.imageDimensions == _this.imageDimensions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.fileName, _this.fileName) || other.fileName == _this.fileName)&&(identical(other.contentType, _this.contentType) || other.contentType == _this.contentType)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.imageUrl, _this.imageUrl) || other.imageUrl == _this.imageUrl)&&(identical(other.imageDimensions, _this.imageDimensions) || other.imageDimensions == _this.imageDimensions)&&(identical(other.size, _this.size) || other.size == _this.size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as AssetDto;
-  return Object.hash(runtimeType,_this.id,_this.fileName,_this.contentType,_this.url,_this.imageUrl,_this.imageDimensions);
+  return Object.hash(runtimeType,_this.id,_this.fileName,_this.contentType,_this.url,_this.imageUrl,_this.imageDimensions,_this.size);
 }
 
 @override
 String toString() {
   final _this = this as AssetDto;
-  return 'AssetDto(id: ${_this.id}, fileName: ${_this.fileName}, contentType: ${_this.contentType}, url: ${_this.url}, imageUrl: ${_this.imageUrl}, imageDimensions: ${_this.imageDimensions})';
+  return 'AssetDto(id: ${_this.id}, fileName: ${_this.fileName}, contentType: ${_this.contentType}, url: ${_this.url}, imageUrl: ${_this.imageUrl}, imageDimensions: ${_this.imageDimensions}, size: ${_this.size})';
 }
 
 
@@ -60,7 +61,7 @@ abstract mixin class $AssetDtoCopyWith<$Res>  {
   factory $AssetDtoCopyWith(AssetDto value, $Res Function(AssetDto) _then) = _$AssetDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String fileName, String contentType, String url, String? imageUrl, AssetDimensionsDto? imageDimensions
+ String id, String fileName, String contentType, String url, String? imageUrl, AssetDimensionsDto? imageDimensions, int? size
 });
 
 
@@ -77,7 +78,7 @@ class _$AssetDtoCopyWithImpl<$Res>
 
 /// Create a copy of AssetDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fileName = null,Object? contentType = null,Object? url = null,Object? imageUrl = freezed,Object? imageDimensions = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fileName = null,Object? contentType = null,Object? url = null,Object? imageUrl = freezed,Object? imageDimensions = freezed,Object? size = freezed,}) {
   return _then(AssetDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
@@ -85,7 +86,8 @@ as String,contentType: null == contentType ? _self.contentType : contentType // 
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String?,imageDimensions: freezed == imageDimensions ? _self.imageDimensions : imageDimensions // ignore: cast_nullable_to_non_nullable
-as AssetDimensionsDto?,
+as AssetDimensionsDto?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 /// Create a copy of AssetDto
@@ -182,10 +184,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String fileName,  String contentType,  String url,  String? imageUrl,  AssetDimensionsDto? imageDimensions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String fileName,  String contentType,  String url,  String? imageUrl,  AssetDimensionsDto? imageDimensions,  int? size)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AssetDto() when $default != null:
-return $default(_that.id,_that.fileName,_that.contentType,_that.url,_that.imageUrl,_that.imageDimensions);case _:
+return $default(_that.id,_that.fileName,_that.contentType,_that.url,_that.imageUrl,_that.imageDimensions,_that.size);case _:
   return orElse();
 
 }
@@ -203,10 +205,10 @@ return $default(_that.id,_that.fileName,_that.contentType,_that.url,_that.imageU
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String fileName,  String contentType,  String url,  String? imageUrl,  AssetDimensionsDto? imageDimensions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String fileName,  String contentType,  String url,  String? imageUrl,  AssetDimensionsDto? imageDimensions,  int? size)  $default,) {final _that = this;
 switch (_that) {
 case _AssetDto():
-return $default(_that.id,_that.fileName,_that.contentType,_that.url,_that.imageUrl,_that.imageDimensions);case _:
+return $default(_that.id,_that.fileName,_that.contentType,_that.url,_that.imageUrl,_that.imageDimensions,_that.size);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -223,10 +225,10 @@ return $default(_that.id,_that.fileName,_that.contentType,_that.url,_that.imageU
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String fileName,  String contentType,  String url,  String? imageUrl,  AssetDimensionsDto? imageDimensions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String fileName,  String contentType,  String url,  String? imageUrl,  AssetDimensionsDto? imageDimensions,  int? size)?  $default,) {final _that = this;
 switch (_that) {
 case _AssetDto() when $default != null:
-return $default(_that.id,_that.fileName,_that.contentType,_that.url,_that.imageUrl,_that.imageDimensions);case _:
+return $default(_that.id,_that.fileName,_that.contentType,_that.url,_that.imageUrl,_that.imageDimensions,_that.size);case _:
   return null;
 
 }
@@ -238,7 +240,7 @@ return $default(_that.id,_that.fileName,_that.contentType,_that.url,_that.imageU
 @JsonSerializable()
 
 class _AssetDto implements AssetDto {
-  const _AssetDto({required this.id, required this.fileName, required this.contentType, required this.url, this.imageUrl, this.imageDimensions});
+  const _AssetDto({required this.id, required this.fileName, required this.contentType, required this.url, this.imageUrl, this.imageDimensions, this.size});
   factory _AssetDto.fromJson(Map<String, dynamic> json) => _$AssetDtoFromJson(json);
 
 /// ID (TSID)
@@ -253,6 +255,8 @@ class _AssetDto implements AssetDto {
 @override final  String? imageUrl;
 /// image dimensions
 @override final  AssetDimensionsDto? imageDimensions;
+/// Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.
+@override final  int? size;
 
 /// Create a copy of AssetDto
 /// with the given fields replaced by the non-null parameter values.
@@ -267,18 +271,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetDto&&(identical(other.id, id) || other.id == id)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.url, url) || other.url == url)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.imageDimensions, imageDimensions) || other.imageDimensions == imageDimensions));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetDto&&(identical(other.id, id) || other.id == id)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.url, url) || other.url == url)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.imageDimensions, imageDimensions) || other.imageDimensions == imageDimensions)&&(identical(other.size, size) || other.size == size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,fileName,contentType,url,imageUrl,imageDimensions);
+    return Object.hash(runtimeType,id,fileName,contentType,url,imageUrl,imageDimensions,size);
 }
 
 @override
 String toString() {
-    return 'AssetDto(id: $id, fileName: $fileName, contentType: $contentType, url: $url, imageUrl: $imageUrl, imageDimensions: $imageDimensions)';
+    return 'AssetDto(id: $id, fileName: $fileName, contentType: $contentType, url: $url, imageUrl: $imageUrl, imageDimensions: $imageDimensions, size: $size)';
 }
 
 
@@ -289,7 +293,7 @@ abstract mixin class _$AssetDtoCopyWith<$Res> implements $AssetDtoCopyWith<$Res>
   factory _$AssetDtoCopyWith(_AssetDto value, $Res Function(_AssetDto) _then) = __$AssetDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String fileName, String contentType, String url, String? imageUrl, AssetDimensionsDto? imageDimensions
+ String id, String fileName, String contentType, String url, String? imageUrl, AssetDimensionsDto? imageDimensions, int? size
 });
 
 
@@ -306,7 +310,7 @@ class __$AssetDtoCopyWithImpl<$Res>
 
 /// Create a copy of AssetDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fileName = null,Object? contentType = null,Object? url = null,Object? imageUrl = freezed,Object? imageDimensions = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fileName = null,Object? contentType = null,Object? url = null,Object? imageUrl = freezed,Object? imageDimensions = freezed,Object? size = freezed,}) {
   return _then(_AssetDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
@@ -314,7 +318,8 @@ as String,contentType: null == contentType ? _self.contentType : contentType // 
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String?,imageDimensions: freezed == imageDimensions ? _self.imageDimensions : imageDimensions // ignore: cast_nullable_to_non_nullable
-as AssetDimensionsDto?,
+as AssetDimensionsDto?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

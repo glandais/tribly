@@ -94,6 +94,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Logo'),
@@ -112,6 +118,12 @@ export const ListAllPublicationsResponse = zod
                                 })
                                 .optional()
                                 .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
                             })
                           )
                           .describe('Images'),
@@ -130,6 +142,12 @@ export const ListAllPublicationsResponse = zod
                                 })
                                 .optional()
                                 .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
                             })
                           )
                           .describe('Attachments'),
@@ -147,6 +165,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Original GPX'),
@@ -164,6 +188,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('GPX'),
@@ -181,6 +211,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('FIT'),
@@ -198,6 +234,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Light thumbnail'),
@@ -215,6 +257,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Dark thumbnail'),
@@ -448,6 +496,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Logo'),
@@ -466,6 +520,12 @@ export const ListAllPublicationsResponse = zod
                                 })
                                 .optional()
                                 .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
                             })
                           )
                           .describe('Images'),
@@ -484,6 +544,12 @@ export const ListAllPublicationsResponse = zod
                                 })
                                 .optional()
                                 .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
                             })
                           )
                           .describe('Attachments'),
@@ -501,6 +567,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Original GPX'),
@@ -518,6 +590,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('GPX'),
@@ -535,6 +613,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('FIT'),
@@ -552,6 +636,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Light thumbnail'),
@@ -569,6 +659,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Dark thumbnail'),
@@ -653,6 +749,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Logo'),
@@ -671,6 +773,12 @@ export const ListAllPublicationsResponse = zod
                                 })
                                 .optional()
                                 .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
                             })
                           )
                           .describe('Images'),
@@ -689,6 +797,12 @@ export const ListAllPublicationsResponse = zod
                                 })
                                 .optional()
                                 .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
                             })
                           )
                           .describe('Attachments'),
@@ -706,6 +820,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Original GPX'),
@@ -723,6 +843,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('GPX'),
@@ -740,6 +866,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('FIT'),
@@ -757,6 +889,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Light thumbnail'),
@@ -774,6 +912,12 @@ export const ListAllPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Dark thumbnail'),
@@ -874,6 +1018,12 @@ export const ListAllPublicationsResponse = zod
                                           })
                                           .optional()
                                           .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
                                       })
                                       .optional()
                                       .describe('Logo'),
@@ -895,6 +1045,12 @@ export const ListAllPublicationsResponse = zod
                                             })
                                             .optional()
                                             .describe('image dimensions'),
+                                          size: zod
+                                            .int()
+                                            .optional()
+                                            .describe(
+                                              'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                            ),
                                         })
                                       )
                                       .describe('Images'),
@@ -916,6 +1072,12 @@ export const ListAllPublicationsResponse = zod
                                             })
                                             .optional()
                                             .describe('image dimensions'),
+                                          size: zod
+                                            .int()
+                                            .optional()
+                                            .describe(
+                                              'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                            ),
                                         })
                                       )
                                       .describe('Attachments'),
@@ -936,6 +1098,12 @@ export const ListAllPublicationsResponse = zod
                                           })
                                           .optional()
                                           .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
                                       })
                                       .optional()
                                       .describe('Original GPX'),
@@ -956,6 +1124,12 @@ export const ListAllPublicationsResponse = zod
                                           })
                                           .optional()
                                           .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
                                       })
                                       .optional()
                                       .describe('GPX'),
@@ -976,6 +1150,12 @@ export const ListAllPublicationsResponse = zod
                                           })
                                           .optional()
                                           .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
                                       })
                                       .optional()
                                       .describe('FIT'),
@@ -996,6 +1176,12 @@ export const ListAllPublicationsResponse = zod
                                           })
                                           .optional()
                                           .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
                                       })
                                       .optional()
                                       .describe('Light thumbnail'),
@@ -1016,6 +1202,12 @@ export const ListAllPublicationsResponse = zod
                                           })
                                           .optional()
                                           .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
                                       })
                                       .optional()
                                       .describe('Dark thumbnail'),
@@ -1119,6 +1311,12 @@ export const ListAllPublicationsResponse = zod
                                       })
                                       .optional()
                                       .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
                                   })
                                   .optional()
                                   .describe('Logo'),
@@ -1140,6 +1338,12 @@ export const ListAllPublicationsResponse = zod
                                         })
                                         .optional()
                                         .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
                                     })
                                   )
                                   .describe('Images'),
@@ -1161,6 +1365,12 @@ export const ListAllPublicationsResponse = zod
                                         })
                                         .optional()
                                         .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
                                     })
                                   )
                                   .describe('Attachments'),
@@ -1181,6 +1391,12 @@ export const ListAllPublicationsResponse = zod
                                       })
                                       .optional()
                                       .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
                                   })
                                   .optional()
                                   .describe('Original GPX'),
@@ -1201,6 +1417,12 @@ export const ListAllPublicationsResponse = zod
                                       })
                                       .optional()
                                       .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
                                   })
                                   .optional()
                                   .describe('GPX'),
@@ -1221,6 +1443,12 @@ export const ListAllPublicationsResponse = zod
                                       })
                                       .optional()
                                       .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
                                   })
                                   .optional()
                                   .describe('FIT'),
@@ -1241,6 +1469,12 @@ export const ListAllPublicationsResponse = zod
                                       })
                                       .optional()
                                       .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
                                   })
                                   .optional()
                                   .describe('Light thumbnail'),
@@ -1261,6 +1495,12 @@ export const ListAllPublicationsResponse = zod
                                       })
                                       .optional()
                                       .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
                                   })
                                   .optional()
                                   .describe('Dark thumbnail'),
@@ -1456,6 +1696,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Logo'),
@@ -1474,6 +1720,12 @@ export const ListPublicationsResponse = zod
                                 })
                                 .optional()
                                 .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
                             })
                           )
                           .describe('Images'),
@@ -1492,6 +1744,12 @@ export const ListPublicationsResponse = zod
                                 })
                                 .optional()
                                 .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
                             })
                           )
                           .describe('Attachments'),
@@ -1509,6 +1767,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Original GPX'),
@@ -1526,6 +1790,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('GPX'),
@@ -1543,6 +1813,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('FIT'),
@@ -1560,6 +1836,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Light thumbnail'),
@@ -1577,6 +1859,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Dark thumbnail'),
@@ -1810,6 +2098,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Logo'),
@@ -1828,6 +2122,12 @@ export const ListPublicationsResponse = zod
                                 })
                                 .optional()
                                 .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
                             })
                           )
                           .describe('Images'),
@@ -1846,6 +2146,12 @@ export const ListPublicationsResponse = zod
                                 })
                                 .optional()
                                 .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
                             })
                           )
                           .describe('Attachments'),
@@ -1863,6 +2169,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Original GPX'),
@@ -1880,6 +2192,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('GPX'),
@@ -1897,6 +2215,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('FIT'),
@@ -1914,6 +2238,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Light thumbnail'),
@@ -1931,6 +2261,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Dark thumbnail'),
@@ -2015,6 +2351,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Logo'),
@@ -2033,6 +2375,12 @@ export const ListPublicationsResponse = zod
                                 })
                                 .optional()
                                 .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
                             })
                           )
                           .describe('Images'),
@@ -2051,6 +2399,12 @@ export const ListPublicationsResponse = zod
                                 })
                                 .optional()
                                 .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
                             })
                           )
                           .describe('Attachments'),
@@ -2068,6 +2422,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Original GPX'),
@@ -2085,6 +2445,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('GPX'),
@@ -2102,6 +2468,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('FIT'),
@@ -2119,6 +2491,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Light thumbnail'),
@@ -2136,6 +2514,12 @@ export const ListPublicationsResponse = zod
                               })
                               .optional()
                               .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
                           })
                           .optional()
                           .describe('Dark thumbnail'),
@@ -2236,6 +2620,12 @@ export const ListPublicationsResponse = zod
                                           })
                                           .optional()
                                           .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
                                       })
                                       .optional()
                                       .describe('Logo'),
@@ -2257,6 +2647,12 @@ export const ListPublicationsResponse = zod
                                             })
                                             .optional()
                                             .describe('image dimensions'),
+                                          size: zod
+                                            .int()
+                                            .optional()
+                                            .describe(
+                                              'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                            ),
                                         })
                                       )
                                       .describe('Images'),
@@ -2278,6 +2674,12 @@ export const ListPublicationsResponse = zod
                                             })
                                             .optional()
                                             .describe('image dimensions'),
+                                          size: zod
+                                            .int()
+                                            .optional()
+                                            .describe(
+                                              'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                            ),
                                         })
                                       )
                                       .describe('Attachments'),
@@ -2298,6 +2700,12 @@ export const ListPublicationsResponse = zod
                                           })
                                           .optional()
                                           .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
                                       })
                                       .optional()
                                       .describe('Original GPX'),
@@ -2318,6 +2726,12 @@ export const ListPublicationsResponse = zod
                                           })
                                           .optional()
                                           .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
                                       })
                                       .optional()
                                       .describe('GPX'),
@@ -2338,6 +2752,12 @@ export const ListPublicationsResponse = zod
                                           })
                                           .optional()
                                           .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
                                       })
                                       .optional()
                                       .describe('FIT'),
@@ -2358,6 +2778,12 @@ export const ListPublicationsResponse = zod
                                           })
                                           .optional()
                                           .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
                                       })
                                       .optional()
                                       .describe('Light thumbnail'),
@@ -2378,6 +2804,12 @@ export const ListPublicationsResponse = zod
                                           })
                                           .optional()
                                           .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
                                       })
                                       .optional()
                                       .describe('Dark thumbnail'),
@@ -2481,6 +2913,12 @@ export const ListPublicationsResponse = zod
                                       })
                                       .optional()
                                       .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
                                   })
                                   .optional()
                                   .describe('Logo'),
@@ -2502,6 +2940,12 @@ export const ListPublicationsResponse = zod
                                         })
                                         .optional()
                                         .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
                                     })
                                   )
                                   .describe('Images'),
@@ -2523,6 +2967,12 @@ export const ListPublicationsResponse = zod
                                         })
                                         .optional()
                                         .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
                                     })
                                   )
                                   .describe('Attachments'),
@@ -2543,6 +2993,12 @@ export const ListPublicationsResponse = zod
                                       })
                                       .optional()
                                       .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
                                   })
                                   .optional()
                                   .describe('Original GPX'),
@@ -2563,6 +3019,12 @@ export const ListPublicationsResponse = zod
                                       })
                                       .optional()
                                       .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
                                   })
                                   .optional()
                                   .describe('GPX'),
@@ -2583,6 +3045,12 @@ export const ListPublicationsResponse = zod
                                       })
                                       .optional()
                                       .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
                                   })
                                   .optional()
                                   .describe('FIT'),
@@ -2603,6 +3071,12 @@ export const ListPublicationsResponse = zod
                                       })
                                       .optional()
                                       .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
                                   })
                                   .optional()
                                   .describe('Light thumbnail'),
@@ -2623,6 +3097,12 @@ export const ListPublicationsResponse = zod
                                       })
                                       .optional()
                                       .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
                                   })
                                   .optional()
                                   .describe('Dark thumbnail'),

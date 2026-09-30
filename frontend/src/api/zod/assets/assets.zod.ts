@@ -28,4 +28,10 @@ export const UploadAssetResponse = zod.object({
     })
     .optional()
     .describe('image dimensions'),
+  size: zod
+    .int()
+    .optional()
+    .describe(
+      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+    ),
 })

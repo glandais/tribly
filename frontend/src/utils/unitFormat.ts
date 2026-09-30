@@ -123,3 +123,27 @@ export function elevationFromDisplay(
 ): number | undefined {
   return fromDisplay(displayVal, getUnitConfig(unitSystem).elevationMultiplier)
 }
+
+const FILE_SIZE_UNITS = ['byte', 'kilobyte', 'megabyte', 'gigabyte'] as const
+
+/**
+ * The size of a file, in decimal (SI) units as the platforms' file managers show it: « 240 ko »,
+ * « 2,4 Mo » in French, « 240 kB » in English. One decimal below 10, none above — enough to tell
+ * two files apart without reading like a measurement. docs/LEDGER_*.md API-7.
+ */
+export function formatFileSize(bytes: number, locale: string): string {
+  let value = bytes
+  let unit = 0
+  while (unit < FILE_SIZE_UNITS.length - 1 && Math.round(value) >= 1000) {
+    value /= 1000
+    unit++
+  }
+  const fractionDigits = unit === 0 || value >= 9.95 ? 0 : 1
+  return new Intl.NumberFormat(locale, {
+    style: 'unit',
+    unit: FILE_SIZE_UNITS[unit],
+    unitDisplay: 'short',
+    maximumFractionDigits: fractionDigits,
+    minimumFractionDigits: 0,
+  }).format(value)
+}

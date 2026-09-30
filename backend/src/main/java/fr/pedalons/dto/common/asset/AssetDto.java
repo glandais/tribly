@@ -11,4 +11,9 @@ public record AssetDto(
     @Schema(description = "Content-Type", required = true) String contentType,
     @Schema(description = "url", required = true) String url,
     @Schema(description = "image template url") @Nullable String imageUrl,
-    @Schema(description = "image dimensions") @Nullable AssetDimensionsDto imageDimensions) {}
+    @Schema(description = "image dimensions") @Nullable AssetDimensionsDto imageDimensions,
+    @Schema(
+            description =
+                "Size in bytes of the file a download returns (an image as re-encoded on upload);"
+                    + " null while not yet known. Ignored in requests.")
+        @Nullable Long size) {}

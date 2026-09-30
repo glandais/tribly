@@ -5,13 +5,14 @@ import { IconPaperclip, IconDownload } from '@tabler/icons-react'
 import { MediaDto, AssetDto } from '@/api/dto'
 import { MarkdownDisplay } from './MarkdownDisplay'
 import { getImageSizeWidth } from '@/lib/assetMarkdown'
+import { formatFileSize } from '@/utils/unitFormat'
 
 export interface MediaDisplayProps {
   media: MediaDto
 }
 
 export const MediaDisplay = memo(function MediaDisplay({ media }: MediaDisplayProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const attachments = media.assets.attachments
   const images = media.assets.images
 
@@ -57,6 +58,12 @@ export const MediaDisplay = memo(function MediaDisplay({ media }: MediaDisplayPr
                     <Text truncate style={{ flex: 1 }}>
                       {attachment.fileName}
                     </Text>
+                    {/* Unknown until the backfill reached it (docs/LEDGER_*.md API-7): then nothing. */}
+                    {attachment.size != null && (
+                      <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+                        {formatFileSize(attachment.size, i18n.resolvedLanguage ?? i18n.language)}
+                      </Text>
+                    )}
                     <IconDownload size={14} />
                   </Group>
                 </Anchor>

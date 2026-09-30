@@ -54,6 +54,16 @@ public class Asset extends BaseEntity {
   @Nullable
   protected Integer height;
 
+  /**
+   * Bytes of the file as stored — after an image was re-encoded, so what a download returns, not
+   * what was uploaded. Null until known: a row written by a release that did not record it, or
+   * whose file is not uploaded yet, is filled in by {@code AssetSizeBackfill}. docs/LEDGER_*.md
+   * API-7.
+   */
+  @Column(name = "file_size")
+  @Nullable
+  protected Long fileSize;
+
   @Column(name = "sort_order", nullable = false)
   private int sortOrder = 0;
 

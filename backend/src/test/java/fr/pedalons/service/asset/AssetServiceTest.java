@@ -164,6 +164,10 @@ class AssetServiceTest extends AbstractBaseTest {
       assertEquals("file.txt", result.asset().getFileName());
       // Temp file is deleted after S3 upload when content is provided
       assertFalse(result.file().exists());
+      // docs/LEDGER_*.md API-7: recorded on write
+      assertEquals(
+          storageService.size(getAssetKey(team, result.asset().getFileId())),
+          result.asset().getFileSize());
     }
 
     @Test
@@ -177,6 +181,8 @@ class AssetServiceTest extends AbstractBaseTest {
       assertEquals("placeholder.png", result.asset().getFileName());
       // File is created but empty
       assertFalse(result.file().exists());
+      // Not uploaded yet: uploadAssetFile records it
+      assertNull(result.asset().getFileSize());
     }
   }
 
@@ -501,6 +507,9 @@ class AssetServiceTest extends AbstractBaseTest {
       assertFalse(TestImages.contains(stored(dto), TestImages.SECRET), "metadata left in storage");
       assertEquals("image/jpeg", dto.contentType());
       assertEquals("photo.jpg", dto.fileName());
+      // docs/LEDGER_*.md API-7: the size of what a download returns, not of what was uploaded
+      assertEquals((long) stored(dto).length, dto.size());
+      assertNotEquals((long) TestImages.load(TestImages.JPEG).length, dto.size());
       // Rotated upright: the dimensions are those of what is stored
       Asset asset = assetRepository.findById(TsidUtils.toLong(dto.id()));
       assertEquals(20, asset.getWidth());
@@ -532,6 +541,7 @@ class AssetServiceTest extends AbstractBaseTest {
       assertFalse(TestImages.contains(stored, TestImages.SECRET));
       assertEquals("image/jpeg", awf.asset().getContentType());
       assertEquals("imported.jpg", awf.asset().getFileName());
+      assertEquals((long) stored.length, awf.asset().getFileSize());
     }
 
     @Test

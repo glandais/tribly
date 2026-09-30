@@ -29,8 +29,9 @@ public interface StorageService {
    * @param contentType the MIME type of the content
    * @param contentLength the length of the content in bytes
    * @param metadata custom metadata to attach to the object
+   * @return the size in bytes of what was stored — not {@code contentLength} for a re-encoded image
    */
-  void store(
+  long store(
       String key,
       InputStream content,
       String contentType,

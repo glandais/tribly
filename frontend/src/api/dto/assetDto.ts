@@ -13,4 +13,6 @@ export interface AssetDto {
   imageUrl?: string
   /** image dimensions */
   imageDimensions?: AssetDimensionsDto
+  /** Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests. */
+  size?: number
 }

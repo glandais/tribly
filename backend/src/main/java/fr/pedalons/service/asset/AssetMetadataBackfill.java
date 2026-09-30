@@ -25,9 +25,9 @@ import org.jboss.logging.Logger;
  * assets V47 flagged {@code metadata_pending}, one batch at a time.
  *
  * <p>Each image is downloaded and stored again under the same key, which re-encodes it; its flag
- * is then cleared. A file that is not an image, a file gone from the bucket, are just unflagged. An
- * image re-encoded into another format (a TIFF into a JPEG) has its asset's name and content type
- * updated.
+ * is then cleared. A file that is not an image, a file gone from the bucket, are just unflagged. A
+ * re-encoded image has its asset's size updated, and its name and content type too when it changed
+ * format (a TIFF into a JPEG).
  *
  * <p>No transaction spans the storage calls: the flag of each asset is cleared in its own, after
  * its file is written, so a crash between the two only means the file is re-encoded once more.
@@ -116,6 +116,7 @@ public class AssetMetadataBackfill {
     }
     String fileName = format.storedFileName(row.fileName());
     Path original = Files.createTempFile("pedalons-backfill-", ".orig");
+    long size;
     try {
       try (InputStream in = storageService.retrieve(key)) {
         Files.copy(in, original, StandardCopyOption.REPLACE_EXISTING);
@@ -127,7 +128,7 @@ public class AssetMetadataBackfill {
               "team-id", TsidUtils.toString(row.teamId()),
               "file-name", fileName);
       try (InputStream in = Files.newInputStream(original)) {
-        storageService.store(key, in, row.contentType(), Files.size(original), metadata);
+        size = storageService.store(key, in, row.contentType(), Files.size(original), metadata);
       } catch (PedalonsException e) {
         if (e.getErrorCode() != ErrorCode.INVALID_FORMAT) {
           throw e;
@@ -140,13 +141,11 @@ public class AssetMetadataBackfill {
     } finally {
       Files.deleteIfExists(original);
     }
-    if (!fileName.equals(row.fileName()) || !format.storedMimeType().equals(row.contentType())) {
-      QuarkusTransaction.requiringNew()
-          .run(
-              () ->
-                  assetRepository.updateStoredFormat(
-                      row.assetId(), fileName, format.storedMimeType()));
-    }
+    QuarkusTransaction.requiringNew()
+        .run(
+            () ->
+                assetRepository.updateStoredFile(
+                    row.assetId(), fileName, format.storedMimeType(), size));
     return Outcome.REENCODED;
   }
 }
