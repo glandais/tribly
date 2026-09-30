@@ -68,8 +68,9 @@ public record AdDto(
                     + " fixed cell about 1 km across, not the seller's address. Enough to tell a"
                     + " nearby ad from a distant one, and the same value on every read so repeated"
                     + " calls cannot be averaged back to the exact position. Null when the ad has"
-                    + " no location. The exact point stays on AdEditDto, which only the owner"
-                    + " reads.",
+                    + " no location. The exact point stays on AdEditDto, which only the seller and"
+                    + " the team's admins can read. Proximity filters measure from this blurred"
+                    + " point too, never from the exact one.",
             implementation = GeoJsonPoint.class)
         Point<G2D> locationGeometry,
     @Schema(description = "Creation timestamp", required = true) Instant createdAt,

@@ -1,8 +1,10 @@
 package fr.pedalons.infrastructure.hibernate;
 
+import fr.pedalons.common.CoarseLocation;
 import org.hibernate.boot.model.FunctionContributions;
 import org.hibernate.boot.model.FunctionContributor;
 import org.hibernate.query.sqm.function.SqmFunctionRegistry;
+import org.hibernate.query.sqm.produce.function.StandardFunctionReturnTypeResolvers;
 import org.hibernate.type.BasicType;
 import org.hibernate.type.BasicTypeRegistry;
 import org.hibernate.type.StandardBasicTypes;
@@ -82,6 +84,13 @@ public class PedalonsFunctionContributor implements FunctionContributor {
 
     registry.registerPattern(
         "route_mvt", ROUTE_MVT_PATTERN, types.resolve(StandardBasicTypes.BINARY));
+
+    // The ad's position as the API publishes it — see CoarseLocation.SQL_PATTERN.
+    registry
+        .patternDescriptorBuilder("coarse_location", CoarseLocation.SQL_PATTERN)
+        .setExactArgumentCount(1)
+        .setReturnTypeResolver(StandardFunctionReturnTypeResolvers.useArgType(1))
+        .register();
 
     BasicType<Double> doubleType = types.resolve(StandardBasicTypes.DOUBLE);
     for (String name : BBOX_FUNCTIONS) {

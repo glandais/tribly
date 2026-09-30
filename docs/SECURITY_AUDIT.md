@@ -30,7 +30,7 @@
 | H4 | **Élevée** | L'app mobile peut transmettre ses identifiants à des hôtes autres que l'API | Corrigé (ledger `SEC-3`) |
 | H5 | **Élevée** | Un point du flux d'autorisation des appareils n'a aucune limitation de débit | Corrigé (ledger `SEC-4`) |
 | M1 | Moyenne (élevée en chaîne) | L'access token n'est pas lié à son domaine : l'utilisateur est résolu par e-mail sur le Host de la requête | Corrigé (commit `6a791794`) |
-| M2 | Moyenne | Le flou d'~1 km de la position des annonces peut être affiné par des requêtes répétées | Ouvert |
+| M2 | Moyenne | Le flou d'~1 km de la position des annonces peut être affiné par des requêtes répétées | Corrigé (ledger `SEC-8`) ; point annexe ouvert sous `SEC-26` |
 | M3 | Moyenne | Un traitement de tracé GPX n'est pas borné en mémoire (déni de service) | Ouvert |
 | M4 | Moyenne | La connexion par mot de passe n'a ni limitation de débit ni verrouillage | Corrigé (ledger `SEC-7`) |
 | M5 | Moyenne | Un lien de vérification d'e-mail peut connecter la victime à un compte qui n'est pas le sien (login CSRF) | Corrigé (ledger `SEC-9`) |
@@ -92,7 +92,7 @@ changement de statut ici se reporte là-bas.
 - **Constat d'origine** : `PedalonsQueryContext` ignorait les claims `domainId` et `userId` dès que le Host résolvait un domaine, et chargeait l'utilisateur par e-mail sur ce domaine. Une seule clé de signature sert à tous les tenants : un token émis sur le domaine A pour l'e-mail E était accepté sur le domaine B, où il agissait en tant que le compte B de E, qui est un compte distinct. Une révocation sur B restait aussi sans effet sur un token émis par A.
 - **Correctif appliqué** : un JWT dont la claim `domainId` diffère du domaine résolu n'authentifie plus personne. Test `AccessTokenDomainTest`, qui rejoue un token de A contre B.
 
-### M2 — Le filtre de proximité des annonces contourne le flou d'~1 km — **Ouvert**
+### M2 — Le filtre de proximité des annonces contourne le flou d'~1 km — **Corrigé** (ledger `SEC-8` ; point annexe : `SEC-26`)
 
 ### M3 — DoS mémoire sur le traitement GPX — **Ouvert**
 
@@ -166,7 +166,7 @@ Informationnel :
   - Chaque méthode de service appelée depuis `api/` porte `@CheckAccess`, `@Logged`, `@Public` ou `@Admin` (207 appels vérifiés).
   - `TeamEntityRepository.getPedalonsQuery` filtre toujours par domaine.
   - Pas d'assignation de masse de `role`, `domainId`, `teamId` ou `createdBy`.
-- **Invariants de `CLAUDE.md`** : `RideGroupDto.leader` ne retombe jamais sur `createdBy`. `AdDto` floute la position et ne porte aucun contact (le relais e-mail est rate-limité). Seul le filtre de proximité fait exception, voir M2.
+- **Invariants de `CLAUDE.md`** : `RideGroupDto.leader` ne retombe jamais sur `createdBy`. `AdDto` floute la position et ne porte aucun contact (le relais e-mail est rate-limité). Le filtre de proximité mesure lui aussi depuis la position floutée depuis M2 (ledger `SEC-8`).
 - **Parsing** :
   - gpx2web durci contre XXE et billion laughs (1.4.5 à l'audit, toujours vrai en 1.5.2).
   - Clés S3 dérivées de TSID ou UUID, sans path traversal.
