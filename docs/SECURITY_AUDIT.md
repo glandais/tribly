@@ -38,7 +38,7 @@
 | M7 | Moyenne | Le refresh token n'est pas renouvelé à l'usage | Ouvert |
 | M8 | Moyenne | Deux requêtes de résolution d'identité ne filtrent pas par domaine | Corrigé (ledger `SEC-25`) |
 | M9 | Moyenne | Le jeton d'accès des appareils a une durée longue pour un jeton non révocable | Ouvert |
-| M10 | Moyenne | Aucune limitation de débit HTTP globale | Ouvert |
+| M10 | Moyenne | Aucune limitation de débit HTTP globale | Corrigé (ledger `SEC-28`) ; le seuil suppose Caddy seul en entrée, à vérifier au déploiement |
 | L1–L14 | Faible | Voir la section dédiée | L1 et L4 à L9, L12 à L14 corrigés, L2 caduc, L11 partiellement corrigé ; L3 et L10 ouverts |
 | V1–V8 | À valider | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | V2 caduc pour l'avenir, les autres à valider |
 
@@ -108,7 +108,7 @@ changement de statut ici se reporte là-bas.
 
 ### M9 — Jeton d'accès des appareils trop long pour un jeton non révocable — **Ouvert** (audit de février, S6)
 
-### M10 — Pas de limitation de débit HTTP globale — **Ouvert** (audit de février, S7)
+### M10 — Pas de limitation de débit HTTP globale — **Corrigé** (ledger `SEC-28` ; audit de février, S7)
 
 ---
 

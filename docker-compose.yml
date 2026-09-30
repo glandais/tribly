@@ -110,6 +110,13 @@ services:
       # A task that is booting, or that got SIGTERM (quarkus.shutdown.delay), gets no traffic.
       - "traefik.http.services.quarkus.loadbalancer.healthcheck.path=/q/health/ready"
       - "traefik.http.services.quarkus.loadbalancer.healthcheck.interval=3s"
+      # Global per-client rate limit (audit M10, docs/LEDGER_*.md SEC-28): 429 past it. The client is
+      # the last X-Forwarded-For hop, the one the host's Caddy sets — the only way in, see
+      # docs/OPERATIONS.md « Rate limiting ». Wide on purpose: a map pans in bursts of tiles.
+      - "traefik.http.routers.quarkus.middlewares=ratelimit-api"
+      - "traefik.http.middlewares.ratelimit-api.ratelimit.average=${RATE_LIMIT_API_AVERAGE:-50}"
+      - "traefik.http.middlewares.ratelimit-api.ratelimit.burst=${RATE_LIMIT_API_BURST:-200}"
+      - "traefik.http.middlewares.ratelimit-api.ratelimit.sourcecriterion.ipstrategy.depth=1"
     # What Swarm waits for before stopping the old task. Boot runs Flyway, hence the start period.
     healthcheck:
       test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/q/health/ready"]
@@ -158,6 +165,12 @@ services:
       - "traefik.http.routers.frontend.priority=1"
       - "traefik.http.services.frontend.loadbalancer.healthcheck.path=/health"
       - "traefik.http.services.frontend.loadbalancer.healthcheck.interval=3s"
+      # Same limit as the API's (see the backend labels), wider: a first visit loads every chunk,
+      # and each document costs server-side renders that reach the backend without passing here.
+      - "traefik.http.routers.frontend.middlewares=ratelimit-frontend"
+      - "traefik.http.middlewares.ratelimit-frontend.ratelimit.average=${RATE_LIMIT_FRONTEND_AVERAGE:-100}"
+      - "traefik.http.middlewares.ratelimit-frontend.ratelimit.burst=${RATE_LIMIT_FRONTEND_BURST:-400}"
+      - "traefik.http.middlewares.ratelimit-frontend.ratelimit.sourcecriterion.ipstrategy.depth=1"
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/health"]
       interval: 5s

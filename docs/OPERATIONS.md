@@ -204,6 +204,36 @@ Two services stay per-environment on purpose, even though they look shareable:
   `/mnt/cache`: pointed at `/tmp` it lives inside the container and is re-downloaded in full on every
   restart.
 
+### Rate limiting
+
+Traefik refuses a client past **50 requests per second on `/api` (bursts of 200) and 100 on the site
+(bursts of 400)** with a `429` — the `ratelimit` middlewares on both routers of `docker-compose.yml`
+(audit M10, ledger `SEC-28`). The thresholds are wide on purpose: a map pans in bursts of tiles, a
+first visit loads every chunk, and a club behind one address is still one client. They come from
+`RATE_LIMIT_API_AVERAGE`, `…_BURST`, `RATE_LIMIT_FRONTEND_AVERAGE` and `…_BURST` in `.env` when set.
+It sits beside the per-address counters of the backend (`AuthThrottle`, ledger `SEC-7`), which
+stop a guess at one account; this one stops one client flooding everything.
+
+**The client is the last `X-Forwarded-For` hop** (`ipStrategy.depth=1`), which is right only
+because Caddy is the only way in (the section above) and **replaces** the header a client sends
+rather than appending to it — Caddy's default while no `trusted_proxies` is configured. Traefik
+cannot use the connection's address: that is Caddy's, the same for everyone. So:
+
+- a proxy put in front of Caddy (a CDN, another reverse proxy) makes every client one: set
+  `trusted_proxies` in Caddy for it, so the last hop is the visitor again;
+- the server-side renders call the backend directly (`API_BASE_URL`), not through Traefik: they
+  are bounded by the frontend's limit, not counted twice;
+- a stack with nothing in front (the e2e one) sees no header and one client: `.env.e2e` lifts the
+  limit.
+
+**Check once deployed**: from outside, a burst of ~300 requests on `/api/config` must end in `429`s,
+and a second machine must stay answered meanwhile — if it does not, every client shares one bucket
+and the header is not what this section expects.
+
+```bash
+seq 300 | xargs -P 50 -I{} curl -s -o /dev/null -w '%{http_code}\n' https://<host>/api/config | sort | uniq -c
+```
+
 ### Access logs
 
 The host's Caddy writes the **only** access log: Traefik's is off (`--accesslog=false` in
