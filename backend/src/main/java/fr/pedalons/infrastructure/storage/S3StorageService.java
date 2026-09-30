@@ -147,7 +147,7 @@ public class S3StorageService implements StorageService {
    *     nothing is stored in either case
    */
   @Override
-  public void store(
+  public long store(
       String key,
       InputStream content,
       String contentType,
@@ -164,7 +164,7 @@ public class S3StorageService implements StorageService {
       }
       if (!format.isReencoded()) {
         put(key, in, contentType, contentLength, metadata);
-        return;
+        return contentLength;
       }
       String originalKey = REENCODE_PREFIX + UUID.randomUUID();
       put(originalKey, in, contentType, contentLength, Map.of());
@@ -178,6 +178,7 @@ public class S3StorageService implements StorageService {
             format.storedMimeType(),
             reencoded.length,
             metadata);
+        return reencoded.length;
       } finally {
         delete(originalKey);
       }

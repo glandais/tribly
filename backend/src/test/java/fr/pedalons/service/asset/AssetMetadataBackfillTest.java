@@ -124,6 +124,8 @@ class AssetMetadataBackfillTest extends AbstractBaseTest {
         QuarkusTransaction.requiringNew().call(() -> assetRepository.findById(tiff.getId()));
     assertEquals("scan.jpg", after.getFileName());
     assertEquals("image/jpeg", after.getContentType());
+    // docs/LEDGER_*.md API-7: the size follows the re-encoded file
+    assertEquals((long) stored(tiff).length, after.getFileSize());
   }
 
   @Test

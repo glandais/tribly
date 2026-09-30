@@ -29,6 +29,9 @@ abstract class AssetDto with _$AssetDto {
 
     /// image dimensions
     AssetDimensionsDto? imageDimensions,
+
+    /// Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.
+    int? size,
   }) = _AssetDto;
 
   factory AssetDto.fromJson(Map<String, Object?> json) =>

@@ -58,11 +58,54 @@ public class AssetRepository implements PanacheRepository<Asset> {
   }
 
   /**
-   * Bulk update, for a file the backfill re-encoded into another format (a TIFF into a JPEG);
-   * neither {@code updatedAt} nor the entity listeners are touched.
+   * Bulk update, for a file the backfill re-encoded: its size changed, and its name and content
+   * type too when it changed format (a TIFF into a JPEG); neither {@code updatedAt} nor the entity
+   * listeners are touched.
    */
-  public void updateStoredFormat(Long assetId, String fileName, String contentType) {
-    update("fileName = ?1, contentType = ?2 where id = ?3", fileName, contentType, assetId);
+  public void updateStoredFile(Long assetId, String fileName, String contentType, long size) {
+    update(
+        "fileName = ?1, contentType = ?2, fileSize = ?3 where id = ?4",
+        fileName,
+        contentType,
+        size,
+        assetId);
+  }
+
+  /** The storage coordinates of an asset whose size is not recorded yet. */
+  public record SizeUnknownRow(Long assetId, Long teamId, Long fileId) {}
+
+  /**
+   * Assets whose size is not recorded, by id from {@code afterId} on. Backed by the partial index
+   * {@code idx_assets_size_unknown} (V49). docs/LEDGER_*.md API-7.
+   */
+  public List<SizeUnknownRow> findSizeUnknown(long afterId, int limit) {
+    return getEntityManager()
+        .createQuery(
+            "select a.id, a.team.id, a.fileId from Asset a "
+                + "where a.fileSize is null and a.id > :afterId order by a.id",
+            Object[].class)
+        .setParameter("afterId", afterId)
+        .setMaxResults(limit)
+        .getResultStream()
+        .map(r -> new SizeUnknownRow((Long) r[0], (Long) r[1], (Long) r[2]))
+        .toList();
+  }
+
+  /**
+   * Bulk update, only while the size is still unknown: a file rewritten meanwhile (re-encoded by
+   * {@code AssetMetadataBackfill}) keeps the size its writer recorded, not the one read before.
+   * Neither {@code updatedAt} nor the entity listeners are touched.
+   */
+  public void recordSizeIfUnknown(Long assetId, long size) {
+    update("fileSize = ?1 where id = ?2 and fileSize is null", size, assetId);
+  }
+
+  /**
+   * Bulk update of the size of a file rewritten in place. Neither {@code updatedAt} nor the entity
+   * listeners are touched.
+   */
+  public void updateSize(Long assetId, long size) {
+    update("fileSize = ?1 where id = ?2", size, assetId);
   }
 
   /**

@@ -130,6 +130,39 @@ class AppFormatters {
       withUnit(formatNumber(percent, fractionDigits: 1), UnitSymbols.percent);
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Poids de fichier
+  // ─────────────────────────────────────────────────────────────────────────
+
+  static const List<String> _fileSizeUnits = <String>[
+    'units.byte',
+    'units.kilobyte',
+    'units.megabyte',
+    'units.gigabyte',
+  ];
+
+  /// Poids d'un fichier, en unités décimales comme les gestionnaires de
+  /// fichiers des deux plateformes : « 240 ko », « 2,4 Mo », « 240 kB ».
+  ///
+  /// Une décimale sous 10, aucune au-delà : de quoi distinguer deux fichiers,
+  /// pas une mesure. « 1 000 ko » n'existe pas — on passe à l'unité suivante.
+  /// docs/LEDGER_*.md API-7.
+  static String formatFileSize(int bytes) {
+    double value = bytes.toDouble();
+    int unit = 0;
+    while (unit < _fileSizeUnits.length - 1 && value.round() >= 1000) {
+      value /= 1000;
+      unit++;
+    }
+    final int fractionDigits = unit == 0 || value >= 9.95 ? 0 : 1;
+    String number = formatNumber(value, fractionDigits: fractionDigits);
+    // « 1,0 Mo » se lit « 1 Mo » : la décimale nulle ne dit rien.
+    if (fractionDigits == 1 && value.toStringAsFixed(1).endsWith('.0')) {
+      number = formatNumber(value);
+    }
+    return withUnit(number, _fileSizeUnits[unit].tr());
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Prix
   // ─────────────────────────────────────────────────────────────────────────
 

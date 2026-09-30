@@ -286,9 +286,3 @@ class _PostDetailContent extends ConsumerWidget {
     );
   }
 }
-
-/// Une pièce jointe.
-///
-/// Vignette de 56 px quand l'asset est une image — `imageUrl` porte le gabarit
-/// `{size}` d'imgproxy —, icône sinon. **Pas de poids affiché** : `AssetDto`
-/// porte `contentType`, pas d'octets, et « PDF · 240 Ko » serait une invention.

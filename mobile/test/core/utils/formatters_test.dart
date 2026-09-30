@@ -222,6 +222,30 @@ void main() {
     });
   });
 
+  group('formatFileSize', () {
+    String fr_(int bytes) =>
+        withLocale('fr', fr, () => AppFormatters.formatFileSize(bytes));
+    String en_(int bytes) =>
+        withLocale('en', en, () => AppFormatters.formatFileSize(bytes));
+    final String sp = String.fromCharCode(nbsp);
+
+    test('symboles français, espace insécable', () {
+      expect(fr_(512), '512${sp}o');
+      expect(fr_(240000), '240${sp}ko');
+      expect(fr_(2400000), '2,4${sp}Mo');
+    });
+
+    test('symboles anglais', () {
+      expect(en_(240000), '240${sp}kB');
+      expect(en_(2400000), '2.4${sp}MB');
+    });
+
+    test('jamais « 1 000 ko » ni « 1,0 Mo »', () {
+      expect(fr_(999700), '1${sp}Mo');
+      expect(fr_(15300000), '15${sp}Mo');
+    });
+  });
+
   group('prix', () {
     test('le montant est en euros français quelle que soit la locale', () {
       const String expected = '1 200,00 €';

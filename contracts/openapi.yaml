@@ -794,6 +794,11 @@ components:
           description: image dimensions
           type: object
           $ref: "#/components/schemas/AssetDimensionsDto"
+        size:
+          type: integer
+          format: int64
+          description: Size in bytes of the file a download returns (an image as re-encoded
+            on upload); null while not yet known. Ignored in requests.
     AssetTypeRequest:
       type: string
       enum:
@@ -15898,7 +15903,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 6.2.0
+  version: 6.3.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

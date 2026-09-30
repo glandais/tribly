@@ -1084,7 +1084,11 @@
     "elevationGain": "D+",
     "elevationLoss": "D−",
     "elevationGainLong": "Dénivelé positif",
-    "elevationLossLong": "Dénivelé négatif"
+    "elevationLossLong": "Dénivelé négatif",
+    "byte": "o",
+    "kilobyte": "ko",
+    "megabyte": "Mo",
+    "gigabyte": "Go"
   },
   "map": {
     "fullscreen": "Plein écran",

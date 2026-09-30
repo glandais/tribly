@@ -263,7 +263,8 @@ public class GpxProcessingService {
   }
 
   /** Result of the CPU/S3 processing phase, passed to the DB persist phase. */
-  record PreparedAsset(AssetType type, String fileName, long fileId, String contentType) {}
+  record PreparedAsset(
+      AssetType type, String fileName, long fileId, AssetService.UploadedFile stored) {}
 
   record GpxProcessingResult(
       TrackMetadata metadata,
@@ -382,8 +383,9 @@ public class GpxProcessingService {
       tmp.delete();
       throw new BusinessException(ErrorCode.GPX_FAILURE, e);
     }
-    String contentType = assetService.uploadTempFileToS3(team, type, fileId, fileName);
-    return new PreparedAsset(type, fileName, fileId, contentType);
+    AssetService.UploadedFile stored =
+        assetService.uploadTempFileToS3(team, type, fileId, fileName);
+    return new PreparedAsset(type, fileName, fileId, stored);
   }
 
   /**
@@ -396,7 +398,7 @@ public class GpxProcessingService {
 
     for (PreparedAsset pa : result.uploadedAssets()) {
       assetService.persistAsset(
-          route.getTeam(), route, pa.type(), pa.fileId(), pa.fileName(), pa.contentType());
+          route.getTeam(), route, pa.type(), pa.fileId(), pa.fileName(), pa.stored());
     }
 
     result.waypoints().forEach(route::addWaypoint);

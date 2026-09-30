@@ -85,8 +85,13 @@ public class GpxSanitizationBackfill {
   /** Outcome of one pass: file sets looked at, file sets rewritten, file sets that failed. */
   public record Report(int sets, int rewritten, int failed) {}
 
-  /** A stored object, with what it must be written back with. */
-  record StoredFile(String key, String contentType, Map<String, String> metadata) {}
+  /**
+   * A stored object, with what it must be written back with.
+   *
+   * @param assetId the asset whose size to update once rewritten, null for a preview's file
+   */
+  record StoredFile(
+      String key, String contentType, Map<String, String> metadata, @Nullable Long assetId) {}
 
   /** The three files one route or one preview owns; any of them may be missing. */
   record FileSet(
@@ -202,12 +207,18 @@ public class GpxSanitizationBackfill {
   }
 
   private void store(StoredFile file, byte[] content) {
-    storageService.store(
-        file.key(),
-        new ByteArrayInputStream(content),
-        file.contentType(),
-        content.length,
-        file.metadata());
+    long size =
+        storageService.store(
+            file.key(),
+            new ByteArrayInputStream(content),
+            file.contentType(),
+            content.length,
+            file.metadata());
+    Long assetId = file.assetId();
+    if (assetId != null) {
+      // docs/LEDGER_*.md API-7: AssetDto.size is the size of what a download returns
+      QuarkusTransaction.requiringNew().run(() -> assetRepository.updateSize(assetId, size));
+    }
   }
 
   /**
@@ -222,10 +233,9 @@ public class GpxSanitizationBackfill {
                     assetRepository
                         .getEntityManager()
                         .createQuery(
-                            "select te.id, a.team.id, a.fileId, a.fileName, a.contentType, a.type "
-                                + "from Asset a join a.teamEntity te "
-                                + "where a.type in (:types) "
-                                + "order by te.id",
+                            "select te.id, a.team.id, a.fileId, a.fileName, a.contentType, a.type,"
+                                + " a.id from Asset a join a.teamEntity te where a.type in (:types)"
+                                + " order by te.id",
                             Object[].class)
                         .setParameter(
                             "types",
@@ -250,7 +260,11 @@ public class GpxSanitizationBackfill {
           .computeIfAbsent(routeId, id -> new LinkedHashMap<>())
           .put(
               (AssetType) row[5],
-              new StoredFile(assetService.getAssetKey(teamId, fileId), (String) row[4], metadata));
+              new StoredFile(
+                  assetService.getAssetKey(teamId, fileId),
+                  (String) row[4],
+                  metadata,
+                  (Long) row[6]));
     }
 
     List<FileSet> sets = new ArrayList<>(byRoute.size());
@@ -276,9 +290,11 @@ public class GpxSanitizationBackfill {
                           Map<String, String> keys = gpxPreviewService.exportKeys(preview);
                           return new FileSet(
                               "preview " + preview.getPublicId(),
-                              new StoredFile(keys.get(ORIGINAL_GPX), GPX_CONTENT_TYPE, Map.of()),
-                              new StoredFile(keys.get(FILTERED_GPX), GPX_CONTENT_TYPE, Map.of()),
-                              new StoredFile(keys.get(FIT), FIT_CONTENT_TYPE, Map.of()));
+                              new StoredFile(
+                                  keys.get(ORIGINAL_GPX), GPX_CONTENT_TYPE, Map.of(), null),
+                              new StoredFile(
+                                  keys.get(FILTERED_GPX), GPX_CONTENT_TYPE, Map.of(), null),
+                              new StoredFile(keys.get(FIT), FIT_CONTENT_TYPE, Map.of(), null));
                         })
                     .toList());
   }

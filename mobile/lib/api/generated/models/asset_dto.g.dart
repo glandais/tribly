@@ -17,6 +17,7 @@ _AssetDto _$AssetDtoFromJson(Map<String, dynamic> json) => _AssetDto(
       : AssetDimensionsDto.fromJson(
           json['imageDimensions'] as Map<String, dynamic>,
         ),
+  size: (json['size'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$AssetDtoToJson(_AssetDto instance) => <String, dynamic>{
@@ -26,4 +27,5 @@ Map<String, dynamic> _$AssetDtoToJson(_AssetDto instance) => <String, dynamic>{
   'url': instance.url,
   'imageUrl': instance.imageUrl,
   'imageDimensions': instance.imageDimensions?.toJson(),
+  'size': instance.size,
 };

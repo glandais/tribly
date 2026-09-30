@@ -147,7 +147,8 @@ function generateDart({ families, enums, gradients }) {
     lines.push('  PdlFamily get family => switch (this) {')
     for (const [value, family] of e.values) {
       const id = e.dartIds.get(value)
-      if (!id) throw new Error(`${e.name}.${value}: not in the generated Dart enum — run build_runner`)
+      if (!id)
+        throw new Error(`${e.name}.${value}: not in the generated Dart enum — run build_runner`)
       lines.push(`    ${e.name}.${id} => PdlFamily.${family},`)
     }
     lines.push(`    ${e.name}.$unknown => PdlFamily.${UNKNOWN_FAMILY},`)

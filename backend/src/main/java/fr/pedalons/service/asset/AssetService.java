@@ -119,6 +119,7 @@ public class AssetService {
     File tempFile = createTempFile(fileId);
     String contentType;
     String storedName = fileName;
+    Long size = null;
 
     if (content != null) {
       // Copy content to temp file for content type detection
@@ -134,7 +135,7 @@ public class AssetService {
               "team-id", TsidUtils.toString(team.getId()),
               "file-name", storedName);
       try (InputStream fis = new FileInputStream(tempFile)) {
-        storageService.store(key, fis, contentType, tempFile.length(), metadata);
+        size = storageService.store(key, fis, contentType, tempFile.length(), metadata);
       }
 
       deleteTempFile(tempFile);
@@ -151,6 +152,7 @@ public class AssetService {
 
     Asset asset = new Asset(creator, team, type, fileId, storedName, contentType);
     asset.setTeamEntity(teamEntity);
+    asset.setFileSize(size);
 
     if (content != null && contentType.startsWith("image/")) {
       try (InputStream is =
@@ -193,7 +195,7 @@ public class AssetService {
             "team-id", TsidUtils.toString(asset.getTeam().getId()),
             "file-name", asset.getFileName());
     try (InputStream fis = new FileInputStream(tempFile)) {
-      storageService.store(key, fis, contentType, tempFile.length(), metadata);
+      asset.setFileSize(storageService.store(key, fis, contentType, tempFile.length(), metadata));
     }
 
     deleteTempFile(tempFile);
@@ -236,13 +238,14 @@ public class AssetService {
     return ASSETS_PREFIX + "/" + teamIdString + "/" + subPath + "/" + idString;
   }
 
+  /** What {@link #uploadTempFileToS3} stored: the detected content type and the stored bytes. */
+  public record UploadedFile(String contentType, long size) {}
+
   /**
    * Uploads a pre-computed temp file to S3. Used by GPX processing pipeline where the file
    * content is prepared before the DB transaction to minimize connection hold time.
-   *
-   * @return the detected content type
    */
-  public String uploadTempFileToS3(Team team, AssetType type, long fileId, String fileName)
+  public UploadedFile uploadTempFileToS3(Team team, AssetType type, long fileId, String fileName)
       throws IOException {
     File tempFile = getTempFile(fileId);
     String contentType = detectAndValidate(tempFile, fileName, type);
@@ -252,11 +255,12 @@ public class AssetService {
             "file-id", TsidUtils.toString(fileId),
             "team-id", TsidUtils.toString(team.getId()),
             "file-name", fileName);
+    long size;
     try (InputStream fis = new FileInputStream(tempFile)) {
-      storageService.store(key, fis, contentType, tempFile.length(), metadata);
+      size = storageService.store(key, fis, contentType, tempFile.length(), metadata);
     }
     deleteTempFile(tempFile);
-    return contentType;
+    return new UploadedFile(contentType, size);
   }
 
   private static void deleteTempFile(File tempFile) {
@@ -277,10 +281,11 @@ public class AssetService {
       AssetType type,
       long fileId,
       String fileName,
-      String contentType) {
+      UploadedFile stored) {
     User creator = pedalonsContext.getUser();
-    Asset asset = new Asset(creator, team, type, fileId, fileName, contentType);
+    Asset asset = new Asset(creator, team, type, fileId, fileName, stored.contentType());
     asset.setTeamEntity(owner);
+    asset.setFileSize(stored.size());
     owner.getAssets().add(asset);
     assetRepository.persist(asset);
     return asset;
@@ -369,7 +374,8 @@ public class AssetService {
         asset.getContentType(),
         url,
         imageUrl,
-        assetDimensionsDto);
+        assetDimensionsDto,
+        asset.getFileSize());
   }
 
   /**

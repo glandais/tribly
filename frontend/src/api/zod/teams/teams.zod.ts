@@ -63,6 +63,12 @@ export const ListTeamsResponse = zod
                           })
                           .optional()
                           .describe('image dimensions'),
+                        size: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                          ),
                       })
                       .optional()
                       .describe('Logo'),
@@ -81,6 +87,12 @@ export const ListTeamsResponse = zod
                             })
                             .optional()
                             .describe('image dimensions'),
+                          size: zod
+                            .int()
+                            .optional()
+                            .describe(
+                              'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                            ),
                         })
                       )
                       .describe('Images'),
@@ -99,6 +111,12 @@ export const ListTeamsResponse = zod
                             })
                             .optional()
                             .describe('image dimensions'),
+                          size: zod
+                            .int()
+                            .optional()
+                            .describe(
+                              'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                            ),
                         })
                       )
                       .describe('Attachments'),
@@ -116,6 +134,12 @@ export const ListTeamsResponse = zod
                           })
                           .optional()
                           .describe('image dimensions'),
+                        size: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                          ),
                       })
                       .optional()
                       .describe('Original GPX'),
@@ -133,6 +157,12 @@ export const ListTeamsResponse = zod
                           })
                           .optional()
                           .describe('image dimensions'),
+                        size: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                          ),
                       })
                       .optional()
                       .describe('GPX'),
@@ -150,6 +180,12 @@ export const ListTeamsResponse = zod
                           })
                           .optional()
                           .describe('image dimensions'),
+                        size: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                          ),
                       })
                       .optional()
                       .describe('FIT'),
@@ -167,6 +203,12 @@ export const ListTeamsResponse = zod
                           })
                           .optional()
                           .describe('image dimensions'),
+                        size: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                          ),
                       })
                       .optional()
                       .describe('Light thumbnail'),
@@ -184,6 +226,12 @@ export const ListTeamsResponse = zod
                           })
                           .optional()
                           .describe('image dimensions'),
+                        size: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                          ),
                       })
                       .optional()
                       .describe('Dark thumbnail'),
@@ -312,6 +360,12 @@ export const CreateTeamBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Logo'),
@@ -330,6 +384,12 @@ export const CreateTeamBody = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Images'),
@@ -348,6 +408,12 @@ export const CreateTeamBody = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Attachments'),
@@ -365,6 +431,12 @@ export const CreateTeamBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Original GPX'),
@@ -382,6 +454,12 @@ export const CreateTeamBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('GPX'),
@@ -399,6 +477,12 @@ export const CreateTeamBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('FIT'),
@@ -416,6 +500,12 @@ export const CreateTeamBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Light thumbnail'),
@@ -433,6 +523,12 @@ export const CreateTeamBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Dark thumbnail'),
@@ -487,6 +583,12 @@ export const CreateTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Logo'),
@@ -505,6 +607,12 @@ export const CreateTeamResponse = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Images'),
@@ -523,6 +631,12 @@ export const CreateTeamResponse = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Attachments'),
@@ -540,6 +654,12 @@ export const CreateTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Original GPX'),
@@ -557,6 +677,12 @@ export const CreateTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('GPX'),
@@ -574,6 +700,12 @@ export const CreateTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('FIT'),
@@ -591,6 +723,12 @@ export const CreateTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Light thumbnail'),
@@ -608,6 +746,12 @@ export const CreateTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Dark thumbnail'),
@@ -731,6 +875,12 @@ export const UpdateTeamBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Logo'),
@@ -749,6 +899,12 @@ export const UpdateTeamBody = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Images'),
@@ -767,6 +923,12 @@ export const UpdateTeamBody = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Attachments'),
@@ -784,6 +946,12 @@ export const UpdateTeamBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Original GPX'),
@@ -801,6 +969,12 @@ export const UpdateTeamBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('GPX'),
@@ -818,6 +992,12 @@ export const UpdateTeamBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('FIT'),
@@ -835,6 +1015,12 @@ export const UpdateTeamBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Light thumbnail'),
@@ -852,6 +1038,12 @@ export const UpdateTeamBody = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Dark thumbnail'),
@@ -906,6 +1098,12 @@ export const UpdateTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Logo'),
@@ -924,6 +1122,12 @@ export const UpdateTeamResponse = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Images'),
@@ -942,6 +1146,12 @@ export const UpdateTeamResponse = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Attachments'),
@@ -959,6 +1169,12 @@ export const UpdateTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Original GPX'),
@@ -976,6 +1192,12 @@ export const UpdateTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('GPX'),
@@ -993,6 +1215,12 @@ export const UpdateTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('FIT'),
@@ -1010,6 +1238,12 @@ export const UpdateTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Light thumbnail'),
@@ -1027,6 +1261,12 @@ export const UpdateTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Dark thumbnail'),
@@ -1144,6 +1384,12 @@ export const GetTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Logo'),
@@ -1162,6 +1408,12 @@ export const GetTeamResponse = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Images'),
@@ -1180,6 +1432,12 @@ export const GetTeamResponse = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Attachments'),
@@ -1197,6 +1455,12 @@ export const GetTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Original GPX'),
@@ -1214,6 +1478,12 @@ export const GetTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('GPX'),
@@ -1231,6 +1501,12 @@ export const GetTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('FIT'),
@@ -1248,6 +1524,12 @@ export const GetTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Light thumbnail'),
@@ -1265,6 +1547,12 @@ export const GetTeamResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Dark thumbnail'),
@@ -1406,6 +1694,12 @@ export const ChangeTeamSlugResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Logo'),
@@ -1424,6 +1718,12 @@ export const ChangeTeamSlugResponse = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Images'),
@@ -1442,6 +1742,12 @@ export const ChangeTeamSlugResponse = zod
                     })
                     .optional()
                     .describe('image dimensions'),
+                  size: zod
+                    .int()
+                    .optional()
+                    .describe(
+                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                    ),
                 })
               )
               .describe('Attachments'),
@@ -1459,6 +1765,12 @@ export const ChangeTeamSlugResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Original GPX'),
@@ -1476,6 +1788,12 @@ export const ChangeTeamSlugResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('GPX'),
@@ -1493,6 +1811,12 @@ export const ChangeTeamSlugResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('FIT'),
@@ -1510,6 +1834,12 @@ export const ChangeTeamSlugResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Light thumbnail'),
@@ -1527,6 +1857,12 @@ export const ChangeTeamSlugResponse = zod
                   })
                   .optional()
                   .describe('image dimensions'),
+                size: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                  ),
               })
               .optional()
               .describe('Dark thumbnail'),

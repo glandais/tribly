@@ -12,6 +12,7 @@ import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.storage.StorageService;
+import fr.pedalons.repository.asset.AssetRepository;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.route.GpxProcessingService;
 import fr.pedalons.service.security.DomainResolver;
@@ -22,6 +23,7 @@ import fr.pedalons.util.TestDataService;
 import io.github.glandais.gpx.data.GPX;
 import io.github.glandais.gpx.io.read.GPXFileReader;
 import io.github.glandais.gpx.io.write.FitFileWriter;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.io.ByteArrayInputStream;
@@ -47,6 +49,7 @@ class GpxSanitizationBackfillTest extends AbstractBaseTest {
   @Inject GpxProcessingService gpxProcessingService;
   @Inject GpxPreviewService gpxPreviewService;
   @Inject AssetService assetService;
+  @Inject AssetRepository assetRepository;
   @Inject StorageService storageService;
   @Inject GPXFileReader gpxFileReader;
   @Inject FitFileWriter fitFileWriter;
@@ -83,6 +86,7 @@ class GpxSanitizationBackfillTest extends AbstractBaseTest {
   @Test
   void sanitizeAll_rewritesARouteStoredWithTimestampsAndSensors() throws Exception {
     gpxProcessingService.createTracks(route, gpxProcessingService.parseGpx(activity()));
+    assertRecordedSizesMatchStorage();
     Map<AssetType, String> keys = routeKeys();
     putRawActivityBack(
         keys.get(AssetType.ROUTE_ORIGINAL_GPX),
@@ -97,6 +101,7 @@ class GpxSanitizationBackfillTest extends AbstractBaseTest {
         keys.get(AssetType.ROUTE_ORIGINAL_GPX),
         keys.get(AssetType.ROUTE_FILTERED_GPX),
         keys.get(AssetType.ROUTE_FIT));
+    assertRecordedSizesMatchStorage();
   }
 
   @Test
@@ -228,6 +233,22 @@ class GpxSanitizationBackfillTest extends AbstractBaseTest {
     assertTrue(keys.containsKey(AssetType.ROUTE_FILTERED_GPX));
     assertTrue(keys.containsKey(AssetType.ROUTE_FIT));
     return keys;
+  }
+
+  /**
+   * docs/LEDGER_*.md API-7: each route file's recorded size is that of the stored object — on
+   * import, and after a rewrite.
+   */
+  private void assertRecordedSizesMatchStorage() {
+    for (Asset asset : route.getAssets()) {
+      Long recorded =
+          QuarkusTransaction.requiringNew()
+              .call(() -> assetRepository.findById(asset.getId()).getFileSize());
+      assertEquals(
+          storageService.size(assetService.getAssetKey(asset.getTeam(), asset.getFileId())),
+          recorded,
+          asset.getType().name());
+    }
   }
 
   /** What an upload stored before API-44: the raw activity, and a FIT carrying its clock. */

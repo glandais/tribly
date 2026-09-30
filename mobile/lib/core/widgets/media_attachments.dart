@@ -13,6 +13,7 @@ import '../theme/pdl_icons.dart';
 import '../theme/pdl_tokens.dart';
 import '../theme/pdl_typography.dart';
 import '../utils/api_error_handler.dart';
+import '../utils/formatters.dart';
 import 'authenticated_image.dart';
 
 /// Les fichiers joints à un contenu — facture, notice, fiche technique, road
@@ -147,9 +148,11 @@ class _MediaAttachmentsState extends ConsumerState<MediaAttachments> {
 /// Un fichier qui n'est pas une image n'a rien à afficher : sa ligne n'est pas
 /// tapable, et seul son bouton agit.
 ///
-/// `AssetDto` ne porte pas de poids ; `imageDimensions` est donc le seul fait
-/// utile en sous-titre — « 1920 × 1080 » aide à choisir sans ouvrir, un poids
-/// inventé ne le ferait pas.
+/// Le sous-titre porte le poids puis, pour une image, ses dimensions :
+/// « PDF · 240 ko », « JPG · 1,2 Mo · 1920 × 1080 » — de quoi choisir sans
+/// ouvrir, et savoir avant de lancer un téléchargement en 3G.
+/// `AssetDto.size` est nul tant que le serveur ne l'a pas relevé (ledger
+/// `API-7`) : le poids est alors omis, jamais estimé.
 class _AttachmentRow extends ConsumerWidget {
   const _AttachmentRow({
     required this.asset,
@@ -169,7 +172,7 @@ class _AttachmentRow extends ConsumerWidget {
       name: asset.fileName,
       type: _extension(asset.fileName) ?? asset.contentType,
       thumbnailUrl: asset.imageUrl,
-      subtitle: _dimensions,
+      subtitle: _subtitle,
       icon: _isImage ? PdlIcons.image : PdlIcons.attachment,
       onTap: _isImage ? () => _view(context, ref) : null,
       onAction: onDownload,
@@ -183,6 +186,15 @@ class _AttachmentRow extends ConsumerWidget {
           ),
       showDivider: showDivider,
     );
+  }
+
+  /// « 240 ko · 1920 × 1080 », ce qui en est connu, ou rien.
+  String? get _subtitle {
+    final List<String> parts = <String>[
+      if (asset.size case final int size) AppFormatters.formatFileSize(size),
+      ?_dimensions,
+    ];
+    return parts.isEmpty ? null : parts.join(' · ');
   }
 
   /// « 1920 × 1080 », ou rien : le contrat rend les deux côtés nullables
