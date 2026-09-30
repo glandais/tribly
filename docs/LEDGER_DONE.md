@@ -1037,7 +1037,11 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   fiable que les en-têtes `X-Forwarded-*` (V3, `SEC-16`). Journaliser ne limite rien : la limitation
   reste `SEC-7`. Tests : `AuthServiceTest` (`…_logsTheFailureWithout…`, `…_unknownAccount_isLoggedToo`,
   `…_success_logsNoFailure`, `…_unknownCredential_isLogged`), qui capturent le journal de
-  `AuthService`.
+  `AuthService`. **La ligne ne touche jamais la base** : chaque méthode résout le domaine *avant*
+  la vérification qui peut échouer et le passe à `logFailedLogin`. Une passkey refusée laisse la
+  transaction inutilisable, et résoudre le domaine après coup changeait le 403 en 500 — couvert par
+  `PasskeyResourceTest.authenticate_withInvalidCredential_shouldReturn403` (les tests de service
+  fixent le domaine d'avance et ne pouvaient pas le voir).
 
 - `SEC-19` **Le markdown d'un contenu est borné à 100 000 caractères** (2026-09-30, audit M6,
   API 6.3.0, mineur : `maxLength` ajouté) — `MediaDto.markdown` (publications, sorties,
