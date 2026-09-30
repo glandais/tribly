@@ -293,10 +293,8 @@ private suspend fun checkHammerheadConnection(
             apiClient
                 .refreshToken(refreshToken)
                 .onSuccess { tokenResponse ->
-                    authManager.updateAccessToken(
-                        tokenResponse.accessToken,
-                        tokenResponse.expiresIn,
-                    )
+                    // The refresh token rotates: keep the new one (docs/LEDGER_*.md SEC-11).
+                    authManager.saveTokens(tokenResponse)
                     accessToken = tokenResponse.accessToken
                 }
                 .onFailure {

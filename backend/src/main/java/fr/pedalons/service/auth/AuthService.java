@@ -42,7 +42,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jspecify.annotations.Nullable;
 
@@ -51,6 +50,7 @@ public class AuthService {
 
   @Inject UserRepository userRepository;
   @Inject AuthSessionRepository authSessionRepository;
+  @Inject RefreshTokenRotation refreshTokenRotation;
   @Inject AuthTokenRepository authTokenRepository;
   @Inject JwtService jwtService;
   @Inject AuthEmailService authEmailService;
@@ -62,10 +62,6 @@ public class AuthService {
 
   @ConfigProperty(name = "pedalons.auth.refresh-token.expiry-days", defaultValue = "30")
   int refreshTokenExpiryDays;
-
-  /** How long a rotated-out refresh token still refreshes (without rotating again). */
-  @ConfigProperty(name = "pedalons.auth.refresh-token.rotation-grace-seconds", defaultValue = "60")
-  int refreshTokenRotationGraceSeconds;
 
   @ConfigProperty(name = "pedalons.auth.otp.expiry-minutes", defaultValue = "5")
   int otpExpiryMinutes;
@@ -560,69 +556,34 @@ public class AuthService {
 
   /**
    * A new access token, and a new refresh token in place of the one presented (audit M7,
-   * docs/LEDGER_*.md SEC-27).
+   * docs/LEDGER_*.md SEC-27) — see {@link RefreshTokenRotation} for the grace and the replay.
    *
-   * <p>The token presented is kept as the session's previous one. Within {@link
-   * #refreshTokenRotationGraceSeconds} of the rotation it still gets an access token, but no new
-   * refresh token: that is the other tab, the SSR render or the app resuming, whose refresh left
-   * with the same token and lost the race — the winner's new token is already in the shared cookie
-   * or the app's storage. After that grace it is a replayed copy: the session is revoked, for the
-   * thief and the owner alike, and the owner signs in again.
-   *
-   * <p>Nothing here writes the session as an entity: a versioned or whole-row write would fail
-   * concurrent refreshes on the optimistic lock, and could resurrect a session revoked meanwhile.
-   * The rotation is one conditional bulk update, so exactly one of two racing refreshes wins it.
+   * <p>Inside the grace of a rotation made by another refresh, no new refresh token: the winner's is
+   * already in the shared cookie or the app's storage.
    */
   @Transactional
   @Public
   public RefreshResult refreshToken(String refreshToken) {
     Domain domain = domainResolver.getDomain();
-    String tokenHash = hashToken(refreshToken);
-
-    Optional<AuthSession> current = authSessionRepository.findByRefreshTokenHash(tokenHash);
-    if (current.isPresent()) {
-      AuthSession session = current.get();
-      User user = checkRefreshable(session, domain);
-      String nextToken = generateSecureToken();
-      if (authSessionRepository.rotate(session.getId(), tokenHash, hashToken(nextToken)) == 1) {
-        return new RefreshResult(refreshResponse(user), nextToken);
-      }
-      // A concurrent refresh rotated it first: this one is inside that rotation's grace.
-      return new RefreshResult(refreshResponse(user), null);
-    }
-
-    AuthSession session =
-        authSessionRepository
-            .findByPreviousRefreshTokenHash(tokenHash)
-            .orElseThrow(ForbiddenException::new);
-    User user = checkRefreshable(session, domain);
-    Instant rotatedAt = session.getRotatedAt();
-    if (rotatedAt != null
-        && Instant.now().isBefore(rotatedAt.plusSeconds(refreshTokenRotationGraceSeconds))) {
-      authSessionRepository.markUsed(session.getId());
-      return new RefreshResult(refreshResponse(user), null);
-    }
-
-    // Its own transaction: this one rolls back with the exception below, and would take the
-    // revocation with it.
-    Long sessionId = session.getId();
-    QuarkusTransaction.requiringNew().run(() -> authSessionRepository.revokeById(sessionId));
-    Log.warnf(
-        "Refresh token replayed after its rotation: session=%d user=%d revoked",
-        sessionId, user.getId());
-    throw new ForbiddenException();
+    RefreshTokenRotation.Refresh refresh =
+        refreshTokenRotation.refresh(refreshToken, session -> checkRefreshable(session, domain));
+    return switch (refresh.outcome()) {
+      case ROTATED, IN_GRACE ->
+          new RefreshResult(
+              refreshResponse(Objects.requireNonNull(refresh.session()).getUser()),
+              refresh.nextToken());
+      case REPLAYED, UNKNOWN -> throw new ForbiddenException();
+    };
   }
 
-  /** The session's user, once the session is known to be alive and to belong to this site. */
-  private User checkRefreshable(AuthSession session, Domain domain) {
+  /** Refuses a session that is no longer alive, or that belongs to another site. */
+  private static void checkRefreshable(AuthSession session, Domain domain) {
     if (!session.isValid()) {
       throw new BadRequestException(ErrorCode.SESSION_EXPIRED);
     }
-    User user = session.getUser();
-    if (!user.getDomain().getId().equals(domain.getId())) {
+    if (!session.getUser().getDomain().getId().equals(domain.getId())) {
       throw new ForbiddenException();
     }
-    return user;
   }
 
   private AuthResponse refreshResponse(User user) {

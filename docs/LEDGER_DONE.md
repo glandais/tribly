@@ -1201,6 +1201,23 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   hémisphères, bords de cellule), `AdDetailsAndFiltersTest.list_withProximity_neverTellsApartTwoAdsOfTheSameCell`.
   Le point annexe de l'audit, la position exacte servie aux admins par l'édition, est `SEC-26`.
 
+- `SEC-11` **Le jeton d'accès des appareils vit 15 minutes, et leur refresh token tourne : M9**
+  (2026-09-30, API : description de `DeviceTokenResponse.refreshToken`, version attribuée à
+  l'intégration ; pas de migration — celle de `SEC-27` suffit) — le JWT d'un Karoo ou d'une montre
+  Garmin vivait 60 minutes sans pouvoir être révoqué. Décisions de l'utilisateur : **15 minutes**,
+  comme le site (`DeviceJwtService`, `pedalons.device.jwt.access-token-expiry-minutes`), et **la
+  rotation du refresh token des appareils tout de suite**, par le même composant que le site et
+  l'app (`RefreshTokenRotation`, extrait d'`AuthService` : tolérance d'une minute, rejeu révoqué ;
+  pour un appareil, un rejeu ou un jeton inconnu répond `TOKEN_INVALID`). L'app Garmin gardait déjà
+  un `refreshToken` renvoyé ; **Karoo l'ignorait** (`updateAccessToken`) : il enregistre désormais
+  toute la réponse (`AuthManager.saveTokens`, aux trois appels de refresh). Aucun Karoo n'avait
+  l'app installée le 30 septembre 2026 : personne à réappairer. Karoo doit être republié
+  avec ce changement avant tout nouvel appareil ; Garmin n'a rien à changer. M8 et M10, d'abord rangés ici, sont
+  livrés sous `SEC-25` et `SEC-28`, M7 sous `SEC-27`. Tests : `DeviceRefreshRotationTest`
+  (rotation, 15 minutes, tolérance, rejeu) — **écrit sans avoir été lancé** ; `flow-device.e2e.ts`
+  attend désormais un jeton renouvelé. Ne pas rallonger le jeton d'accès d'un appareil tant qu'il
+  n'est pas révocable.
+
 - `SEC-27` **Le refresh token est renouvelé à chaque usage : M7** (2026-09-30, **API 9.1.1**, patch — `AuthResponse.refreshToken` rempli par `POST /api/auth/refresh` pour le
   flux à en-tête ; migration `V53__auth_session_rotation` ; détaché de `SEC-11`) — un refresh token
   volé ouvrait la session 30 jours. Décision de l'utilisateur : **rotation avec une tolérance** —
@@ -1220,8 +1237,8 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   (jeton d'accès expiré) couvre ce cycle et **doit être relancé à la recette**. V53 ajoute aussi les
   index de `refresh_token_hash`, qui n'en avait pas. Colonnes nulles : pendant un déploiement,
   l'ancienne version ne fait pas tourner les jetons ; un jeton précédent présenté à elle échoue (403)
-  et renvoie à la connexion. **Les appareils** (`DeviceAuthService.refreshToken`) ne tournent pas
-  encore : ils restent avec M9 sous `SEC-11`. Suite e2e réécrite pour le modèle « une session, un
+  et renvoie à la connexion. **Les appareils** tournent aussi, depuis `SEC-11`, par le même
+  `RefreshTokenRotation`. Suite e2e réécrite pour le modèle « une session, un
   détenteur » (`frontend/e2e/README.md`, « How sessions work ») : plus de session enregistrée et
   partagée ; mot de passe pour les rôles, admin compris ; session propre à chaque contexte et à
   chaque `signIn` ; jeton renouvelé réécrit dans le cookie ou l'objet qui le détient. Tests :

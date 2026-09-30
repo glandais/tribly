@@ -17,7 +17,11 @@ public class DeviceJwtService {
   @ConfigProperty(name = "mp.jwt.verify.issuer")
   String issuer;
 
-  @ConfigProperty(name = "pedalons.device.jwt.access-token-expiry-minutes", defaultValue = "60")
+  /**
+   * 15 minutes, like the site's: the token is a JWT, which nothing revokes before it expires (audit
+   * M9, docs/LEDGER_*.md SEC-11). The device refreshes more often, that is all.
+   */
+  @ConfigProperty(name = "pedalons.device.jwt.access-token-expiry-minutes", defaultValue = "15")
   int accessTokenExpiryMinutes;
 
   @ConfigProperty(name = "pedalons.device.jwt.refresh-token-expiry-days", defaultValue = "90")

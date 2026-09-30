@@ -12,6 +12,7 @@ import fr.pedalons.repository.auth.AuthSessionRepository;
 import fr.pedalons.repository.auth.DeviceCodeRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.auth.AuthThrottle;
+import fr.pedalons.service.auth.RefreshTokenRotation;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
@@ -26,6 +27,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.Objects;
 import java.util.Optional;
 import org.jboss.logging.Logger;
 
@@ -62,6 +64,7 @@ public class DeviceAuthService {
   @Inject DomainResolver domainResolver;
   @Inject PedalonsQueryContext pedalonsQueryContext;
   @Inject AuthThrottle authThrottle;
+  @Inject RefreshTokenRotation refreshTokenRotation;
 
   @Public
   public String getFrontendBaseUrl() {
@@ -205,30 +208,27 @@ public class DeviceAuthService {
   @Transactional
   @Public
   public DeviceTokenResponse refreshToken(String refreshToken, String clientId) {
-    String tokenHash = hashToken(refreshToken);
-    AuthSession session =
-        authSessionRepository
-            .findByRefreshTokenHash(tokenHash)
-            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
-
-    if (!session.isValid()) {
-      throw new BadRequestException(ErrorCode.SESSION_EXPIRED);
+    // Rotated like the site's and the app's (docs/LEDGER_*.md SEC-11, SEC-27): the device keeps the
+    // refreshToken of the answer, and a device whose refresh raced another keeps the one it has.
+    RefreshTokenRotation.Refresh refresh =
+        refreshTokenRotation.refresh(
+            refreshToken,
+            session -> {
+              if (!session.isValid()) {
+                throw new BadRequestException(ErrorCode.SESSION_EXPIRED);
+              }
+            });
+    if (refresh.outcome() == RefreshTokenRotation.Outcome.REPLAYED
+        || refresh.outcome() == RefreshTokenRotation.Outcome.UNKNOWN) {
+      throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
-
-    // A refresh is not a login: record usage without writing a versioned row, so concurrent
-    // refreshes of the same session don't fail on the optimistic lock (see AuthService).
-    authSessionRepository.markUsed(session.getId());
-
-    User user = session.getUser();
-
-    // Generate new access token only (refresh token stays the same)
-    String accessToken = deviceJwtService.generateAccessToken(user, clientId);
+    User user = Objects.requireNonNull(refresh.session()).getUser();
 
     return DeviceTokenResponse.builder()
-        .accessToken(accessToken)
+        .accessToken(deviceJwtService.generateAccessToken(user, clientId))
         .tokenType("Bearer")
         .expiresIn(deviceJwtService.getAccessTokenExpirySeconds())
-        .refreshToken(null)
+        .refreshToken(refresh.nextToken())
         .build();
   }
 

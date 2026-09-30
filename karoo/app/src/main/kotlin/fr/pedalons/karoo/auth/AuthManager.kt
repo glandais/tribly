@@ -27,21 +27,17 @@ class AuthManager(private val context: Context) {
         val EXPIRES_AT = longPreferencesKey("expires_at")
     }
 
-    /** Stores tokens from a successful authentication. */
+    /**
+     * Stores tokens from a successful authentication or refresh. The refresh token rotates at every
+     * refresh (docs/LEDGER_*.md SEC-11): the one in the answer replaces the stored one, which the
+     * server would take for a replayed copy a minute later. An answer without one — a refresh that
+     * raced another — keeps the stored token.
+     */
     suspend fun saveTokens(tokenResponse: TokenResponse) {
         val expiresAt = System.currentTimeMillis() + (tokenResponse.expiresIn * 1000L)
         context.authDataStore.edit { prefs ->
             prefs[Keys.ACCESS_TOKEN] = tokenResponse.accessToken
             tokenResponse.refreshToken?.let { prefs[Keys.REFRESH_TOKEN] = it }
-            prefs[Keys.EXPIRES_AT] = expiresAt
-        }
-    }
-
-    /** Updates only the access token (used after refresh). */
-    suspend fun updateAccessToken(accessToken: String, expiresIn: Int) {
-        val expiresAt = System.currentTimeMillis() + (expiresIn * 1000L)
-        context.authDataStore.edit { prefs ->
-            prefs[Keys.ACCESS_TOKEN] = accessToken
             prefs[Keys.EXPIRES_AT] = expiresAt
         }
     }

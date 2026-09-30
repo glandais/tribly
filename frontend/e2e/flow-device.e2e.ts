@@ -111,9 +111,11 @@ test('an anonymous rider scanning the Garmin code signs in, comes back to the sa
   expect(await pollError(flow.deviceCode)).toBe('TOKEN_INVALID')
   expect(await verifyUserCode(flow.userCode)).toBeNull()
 
-  // The refresh token keeps the device signed in as the same rider.
+  // The refresh token keeps the device signed in as the same rider, and rotates
+  // (docs/LEDGER_*.md SEC-11): the answer carries the one to keep.
   const refreshed = await refreshDeviceToken(tokens.refreshToken!)
-  expect(refreshed.refreshToken ?? null).toBeNull()
+  expect(refreshed.refreshToken).toBeTruthy()
+  expect(refreshed.refreshToken).not.toBe(tokens.refreshToken)
   expect(await deviceOwner(refreshed.accessToken)).toMatchObject({ id: rider.user.id })
 })
 
