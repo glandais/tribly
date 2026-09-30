@@ -5,8 +5,11 @@ import fr.pedalons.dto.calendar.response.CalendarEventType;
 import fr.pedalons.dto.publications.response.TeamPublicationDto;
 import fr.pedalons.dto.rides.response.RideDto;
 import fr.pedalons.dto.trips.response.TripDto;
+import fr.pedalons.enums.ActionType;
+import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.service.ride.RideService;
+import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.trip.TripService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -20,7 +23,9 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Unlike the subscription feeds of {@link CalendarService}, this takes no token: the file is
  * built from the same DTO as the detail page, so whoever may read the ride or the trip — an
- * anonymous visitor on a public one included — gets its calendar, and nobody else does.
+ * anonymous visitor on a public one included — gets its calendar, and nobody else does. The
+ * {@code @CheckAccess(READ)} here is the same check {@code getDto} makes: it is the one the
+ * architecture test requires on every service a resource calls.
  */
 @ApplicationScoped
 public class PublicationIcsService {
@@ -29,6 +34,7 @@ public class PublicationIcsService {
   @Inject TripService tripService;
   @Inject IcsGenerationService icsGenerationService;
 
+  @CheckAccess(entityType = EntityType.RIDE, action = ActionType.READ)
   public String rideIcs(String teamSlug, String rideSlug) {
     RideDto ride = rideService.getDto(teamSlug, rideSlug);
     CalendarEventDto event =
@@ -46,6 +52,7 @@ public class PublicationIcsService {
   }
 
   /** A trip is its stages: one all-day event each, as in the subscription feeds. */
+  @CheckAccess(entityType = EntityType.TRIP, action = ActionType.READ)
   public String tripIcs(String teamSlug, String tripSlug) {
     TripDto trip = tripService.getDto(teamSlug, tripSlug);
     List<CalendarEventDto> events =
