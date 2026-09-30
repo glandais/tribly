@@ -40,7 +40,7 @@
 | M9 | Moyenne | Le jeton d'accès des appareils a une durée longue pour un jeton non révocable | Corrigé (ledger `SEC-11`) |
 | M10 | Moyenne | Aucune limitation de débit HTTP globale | Corrigé (ledger `SEC-28`) ; le seuil suppose Caddy seul en entrée, à vérifier au déploiement |
 | L1–L14 | Faible | Voir la section dédiée | L1 et L4 à L9, L12 à L14 corrigés, L2 caduc, L11 partiellement corrigé ; L3 et L10 ouverts |
-| V1–V8 | À valider | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | V2 caduc pour l'avenir, les autres à valider |
+| V1–V8 | À valider | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | V1 vérifié, non confirmé (ledger `SEC-5`) ; V2 caduc pour l'avenir ; V3 à V8 à valider |
 
 H5, M7 à M10 et L12 à L14 viennent de l'audit d'infrastructure de février
 ([`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md), lignes S2 à S11), versés ici
@@ -53,7 +53,7 @@ changement de statut ici se reporte là-bas.
 
 **Ordre de correction conseillé** :
 1. ~~H1~~, ~~H2~~, ~~H3~~ et ~~H4~~ (corrigés).
-2. Vérifier V1.
+2. ~~Vérifier V1~~ (vérifié, non confirmé).
 3. ~~M1~~ (corrigé).
 4. M3 et ~~M4~~ (corrigé).
 
@@ -142,7 +142,7 @@ Informationnel :
 
 | # | Hypothèse | Statut |
 |---|---|---|
-| V1 | Une clé privée JWT a figuré dans l'historique public du dépôt : vérifier que les clés de production et de staging n'en sont pas des copies (**critique** si c'est le cas) | À valider |
+| V1 | Une clé privée JWT a figuré dans l'historique public du dépôt : vérifier que les clés de production et de staging n'en sont pas des copies (**critique** si c'est le cas) | **Non confirmé** (vérifié le 2026-09-30, ledger `SEC-5`) : prod et staging signent avec des clés générées sur l'hôte, distinctes l'une de l'autre et de toute clé de l'historique. Les clés publiées restent compromises : ne jamais les réemployer |
 | V2 | La migration biketeam par dump pouvait rattacher un compte Pedalons existant sur une preuve d'e-mail insuffisante | Caduc pour l'avenir : l'import par dump a été retiré (commit `d93fd3af`) et la migration en direct n'importe aucune personne. Les comptes déjà importés n'existent plus en staging ni en prod (vérifié le 2026-09-29, `SEC-15`) |
 | V3 | La confiance accordée aux en-têtes `X-Forwarded-*` dépend de la configuration du proxy de l'hôte | À valider |
 | V4 | Les en-têtes de sécurité HTTP dépendent de la configuration du proxy de l'hôte | À valider |
