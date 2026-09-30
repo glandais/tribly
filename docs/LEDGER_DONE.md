@@ -1112,6 +1112,23 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
 
 Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md).
 
+- `SEC-28` **Une limite de débit par client devant tout le site : M10** (2026-09-30, contrat
+  inchangé, pas de migration ; détaché de `SEC-11`) — rien ne bornait le débit d'un client hors des
+  compteurs d'authentification (`SEC-4`, `SEC-7`). Décision de l'utilisateur : **au proxy, pas dans
+  l'application** — un middleware `ratelimit` de Traefik sur chacun des deux routeurs de
+  `docker-compose.yml`, 50 requêtes/s en rafales de 200 sur `/api`, 100/s en rafales de 400 sur le
+  site, `429` avec `Retry-After` au-delà. Larges exprès : une carte tire ses tuiles par rafales, une
+  première visite charge tous les chunks, un club derrière une adresse reste un seul client. Réglables
+  par `RATE_LIMIT_API_AVERAGE`, `…_BURST`, `RATE_LIMIT_FRONTEND_AVERAGE`, `…_BURST` (`.env.example`) ;
+  `.env.e2e` les lève, la pile e2e n'ayant rien devant elle. Le client est le **dernier** saut de
+  `X-Forwarded-For` (`ipStrategy.depth=1`), celui que pose le Caddy de l'hôte, seul point d'entrée,
+  qui remplace l'en-tête reçu — un premier saut forgé ne change pas de compteur. Vérifié le 30
+  septembre 2026 sur un Traefik v3.7 jetable (dépassement, `Retry-After`, client voisin intact,
+  premier saut forgé ignoré) ; **pas encore sur l'hôte** : la vérification à faire après déploiement
+  est dans `OPERATIONS.md`, « Rate limiting ». Ne pas prendre le premier saut de l'en-tête, et
+  ajouter `trusted_proxies` à Caddy si un proxy vient un jour devant lui. `API-27` (lot de
+  géométries) reste ouvert : cette limite borne le nombre de lots, pas le poids de chacun.
+
 - `SEC-25` **Un identifiant ne résout plus un compte ni une passkey d'un autre site : M8**
   (2026-09-30, contrat inchangé, pas de migration ; détaché de `SEC-11`) — `UserRepository.findActiveById`
   et `PasskeyRepository.findByCredentialId` cherchaient sur toute la table, et chaque appelant
@@ -1203,7 +1220,7 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   déploiement. Le prix assumé : un tiers peut fermer 15 minutes la connexion *par mot de passe*
   d'une adresse — le code par e-mail et les passkeys restent ouverts. Reste hors de portée le
   bourrage d'identifiants réparti sur beaucoup d'adresses : c'est la limite globale de M10
-  (`SEC-11`). Tests : `AuthResourceTest` (bloc « Password throttle » : refus même avec le bon mot de
+  (`SEC-28`). Tests : `AuthResourceTest` (bloc « Password throttle » : refus même avec le bon mot de
   passe, casse, adresse inconnue, remise à zéro, indépendance des adresses) — **écrits sans avoir
   été lancés**. Seuils réglables : `pedalons.auth.password.max-failures`,
   `…failure-window-minutes`.
