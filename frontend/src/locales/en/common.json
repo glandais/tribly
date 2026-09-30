@@ -170,6 +170,7 @@
   "auth.passkey.login": "Sign in with Passkey",
   "autocomplete.searchMembers": "Search members…",
   "cards.actions.addToCalendar": "Add to calendar",
+  "cards.actions.menu": "Actions — {{name}}",
   "errors.api.RIDE_GROUP_LEADER_NOT_MEMBER": "The chosen leader does not belong to this team.",
   "errors.api.AD_CONTACT_DELIVERY_FAILED": "The message was not sent. Try again in a moment.",
   "errors.api.AD_CONTACT_OPTED_OUT": "This member has chosen not to receive messages about their ads.",

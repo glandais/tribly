@@ -463,6 +463,9 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   voyage publié et pas encore `finished`. Une ligne supprimée (vue des admins) n'a pas de menu : on
   la restaure depuis sa page. Supprimer passe toujours par `ConfirmDialog`. `CardAction.tsx`, qui
   n'était utilisé nulle part, est retiré au profit de `CardActionsMenu`.
+  Le bouton `⋯` porte le nom de sa carte (« Actions — {titre} », `cards.actions.menu`) et **jamais**
+  « Options de gestion » : c'est le chevron des pages de détail, que le helper e2e `actionsMenu`
+  cible dans `main` ; sur une liste, chaque carte en aurait porté un de plus.
   **Publier passe par un nouvel endpoint** `PATCH …/{slug}/status` (`StatusChangeRequest`) sur les
   sorties, voyages, publications et annonces, et **jamais par la mise à jour complète** : une ligne
   de liste est une projection COMPACT sans les groupes d'une sortie ni les étapes d'un voyage, et la

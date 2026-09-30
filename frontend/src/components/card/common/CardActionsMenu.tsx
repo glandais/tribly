@@ -6,6 +6,11 @@ import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 
 interface CardActionsMenuProps {
+  /**
+   * The card's title, for the trigger's accessible name (« Actions — Sortie du dimanche »). Each
+   * card of a list has its own, and none takes « Options de gestion », the detail page's chevron.
+   */
+  title: string
   /** « Modifier » — the edit page. */
   editPath?: string
   /** « Publier » — shown for a draft only; the caller decides. */
@@ -26,6 +31,7 @@ interface CardActionsMenuProps {
  * status — belongs to the per-type wrappers (`PublicationCardActions`…), not to this menu.
  */
 export function CardActionsMenu({
+  title,
   editPath,
   onPublish,
   onDelete,
@@ -61,8 +67,8 @@ export function CardActionsMenu({
             variant="default"
             size="md"
             loading={busy}
-            aria-label={t('aria.manageActions')}
-            title={t('aria.manageActions')}
+            aria-label={t('cards.actions.menu', { name: title })}
+            title={t('cards.actions.menu', { name: title })}
           >
             <IconDots size={16} />
           </ActionIcon>
