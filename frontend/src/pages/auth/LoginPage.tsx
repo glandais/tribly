@@ -80,8 +80,6 @@ export function LoginPage() {
     initialValues: {
       email: '',
       displayName: '',
-      password: '',
-      confirmPassword: '',
       acceptTerms: false,
     },
     validate: {
@@ -93,9 +91,6 @@ export function LoginPage() {
           : v.length > 100
             ? t('auth.validation.displayNameMax')
             : null,
-      password: (v) => (v.length < 8 ? t('auth.validation.passwordMin') : null),
-      confirmPassword: (v, values) =>
-        v !== values.password ? t('auth.validation.passwordMismatch') : null,
       acceptTerms: (v) => (v ? null : t('auth.validation.acceptTerms')),
     },
   })
@@ -183,7 +178,6 @@ export function LoginPage() {
   const handleRegister = async (values: {
     email: string
     displayName: string
-    password: string
     acceptTerms: boolean
   }) => {
     setIsLoading(true)
@@ -192,7 +186,6 @@ export function LoginPage() {
         {
           email: values.email,
           displayName: values.displayName,
-          password: values.password,
           acceptTerms: values.acceptTerms,
         },
         { skipErrorToast: true }
@@ -325,22 +318,8 @@ export function LoginPage() {
                   autoComplete="name"
                   {...registerForm.getInputProps('displayName')}
                 />
-                <PasswordInput
-                  label={t('auth.form.password')}
-                  placeholder={t('auth.form.passwordPlaceholder')}
-                  name="new-password"
-                  autoComplete="new-password"
-                  leftSection={<IconLock size={16} />}
-                  {...registerForm.getInputProps('password')}
-                />
-                <PasswordInput
-                  label={t('auth.form.confirmPassword')}
-                  placeholder={t('auth.form.confirmPasswordPlaceholder')}
-                  name="new-password-confirm"
-                  autoComplete="new-password"
-                  leftSection={<IconLock size={16} />}
-                  {...registerForm.getInputProps('confirmPassword')}
-                />
+                {/* No password here: it is chosen on the page the mailed link opens, by whoever
+                    holds the mailbox (docs/LEDGER_*.md SEC-24, audit L4). */}
                 {/* Mandatory: the terms carry the zero-tolerance clause on abusive content. The links
                     open in a new tab so the half-filled form survives reading them. */}
                 <Checkbox

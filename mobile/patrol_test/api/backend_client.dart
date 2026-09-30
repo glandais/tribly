@@ -57,25 +57,21 @@ final class BackendClient {
 
   // ── Accounts ────────────────────────────────────────────────────────────
 
-  /// Signs up as the app does — register, then follow the verification link from the mail.
+  /// Signs up as the app does — register, then follow the verification link from the mail and
+  /// choose the password there (sign-up itself takes none: SEC-24).
   Future<TestUser> newUser(String label) async {
     final email = '${_uniqueTag(label)}@e2e.test';
     final seen = await _mailpit.mailbox(email);
     await _dio.post<void>(
       '/api/auth/register',
-      data: {
-        'email': email,
-        'displayName': label,
-        'password': _password,
-        'acceptTerms': true,
-      },
+      data: {'email': email, 'displayName': label, 'acceptTerms': true},
     );
     final token = _mailpit.linkTokenIn(
       await _mailpit.waitForNewMail(email, seen),
     );
     final response = await _dio.post<Json>(
       '/api/auth/verify-email',
-      data: {'token': token},
+      data: {'token': token, 'password': _password},
     );
     return TestUser._fromAuth(response.data!, _password);
   }

@@ -6,8 +6,10 @@ import 'package:dio/dio.dart' hide Headers;
 import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
+import '../models/activate_account_request.dart';
 import '../models/auth_response.dart';
 import '../models/email_change_request.dart';
+import '../models/email_link_preview_response.dart';
 import '../models/forgot_password_request.dart';
 import '../models/login_request.dart';
 import '../models/message_response.dart';
@@ -23,6 +25,16 @@ part 'authentication_client.g.dart';
 abstract class AuthenticationClient {
   factory AuthenticationClient(Dio dio, {String? baseUrl}) =
       _AuthenticationClient;
+
+  /// Confirm a new address.
+  ///
+  /// Apply an address change from its link. Opens no session: a signed-in client refreshes its user.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/auth/confirm-email-change')
+  Future<void> confirmEmailChange({
+    @Body() required VerifyTokenRequest body,
+  });
 
   /// Request email change.
   ///
@@ -124,15 +136,25 @@ abstract class AuthenticationClient {
     @Header('X-Real-IP') String? xRealIp,
   });
 
-  /// Verify email.
+  /// Activate an account.
   ///
-  /// Verify email address and complete registration.
+  /// Complete a sign-up from its verification link: the password is chosen here, then the new account is signed in.
   ///
   /// [body] - Name not received - field will be skipped.
   @POST('/api/auth/verify-email')
-  Future<AuthResponse> verifyEmail({
-    @Body() required VerifyTokenRequest body,
+  Future<AuthResponse> activateAccount({
+    @Body() required ActivateAccountRequest body,
     @Header('X-Forwarded-For') String? xForwardedFor,
     @Header('X-Real-IP') String? xRealIp,
+  });
+
+  /// Read a verification link.
+  ///
+  /// The address a sign-up or address-change link verifies, and what following it does. Does not spend the link: the page shows the address before anything happens.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/auth/verify-email/preview')
+  Future<EmailLinkPreviewResponse> previewEmailLink({
+    @Body() required VerifyTokenRequest body,
   });
 }

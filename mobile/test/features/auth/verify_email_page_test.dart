@@ -8,20 +8,34 @@ import 'package:pedalons/features/auth/presentation/pages/verify_email_page.dart
 import 'package:pedalons/features/auth/providers/auth_provider.dart';
 import 'package:pedalons/keys.dart';
 
-/// Le lien de vérification ouvre une page qui appelle l'API d'elle-même.
+/// Le lien de vérification ouvre une page qui lit le lien d'elle-même.
 ///
-/// `AuthNotifier.verifyEmail` pose `isLoading` **avant** son premier `await` :
-/// lancé depuis `initState`, il modifiait un provider pendant que l'arbre se
-/// construisait — l'assertion de Riverpod « Tried to modify a provider while
-/// the widget tree was building » faisait échouer tout test qui ouvrait la
-/// page, et le parcours d'inscription n'avait pas de test de bout en bout.
-class _FailingAuthRepository implements AuthRepository {
-  final List<String> tokens = <String>[];
+/// Elle ne modifie aucun provider pendant la construction : lancé depuis
+/// `initState`, un appel qui pose `isLoading` avant son premier `await`
+/// déclenchait l'assertion de Riverpod « Tried to modify a provider while the
+/// widget tree was building ». Et au chargement, elle ne fait que **lire** le
+/// lien : rien n'est activé tant que le mot de passe n'est pas choisi
+/// (docs/LEDGER_*.md SEC-9 et SEC-24).
+class _FakeAuthRepository implements AuthRepository {
+  _FakeAuthRepository({this.preview});
+
+  /// La réponse de l'aperçu ; nulle, il échoue.
+  final EmailLinkPreviewResponse? preview;
+  final List<String> previewed = <String>[];
+  final List<(String, String)> activated = <(String, String)>[];
 
   @override
-  Future<AuthResponse> verifyEmail(String token) async {
-    tokens.add(token);
-    throw Exception('lien expiré');
+  Future<EmailLinkPreviewResponse> previewEmailLink(String token) async {
+    previewed.add(token);
+    final EmailLinkPreviewResponse? response = preview;
+    if (response == null) throw Exception('lien expiré');
+    return response;
+  }
+
+  @override
+  Future<AuthResponse> activateAccount(String token, String password) async {
+    activated.add((token, password));
+    throw Exception('arrêt du test');
   }
 
   @override
@@ -46,7 +60,7 @@ class _AuthListener extends ConsumerWidget {
 void main() {
   Future<void> open(
     WidgetTester tester,
-    _FailingAuthRepository repository, {
+    _FakeAuthRepository repository, {
     String? token,
   }) async {
     await tester.pumpWidget(
@@ -63,29 +77,66 @@ void main() {
   }
 
   testWidgets(
-    'la vérification part après la première image, sans modifier un provider '
+    'le lien est lu après la première image, sans modifier un provider '
     'pendant la construction',
     (WidgetTester tester) async {
-      final _FailingAuthRepository repository = _FailingAuthRepository();
+      final _FakeAuthRepository repository = _FakeAuthRepository();
 
       await open(tester, repository, token: 't0k3n');
 
       expect(tester.takeException(), isNull);
-      expect(repository.tokens, <String>['t0k3n']);
+      expect(repository.previewed, <String>['t0k3n']);
       expect(find.byKey(keys.login.verifyError), findsOneWidget);
       expect(find.byKey(keys.login.verifyBackToLoginButton), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'un lien d\'inscription montre son adresse et n\'active rien avant le '
+    'mot de passe',
+    (WidgetTester tester) async {
+      final _FakeAuthRepository repository = _FakeAuthRepository(
+        preview: const EmailLinkPreviewResponse(
+          email: 'bob@example.com',
+          kind: 'SIGN_UP',
+        ),
+      );
+
+      await open(tester, repository, token: 't0k3n');
+
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(keys.login.verifyAddress), findsOneWidget);
+      expect(find.byKey(keys.login.verifyPasswordField), findsOneWidget);
+      expect(repository.activated, isEmpty);
+
+      await tester.enterText(
+        find.byKey(keys.login.verifyPasswordField),
+        'ownerpass123',
+      );
+      await tester.enterText(
+        find.byKey(keys.login.verifyConfirmField),
+        'ownerpass123',
+      );
+      await tester.tap(find.byKey(keys.login.verifyActivateButton));
+      for (int i = 0; i < 4; i++) {
+        await tester.pump(const Duration(milliseconds: 10));
+      }
+
+      expect(repository.activated, <(String, String)>[
+        ('t0k3n', 'ownerpass123'),
+      ]);
     },
   );
 
   testWidgets('sans jeton, la page le dit sans appeler l\'API', (
     WidgetTester tester,
   ) async {
-    final _FailingAuthRepository repository = _FailingAuthRepository();
+    final _FakeAuthRepository repository = _FakeAuthRepository();
 
     await open(tester, repository);
 
     expect(tester.takeException(), isNull);
-    expect(repository.tokens, isEmpty);
+    expect(repository.previewed, isEmpty);
     expect(find.byKey(keys.login.verifyError), findsOneWidget);
   });
 }

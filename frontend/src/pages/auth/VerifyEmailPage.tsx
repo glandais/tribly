@@ -1,86 +1,106 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
-import { useTranslation } from 'react-i18next'
-import { IconCheck, IconX, IconMail, IconFingerprint } from '@tabler/icons-react'
-import { Center, Paper, Stack, Title, Text, Button, Loader } from '@mantine/core'
+import { useTranslation, Trans } from 'react-i18next'
+import { useForm } from '@mantine/form'
+import { IconCheck, IconX, IconFingerprint, IconLock, IconAlertTriangle } from '@tabler/icons-react'
+import {
+  Alert,
+  Center,
+  Paper,
+  Stack,
+  Title,
+  Text,
+  Button,
+  Loader,
+  PasswordInput,
+} from '@mantine/core'
 import { paths } from '@/config/paths'
 import { useAuthStore } from '@/store/authStore'
 import { isPasskeySupported, registerNewPasskey } from '@/lib/passkeys'
+import { apiErrorCode } from '@/lib/apiError'
+import {
+  activateAccount,
+  confirmEmailChange,
+  previewEmailLink,
+} from '@/api/endpoints/authentication/authentication'
+import { getMe } from '@/api/endpoints/users/users'
 
-type VerificationState = 'loading' | 'success' | 'error' | 'expired'
+type VerificationState =
+  'loading' | 'activate' | 'passkey' | 'activated' | 'emailChanged' | 'emailTaken' | 'error'
 
+/**
+ * Where a sign-up or address-change link lands. Nothing happens on load but reading the link: the
+ * page shows the address first, and a sign-up only completes once its password is chosen here.
+ * Loading the page used to sign its reader into the account — anyone's, if someone else's link was
+ * forwarded to them (docs/LEDGER_*.md SEC-9, audit M5) — with the password whoever signed up had
+ * typed (SEC-24, audit L4).
+ */
 export function VerifyEmailPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
-  const { setAccessToken, setUser } = useAuthStore()
+  const { user: currentUser, isAuthenticated, setAccessToken, setUser } = useAuthStore()
 
   const [state, setState] = useState<VerificationState>(() => (token ? 'loading' : 'error'))
-  const [isResending, setIsResending] = useState(false)
   const [email, setEmail] = useState<string | null>(null)
-  const [showPasskeyPrompt, setShowPasskeyPrompt] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [isRegisteringPasskey, setIsRegisteringPasskey] = useState(false)
-  const hasVerified = useRef(false)
+  const hasRead = useRef(false)
+
+  const form = useForm({
+    initialValues: { password: '', confirmPassword: '' },
+    validate: {
+      password: (v) => (v.length < 8 ? t('auth.validation.passwordMin') : null),
+      confirmPassword: (v, values) =>
+        v !== values.password ? t('auth.validation.passwordMismatch') : null,
+    },
+  })
 
   useEffect(() => {
-    if (!token || hasVerified.current) {
+    if (!token || hasRead.current) {
       return
     }
-    hasVerified.current = true
+    hasRead.current = true
 
-    const verifyEmail = async () => {
+    const read = async () => {
       try {
-        const response = await fetch('/api/auth/verify-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ token }),
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          setAccessToken(data.accessToken)
-          setUser(data.user)
-          setState('success')
-          if (isPasskeySupported()) {
-            setShowPasskeyPrompt(true)
-          }
-        } else {
-          const error = await response.json()
-          if (error.code === 'TOKEN_EXPIRED') {
-            setEmail(error.errorDetails?.email || null)
-            setState('expired')
-          } else {
-            setState('error')
-          }
+        const link = await previewEmailLink({ token }, { skipErrorToast: true })
+        setEmail(link.email)
+        if (link.kind === 'SIGN_UP') {
+          setState('activate')
+          return
         }
-      } catch {
-        setState('error')
+        // An address change needs no password and opens no session: it applies at once.
+        await confirmEmailChange({ token }, { skipErrorToast: true })
+        if (useAuthStore.getState().isAuthenticated) {
+          setUser(await getMe({ skipErrorToast: true }))
+        }
+        setState('emailChanged')
+      } catch (error: unknown) {
+        setState(apiErrorCode(error) === 'EMAIL_ALREADY_EXISTS' ? 'emailTaken' : 'error')
       }
     }
 
-    verifyEmail()
-  }, [token, setAccessToken, setUser])
+    void read()
+  }, [token, setUser])
 
-  const handleResendVerification = async () => {
-    if (!email) return
-
-    setIsResending(true)
+  const handleActivate = async (values: { password: string }) => {
+    if (!token) return
+    setIsSubmitting(true)
     try {
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-
-      if (response.ok) {
-        setState('success')
-        setShowPasskeyPrompt(false)
-      }
+      const data = await activateAccount(
+        { token, password: values.password },
+        { skipErrorToast: true }
+      )
+      if (data.accessToken) setAccessToken(data.accessToken)
+      if (data.user) setUser(data.user)
+      setState(isPasskeySupported() ? 'passkey' : 'activated')
+    } catch {
+      setState('error')
     } finally {
-      setIsResending(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -88,14 +108,9 @@ export function VerifyEmailPage() {
     setIsRegisteringPasskey(true)
     try {
       await registerNewPasskey(undefined)
-      navigate(paths.home())
     } catch {
       // If passkey registration fails, just go home
-      navigate(paths.home())
     }
-  }
-
-  const handleSkipPasskey = () => {
     navigate(paths.home())
   }
 
@@ -109,31 +124,91 @@ export function VerifyEmailPage() {
           </Stack>
         )
 
-      case 'success':
-        if (showPasskeyPrompt) {
-          return (
-            <Stack ta="center">
-              <IconFingerprint
-                size={48}
-                style={{ margin: '0 auto' }}
-                color="var(--mantine-color-blue-6)"
-              />
-              <Title order={2}>{t('auth.verifyEmail.passkey.title')}</Title>
-              <Text c="dimmed">{t('auth.verifyEmail.passkey.message')}</Text>
-              <Button
-                onClick={handleRegisterPasskey}
-                loading={isRegisteringPasskey}
-                fullWidth
-                leftSection={<IconFingerprint size={18} />}
-              >
-                {t('auth.verifyEmail.passkey.register')}
-              </Button>
-              <Button onClick={handleSkipPasskey} variant="subtle" fullWidth>
-                {t('auth.verifyEmail.passkey.skip')}
-              </Button>
+      case 'activate':
+        return (
+          <Stack>
+            <Stack gap="xs" ta="center">
+              <Title order={2}>{t('auth.verifyEmail.activate.title')}</Title>
+              <Text c="dimmed">
+                <Trans
+                  i18nKey="auth.verifyEmail.activate.message"
+                  values={{ email }}
+                  components={{ strong: <strong /> }}
+                />
+              </Text>
             </Stack>
-          )
-        }
+            {isAuthenticated && currentUser && currentUser.email !== email && (
+              <Alert color="yellow" icon={<IconAlertTriangle size={18} />}>
+                <Trans
+                  i18nKey="auth.verifyEmail.activate.signedInAs"
+                  values={{ current: currentUser.email, email }}
+                  components={{ strong: <strong /> }}
+                />
+              </Alert>
+            )}
+            <form onSubmit={form.onSubmit(handleActivate)}>
+              <Stack>
+                {/* The address, for password managers: they file the new password under it. */}
+                <input
+                  type="email"
+                  name="email"
+                  autoComplete="username"
+                  value={email ?? ''}
+                  readOnly
+                  hidden
+                />
+                <PasswordInput
+                  label={t('auth.form.password')}
+                  placeholder={t('auth.form.passwordPlaceholder')}
+                  name="new-password"
+                  autoComplete="new-password"
+                  leftSection={<IconLock size={16} />}
+                  {...form.getInputProps('password')}
+                />
+                <PasswordInput
+                  label={t('auth.form.confirmPassword')}
+                  placeholder={t('auth.form.confirmPasswordPlaceholder')}
+                  name="new-password-confirm"
+                  autoComplete="new-password"
+                  leftSection={<IconLock size={16} />}
+                  {...form.getInputProps('confirmPassword')}
+                />
+                <Button type="submit" fullWidth loading={isSubmitting}>
+                  {t('auth.verifyEmail.activate.button')}
+                </Button>
+              </Stack>
+            </form>
+            <Text size="sm" c="dimmed" ta="center">
+              {t('auth.verifyEmail.activate.notYours')}
+            </Text>
+          </Stack>
+        )
+
+      case 'passkey':
+        return (
+          <Stack ta="center">
+            <IconFingerprint
+              size={48}
+              style={{ margin: '0 auto' }}
+              color="var(--mantine-color-blue-6)"
+            />
+            <Title order={2}>{t('auth.verifyEmail.passkey.title')}</Title>
+            <Text c="dimmed">{t('auth.verifyEmail.passkey.message')}</Text>
+            <Button
+              onClick={handleRegisterPasskey}
+              loading={isRegisteringPasskey}
+              fullWidth
+              leftSection={<IconFingerprint size={18} />}
+            >
+              {t('auth.verifyEmail.passkey.register')}
+            </Button>
+            <Button onClick={() => navigate(paths.home())} variant="subtle" fullWidth>
+              {t('auth.verifyEmail.passkey.skip')}
+            </Button>
+          </Stack>
+        )
+
+      case 'activated':
         return (
           <Stack ta="center">
             <IconCheck
@@ -149,33 +224,45 @@ export function VerifyEmailPage() {
           </Stack>
         )
 
-      case 'expired':
+      case 'emailChanged':
         return (
           <Stack ta="center">
-            <IconMail
+            <IconCheck
               size={48}
               style={{ margin: '0 auto' }}
-              color="var(--mantine-color-yellow-6)"
+              color="var(--mantine-color-green-6)"
             />
-            <Title order={2}>{t('auth.verifyEmail.expired.title')}</Title>
-            <Text c="dimmed">{t('auth.verifyEmail.expired.message')}</Text>
-            {email && (
-              <Button onClick={handleResendVerification} loading={isResending} fullWidth>
-                {t('auth.verifyEmail.expired.resend')}
+            <Title order={2}>{t('auth.verifyEmail.emailChanged.title')}</Title>
+            <Text c="dimmed">
+              <Trans
+                i18nKey="auth.verifyEmail.emailChanged.message"
+                values={{ email }}
+                components={{ strong: <strong /> }}
+              />
+            </Text>
+            {isAuthenticated ? (
+              <Button component={PrefetchLink} to={paths.home()} fullWidth>
+                {t('auth.verifyEmail.success.continue')}
+              </Button>
+            ) : (
+              <Button component={PrefetchLink} to={paths.login()} fullWidth>
+                {t('auth.verifyEmail.success.login')}
               </Button>
             )}
-            <Button component={PrefetchLink} to={paths.login()} variant="light" fullWidth>
-              {t('auth.verifyEmail.success.login')}
-            </Button>
           </Stack>
         )
 
+      case 'emailTaken':
       case 'error':
         return (
           <Stack ta="center">
             <IconX size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-red-6)" />
             <Title order={2}>{t('auth.verifyEmail.error.title')}</Title>
-            <Text c="dimmed">{t('auth.verifyEmail.error.message')}</Text>
+            <Text c="dimmed">
+              {state === 'emailTaken'
+                ? t('auth.verifyEmail.emailChanged.taken')
+                : t('auth.verifyEmail.error.message')}
+            </Text>
             <Button component={PrefetchLink} to={paths.login()} fullWidth>
               {t('auth.verifyEmail.success.login')}
             </Button>

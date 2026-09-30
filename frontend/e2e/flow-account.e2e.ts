@@ -101,8 +101,8 @@ test('sign up with the form, verify through the mail, sign out from the header, 
 
   await main.getByRole('textbox', { name: 'Email' }).fill(email)
   await main.getByRole('textbox', { name: "Nom d'affichage" }).fill(displayName)
-  await main.getByRole('textbox', { name: 'Mot de passe', exact: true }).fill(password)
-  await main.getByRole('textbox', { name: 'Confirmer le mot de passe' }).fill(password)
+  // No password on the sign-up form: it is chosen on the page the link opens (SEC-24).
+  await expect(main.getByRole('textbox', { name: 'Mot de passe', exact: true })).toHaveCount(0)
   await main.getByRole('checkbox').check()
   const seen = await mailbox(email)
   await main.getByRole('button', { name: 'Créer un compte' }).click()
@@ -116,8 +116,14 @@ test('sign up with the form, verify through the mail, sign out from the header, 
   // Not usable before the address is verified.
   await expect(loginWithPassword(email, password)).rejects.toBeInstanceOf(ApiError)
 
-  // The verification link signs the new account in; the passkey offer can wait.
+  // The link shows the address and asks for the password; activating signs the new account in.
+  // The passkey offer can wait.
   await page.goto(mailLinkTo(await waitForNewMail(email, seen), '/verify-email'))
+  await expect(main.getByRole('heading', { name: 'Activer votre compte' })).toBeVisible()
+  await expect(main.getByText(email)).toBeVisible()
+  await main.getByRole('textbox', { name: 'Mot de passe', exact: true }).fill(password)
+  await main.getByRole('textbox', { name: 'Confirmer le mot de passe' }).fill(password)
+  await main.getByRole('button', { name: 'Activer mon compte' }).click()
   await expect(main.getByRole('heading', { name: 'Sécurisez votre compte' })).toBeVisible()
   const later = main.getByRole('button', { name: 'Plus tard' })
   await later.click()
@@ -933,6 +939,46 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
     }
   })
 
+  /** Chooses `password` on the activation page a sign-up link opened, and activates. */
+  async function activate(page: Page, password: string) {
+    const main = page.getByRole('main')
+    await expect(main.getByRole('heading', { name: 'Activer votre compte' })).toBeVisible()
+    await main.getByRole('textbox', { name: 'Mot de passe', exact: true }).fill(password)
+    await main.getByRole('textbox', { name: 'Confirmer le mot de passe' }).fill(password)
+    await main.getByRole('button', { name: 'Activer mon compte' }).click()
+  }
+
+  // Audit M5 (SEC-9): loading someone else's sign-up link signed its reader into that account.
+  test('a sign-up link opened while signed in shows its address, warns, and changes nothing until clicked', async ({
+    browser,
+  }) => {
+    const reader = await newUser(unique('Lectrice du lien'))
+    const email = freshAddress('lien transmis')
+    const seen = await mailbox(email)
+    await apiPost(undefined, '/api/auth/register', {
+      email,
+      displayName: unique('Autre compte'),
+      acceptTerms: true,
+    })
+    const link = mailLinkTo(await waitForNewMail(email, seen), '/verify-email')
+
+    const { context, page } = await pageAs(browser, reader)
+    try {
+      await page.goto(link)
+      const main = page.getByRole('main')
+      await expect(main.getByRole('heading', { name: 'Activer votre compte' })).toBeVisible()
+      await expect(main.getByText(email).first()).toBeVisible()
+      await expect(main.getByText('Vous êtes connecté en tant que')).toBeVisible()
+      await expect(main.getByText(reader.user.email)).toBeVisible()
+
+      const cookie = await sessionCookie(context)
+      expect(cookie, 'still the reader’s session').toBeTruthy()
+      expect((await meFromSession(cookie!)).id).toBe(reader.user.id)
+    } finally {
+      await context.close()
+    }
+  })
+
   test('a verification link replayed in a fresh browser is refused and opens no session', async ({
     page,
     browser,
@@ -942,12 +988,12 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
     await apiPost(undefined, '/api/auth/register', {
       email,
       displayName: unique('Vérifiée'),
-      password: 'e2e-password',
       acceptTerms: true,
     })
     const link = mailLinkTo(await waitForNewMail(email, seen), '/verify-email')
 
     await page.goto(link)
+    await activate(page, 'e2e-password')
     await expect(
       page.getByRole('main').getByRole('heading', { name: 'Sécurisez votre compte' })
     ).toBeVisible()
@@ -1034,8 +1080,6 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
     await expect(main.getByRole('heading', { name: 'Créer un compte' })).toBeVisible()
     await main.getByRole('textbox', { name: 'Email' }).fill(email)
     await main.getByRole('textbox', { name: "Nom d'affichage" }).fill(unique('Inscription'))
-    await main.getByRole('textbox', { name: 'Mot de passe', exact: true }).fill('e2e-password')
-    await main.getByRole('textbox', { name: 'Confirmer le mot de passe' }).fill('e2e-password')
     return main
   }
 
@@ -1143,12 +1187,6 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
     await expect(main.getByRole('heading', { name: 'Créer un compte' })).toBeVisible()
     await expect(main.getByRole('textbox', { name: 'Email' })).toHaveValue(email)
     await expect(main.getByRole('textbox', { name: "Nom d'affichage" })).toHaveValue(displayName)
-    await expect(main.getByRole('textbox', { name: 'Mot de passe', exact: true })).toHaveValue(
-      'e2e-password'
-    )
-    await expect(main.getByRole('textbox', { name: 'Confirmer le mot de passe' })).toHaveValue(
-      'e2e-password'
-    )
     await expect(terms).toBeChecked()
 
     // The same click again, now answered by the backend: the mail leaves, the login form follows.

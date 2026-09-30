@@ -9,7 +9,7 @@ portage web livré à trois tâches près, et tenu à jour depuis (dernière rel
 Rien ici ne bloque quoi que ce soit. C'est la propriété qui compte : la v2 est livrable en l'état,
 et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de réparer une panne.
 
-**Contrat d'API au 30 septembre 2026 : `6.5.0`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au 30 septembre 2026 : `7.0.0`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
 
@@ -373,6 +373,13 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       chemin donc dans le journal d'accès, pour les builds mobiles installés et les liens d'export
       déjà envoyés. À retirer (contrat **majeur**) quand les liens envoyés avant le déploiement de
       6.5.0 ont expiré (7 jours) **et** que le mobile a été republié. Taille : XS.
+- [ ] `API-57` **La colonne `auth_tokens.pending_password_hash` n'est plus écrite** — depuis
+      `SEC-24` (API 7.0.0), l'inscription ne prend plus de mot de passe : le lien le demande. La
+      colonne est gardée pour le déploiement progressif (l'ancienne version l'écrit encore pendant
+      la minute de recouvrement) et pour les liens émis avant, dont `activateAccount` ignore le
+      hachage. À retirer par une migration Flyway une fois 7.0.0 déployée **et** les liens
+      d'avant expirés (24 h), avec le champ d'`AuthToken` et la mention dans `AccountExport`.
+      Taille : S.
 
 ---
 
@@ -590,9 +597,8 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 | `SEC-5` | 2 | V1 | **Critique si confirmé** | Clé JWT présente dans l'historique public : vérifier que prod et staging n'en sont pas des copies |
 | `SEC-6` | 4 | M3 | Moyenne | Traitement GPX non borné en mémoire |
 | `SEC-8` | — | M2 | Moyenne | Flou d'~1 km des annonces affinable par requêtes répétées (contredit la décision `API-31`) |
-| `SEC-9` | — | M5 | Moyenne | Login CSRF via le lien de vérification d'e-mail |
 | `SEC-11` | — | M7 à M10 | Moyenne | Refresh token non renouvelé ; résolution d'identité sans filtre de domaine ; jeton d'appareil long et non révocable ; pas de limitation de débit HTTP globale — voir `API-27` (audit de février, S3 à S7) |
-| `SEC-12` | — | L3, L4, L10 | Faible | Voir la table des constats faibles de l'audit ; L1 et L5 à L9 sont livrés sous `SEC-20`, L12 et L13 sous `SEC-22`, L14 sous `SEC-23` |
+| `SEC-12` | — | L3, L10 | Faible | Voir la table des constats faibles de l'audit ; L1 et L5 à L9 sont livrés sous `SEC-20`, L12 et L13 sous `SEC-22`, L14 sous `SEC-23`, L4 sous `SEC-24` |
 | `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | `SEC-14` | — | Info | — | Images externes dans le markdown ; le parseur XML et le paramètre non encodé sont livrés sous `SEC-21` |
 | `SEC-16` | — | V3–V8 | À valider | Configuration hors dépôt : proxy de l'hôte, hôte de sauvegarde, SMTP, imgproxy |

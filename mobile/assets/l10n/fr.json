@@ -39,12 +39,21 @@
     "verifyEmail": {
       "title": "Vérification email",
       "verifying": "Vérification en cours...",
-      "success": "Email vérifié!",
+      "success": "Compte activé !",
       "accountCreated": "Votre compte a été créé avec succès.",
       "tokenMissing": "Token de vérification manquant",
       "backToLogin": "Retour à la connexion",
       "registerError": "Erreur lors de l'enregistrement du passkey: {error}",
-      "verificationSent": "Un email de vérification a été envoyé à {email}"
+      "verificationSent": "Un email de vérification a été envoyé à {email}. Ouvrez son lien pour choisir votre mot de passe.",
+      "activateTitle": "Activer votre compte",
+      "activateMessage": "Choisissez le mot de passe du compte {email}.",
+      "signedInAs": "Vous êtes connecté en tant que {current}. Activer ce compte vous connectera à {email} à sa place.",
+      "activate": "Activer mon compte",
+      "notYours": "Ce n'est pas votre adresse ? Fermez cette page : rien n'est activé tant que vous ne touchez pas le bouton.",
+      "emailChangedTitle": "Adresse modifiée",
+      "emailChangedMessage": "Votre adresse est désormais {email}.",
+      "emailTaken": "Cette adresse est déjà utilisée par un autre compte.",
+      "invalidLink": "Ce lien de vérification est invalide ou a déjà servi."
     },
     "password": "Mot de passe",
     "confirmPassword": "Confirmer le mot de passe",

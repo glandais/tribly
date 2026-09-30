@@ -35,18 +35,11 @@ final class Auth extends Module {
   Future<void> fillRegisterForm({
     required String email,
     required String displayName,
-    required String password,
   }) async {
     await (await scrolledTo(keys.login.registerEmailField)).enterText(email);
     await (await scrolledTo(
       keys.login.registerDisplayNameField,
     )).enterText(displayName);
-    await (await scrolledTo(
-      keys.login.registerPasswordField,
-    )).enterText(password);
-    await (await scrolledTo(
-      keys.login.registerConfirmField,
-    )).enterText(password);
   }
 
   Future<void> acceptTerms() async {
@@ -66,6 +59,22 @@ final class Auth extends Module {
   bool get showsRegisterForm => isShown(keys.login.registerSubmitButton);
 
   // ── E-mail verification ─────────────────────────────────────────────────
+
+  /// The page a sign-up link opens: it shows the address, then activates once the password is
+  /// chosen — the link alone opens nothing (SEC-9, SEC-24).
+  Future<void> activateAccount(String password) async {
+    await $(keys.login.verifyAddress).waitUntilVisible();
+    await (await scrolledTo(
+      keys.login.verifyPasswordField,
+    )).enterText(password);
+    await (await scrolledTo(keys.login.verifyConfirmField)).enterText(password);
+    await (await scrolledTo(keys.login.verifyActivateButton)).tap();
+  }
+
+  /// The address the activation page shows.
+  bool showsActivationFor(String email) =>
+      ($(keys.login.verifyAddress).evaluate().first.widget as Text).data!
+          .contains(email);
 
   /// Waits for the verification page to succeed, then leaves it: « Continuer », or « Plus tard »
   /// when the page first offers a passkey — depending on whether the simulator supports them.

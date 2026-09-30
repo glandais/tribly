@@ -50,6 +50,7 @@ export 'clients/server_version_client.dart';
 // Data classes
 export 'models/accept_invitation_request.dart';
 export 'models/account_deletion_impact_dto.dart';
+export 'models/activate_account_request.dart';
 export 'models/ad_contact_request.dart';
 export 'models/ad_dto.dart';
 export 'models/ad_edit_dto.dart';
@@ -111,6 +112,8 @@ export 'models/device_token_request.dart';
 export 'models/device_token_response.dart';
 export 'models/device_user_status_response.dart';
 export 'models/email_change_request.dart';
+export 'models/email_link_kind.dart';
+export 'models/email_link_preview_response.dart';
 export 'models/entity_type.dart';
 export 'models/error_code.dart';
 export 'models/error_details.dart';

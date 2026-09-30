@@ -17,9 +17,11 @@ import fr.pedalons.dto.auth.request.OtpRequest;
 import fr.pedalons.dto.auth.request.RegisterRequest;
 import fr.pedalons.dto.auth.response.AuthResponse;
 import fr.pedalons.dto.auth.response.AuthResult;
+import fr.pedalons.dto.auth.response.EmailLinkPreviewResponse;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.users.response.UserDto;
 import fr.pedalons.enums.AuthTokenType;
+import fr.pedalons.enums.EmailLinkKind;
 import fr.pedalons.repository.auth.AuthSessionRepository;
 import fr.pedalons.repository.auth.AuthTokenRepository;
 import fr.pedalons.repository.user.UserRepository;
@@ -133,7 +135,6 @@ public class AuthService {
             Instant.now().plus(Duration.ofHours(emailVerificationExpiryHours)),
             domain.getId());
     authToken.setPendingDisplayName(request.displayName());
-    authToken.setPendingPasswordHash(BcryptUtil.bcryptHash(request.password()));
     authToken.setPendingDomainId(domain.getId());
     // Bean Validation refuses a request without acceptTerms: reaching here means they were
     // accepted.
@@ -142,20 +143,33 @@ public class AuthService {
     return token;
   }
 
+  /**
+   * What a mailed link is about, without spending it. The page shows this address before anything
+   * happens: the link alone never signs anyone in, so a link someone forwards cannot land its reader
+   * in an account that is not theirs unaware (docs/LEDGER_*.md SEC-9, audit M5).
+   */
   @Transactional
   @Public
-  public AuthResult verifyEmail(String token, String userAgent, String ipAddress) {
-    String tokenHash = hashToken(token);
-    AuthToken authToken =
-        authTokenRepository
-            .findValidByTokenHash(tokenHash)
-            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
+  public EmailLinkPreviewResponse previewEmailLink(String token) {
+    AuthToken authToken = findEmailLinkToken(token);
+    EmailLinkKind kind =
+        authToken.getTokenType() == AuthTokenType.EMAIL_CHANGE
+            ? EmailLinkKind.EMAIL_CHANGE
+            : EmailLinkKind.SIGN_UP;
+    return new EmailLinkPreviewResponse(authToken.getEmail(), kind);
+  }
 
-    // Email change: verifies the new address of an existing user.
-    if (authToken.getTokenType() == AuthTokenType.EMAIL_CHANGE) {
-      return verifyEmailChange(authToken, userAgent, ipAddress);
-    }
-
+  /**
+   * Creates the account a sign-up link verifies, with the password chosen now, by whoever holds the
+   * mailbox. Chosen at sign-up, it belonged to whoever typed the address — someone else's, possibly
+   * — and survived its owner's click (docs/LEDGER_*.md SEC-24, audit L4). A token issued before this
+   * change still carries a pending hash: it is ignored.
+   */
+  @Transactional
+  @Public
+  public AuthResult activateAccount(
+      String token, String password, String userAgent, String ipAddress) {
+    AuthToken authToken = findEmailLinkToken(token);
     if (authToken.getTokenType() != AuthTokenType.EMAIL_VERIFICATION) {
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
@@ -176,7 +190,7 @@ public class AuthService {
         Objects.requireNonNull(
             authToken.getPendingDisplayName(), "Pending display name should not be null");
     User user = new User(domain, authToken.getEmail(), displayName);
-    user.setPasswordHash(authToken.getPendingPasswordHash());
+    user.setPasswordHash(BcryptUtil.bcryptHash(password));
     user.markEmailVerified();
     user.recordLogin();
     // Accepted on the sign-up form, recorded on the token by register. A token issued before the
@@ -185,6 +199,58 @@ public class AuthService {
     userRepository.persist(user);
 
     return createAuthResult(user, userAgent, ipAddress);
+  }
+
+  /**
+   * Applies an address change once its link is followed. Opens no session: the member asked for it
+   * signed in, and a session here would sign whoever follows the link into the account that asked
+   * — the login CSRF of audit M5 (docs/LEDGER_*.md SEC-9). A signed-in client refreshes its user.
+   */
+  @Transactional
+  @Public
+  public void confirmEmailChange(String token) {
+    AuthToken authToken = findEmailLinkToken(token);
+    if (authToken.getTokenType() != AuthTokenType.EMAIL_CHANGE) {
+      throw new BadRequestException(ErrorCode.TOKEN_INVALID);
+    }
+
+    authToken.markUsed();
+
+    User user = authToken.getUser();
+    if (user == null) {
+      throw new BadRequestException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    Long domainId = user.getDomain().getId();
+    String newEmail = authToken.getEmail();
+
+    // Re-check collision at verify time (another account may have claimed it meanwhile).
+    userRepository
+        .findByEmailAndDomain(domainId, newEmail)
+        .ifPresent(
+            existing -> {
+              if (!existing.getId().equals(user.getId())) {
+                throw new fr.pedalons.common.exception.ConflictException(
+                    ErrorCode.EMAIL_ALREADY_EXISTS);
+              }
+            });
+
+    user.setEmail(newEmail);
+    user.markEmailVerified();
+    userRepository.persist(user);
+  }
+
+  /** A sign-up or address-change link, unspent, on the site that mailed it. */
+  private AuthToken findEmailLinkToken(String token) {
+    AuthToken authToken =
+        authTokenRepository
+            .findValidByTokenHashAndDomain(hashToken(token), domainResolver.getDomainId())
+            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
+    if (authToken.getTokenType() != AuthTokenType.EMAIL_VERIFICATION
+        && authToken.getTokenType() != AuthTokenType.EMAIL_CHANGE) {
+      throw new BadRequestException(ErrorCode.TOKEN_INVALID);
+    }
+    return authToken;
   }
 
   /**
@@ -245,36 +311,6 @@ public class AuthService {
             domainId);
     authTokenRepository.persist(authToken);
     return new EmailChange(user.getDisplayName(), token);
-  }
-
-  private AuthResult verifyEmailChange(AuthToken authToken, String userAgent, String ipAddress) {
-    authToken.markUsed();
-
-    User user = authToken.getUser();
-    if (user == null) {
-      throw new BadRequestException(ErrorCode.USER_NOT_FOUND);
-    }
-
-    Long domainId = user.getDomain().getId();
-    String newEmail = authToken.getEmail();
-
-    // Re-check collision at verify time (another account may have claimed it meanwhile).
-    userRepository
-        .findByEmailAndDomain(domainId, newEmail)
-        .ifPresent(
-            existing -> {
-              if (!existing.getId().equals(user.getId())) {
-                throw new fr.pedalons.common.exception.ConflictException(
-                    ErrorCode.EMAIL_ALREADY_EXISTS);
-              }
-            });
-
-    user.setEmail(newEmail);
-    user.markEmailVerified();
-    user.recordLogin();
-    userRepository.persist(user);
-
-    return createAuthResult(user, userAgent, ipAddress);
   }
 
   /**

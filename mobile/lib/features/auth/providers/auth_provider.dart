@@ -164,7 +164,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<MessageResponse> register({
     required String email,
     required String displayName,
-    required String password,
     required bool acceptTerms,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -173,7 +172,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
         RegisterRequest(
           email: email,
           displayName: displayName,
-          password: password,
           acceptTerms: acceptTerms,
         ),
       );
@@ -222,15 +220,35 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// Verify email with token
-  Future<void> verifyEmail(String token) async {
+  /// Active le compte d'un lien d'inscription avec le mot de passe choisi sur
+  /// la page du lien, puis ouvre sa session. Le lien seul n'ouvre rien : il
+  /// connectait son lecteur au compte, quel qu'il soit (docs/LEDGER_*.md SEC-9,
+  /// audit M5), avec le mot de passe tapé à l'inscription (SEC-24, audit L4).
+  Future<void> activateAccount(String token, String password) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await _repository.verifyEmail(token);
+      final response = await _repository.activateAccount(token, password);
       await _handleAuthSuccess(response);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: getErrorMessage(e));
       rethrow;
+    }
+  }
+
+  /// Applique un changement d'adresse. Sans session : si l'app est connectée,
+  /// elle relit seulement le profil.
+  Future<void> confirmEmailChange(String token) async {
+    await _repository.confirmEmailChange(token);
+    if (state.isAuthenticated) {
+      try {
+        final user = await _ref.read(usersClientProvider).getMe();
+        state = state.copyWith(user: user);
+      } on DioException catch (e) {
+        log(
+          '[AuthNotifier] getMe failed after email change: ${e.message}',
+          name: 'AuthNotifier',
+        );
+      }
     }
   }
 

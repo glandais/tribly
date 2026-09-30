@@ -120,10 +120,11 @@ export async function registerOn(
   host: string,
   account: { email: string; displayName: string; password: string }
 ): Promise<AuthResponse> {
+  const { password, ...signUp } = account
   const seen = await mailbox(account.email)
-  await hostPost(host, undefined, '/api/auth/register', { ...account, acceptTerms: true })
+  await hostPost(host, undefined, '/api/auth/register', { ...signUp, acceptTerms: true })
   const token = linkTokenIn(await waitForNewMail(account.email, seen))
-  return hostPost<AuthResponse>(host, undefined, '/api/auth/verify-email', { token })
+  return hostPost<AuthResponse>(host, undefined, '/api/auth/verify-email', { token, password })
 }
 
 export const loginOn = (host: string, email: string, password: string) =>

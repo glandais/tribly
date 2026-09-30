@@ -58,7 +58,6 @@ class AuthResourceTest extends AbstractResourceTest {
             {
               "email": "newuser@example.com",
               "displayName": "New User",
-              "password": "securepass123",
               "acceptTerms": true
             }
             """)
@@ -78,7 +77,6 @@ class AuthResourceTest extends AbstractResourceTest {
             {
               "email": "not-an-email",
               "displayName": "Test",
-              "password": "securepass123",
               "acceptTerms": true
             }
             """)
@@ -99,7 +97,6 @@ class AuthResourceTest extends AbstractResourceTest {
             {
               "email": "existing@example.com",
               "displayName": "Test",
-              "password": "securepass123",
               "acceptTerms": true
             }
             """)
@@ -118,8 +115,7 @@ class AuthResourceTest extends AbstractResourceTest {
             """
             {
               "email": "noterms@example.com",
-              "displayName": "No Terms",
-              "password": "securepass123"
+              "displayName": "No Terms"
             }
             """)
         .when()
@@ -135,7 +131,6 @@ class AuthResourceTest extends AbstractResourceTest {
             {
               "email": "noterms@example.com",
               "displayName": "No Terms",
-              "password": "securepass123",
               "acceptTerms": false
             }
             """)
@@ -157,7 +152,6 @@ class AuthResourceTest extends AbstractResourceTest {
             {
               "email": "rude@example.com",
               "displayName": "Gros connard",
-              "password": "securepass123",
               "acceptTerms": true
             }
             """)
@@ -188,7 +182,7 @@ class AuthResourceTest extends AbstractResourceTest {
 
     given()
         .contentType(ContentType.JSON)
-        .body("{\"token\": \"valid-token\"}")
+        .body("{\"token\": \"valid-token\", \"password\": \"ownerpass123\"}")
         .when()
         .post("/api/auth/verify-email")
         .then()
@@ -202,7 +196,7 @@ class AuthResourceTest extends AbstractResourceTest {
   void verifyEmail_withInvalidToken_shouldReturn400() {
     given()
         .contentType(ContentType.JSON)
-        .body("{\"token\": \"invalid-token\"}")
+        .body("{\"token\": \"invalid-token\", \"password\": \"ownerpass123\"}")
         .when()
         .post("/api/auth/verify-email")
         .then()
@@ -216,7 +210,7 @@ class AuthResourceTest extends AbstractResourceTest {
 
     given()
         .contentType(ContentType.JSON)
-        .body("{\"token\": \"expired-token\"}")
+        .body("{\"token\": \"expired-token\", \"password\": \"ownerpass123\"}")
         .when()
         .post("/api/auth/verify-email")
         .then()
@@ -578,10 +572,10 @@ class AuthResourceTest extends AbstractResourceTest {
         .body("code", equalTo("INVALID_CREDENTIALS"));
   }
 
-  // --- Register with password + verifyEmail tests ---
+  // --- Sign-up link: address shown first, password chosen on activation (SEC-9, SEC-24) ---
 
   @Test
-  void register_withPassword_shouldStoreHashInToken() {
+  void register_storesNoPassword() {
     given()
         .contentType(ContentType.JSON)
         .body(
@@ -589,7 +583,6 @@ class AuthResourceTest extends AbstractResourceTest {
             {
               "email": "pwdregister@example.com",
               "displayName": "Pwd User",
-              "password": "mypassword123",
               "acceptTerms": true
             }
             """)
@@ -598,26 +591,27 @@ class AuthResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(200);
 
-    // Verify token was created with a pending password hash
     AuthToken token =
         authTokenRepository
             .findValidByEmailAndType(
-                "pwdregister@example.com",
-                fr.pedalons.enums.AuthTokenType.EMAIL_VERIFICATION,
-                domain.getId())
+                "pwdregister@example.com", AuthTokenType.EMAIL_VERIFICATION, domain.getId())
             .orElseThrow();
-    assertThat(token.getPendingPasswordHash(), is(notNullValue()));
+    assertThat(token.getPendingPasswordHash(), is(nullValue()));
     assertThat(token.getPendingTermsAcceptedAt(), is(notNullValue()));
   }
 
+  /**
+   * Audit L4: whoever typed the address at sign-up chose the password, and it survived the owner's
+   * click. A token issued before the fix still carries one — the account must not get it.
+   */
   @Test
-  void verifyEmail_shouldCreateUserWithPasswordHash() {
+  void verifyEmail_setsThePasswordChosenOnActivation_neverTheOneFromSignUp() {
     createVerificationTokenWithPassword(
-        "pwdverify@example.com", "Pwd Verify", "verify-pwd-token", "mypassword123");
+        "pwdverify@example.com", "Pwd Verify", "verify-pwd-token", "registrantpass");
 
     given()
         .contentType(ContentType.JSON)
-        .body("{\"token\": \"verify-pwd-token\"}")
+        .body("{\"token\": \"verify-pwd-token\", \"password\": \"ownerpass123\"}")
         .when()
         .post("/api/auth/verify-email")
         .then()
@@ -625,9 +619,112 @@ class AuthResourceTest extends AbstractResourceTest {
         .body("accessToken", is(notNullValue()));
 
     User user = dataService.findUserByEmail("pwdverify@example.com");
-    assertThat(user.getPasswordHash(), is(notNullValue()));
-    // The terms were accepted on the sign-up form that issued the token.
     assertThat(user.getTermsAcceptedAt(), is(notNullValue()));
+    login("pwdverify@example.com", "registrantpass").statusCode(400);
+    login("pwdverify@example.com", "ownerpass123").statusCode(200);
+  }
+
+  @Test
+  void verifyEmail_withoutAPassword_isRefusedAndSpendsNothing() {
+    createVerificationToken("nopwd@example.com", "No Pwd", "no-pwd-token");
+
+    given()
+        .contentType(ContentType.JSON)
+        .body("{\"token\": \"no-pwd-token\"}")
+        .when()
+        .post("/api/auth/verify-email")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("VALIDATION"));
+
+    preview("no-pwd-token").statusCode(200);
+  }
+
+  @Test
+  void preview_showsTheAddress_opensNoSession_andSpendsNothing() {
+    createVerificationToken("preview@example.com", "Preview", "preview-token");
+
+    preview("preview-token")
+        .statusCode(200)
+        .body("email", equalTo("preview@example.com"))
+        .body("kind", equalTo("SIGN_UP"))
+        .body("accessToken", is(nullValue()))
+        .cookie("refresh_token", is(nullValue()));
+    preview("preview-token").statusCode(200);
+
+    assertThat(userRepository.count("email", "preview@example.com"), is(0L));
+  }
+
+  @Test
+  void preview_ofAnInvalidLink_isRefused() {
+    preview("no-such-token").statusCode(400).body("code", equalTo("TOKEN_INVALID"));
+  }
+
+  @Test
+  void preview_ofALinkFromAnotherSite_isRefused() {
+    Domain other =
+        dataService.createDomain("other.example.com", "Other", "https://other.example.com");
+    createVerificationToken("elsewhere@example.com", "Elsewhere", "elsewhere-token", other);
+
+    preview("elsewhere-token").statusCode(400).body("code", equalTo("TOKEN_INVALID"));
+  }
+
+  /** Audit M5, second door: an address-change link signed its follower into the account. */
+  @Test
+  void confirmEmailChange_changesTheAddress_andOpensNoSession() {
+    User user = dataService.createVerifiedUser("before@example.com", "Changing");
+    createEmailChangeToken(user, "after@example.com", "change-token");
+
+    preview("change-token")
+        .statusCode(200)
+        .body("email", equalTo("after@example.com"))
+        .body("kind", equalTo("EMAIL_CHANGE"));
+
+    given()
+        .contentType(ContentType.JSON)
+        .body("{\"token\": \"change-token\"}")
+        .when()
+        .post("/api/auth/confirm-email-change")
+        .then()
+        .statusCode(204)
+        .cookie("refresh_token", is(nullValue()));
+
+    assertThat(dataService.findUserByEmail("after@example.com").getId(), equalTo(user.getId()));
+    // Spent.
+    preview("change-token").statusCode(400);
+  }
+
+  @Test
+  void eachLinkOpensOnlyItsOwnDoor() {
+    User user = dataService.createVerifiedUser("door@example.com", "Door");
+    createEmailChangeToken(user, "door-new@example.com", "door-change-token");
+    createVerificationToken("door-signup@example.com", "Door Signup", "door-signup-token");
+
+    given()
+        .contentType(ContentType.JSON)
+        .body("{\"token\": \"door-change-token\", \"password\": \"ownerpass123\"}")
+        .when()
+        .post("/api/auth/verify-email")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("TOKEN_INVALID"));
+    given()
+        .contentType(ContentType.JSON)
+        .body("{\"token\": \"door-signup-token\"}")
+        .when()
+        .post("/api/auth/confirm-email-change")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("TOKEN_INVALID"));
+  }
+
+  private io.restassured.response.ValidatableResponse preview(String token) {
+    return given()
+        .contentType(ContentType.JSON)
+        .body("{\"token\": \"" + token + "\"}")
+        .when()
+        .post("/api/auth/verify-email/preview")
+        .then();
   }
 
   /** A token issued before the form asked: the account must not record a consent never given. */
@@ -637,7 +734,7 @@ class AuthResourceTest extends AbstractResourceTest {
 
     given()
         .contentType(ContentType.JSON)
-        .body("{\"token\": \"legacy-terms-token\"}")
+        .body("{\"token\": \"legacy-terms-token\", \"password\": \"ownerpass123\"}")
         .when()
         .post("/api/auth/verify-email")
         .then()
@@ -802,7 +899,7 @@ class AuthResourceTest extends AbstractResourceTest {
     // First use succeeds
     given()
         .contentType(ContentType.JSON)
-        .body("{\"token\": \"reuse-token\"}")
+        .body("{\"token\": \"reuse-token\", \"password\": \"ownerpass123\"}")
         .when()
         .post("/api/auth/verify-email")
         .then()
@@ -811,7 +908,7 @@ class AuthResourceTest extends AbstractResourceTest {
     // Second use must fail — token is consumed
     given()
         .contentType(ContentType.JSON)
-        .body("{\"token\": \"reuse-token\"}")
+        .body("{\"token\": \"reuse-token\", \"password\": \"ownerpass123\"}")
         .when()
         .post("/api/auth/verify-email")
         .then()
@@ -842,8 +939,12 @@ class AuthResourceTest extends AbstractResourceTest {
 
   // --- Helper methods ---
 
-  @Transactional
   void createVerificationToken(String email, String displayName, String token) {
+    createVerificationToken(email, displayName, token, domain);
+  }
+
+  @Transactional
+  void createVerificationToken(String email, String displayName, String token, Domain on) {
     String tokenHash = hashToken(token);
     AuthToken authToken =
         new AuthToken(
@@ -851,10 +952,22 @@ class AuthResourceTest extends AbstractResourceTest {
             tokenHash,
             AuthTokenType.EMAIL_VERIFICATION,
             Instant.now().plus(24, ChronoUnit.HOURS),
-            domain.getId());
+            on.getId());
     authToken.setPendingDisplayName(displayName);
-    authToken.setPendingDomainId(domain.getId());
+    authToken.setPendingDomainId(on.getId());
     authTokenRepository.persist(authToken);
+  }
+
+  @Transactional
+  void createEmailChangeToken(User user, String newEmail, String token) {
+    authTokenRepository.persist(
+        new AuthToken(
+            userRepository.findById(user.getId()),
+            newEmail,
+            hashToken(token),
+            AuthTokenType.EMAIL_CHANGE,
+            Instant.now().plus(24, ChronoUnit.HOURS),
+            domain.getId()));
   }
 
   @Transactional

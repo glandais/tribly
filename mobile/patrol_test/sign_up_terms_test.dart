@@ -24,7 +24,6 @@ void main() {
       await modules.auth.fillRegisterForm(
         email: email,
         displayName: displayName,
-        password: password,
       );
 
       // Terms unticked: refused on the form, and nothing leaves for that address.

@@ -1,5 +1,6 @@
 package fr.pedalons.api.auth;
 
+import fr.pedalons.dto.auth.request.ActivateAccountRequest;
 import fr.pedalons.dto.auth.request.EmailChangeRequest;
 import fr.pedalons.dto.auth.request.ForgotPasswordRequest;
 import fr.pedalons.dto.auth.request.LoginRequest;
@@ -10,6 +11,7 @@ import fr.pedalons.dto.auth.request.VerifyOtpRequest;
 import fr.pedalons.dto.auth.request.VerifyTokenRequest;
 import fr.pedalons.dto.auth.response.AuthResponse;
 import fr.pedalons.dto.auth.response.AuthResult;
+import fr.pedalons.dto.auth.response.EmailLinkPreviewResponse;
 import fr.pedalons.dto.auth.response.MessageResponse;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.service.auth.AuthService;
@@ -70,33 +72,81 @@ public class AuthResource {
   }
 
   @POST
-  @Path("/verify-email")
+  @Path("/verify-email/preview")
   @PermitAll
   @Operation(
-      summary = "Verify email",
-      description = "Verify email address and complete registration")
+      summary = "Read a verification link",
+      description =
+          "The address a sign-up or address-change link verifies, and what following it does."
+              + " Does not spend the link: the page shows the address before anything happens.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
-        description = "Email verified successfully",
+        description = "The link is valid",
+        content = @Content(schema = @Schema(implementation = EmailLinkPreviewResponse.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid, spent or expired link",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public EmailLinkPreviewResponse previewEmailLink(@Valid VerifyTokenRequest request) {
+    return authService.previewEmailLink(request.token());
+  }
+
+  @POST
+  @Path("/verify-email")
+  @PermitAll
+  @Operation(
+      summary = "Activate an account",
+      description =
+          "Complete a sign-up from its verification link: the password is chosen here, then the"
+              + " new account is signed in.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Account created and signed in",
         content = @Content(schema = @Schema(implementation = AuthResponse.class))),
     @APIResponse(
         responseCode = "400",
-        description = "Invalid or expired token",
+        description = "Invalid, spent or expired link, or not a sign-up link",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
-  public Response verifyEmail(
-      @Valid VerifyTokenRequest request,
+  public Response activateAccount(
+      @Valid ActivateAccountRequest request,
       @Context HttpHeaders headers,
       @HeaderParam("X-Forwarded-For") @Nullable String forwardedFor,
       @HeaderParam("X-Real-IP") @Nullable String realIp) {
     String userAgent = headers.getHeaderString(HttpHeaders.USER_AGENT);
     String ipAddress = getClientIp(forwardedFor, realIp);
 
-    AuthResult result = authService.verifyEmail(request.token(), userAgent, ipAddress);
+    AuthResult result =
+        authService.activateAccount(request.token(), request.password(), userAgent, ipAddress);
     return Response.ok(result.response())
         .cookie(refreshTokenCookies.issue(result.refreshToken()))
         .build();
+  }
+
+  @POST
+  @Path("/confirm-email-change")
+  @PermitAll
+  @Operation(
+      summary = "Confirm a new address",
+      description =
+          "Apply an address change from its link. Opens no session: a signed-in client refreshes"
+              + " its user.")
+  @APIResponses({
+    @APIResponse(responseCode = "204", description = "Address changed"),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid, spent or expired link, or not an address-change link",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "409",
+        description = "EMAIL_ALREADY_EXISTS — another account took the address meanwhile",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public void confirmEmailChange(@Valid VerifyTokenRequest request) {
+    authService.confirmEmailChange(request.token());
   }
 
   @POST

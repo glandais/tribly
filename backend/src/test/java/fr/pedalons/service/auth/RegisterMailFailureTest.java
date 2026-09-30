@@ -42,8 +42,7 @@ class RegisterMailFailureTest extends AbstractBaseTest {
 
   @Test
   void aMailThatDoesNotLeaveIsNamed_andCreatesNoAccount() {
-    RegisterRequest request =
-        new RegisterRequest("slow-mail@example.com", "Slow Mail", "password123", true);
+    RegisterRequest request = new RegisterRequest("slow-mail@example.com", "Slow Mail", true);
 
     PedalonsException refused =
         assertThrows(PedalonsException.class, () -> authService.register(request));
