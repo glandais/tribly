@@ -320,7 +320,6 @@ ceux du plan (`API-1`, l'URL de tuile authentifiable, est livré).
 | ID | Manque | Écrans | Dégradation actuelle |
 |---|---|---|---|
 | `API-4` | `groups[]` ou un `registeredGroup` compact sur les lignes de liste | 11 | Un `getRide` supplémentaire pour la seule prochaine sortie |
-| `API-6` | `PostDto.createdByDisplayName` / `createdById` | 31 | Bloc auteur supprimé, seule la date reste |
 | `API-8` | Voisins de publication (`prev`/`next`) *(absence à reconfirmer — recherche ciblée seulement, pas de grep exhaustif sur toutes les resources de publication)* | 31 | Navigation rendue seulement depuis un fil déjà chargé |
 | `API-10` | `ClimbDto.name` | 13, 25 | « Montée N » |
 | `API-11` | Commentaires d'étape | 25 | Section absente, renvoi vers le voyage |

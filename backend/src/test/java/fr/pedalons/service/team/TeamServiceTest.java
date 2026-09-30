@@ -72,6 +72,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -100,6 +101,7 @@ class TeamServiceTest extends AbstractBaseTest {
             false,
             false,
             true,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -126,6 +128,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -147,6 +150,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
     TeamRequest request2 =
         new TeamRequest(
@@ -159,6 +163,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -184,6 +189,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -205,6 +211,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -221,6 +228,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
     BusinessException ex =
         assertThrows(BusinessException.class, () -> teamService.createTeam(request2));
@@ -433,6 +441,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -441,6 +450,39 @@ class TeamServiceTest extends AbstractBaseTest {
     assertEquals("Updated Name", result.name());
     assertEquals("Updated description", result.about().markdown());
     assertEquals(Visibility.TEAM, result.visibility());
+  }
+
+  /** docs/LEDGER_*.md API-6: on for a new team, changed only when the request says so. */
+  @Test
+  void postsAsTeamByDefault_startsOn_andOnlyAnExplicitValueChangesIt() {
+    queryContext.setUserForTest(user1);
+    TeamDetailDto created =
+        teamService.createTeam(requestWithVisibility("Signatures", Visibility.TEAM));
+    assertTrue(created.postsAsTeamByDefault());
+
+    TeamDetailDto off =
+        teamService.updateTeam(created.slug(), withPostsAsTeamByDefault(created, false));
+    assertFalse(off.postsAsTeamByDefault());
+
+    TeamDetailDto kept =
+        teamService.updateTeam(created.slug(), withPostsAsTeamByDefault(off, null));
+    assertFalse(kept.postsAsTeamByDefault(), "an omitted value leaves the setting as it is");
+  }
+
+  private static TeamRequest withPostsAsTeamByDefault(
+      TeamDetailDto team, @org.jspecify.annotations.Nullable Boolean value) {
+    return new TeamRequest(
+        team.name(),
+        MediaDto.builder().build(),
+        team.visibility(),
+        team.enableTrips(),
+        team.enableAds(),
+        team.enablePosts(),
+        team.enableRides(),
+        team.enableRoutes(),
+        team.enableMemberDirectory(),
+        value,
+        null);
   }
 
   @Test
@@ -504,7 +546,17 @@ class TeamServiceTest extends AbstractBaseTest {
 
   private static TeamRequest requestWithVisibility(String name, Visibility visibility) {
     return new TeamRequest(
-        name, MediaDto.builder().build(), visibility, true, true, true, true, true, false, null);
+        name,
+        MediaDto.builder().build(),
+        visibility,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        null,
+        null);
   }
 
   @Test
@@ -522,6 +574,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -545,6 +598,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -569,6 +623,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -591,6 +646,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -614,6 +670,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -638,6 +695,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null);
 
     queryContext.setUserForTest(user1);

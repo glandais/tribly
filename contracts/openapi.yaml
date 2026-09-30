@@ -3289,6 +3289,7 @@ components:
       - status
       - visibility
       - deleted
+      - signedAsTeam
       properties:
         type:
           description: Type
@@ -3350,6 +3351,17 @@ components:
           description: "Number of comments, replies included. Absent when the caller\
             \ may not read the comments of this post — comments are members-only,\
             \ so an outsider is told nothing, not even zero."
+        signedAsTeam:
+          type: boolean
+          description: "Whether the post is signed by the team rather than by its\
+            \ author. Readers are then not told who wrote it: createdBy is absent\
+            \ unless the caller administers the team or wrote the post."
+        createdBy:
+          description: Who wrote the post. Absent when the post is signed by the team
+            (signedAsTeam) and the caller neither administers the team nor wrote it
+            — render the team instead.
+          type: object
+          $ref: "#/components/schemas/PublicUserDto"
     PostListResponse:
       description: Paginated post list response
       type: object
@@ -3412,6 +3424,11 @@ components:
           description: Publication timestamp (for scheduled publishing)
           type: string
           $ref: "#/components/schemas/Instant"
+        signedAsTeam:
+          type: boolean
+          description: "Sign the post as the team rather than as its author. Omitted:\
+            \ on creation, the team's postsAsTeamByDefault; on an update, left as\
+            \ it is."
     PublicUserDto:
       type: object
       description: Public user information (limited fields)
@@ -4646,6 +4663,7 @@ components:
       - enableRides
       - enableRoutes
       - enableMemberDirectory
+      - postsAsTeamByDefault
       - visibilityEditable
       - joinable
       - addMemberAllowed
@@ -4712,6 +4730,11 @@ components:
             \ the directory at all: an entry that always leads to a 403 is worse than\
             \ no entry. Organisers see the directory whatever its value, but only\
             \ get each member's role and join date when it is true."
+        postsAsTeamByDefault:
+          type: boolean
+          description: Whether a new post starts signed by the team rather than by
+            its author — the initial value of the editor's « on behalf of the team
+            » box.
         visibilityEditable:
           type: boolean
           description: Whether visibility is editable by team admins
@@ -5053,6 +5076,10 @@ components:
             \ the role and join date of each member."
           examples:
           - false
+        postsAsTeamByDefault:
+          type: boolean
+          description: "Whether a new post starts signed by the team rather than by\
+            \ its author. Omitted: left as it is (on for a new team)."
         geometry:
           description: "Team location coordinates [longitude, latitude]"
           type: object
@@ -16095,7 +16122,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 7.0.0
+  version: 7.2.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

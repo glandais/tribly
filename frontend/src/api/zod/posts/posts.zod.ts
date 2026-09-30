@@ -223,6 +223,12 @@ export const CreatePostBody = zod
       .datetime({ offset: true })
       .optional()
       .describe('Publication timestamp (for scheduled publishing)'),
+    signedAsTeam: zod
+      .boolean()
+      .optional()
+      .describe(
+        "Sign the post as the team rather than as its author. Omitted: on creation, the team's postsAsTeamByDefault; on an update, left as it is."
+      ),
   })
   .describe('Post request')
 
@@ -469,6 +475,21 @@ export const CreatePostResponse = zod
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
       ),
+    signedAsTeam: zod
+      .boolean()
+      .describe(
+        'Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.'
+      ),
+    createdBy: zod
+      .object({
+        id: zod.string().describe('User ID (TSID)'),
+        displayName: zod.string().describe('User display name'),
+        avatarUrl: zod.string().optional().describe('User avatar URL'),
+      })
+      .optional()
+      .describe(
+        'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+      ),
   })
   .describe('Post summary data')
 
@@ -696,6 +717,12 @@ export const UpdatePostBody = zod
       .datetime({ offset: true })
       .optional()
       .describe('Publication timestamp (for scheduled publishing)'),
+    signedAsTeam: zod
+      .boolean()
+      .optional()
+      .describe(
+        "Sign the post as the team rather than as its author. Omitted: on creation, the team's postsAsTeamByDefault; on an update, left as it is."
+      ),
   })
   .describe('Post request')
 
@@ -941,6 +968,21 @@ export const UpdatePostResponse = zod
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
+    signedAsTeam: zod
+      .boolean()
+      .describe(
+        'Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.'
+      ),
+    createdBy: zod
+      .object({
+        id: zod.string().describe('User ID (TSID)'),
+        displayName: zod.string().describe('User display name'),
+        avatarUrl: zod.string().optional().describe('User avatar URL'),
+      })
+      .optional()
+      .describe(
+        'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
       ),
   })
   .describe('Post summary data')
@@ -1196,6 +1238,21 @@ export const GetPostResponse = zod
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
+    signedAsTeam: zod
+      .boolean()
+      .describe(
+        'Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.'
+      ),
+    createdBy: zod
+      .object({
+        id: zod.string().describe('User ID (TSID)'),
+        displayName: zod.string().describe('User display name'),
+        avatarUrl: zod.string().optional().describe('User avatar URL'),
+      })
+      .optional()
+      .describe(
+        'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
       ),
   })
   .describe('Post summary data')
@@ -1477,6 +1534,21 @@ export const ChangePostSlugResponse = zod
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
       ),
+    signedAsTeam: zod
+      .boolean()
+      .describe(
+        'Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.'
+      ),
+    createdBy: zod
+      .object({
+        id: zod.string().describe('User ID (TSID)'),
+        displayName: zod.string().describe('User display name'),
+        avatarUrl: zod.string().optional().describe('User avatar URL'),
+      })
+      .optional()
+      .describe(
+        'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+      ),
   })
   .describe('Post summary data')
 
@@ -1731,6 +1803,21 @@ export const UndeletePostResponse = zod
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
+    signedAsTeam: zod
+      .boolean()
+      .describe(
+        'Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.'
+      ),
+    createdBy: zod
+      .object({
+        id: zod.string().describe('User ID (TSID)'),
+        displayName: zod.string().describe('User display name'),
+        avatarUrl: zod.string().optional().describe('User avatar URL'),
+      })
+      .optional()
+      .describe(
+        'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
       ),
   })
   .describe('Post summary data')

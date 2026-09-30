@@ -1,12 +1,14 @@
 package fr.pedalons.service.common;
 
 import fr.pedalons.domain.common.Publication;
+import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.dto.comments.response.CommentCounts;
 import fr.pedalons.dto.common.CountResponse;
 import fr.pedalons.dto.common.PedalonsPage;
+import fr.pedalons.dto.posts.response.PostAuthors;
 import fr.pedalons.dto.publications.response.PublicationDto;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.publications.response.PublicationListSummaries;
@@ -23,6 +25,7 @@ import fr.pedalons.repository.ride.RideSummaryRepository;
 import fr.pedalons.repository.trip.TripSummaryRepository;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.comment.CommentCountLookup;
+import fr.pedalons.service.post.PostAuthorLookup;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.team.TeamService;
@@ -54,6 +57,8 @@ public class PublicationService {
   @Inject ParticipationLookup participationLookup;
 
   @Inject CommentCountLookup commentCountLookup;
+
+  @Inject PostAuthorLookup postAuthorLookup;
 
   /** Without the "me" filters — kept so existing callers do not have to pass two nulls. */
   @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST_ALL_TEAMS)
@@ -332,12 +337,21 @@ public class PublicationService {
     // Two more queries for the whole page, none per row — and nothing at all for a visitor who is
     // not a member of any of the teams on it.
     CommentCounts commentCounts = commentCountLookup.forEntities(publications.items());
+    // At most two more, for the authors of the posts on the page (docs/LEDGER_*.md API-6).
+    PostAuthors postAuthors =
+        postAuthorLookup.forPosts(itemsOfType(publications.items(), Post.class));
     List<PublicationDto> dtos =
         publications.items().stream()
             .map(
                 publication ->
                     PublicationDto.from(
-                        publication, assetService, summaries, participations, commentCounts, view))
+                        publication,
+                        assetService,
+                        summaries,
+                        participations,
+                        commentCounts,
+                        postAuthors,
+                        view))
             .toList();
     return new PublicationListResponse(dtos, publications.total(), query.page(), query.size());
   }
@@ -378,6 +392,11 @@ public class PublicationService {
 
   private static List<Long> idsOfType(List<Publication> items, Class<? extends Publication> type) {
     return items.stream().filter(type::isInstance).map(Publication::getId).toList();
+  }
+
+  private static <T extends Publication> List<T> itemsOfType(
+      List<Publication> items, Class<T> type) {
+    return items.stream().filter(type::isInstance).map(type::cast).toList();
   }
 
   protected boolean isPlatformAdmin() {

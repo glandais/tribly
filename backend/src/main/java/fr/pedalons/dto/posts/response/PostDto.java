@@ -8,6 +8,7 @@ import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.publications.response.PublicationDto;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.dto.publications.response.TeamPublicationDto;
+import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.Status;
@@ -86,6 +87,21 @@ public class PostDto implements PublicationDto {
               + " even zero.")
   final Integer commentCount;
 
+  @Schema(
+      description =
+          "Whether the post is signed by the team rather than by its author. Readers are then not"
+              + " told who wrote it: createdBy is absent unless the caller administers the team or"
+              + " wrote the post.",
+      required = true)
+  final boolean signedAsTeam;
+
+  @Nullable
+  @Schema(
+      description =
+          "Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the"
+              + " caller neither administers the team nor wrote it — render the team instead.")
+  final PublicUserDto createdBy;
+
   public PostDto(
       TeamPublicationDto team,
       String id,
@@ -100,7 +116,9 @@ public class PostDto implements PublicationDto {
       @Nullable Instant publishAt,
       @Nullable Instant createdAt,
       boolean deleted,
-      @Nullable Integer commentCount) {
+      @Nullable Integer commentCount,
+      boolean signedAsTeam,
+      @Nullable PublicUserDto createdBy) {
     super();
     this.team = team;
     this.id = id;
@@ -116,24 +134,25 @@ public class PostDto implements PublicationDto {
     this.createdAt = createdAt;
     this.deleted = deleted;
     this.commentCount = commentCount;
+    this.signedAsTeam = signedAsTeam;
+    this.createdBy = createdBy;
   }
 
-  public static PostDto from(Post post, AssetService assetService) {
-    return from(post, assetService, CommentCounts.NONE);
-  }
-
-  public static PostDto from(Post post, AssetService assetService, CommentCounts commentCounts) {
-    return from(post, assetService, commentCounts, ListViewMode.FULL);
+  public static PostDto from(
+      Post post, AssetService assetService, CommentCounts commentCounts, PostAuthors authors) {
+    return from(post, assetService, commentCounts, authors, ListViewMode.FULL);
   }
 
   /**
    * @param view {@link ListViewMode#COMPACT} leaves the markdown body and the asset inventory out of the
    *     row; {@code excerpt} and {@code thumbnailUrl} carry what it renders instead
+   * @param authors resolved for the whole page by {@code PostAuthorLookup}, never per row
    */
   public static PostDto from(
       Post post,
       AssetService assetService,
       CommentCounts commentCounts,
+      PostAuthors authors,
       @Nullable ListViewMode view) {
     return new PostDto(
         TeamPublicationDto.from(post.getTeam()),
@@ -149,6 +168,8 @@ public class PostDto implements PublicationDto {
         post.getPublishAt(),
         post.getCreatedAt(),
         post.isDeleted(),
-        commentCounts.forEntity(post.getId()));
+        commentCounts.forEntity(post.getId()),
+        post.isSignedAsTeam(),
+        authors.forPost(post.getId()));
   }
 }

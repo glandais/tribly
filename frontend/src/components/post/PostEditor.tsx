@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
-import { TextInput, Radio, Stack, Group, Button, Text } from '@mantine/core'
+import { TextInput, Radio, Stack, Group, Button, Text, Checkbox } from '@mantine/core'
 import { InstantDateTimePicker } from '@/components/common/InstantDateTimePicker'
 import type { TeamDetailDto } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
@@ -122,6 +122,12 @@ export function PostEditor({
             </Stack>
           </Radio.Group>
         )}
+
+        <Checkbox
+          label={t('posts.form.signedAsTeam.label', { team: team.name })}
+          description={t('posts.form.signedAsTeam.hint')}
+          {...form.getInputProps('signedAsTeam', { type: 'checkbox' })}
+        />
 
         <Radio.Group label={t('form.status')} {...form.getInputProps('status')}>
           <Stack gap="xs" mt="xs">

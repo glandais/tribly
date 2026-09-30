@@ -203,6 +203,34 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
   }
 
   /**
+   * Which of these teams the user administers — one query for a whole page, same live-only rules as
+   * {@link #findMemberTeamIds}. docs/LEDGER_*.md API-6: an administrator sees who wrote a post
+   * signed by the team.
+   */
+  public Set<Long> findAdminTeamIds(Long userId, Long domainId, Collection<Long> teamIds) {
+    if (teamIds.isEmpty()) {
+      return Set.of();
+    }
+    return new HashSet<>(
+        getEntityManager()
+            .createQuery(
+                "SELECT t.id FROM UserTeam ut "
+                    + "JOIN ut.team t "
+                    + "JOIN ut.user u "
+                    + "WHERE ut.user.id = :userId AND t.id IN (:teamIds) "
+                    + "AND ut.role = :role "
+                    + "AND t.domain.id = :domainId "
+                    + "AND t.deleted = false "
+                    + "AND u.deleted = false",
+                Long.class)
+            .setParameter("userId", userId)
+            .setParameter("teamIds", teamIds)
+            .setParameter("role", TeamRole.ADMIN)
+            .setParameter("domainId", domainId)
+            .getResultList());
+  }
+
+  /**
    * Every live member of a team, users loaded in the same query — the audience of a "published"
    * notification. Unpaginated on purpose: the caller fans out to all of them.
    */

@@ -33,6 +33,7 @@ import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
+import { UserAvatar } from '../../components/common/UserAvatar'
 import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
 import { ShareButton } from '../../components/common/ShareButton'
 import { CommentSection } from '../../components/comment'
@@ -284,6 +285,21 @@ export function PostDetailPage() {
             </Group>
           )}
           <Group mt="md">
+            {/* The author, unless the team signs the post and the reader is not one who may know
+                (docs/LEDGER_*.md API-6): then the team banner above is the signature. */}
+            {post.createdBy && (
+              <Group gap="xs" wrap="nowrap">
+                <UserAvatar user={post.createdBy} size="xs" />
+                <Text size="sm">
+                  {t('posts.author.byline', { name: post.createdBy.displayName })}
+                </Text>
+                {post.signedAsTeam && (
+                  <Text size="xs" c="dimmed">
+                    {t('posts.author.onBehalfOfTeam')}
+                  </Text>
+                )}
+              </Group>
+            )}
             <Group gap="xs">
               <IconCalendar size={16} color="var(--mantine-color-dimmed)" />
               <Text size="sm" c="dimmed">

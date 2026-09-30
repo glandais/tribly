@@ -384,7 +384,8 @@
     "openCover": "Open the cover image",
     "previous": "Previous post",
     "next": "Next post",
-    "commentsMembersOnly": "Comments are reserved for team members."
+    "commentsMembersOnly": "Comments are reserved for team members.",
+    "onBehalfOfTeam": "On behalf of the team"
   },
   "ads": {
     "title": "Ads",

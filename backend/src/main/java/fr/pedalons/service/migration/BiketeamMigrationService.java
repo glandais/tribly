@@ -985,6 +985,7 @@ public class BiketeamMigrationService {
             mapStatus(bt.publishedStatus()),
             // Publications carry no listed_in_feed flag: biketeam always lists them.
             contentVisibility(team.getVisibility()),
+            null,
             null);
     Post post;
     if (existing != null) {

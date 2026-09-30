@@ -33,6 +33,9 @@ abstract class PostRequest with _$PostRequest {
 
     /// Publication timestamp (for scheduled publishing)
     String? publishAt,
+
+    /// Sign the post as the team rather than as its author. Omitted: on creation, the team's postsAsTeamByDefault; on an update, left as it is.
+    bool? signedAsTeam,
   }) = _PostRequest;
 
   factory PostRequest.fromJson(Map<String, Object?> json) =>

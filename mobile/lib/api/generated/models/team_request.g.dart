@@ -16,6 +16,7 @@ _TeamRequest _$TeamRequestFromJson(Map<String, dynamic> json) => _TeamRequest(
   enableRides: json['enableRides'] as bool,
   enableRoutes: json['enableRoutes'] as bool,
   enableMemberDirectory: json['enableMemberDirectory'] as bool,
+  postsAsTeamByDefault: json['postsAsTeamByDefault'] as bool?,
   geometry: json['geometry'] == null
       ? null
       : TeamRequestGeometry.fromJson(json['geometry'] as Map<String, dynamic>),
@@ -32,5 +33,6 @@ Map<String, dynamic> _$TeamRequestToJson(_TeamRequest instance) =>
       'enableRides': instance.enableRides,
       'enableRoutes': instance.enableRoutes,
       'enableMemberDirectory': instance.enableMemberDirectory,
+      'postsAsTeamByDefault': instance.postsAsTeamByDefault,
       'geometry': instance.geometry?.toJson(),
     };

@@ -75,6 +75,7 @@ class _StubTeamRepository implements TeamRepository {
             joinable: true,
             addMemberAllowed: true,
             enableMemberDirectory: false,
+            postsAsTeamByDefault: true,
             enableRoutePlanner: false,
             memberCount: 40,
             upcomingRideCount: 3,

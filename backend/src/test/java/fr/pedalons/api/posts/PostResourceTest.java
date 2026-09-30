@@ -4,14 +4,17 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import fr.pedalons.api.AbstractResourceTest;
+import fr.pedalons.common.TsidUtils;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.SlugChangeRequest;
 import fr.pedalons.dto.posts.request.PostRequest;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.specification.RequestSpecification;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +34,7 @@ class PostResourceTest extends AbstractResourceTest {
         Instant.now().plus(7, ChronoUnit.DAYS),
         Status.PUBLISHED,
         Visibility.PUBLIC,
+        null,
         null);
   }
 
@@ -152,7 +156,8 @@ class PostResourceTest extends AbstractResourceTest {
             Instant.now().plus(14, ChronoUnit.DAYS),
             Status.DRAFT,
             Visibility.PUBLIC,
-            Instant.now().plus(7, ChronoUnit.DAYS));
+            Instant.now().plus(7, ChronoUnit.DAYS),
+            null);
 
     given()
         .auth()
@@ -177,6 +182,7 @@ class PostResourceTest extends AbstractResourceTest {
             Instant.now().plus(7, ChronoUnit.DAYS),
             Status.PUBLISHED,
             Visibility.PUBLIC,
+            null,
             null);
     given()
         .auth()
@@ -195,6 +201,7 @@ class PostResourceTest extends AbstractResourceTest {
             Instant.now().plus(7, ChronoUnit.DAYS),
             Status.PUBLISHED,
             Visibility.PUBLIC,
+            null,
             null);
     given()
         .auth()
@@ -295,6 +302,147 @@ class PostResourceTest extends AbstractResourceTest {
         .body("publications[0].team.logoUrl", equalTo(teamLogoUrl));
   }
 
+  // ==================== Signature (docs/LEDGER_*.md API-6) ====================
+
+  /** Created by the organizer (user2), signed as asked — null leaves it to the team. */
+  private String createPostAsOrganizer(String name, @Nullable Boolean signedAsTeam) {
+    PostRequest request =
+        new PostRequest(
+            name,
+            MediaDto.builder().markdown("Post content").build(),
+            Instant.now().plus(7, ChronoUnit.DAYS),
+            Status.PUBLISHED,
+            Visibility.PUBLIC,
+            null,
+            signedAsTeam);
+    return given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .contentType("application/json")
+        .body(request)
+        .when()
+        .post("/api/teams/" + team1Slug + "/posts")
+        .then()
+        .statusCode(201)
+        .extract()
+        .path("slug");
+  }
+
+  private RequestSpecification as(@Nullable String user) {
+    RequestSpecification spec = given();
+    return user == null ? spec : spec.auth().oauth2(getAccessToken(user));
+  }
+
+  @Test
+  void aPostSignedByItsAuthor_namesThemToEveryReader() {
+    String slug = createPostAsOrganizer("Signed Post", false);
+    String authorId = TsidUtils.toString(user2.getId());
+
+    for (String reader : new String[] {null, USER3, USER4}) {
+      as(reader)
+          .when()
+          .get("/api/teams/" + team1Slug + "/posts/" + slug)
+          .then()
+          .statusCode(200)
+          .body("signedAsTeam", equalTo(false))
+          .body("createdBy.id", equalTo(authorId))
+          .body("createdBy.displayName", equalTo(user2.getDisplayName()));
+    }
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug + "/publications?type=POST&view=COMPACT")
+        .then()
+        .statusCode(200)
+        .body("publications[0].createdBy.id", equalTo(authorId));
+  }
+
+  @Test
+  void aPostSignedByTheTeam_namesItsAuthorOnlyToTheAdminsAndToThemself() {
+    // No value sent: the team's default, on unless the team turned it off
+    String slug = createPostAsOrganizer("Team Post", null);
+    String authorId = TsidUtils.toString(user2.getId());
+
+    // Anonymous, a member, an outsider: the team signs, nobody is named
+    for (String reader : new String[] {null, USER3, USER4}) {
+      as(reader)
+          .when()
+          .get("/api/teams/" + team1Slug + "/posts/" + slug)
+          .then()
+          .statusCode(200)
+          .body("signedAsTeam", equalTo(true))
+          .body("$", not(hasKey("createdBy")));
+    }
+    // The team's admin and the author themself know who wrote it
+    for (String reader : new String[] {USER1, USER2}) {
+      as(reader)
+          .when()
+          .get("/api/teams/" + team1Slug + "/posts/" + slug)
+          .then()
+          .statusCode(200)
+          .body("createdBy.id", equalTo(authorId));
+    }
+    // Same rule on a list row
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug + "/publications?type=POST")
+        .then()
+        .statusCode(200)
+        .body("publications[0]", not(hasKey("createdBy")));
+    as(USER1)
+        .when()
+        .get("/api/teams/" + team1Slug + "/publications?type=POST")
+        .then()
+        .statusCode(200)
+        .body("publications[0].createdBy.id", equalTo(authorId));
+  }
+
+  @Test
+  void theTeamDefaultDecidesWhenThePostSaysNothing_andAnUpdateSayingNothingKeepsIt() {
+    dataService.setPostsAsTeamByDefault(team1, false);
+    String slug = createPostAsOrganizer("Default Post", null);
+    as(null)
+        .when()
+        .get("/api/teams/" + team1Slug + "/posts/" + slug)
+        .then()
+        .body("signedAsTeam", equalTo(false));
+
+    // Flipped explicitly, then an update that omits the field leaves it flipped
+    PostRequest toTeam =
+        new PostRequest(
+            "Default Post",
+            MediaDto.builder().markdown("Post content").build(),
+            Instant.now().plus(7, ChronoUnit.DAYS),
+            Status.PUBLISHED,
+            Visibility.PUBLIC,
+            null,
+            true);
+    as(USER2)
+        .contentType("application/json")
+        .body(toTeam)
+        .when()
+        .put("/api/teams/" + team1Slug + "/posts/" + slug)
+        .then()
+        .statusCode(200)
+        .body("signedAsTeam", equalTo(true));
+    PostRequest silent =
+        new PostRequest(
+            "Default Post",
+            MediaDto.builder().markdown("Post content").build(),
+            Instant.now().plus(7, ChronoUnit.DAYS),
+            Status.PUBLISHED,
+            Visibility.PUBLIC,
+            null,
+            null);
+    as(USER2)
+        .contentType("application/json")
+        .body(silent)
+        .when()
+        .put("/api/teams/" + team1Slug + "/posts/" + slug)
+        .then()
+        .statusCode(200)
+        .body("signedAsTeam", equalTo(true));
+  }
+
   @Test
   void getPost_nonexistent_shouldReturn404() {
     given()
@@ -322,6 +470,7 @@ class PostResourceTest extends AbstractResourceTest {
             Instant.now().plus(14, ChronoUnit.DAYS),
             Status.PUBLISHED,
             Visibility.PUBLIC,
+            null,
             null);
 
     given()
@@ -349,6 +498,7 @@ class PostResourceTest extends AbstractResourceTest {
             Instant.now().plus(7, ChronoUnit.DAYS),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
             null);
 
     given()
@@ -374,6 +524,7 @@ class PostResourceTest extends AbstractResourceTest {
             Instant.now().plus(7, ChronoUnit.DAYS),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
             null);
 
     given()
@@ -398,6 +549,7 @@ class PostResourceTest extends AbstractResourceTest {
             Instant.now().plus(7, ChronoUnit.DAYS),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
             null);
 
     given()
@@ -420,6 +572,7 @@ class PostResourceTest extends AbstractResourceTest {
             Instant.now().plus(7, ChronoUnit.DAYS),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
             null);
 
     given()
@@ -442,6 +595,7 @@ class PostResourceTest extends AbstractResourceTest {
             Instant.now().plus(7, ChronoUnit.DAYS),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
             null);
 
     given()

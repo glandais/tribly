@@ -276,6 +276,16 @@ public class TestDataService {
   }
 
   @Transactional
+  public void setPostsAsTeamByDefault(Team team, boolean value) {
+    teamRepository.findById(team.getId()).setPostsAsTeamByDefault(value);
+  }
+
+  @Transactional
+  public void setPostSignedAsTeam(Post post, boolean value) {
+    postRepository.findById(post.getId()).setSignedAsTeam(value);
+  }
+
+  @Transactional
   public void setTeamEnableRoutePlanner(Team team, boolean enabled) {
     Team managed = teamRepository.findById(team.getId());
     managed.setEnableRoutePlanner(enabled);

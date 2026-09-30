@@ -13,6 +13,7 @@ _PostRequest _$PostRequestFromJson(Map<String, dynamic> json) => _PostRequest(
   status: json['status'] as String,
   visibility: json['visibility'] as String,
   publishAt: json['publishAt'] as String?,
+  signedAsTeam: json['signedAsTeam'] as bool?,
 );
 
 Map<String, dynamic> _$PostRequestToJson(_PostRequest instance) =>
@@ -23,4 +24,5 @@ Map<String, dynamic> _$PostRequestToJson(_PostRequest instance) =>
       'status': instance.status,
       'visibility': instance.visibility,
       'publishAt': instance.publishAt,
+      'signedAsTeam': instance.signedAsTeam,
     };

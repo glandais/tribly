@@ -1145,6 +1145,21 @@ export const ListMyParticipationsResponse = zod
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
                   ),
+                signedAsTeam: zod
+                  .boolean()
+                  .describe(
+                    'Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.'
+                  ),
+                createdBy: zod
+                  .object({
+                    id: zod.string().describe('User ID (TSID)'),
+                    displayName: zod.string().describe('User display name'),
+                    avatarUrl: zod.string().optional().describe('User avatar URL'),
+                  })
+                  .optional()
+                  .describe(
+                    'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+                  ),
               })
               .describe('Post summary data'),
             zod

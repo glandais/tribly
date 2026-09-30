@@ -29,6 +29,8 @@ export interface TeamRequest {
   enableRoutes: boolean
   /** Member directory readable by every member, not just administrators. Organisers always see the directory; what this flag adds for them is the role and join date of each member. */
   enableMemberDirectory: boolean
+  /** Whether a new post starts signed by the team rather than by its author. Omitted: left as it is (on for a new team). */
+  postsAsTeamByDefault?: boolean
   /** Team location coordinates [longitude, latitude] */
   geometry?: TeamRequestGeometry
 }

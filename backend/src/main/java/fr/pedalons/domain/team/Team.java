@@ -121,6 +121,15 @@ public class Team extends BaseEntity {
   @Column(name = "enable_member_directory", nullable = false)
   private boolean enableMemberDirectory = false;
 
+  /**
+   * Whether a new post is signed by the team rather than by its author — the value the editor's
+   * « Au nom de l'équipe » box starts from; each post then keeps its own {@link
+   * fr.pedalons.domain.post.Post#isSignedAsTeam()}. On by default: posts were never signed before,
+   * and a team starts showing names by choosing to. docs/LEDGER_*.md API-6.
+   */
+  @Column(name = "posts_as_team_by_default", nullable = false)
+  private boolean postsAsTeamByDefault = true;
+
   @Column(name = "geometry", columnDefinition = "geometry(Point,4326)")
   @Nullable
   private Point<G2D> geometry;

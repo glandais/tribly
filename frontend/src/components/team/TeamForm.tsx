@@ -251,6 +251,15 @@ export function TeamForm({
           {...form.getInputProps('enableMemberDirectory', { type: 'checkbox' })}
         />
 
+        {/* Where a new post's « on behalf of the team » box starts; each post keeps its own value
+            (docs/LEDGER_*.md API-6). On unless the team chooses to show its authors. */}
+        <Checkbox
+          label={t('teams.create.form.postsAsTeamByDefault.label')}
+          description={t('teams.create.form.postsAsTeamByDefault.hint')}
+          {...form.getInputProps('postsAsTeamByDefault', { type: 'checkbox' })}
+          disabled={!form.values.enablePosts}
+        />
+
         {!create && (
           <>
             <Divider mt="md" />
