@@ -637,6 +637,19 @@ class AssetServiceTest extends AbstractBaseTest {
       }
     }
 
+    /** docs/LEDGER_*.md API-48: an icon's PNG keeps no text or EXIF chunk. */
+    @Test
+    void storesAnIconAsAPngWithoutItsMetadata() throws IOException {
+      queryContext.setUserForTest(member);
+      AssetDto dto = upload(AssetType.IMAGE, TestImages.ICO, "favicon.ico");
+
+      assertEquals("image/png", dto.contentType());
+      assertEquals("favicon.png", dto.fileName());
+      byte[] stored = stored(dto);
+      assertEquals(ImageFormat.PNG, ImageFormat.sniff(stored));
+      assertFalse(TestImages.contains(stored, TestImages.SECRET));
+    }
+
     @Test
     void acceptsATiffAnAvifAndAJpegXl() throws IOException {
       queryContext.setUserForTest(member);

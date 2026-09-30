@@ -58,6 +58,18 @@ class ImageFormatTest {
     }
   }
 
+  /** docs/LEDGER_*.md API-48: an icon's images are PNGs or bitmaps, which PNG keeps. */
+  @Test
+  void anIconBecomesAPng() {
+    assertEquals(ImageFormat.ICO, sniff(TestImages.ICO));
+    assertTrue(ImageFormat.ICO.isReencoded());
+    assertEquals("image/png", ImageFormat.ICO.storedMimeType());
+    assertEquals("favicon.png", ImageFormat.ICO.storedFileName("favicon.ico"));
+    // Other formats opening with 00 00 01: an MPEG program stream, a cursor
+    assertEquals(
+        ImageFormat.OTHER, ImageFormat.sniff(new byte[] {0, 0, 1, (byte) 0xBA, 0x44, 0, 4, 0}));
+  }
+
   @Test
   void jpeg2000IsRefused() {
     assertEquals(

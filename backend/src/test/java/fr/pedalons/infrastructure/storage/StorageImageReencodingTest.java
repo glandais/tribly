@@ -88,6 +88,8 @@ class StorageImageReencodingTest extends AbstractBaseTest {
     "photo.heic, image/heic, JPEG",
     "photo.avif, image/avif, JPEG",
     "photo.jxl, image/jxl, JPEG",
+    // docs/LEDGER_*.md API-48
+    "photo.ico, image/x-icon, PNG",
   })
   void reencodesAnImageWithoutItsMetadata(String testImage, String declaredType, String format)
       throws IOException {

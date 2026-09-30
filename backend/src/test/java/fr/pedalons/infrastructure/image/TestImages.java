@@ -36,6 +36,9 @@ public final class TestImages {
   /** In its ISO BMFF container, which is where exiftool writes metadata. */
   public static final String JXL = "photo.jxl";
 
+  /** {@link #PNG}, metadata and all, as the one image of an icon directory. */
+  public static final String ICO = "photo.ico";
+
   private TestImages() {}
 
   public static byte[] load(String name) {
