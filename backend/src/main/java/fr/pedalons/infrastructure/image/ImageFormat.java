@@ -21,11 +21,12 @@ import org.jspecify.annotations.Nullable;
  *   <li>{@linkplain #isReencoded() re-encoded}: storage has imgproxy decode the pixels and write a
  *       fresh file, which carries no metadata. JPEG, PNG, WebP and GIF keep their format; TIFF (and
  *       the raw files built on it), HEIF/HEIC/AVIF and JPEG XL, which browsers and apps do not all
- *       display, become a JPEG;
+ *       display, become a JPEG; an ICO, whose images can be PNGs with their text and EXIF chunks,
+ *       becomes a PNG (docs/LEDGER_*.md API-48);
  *   <li>{@linkplain #isRefused() refused}: a JPEG 2000 container, which carries EXIF and XMP and
  *       that imgproxy cannot read;
- *   <li>{@link #OTHER}: not an image container we know of (GPX, PDF, zip, BMP, ICO, SVG…), stored
- *       as it is.
+ *   <li>{@link #OTHER}: not an image container we know of (GPX, PDF, zip, BMP…), stored as it
+ *       is. BMP has no metadata to carry; SVG is refused at upload (docs/LEDGER_*.md SEC-1).
  * </ul>
  *
  * <p>docs/LEDGER_*.md API-43.
@@ -38,6 +39,7 @@ public enum ImageFormat {
   TIFF("jpg", "image/jpeg"),
   HEIF("jpg", "image/jpeg"),
   JPEG_XL("jpg", "image/jpeg"),
+  ICO("png", "image/png"),
   JPEG_2000(null, null),
   OTHER(null, null);
 
@@ -157,7 +159,24 @@ public enum ImageFormat {
     if (isHeif(head)) {
       return HEIF;
     }
+    if (isIco(head)) {
+      return ICO;
+    }
     return OTHER;
+  }
+
+  /**
+   * An icon directory: reserved 0, type 1, at least one image, and the first entry's reserved byte
+   * 0 — enough to tell it from the other formats that open with {@code 00 00 01}.
+   */
+  private static boolean isIco(byte[] head) {
+    return head.length >= 22
+        && u(head, 0) == 0
+        && u(head, 1) == 0
+        && u(head, 2) == 1
+        && u(head, 3) == 0
+        && (u(head, 4) | (u(head, 5) << 8)) > 0
+        && u(head, 9) == 0;
   }
 
   /** An ISO base media {@code ftyp} box whose major or one compatible brand is a still image. */

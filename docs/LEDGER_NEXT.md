@@ -356,12 +356,6 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       `API-54`) : il ajoute une mise à jour incrémentale réversible, le dictionnaire Info reste dans
       les octets, et l'EXIF des JPEG embarqués est intact. Seule voie : réécriture complète (PDFBox)
       en faisant réencoder les JPEG embarqués comme les images (`API-43`).
-- [ ] `API-48` **ICO stockés tels quels, et les SVG d'avant `SEC-1`** — un ICO est dans la liste
-      blanche `IMAGE` sans être réencodé par imgproxy : il peut porter des PNG avec `tEXt`/`eXIf`.
-      Les SVG, qui pouvaient embarquer une photo en base64 avec son EXIF/GPS, sont **refusés à
-      l'envoi depuis `SEC-1`** ; ceux déjà stockés restent tels quels (servis en téléchargement,
-      sous CSP). Reste : faire réencoder les ICO (imgproxy les lit), et décider du sort des SVG
-      existants. Taille : S.
 - [ ] `API-50` **Le rédacteur GPX de gpx2web écrit un `creator` fixe et une heure epoch** — la
       bibliothèque (gpx 1.5.x) écrit `creator="https://www.mapstogpx.com/strava"` (trompeur, pas
       personnel) et `<time>1970-01-01T00:00:00Z</time>` sur chaque point depuis `API-44`. Ne pas
