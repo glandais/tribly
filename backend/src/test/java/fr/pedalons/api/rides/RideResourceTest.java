@@ -19,6 +19,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -226,6 +227,35 @@ class RideResourceTest extends AbstractResourceTest {
         .body("slug", equalTo(rideSlug))
         .body("name", equalTo("Get Test Ride"))
         .body("groups", hasSize(1));
+  }
+
+  /**
+   * docs/LEDGER_*.md API-16: « terminée » is computed by the server from the start time, and is
+   * independent of the status — the clients no longer derive it each on their own.
+   */
+  @Test
+  void getRide_finished_followsTheStartTime() {
+    dataService.createRide(
+        team1, user1, "Passée", "passee", Instant.now().minus(2, ChronoUnit.HOURS));
+    dataService.createRide(
+        team1, user1, "À venir", "a-venir", Instant.now().plus(2, ChronoUnit.DAYS));
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/teams/" + team1Slug + "/rides/passee")
+        .then()
+        .statusCode(200)
+        .body("finished", equalTo(true));
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/teams/" + team1Slug + "/rides/a-venir")
+        .then()
+        .statusCode(200)
+        .body("finished", equalTo(false));
   }
 
   @Test

@@ -194,6 +194,7 @@ PublicationDtoRide _asListRow(RideDto r) => PublicationDtoRide(
   registered: r.registered,
   registeredGroupId: r.registeredGroupId,
   full: r.full,
+  finished: r.finished,
 );
 
 DioException _apiError(String code, {int status = 409}) => DioException(

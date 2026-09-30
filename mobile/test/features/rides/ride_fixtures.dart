@@ -61,6 +61,8 @@ RideDto fixtureRide({
     ),
     dateTime: dateTime,
     status: status,
+    // La règle du serveur (docs/LEDGER_*.md API-16) : terminée dès que le départ est passé.
+    finished: DateTime.parse(dateTime).isBefore(DateTime.now()),
     visibility: 'PUBLIC',
     participantCount: 40,
     groupCount: gs.length,

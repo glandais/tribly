@@ -109,6 +109,8 @@ TripDto fixtureTrip({
     dateTime: dateTime,
     endDate: endDate,
     status: status,
+    // La règle du serveur (docs/LEDGER_*.md API-16) : terminé une fois la dernière étape commencée.
+    finished: DateTime.parse(endDate ?? dateTime).isBefore(DateTime.now()),
     visibility: 'PUBLIC',
     participantCount: participantCount,
     stageCount: ss.length,

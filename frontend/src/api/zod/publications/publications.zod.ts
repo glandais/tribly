@@ -293,6 +293,11 @@ export const ListAllPublicationsResponse = zod
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
+                finished: zod
+                  .boolean()
+                  .describe(
+                    'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+                  ),
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Visibility level'),
@@ -960,6 +965,11 @@ export const ListAllPublicationsResponse = zod
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
+                finished: zod
+                  .boolean()
+                  .describe(
+                    'Whether the trip is over, computed by the server when the response is built: its last stage (endDate, or dateTime when there is none) has started. Independent of status — a past cancelled trip is both CANCELLED and finished.'
+                  ),
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Visibility level'),
@@ -1924,6 +1934,11 @@ export const ListPublicationsResponse = zod
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
+                finished: zod
+                  .boolean()
+                  .describe(
+                    'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+                  ),
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Visibility level'),
@@ -2591,6 +2606,11 @@ export const ListPublicationsResponse = zod
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
+                finished: zod
+                  .boolean()
+                  .describe(
+                    'Whether the trip is over, computed by the server when the response is built: its last stage (endDate, or dateTime when there is none) has started. Independent of status — a past cancelled trip is both CANCELLED and finished.'
+                  ),
                 visibility: zod
                   .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
                   .describe('Visibility level'),

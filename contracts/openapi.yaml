@@ -996,6 +996,7 @@ components:
       - entitySlug
       - registered
       - status
+      - finished
       properties:
         id:
           type: string
@@ -1071,6 +1072,11 @@ components:
           description: Publication status of the ride or stage
           type: string
           $ref: "#/components/schemas/Status"
+        finished:
+          type: boolean
+          description: "Whether the ride or stage is over, computed by the server\
+            \ when the response is built: its end (or its start, when it has no end)\
+            \ has passed. Independent of status."
     CalendarEventType:
       type: string
       enum:
@@ -3662,6 +3668,7 @@ components:
       - media
       - dateTime
       - status
+      - finished
       - visibility
       - participantCount
       - groupCount
@@ -3706,6 +3713,11 @@ components:
           description: Publication status
           type: string
           $ref: "#/components/schemas/Status"
+        finished:
+          type: boolean
+          description: "Whether the ride is over, computed by the server when the\
+            \ response is built: its start time has passed. Independent of status\
+            \ — a past cancelled ride is both CANCELLED and finished."
         visibility:
           description: Visibility level
           type: string
@@ -5373,6 +5385,7 @@ components:
       - media
       - dateTime
       - status
+      - finished
       - visibility
       - participantCount
       - stageCount
@@ -5422,6 +5435,12 @@ components:
           description: Publication status
           type: string
           $ref: "#/components/schemas/Status"
+        finished:
+          type: boolean
+          description: "Whether the trip is over, computed by the server when the\
+            \ response is built: its last stage (endDate, or dateTime when there is\
+            \ none) has started. Independent of status — a past cancelled trip is\
+            \ both CANCELLED and finished."
         visibility:
           description: Visibility level
           type: string
@@ -16095,7 +16114,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 7.0.0
+  version: 7.2.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

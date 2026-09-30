@@ -41,18 +41,15 @@ final rideDetailProvider = FutureProvider.family<RideDto, RideKey>(
 
 /// Une sortie a-t-elle eu lieu ?
 ///
-/// Dérivé **client** faute de statut serveur : le contrat ne porte que
-/// `PUBLISHED` / `DRAFT` / `CANCELLED`, jamais « terminée ». La comparaison se
-/// fait donc sur l'horloge de l'appareil, dans le fuseau de l'appareil
-/// (§1.0.3-11). C'est l'**unique** définition de « passée » ; les écrans 11, 12
-/// et 13 la partagent plutôt que d'en recalculer chacun une variante.
+/// C'est le serveur qui le dit, par `RideDto.finished` (`docs/LEDGER_*.md
+/// API-16`) : l'app le dérivait de l'horloge de l'appareil, faute de champ, et
+/// chaque client avait sa variante. `finished` est indépendant du statut : une
+/// sortie annulée et passée est les deux. Les écrans 11, 12 et 13 lisent tous
+/// [isPast].
 extension RideTiming on RideDto {
   DateTime? get startsAt => DateTime.tryParse(dateTime)?.toLocal();
 
-  bool get isPast {
-    final DateTime? start = startsAt;
-    return start != null && start.isBefore(DateTime.now());
-  }
+  bool get isPast => finished;
 
   bool get isCancelled => status == 'CANCELLED';
 

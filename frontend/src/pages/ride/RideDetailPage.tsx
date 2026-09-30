@@ -3,7 +3,6 @@ import { useLocation, useParams, useNavigate } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import dayjs from 'dayjs'
 import { notifications } from '@mantine/notifications'
 import {
   IconCalendar,
@@ -154,7 +153,8 @@ export function RideDetailPage() {
   const canEdit = isAdmin || isOrganizer
   // A ride that has already happened is not joinable — `canJoinRide` used to ignore the date
   // entirely, so last year's rides kept a live "Join" button.
-  const isPast = dayjs(ride.dateTime).isBefore(dayjs())
+  // Said by the server (docs/LEDGER_*.md API-16), not derived from the clock of whoever renders.
+  const isPast = ride.finished
   // `ride.full` is deliberately left out: each card already withholds its Join button when its own
   // group is full, and gating the whole zone on it hid every « Complet » badge once all groups filled.
   const canJoinRide = isMember && ride.status === Status.PUBLISHED && !ride.registered && !isPast

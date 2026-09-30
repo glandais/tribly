@@ -261,7 +261,7 @@ class _RideBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final PdlColors c = context.pdl;
     final DateTime? at = DateTime.tryParse(ride.dateTime)?.toLocal();
-    final bool isPast = at != null && at.isBefore(DateTime.now());
+    final bool isPast = ride.finished;
     // Une inscription faite dans l'app depuis le chargement du fil l'emporte
     // sur la page chargée avant elle.
     final bool registered =

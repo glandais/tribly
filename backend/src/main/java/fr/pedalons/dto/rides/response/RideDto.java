@@ -69,6 +69,14 @@ public class RideDto implements PublicationDto {
   @Schema(description = "Publication status", required = true)
   final Status status;
 
+  @Schema(
+      description =
+          "Whether the ride is over, computed by the server when the response is built: its start"
+              + " time has passed. Independent of status — a past cancelled ride is both"
+              + " CANCELLED and finished.",
+      required = true)
+  final boolean finished;
+
   @Schema(description = "Visibility level", required = true)
   final Visibility visibility;
 
@@ -195,6 +203,8 @@ public class RideDto implements PublicationDto {
     this.excerpt = excerpt;
     this.dateTime = dateTime;
     this.status = status;
+    // docs/LEDGER_*.md API-16: the one rule the clients used to derive each on its own.
+    this.finished = dateTime.isBefore(Instant.now());
     this.visibility = visibility;
     this.publishAt = publishAt;
     this.createdAt = createdAt;

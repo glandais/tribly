@@ -30,6 +30,8 @@ export interface TripDto {
   endDate?: Instant
   /** Publication status */
   status: Status
+  /** Whether the trip is over, computed by the server when the response is built: its last stage (endDate, or dateTime when there is none) has started. Independent of status — a past cancelled trip is both CANCELLED and finished. */
+  finished: boolean
   /** Visibility level */
   visibility: Visibility
   /** Publication timestamp */

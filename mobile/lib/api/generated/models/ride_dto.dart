@@ -46,6 +46,9 @@ abstract class RideDto with _$RideDto {
     /// Publication status
     required String status,
 
+    /// Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.
+    required bool finished,
+
     /// Visibility level
     required String visibility,
 

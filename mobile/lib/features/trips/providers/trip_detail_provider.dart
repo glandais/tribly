@@ -46,11 +46,10 @@ final tripDetailProvider = FutureProvider.autoDispose.family<TripDto, TripKey>(
 
 /// Les dérivés temporels d'un voyage.
 ///
-/// Comme pour les sorties, « passé » est un dérivé **client** : le contrat ne
-/// porte que `PUBLISHED` / `DRAFT` / `CANCELLED`. Un voyage se juge sur sa
-/// **date de fin** quand il en a une — `endDate` est nouveau en 1.5.0 et c'est
-/// précisément ce qu'il rend possible : une traversée de sept jours n'est pas
-/// « passée » le lendemain de son départ.
+/// Comme pour les sorties, « passé » vient du serveur (`TripDto.finished`,
+/// `docs/LEDGER_*.md API-16`). Il se juge sur la **dernière étape** quand il y
+/// en a une : une traversée de sept jours n'est pas « passée » le lendemain de
+/// son départ.
 ///
 /// Fuseau de l'appareil, jamais d'UTC affiché (§1.0.3-11).
 extension TripTiming on TripDto {
@@ -61,10 +60,7 @@ extension TripTiming on TripDto {
     return raw == null ? null : DateTime.tryParse(raw)?.toLocal();
   }
 
-  bool get isPast {
-    final DateTime? last = endsAt ?? startsAt;
-    return last != null && last.isBefore(DateTime.now());
-  }
+  bool get isPast => finished;
 
   bool get isCancelled => status == 'CANCELLED';
 

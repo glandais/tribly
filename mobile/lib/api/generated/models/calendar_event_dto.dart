@@ -45,6 +45,9 @@ abstract class CalendarEventDto with _$CalendarEventDto {
     /// Publication status of the ride or stage
     required String status,
 
+    /// Whether the ride or stage is over, computed by the server when the response is built: its start has passed. Independent of status.
+    required bool finished,
+
     /// Event end date/time
     String? end,
 

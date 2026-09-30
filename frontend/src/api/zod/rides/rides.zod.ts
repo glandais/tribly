@@ -497,6 +497,11 @@ export const CreateRideResponse = zod
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
+    finished: zod
+      .boolean()
+      .describe(
+        'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+      ),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
@@ -1155,6 +1160,11 @@ export const UpdateRideResponse = zod
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
+    finished: zod
+      .boolean()
+      .describe(
+        'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+      ),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
@@ -1551,6 +1561,11 @@ export const GetRideResponse = zod
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
+    finished: zod
+      .boolean()
+      .describe(
+        'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+      ),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
@@ -2002,6 +2017,11 @@ export const ChangeRideSlugResponse = zod
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
+    finished: zod
+      .boolean()
+      .describe(
+        'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+      ),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
@@ -2398,6 +2418,11 @@ export const UndeleteRideResponse = zod
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
+    finished: zod
+      .boolean()
+      .describe(
+        'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+      ),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
     createdAt: zod.iso.datetime({ offset: true }).optional().describe('Creation timestamp'),
