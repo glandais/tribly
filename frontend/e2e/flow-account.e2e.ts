@@ -109,7 +109,9 @@ test('sign up with the form, verify through the mail, sign out from the header, 
 
   // Back on the login form, the address kept, told to open the mail.
   await expect(
-    page.getByText("Cliquez sur le lien dans l'email pour activer votre compte.")
+    page.getByText(
+      "Cliquez sur le lien dans l'email pour choisir votre mot de passe et activer votre compte."
+    )
   ).toBeVisible()
   await expect(main.getByRole('heading', { name: WELCOME })).toBeVisible()
   await expect(main.getByRole('textbox', { name: 'Email' })).toHaveValue(email)
@@ -1195,7 +1197,9 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
     await create.click()
     expect((await registered).ok()).toBe(true)
     await expect(
-      page.getByText("Cliquez sur le lien dans l'email pour activer votre compte.")
+      page.getByText(
+        "Cliquez sur le lien dans l'email pour choisir votre mot de passe et activer votre compte."
+      )
     ).toBeVisible()
     await expect(main.getByRole('heading', { name: WELCOME })).toBeVisible()
     await expect(main.getByRole('textbox', { name: 'Email' })).toHaveValue(email)

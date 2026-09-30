@@ -1436,6 +1436,10 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   `AuthResourceTest.verifyEmail_setsThePasswordChosenOnActivation_neverTheOneFromSignUp` (un jeton
   d'avant portant un hachage : l'ancien mot de passe est refusé, le nouveau ouvre la session),
   `register_storesNoPassword`, `verifyEmail_withoutAPassword_isRefusedAndSpendsNothing`.
+  Trois scénarios e2e restés sur l'ancien parcours (texte « activer votre compte », champs de mot
+  de passe à l'inscription) ont été remis au nouveau le 2026-09-30 : `flow-account.e2e.ts`
+  (inscription puis connexion, nouvel essai après un e-mail non parti) et `invitations.e2e.ts`
+  (inscription depuis une invitation, mot de passe choisi sur la page du lien).
 
 - `SEC-23` **Les échecs de connexion sont journalisés : L14** (2026-09-30, contrat inchangé,
   scindé de `SEC-12`) — chaque échec de connexion par mot de passe, code OTP ou passkey écrit une
