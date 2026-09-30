@@ -1331,7 +1331,7 @@ test.describe('?next= after signing in stays on the site', () => {
   // 404, on this origin.
   test('signing in with an API path as next loads it from the server', async ({ page }) => {
     const user = await newUser(unique('Next API'))
-    const download = '/api/export/download/not-a-real-token'
+    const download = '/api/export/download?token=not-a-real-token'
     await page.goto(loginWithNext(download))
     await expect(page.getByRole('main').getByRole('heading', { name: WELCOME })).toBeVisible()
     const answered = page.waitForResponse((r) => r.url() === `${stack.baseURL}${download}`)
@@ -1464,9 +1464,8 @@ test.describe('personal data export', () => {
     expect(await apiGetOrNull(other, '/api/users/me/export')).toBeFalsy()
 
     const mail = await waitForNewMail(user.user.email, seen, 200_000)
-    const match = mail.match(/https?:\/\/[^\s"<>]+\/api\/export\/download\/[A-Za-z0-9_-]+/)
-    expect(match, `a download link in the mail:\n${mail}`).toBeTruthy()
-    const link = match![0]
+    // The token is a query parameter, which the access log masks (docs/LEDGER_*.md API-45).
+    const link = mailLinkTo(mail, '/api/export/download')
 
     // The profile follows the export to its end.
     await expect(
@@ -1482,7 +1481,7 @@ test.describe('personal data export', () => {
       await expect(anonymous.page).toHaveURL(
         (url) =>
           /^\/(login|connexion)$/.test(url.pathname) &&
-          url.searchParams.get('next') === new URL(link).pathname
+          url.searchParams.get('next') === new URL(link).pathname + new URL(link).search
       )
       // Signing in there brings the owner back to the link: the archive downloads.
       const downloaded = anonymous.page.waitForEvent('download')

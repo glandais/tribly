@@ -40,6 +40,9 @@ class PushDeviceRepository {
     );
   }
 
-  Future<void> unregister(String token) =>
-      _client.unregisterPushDevice(token: token);
+  /// Le jeton part dans le corps : dans le chemin, il finissait dans le journal
+  /// d'accès (`docs/LEDGER_*.md API-45`).
+  Future<void> unregister(String token) => _client.unregisterPushDevice(
+    body: PushDeviceUnregistration(token: token),
+  );
 }

@@ -337,11 +337,32 @@ export const RegisterPushDeviceBody = zod
 export const RegisterPushDeviceResponse = zod.void()
 
 /**
- * Called on sign-out. Idempotent, and silent about tokens that are not the caller's.
+ * Called on sign-out. Idempotent, and silent about tokens that are not the caller's. The token is in the body so that it never reaches the access log.
  * @summary Stop sending push notifications to a device
  */
-export const UnregisterPushDeviceParams = zod.object({
+export const unregisterPushDeviceBodyTokenMax = 512
+
+export const unregisterPushDeviceBodyTokenRegExp = new RegExp('\\S')
+
+export const UnregisterPushDeviceBody = zod
+  .object({
+    token: zod
+      .string()
+      .max(unregisterPushDeviceBodyTokenMax)
+      .regex(unregisterPushDeviceBodyTokenRegExp)
+      .describe('The FCM registration token to drop'),
+  })
+  .describe('A device to stop sending push notifications to')
+
+export const UnregisterPushDeviceResponse = zod.void()
+
+/**
+ * Deprecated: puts the token in the URL, which the access log records. Use POST /api/push-devices/unregister.
+ * @deprecated
+ * @summary Stop sending push notifications to a device (deprecated)
+ */
+export const UnregisterPushDeviceByPathParams = zod.object({
   token: zod.string().describe('The FCM registration token to drop'),
 })
 
-export const UnregisterPushDeviceResponse = zod.void()
+export const UnregisterPushDeviceByPathResponse = zod.void()

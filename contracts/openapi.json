@@ -3534,6 +3534,19 @@
           }
         }
       },
+      "PushDeviceUnregistration" : {
+        "description" : "A device to stop sending push notifications to",
+        "type" : "object",
+        "required" : [ "token" ],
+        "properties" : {
+          "token" : {
+            "type" : "string",
+            "description" : "The FCM registration token to drop",
+            "pattern" : "\\S",
+            "maxLength" : 512
+          }
+        }
+      },
       "PushPlatform" : {
         "type" : "string",
         "enum" : [ "ANDROID", "IOS", "WEB" ]
@@ -9252,11 +9265,50 @@
         } ]
       }
     },
-    "/api/export/download/{token}" : {
+    "/api/export/download" : {
       "get" : {
         "summary" : "Download a personal data export",
-        "description" : "Download a prepared data export archive using the token from the notification email. Only its owner, signed in, may download it.",
+        "description" : "Download a prepared data export archive using the token from the notification email. Only its owner, signed in, may download it. The token is a query parameter, which the access log masks; a path segment would be logged in clear.",
         "operationId" : "downloadDataExport",
+        "tags" : [ "Users" ],
+        "parameters" : [ {
+          "description" : "Download token from the notification email",
+          "required" : true,
+          "name" : "token",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The export archive",
+            "content" : {
+              "application/zip" : { }
+            }
+          },
+          "303" : {
+            "description" : "No session: sent to sign in first"
+          },
+          "404" : {
+            "description" : "Unknown, expired or already-purged export",
+            "content" : {
+              "application/zip" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/export/download/{token}" : {
+      "get" : {
+        "summary" : "Download a personal data export (deprecated)",
+        "description" : "Deprecated: puts the token in the URL path, which the access log records. Use GET /api/export/download?token=.",
+        "operationId" : "downloadDataExportByPath",
+        "deprecated" : true,
         "tags" : [ "Users" ],
         "parameters" : [ {
           "description" : "Download token from the notification email",
@@ -10853,11 +10905,61 @@
         } ]
       }
     },
+    "/api/push-devices/unregister" : {
+      "post" : {
+        "summary" : "Stop sending push notifications to a device",
+        "description" : "Called on sign-out. Idempotent, and silent about tokens that are not the caller's. The token is in the body so that it never reaches the access log.",
+        "operationId" : "unregisterPushDevice",
+        "tags" : [ "Notifications" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PushDeviceUnregistration"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Device unregistered"
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/push-devices/{token}" : {
       "delete" : {
-        "summary" : "Stop sending push notifications to a device",
-        "description" : "Called on sign-out. Idempotent, and silent about tokens that are not the caller's.",
-        "operationId" : "unregisterPushDevice",
+        "summary" : "Stop sending push notifications to a device (deprecated)",
+        "description" : "Deprecated: puts the token in the URL, which the access log records. Use POST /api/push-devices/unregister.",
+        "operationId" : "unregisterPushDeviceByPath",
+        "deprecated" : true,
         "tags" : [ "Notifications" ],
         "parameters" : [ {
           "description" : "The FCM registration token to drop",
@@ -20105,7 +20207,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "6.3.0",
+    "version" : "6.5.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

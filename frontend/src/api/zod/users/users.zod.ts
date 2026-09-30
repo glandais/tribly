@@ -1,14 +1,25 @@
 import * as zod from 'zod'
 
 /**
- * Download a prepared data export archive using the token from the notification email. Only its owner, signed in, may download it.
+ * Download a prepared data export archive using the token from the notification email. Only its owner, signed in, may download it. The token is a query parameter, which the access log masks; a path segment would be logged in clear.
  * @summary Download a personal data export
  */
-export const DownloadDataExportParams = zod.object({
+export const DownloadDataExportQueryParams = zod.object({
   token: zod.string().describe('Download token from the notification email'),
 })
 
 export const DownloadDataExportResponse = zod.unknown()
+
+/**
+ * Deprecated: puts the token in the URL path, which the access log records. Use GET /api/export/download?token=.
+ * @deprecated
+ * @summary Download a personal data export (deprecated)
+ */
+export const DownloadDataExportByPathParams = zod.object({
+  token: zod.string().describe('Download token from the notification email'),
+})
+
+export const DownloadDataExportByPathResponse = zod.unknown()
 
 /**
  * Update the current user's profile

@@ -123,7 +123,7 @@ class _DataExportCardState extends ConsumerState<DataExportCard> {
               ),
               const SizedBox(height: PdlSpacing.chipGap),
               // **Pas de bouton de téléchargement.** `GET
-              // /api/export/download/{token}` attend « le jeton reçu dans
+              // /api/export/download?token=` attend « le jeton reçu dans
               // l'e-mail de notification », et `UserExportDto` ne porte ni ce
               // jeton ni d'URL : l'archive se récupère depuis le message, et
               // dessiner un bouton ici mènerait à un 404.

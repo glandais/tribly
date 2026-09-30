@@ -25,11 +25,22 @@ abstract class UsersClient {
 
   /// Download a personal data export.
   ///
-  /// Download a prepared data export archive using the token from the notification email. Only its owner, signed in, may download it.
+  /// Download a prepared data export archive using the token from the notification email. Only its owner, signed in, may download it. The token is a query parameter, which the access log masks; a path segment would be logged in clear.
   ///
   /// [token] - Download token from the notification email.
-  @GET('/api/export/download/{token}')
+  @GET('/api/export/download')
   Future<void> downloadDataExport({
+    @Query('token') required String token,
+  });
+
+  /// Download a personal data export (deprecated).
+  ///
+  /// Deprecated: puts the token in the URL path, which the access log records. Use GET /api/export/download?token=.
+  ///
+  /// [token] - Download token from the notification email.
+  @Deprecated('This method is marked as deprecated')
+  @GET('/api/export/download/{token}')
+  Future<void> downloadDataExportByPath({
     @Path('token') required String token,
   });
 

@@ -370,19 +370,21 @@ test.describe('web push, on a server without it', () => {
         [WEB_PUSH_TOKEN_KEY, token]
       )
 
+      // The token goes in the body, never in the URL the access log records (docs/LEDGER_*.md API-45).
       const unregistered = page.waitForResponse(
         (response) =>
-          response.request().method() === 'DELETE' &&
-          new URL(response.url()).pathname === `/api/push-devices/${token}`
+          response.request().method() === 'POST' &&
+          new URL(response.url()).pathname === '/api/push-devices/unregister'
       )
       await signOutFromHeader(page, isMobile, user.user.displayName)
       const response = await unregistered
       expect(response.status()).toBe(204)
       expect(response.request().headers().authorization).toMatch(/^Bearer /)
+      expect(response.request().postDataJSON()).toEqual({ token })
       await expect(page).toHaveURL(/\/connexion$/)
 
       expect(calls.map((call) => `${call.method()} ${new URL(call.url()).pathname}`)).toEqual([
-        `DELETE /api/push-devices/${token}`,
+        'POST /api/push-devices/unregister',
         'POST /api/auth/logout',
       ])
       expect(await page.evaluate((key) => localStorage.getItem(key), WEB_PUSH_TOKEN_KEY)).toBeNull()

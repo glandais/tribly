@@ -16,6 +16,7 @@ import type {
 
 import type {
   AccountDeletionImpactDto,
+  DownloadDataExportParams,
   ErrorResponse,
   ListMyParticipationsParams,
   PublicationListResponse,
@@ -47,29 +48,29 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 }
 
 /**
- * Download a prepared data export archive using the token from the notification email. Only its owner, signed in, may download it.
+ * Download a prepared data export archive using the token from the notification email. Only its owner, signed in, may download it. The token is a query parameter, which the access log masks; a path segment would be logged in clear.
  * @summary Download a personal data export
  */
 export const downloadDataExport = (
-  token: string,
+  params: DownloadDataExportParams,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<Blob>(
-    { url: `/api/export/download/${token}`, method: 'GET', responseType: 'blob', signal },
+    { url: `/api/export/download`, method: 'GET', params, responseType: 'blob', signal },
     options
   )
 }
 
-export const getDownloadDataExportQueryKey = (token: string) => {
-  return [`/api/export/download/${token}`] as const
+export const getDownloadDataExportQueryKey = (params?: DownloadDataExportParams) => {
+  return [`/api/export/download`, ...(params ? [params] : [])] as const
 }
 
 export const getDownloadDataExportQueryOptions = <
   TData = Awaited<ReturnType<typeof downloadDataExport>>,
   TError = ErrorType<void | Blob>,
 >(
-  token: string,
+  params: DownloadDataExportParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -77,19 +78,16 @@ export const getDownloadDataExportQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getDownloadDataExportQueryKey(token)
+  const queryKey = queryOptions?.queryKey ?? getDownloadDataExportQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadDataExport>>> = ({ signal }) =>
-    downloadDataExport(token, requestOptions, signal)
+    downloadDataExport(params, requestOptions, signal)
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: token !== null && token !== undefined,
-    ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof downloadDataExport>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type DownloadDataExportQueryResult = NonNullable<
@@ -101,7 +99,7 @@ export function useDownloadDataExport<
   TData = Awaited<ReturnType<typeof downloadDataExport>>,
   TError = ErrorType<void | Blob>,
 >(
-  token: string,
+  params: DownloadDataExportParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData>> &
       Pick<
@@ -120,7 +118,7 @@ export function useDownloadDataExport<
   TData = Awaited<ReturnType<typeof downloadDataExport>>,
   TError = ErrorType<void | Blob>,
 >(
-  token: string,
+  params: DownloadDataExportParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData>
@@ -141,7 +139,7 @@ export function useDownloadDataExport<
   TData = Awaited<ReturnType<typeof downloadDataExport>>,
   TError = ErrorType<void | Blob>,
 >(
-  token: string,
+  params: DownloadDataExportParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -156,14 +154,14 @@ export function useDownloadDataExport<
   TData = Awaited<ReturnType<typeof downloadDataExport>>,
   TError = ErrorType<void | Blob>,
 >(
-  token: string,
+  params: DownloadDataExportParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getDownloadDataExportQueryOptions(token, options)
+  const queryOptions = getDownloadDataExportQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -180,13 +178,174 @@ export const prefetchDownloadDataExportQuery = async <
   TError = ErrorType<void | Blob>,
 >(
   queryClient: QueryClient,
-  token: string,
+  params: DownloadDataExportParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadDataExport>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   }
 ): Promise<QueryClient> => {
-  const queryOptions = getDownloadDataExportQueryOptions(token, options)
+  const queryOptions = getDownloadDataExportQueryOptions(params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
+ * Deprecated: puts the token in the URL path, which the access log records. Use GET /api/export/download?token=.
+ * @deprecated
+ * @summary Download a personal data export (deprecated)
+ */
+export const downloadDataExportByPath = (
+  token: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<Blob>(
+    { url: `/api/export/download/${token}`, method: 'GET', responseType: 'blob', signal },
+    options
+  )
+}
+
+export const getDownloadDataExportByPathQueryKey = (token: string) => {
+  return [`/api/export/download/${token}`] as const
+}
+
+export const getDownloadDataExportByPathQueryOptions = <
+  TData = Awaited<ReturnType<typeof downloadDataExportByPath>>,
+  TError = ErrorType<void | Blob>,
+>(
+  token: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof downloadDataExportByPath>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getDownloadDataExportByPathQueryKey(token)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadDataExportByPath>>> = ({
+    signal,
+  }) => downloadDataExportByPath(token, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: token !== null && token !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof downloadDataExportByPath>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type DownloadDataExportByPathQueryResult = NonNullable<
+  Awaited<ReturnType<typeof downloadDataExportByPath>>
+>
+export type DownloadDataExportByPathQueryError = ErrorType<void | Blob>
+
+export function useDownloadDataExportByPath<
+  TData = Awaited<ReturnType<typeof downloadDataExportByPath>>,
+  TError = ErrorType<void | Blob>,
+>(
+  token: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof downloadDataExportByPath>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadDataExportByPath>>,
+          TError,
+          Awaited<ReturnType<typeof downloadDataExportByPath>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadDataExportByPath<
+  TData = Awaited<ReturnType<typeof downloadDataExportByPath>>,
+  TError = ErrorType<void | Blob>,
+>(
+  token: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof downloadDataExportByPath>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadDataExportByPath>>,
+          TError,
+          Awaited<ReturnType<typeof downloadDataExportByPath>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadDataExportByPath<
+  TData = Awaited<ReturnType<typeof downloadDataExportByPath>>,
+  TError = ErrorType<void | Blob>,
+>(
+  token: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof downloadDataExportByPath>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @deprecated
+ * @summary Download a personal data export (deprecated)
+ */
+
+export function useDownloadDataExportByPath<
+  TData = Awaited<ReturnType<typeof downloadDataExportByPath>>,
+  TError = ErrorType<void | Blob>,
+>(
+  token: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof downloadDataExportByPath>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getDownloadDataExportByPathQueryOptions(token, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @deprecated
+ * @summary Download a personal data export (deprecated)
+ */
+export const prefetchDownloadDataExportByPathQuery = async <
+  TData = Awaited<ReturnType<typeof downloadDataExportByPath>>,
+  TError = ErrorType<void | Blob>,
+>(
+  queryClient: QueryClient,
+  token: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof downloadDataExportByPath>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getDownloadDataExportByPathQueryOptions(token, options)
 
   await queryClient.prefetchQuery(queryOptions)
 

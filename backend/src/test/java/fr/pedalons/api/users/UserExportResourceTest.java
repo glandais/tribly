@@ -190,7 +190,8 @@ class UserExportResourceTest extends AbstractResourceTest {
         given()
             .cookie("refresh_token", dataService.createRefreshTokenForUser(user1))
             .when()
-            .get("/api/export/download/" + token)
+            .queryParam("token", token)
+            .get("/api/export/download")
             .then()
             .statusCode(200)
             .header("Content-Disposition", containsString(".zip"))
@@ -198,6 +199,33 @@ class UserExportResourceTest extends AbstractResourceTest {
             .asByteArray();
 
     assertEquals("zip-bytes", new String(body, StandardCharsets.UTF_8));
+  }
+
+  /**
+   * The links emailed before API-45 put the token in the path; they stay valid 7 days, so the
+   * deprecated form still serves (docs/LEDGER_*.md API-56 removes it).
+   */
+  @Test
+  void download_throughTheDeprecatedPath_stillReturnsTheArchive() {
+    String token = readyExportWithToken(domain, user1, "zip-bytes");
+
+    given()
+        .cookie("refresh_token", dataService.createRefreshTokenForUser(user1))
+        .when()
+        .get("/api/export/download/" + token)
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  void download_withoutAToken_shouldReturn404() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/export/download")
+        .then()
+        .statusCode(404);
   }
 
   @Test
@@ -208,10 +236,13 @@ class UserExportResourceTest extends AbstractResourceTest {
         .redirects()
         .follow(false)
         .when()
-        .get("/api/export/download/" + token)
+        .queryParam("token", token)
+        .get("/api/export/download")
         .then()
         .statusCode(303)
-        .header("Location", containsString("/login?next=%2Fapi%2Fexport%2Fdownload%2F" + token));
+        .header(
+            "Location",
+            containsString("/login?next=%2Fapi%2Fexport%2Fdownload%3Ftoken%3D" + token));
   }
 
   /** A forwarded or leaked link: the token alone opens nothing, even to a signed-in member. */
@@ -223,7 +254,8 @@ class UserExportResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER2))
         .when()
-        .get("/api/export/download/" + token)
+        .queryParam("token", token)
+        .get("/api/export/download")
         .then()
         .statusCode(404);
   }
@@ -234,7 +266,8 @@ class UserExportResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/export/download/not-a-real-token")
+        .queryParam("token", "not-a-real-token")
+        .get("/api/export/download")
         .then()
         .statusCode(404);
   }
@@ -257,7 +290,8 @@ class UserExportResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(jwtService.generateAccessToken(sameAddress))
         .when()
-        .get("/api/export/download/" + token)
+        .queryParam("token", token)
+        .get("/api/export/download")
         .then()
         .statusCode(404);
   }
@@ -274,7 +308,8 @@ class UserExportResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/export/download/" + token)
+        .queryParam("token", token)
+        .get("/api/export/download")
         .then()
         .statusCode(404);
   }
@@ -292,7 +327,8 @@ class UserExportResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/export/download/" + token)
+        .queryParam("token", token)
+        .get("/api/export/download")
         .then()
         .statusCode(404);
   }

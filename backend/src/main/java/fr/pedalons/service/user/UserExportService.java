@@ -160,8 +160,17 @@ public class UserExportService {
     if (pedalonsContext.getUserNullable() != null) {
       return null;
     }
-    String next = URLEncoder.encode("/api/export/download/" + token, StandardCharsets.UTF_8);
+    String next = URLEncoder.encode(downloadPath(token), StandardCharsets.UTF_8);
     return URI.create(domainResolver.getEffectiveBaseUrl() + "/login?next=" + next);
+  }
+
+  /**
+   * The download link of an export, relative to the site. The token is a query parameter named
+   * {@code token}, which the access log masks; in the path it was logged in clear
+   * (docs/LEDGER_*.md API-45).
+   */
+  public static String downloadPath(String token) {
+    return "/api/export/download?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
   }
 
   /**
