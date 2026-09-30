@@ -1,5 +1,6 @@
 package fr.pedalons.dto.ridetemplates.request;
 
+import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
@@ -14,7 +15,9 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 public record RideTemplateRequest(
     @Schema(description = "Template name", required = true) @NotBlank @Size(min = 1, max = 200)
         String name,
-    @Schema(description = "Template description (markdown)", required = true) String markdown,
+    @Schema(description = "Template description (markdown)", required = true)
+        @Size(max = MediaDto.MAX_MARKDOWN_LENGTH)
+        String markdown,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Schema(description = "Default status for rides created from this template", required = true)
         Status status,

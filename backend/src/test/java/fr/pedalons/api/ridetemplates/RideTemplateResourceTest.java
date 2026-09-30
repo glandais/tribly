@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import fr.pedalons.api.AbstractResourceTest;
+import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.ridetemplates.request.RideTemplateGroupRequest;
 import fr.pedalons.dto.ridetemplates.request.RideTemplateRequest;
 import fr.pedalons.enums.Status;
@@ -252,6 +253,31 @@ class RideTemplateResourceTest extends AbstractResourceTest {
         .statusCode(201)
         .body("name", equalTo("No Groups Template"))
         .body("groups", hasSize(0));
+  }
+
+  /** docs/LEDGER_*.md SEC-19: a template's markdown has the same bound as a content's. */
+  @Test
+  void createTemplate_markdownPastTheBound_shouldReturn400() {
+    RideTemplateRequest valid = createValidRequest("Too Long Template");
+    RideTemplateRequest request =
+        new RideTemplateRequest(
+            valid.name(),
+            "a".repeat(MediaDto.MAX_MARKDOWN_LENGTH + 1),
+            valid.visibility(),
+            valid.status(),
+            valid.groups());
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(request)
+        .when()
+        .post("/api/teams/" + team1Slug + "/ride-templates")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("VALIDATION"))
+        .body("errorDetails.fieldErrors.field", hasItem("markdown"));
   }
 
   // ==================== Get Template Tests ====================

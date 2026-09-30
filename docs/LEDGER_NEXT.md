@@ -597,7 +597,6 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 | `SEC-14` | — | Info | — | Images externes dans le markdown ; le parseur XML et le paramètre non encodé sont livrés sous `SEC-21` |
 | `SEC-16` | — | V3–V8 | À valider | Configuration hors dépôt : proxy de l'hôte, hôte de sauvegarde, SMTP, imgproxy |
 | `SEC-17` | — | *hors audit* | — | Le **jeton du flux ICS n'expire jamais** — seule la régénération manuelle (`CalendarService.regenerateToken`) le révoque. Le masquage du journal d'accès (`OPS-6`, en place) borne sa fuite par ce journal ; reste à l'expirer. Relevé dans [`OPERATIONS.md`](OPERATIONS.md#access-logs) |
-| `SEC-19` | — | M6 (reste) | Moyenne | Le markdown d'un contenu n'a pas de taille maximale (`MediaDto.markdown` sans `@Size`, corps de requête jusqu'à 100 Mo) : l'expression de `SEC-10` est linéaire, la borne reste la défense de fond. Correctif de l'audit : `@Size(max = 100_000)`, soit un changement de contrat (bump d'API). Mesuré le 30 septembre 2026 sur la base locale (restauration biketeam) : le plus long markdown fait 4 342 caractères (`team_entities`), 1 684 pour `ride_templates` — 100 000 ne refuserait rien d'existant, à revérifier en production avant de livrer |
 
 ---
 

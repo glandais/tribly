@@ -481,6 +481,7 @@ export const createRouteFromPreviewBodyNameMin = 3
 export const createRouteFromPreviewBodyNameMax = 200
 
 export const createRouteFromPreviewBodyNameRegExp = new RegExp('\\S')
+export const createRouteFromPreviewBodyMediaMarkdownMax = 100000
 
 export const CreateRouteFromPreviewBody = zod
   .object({
@@ -492,7 +493,7 @@ export const CreateRouteFromPreviewBody = zod
       .describe('Route name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createRouteFromPreviewBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -653,6 +654,8 @@ export const CreateRouteFromPreviewBody = zod
   })
   .describe('Route update request')
 
+export const createRouteFromPreviewResponseMediaMarkdownMax = 100000
+
 export const CreateRouteFromPreviewResponse = zod
   .object({
     id: zod.string().describe('Route ID (TSID)'),
@@ -676,7 +679,10 @@ export const CreateRouteFromPreviewResponse = zod
     name: zod.string().describe('Route name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod
+          .string()
+          .max(createRouteFromPreviewResponseMediaMarkdownMax)
+          .describe('Markdown'),
         assets: zod
           .object({
             logo: zod

@@ -459,6 +459,16 @@ export const ListMyParticipationsQueryParams = zod.object({
     ),
 })
 
+export const listMyParticipationsResponsePublicationsItemOneMediaMarkdownMax = 100000
+
+export const listMyParticipationsResponsePublicationsItemTwoMediaMarkdownMax = 100000
+
+export const listMyParticipationsResponsePublicationsItemThreeMediaMarkdownMax = 100000
+
+export const listMyParticipationsResponsePublicationsItemThreeStagesItemRouteMediaMarkdownMax = 100000
+
+export const listMyParticipationsResponsePublicationsItemThreeStagesItemMediaMarkdownMax = 100000
+
 export const ListMyParticipationsResponse = zod
   .object({
     publications: zod
@@ -489,7 +499,10 @@ export const ListMyParticipationsResponse = zod
                 name: zod.string().describe('Publication name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(listMyParticipationsResponsePublicationsItemOneMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -843,7 +856,10 @@ export const ListMyParticipationsResponse = zod
                 name: zod.string().describe('Publication name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(listMyParticipationsResponsePublicationsItemTwoMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -1048,7 +1064,10 @@ export const ListMyParticipationsResponse = zod
                 name: zod.string().describe('Publication name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(listMyParticipationsResponsePublicationsItemThreeMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -1266,7 +1285,12 @@ export const ListMyParticipationsResponse = zod
                             name: zod.string().describe('Route name'),
                             media: zod
                               .object({
-                                markdown: zod.string().describe('Markdown'),
+                                markdown: zod
+                                  .string()
+                                  .max(
+                                    listMyParticipationsResponsePublicationsItemThreeStagesItemRouteMediaMarkdownMax
+                                  )
+                                  .describe('Markdown'),
                                 assets: zod
                                   .object({
                                     logo: zod
@@ -1511,7 +1535,12 @@ export const ListMyParticipationsResponse = zod
                           .describe('End place'),
                         media: zod
                           .object({
-                            markdown: zod.string().describe('Markdown'),
+                            markdown: zod
+                              .string()
+                              .max(
+                                listMyParticipationsResponsePublicationsItemThreeStagesItemMediaMarkdownMax
+                              )
+                              .describe('Markdown'),
                             assets: zod
                               .object({
                                 logo: zod

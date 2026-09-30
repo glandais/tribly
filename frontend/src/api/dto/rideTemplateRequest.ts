@@ -13,7 +13,10 @@ export interface RideTemplateRequest {
    * @pattern \S
    */
   name: string
-  /** Template description (markdown) */
+  /**
+   * Template description (markdown)
+   * @maxLength 100000
+   */
   markdown: string
   /** Visibility level */
   visibility: Visibility

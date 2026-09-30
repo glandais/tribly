@@ -167,6 +167,48 @@ class PostResourceTest extends AbstractResourceTest {
         .body("publishAt", notNullValue());
   }
 
+  /** docs/LEDGER_*.md SEC-19: the markdown body is bounded, the bound itself is accepted. */
+  @Test
+  void createPost_markdownPastTheBound_shouldReturn400() {
+    PostRequest atTheBound =
+        new PostRequest(
+            "Long Post",
+            MediaDto.builder().markdown("a".repeat(MediaDto.MAX_MARKDOWN_LENGTH)).build(),
+            Instant.now().plus(7, ChronoUnit.DAYS),
+            Status.PUBLISHED,
+            Visibility.PUBLIC,
+            null);
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(atTheBound)
+        .when()
+        .post("/api/teams/" + team1Slug + "/posts")
+        .then()
+        .statusCode(201);
+
+    PostRequest pastTheBound =
+        new PostRequest(
+            "Too Long Post",
+            MediaDto.builder().markdown("a".repeat(MediaDto.MAX_MARKDOWN_LENGTH + 1)).build(),
+            Instant.now().plus(7, ChronoUnit.DAYS),
+            Status.PUBLISHED,
+            Visibility.PUBLIC,
+            null);
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(pastTheBound)
+        .when()
+        .post("/api/teams/" + team1Slug + "/posts")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("VALIDATION"))
+        .body("errorDetails.fieldErrors.field", hasItem("markdown"));
+  }
+
   // ==================== Get Post Tests ====================
 
   @Test

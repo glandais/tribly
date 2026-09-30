@@ -31,6 +31,7 @@ export const CreatePageParams = zod.object({
 export const createPageBodyTitleMax = 100
 
 export const createPageBodyTitleRegExp = new RegExp('\\S')
+export const createPageBodyMediaMarkdownMax = 100000
 
 export const CreatePageBody = zod
   .object({
@@ -42,7 +43,7 @@ export const CreatePageBody = zod
       .describe('Page title'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createPageBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -191,6 +192,8 @@ export const CreatePageBody = zod
   })
   .describe('Team page request')
 
+export const createPageResponseMediaMarkdownMax = 100000
+
 export const CreatePageResponse = zod
   .object({
     team: zod
@@ -214,7 +217,7 @@ export const CreatePageResponse = zod
     slug: zod.string().describe('Page URL slug'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createPageResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -403,6 +406,7 @@ export const UpdatePageParams = zod.object({
 export const updatePageBodyTitleMax = 100
 
 export const updatePageBodyTitleRegExp = new RegExp('\\S')
+export const updatePageBodyMediaMarkdownMax = 100000
 
 export const UpdatePageBody = zod
   .object({
@@ -414,7 +418,7 @@ export const UpdatePageBody = zod
       .describe('Page title'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updatePageBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -563,6 +567,8 @@ export const UpdatePageBody = zod
   })
   .describe('Team page request')
 
+export const updatePageResponseMediaMarkdownMax = 100000
+
 export const UpdatePageResponse = zod
   .object({
     team: zod
@@ -586,7 +592,7 @@ export const UpdatePageResponse = zod
     slug: zod.string().describe('Page URL slug'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updatePageResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -746,6 +752,8 @@ export const GetPageParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const getPageResponseMediaMarkdownMax = 100000
+
 export const GetPageResponse = zod
   .object({
     team: zod
@@ -769,7 +777,7 @@ export const GetPageResponse = zod
     slug: zod.string().describe('Page URL slug'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(getPageResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -954,6 +962,8 @@ export const ChangePageSlugBody = zod
   })
   .describe('Slug change request')
 
+export const changePageSlugResponseMediaMarkdownMax = 100000
+
 export const ChangePageSlugResponse = zod
   .object({
     team: zod
@@ -977,7 +987,7 @@ export const ChangePageSlugResponse = zod
     slug: zod.string().describe('Page URL slug'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(changePageSlugResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1137,6 +1147,8 @@ export const UndeletePageParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const undeletePageResponseMediaMarkdownMax = 100000
+
 export const UndeletePageResponse = zod
   .object({
     team: zod
@@ -1160,7 +1172,7 @@ export const UndeletePageResponse = zod
     slug: zod.string().describe('Page URL slug'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(undeletePageResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod

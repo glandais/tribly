@@ -30,6 +30,8 @@ export const ListTeamsQueryParams = zod.object({
     .describe('Sort direction when sortBy is set (default: DESC)'),
 })
 
+export const listTeamsResponseTeamsItemAboutMarkdownMax = 100000
+
 export const ListTeamsResponse = zod
   .object({
     teams: zod
@@ -41,7 +43,10 @@ export const ListTeamsResponse = zod
             slug: zod.string().describe('Team URL slug'),
             about: zod
               .object({
-                markdown: zod.string().describe('Markdown'),
+                markdown: zod
+                  .string()
+                  .max(listTeamsResponseTeamsItemAboutMarkdownMax)
+                  .describe('Markdown'),
                 assets: zod
                   .object({
                     logo: zod
@@ -278,6 +283,7 @@ export const ListTeamsResponse = zod
 export const createTeamBodyNameMax = 200
 
 export const createTeamBodyNameRegExp = new RegExp('\\S')
+export const createTeamBodyMediaMarkdownMax = 100000
 
 export const CreateTeamBody = zod
   .object({
@@ -289,7 +295,7 @@ export const CreateTeamBody = zod
       .describe('Team name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createTeamBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -455,6 +461,8 @@ export const CreateTeamBody = zod
   })
   .describe('Team creation request')
 
+export const createTeamResponseAboutMarkdownMax = 100000
+
 export const CreateTeamResponse = zod
   .object({
     id: zod.string().describe('Team ID (TSID)'),
@@ -462,7 +470,7 @@ export const CreateTeamResponse = zod
     slug: zod.string().describe('Team URL slug'),
     about: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createTeamResponseAboutMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -694,6 +702,7 @@ export const UpdateTeamParams = zod.object({
 export const updateTeamBodyNameMax = 200
 
 export const updateTeamBodyNameRegExp = new RegExp('\\S')
+export const updateTeamBodyMediaMarkdownMax = 100000
 
 export const UpdateTeamBody = zod
   .object({
@@ -705,7 +714,7 @@ export const UpdateTeamBody = zod
       .describe('Team name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updateTeamBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -871,6 +880,8 @@ export const UpdateTeamBody = zod
   })
   .describe('Team creation request')
 
+export const updateTeamResponseAboutMarkdownMax = 100000
+
 export const UpdateTeamResponse = zod
   .object({
     id: zod.string().describe('Team ID (TSID)'),
@@ -878,7 +889,7 @@ export const UpdateTeamResponse = zod
     slug: zod.string().describe('Team URL slug'),
     about: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updateTeamResponseAboutMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1107,6 +1118,8 @@ export const GetTeamParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const getTeamResponseAboutMarkdownMax = 100000
+
 export const GetTeamResponse = zod
   .object({
     id: zod.string().describe('Team ID (TSID)'),
@@ -1114,7 +1127,7 @@ export const GetTeamResponse = zod
     slug: zod.string().describe('Team URL slug'),
     about: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(getTeamResponseAboutMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1367,6 +1380,8 @@ export const ChangeTeamSlugBody = zod
   })
   .describe('Slug change request')
 
+export const changeTeamSlugResponseAboutMarkdownMax = 100000
+
 export const ChangeTeamSlugResponse = zod
   .object({
     id: zod.string().describe('Team ID (TSID)'),
@@ -1374,7 +1389,7 @@ export const ChangeTeamSlugResponse = zod
     slug: zod.string().describe('Team URL slug'),
     about: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(changeTeamSlugResponseAboutMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod

@@ -5,14 +5,26 @@ import fr.pedalons.dto.validation.AcceptableText;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.service.asset.AssetService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 @Builder
 public record MediaDto(
-    @Schema(description = "Markdown", required = true) @AcceptableText String markdown,
+    @Schema(description = "Markdown", required = true)
+        @AcceptableText
+        @Size(max = MAX_MARKDOWN_LENGTH)
+        String markdown,
     @Schema(description = "Assets", required = true) @Valid AssetsDto assets) {
+
+  /**
+   * The longest markdown body a content accepts, in characters. The request body alone is bounded
+   * at 100 MB, which every pass over the text (the publication filter, the asset directives) would
+   * then read: this is the bound of substance behind the linear directive expression
+   * (docs/LEDGER_*.md SEC-19, audit M6). The longest body on record was 4 342 characters.
+   */
+  public static final int MAX_MARKDOWN_LENGTH = 100_000;
 
   /**
    * A missing markdown is an empty text and missing assets an empty inventory, as the builder
