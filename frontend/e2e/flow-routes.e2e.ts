@@ -947,7 +947,13 @@ test.describe('GPX files in the route forms', () => {
     await hydrated(save)
     await main.locator('input[type="file"][accept=".gpx"]').setInputFiles(longerPath)
     await expect(main.getByRole('button', { name: 'Fichier GPX' })).toHaveText('boucle-longue.gpx')
+    // The new track is parsed and stored before the answer: under load that outlasts the 5 s of
+    // an expect, so the page is checked once the server has answered.
+    const replaced = page.waitForResponse(
+      (r) => r.request().method() === 'PUT' && r.url().endsWith(`/routes/${route.slug}`)
+    )
     await save.click()
+    expect((await replaced).ok(), 'the new track was accepted').toBe(true)
 
     // Back on its page, under its own name, with the new track's distance.
     await expect(main.getByRole('heading', { level: 1, name })).toBeVisible()
@@ -1017,7 +1023,12 @@ test.describe('the visibility chosen in the route form', () => {
     // A public team's route starts public.
     await expect(visibility.getByRole('radio', { name: 'Public', exact: true })).toBeChecked()
     await visibility.getByRole('radio', { name: 'Non répertorié' }).check()
+    // Like the track replacement above: the upload's answer can outlast an expect under load.
+    const created = page.waitForResponse(
+      (r) => r.request().method() === 'POST' && r.url().endsWith(`/api/teams/${team.slug}/routes`)
+    )
     await submit.click()
+    expect((await created).ok(), 'the route was created').toBe(true)
 
     await expect(main.getByRole('heading', { level: 1, name: unlisted })).toBeVisible()
     await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/parcours/[^/?]+$`))

@@ -411,6 +411,26 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   aussi. Couvert par `tiptap/insertAsset.test.ts` (filtre, HEIC sans type MIME, ordre, échec
   isolé) ; le glisser-déposer réel n'a pas de test e2e.
 
+- `WEB-37` **Changer de groupe vite ne se solde plus par un 409** (2026-09-30, contrat inchangé) —
+  « Quitter » met la sortie à jour de façon optimiste : les autres groupes affichaient
+  « Rejoindre » avant que le serveur ait libéré le premier, et un « Rejoindre » tapé dans cet
+  intervalle partait pendant le `leave` et revenait en `ALREADY_REGISTERED`, la carte montrant
+  « Inscrit » jusqu'au retour arrière. Relevé par `rides.e2e.ts` « changing group » (mobile, sous
+  5 workers : `join` parti à +113 ms d'un `leave` de 220 ms). `RideDetailPage` désactive désormais
+  les boutons de **toutes** les cartes tant qu'une inscription ou une sortie est en vol, plus
+  seulement celle touchée (l'état `joiningGroupId` disparaît). Ne pas revenir à une désactivation
+  par carte : l'optimisme rend les autres cartes actionnables trop tôt.
+
+- `WEB-38` **Une réponse de `/me` arrivée après la déconnexion ne rouvre plus la session**
+  (2026-09-30, contrat inchangé) — `useAuth` recopiait l'utilisateur de `/me` dans le store dès sa
+  réponse ; un `/me` parti juste avant `logout()` et revenu après remettait
+  `isAuthenticated: true` sans jeton. Les requêtes de la page partaient alors en 401, le
+  rafraîchissement échouait (403) et l'intercepteur renvoyait le visiteur, déjà déconnecté, vers
+  `/login?next=/connexion`. Relevé par `flow-account.e2e.ts` « a deleted passkey… » (mobile,
+  instable). L'effet ne recopie `/me` que si le store est **encore** authentifié au moment où la
+  réponse arrive (`useAuthStore.getState()`, pas la valeur du rendu). Pas de test unitaire : le
+  hook tire `useGetMe`, Mantine et i18n ; la course reste couverte, sans garantie, par ce e2e.
+
 ### Référencement
 
 - `WEB-4` **`PUBLIC_UNLISTED` n'est plus indexé** (2026-09-30) — `frontend/index.html` servait un

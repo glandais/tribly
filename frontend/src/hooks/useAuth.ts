@@ -57,7 +57,10 @@ export function useAuth() {
 
   // Update store when backend user is fetched
   useEffect(() => {
-    if (backendUser) {
+    // Read at the time the answer lands, not at render: a /me sent before a sign-out that answers
+    // after it would set the user back, flag the visitor authenticated without a token, and the
+    // page's queries would then fail, refresh, and send them to the login page a second time.
+    if (backendUser && useAuthStore.getState().isAuthenticated) {
       setUser(backendUser)
       setLoading(false)
       syncFromServer(backendUser.unitSystem)

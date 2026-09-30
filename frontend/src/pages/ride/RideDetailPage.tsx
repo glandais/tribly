@@ -74,7 +74,6 @@ export function RideDetailPage() {
   const { formatDateTime, isGuessedTimezone } = useFormattedDate()
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const { isAuthenticated } = useAuth()
-  const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null)
   // Failure message for the group whose join/leave just failed. Kept in the card rather than
   // in a toast: a toast fires far from the button, then vanishes, leaving the card unchanged.
   const [groupError, setGroupError] = useState<{ groupId: string; message: string } | null>(null)
@@ -296,7 +295,6 @@ export function RideDetailPage() {
   }
 
   const mutateMembership = (groupId: string, joining: boolean) => {
-    setJoiningGroupId(groupId)
     setGroupError(null)
     const previous = applyOptimisticMembership(groupId, joining)
     const mutation = joining ? joinMutation : leaveMutation
@@ -315,7 +313,6 @@ export function RideDetailPage() {
           setGroupError({ groupId, message: describeGroupError(error) })
         },
         onSettled: () => {
-          setJoiningGroupId(null)
           queryClient.invalidateQueries({ queryKey: rideQueryKey })
           invalidateRideRegistration(queryClient, teamSlug!)
         },
@@ -538,10 +535,10 @@ export function RideDetailPage() {
                     onLeave={() => handleLeaveGroup(group.id)}
                     onHover={setHighlightedGroupId}
                     isHighlighted={highlightedGroupId === group.id}
-                    isLoading={
-                      joiningGroupId === group.id &&
-                      (joinMutation.isPending || leaveMutation.isPending)
-                    }
+                    // Every card, not only the one acted on: the optimistic update shows the
+                    // other groups joinable before the server has let go of the first one, and
+                    // a join sent then is refused (ALREADY_REGISTERED).
+                    isLoading={joinMutation.isPending || leaveMutation.isPending}
                     error={groupError?.groupId === group.id ? groupError.message : undefined}
                   />
                 )

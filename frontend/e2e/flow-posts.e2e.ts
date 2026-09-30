@@ -118,8 +118,10 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
     await page.keyboard.type(' devant le club.')
     await page.keyboard.press('Enter')
     // Link: type the words, select them, then the link control
-    await page.keyboard.type('Voir le parcours')
-    await page.keyboard.press('Shift+Home')
+    const linkText = 'Voir le parcours'
+    await page.keyboard.type(linkText)
+    // Not Shift+Home: on macOS, Chromium maps it to « select to the start of the document ».
+    for (let i = 0; i < linkText.length; i++) await page.keyboard.press('Shift+ArrowLeft')
     await toolbarButton(main, 'Link').click()
     const urlInput = page.getByRole('textbox', { name: 'Enter URL' })
     await urlInput.fill(LINK_URL)
@@ -127,12 +129,13 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
     // Saving hands the focus back to the editor, the linked words still selected.
     await expect(urlInput).toBeHidden()
     await expect(editor).toBeFocused()
-    await expect(editor.getByRole('link', { name: 'Voir le parcours' })).toBeVisible()
-    // The selection comes back after the focus: End pressed before it would be undone by it, and
+    await expect(editor.getByRole('link', { name: linkText, exact: true })).toBeVisible()
+    // The selection comes back after the focus: a key pressed before it would be undone by it, and
     // Enter would then replace the linked words.
     const selection = () => page.evaluate(() => window.getSelection()?.toString() ?? '')
-    await expect.poll(selection).toBe('Voir le parcours')
-    await page.keyboard.press('End')
+    await expect.poll(selection).toBe(linkText)
+    // Not End either (only scrolls on macOS): ArrowRight collapses the selection to its end.
+    await page.keyboard.press('ArrowRight')
     await expect.poll(selection).toBe('')
     await page.keyboard.press('Enter')
     // Bullet list

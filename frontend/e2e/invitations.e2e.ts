@@ -32,7 +32,9 @@ async function openMembersAdmin(page: Page, teamSlug: string) {
 
 /** Invites through the members screen's modal; returns the POST's response. */
 async function inviteThroughUi(page: Page, teamSlug: string, email: string): Promise<Response> {
-  await page.getByRole('button', { name: 'Inviter par e-mail' }).click()
+  const invite = page.getByRole('button', { name: 'Inviter par e-mail' })
+  await hydrated(invite)
+  await invite.click()
   const dialog = page.getByRole('dialog', { name: 'Inviter par e-mail' })
   await dialog.getByRole('textbox', { name: 'Adresse e-mail' }).fill(email)
   const [response] = await Promise.all([
@@ -150,6 +152,7 @@ test.describe('organiser side', () => {
     await expect(row).toBeVisible()
 
     const seen = await mailbox(email)
+    await hydrated(row.getByRole('button', { name: 'Renvoyer' }))
     await row.getByRole('button', { name: 'Renvoyer' }).click()
     await expect(page.getByText(`Invitation envoyée à ${email}.`, { exact: true })).toBeVisible()
     const second = invitationTokenIn(await waitForNewMail(email, seen))
@@ -194,7 +197,9 @@ test.describe('organiser side', () => {
     await signIn(context, owner)
     await openMembersAdmin(page, team.slug)
     await expect(pendingRow(page, kept)).toBeVisible()
-    await pendingRow(page, revoked).getByRole('button', { name: "Annuler l'invitation" }).click()
+    const revoke = pendingRow(page, revoked).getByRole('button', { name: "Annuler l'invitation" })
+    await hydrated(revoke)
+    await revoke.click()
 
     const dialog = page.getByRole('dialog')
     await expect(dialog.getByText(`Annuler l'invitation envoyée à ${revoked} ?`)).toBeVisible()
@@ -232,6 +237,7 @@ test.describe('invitee side', () => {
     await expect(
       page.getByRole('heading', { name: `Owner mismatch vous invite à rejoindre ${team.name}` })
     ).toBeVisible()
+    await hydrated(page.getByRole('button', { name: "Rejoindre l'équipe" }))
     await page.getByRole('button', { name: "Rejoindre l'équipe" }).click()
 
     await expect(page.getByRole('heading', { name: 'Invitation indisponible' })).toBeVisible()
@@ -266,6 +272,7 @@ test.describe('invitee side', () => {
       page.getByRole('heading', { name: `Owner switch vous invite à rejoindre ${team.name}` }),
       'precondition: the invitation page is ready'
     ).toBeVisible()
+    await hydrated(page.getByRole('button', { name: "Rejoindre l'équipe" }))
     await page.getByRole('button', { name: "Rejoindre l'équipe" }).click()
     await expect(
       page
@@ -327,6 +334,7 @@ test.describe('invitee side', () => {
 
     await signIn(context, invitee)
     await page.goto(`/invitation?token=${token}`)
+    await hydrated(page.getByRole('button', { name: "Rejoindre l'équipe" }))
     await page.getByRole('button', { name: "Rejoindre l'équipe" }).click()
     await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}$`))
     const joined = await membershipsOf(owner, team.slug, invitee.user.id)
@@ -427,6 +435,7 @@ test.describe('invitee side', () => {
     await expect(
       banner.getByText(`Owner signup vous invite à rejoindre ${team.name}.`, { exact: true })
     ).toBeVisible()
+    await hydrated(banner.getByRole('button', { name: 'Accepter' }))
     await banner.getByRole('button', { name: 'Accepter' }).click()
 
     await expect(page.getByText(`Vous avez rejoint ${team.name}.`, { exact: true })).toBeVisible()
