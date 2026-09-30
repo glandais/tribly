@@ -379,7 +379,7 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       Passer le jeton FCM dans un corps, l'autre en paramètre (masqué) ou en en-tête
       ([opportunités](plans/2026-07-25-privacy-improvement-opportunities.md) #25). Taille : S, mais
       l'export touche le contrat.
-- [ ] `API-56` **La colonne `auth_tokens.pending_password_hash` n'est plus écrite** — depuis
+- [ ] `API-57` **La colonne `auth_tokens.pending_password_hash` n'est plus écrite** — depuis
       `SEC-24` (API 7.0.0), l'inscription ne prend plus de mot de passe : le lien le demande. La
       colonne est gardée pour le déploiement progressif (l'ancienne version l'écrit encore pendant
       la minute de recouvrement) et pour les liens émis avant, dont `activateAccount` ignore le

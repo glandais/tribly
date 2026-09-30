@@ -1055,7 +1055,7 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   aux lettres. Web (`LoginPage`, `VerifyEmailPage`) et mobile (`login_page.dart`,
   `verify_email_page.dart`) déplacent les deux champs. La colonne `pending_password_hash` n'est plus
   écrite mais reste, pour le déploiement progressif et les liens émis avant — `activateAccount`
-  ignore leur hachage ; son retrait est `API-56`. La politique de confidentialité (§1, liens envoyés
+  ignore leur hachage ; son retrait est `API-57`. La politique de confidentialité (§1, liens envoyés
   par e-mail) ne dit plus qu'un mot de passe haché est gardé en attente, en parité FR/EN.
   **Décision** : ne jamais recréer un compte avec un mot de passe venu de l'inscription. Tests :
   `AuthResourceTest.verifyEmail_setsThePasswordChosenOnActivation_neverTheOneFromSignUp` (un jeton
