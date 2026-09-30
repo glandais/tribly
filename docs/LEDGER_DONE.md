@@ -558,7 +558,7 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   non `null` (le rédacteur FIT et `computeArrays` exigent un instant, et c'est déjà la valeur d'un
   point sans `<time>`) ; pas de rejeu du pipeline dans le rattrapage. Rien n'utilisait les
   horodatages : distances, dénivelés, montées, vent, simplification sont de la géométrie. Limites
-  connues : un GPX/FIT déposé en pièce jointe (`API-49`) ; le rédacteur de la bibliothèque
+  connues : un GPX/FIT déposé en pièce jointe (`API-49`, `API-55`, depuis nettoyés) ; le rédacteur de la bibliothèque
   (`API-50`) ; la pose du marqueur n'a pas de test (`API-51`) ; les copies déjà envoyées à Garmin,
   Wahoo ou Hammerhead avant le correctif ne se réparent pas de notre côté.
 
@@ -571,6 +571,39 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   marqueur oublié ferait sauter la passe à tout test qui appellerait `runOnce`. **Écrits sans avoir
   été lancés** (les tests backend sont au propriétaire du dépôt) : `mvn test
   -Dtest=GpxSanitizationBackfillTest`.
+
+- `API-49` **Un GPX joint en pièce jointe ne garde que sa trace** (2026-09-30, contrat inchangé) —
+  `API-44` ne couvrait que les parcours et l'outil GPX ; un `.gpx` déposé comme `ATTACHMENT` était
+  stocké tel quel, horodatages et capteurs compris. `AssetService.addAssetStream` le passe
+  maintenant par `TrackAttachmentSanitizer` avant le stockage : lu, nettoyé par `GpxSanitizer`,
+  réécrit, **sans** rééchantillonnage ni correction d'altitude — une pièce jointe n'est pas un
+  parcours, elle garde tous ses points. Un fichier `.gpx` illisible est refusé (`GPX_FAILURE`), un
+  GPX sans trace ni point d'intérêt aussi (`GPX_EMPTY`) : le réécrire ne garderait rien. Les pièces
+  jointes déjà stockées passent par `GpxSanitizationBackfill`, dont le marqueur devient
+  `maintenance/api-49-gpx-sanitized` pour que la passe tourne une fois de plus là où
+  `maintenance/api-44-gpx-sanitized` existe (parcours et aperçus déjà propres n'y sont que lus). Une
+  pièce jointe y est jugée propre par `TrackAttachmentSanitizer.isClean`, pas par `isDirty` (un
+  auteur ou un appareil n'est pas un `<time>`) ; une pièce jointe illisible est laissée et
+  journalisée, **sans** faire échouer la passe, sinon le marqueur ne serait jamais posé. La politique
+  (§1, FR et EN) dit désormais que ces fichiers sont nettoyés. Couvert par `AssetServiceTest`
+  (`shouldStripClockSensorsAndAuthorFromAnAttachedGpx`, `shouldRefuseAGpxAttachmentThatIsNotAGpx`)
+  et `GpxSanitizationBackfillTest` (`sanitizeAll_rewritesAGpxAttachmentStoredAsUploaded`,
+  `sanitizeAll_leavesAnUnreadableAttachmentWithoutFailingThePass`), **écrits sans avoir été
+  lancés** ; nettoyage idempotent vérifié hors suite sur la fixture `activity_with_sensors.gpx`.
+
+- `API-55` **Un FIT joint en pièce jointe est réécrit en parcours** (2026-09-30, contrat inchangé,
+  scindé d'`API-49`) — même chemin que le GPX. Le FIT est décodé par le SDK Garmin (déjà sur le
+  classpath, par gpx2web), réduit à ses enregistrements positionnés (latitude, longitude,
+  altitude) et à ses `course_point`, puis réécrit par le `FitFileWriter` de `route.fit` : tours,
+  séances, informations d'appareil, VFC et tous les autres messages d'une activité disparaissent,
+  le fichier se charge toujours sur un GPS, comme parcours à suivre. Le rédacteur date le fichier à
+  sa création, donc un FIT propre n'est pas reconnu aux octets : `isClean` le tient pour propre
+  quand c'est un parcours de notre rédacteur (même `file_id`), fait des seuls messages qu'il écrit,
+  sans heure ni capteur sur aucun enregistrement — et `sanitize` le rend alors tel quel. Couvert par
+  `AssetServiceTest.shouldStripClockAndSensorsFromAnAttachedFit` et
+  `GpxSanitizationBackfillTest.sanitizeAll_rewritesAFitAttachmentStoredAsUploaded` (réécrit une
+  fois, laissé la seconde), **écrits sans avoir été lancés**. Ne pas comparer un FIT aux octets pour
+  décider de le réécrire : il serait réécrit à chaque passe.
 
 ### `API-39` T5.4 — Trombinoscope : débloqué par un réglage d'équipe (contrat `3.0.0`)
 

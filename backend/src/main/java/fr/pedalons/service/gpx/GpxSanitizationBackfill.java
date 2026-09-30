@@ -1,6 +1,7 @@
 package fr.pedalons.service.gpx;
 
 import fr.pedalons.common.TsidUtils;
+import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.enums.AssetType;
 import fr.pedalons.infrastructure.storage.StorageService;
 import fr.pedalons.repository.asset.AssetRepository;
@@ -34,7 +35,9 @@ import org.jspecify.annotations.Nullable;
 /**
  * One-off rewrite of the GPX and FIT files stored before timestamps and sensor data were stripped
  * at import (docs/LEDGER_*.md API-44): every route's {@code original.gpx}, {@code filtered.gpx} and
- * {@code route.fit}, and the same three files of every GPX-tool preview still within retention.
+ * {@code route.fit}, the same three files of every GPX-tool preview still within retention, and
+ * every GPX or FIT stored as a plain attachment (API-49, API-55) — through {@link TrackAttachmentSanitizer}, as an
+ * upload is now.
  *
  * <p><b>In place, geometry untouched.</b> A dirty GPX is parsed, passed through {@link
  * GpxSanitizer} and written back under the same storage key; the FIT, which carries the same
@@ -54,8 +57,13 @@ public class GpxSanitizationBackfill {
 
   private static final Logger LOG = Logger.getLogger(GpxSanitizationBackfill.class);
 
-  /** Written once a pass completes without error; its presence skips every later run. */
-  static final String MARKER_KEY = "maintenance/api-44-gpx-sanitized";
+  /**
+   * Written once a pass completes without error; its presence skips every later run. Renamed from
+   * {@code maintenance/api-44-gpx-sanitized} when attachments joined the pass (docs/LEDGER_*.md
+   * API-49), so a bucket that finished the first pass runs the new one once: routes and previews
+   * already clean are only read.
+   */
+  static final String MARKER_KEY = "maintenance/api-49-gpx-sanitized";
 
   private static final String GPX_CONTENT_TYPE = "application/gpx+xml";
   private static final String FIT_CONTENT_TYPE = "application/vnd.ant.fit";
@@ -81,6 +89,8 @@ public class GpxSanitizationBackfill {
   @Inject GPXFileWriter gpxFileWriter;
 
   @Inject FitFileWriter fitFileWriter;
+
+  @Inject TrackAttachmentSanitizer trackAttachmentSanitizer;
 
   /** Outcome of one pass: file sets looked at, file sets rewritten, file sets that failed. */
   public record Report(int sets, int rewritten, int failed) {}
@@ -140,7 +150,18 @@ public class GpxSanitizationBackfill {
         LOG.warnf(e, "GPX sanitization backfill failed for %s", set.label());
       }
     }
-    return new Report(sets.size(), rewritten, failed);
+    List<StoredFile> attachments = attachmentFiles();
+    for (StoredFile attachment : attachments) {
+      try {
+        if (sanitizeAttachment(attachment)) {
+          rewritten++;
+        }
+      } catch (Exception e) {
+        failed++;
+        LOG.warnf(e, "GPX sanitization backfill failed for attachment %s", attachment.key());
+      }
+    }
+    return new Report(sets.size() + attachments.size(), rewritten, failed);
   }
 
   /** Rewrites the dirty files of one set; {@code true} if anything was written. */
@@ -167,6 +188,38 @@ public class GpxSanitizationBackfill {
       }
     }
     return changed;
+  }
+
+  /**
+   * Rewrites one GPX or FIT attachment when its cleaned form differs from what is stored; {@code true} if
+   * written. Judged by {@link TrackAttachmentSanitizer#isClean} rather than {@link #isDirty}: an
+   * attachment comes from any software, and an author or a device in its metadata is no {@code
+   * <time>}. A file that is not a
+   * readable GPX or FIT is left as it is and logged — it cannot be cleaned, and failing on it would keep
+   * the marker from ever being written.
+   */
+  boolean sanitizeAttachment(StoredFile file) throws Exception {
+    if (!storageService.exists(file.key())) {
+      return false;
+    }
+    byte[] raw;
+    try (InputStream is = storageService.retrieve(file.key())) {
+      raw = is.readAllBytes();
+    }
+    byte[] clean;
+    try {
+      if (trackAttachmentSanitizer.isClean(raw, file.contentType())) {
+        return false;
+      }
+      clean = trackAttachmentSanitizer.sanitize(raw, file.contentType());
+    } catch (BusinessException e) {
+      LOG.warnf(
+          "Track attachment %s left as is: not a readable GPX or FIT (%s)",
+          file.key(), e.getMessage());
+      return false;
+    }
+    store(file, clean);
+    return true;
   }
 
   /** The sanitized parse of a stored GPX, or null when it is missing or already clean. */
@@ -277,6 +330,45 @@ public class GpxSanitizationBackfill {
                     files.get(AssetType.ROUTE_FILTERED_GPX),
                     files.get(AssetType.ROUTE_FIT))));
     return sets;
+  }
+
+  /**
+   * Every GPX and FIT stored as a plain attachment, whatever its domain and whether or not its content
+   * still exists — an attachment not yet linked to any content holds its file too.
+   */
+  private List<StoredFile> attachmentFiles() {
+    List<Object[]> rows =
+        QuarkusTransaction.requiringNew()
+            .call(
+                () ->
+                    assetRepository
+                        .getEntityManager()
+                        .createQuery(
+                            "select a.team.id, a.fileId, a.fileName, a.contentType, a.id from Asset"
+                                + " a where a.type = :type and a.contentType in (:contentTypes)"
+                                + " order by a.id",
+                            Object[].class)
+                        .setParameter("type", AssetType.ATTACHMENT)
+                        .setParameter(
+                            "contentTypes",
+                            List.of(
+                                TrackAttachmentSanitizer.GPX_CONTENT_TYPE,
+                                TrackAttachmentSanitizer.FIT_CONTENT_TYPE))
+                        .getResultList());
+    List<StoredFile> files = new ArrayList<>(rows.size());
+    for (Object[] row : rows) {
+      Long teamId = (Long) row[0];
+      Long fileId = (Long) row[1];
+      Map<String, String> metadata =
+          Map.of(
+              "file-id", TsidUtils.toString(fileId),
+              "team-id", TsidUtils.toString(teamId),
+              "file-name", (String) row[2]);
+      files.add(
+          new StoredFile(
+              assetService.getAssetKey(teamId, fileId), (String) row[3], metadata, (Long) row[4]));
+    }
+    return files;
   }
 
   /** The three files of every preview still in the database, whatever its domain. */

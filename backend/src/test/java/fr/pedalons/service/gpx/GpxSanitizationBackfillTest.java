@@ -3,12 +3,14 @@ package fr.pedalons.service.gpx;
 import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.AbstractBaseTest;
+import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.asset.Asset;
 import fr.pedalons.domain.gpx.GpxPreview;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.common.asset.AssetDto;
 import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.storage.StorageService;
@@ -147,6 +149,50 @@ class GpxSanitizationBackfillTest extends AbstractBaseTest {
         keys.get("original.gpx"), keys.get("filtered.gpx"), keys.get("route.fit"));
   }
 
+  // ==================== Attachments (docs/LEDGER_*.md API-49, API-55) ====================
+
+  @Test
+  void sanitizeAll_rewritesAGpxAttachmentStoredAsUploaded() throws Exception {
+    String key = attachmentStoredRaw("sortie.gpx", Files.readAllBytes(activity()));
+
+    GpxSanitizationBackfill.Report report = backfill.sanitizeAll();
+
+    assertEquals(1, report.rewritten(), report.toString());
+    assertEquals(0, report.failed(), report.toString());
+    String stored = new String(read(key), StandardCharsets.UTF_8);
+    GpxPrivacyAssertions.assertGpxHasNoPersonalData(stored);
+    assertTrue(stored.contains("<trkpt lat=\"47.20626\" lon=\"-1.54564\">"), "geometry lost");
+
+    GpxSanitizationBackfill.Report second = backfill.sanitizeAll();
+    assertEquals(0, second.rewritten(), "a cleaned attachment must be left alone");
+  }
+
+  @Test
+  void sanitizeAll_rewritesAFitAttachmentStoredAsUploaded() throws Exception {
+    String key = attachmentStoredRaw("sortie.fit", activityFit());
+
+    GpxSanitizationBackfill.Report report = backfill.sanitizeAll();
+
+    assertEquals(1, report.rewritten(), report.toString());
+    GpxPrivacyAssertions.assertFitHasNoPersonalData(read(key));
+
+    GpxSanitizationBackfill.Report second = backfill.sanitizeAll();
+    assertEquals(0, second.rewritten(), "a cleaned attachment must be left alone");
+  }
+
+  @Test
+  void sanitizeAll_leavesAnUnreadableAttachmentWithoutFailingThePass() throws Exception {
+    String key = attachmentStoredRaw("sortie.gpx", Files.readAllBytes(activity()));
+    byte[] broken = "<gpx><trk><trkseg><trkpt".getBytes(StandardCharsets.UTF_8);
+    store(key, broken, "application/gpx+xml");
+
+    GpxSanitizationBackfill.Report report = backfill.sanitizeAll();
+
+    assertEquals(
+        0, report.failed(), "an attachment that cannot be cleaned must not block the marker");
+    assertArrayEquals(broken, read(key));
+  }
+
   // ==================== Marker (docs/LEDGER_*.md API-51) ====================
 
   @Test
@@ -248,6 +294,40 @@ class GpxSanitizationBackfillTest extends AbstractBaseTest {
           storageService.size(assetService.getAssetKey(asset.getTeam(), asset.getFileId())),
           recorded,
           asset.getType().name());
+    }
+  }
+
+  /**
+   * An attachment as an upload stored it before API-49: uploaded (hence cleaned), then its raw
+   * bytes put back under the same key. Returns that key.
+   */
+  private String attachmentStoredRaw(String fileName, byte[] raw) throws Exception {
+    AssetDto dto =
+        assetService.createAsset(
+            route.getTeam().getSlug(),
+            AssetType.ATTACHMENT,
+            new ByteArrayInputStream(raw),
+            fileName);
+    Asset asset =
+        QuarkusTransaction.requiringNew()
+            .call(() -> assetRepository.findById(TsidUtils.toLong(dto.id())));
+    String key = assetService.getAssetKey(route.getTeam().getId(), asset.getFileId());
+    store(key, raw, asset.getContentType());
+    return key;
+  }
+
+  /** The activity fixture as a device would record it in FIT: with its clock and power. */
+  private byte[] activityFit() throws Exception {
+    GPX dirty;
+    try (InputStream is = new FileInputStream(activity().toFile())) {
+      dirty = gpxFileReader.parseGPX(is);
+    }
+    Path fit = Files.createTempFile("backfill-test-", ".fit");
+    try {
+      fitFileWriter.writeGPX(dirty, fit.toFile());
+      return Files.readAllBytes(fit);
+    } finally {
+      Files.deleteIfExists(fit);
     }
   }
 
