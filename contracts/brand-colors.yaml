@@ -1,0 +1,56 @@
+# Code couleur métier — source unique (docs/BRANDING.md §3.6, ledger BRAND-2).
+#
+# Édité ici, puis `pnpm generate-brand-colors` dans frontend/ régénère :
+#   frontend/src/lib/badgeColors.generated.ts
+#   mobile/lib/core/theme/enum_colors.generated.dart
+# Ne jamais éditer ces deux fichiers à la main.
+#
+# Seul le **choix de la famille** est partagé. Chaque client garde sa façon de la
+# rendre : nuances Mantine (variante `light` ou `filled`) au web, paires
+# `c.softXxx` et aplats `PdlColors` au mobile (`PdlFamily` dans enum_colors.dart).
+# Les échelles de nuances, figées par Mantine, sont hors sujet.
+
+# Les familles autorisées. En ajouter une oblige le mobile à dire comment il la
+# rend : le `switch` de `PdlFamily` dans enum_colors.dart cesse de compiler.
+families: [indigo, blue, green, red, yellow, orange, grape, teal, gray]
+
+# Une énumération du contrat → une famille par valeur. Les clés sont les valeurs
+# de l'API ; toutes doivent être présentes (le générateur le vérifie contre les
+# enums générés). Une valeur inconnue d'un client en retard se rend en `gray`.
+#
+# `style` dit comment le badge se rend : `soft` (fond pâle, texte foncé de la
+# même famille — la règle) ou `filled` (aplat — les catégories de col seules).
+enums:
+  PublicationType:
+    style: soft
+    values: { RIDE: blue, POST: grape, TRIP: teal }
+  AdType:
+    style: soft
+    values: { SALE: green, RENTAL: indigo, WANTED: orange }
+  Status:
+    style: soft
+    values: { DRAFT: gray, PUBLISHED: green, CANCELLED: red }
+  TeamRole:
+    style: soft
+    values: { ADMIN: grape, ORGANIZER: blue, MEMBER: gray }
+  # ROAD est gris doux partout, badge comme trait de rappel : le near-black de
+  # la charte (`dark`, `accentDark`) n'est plus une famille de badge.
+  SurfaceType:
+    style: soft
+    values: { ROAD: gray, GRAVEL: orange, MTB: green, MIXED: teal }
+  Visibility:
+    style: soft
+    values: { PUBLIC: blue, PUBLIC_UNLISTED: orange, TEAM: gray }
+  ClimbCategory:
+    style: filled
+    values: { HC: grape, CAT1: red, CAT2: orange, CAT3: yellow, CAT4: green }
+
+# Dégradé de l'image de repli d'une carte sans photo, à 135° (haut gauche → bas
+# droite). Chaque arrêt est une nuance Mantine `couleur-nuance` ; le générateur
+# en tire la variable CSS pour le web et l'hexadécimal pour le mobile.
+gradients:
+  RIDE: [blue-6, cyan-5]
+  POST: [grape-6, pink-5]
+  TRIP: [teal-6, green-5]
+  TEAM: [violet-6, indigo-5]
+  AD: [orange-5, yellow-4]

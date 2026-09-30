@@ -36,6 +36,7 @@ import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import type { RideTemplateDto } from '@/api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useUnits } from '@/hooks/useUnits'
+import { VISIBILITY_COLORS } from '@/lib/badgeColors.generated'
 
 export function RideTemplateListPage() {
   const { t } = useTranslation()
@@ -148,10 +149,7 @@ export function RideTemplateListPage() {
                             {t('groups.groupCount', { count: template.groupCount })}
                           </Text>
                         </Group>
-                        <Badge
-                          variant="light"
-                          color={template.visibility === 'PUBLIC' ? 'green' : 'gray'}
-                        >
+                        <Badge variant="light" color={VISIBILITY_COLORS[template.visibility]}>
                           {t(
                             `visibility.${template.visibility.toLowerCase() as 'public' | 'public_unlisted' | 'team'}`
                           )}

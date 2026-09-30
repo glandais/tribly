@@ -55,6 +55,7 @@ mkcert localhost 127.0.0.1 <your LAN IP>   # generates localhost+2.pem and local
 | `pnpm serve:ssr` | Build, then run the SSR server in production mode |
 | `pnpm generate-api` | Regenerate API client from OpenAPI contract |
 | `pnpm generate-routes` | Regenerate path builders + deeplinks from `../contracts/routes.yaml` |
+| `pnpm generate-brand-colors` | Regenerate the business colour code (web + mobile) from `../contracts/brand-colors.yaml` |
 | `pnpm generate-icons` | Regenerate PWA icons |
 | `pnpm lint` | oxlint |
 | `pnpm format` | Prettier |

@@ -18,6 +18,7 @@ pnpm build                         # Dual build: dist/client (browser) + dist/se
 pnpm typecheck                     # tsc -b — TypeScript 7's native compiler (typescript-go)
 pnpm generate-api                  # Regenerate API client from ../contracts/openapi.json
 pnpm generate-routes               # Regenerate path builders + deeplinks from ../contracts/routes.yaml
+pnpm generate-brand-colors         # Regenerate src/lib/badgeColors.generated.ts (+ mobile) from ../contracts/brand-colors.yaml
 pnpm lint                          # oxlint (includes i18next/no-literal-string via jsPlugins)
 pnpm lint:fix                      # oxlint with auto-fix
 pnpm format                        # Prettier

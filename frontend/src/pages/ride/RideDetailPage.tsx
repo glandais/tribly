@@ -68,12 +68,7 @@ import { paths } from '@/config/paths'
 import { invalidateRideRegistration } from '@/lib/rideRegistration'
 import { ErrorBoundary } from '../../components/common/ErrorBoundary'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
-
-const statusColors: Record<Status, string> = {
-  [Status.DRAFT]: 'gray',
-  [Status.PUBLISHED]: 'green',
-  [Status.CANCELLED]: 'red',
-}
+import { STATUS_COLORS } from '@/lib/badgeColors.generated'
 
 export function RideDetailPage() {
   const { t } = useTranslation()
@@ -347,7 +342,7 @@ export function RideDetailPage() {
             >
               {ride.name}
             </Title>
-            <Badge color={statusColors[ride.status]} variant="light">
+            <Badge color={STATUS_COLORS[ride.status]} variant="light">
               {t(`status.${ride.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
             </Badge>
             {isPast && (

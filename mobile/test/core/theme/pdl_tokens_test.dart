@@ -197,10 +197,12 @@ void main() {
       }
     });
 
-    test('le revêtement « route » garde son aplat near-black en doux gris', () {
+    // BRAND-2 : la route est gris doux partout, trait de rappel compris — le
+    // near-black de la charte a quitté les jetons Flutter.
+    test('le revêtement « route » est gris doux, aplat compris', () {
       const PdlColors c = PdlColors.light;
       final PdlTone road = SurfaceType.road.tone(c);
-      expect(road.fill, c.accentDark);
+      expect(road.fill, c.neutral);
       expect(road.soft, c.softGray.background);
       expect(road.onSoft, c.softGray.foreground);
     });

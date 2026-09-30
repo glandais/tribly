@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { IconEye, IconEyeOff, IconUsers } from '@tabler/icons-react'
 import { Badge } from './Badge'
 import { Visibility } from '@/api/dto'
+import { VISIBILITY_COLORS } from '@/lib/badgeColors.generated'
 
 interface VisibilityBadgeProps {
   visibility: Visibility
@@ -19,15 +20,8 @@ export function VisibilityBadge({ visibility, showIcon = true }: VisibilityBadge
       }[visibility]
     : undefined
 
-  const variant =
-    visibility === Visibility.PUBLIC
-      ? 'primary'
-      : visibility === Visibility.PUBLIC_UNLISTED
-        ? 'orange'
-        : 'gray'
-
   return (
-    <Badge variant={variant} icon={icon}>
+    <Badge variant={VISIBILITY_COLORS[visibility]} icon={icon}>
       {t(`visibility.${visibility.toLowerCase() as 'public' | 'public_unlisted' | 'team'}`)}
     </Badge>
   )

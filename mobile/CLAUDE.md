@@ -92,7 +92,7 @@ lib/
 │   │   ├── pdl.dart           # Single barrel: import this, never a file directly
 │   │   ├── elevation/         # PdlElevationProfile — two hand-written CustomPainters
 │   │   └── map/               # PdlMap, its overlays, and the signed-token mass tile layer
-│   ├── theme/             # pdl_colors, pdl_tokens, pdl_typography, pdl_icons, enum_colors
+│   ├── theme/             # pdl_colors, pdl_tokens, pdl_typography, pdl_icons, enum_colors (+ .generated, from contracts/brand-colors.yaml)
 │   ├── units/             # UnitSystem — metric/imperial
 │   ├── preferences/       # user_preferences_provider — theme, units, language, contactable
 │   ├── adaptive/          # kAppDestinations (the five tabs), breakpoints, AdaptiveScaffold, responsive grid

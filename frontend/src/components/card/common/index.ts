@@ -6,11 +6,3 @@ export { VisibilityBadge } from './VisibilityBadge'
 export { Stat, StatGroup } from './Stat'
 export { CardSkeleton } from './CardSkeleton'
 export { CardAction } from './CardAction'
-export {
-  BADGE_COLORS,
-  TYPE_COLORS,
-  STATUS_COLORS,
-  ROLE_COLORS,
-  SURFACE_COLORS,
-  VISIBILITY_COLORS,
-} from './badgeColors'

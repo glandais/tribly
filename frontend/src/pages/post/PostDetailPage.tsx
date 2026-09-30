@@ -41,12 +41,7 @@ import { useFormattedDate } from '../../utils/dateFormat'
 import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
-
-const statusColors: Record<Status, 'gray' | 'green' | 'red'> = {
-  [Status.DRAFT]: 'gray',
-  [Status.PUBLISHED]: 'green',
-  [Status.CANCELLED]: 'red',
-}
+import { STATUS_COLORS } from '@/lib/badgeColors.generated'
 
 export function PostDetailPage() {
   const { t } = useTranslation()
@@ -195,7 +190,7 @@ export function PostDetailPage() {
               <Title order={2} lineClamp={1}>
                 {post.name}
               </Title>
-              <Badge color={statusColors[post.status]}>
+              <Badge color={STATUS_COLORS[post.status]}>
                 {t(`status.${post.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
               </Badge>
             </Group>

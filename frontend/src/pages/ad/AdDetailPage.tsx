@@ -54,13 +54,7 @@ import { paths } from '@/config/paths'
 import { AdType, RentalPeriod, ReportTargetType, Status } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useAdDetailData } from './adDetailData'
-import { TYPE_COLORS } from '../../components/card/common/badgeColors'
-
-const statusColors: Record<Status, 'gray' | 'green' | 'red'> = {
-  [Status.DRAFT]: 'gray',
-  [Status.PUBLISHED]: 'green',
-  [Status.CANCELLED]: 'red',
-}
+import { AD_TYPE_COLORS, STATUS_COLORS } from '@/lib/badgeColors.generated'
 
 export function AdDetailPage() {
   const { t } = useTranslation()
@@ -226,10 +220,10 @@ export function AdDetailPage() {
                 {ad.name}
               </Title>
               <Group gap="xs">
-                <Badge color={TYPE_COLORS[ad.adType]}>
+                <Badge color={AD_TYPE_COLORS[ad.adType]}>
                   {t(`ads.adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`)}
                 </Badge>
-                <Badge color={statusColors[ad.status]}>
+                <Badge color={STATUS_COLORS[ad.status]}>
                   {t(`status.${ad.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
                 </Badge>
               </Group>

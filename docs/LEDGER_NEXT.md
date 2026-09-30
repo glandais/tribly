@@ -568,30 +568,7 @@ En service en staging ; la mise en production attend biketeam
 
 ## BRAND — Charte
 
-### Le code couleur métier n'est synchronisé par rien
-
-Constaté le 29 septembre 2026, en fusionnant `brand.md` dans [`BRANDING.md`](BRANDING.md).
-L'association énumération → famille de couleur (`RIDE` → blue, `CANCELLED` → red, `HC` → grape…)
-est écrite à la main côté web dans `frontend/src/components/card/common/badgeColors.ts` (types,
-statuts, rôles, surfaces, visibilités ; nom Mantine), `RouteDetailView.tsx` (`getClimbCategoryColor`,
-catégories de col) et `CardImage.tsx` (dégradés de repli), et côté mobile dans
-`mobile/lib/core/theme/enum_colors.dart` (paire `PdlTone`). Aucun test ne les compare ;
-`mobile/test/core/theme/pdl_tokens_test.dart` ne fige que les hexadécimaux du mobile. Une
-divergence ne casse rien de visible, c'est justement le risque.
-
-- [ ] `BRAND-2` **Source unique et générateur** : une source unique `contracts/brand-colors.yaml`
-      (énumération → famille, plus les dégradés de repli), et un générateur sur le modèle de
-      `pnpm generate-routes` qui produit `badgeColors.generated.ts` (qui remplace les trois sources
-      web) et `enum_colors.generated.dart`. Seul le **choix de la famille** est partagé ; chaque
-      client garde sa façon de la rendre (nuances Mantine d'un côté, `c.softXxx` de l'autre).
-      `BRANDING.md` §3.6 renverra alors au YAML au lieu de recopier les tableaux. **Hors sujet** :
-      les échelles de nuances, figées par Mantine.
-      **À trancher avant de coder** (relevé le 30 septembre 2026, en comparant les tables) : tout
-      concorde sauf `ROAD`, badgé `dark` au web et **gris doux** au mobile, dont seul le trait de
-      rappel est le near-black (`SurfaceTypeTone`, aplat `accentDark`). Une table « énumération →
-      famille » ne l'exprime pas : choisir une famille pour le badge, ou porter l'aplat à part dans
-      le YAML. Même question, à la marge, pour les états dérivés du mobile (`PdlDerivedTones` :
-      inscrit, terminée, supprimé), qu'aucune énumération ne porte.
+Rien d'ouvert : le code couleur métier a une source unique depuis `BRAND-2`.
 
 ---
 
