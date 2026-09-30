@@ -19,7 +19,7 @@ mixin _$DeviceTokenResponse {
 /// Access token
  String get accessToken;/// Token type (always 'Bearer')
  String get tokenType;/// Token expiry in seconds
- int get expiresIn;/// Refresh token
+ int get expiresIn;/// Refresh token, to keep in place of the one presented: it rotates at every refresh. Absent when the refresh came within the grace of a rotation made by another one — keep the token already held.
  String? get refreshToken;
 /// Create a copy of DeviceTokenResponse
 /// with the given fields replaced by the non-null parameter values.
@@ -231,7 +231,7 @@ class _DeviceTokenResponse implements DeviceTokenResponse {
 @override final  String tokenType;
 /// Token expiry in seconds
 @override final  int expiresIn;
-/// Refresh token
+/// Refresh token, to keep in place of the one presented: it rotates at every refresh. Absent when the refresh came within the grace of a rotation made by another one — keep the token already held.
 @override final  String? refreshToken;
 
 /// Create a copy of DeviceTokenResponse

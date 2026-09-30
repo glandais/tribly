@@ -8,6 +8,6 @@ export interface DeviceTokenResponse {
   tokenType: string
   /** Token expiry in seconds */
   expiresIn: number
-  /** Refresh token */
+  /** Refresh token, to keep in place of the one presented: it rotates at every refresh. Absent when the refresh came within the grace of a rotation made by another one — keep the token already held. */
   refreshToken?: string
 }

@@ -1202,8 +1202,7 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   Le point annexe de l'audit, la position exacte servie aux admins par l'édition, est `SEC-26`.
 
 - `SEC-11` **Le jeton d'accès des appareils vit 15 minutes, et leur refresh token tourne : M9**
-  (2026-09-30, API : description de `DeviceTokenResponse.refreshToken`, version attribuée à
-  l'intégration ; pas de migration — celle de `SEC-27` suffit) — le JWT d'un Karoo ou d'une montre
+  (2026-09-30, **API 9.1.2**, patch : description de `DeviceTokenResponse.refreshToken` ; pas de migration — celle de `SEC-27` suffit) — le JWT d'un Karoo ou d'une montre
   Garmin vivait 60 minutes sans pouvoir être révoqué. Décisions de l'utilisateur : **15 minutes**,
   comme le site (`DeviceJwtService`, `pedalons.device.jwt.access-token-expiry-minutes`), et **la
   rotation du refresh token des appareils tout de suite**, par le même composant que le site et

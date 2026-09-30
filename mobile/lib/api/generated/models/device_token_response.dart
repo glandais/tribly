@@ -20,7 +20,7 @@ abstract class DeviceTokenResponse with _$DeviceTokenResponse {
     /// Token expiry in seconds
     required int expiresIn,
 
-    /// Refresh token
+    /// Refresh token, to keep in place of the one presented: it rotates at every refresh. Absent when the refresh came within the grace of a rotation made by another one — keep the token already held.
     String? refreshToken,
   }) = _DeviceTokenResponse;
 

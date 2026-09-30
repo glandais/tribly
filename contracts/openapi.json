@@ -1874,7 +1874,7 @@
           },
           "refreshToken" : {
             "type" : "string",
-            "description" : "Refresh token"
+            "description" : "Refresh token, to keep in place of the one presented: it rotates at every refresh. Absent when the refresh came within the grace of a rotation made by another one — keep the token already held."
           }
         }
       },
@@ -21123,7 +21123,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "9.1.1",
+    "version" : "9.1.2",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

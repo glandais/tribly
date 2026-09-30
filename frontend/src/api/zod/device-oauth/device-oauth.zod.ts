@@ -70,7 +70,12 @@ export const DeviceTokenResponse = zod
     accessToken: zod.string().describe('Access token'),
     tokenType: zod.string().describe("Token type (always 'Bearer')"),
     expiresIn: zod.int().describe('Token expiry in seconds'),
-    refreshToken: zod.string().optional().describe('Refresh token'),
+    refreshToken: zod
+      .string()
+      .optional()
+      .describe(
+        'Refresh token, to keep in place of the one presented: it rotates at every refresh. Absent when the refresh came within the grace of a rotation made by another one — keep the token already held.'
+      ),
   })
   .describe('Device OAuth token response')
 
