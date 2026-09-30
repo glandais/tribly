@@ -13,6 +13,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -23,6 +24,13 @@ import org.junit.jupiter.api.Test;
 class DeviceOAuthThrottleTest extends AbstractResourceTest {
 
   @Inject AuthFailureRepository authFailureRepository;
+
+  /** Clean database and standard fixture (default domain, users, teams) before every test. */
+  @Override
+  @BeforeEach
+  public void setUp() {
+    super.setUp();
+  }
 
   private String newUserCode() {
     return given()
