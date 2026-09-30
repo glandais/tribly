@@ -4,7 +4,14 @@ import { solidPng, uploadImage } from './support/ads'
 import { ApiError, apiDelete, apiGet, apiPut } from './support/api'
 import { addMember, markdownMedia, newTeam, newUser, signIn } from './support/data'
 import { frenchDateTime, parisDaysAhead, parisInstant } from './support/dates'
-import { addImage, richText, toolbarButton, typeRichText } from './support/editor'
+import {
+  addImage,
+  editorFocusSettled,
+  KEY,
+  richText,
+  toolbarButton,
+  typeRichText,
+} from './support/editor'
 import { expect, test, unique } from './support/fixtures'
 import {
   about,
@@ -134,6 +141,7 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
     // Enter would then replace the linked words.
     const selection = () => page.evaluate(() => window.getSelection()?.toString() ?? '')
     await expect.poll(selection).toBe(linkText)
+    await editorFocusSettled(page)
     // Not End either (only scrolls on macOS): ArrowRight collapses the selection to its end.
     await page.keyboard.press('ArrowRight')
     await expect.poll(selection).toBe('')
@@ -271,9 +279,9 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
     const editor = richText(main)
     await expect(editor.locator('h2')).toHaveText('Au programme')
     await expectImageLoaded(editor.getByRole('img', { name: IMAGE_ALT }))
-    // The heading is short enough not to wrap on a phone, so End is the end of its text.
+    // The heading is short enough not to wrap on a phone, so the line's end is the end of its text.
     await editor.locator('h2').click()
-    await page.keyboard.press('End')
+    await page.keyboard.press(KEY.lineEnd)
     await page.keyboard.type(' du dimanche')
     await expect(editor.locator('h2')).toHaveText('Au programme du dimanche')
 
@@ -561,7 +569,7 @@ test.describe('regressions', () => {
     // The author types the last words and clicks « Enregistrer » straight away: the clock stands
     // still, so the click lands inside the debounce whatever the machine's speed.
     await editor.click()
-    await page.keyboard.press('ControlOrMeta+End')
+    await page.keyboard.press(KEY.documentEnd)
     await page.clock.pauseAt(Date.now() + 60_000)
     await page.keyboard.type(' Relu.')
     await expect(editor, 'the editor shows the typed words').toHaveText('Premier jet. Relu.')

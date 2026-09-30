@@ -27,6 +27,26 @@ export const richText = (scope: Locator | Page, name: string = EDITOR_LABEL.desc
   scope.getByRole('textbox', { name, exact: true })
 
 /**
+ * Caret keys that mean the same on every platform the suite runs on. Chromium follows the host's
+ * editing conventions: on macOS Home and End only scroll, and Shift+Home selects up to the start
+ * of the document.
+ */
+const MAC = process.platform === 'darwin'
+export const KEY = {
+  lineEnd: MAC ? 'Meta+ArrowRight' : 'End',
+  documentEnd: MAC ? 'Meta+ArrowDown' : 'Control+End',
+} as const
+
+/**
+ * Lets a Tiptap `focus()` finish. It focuses at once on Android (the mobile project's user agent),
+ * then writes its selection back into the DOM on the next animation frame: a key pressed in
+ * between is undone. Its frame callback was queued first, so it has run once ours runs.
+ */
+export async function editorFocusSettled(page: Page) {
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+}
+
+/**
  * Replaces the editor's whole content with `text`, typed as a user would (plain words: its markdown
  * is itself).
  */
