@@ -1,25 +1,20 @@
-// `Visibility` est à la fois un widget Flutter et un enum du contrat : ici
-// c'est l'enum qui compte.
-import 'package:flutter/widgets.dart' hide Visibility;
+import 'package:flutter/widgets.dart';
 
-import '../../api/generated/models/ad_type.dart';
-import '../../api/generated/models/climb_category.dart';
-import '../../api/generated/models/publication_type.dart';
-import '../../api/generated/models/status.dart';
-import '../../api/generated/models/surface_type.dart';
-import '../../api/generated/models/team_role.dart';
-import '../../api/generated/models/visibility.dart';
+import 'enum_colors.generated.dart';
 import 'pdl_colors.dart';
+
+export 'enum_colors.generated.dart';
 
 /// La teinte d'un badge : un aplat, une paire douce, et la façon de la rendre.
 ///
 /// Les badges de la charte sont **doux** par défaut — fond pâle, texte foncé
 /// de la même famille. Une seule série fait exception, les catégories de col,
-/// qui se rendent en **aplat** : d'où [filledStyle] et [onFill].
+/// qui se rendent en **aplat** (`style: filled` dans le YAML) : d'où
+/// [filledStyle] et [onFill].
 ///
-/// [onFill] n'est pas décoratif : `CAT3` est jaune et porte du `#212529`, là
-/// où les quatre autres portent du blanc. Sans ce champ, une catégorie sur
-/// cinq serait illisible.
+/// [onFill] n'est pas décoratif : la famille jaune (`CAT3`) porte du
+/// `#212529`, là où les autres portent du blanc. Sans ce champ, une catégorie
+/// sur cinq serait illisible.
 @immutable
 class PdlTone {
   const PdlTone({
@@ -59,120 +54,44 @@ class PdlTone {
       filledStyle = false;
 }
 
-// ── Statut de publication ───────────────────────────────────────────────────
+// ── Rendu des familles ──────────────────────────────────────────────────────
 
-extension StatusTone on Status {
-  PdlTone tone(PdlColors c) => switch (this) {
-    Status.draft => PdlTone.pair(c.softGray, c.neutral),
-    Status.published => PdlTone.pair(c.softGreen, c.success),
-    Status.cancelled => PdlTone.pair(c.softRed, c.danger),
-    Status.$unknown => PdlTone.pair(c.softGray, c.neutral),
-  };
-}
-
-// ── Rôle dans l'équipe ──────────────────────────────────────────────────────
-
-extension TeamRoleTone on TeamRole {
-  PdlTone tone(PdlColors c) => switch (this) {
-    TeamRole.admin => PdlTone.pair(c.softGrape, c.accentGrape),
-    TeamRole.organizer => PdlTone.pair(c.softBlue, c.accentBlue),
-    TeamRole.member => PdlTone.pair(c.softGray, c.neutral),
-    TeamRole.$unknown => PdlTone.pair(c.softGray, c.neutral),
-  };
-}
-
-// ── Revêtement ──────────────────────────────────────────────────────────────
-
-extension SurfaceTypeTone on SurfaceType {
-  /// `road` est le seul cas où l'aplat n'appartient pas à la famille du fond
-  /// doux : la charte lui donne le near-black `#2e2e2e` en trait de rappel de
-  /// tracé, tout en le badgeant en gris.
-  PdlTone tone(PdlColors c) => switch (this) {
-    SurfaceType.road => PdlTone.pair(c.softGray, c.accentDark),
-    SurfaceType.gravel => PdlTone.pair(c.softOrange, c.accentOrange),
-    SurfaceType.mtb => PdlTone.pair(c.softGreen, c.success),
-    SurfaceType.mixed => PdlTone.pair(c.softTeal, c.accentTeal),
-    SurfaceType.$unknown => PdlTone.pair(c.softGray, c.neutral),
-  };
-}
-
-// ── Catégorie de col ────────────────────────────────────────────────────────
-
-extension ClimbCategoryTone on ClimbCategory {
-  /// La **seule** famille rendue en aplat (`filledStyle`). `cat3` porte du
-  /// texte foncé, les autres du blanc.
-  PdlTone tone(PdlColors c) => switch (this) {
-    ClimbCategory.hc => PdlTone(
-      fill: c.accentGrape,
-      soft: c.softGrape.background,
-      onSoft: c.softGrape.foreground,
-      filledStyle: true,
-    ),
-    ClimbCategory.cat1 => PdlTone(
-      fill: c.danger,
-      soft: c.softRed.background,
-      onSoft: c.softRed.foreground,
-      filledStyle: true,
-    ),
-    ClimbCategory.cat2 => PdlTone(
-      fill: c.accentOrange,
-      soft: c.softOrange.background,
-      onSoft: c.softOrange.foreground,
-      filledStyle: true,
-    ),
-    ClimbCategory.cat3 => PdlTone(
+/// Comment le mobile rend chaque famille du code couleur métier.
+///
+/// Le choix de la famille d'une valeur d'énumération vient de
+/// `contracts/brand-colors.yaml`, généré dans `enum_colors.generated.dart`
+/// (`StatusTone`, `SurfaceTypeTone`…) ; seul le rendu est écrit ici. Une
+/// famille ajoutée au YAML fait échouer ces `switch` tant qu'elle n'y est pas.
+extension PdlFamilyTone on PdlFamily {
+  /// Le fond doux de la famille, et son aplat en trait de rappel.
+  PdlTone soft(PdlColors c) => switch (this) {
+    PdlFamily.indigo => PdlTone.pair(c.softIndigo, c.primary),
+    PdlFamily.blue => PdlTone.pair(c.softBlue, c.accentBlue),
+    PdlFamily.green => PdlTone.pair(c.softGreen, c.success),
+    PdlFamily.red => PdlTone.pair(c.softRed, c.danger),
+    PdlFamily.yellow => PdlTone(
       fill: c.warning,
       soft: c.warningSoft,
       onSoft: c.warningOnSoft,
       onFill: c.neutralOnSoft,
-      filledStyle: true,
     ),
-    ClimbCategory.cat4 => PdlTone(
-      fill: c.success,
-      soft: c.softGreen.background,
-      onSoft: c.softGreen.foreground,
+    PdlFamily.orange => PdlTone.pair(c.softOrange, c.accentOrange),
+    PdlFamily.grape => PdlTone.pair(c.softGrape, c.accentGrape),
+    PdlFamily.teal => PdlTone.pair(c.softTeal, c.accentTeal),
+    PdlFamily.gray => PdlTone.pair(c.softGray, c.neutral),
+  };
+
+  /// La même teinte, rendue en aplat (`filledStyle`).
+  PdlTone filled(PdlColors c) {
+    final PdlTone t = soft(c);
+    return PdlTone(
+      fill: t.fill,
+      soft: t.soft,
+      onSoft: t.onSoft,
+      onFill: t.onFill,
       filledStyle: true,
-    ),
-    ClimbCategory.$unknown => PdlTone(
-      fill: c.neutral,
-      soft: c.softGray.background,
-      onSoft: c.softGray.foreground,
-      filledStyle: true,
-    ),
-  };
-}
-
-// ── Type d'annonce ──────────────────────────────────────────────────────────
-
-extension AdTypeTone on AdType {
-  PdlTone tone(PdlColors c) => switch (this) {
-    AdType.sale => PdlTone.pair(c.softGreen, c.success),
-    AdType.rental => PdlTone.pair(c.softIndigo, c.primary),
-    AdType.wanted => PdlTone.pair(c.softOrange, c.accentOrange),
-    AdType.$unknown => PdlTone.pair(c.softGray, c.neutral),
-  };
-}
-
-// ── Visibilité ──────────────────────────────────────────────────────────────
-
-extension VisibilityTone on Visibility {
-  PdlTone tone(PdlColors c) => switch (this) {
-    Visibility.public => PdlTone.pair(c.softBlue, c.accentBlue),
-    Visibility.publicUnlisted => PdlTone.pair(c.softOrange, c.accentOrange),
-    Visibility.team => PdlTone.pair(c.softGray, c.neutral),
-    Visibility.$unknown => PdlTone.pair(c.softGray, c.neutral),
-  };
-}
-
-// ── Type de publication ─────────────────────────────────────────────────────
-
-extension PublicationTypeTone on PublicationType {
-  PdlTone tone(PdlColors c) => switch (this) {
-    PublicationType.ride => PdlTone.pair(c.softBlue, c.accentBlue),
-    PublicationType.post => PdlTone.pair(c.softGrape, c.accentGrape),
-    PublicationType.trip => PdlTone.pair(c.softTeal, c.accentTeal),
-    PublicationType.$unknown => PdlTone.pair(c.softGray, c.neutral),
-  };
+    );
+  }
 }
 
 // ── États dérivés côté client ───────────────────────────────────────────────

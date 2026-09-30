@@ -49,11 +49,6 @@ abstract final class BrandColors {
   static const limeLight = Color(0xFF82c91e);
   static const limeDark = Color(0xFF66a80f);
 
-  // "dark" in Mantine is a near-black scale used for ROAD surface type.
-  // In dark mode, use dark-2 (#828282) for visibility on dark backgrounds.
-  static const darkLight = Color(0xFF2e2e2e);
-  static const darkDark = Color(0xFF828282);
-
   // ── Map colors (hex strings for MapLibre paint properties) ─────────────
   static const mapRouteLineHexLight = '#228be6';
   static const mapRouteLineHexDark = '#4dabf7';

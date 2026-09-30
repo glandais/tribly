@@ -15,11 +15,10 @@ Pour le web, le code reste la référence :
 contredit, c'est `theme.ts` qui a raison — et ce fichier qu'il faut corriger.
 
 **Le code couleur métier est sémantique, jamais esthétique** : une couleur = un type d'entité, un
-statut, un rôle, un revêtement ou une catégorie de col. Les tableaux du §3.6 font référence ; Flutter
-mappe les mêmes énumérations dans `core/theme/enum_colors.dart`, le web dans
-`frontend/src/components/card/common/badgeColors.ts`, sauf les catégories de col
-(`getClimbCategoryColor` dans `RouteDetailView.tsx`). Un changement ici est un changement dans les
-deux, sinon les clients divergent en silence.
+statut, un rôle, un revêtement ou une catégorie de col. Il a **une source unique**,
+[`contracts/brand-colors.yaml`](../contracts/brand-colors.yaml) (§3.6), dont `pnpm generate-brand-colors`
+tire `badgeColors.generated.ts` au web et `enum_colors.generated.dart` au mobile : le changer
+ailleurs n'est pas possible, et le changer là change les deux clients.
 
 Trois pièges à connaître :
 
@@ -280,36 +279,32 @@ sombre.
 
 ### 3.6 Code couleur métier (à respecter à la lettre)
 
-Couleurs données en nom Mantine et en nuance 6 ; en sombre, l'aplat passe en nuance 8 (§3.4).
+La table fait foi dans [`contracts/brand-colors.yaml`](../contracts/brand-colors.yaml), et nulle
+part ailleurs : pour chaque énumération du contrat, la **famille** de chaque valeur, le **style** de
+la série, et les dégradés de repli. Après l'avoir éditée, `pnpm generate-brand-colors` (depuis
+`frontend/`) régénère `frontend/src/lib/badgeColors.generated.ts` et
+`mobile/lib/core/theme/enum_colors.generated.dart` ; le générateur refuse une valeur absente du
+contrat, une valeur du contrat sans famille et une famille hors liste. Seul le choix de la famille
+est partagé : le web la rend en nuances Mantine (nuance 6 en aplat, 8 en sombre, fond doux du §3.4),
+le mobile par `PdlFamilyTone` dans `enum_colors.dart`.
 
-**Type de contenu** — badge et dégradé de l'image de repli (135°) :
+Ce que la table ne dit pas d'elle-même :
 
-| Type | Libellé FR | Badge | Dégradé de repli |
-|---|---|---|---|
-| `RIDE` | Sortie | `blue` `#228be6` | `#228be6` (blue-6) → `#22b8cf` (cyan-5) |
-| `POST` | Publication | `grape` `#be4bdb` | `#be4bdb` (grape-6) → `#f06595` (pink-5) |
-| `TRIP` | Voyage | `teal` `#12b886` | `#12b886` (teal-6) → `#51cf66` (green-5) |
-| `TEAM` | Équipe | — | `#7950f2` (violet-6) → `#5c7cfa` (indigo-5) |
-| `AD` | Annonce | — | `#ff922b` (orange-5) → `#ffd43b` (yellow-4) |
+- **Doux par défaut, aplat pour les seules catégories de col** (`style: filled`). En aplat, le jaune
+  de `CAT3` porte un texte foncé (`#212529`), les autres du blanc — `autoContrast` au web, `onFill`
+  au mobile.
+- **`ROAD` est gris doux partout**, badge comme trait de rappel. Le near-black `dark` qu'il portait
+  au web (et en trait de rappel au mobile) n'est plus une famille de badge : sa famille est `gray`,
+  comme `DRAFT`, `MEMBER` et `TEAM`.
+- **Une valeur inconnue** d'un client en retard sur le contrat se rend en `gray`.
+- **Les états dérivés côté client** — « Inscrit » (indigo), « Terminée » (gris foncé), « Supprimé »
+  (rouge **en aplat**, pour se distinguer de `CANCELLED`) — ne sont portés par aucune énumération :
+  ils restent hors du YAML (`PdlDerivedTones` au mobile, `DeletedBadge` au web).
+- **Les dégradés de repli** (image d'une carte sans photo, 135°) sont des paires de nuances Mantine
+  (`blue-6` → `cyan-5` pour une sortie…) ; le générateur en tire les variables CSS du web et les
+  hexadécimaux du mobile.
 
-**Type d'annonce** : `SALE` (Vente) `green` `#40c057` · `RENTAL` (Location) `indigo` `#4c6ef5` ·
-`WANTED` (Recherche) `orange` `#fd7e14`.
-
-**Statut** : `DRAFT` (Brouillon) `gray` `#868e96` · `PUBLISHED` (Publié) `green` `#40c057` ·
-`CANCELLED` (Annulé) `red` `#fa5252`.
-
-**Rôle dans l'équipe** : `ADMIN` `grape` `#be4bdb` · `ORGANIZER` `blue` `#228be6` ·
-`MEMBER` `gray` `#868e96`.
-
-**Revêtement du parcours** : `ROAD` (Route) `dark` — `#2e2e2e` en clair, `#828282` en sombre ·
-`GRAVEL` `orange` `#fd7e14` · `MTB` (VTT) `green` `#40c057` · `MIXED` (Mixte) `teal` `#12b886`.
-
-**Visibilité** : `PUBLIC` `blue` `#228be6` · `PUBLIC_UNLISTED` `orange` `#fd7e14` ·
-`TEAM` `gray` `#868e96`. Les trois valeurs de l'énumération `Visibility` sont colorées dans les deux
-clients.
-
-**Catégorie de col** : `HC` `grape` `#be4bdb` · `CAT1` `red` `#fa5252` · `CAT2` `orange` `#fd7e14` ·
-`CAT3` `yellow` `#fab005` · `CAT4` `green` `#40c057`.
+Les libellés de ces valeurs viennent des traductions de chaque client ; le lexique est au §8.2.
 
 ### 3.7 Couleurs cartographiques
 
@@ -914,7 +909,7 @@ production (voir l'en-tête). [`pedalons.css`](pedalons.css) en est la version c
   --pdl-ad-rental: #4c6ef5;
   --pdl-ad-wanted: #fd7e14;
 
-  --pdl-surface-road: #2e2e2e;
+  --pdl-surface-road: #868e96;
   --pdl-surface-gravel: #fd7e14;
   --pdl-surface-mtb: #40c057;
   --pdl-surface-mixed: #12b886;
@@ -1018,7 +1013,7 @@ production (voir l'en-tête). [`pedalons.css`](pedalons.css) en est la version c
     --pdl-ad-rental: #3b5bdb;
     --pdl-ad-wanted: #e8590c;
 
-    --pdl-surface-road: #828282;
+    --pdl-surface-road: #343a40;
     --pdl-surface-gravel: #e8590c;
     --pdl-surface-mtb: #2f9e44;
     --pdl-surface-mixed: #099268;
@@ -1110,7 +1105,7 @@ production (voir l'en-tête). [`pedalons.css`](pedalons.css) en est la version c
   --pdl-ad-rental: #3b5bdb;
   --pdl-ad-wanted: #e8590c;
 
-  --pdl-surface-road: #828282;
+  --pdl-surface-road: #343a40;
   --pdl-surface-gravel: #e8590c;
   --pdl-surface-mtb: #2f9e44;
   --pdl-surface-mixed: #099268;

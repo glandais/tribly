@@ -1,8 +1,9 @@
 import { Image, Box, Center } from '@mantine/core'
 import { IconBike, IconArticle, IconRoute, IconUsersGroup, IconTag } from '@tabler/icons-react'
 import type { MediaDto } from '@/api/dto'
+import { FALLBACK_GRADIENTS } from '@/lib/badgeColors.generated'
 
-type CardType = 'RIDE' | 'POST' | 'TRIP' | 'TEAM' | 'AD'
+type CardType = keyof typeof FALLBACK_GRADIENTS
 
 interface CardImageProps {
   media: MediaDto
@@ -23,14 +24,6 @@ const typeIcons: Record<CardType, typeof IconBike> = {
   TRIP: IconRoute,
   TEAM: IconUsersGroup,
   AD: IconTag,
-}
-
-const typeGradients: Record<CardType, string> = {
-  RIDE: 'linear-gradient(135deg, var(--mantine-color-blue-6) 0%, var(--mantine-color-cyan-5) 100%)',
-  POST: 'linear-gradient(135deg, var(--mantine-color-grape-6) 0%, var(--mantine-color-pink-5) 100%)',
-  TRIP: 'linear-gradient(135deg, var(--mantine-color-teal-6) 0%, var(--mantine-color-green-5) 100%)',
-  TEAM: 'linear-gradient(135deg, var(--mantine-color-violet-6) 0%, var(--mantine-color-indigo-5) 100%)',
-  AD: 'linear-gradient(135deg, var(--mantine-color-orange-5) 0%, var(--mantine-color-yellow-4) 100%)',
 }
 
 export function CardImage({ media, alt, height = 160, type, thumbnailUrl }: CardImageProps) {
@@ -56,7 +49,7 @@ export function CardImage({ media, alt, height = 160, type, thumbnailUrl }: Card
   // Route thumbnails are shown via RouteThumbnail component
   if (type) {
     const Icon = typeIcons[type]
-    const gradient = typeGradients[type]
+    const gradient = FALLBACK_GRADIENTS[type]
 
     return (
       <Box

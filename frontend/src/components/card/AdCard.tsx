@@ -3,18 +3,10 @@ import { IconCalendar, IconMapPin, IconCurrencyEuro } from '@tabler/icons-react'
 import { Group, Box, Stack } from '@mantine/core'
 import { Card, CardContent, CardTitle, CardDescription, CardImage } from './common'
 import { TypeBadge, StatusBadge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
-import { TYPE_COLORS } from './common'
 import { EntityLogo } from '../common/EntityLogo'
 import { FormattedDateTime } from '../common/FormattedDate'
 import { paths } from '@/config/paths'
 import { AdDto, AdType, RentalPeriod } from '@/api/dto'
-
-// Map ad types to TypeBadge type keys
-const adTypeToTypeKey: Record<AdType, keyof typeof TYPE_COLORS> = {
-  [AdType.SALE]: 'SALE',
-  [AdType.RENTAL]: 'RENTAL',
-  [AdType.WANTED]: 'WANTED',
-}
 
 interface AdCardProps {
   ad: AdDto
@@ -64,7 +56,7 @@ export function AdCard({ ad }: AdCardProps) {
             </Box>
           </Group>
           <Stack gap={4} align="flex-end" ml="sm">
-            <TypeBadge type={adTypeToTypeKey[ad.adType]}>
+            <TypeBadge type={ad.adType}>
               {t(`ads.adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`)}
             </TypeBadge>
             <StatusBadge status={ad.status}>

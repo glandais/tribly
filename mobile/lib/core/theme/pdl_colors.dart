@@ -68,7 +68,6 @@ class PdlColors extends ThemeExtension<PdlColors> {
     required this.accentCyan,
     required this.accentLime,
     required this.accentPink,
-    required this.accentDark,
     required this.blueSoft,
     required this.blueOnSoft,
     required this.grapeSoft,
@@ -147,9 +146,6 @@ class PdlColors extends ThemeExtension<PdlColors> {
   final Color accentCyan;
   final Color accentLime;
   final Color accentPink;
-
-  /// Revêtement « route » — near-black en clair, `dark-2` en sombre.
-  final Color accentDark;
 
   // ── Paires douces de badge propres à une famille ───────────────────────
   // Les familles indigo, verte, rouge et grise sont exactement
@@ -274,7 +270,6 @@ class PdlColors extends ThemeExtension<PdlColors> {
     accentCyan: Color(0xFF15AABF),
     accentLime: Color(0xFF82C91E),
     accentPink: Color(0xFFE64980),
-    accentDark: Color(0xFF2E2E2E),
     blueSoft: Color(0xFFD0EBFF),
     blueOnSoft: Color(0xFF1864AB),
     grapeSoft: Color(0xFFF3D9FA),
@@ -337,7 +332,6 @@ class PdlColors extends ThemeExtension<PdlColors> {
     accentCyan: Color(0xFF0C8599),
     accentLime: Color(0xFF66A80F),
     accentPink: Color(0xFFC2255C),
-    accentDark: Color(0xFF828282),
     blueSoft: Color(0xFF0C3255),
     blueOnSoft: Color(0xFFE7F5FF),
     grapeSoft: Color(0xFF43174E),
@@ -404,7 +398,6 @@ class PdlColors extends ThemeExtension<PdlColors> {
     Color? accentCyan,
     Color? accentLime,
     Color? accentPink,
-    Color? accentDark,
     Color? blueSoft,
     Color? blueOnSoft,
     Color? grapeSoft,
@@ -466,7 +459,6 @@ class PdlColors extends ThemeExtension<PdlColors> {
       accentCyan: accentCyan ?? this.accentCyan,
       accentLime: accentLime ?? this.accentLime,
       accentPink: accentPink ?? this.accentPink,
-      accentDark: accentDark ?? this.accentDark,
       blueSoft: blueSoft ?? this.blueSoft,
       blueOnSoft: blueOnSoft ?? this.blueOnSoft,
       grapeSoft: grapeSoft ?? this.grapeSoft,
@@ -535,7 +527,6 @@ class PdlColors extends ThemeExtension<PdlColors> {
       accentCyan: c(accentCyan, other.accentCyan),
       accentLime: c(accentLime, other.accentLime),
       accentPink: c(accentPink, other.accentPink),
-      accentDark: c(accentDark, other.accentDark),
       blueSoft: c(blueSoft, other.blueSoft),
       blueOnSoft: c(blueOnSoft, other.blueOnSoft),
       grapeSoft: c(grapeSoft, other.grapeSoft),

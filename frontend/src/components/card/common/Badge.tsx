@@ -3,12 +3,16 @@ import { useTranslation } from 'react-i18next'
 import { Badge as MantineBadge } from '@mantine/core'
 import { IconTrash } from '@tabler/icons-react'
 import {
-  TYPE_COLORS,
+  PUBLICATION_TYPE_COLORS,
+  AD_TYPE_COLORS,
   STATUS_COLORS,
-  ROLE_COLORS,
-  SURFACE_COLORS,
+  TEAM_ROLE_COLORS,
+  SURFACE_TYPE_COLORS,
   VISIBILITY_COLORS,
-} from './badgeColors'
+} from '@/lib/badgeColors.generated'
+
+// A publication type or an ad type: both series share the `TypeBadge`.
+const TYPE_COLORS = { ...PUBLICATION_TYPE_COLORS, ...AD_TYPE_COLORS }
 
 // Direct color variants
 type ColorVariant =
@@ -109,28 +113,28 @@ export function DeletedBadge() {
 }
 
 interface RoleBadgeProps {
-  role: keyof typeof ROLE_COLORS
+  role: keyof typeof TEAM_ROLE_COLORS
   children: ReactNode
   icon?: ReactNode
 }
 
 export function RoleBadge({ role, children, icon }: RoleBadgeProps) {
   return (
-    <MantineBadge color={ROLE_COLORS[role]} variant="light" size="sm" leftSection={icon}>
+    <MantineBadge color={TEAM_ROLE_COLORS[role]} variant="light" size="sm" leftSection={icon}>
       {children}
     </MantineBadge>
   )
 }
 
 interface SurfaceBadgeProps {
-  surface: keyof typeof SURFACE_COLORS
+  surface: keyof typeof SURFACE_TYPE_COLORS
   children: ReactNode
   icon?: ReactNode
 }
 
 export function SurfaceBadge({ surface, children, icon }: SurfaceBadgeProps) {
   return (
-    <MantineBadge color={SURFACE_COLORS[surface]} variant="light" size="sm" leftSection={icon}>
+    <MantineBadge color={SURFACE_TYPE_COLORS[surface]} variant="light" size="sm" leftSection={icon}>
       {children}
     </MantineBadge>
   )

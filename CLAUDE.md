@@ -142,6 +142,8 @@ Five rules hold whatever the change:
 
 **UI routes contract**: `contracts/routes.yaml` is the single source of truth (multi-locale path templates, deeplink/mobile flags). Edit it, then run `pnpm generate-routes` in frontend/ to regenerate `paths.generated.ts`, `paths.generated.dart`, the apple-app-site-association file, and the deeplink section of `AndroidManifest.xml`. Never hand-edit those. See [docs/APP_LINKS.md](docs/APP_LINKS.md).
 
+**Business colour code**: `contracts/brand-colors.yaml` (enum value → colour family, fallback gradients) is its single source. Edit it, then run `pnpm generate-brand-colors` in frontend/ to regenerate `frontend/src/lib/badgeColors.generated.ts` and `mobile/lib/core/theme/enum_colors.generated.dart`. Never hand-edit those, and never add a local colour table for an enum in a component. See [docs/BRANDING.md](docs/BRANDING.md) §3.6.
+
 ## Formatting
 
 ```bash

@@ -13,6 +13,7 @@ import { useUnits } from '@/hooks/useUnits'
 import { useGpsConnections } from '@/hooks/useGpsConnections'
 import { useAuth } from '@/hooks/useAuth'
 import { FormattedDate } from '@/components/common/FormattedDate'
+import { BADGE_VARIANTS, CLIMB_CATEGORY_COLORS } from '@/lib/badgeColors.generated'
 
 interface RouteDetailViewProps {
   route: RouteDetailDto
@@ -24,23 +25,6 @@ interface RouteDetailViewProps {
   showInfo?: boolean
   /** When set, the map shows a fullscreen action linking to this path (built via paths.xxx). */
   fullscreenPath?: string
-}
-
-const getClimbCategoryColor = (category: string): string => {
-  switch (category) {
-    case 'HC':
-      return 'grape'
-    case 'CAT1':
-      return 'red'
-    case 'CAT2':
-      return 'orange'
-    case 'CAT3':
-      return 'yellow'
-    case 'CAT4':
-      return 'green'
-    default:
-      return 'gray'
-  }
 }
 
 /**
@@ -207,8 +191,8 @@ export function RouteDetailView({
                       <Group gap="xs">
                         {climb.category && (
                           <Badge
-                            color={getClimbCategoryColor(climb.category)}
-                            variant="filled"
+                            color={CLIMB_CATEGORY_COLORS[climb.category]}
+                            variant={BADGE_VARIANTS.ClimbCategory}
                             size="sm"
                           >
                             {t(

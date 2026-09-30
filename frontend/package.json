@@ -27,13 +27,14 @@
     "e2e:typecheck": "tsc -p e2e --noEmit",
     "generate-api": "rm -rf src/api && orval --config orval.config.js",
     "generate-routes": "node ../scripts/generate-routes.mjs",
+    "generate-brand-colors": "node ../scripts/generate-brand-colors.mjs",
     "ssr-audit": "node ../scripts/ssr-audit.mjs",
     "ssr-audit:verify": "node ../scripts/ssr-audit.mjs --verify",
     "i18n:lint": "i18next-cli lint",
     "i18n:status": "i18next-cli status",
     "i18n:extract": "i18next-cli extract",
     "generate-icons": "pwa-assets-generator --config pwa-assets.config.ts",
-    "check": "pnpm install && pnpm generate-api && pnpm generate-routes && pnpm format && pnpm typecheck && pnpm lint && pnpm build"
+    "check": "pnpm install && pnpm generate-api && pnpm generate-routes && pnpm generate-brand-colors && pnpm format && pnpm typecheck && pnpm lint && pnpm build"
   },
   "dependencies": {
     "@mantine/core": "^9.6.2",

@@ -24,14 +24,8 @@ import { TripLayout } from '../../components/trip/TripLayout'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { FormattedDateTime } from '../../components/common/FormattedDate'
-import { Status } from '@/api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
-
-const statusColors: Record<Status, 'gray' | 'green' | 'red'> = {
-  [Status.DRAFT]: 'gray',
-  [Status.PUBLISHED]: 'green',
-  [Status.CANCELLED]: 'red',
-}
+import { STATUS_COLORS } from '@/lib/badgeColors.generated'
 
 export function StageDetailPage() {
   const { t } = useTranslation()
@@ -138,7 +132,7 @@ export function StageDetailPage() {
                 {stage.name}
               </Title>
             </Box>
-            <Badge color={statusColors[trip.status]}>
+            <Badge color={STATUS_COLORS[trip.status]}>
               {t(`status.${trip.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
             </Badge>
           </Group>

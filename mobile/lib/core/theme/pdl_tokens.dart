@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'enum_colors.generated.dart';
 import 'pdl_colors.dart';
 
 /// Espacements de la charte (§1.1.7). Les valeurs sont en pixels logiques.
@@ -179,33 +180,14 @@ abstract final class PdlShadows {
 /// Dégradés de repli des bandeaux média (§1.1.5).
 ///
 /// 135° en CSS, soit `topLeft → bottomRight`. **Identiques dans les deux
-/// modes** : ils portent une icône blanche à 80 %.
+/// modes** : ils portent une icône blanche à 80 %. Les couleurs viennent de
+/// `contracts/brand-colors.yaml` (`PdlFallbackGradients`, généré).
 abstract final class PdlGradients {
-  static const LinearGradient ride = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFF228BE6), Color(0xFF22B8CF)],
-  );
-  static const LinearGradient post = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFFBE4BDB), Color(0xFFF06595)],
-  );
-  static const LinearGradient trip = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFF12B886), Color(0xFF51CF66)],
-  );
-  static const LinearGradient team = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFF7950F2), Color(0xFF5C7CFA)],
-  );
-  static const LinearGradient ad = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFFFF922B), Color(0xFFFFD43B)],
-  );
+  static const LinearGradient ride = PdlFallbackGradients.ride;
+  static const LinearGradient post = PdlFallbackGradients.post;
+  static const LinearGradient trip = PdlFallbackGradients.trip;
+  static const LinearGradient team = PdlFallbackGradients.team;
+  static const LinearGradient ad = PdlFallbackGradients.ad;
 
   /// Voile haut de carte : 150 px, `.90 → .55 à 45 % → 0`.
   static LinearGradient scrimTop(PdlColors c) => LinearGradient(

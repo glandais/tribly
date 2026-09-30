@@ -69,12 +69,7 @@ import { EntityLogo } from '../../components/common/EntityLogo'
 import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
 import { CommentSection } from '../../components/comment'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
-
-const statusColors: Record<Status, 'gray' | 'green' | 'red'> = {
-  [Status.DRAFT]: 'gray',
-  [Status.PUBLISHED]: 'green',
-  [Status.CANCELLED]: 'red',
-}
+import { STATUS_COLORS } from '@/lib/badgeColors.generated'
 
 export function TripDetailPage() {
   const { t } = useTranslation()
@@ -294,7 +289,7 @@ export function TripDetailPage() {
             <Title order={2} lineClamp={1}>
               {trip.name}
             </Title>
-            <Badge color={statusColors[trip.status]}>
+            <Badge color={STATUS_COLORS[trip.status]}>
               {t(`status.${trip.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
             </Badge>
           </Group>
