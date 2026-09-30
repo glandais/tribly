@@ -1006,7 +1006,7 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
 
 ## MIG — Migration biketeam
 
-- `MIG-5` **Une équipe migrée ne se supprime plus** (2026-09-30, API `7.3.0`) — `DELETE
+- `MIG-5` **Une équipe migrée ne se supprime plus** (2026-09-30, API `7.1.0`) — `DELETE
   /api/teams/{slug}` mettait à la corbeille une équipe basculée depuis biketeam, qui aurait alors
   redirigé ses anciennes adresses vers des 404. `TeamService.delete` refuse désormais toute équipe
   qu'une ligne `TEAM` de `biketeam_migration_map` désigne (`BiketeamMigrationMapRepository.isMigratedTeam`),
