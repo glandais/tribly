@@ -149,11 +149,22 @@ helper — reuse before writing a new one, and keep journey-only helpers in thei
 
 ## How sessions work
 
-`global-setup.ts` logs each role in once and writes a Playwright `storageState` holding the
-`refresh_token` cookie, exactly as the backend sets it; the app and its SSR server turn that cookie
-into a session on the first request. The admin logs in by OTP, which the backend rate-limits to
-3 per 5 minutes — so on later runs global-setup refreshes the saved sessions instead of logging in
-again, and only logs in when a session no longer refreshes (after `reset`).
+**The refresh token rotates at every refresh** (ledger `SEC-27`): the refresh answers with a new
+token, the one presented is honoured for another minute, and presented after that it is taken for a
+stolen copy and **revokes the session**. The browser refreshes on every document (the SSR server
+does, and hands it the new cookie). So a session has **one owner** — the test, or one browser
+context — and never a token saved and shared:
 
-Tests get a role's access token from `roleSession`, which refreshes the saved session at most every
-10 minutes per worker — don't call `refresh` per test.
+- `global-setup.ts` saves no session. It gives each role a password (the bootstrap admin, created
+  without one, gets it once through the mailed reset link) and writes it to the seed; password
+  logins are only rate-limited on failures.
+- `as(role)` logs a fresh session in for each context; `roleSession(role)` logs one in per worker,
+  at most every 10 minutes.
+- `signIn(context, auth)` gives the browser **a session of its own** whenever `auth` carries its
+  password (`newUser()`, `roleSession()`, `registerOn()`), the test keeping `auth`'s. Otherwise
+  the browser takes `auth`'s session over, and the test must stop refreshing it.
+- To read the browser's session, pass the context: `meFromSession(context)`,
+  `sessionIsAlive(context)` write the rotated token back into its cookie. With an AuthResponse,
+  `refreshHeld(auth)` / `meFromSession(auth)` keep it in the object; `rawDocument`/`hostDocument`
+  do the same for a cookie built by `sessionCookie(auth)`. A bare token string can be refreshed
+  once.

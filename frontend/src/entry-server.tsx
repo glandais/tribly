@@ -52,7 +52,19 @@ function replaceTeamSlug(url: string, from: string, to: string): string {
   return segments.join('/') + suffix
 }
 
-export async function render(url: string, headers: Record<string, string> = {}) {
+/**
+ * What the render learns that the response must carry even when the render itself fails or
+ * redirects: the rotated session cookie (`resolveSsrSession`). Filled as soon as it is known.
+ */
+export interface RenderSink {
+  setCookies?: string[]
+}
+
+export async function render(
+  url: string,
+  headers: Record<string, string> = {},
+  sink: RenderSink = {}
+) {
   // Resolve the request locale from the explicit choice cookie (LanguageSwitcher), else from
   // Accept-Language (first token, language part only). Both are only the fallback: an
   // authenticated visitor's stored `language` preference (resolved below, once the session is
@@ -107,7 +119,9 @@ export async function render(url: string, headers: Record<string, string> = {}) 
           .catch((err) => {
             console.error('[SSR] Failed to load version:', err)
           }),
-        resolveSsrSession(headers),
+        resolveSsrSession(headers, (cookies) => {
+          sink.setCookies = cookies
+        }),
       ])
       store.config = configResult
       store.auth = session ?? {

@@ -576,8 +576,7 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 |---|---|---|---|---|
 | `SEC-5` | 2 | V1 | **Critique si confirmé** | Clé JWT présente dans l'historique public : vérifier que prod et staging n'en sont pas des copies |
 | `SEC-6` | 4 | M3 | Moyenne | Traitement GPX non borné en mémoire |
-| `SEC-11` | — | M9 | Moyenne | Jeton d'accès des appareils long et non révocable (audit de février, S6 ; M8 livré sous `SEC-25`, M10 sous `SEC-28`) |
-| `SEC-27` | — | M7 | Moyenne | Refresh token non renouvelé à l'usage (audit de février, S3 ; détaché de `SEC-11`) |
+| `SEC-11` | — | M9 | Moyenne | Jeton d'accès des appareils long et non révocable ; leur refresh token n'est pas renouvelé non plus (audit de février, S6 ; M7 livré sous `SEC-27` pour le web et le mobile, M8 sous `SEC-25`, M10 sous `SEC-28`) |
 | `SEC-12` | — | L3, L10 | Faible | Voir la table des constats faibles de l'audit ; L1 et L5 à L9 sont livrés sous `SEC-20`, L12 et L13 sous `SEC-22`, L14 sous `SEC-23`, L4 sous `SEC-24` |
 | `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | `SEC-14` | — | Info | — | Images externes dans le markdown ; le parseur XML et le paramètre non encodé sont livrés sous `SEC-21` |
@@ -615,7 +614,7 @@ Deux gestes d'exploitation de l'audit sont sous `OPS` : I13 (`OPS-7`) et I20 (`O
 | `AUD-29` | Appareils | §9.2 | — | Reprise d'un flow d'autorisation interrompu et résilience réseau pendant le polling, à revérifier |
 
 Suivis ailleurs : les lignes de sécurité S2 à S12 sont versées dans `SECURITY_AUDIT.md`, donc sous
-`SEC` (H5 livré sous `SEC-4`, M7 à M10 = `SEC-11`, L12 et L13 livrés sous `SEC-22`, L14 sous `SEC-23` ; S8 et S12 y sont rangées comme
+`SEC` (H5 livré sous `SEC-4`, M7 = `SEC-27`, M8 = `SEC-25`, M9 = `SEC-11`, M10 = `SEC-28`, L12 et L13 livrés sous `SEC-22`, L14 sous `SEC-23` ; S8 et S12 y sont rangées comme
 conformes). K12 (= S13, jetons Karoo en clair) est L10, dans `SEC-12` ; P2-44 (en-têtes CSP/HSTS) est
 V4, dans `SEC-16` ; F12 (sitemap) est livré sous `WEB-31`.
 

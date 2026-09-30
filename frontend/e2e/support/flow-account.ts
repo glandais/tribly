@@ -1,7 +1,7 @@
 import { inflateRawSync } from 'node:zlib'
 import { expect, type BrowserContext, type Locator, type Page } from '@playwright/test'
 import type { CalendarTokenDto, PasskeyDto, UserDto } from '../../src/api/dto'
-import { apiGet, refresh, withApi, type AuthResponse } from './api'
+import { apiGet, refresh, refreshHeld, withApi, type AuthResponse } from './api'
 import type { WallClock } from './dates'
 import { escapeRegExp, hydrated } from './ui'
 
@@ -58,14 +58,37 @@ export async function sessionCookie(context: BrowserContext): Promise<string | u
   return (await context.cookies()).find((c) => c.name === 'refresh_token')?.value
 }
 
-/** Whether a refresh token still opens a session on the backend. */
-export async function sessionIsAlive(refreshToken: string): Promise<boolean> {
-  return (await refresh(refreshToken)) !== null
+/**
+ * A session as a test reaches it: the browser context holding its cookie, the AuthResponse the test
+ * holds, or a bare token.
+ */
+export type Session = BrowserContext | { refreshToken: string } | string
+
+/**
+ * Refreshes `session` and keeps the rotated token where it came from (docs/LEDGER_*.md SEC-27): in
+ * the browser's cookie, or in the AuthResponse. Left behind, the old token would be presented again
+ * later — a replay, which revokes the session. A bare token cannot be kept: pass it once.
+ */
+async function refreshSession(session: Session): Promise<AuthResponse | null> {
+  if (typeof session === 'string') return refresh(session)
+  if (!('cookies' in session)) return refreshHeld(session)
+  const cookies = await session.cookies()
+  const cookie = cookies.find((c) => c.name === 'refresh_token')
+  if (!cookie) return null
+  const auth = await refresh(cookie.value)
+  if (auth && auth.refreshToken !== cookie.value)
+    await session.addCookies([{ ...cookie, value: auth.refreshToken }])
+  return auth
 }
 
-/** The account behind a refresh token, as GET /api/users/me returns it. */
-export async function meFromSession(refreshToken: string): Promise<UserDto> {
-  const auth = await refresh(refreshToken)
+/** Whether a session still opens on the backend. */
+export async function sessionIsAlive(session: Session): Promise<boolean> {
+  return (await refreshSession(session)) !== null
+}
+
+/** The account behind a session, as GET /api/users/me returns it. */
+export async function meFromSession(session: Session): Promise<UserDto> {
+  const auth = await refreshSession(session)
   if (!auth) throw new Error('the session no longer refreshes')
   return apiGet<UserDto>(auth, '/api/users/me')
 }

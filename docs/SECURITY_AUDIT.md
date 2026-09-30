@@ -35,7 +35,7 @@
 | M4 | Moyenne | La connexion par mot de passe n'a ni limitation de débit ni verrouillage | Corrigé (ledger `SEC-7`) |
 | M5 | Moyenne | Un lien de vérification d'e-mail peut connecter la victime à un compte qui n'est pas le sien (login CSRF) | Corrigé (ledger `SEC-9`) |
 | M6 | Moyenne | Une expression régulière appliquée au markdown est exposée au ReDoS | Corrigé : l'expression est linéaire (ledger `SEC-10`), le markdown borné à 100 000 caractères (ledger `SEC-19`) |
-| M7 | Moyenne | Le refresh token n'est pas renouvelé à l'usage | Ouvert |
+| M7 | Moyenne | Le refresh token n'est pas renouvelé à l'usage | Corrigé (ledger `SEC-27`) ; appareils non couverts, voir `SEC-11` |
 | M8 | Moyenne | Deux requêtes de résolution d'identité ne filtrent pas par domaine | Corrigé (ledger `SEC-25`) |
 | M9 | Moyenne | Le jeton d'accès des appareils a une durée longue pour un jeton non révocable | Ouvert |
 | M10 | Moyenne | Aucune limitation de débit HTTP globale | Corrigé (ledger `SEC-28`) ; le seuil suppose Caddy seul en entrée, à vérifier au déploiement |
@@ -102,7 +102,7 @@ changement de statut ici se reporte là-bas.
 
 ### M6 — ReDoS sur le markdown — **Corrigé** (ledger `SEC-10` et `SEC-19`)
 
-### M7 — Pas de rotation du refresh token — **Ouvert** (audit de février, S3)
+### M7 — Pas de rotation du refresh token — **Corrigé** (ledger `SEC-27` ; audit de février, S3)
 
 ### M8 — Résolution d'identité sans filtre de domaine — **Corrigé** (ledger `SEC-25` ; audit de février, S4 et S5)
 
@@ -156,7 +156,7 @@ Informationnel :
 ## Contrôles vérifiés et conformes
 
 - **Tokens** :
-  - Refresh, vérification, reset et device : 32 octets `SecureRandom`, stockés hachés en SHA-256 ; à usage unique, sauf le refresh token, qui n'est pas renouvelé (M7).
+  - Refresh, vérification, reset et device : 32 octets `SecureRandom`, stockés hachés en SHA-256 ; à usage unique ; le refresh token est renouvelé à chaque usage (M7, ledger `SEC-27`).
   - Access token de 15 min.
   - Clé de chiffrement AES-256-GCM sans valeur par défaut en prod.
   - Comparaison de l'OTP en temps constant.

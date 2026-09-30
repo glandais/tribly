@@ -3,14 +3,16 @@ import type { UserDto } from '../src/api/dto'
 import { apiGet, expectOk, loginWithPassword, withApi } from './support/api'
 import { newUser, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
-import { meFromSession } from './support/flow-account'
+import { meFromSession, sessionCookie } from './support/flow-account'
 import { stack } from './support/stack'
 import { hydrated, watchToasts } from './support/ui'
 
 /**
  * Session refresh, as two tabs — or the SSR server and the browser — do it: at the same moment, on
  * the same session. Every one of them used to fail but one, with a 500 (AuthService.refreshToken
- * updated the User row, whose @Version collided; fixed 2026-09-25).
+ * updated the User row, whose @Version collided; fixed 2026-09-25). Since the token rotates
+ * (docs/LEDGER_*.md SEC-27), exactly one of them gets a new token; the others fall inside the grace
+ * of that rotation and get an access token without one.
  */
 test('concurrent refreshes of one session all succeed', async () => {
   const user = await newUser('auth concurrent refresh')
@@ -23,6 +25,35 @@ test('concurrent refreshes of one session all succeed', async () => {
     )
   )
   expect(statuses).toEqual(Array(8).fill(200))
+})
+
+/**
+ * The server render refreshes the session of every document it renders, and the refresh rotates
+ * the token (docs/LEDGER_*.md SEC-27): the document must hand the browser its new cookie. Kept from
+ * it, the browser would present the old token again on its next document — a replay once the
+ * rotation's minute is over, which revokes the session.
+ */
+test('each server-rendered document hands the browser its rotated session cookie', async ({
+  page,
+}) => {
+  const user = await newUser('auth rotated cookie')
+  await signIn(page.context(), user)
+  const before = await sessionCookie(page.context())
+
+  await page.goto('/profil')
+  await expect(
+    page.getByRole('main').getByRole('heading', { name: 'Paramètres du profil' })
+  ).toBeVisible()
+  const first = await sessionCookie(page.context())
+  expect(first, 'the document rotated the cookie').not.toBe(before)
+
+  await page.reload()
+  await expect(
+    page.getByRole('main').getByRole('heading', { name: 'Paramètres du profil' })
+  ).toBeVisible()
+  expect(await sessionCookie(page.context()), 'and the next one again').not.toBe(first)
+  // The browser's current token is the session's: it refreshes, and rotates in turn.
+  expect((await meFromSession(page.context())).id).toBe(user.user.id)
 })
 
 /**
@@ -95,7 +126,7 @@ test.describe('an access token refused by the API', () => {
     expect(saves[1], 'the replay carries the refreshed token').toBe(
       `Bearer ${refreshes[0].accessToken}`
     )
-    expect((await meFromSession(user.refreshToken)).unitSystem).toBe('IMPERIAL')
+    expect((await meFromSession(user)).unitSystem).toBe('IMPERIAL')
     // What any save of the profile says — no error, no « session expired ».
     expect(await shown()).toEqual(['Profil mis à jour avec succès'])
     await expect(page).toHaveURL(/\/profil$/)
@@ -104,10 +135,12 @@ test.describe('an access token refused by the API', () => {
   test('a revoked session sends the user back to the login form', async ({ page }) => {
     const { user, main } = await openUnits(page, unique('Session révoquée'))
     // Signed out elsewhere (another device, « log out everywhere »): the refresh token is dead,
-    // the access token in the page is still good — until the API refuses it.
+    // the access token in the page is still good — until the API refuses it. The browser's own
+    // session, not the test's: signIn() gives it one of its own.
+    const browserSession = await sessionCookie(page.context())
     await withApi(undefined, async (api) =>
       expectOk(
-        await api.post('/api/auth/logout', { headers: { 'X-Refresh-Token': user.refreshToken } })
+        await api.post('/api/auth/logout', { headers: { 'X-Refresh-Token': browserSession! } })
       )
     )
     const refreshes = watchRefreshes(page)

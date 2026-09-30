@@ -10,36 +10,52 @@ import type {
   TeamRequest,
   TeamRole,
 } from '../../src/api/dto'
-import { apiGet, apiPatch, apiPost, apiPut, refresh, register, type AuthResponse } from './api'
-import { stack, storageStatePath, type Role } from './stack'
+import {
+  apiGet,
+  apiPatch,
+  apiPost,
+  apiPut,
+  loginWithPassword,
+  register,
+  type AuthResponse,
+} from './api'
+import { seedPath, stack, type Role } from './stack'
 
 /**
  * What most tests need before they open a page: a session for a seeded role, a fresh user, a team
  * of their own. Everything goes through the REST API, typed with the generated DTOs.
  */
 
-/** Access tokens live 15 minutes: a cached one is refreshed once it is older than this. */
+/** Access tokens live 15 minutes: a cached one is replaced once it is older than this. */
 const SESSION_MAX_AGE_MS = 10 * 60_000
 
-const sessions = new Map<Role, { auth: Promise<AuthResponse>; at: number }>()
+const sessions = new Map<Role, { auth: Promise<AuthResponse & Credentials>; at: number }>()
+
+/** What signs a role in, as global-setup left it (seed.json). */
+interface Credentials {
+  password: string
+}
+
+/** A fresh session of `role`, by password: its own, shared with no other test nor context. */
+export async function loginAs(role: Role): Promise<AuthResponse & Credentials> {
+  const seed = JSON.parse(readFileSync(seedPath, 'utf8')) as Record<
+    Role,
+    { email: string; password: string }
+  >
+  const { email, password } = seed[role]
+  return { ...(await loginWithPassword(email, password)), password }
+}
 
 /**
- * A fresh access token for a role global-setup signed in (admin, rider). Cached per worker process
- * and shared by concurrent callers, so a worker refreshes a role's session once per 10 minutes
- * rather than once per test.
+ * A fresh access token for a role global-setup prepared (admin, rider). Cached per worker process
+ * and shared by concurrent callers, so a worker signs a role in once per 10 minutes rather than
+ * once per test. Its session is the worker's: a browser signed in with it gets one of its own
+ * (signIn), since the refresh token rotates (docs/LEDGER_*.md SEC-27).
  */
-export function roleSession(role: Role): Promise<AuthResponse> {
+export function roleSession(role: Role): Promise<AuthResponse & Credentials> {
   const cached = sessions.get(role)
   if (cached && Date.now() - cached.at < SESSION_MAX_AGE_MS) return cached.auth
-  const auth = (async () => {
-    const saved = JSON.parse(readFileSync(storageStatePath(role), 'utf8')) as {
-      cookies: { value: string }[]
-    }
-    const refreshed = await refresh(saved.cookies[0].value)
-    if (!refreshed)
-      throw new Error(`the saved ${role} session no longer refreshes — rerun global-setup`)
-    return refreshed
-  })()
+  const auth = loginAs(role)
   sessions.set(role, { auth, at: Date.now() })
   // A failure is not cached: the next caller tries again.
   auth.catch(() => {
@@ -51,13 +67,22 @@ export function roleSession(role: Role): Promise<AuthResponse> {
 /**
  * Signs a browser context in as `auth`: the refresh_token cookie the backend would have set. Call it
  * before the first navigation — the SSR server and the app read it on the first request.
+ *
+ * The browser gets **a session of its own** whenever `auth` carries its password (newUser(),
+ * roleSession()): the refresh token rotates at every refresh (docs/LEDGER_*.md SEC-27), and the
+ * browser refreshes on every document — a token the test keeps using meanwhile would turn into a
+ * replay, which revokes the session. Without a password the browser takes over `auth`'s session,
+ * which the test must then no longer refresh.
  */
-export async function signIn(context: BrowserContext, auth: AuthResponse) {
+export async function signIn(context: BrowserContext, auth: AuthResponse & Partial<Credentials>) {
   const { hostname } = new URL(stack.baseURL)
+  const refreshToken = auth.password
+    ? (await loginWithPassword(auth.user.email, auth.password)).refreshToken
+    : auth.refreshToken
   await context.addCookies([
     {
       name: 'refresh_token',
-      value: auth.refreshToken,
+      value: refreshToken,
       domain: hostname,
       path: '/',
       httpOnly: true,

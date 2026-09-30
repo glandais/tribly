@@ -35,15 +35,41 @@ export async function rawDocument(
   })
   try {
     const response = await api.get(path, { maxRedirects: 0 })
+    keepRotatedSession(cookie, response.headersArray())
     return { status: response.status(), headers: response.headers(), html: await response.text() }
   } finally {
     await api.dispose()
   }
 }
 
+/** The session each Cookie header built by sessionCookie() stands for. */
+const cookieHolders = new Map<string, { refreshToken: string }>()
+
+/**
+ * The server render refreshes the session a document is fetched with, and the refresh rotates its
+ * token (docs/LEDGER_*.md SEC-27): the new one comes back in the document's `Set-Cookie`. Kept in
+ * the AuthResponse the cookie was built from, so that the test's next document or refresh presents
+ * the current token — the old one, presented after a minute, is a replay and revokes the session.
+ */
+export function keepRotatedSession(
+  cookie: string | undefined,
+  headers: { name: string; value: string }[]
+) {
+  const holder = cookie === undefined ? undefined : cookieHolders.get(cookie)
+  if (!holder) return
+  for (const { name, value } of headers) {
+    if (name.toLowerCase() !== 'set-cookie') continue
+    const token = value.match(/^refresh_token=([^;]+)/)?.[1]
+    if (token) holder.refreshToken = token
+  }
+}
+
 /** The Cookie header of a signed-in visitor: the refresh_token the SSR server turns into a session. */
-export const sessionCookie = (auth: { refreshToken: string }) =>
-  `refresh_token=${auth.refreshToken}`
+export const sessionCookie = (auth: { refreshToken: string }) => {
+  const cookie = `refresh_token=${auth.refreshToken}`
+  cookieHolders.set(cookie, auth)
+  return cookie
+}
 
 /**
  * The server-rendered markup only: from `#root` to the first script (StaticRouterProvider's

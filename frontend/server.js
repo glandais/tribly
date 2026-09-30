@@ -164,6 +164,16 @@ async function createServer() {
   let renderSitemap
   let renderLlmsTxt
 
+  // The SSR render refreshes the visitor's session, and the refresh rotates its token
+  // (docs/LEDGER_*.md SEC-27): the new cookie must reach the browser on whatever this server answers
+  // — page, redirect or error. Kept from the browser, the old one becomes a replay once the
+  // rotation's grace is over, and a replay revokes the session.
+  const relayRotatedSessionCookie = (res, sink) => {
+    if (!sink.setCookies?.length || sink.relayed) return
+    res.append('Set-Cookie', sink.setCookies)
+    sink.relayed = true
+  }
+
   const publicHost = (req) =>
     String(req.headers['x-forwarded-host'] || req.headers.host || 'localhost')
 
@@ -272,6 +282,8 @@ async function createServer() {
   // be named ('*splat').
   app.use('*splat', async (req, res) => {
     const url = req.originalUrl
+    // Filled by render() as soon as the SSR session refresh answers (see relayRotatedSessionCookie).
+    const sink = {}
 
     try {
       let currentTemplate, currentRender
@@ -289,8 +301,10 @@ async function createServer() {
       // Filter to single-value headers — render() types headers as Record<string, string>, but Express req.headers can contain string[] values (e.g. set-cookie)
       const result = await currentRender(
         url,
-        Object.fromEntries(Object.entries(req.headers).filter(([, v]) => typeof v === 'string'))
+        Object.fromEntries(Object.entries(req.headers).filter(([, v]) => typeof v === 'string')),
+        sink
       )
+      relayRotatedSessionCookie(res, sink)
 
       // Handle redirects. Never cached, even a 301: browsers keep a permanent redirect with no
       // Cache-Control indefinitely, and these are not forever — a team can take its former slug
@@ -379,6 +393,7 @@ async function createServer() {
         vite.ssrFixStacktrace(e)
       }
       console.error(e.stack || e)
+      if (!res.headersSent) relayRotatedSessionCookie(res, sink)
       res
         .status(500)
         .set({ 'Content-Type': 'text/html' })

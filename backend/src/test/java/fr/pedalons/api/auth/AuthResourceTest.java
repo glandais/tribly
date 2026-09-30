@@ -297,6 +297,63 @@ class AuthResourceTest extends AbstractResourceTest {
   }
 
   @Test
+  void refresh_withCookie_rotatesTheCookieAndKeepsTheTokenOutOfTheBody() {
+    User user = dataService.createVerifiedUser("rotate-web@example.com", "Web User");
+    String refreshToken = dataService.createRefreshTokenForUser(user);
+
+    String rotated =
+        given()
+            .contentType(ContentType.JSON)
+            .cookie("refresh_token", refreshToken)
+            .when()
+            .post("/api/auth/refresh")
+            .then()
+            .statusCode(200)
+            .body("refreshToken", is(nullValue()))
+            .extract()
+            .cookie("refresh_token");
+
+    assertThat(rotated, allOf(notNullValue(), not(equalTo(refreshToken))));
+    // Another tab, still holding the old cookie: served, and the new cookie is left as it is.
+    given()
+        .contentType(ContentType.JSON)
+        .cookie("refresh_token", refreshToken)
+        .when()
+        .post("/api/auth/refresh")
+        .then()
+        .statusCode(200)
+        .body("accessToken", is(notNullValue()))
+        .header("Set-Cookie", is(nullValue()));
+  }
+
+  @Test
+  void refresh_withHeader_returnsTheRotatedTokenInTheBody() {
+    User user = dataService.createVerifiedUser("rotate-app@example.com", "App User");
+    String refreshToken = dataService.createRefreshTokenForUser(user);
+
+    String rotated =
+        given()
+            .contentType(ContentType.JSON)
+            .header("X-Refresh-Token", refreshToken)
+            .when()
+            .post("/api/auth/refresh")
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("refreshToken");
+
+    assertThat(rotated, allOf(notNullValue(), not(equalTo(refreshToken))));
+    given()
+        .contentType(ContentType.JSON)
+        .header("X-Refresh-Token", rotated)
+        .when()
+        .post("/api/auth/refresh")
+        .then()
+        .statusCode(200)
+        .body("refreshToken", is(notNullValue()));
+  }
+
+  @Test
   void refresh_withoutCookie_shouldReturn403() {
     given().contentType(ContentType.JSON).when().post("/api/auth/refresh").then().statusCode(403);
   }

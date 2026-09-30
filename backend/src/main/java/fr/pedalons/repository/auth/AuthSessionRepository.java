@@ -14,6 +14,33 @@ public class AuthSessionRepository implements PanacheRepository<AuthSession> {
         .firstResultOptional();
   }
 
+  /** The session whose token was {@code refreshTokenHash} before its last rotation. */
+  public Optional<AuthSession> findByPreviousRefreshTokenHash(String refreshTokenHash) {
+    return find("previousRefreshTokenHash = ?1 and revoked = false", refreshTokenHash)
+        .firstResultOptional();
+  }
+
+  /**
+   * Replaces the session's token, keeping the one presented as the previous token. Conditional on
+   * the session still holding {@code presentedHash}: of two refreshes racing with the same token,
+   * exactly one rotates (0 is returned to the other), and none overwrites a concurrent revocation.
+   */
+  public int rotate(Long sessionId, String presentedHash, String nextHash) {
+    return update(
+        "refreshTokenHash = ?3, previousRefreshTokenHash = ?2, rotatedAt = CURRENT_TIMESTAMP,"
+            + " lastUsedAt = CURRENT_TIMESTAMP"
+            + " where id = ?1 and refreshTokenHash = ?2 and revoked = false",
+        sessionId,
+        presentedHash,
+        nextHash);
+  }
+
+  public int revokeById(Long sessionId) {
+    return update(
+        "revoked = true, revokedAt = CURRENT_TIMESTAMP where id = ?1 and revoked = false",
+        sessionId);
+  }
+
   public List<AuthSession> findActiveByUserId(Long userId) {
     return find("user.id = ?1 and revoked = false", userId).list();
   }

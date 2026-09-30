@@ -131,7 +131,7 @@ test('sign up with the form, verify through the mail, sign out from the header, 
 
   const cookie = await sessionCookie(context)
   expect(cookie, 'the verification signed the browser in').toBeTruthy()
-  const me = await meFromSession(cookie!)
+  const me = await meFromSession(context)
   expect(me).toMatchObject({ email, displayName, emailVerified: true })
   const profile = await openProfile(page, email)
   await expect(profile.getByText(displayName, { exact: true }).first()).toBeVisible()
@@ -149,7 +149,7 @@ test('sign up with the form, verify through the mail, sign out from the header, 
   await expect(
     page.getByRole('main').getByRole('heading', { name: 'Paramètres du profil' })
   ).toBeVisible()
-  expect((await meFromSession((await sessionCookie(context))!)).email).toBe(email)
+  expect((await meFromSession(context)).email).toBe(email)
 })
 
 test('a wrong password is refused and signs nobody in', async ({ page, context }) => {
@@ -203,7 +203,7 @@ test.describe('sign-in by e-mailed code', () => {
     await expect(page).not.toHaveURL(/\/connexion/)
     const cookie = await sessionCookie(context)
     expect(cookie, 'a session was opened').toBeTruthy()
-    expect((await meFromSession(cookie!)).email).toBe(user.user.email)
+    expect((await meFromSession(context)).email).toBe(user.user.email)
   })
 
   test('a wrong code is refused with a message, and the right one still signs in', async ({
@@ -305,9 +305,7 @@ test('forgotten password: the mail, a new password, then sign in with it', async
   // The reset ended every session opened before it (docs/LEDGER_*.md SEC-12, audit L1) — the
   // one sign-up opened stands for a stolen one — but not the browser's, which the reset opened.
   expect(await sessionIsAlive(user.refreshToken), 'the session opened before the reset').toBe(false)
-  expect(await sessionIsAlive((await sessionCookie(context))!), 'the reset’s own session').toBe(
-    true
-  )
+  expect(await sessionIsAlive(context), 'the reset’s own session').toBe(true)
   // The old password is gone, the new one works.
   await expect(loginWithPassword(email, user.password)).rejects.toBeInstanceOf(ApiError)
   expect((await loginWithPassword(email, newPassword)).user.email).toBe(email)
@@ -343,7 +341,7 @@ test('the display name is edited from the profile', async ({ page, context, isMo
   await expect(main.getByText(renamed, { exact: true }).first()).toBeVisible()
   if (!isMobile)
     await expect(page.getByRole('banner').getByRole('button', { name: renamed })).toBeVisible()
-  expect((await meFromSession(user.refreshToken)).displayName).toBe(renamed)
+  expect((await meFromSession(user)).displayName).toBe(renamed)
 
   await page.reload()
   await expect(main.getByText(renamed, { exact: true }).first()).toBeVisible()
@@ -372,11 +370,13 @@ test('signing out of every device from the profile closes the other sessions too
   const revoked = page.waitForResponse(
     (r) => r.request().method() === 'POST' && r.url().endsWith('/api/auth/logout-all')
   )
+  const browserSession = await sessionCookie(context)
   await dialog.getByRole('button', { name: 'Déconnecter tous les appareils' }).click()
   expect((await revoked).status()).toBe(204)
 
   await expect(page.getByRole('main').getByRole('heading', { name: WELCOME })).toBeVisible()
-  expect(await sessionIsAlive(user.refreshToken), 'this browser’s session').toBe(false)
+  expect(await sessionIsAlive(browserSession!), 'this browser’s session').toBe(false)
+  expect(await sessionIsAlive(user), 'the test’s own session').toBe(false)
   expect(await sessionIsAlive(elsewhere.refreshToken), 'the other device’s session').toBe(false)
   await expectSignedOut(page)
 })
@@ -419,7 +419,7 @@ test('an avatar sent from the profile shows in the header and on the user’s co
   })
   expect((await uploaded).ok()).toBe(true)
 
-  const me = await meFromSession(user.refreshToken)
+  const me = await meFromSession(user)
   expect(me.avatarUrl, 'the account now has an avatar').toBeTruthy()
   const src = me.avatarUrl!
   await expectAvatarShown(avatarImage(main, name), src)
@@ -453,7 +453,7 @@ test('units, theme, language and contact preferences apply at once and persist',
   const html = page.locator('html')
   await expect(html).toHaveAttribute('data-mantine-color-scheme', 'light')
 
-  const before = await meFromSession(user.refreshToken)
+  const before = await meFromSession(user)
   expect(before.unitSystem ?? 'METRIC').toBe('METRIC')
   expect(before.contactableByMembers).toBe(true)
 
@@ -496,7 +496,7 @@ test('units, theme, language and contact preferences apply at once and persist',
   expect((await languageSaved).ok()).toBe(true)
   await expect(main.getByRole('heading', { name: 'Profile Settings' })).toBeVisible()
 
-  expect(await meFromSession(user.refreshToken)).toMatchObject({
+  expect(await meFromSession(user)).toMatchObject({
     unitSystem: 'IMPERIAL',
     theme: 'DARK',
     language: 'en',
@@ -543,8 +543,8 @@ test('a passkey registered from the profile signs in from the login page', async
   await quick.click()
   await expect(page).toHaveURL(/\/$/)
   await openProfile(page, user.user.email)
-  const cookie = await sessionCookie(context)
-  expect((await meFromSession(cookie!)).id).toBe(user.user.id)
+  expect(await sessionCookie(context), 'a session was opened').toBeTruthy()
+  expect((await meFromSession(context)).id).toBe(user.user.id)
   const [used] = await passkeysOf(user.accessToken)
   expect(used.lastUsedAt).toBeTruthy()
 })
@@ -724,7 +724,7 @@ test.describe('deleting the account', () => {
     const refused = await apiDelete(user, '/api/users/me').catch((error: unknown) => error)
     expect(refused).toBeInstanceOf(ApiError)
     expect((refused as ApiError).code).toBe('SOLE_TEAM_ADMIN')
-    expect(await sessionIsAlive(cookie!), 'the session is untouched').toBe(true)
+    expect(await sessionIsAlive(context), 'the session is untouched').toBe(true)
     expect(await getTeam(user, team.slug)).toMatchObject({ role: 'ADMIN', memberCount: 2 })
 
     // Another admin named, the impact is read again when the confirmation reopens: the account
@@ -973,7 +973,7 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
 
       const cookie = await sessionCookie(context)
       expect(cookie, 'still the reader’s session').toBeTruthy()
-      expect((await meFromSession(cookie!)).id).toBe(reader.user.id)
+      expect((await meFromSession(context)).id).toBe(reader.user.id)
     } finally {
       await context.close()
     }
@@ -1414,7 +1414,7 @@ test.describe('time zone', () => {
     await signIn(context, user)
 
     // No preference yet: the browser's own zone (Europe/Paris, playwright.config.ts).
-    expect((await meFromSession(user.refreshToken)).timezone ?? null).toBeNull()
+    expect((await meFromSession(user)).timezone ?? null).toBeNull()
     await openRide(page, team.slug, ride)
     const main = page.getByRole('main')
     await expect(main.getByText(inParis).first()).toBeVisible()
@@ -1434,7 +1434,7 @@ test.describe('time zone', () => {
     expect(response.ok()).toBe(true)
     expect(response.request().postDataJSON()).toEqual({ timezone: ZONE })
     await expect(field).toHaveValue(ZONE)
-    expect((await meFromSession(user.refreshToken)).timezone).toBe(ZONE)
+    expect((await meFromSession(user)).timezone).toBe(ZONE)
 
     // The ride now reads in Tokyo time, in a browser that is still in Paris…
     await openRide(page, team.slug, ride)
