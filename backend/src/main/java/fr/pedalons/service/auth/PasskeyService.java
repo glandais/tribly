@@ -207,7 +207,7 @@ public class PasskeyService {
       byte[] aaguid = credentialData.getAaguid().getBytes();
 
       // Check if credential already exists
-      if (passkeyRepository.findByCredentialId(credentialId).isPresent()) {
+      if (passkeyRepository.existsByCredentialId(credentialId)) {
         throw new BadRequestException(ErrorCode.ALREADY_REGISTERED);
       }
 
@@ -309,7 +309,7 @@ public class PasskeyService {
       // Find the passkey
       Passkey passkey =
           passkeyRepository
-              .findByCredentialId(credentialId)
+              .findByCredentialIdAndDomain(credentialId, domainResolver.getDomainId())
               .orElseThrow(() -> new NotFoundException(ErrorCode.PASSKEY_NOT_FOUND));
 
       // Parse the authentication request to extract the challenge
@@ -374,7 +374,7 @@ public class PasskeyService {
 
       webAuthnManager.verify(authenticationData, authenticationParameters);
 
-      // Verify the passkey belongs to the current (parent) domain
+      // Already filtered by the lookup; kept so that a change there cannot open another site.
       if (!passkey.getUser().getDomain().getId().equals(domainResolver.getDomainId())) {
         throw new ForbiddenException();
       }

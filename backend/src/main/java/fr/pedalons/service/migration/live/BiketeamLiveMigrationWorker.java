@@ -219,7 +219,9 @@ public class BiketeamLiveMigrationWorker {
                 () ->
                     new Actors(
                         em.find(Domain.class, ctx.domainId()),
-                        userRepository.findActiveById(ctx.userId()).orElse(null)));
+                        userRepository
+                            .findActiveByIdAndDomain(ctx.domainId(), ctx.userId())
+                            .orElse(null)));
     User user = actors.user();
     if (user == null) {
       throw new BiketeamJobFailure(
@@ -313,7 +315,8 @@ public class BiketeamLiveMigrationWorker {
       }
       case EXISTING_MIGRATED -> {
         Long teamId = target.teamId();
-        User user = userRepository.findActiveById(ctx.userId()).orElse(null);
+        User user =
+            userRepository.findActiveByIdAndDomain(ctx.domainId(), ctx.userId()).orElse(null);
         if (teamId == null || user == null || !targetResolver.mayAdminister(user, teamId)) {
           return Prepared.refuse(
               new BiketeamJobFailure(

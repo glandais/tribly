@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.AbstractBaseTest;
 import fr.pedalons.domain.auth.Passkey;
+import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
@@ -30,12 +31,13 @@ class PasskeyRepositoryTest extends AbstractBaseTest {
   }
 
   @Test
-  void findByCredentialId_shouldReturnPasskey() {
+  void findByCredentialIdAndDomain_shouldReturnPasskey() {
     byte[] credentialId = "credential-123".getBytes();
     byte[] publicKey = "public-key".getBytes();
     dataService.createPasskey(user, credentialId, publicKey);
 
-    Optional<Passkey> result = passkeyRepository.findByCredentialId(credentialId);
+    Optional<Passkey> result =
+        passkeyRepository.findByCredentialIdAndDomain(credentialId, user.getDomain().getId());
 
     assertTrue(result.isPresent());
     assertArrayEquals(credentialId, result.get().getCredentialId());
@@ -43,21 +45,41 @@ class PasskeyRepositoryTest extends AbstractBaseTest {
   }
 
   @Test
-  void findByCredentialId_shouldReturnEmptyForNonexistent() {
-    Optional<Passkey> result = passkeyRepository.findByCredentialId("nonexistent".getBytes());
+  void findByCredentialIdAndDomain_shouldReturnEmptyForNonexistent() {
+    Optional<Passkey> result =
+        passkeyRepository.findByCredentialIdAndDomain(
+            "nonexistent".getBytes(), user.getDomain().getId());
 
     assertTrue(result.isEmpty());
   }
 
   @Test
-  void findByCredentialId_shouldIgnoreDeletedPasskeys() {
+  void findByCredentialIdAndDomain_shouldIgnoreDeletedPasskeys() {
     byte[] credentialId = "deleted-credential".getBytes();
     Passkey passkey = dataService.createPasskey(user, credentialId, "public-key".getBytes());
     dataService.deletePasskey(passkey);
 
-    Optional<Passkey> result = passkeyRepository.findByCredentialId(credentialId);
+    Optional<Passkey> result =
+        passkeyRepository.findByCredentialIdAndDomain(credentialId, user.getDomain().getId());
 
     assertTrue(result.isEmpty());
+    assertFalse(passkeyRepository.existsByCredentialId(credentialId));
+  }
+
+  @Test
+  void findByCredentialIdAndDomain_shouldNotFindAnotherSitesPasskey() {
+    Domain otherDomain =
+        dataService.createDomain("other.example.com", "Other", "https://other.example.com");
+    User elsewhere = dataService.createUser(otherDomain, "test@example.com", "Elsewhere");
+    byte[] credentialId = "credential-elsewhere".getBytes();
+    dataService.createPasskey(elsewhere, credentialId, "public-key".getBytes());
+
+    assertTrue(
+        passkeyRepository
+            .findByCredentialIdAndDomain(credentialId, user.getDomain().getId())
+            .isEmpty());
+    // Registration still sees it: the column is unique across every site.
+    assertTrue(passkeyRepository.existsByCredentialId(credentialId));
   }
 
   @Test

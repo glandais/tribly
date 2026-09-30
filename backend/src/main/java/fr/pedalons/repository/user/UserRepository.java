@@ -30,7 +30,13 @@ public class UserRepository implements BaseRepository<User> {
         .firstResultOptional();
   }
 
-  public Optional<User> findActiveById(Long id) {
+  /**
+   * A live account whatever its site — for the platform administration only, which spans every
+   * domain by design. Anything that serves one site uses {@link #findActiveByIdAndDomain}: an id
+   * from a path, a token or a job is otherwise enough to reach another site's account (audit M8,
+   * docs/LEDGER_*.md SEC-25).
+   */
+  public Optional<User> findActiveByIdOnAnyDomain(Long id) {
     return find("id = ?1 and deleted = false", id).firstResultOptional();
   }
 

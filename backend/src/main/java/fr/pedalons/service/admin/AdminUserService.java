@@ -100,6 +100,6 @@ public class AdminUserService {
 
   private User findUser(String userId) {
     Long id = TsidUtils.toLong(userId);
-    return userRepository.findActiveById(id).orElseThrow(NotFoundException::new);
+    return userRepository.findActiveByIdOnAnyDomain(id).orElseThrow(NotFoundException::new);
   }
 }

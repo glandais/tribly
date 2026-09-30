@@ -119,7 +119,11 @@ public class PedalonsQueryContext {
       return null;
     }
     if (!activeUserResolved) {
-      activeUser = userRepository.findActiveById(user.getId()).orElse(null);
+      // Re-validates the account doInit() found on this request's site, on that site only.
+      activeUser =
+          userRepository
+              .findActiveByIdAndDomain(user.getDomain().getId(), user.getId())
+              .orElse(null);
       activeUserResolved = true;
     }
     return activeUser;
@@ -203,7 +207,7 @@ public class PedalonsQueryContext {
     if (!domainId.equals(claims.domainId())) {
       return null;
     }
-    return userRepository.findActiveById(claims.userId()).orElse(null);
+    return userRepository.findActiveByIdAndDomain(domainId, claims.userId()).orElse(null);
   }
 
   @Nullable

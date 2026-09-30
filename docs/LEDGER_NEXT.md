@@ -598,7 +598,7 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 | `SEC-5` | 2 | V1 | **Critique si confirmé** | Clé JWT présente dans l'historique public : vérifier que prod et staging n'en sont pas des copies |
 | `SEC-6` | 4 | M3 | Moyenne | Traitement GPX non borné en mémoire |
 | `SEC-8` | — | M2 | Moyenne | Flou d'~1 km des annonces affinable par requêtes répétées (contredit la décision `API-31`) |
-| `SEC-11` | — | M7 à M10 | Moyenne | Refresh token non renouvelé ; résolution d'identité sans filtre de domaine ; jeton d'appareil long et non révocable ; pas de limitation de débit HTTP globale — voir `API-27` (audit de février, S3 à S7) |
+| `SEC-11` | — | M7, M9, M10 | Moyenne | Refresh token non renouvelé ; jeton d'appareil long et non révocable ; pas de limitation de débit HTTP globale — voir `API-27` (audit de février, S3, S6, S7 ; M8 livré sous `SEC-25`) |
 | `SEC-12` | — | L3, L10 | Faible | Voir la table des constats faibles de l'audit ; L1 et L5 à L9 sont livrés sous `SEC-20`, L12 et L13 sous `SEC-22`, L14 sous `SEC-23`, L4 sous `SEC-24` |
 | `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | `SEC-14` | — | Info | — | Images externes dans le markdown ; le parseur XML et le paramètre non encodé sont livrés sous `SEC-21` |
