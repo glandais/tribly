@@ -757,9 +757,8 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   (`unregisterPushDeviceByPath`, `downloadDataExportByPath`) pour les builds mobiles installés et
   les liens déjà envoyés : leur retrait est `API-56`. En chemin, deux fuites que le chemin masquait
   aussi : sans session, le jeton d'export repart dans `/login?next=…`, et les ressources de cette
-  page le portent en `Referer` ; le snippet Caddy d'`OPERATIONS.md` les couvre désormais, reste à
-  l'appliquer sur l'hôte (`OPS-24`). Jusque-là, la promesse de la politique (§6, journaux « sans
-  les jetons ») n'est tenue que pour le paramètre lui-même. Tests : `PushDeviceResourceTest`
+  page le portent en `Referer` ; le snippet Caddy d'`OPERATIONS.md` les couvre désormais, appliqué
+  sur l'hôte le 30 septembre 2026 (`OPS-24`). Tests : `PushDeviceResourceTest`
   (corps, ancienne forme encore servie, jeton vide refusé) et `UserExportResourceTest` (requête,
   redirection, ancienne forme, jeton absent) — **écrits sans avoir été lancés** : `mvn test
   -Dtest=PushDeviceResourceTest,UserExportResourceTest,UserExportServiceTest` ; e2e `pwa.e2e.ts`
@@ -937,6 +936,17 @@ Ce qui reste ouvert (`MAX_BULK_SLUGS` comme seul garde-fou) est `API-27`.
   après). Le tableau de bord « Quarkus Micrometer Prometheus registry » du Dev Service LGTM est
   provisionné à côté du nôtre, copié tel quel du dépôt Quarkus : le recopier pour le mettre à jour,
   ne pas le modifier. Test : `promtool test rules` (`services/monitoring/prometheus/tests/pedalons.test.yml`).
+- `OPS-24` **`next` et `Referer` masqués dans le journal de Caddy** (2026-09-30) — un lien d'export
+  ouvert sans session renvoie vers `/login?next=/api/export/download?token=…` : le jeton, dans la
+  *valeur* de `next`, échappait à `replace token`, et les ressources de la page de connexion
+  repartaient avec l'URL entière en `Referer` (`API-45`). Le Caddyfile de l'hôte a reçu les deux
+  lignes du snippet `pedalons_access_log` d'[`OPERATIONS.md`](OPERATIONS.md#access-logs),
+  `replace next REDACTED` et `request>headers>Referer delete`, puis `caddy validate`, `chown
+  caddy:caddy` des fichiers de journal et rechargement ; vérifié par le propriétaire avec
+  `curl …/login?next=/x?token=abc -H 'Referer: …?token=abc'`, dont la ligne ne porte plus le
+  jeton. Le snippet sert la prod et le staging. Pas de test automatisé (configuration de l'hôte,
+  hors dépôt) : ne pas retirer ces lignes, ni ajouter un paramètre porteur de jeton sans son
+  `replace`.
 - `OPS-10` **Cache gpx2web revu : partageable entre backends** (2026-09-30) — lu dans gpx2web
   1.5.2 (la version du dépôt) : `HttpTileFetcher` (tuiles d'élévation Mapterhorn) et
   `TileMapProducer.downloadTile` (tuiles de carte) téléchargent chacun dans un fichier temporaire
@@ -1323,8 +1333,13 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   `X-Forwarded-For` (`ipStrategy.depth=1`), celui que pose le Caddy de l'hôte, seul point d'entrée,
   qui remplace l'en-tête reçu — un premier saut forgé ne change pas de compteur. Vérifié le 30
   septembre 2026 sur un Traefik v3.7 jetable (dépassement, `Retry-After`, client voisin intact,
-  premier saut forgé ignoré) ; **pas encore sur l'hôte** : la vérification à faire après déploiement
-  est dans `OPERATIONS.md`, « Rate limiting ». Ne pas prendre le premier saut de l'en-tête, et
+  premier saut forgé ignoré), puis **recetté sur l'hôte** le même jour après déploiement, la
+  vérification d'`OPERATIONS.md` (« Rate limiting ») : 300 requêtes `/api/config` à 50 en parallèle
+  finissent en `429` (~250 servies, staging comme prod) et 5 s après tout repasse ; le même lot avec
+  un `X-Forwarded-For` forgé différent à chaque requête est limité pareil ; 1 500 requêtes sur le
+  site en 5,2 s donnent 872 `200` (400 + 100/s) ; et pendant que 3 000 requêtes d'une adresse
+  prenaient 2 268 `429`, une seconde machine, d'une autre adresse, a reçu 40 `200` sur 40 : chaque
+  client a bien son propre compteur. Ne pas prendre le premier saut de l'en-tête, et
   ajouter `trusted_proxies` à Caddy si un proxy vient un jour devant lui. `API-27` (lot de
   géométries) reste ouvert : cette limite borne le nombre de lots, pas le poids de chacun.
 

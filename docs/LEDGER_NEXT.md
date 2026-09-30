@@ -464,14 +464,6 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       frontend SSR (ni métriques Node ni temps de rendu : seul Caddy le voit, par hôte), et les
       erreurs côté client web et mobile (un GlitchTip, compatible Sentry, pèserait une base et un
       Redis de plus : à ne faire que si le besoin se confirme). Taille : M.
-- [ ] `OPS-24` **Masquer `next` et `Referer` dans le journal de Caddy** — le snippet
-      `pedalons_access_log` d'[`OPERATIONS.md`](OPERATIONS.md#access-logs) a gagné
-      `replace next REDACTED` et `request>headers>Referer delete` (`API-45`) : un lien d'export
-      ouvert sans session renvoie vers `/login?next=/api/export/download?token=…`, et les
-      ressources de cette page repartent avec l'URL entière en `Referer`. Reste à l'appliquer au
-      Caddyfile de l'hôte, puis `caddy validate` et `chown caddy:caddy` des fichiers de journal
-      (le piège décrit sous le snippet) ; vérifier par un `curl …/login?next=/x?token=abc -H
-      'Referer: https://…?token=abc'` que la ligne ne porte ni l'un ni l'autre. Taille : XS.
 - [ ] `OPS-23` **Les alertes partent par le relais de l'application** — `ALERT_SMTP_*` (`.env` de
       `~/shared`) pointe sur Scaleway TEM, comme `QUARKUS_MAILER_*` : une panne de TEM, ou un
       compte suspendu, tairait les alertes qui devraient la signaler. Le `Watchdog`, qui passe par
