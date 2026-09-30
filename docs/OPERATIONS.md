@@ -216,7 +216,7 @@ live in the host's Caddy configuration, outside this repository:
   - credentials, because their client fetches them outside the authenticated HTTP stack and
     cannot set a header — `?t=` on `/api/…/tiles/{z}/{x}/{y}.mvt` (the tile token, ~15 min, see
     `TileTokenService`; MapLibre fetches tiles itself, so dozens of lines per map session),
-    `?token=` on the ICS calendar feed (it does **not** expire, `SEC-17`), and the OAuth
+    `?token=` on the ICS calendar feed (it only expires after 90 days *without a fetch*, `SEC-17`: a feed still polled stays valid for ever), and the OAuth
     `?code=`/`?state=` of the GPS-service callbacks;
   - the device's position: `?lat=`/`?lon=` from the Garmin app (`DeviceRoutesResource`),
     `?nearLat=`/`?nearLon=` from "around me" and the ad proximity probe.

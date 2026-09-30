@@ -33,14 +33,18 @@ import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.team.TeamService;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
@@ -67,6 +71,13 @@ public class CalendarService {
   @Inject RideGroupRepository rideGroupRepository;
 
   @Inject ThumbnailLookup thumbnailLookup;
+
+  /**
+   * Days a feed token survives without being fetched (docs/LEDGER_*.md SEC-17). Calendar apps poll
+   * several times a day, so a live subscription is never near it.
+   */
+  @ConfigProperty(name = "pedalons.calendar.token.inactivity-days", defaultValue = "90")
+  int tokenInactivityDays;
 
   @CheckAccess(entityType = EntityType.CALENDAR, action = ActionType.LIST_ALL_TEAMS)
   public CalendarEventsResponse getEventsForUser(
@@ -107,11 +118,21 @@ public class CalendarService {
     return to != null ? to : getDefaultTo();
   }
 
+  /**
+   * The member's feed token, created on first ask — and replaced when it died of inactivity: showing
+   * an address that answers 403 would send them to subscribe to nothing.
+   */
+  @Transactional
   @CheckAccess(entityType = EntityType.CALENDAR, action = ActionType.READ)
   public CalendarTokenDto getOrCreateToken() {
     User user = pedalonsQueryContext.getUser();
-    CalendarToken token =
-        calendarTokenRepository.findByUserId(user.getId()).orElseGet(() -> createToken(user));
+    Optional<CalendarToken> existing = calendarTokenRepository.findByUserId(user.getId());
+    if (existing.isPresent() && !isActive(existing.get())) {
+      calendarTokenRepository.delete(existing.get());
+      calendarTokenRepository.flush();
+      existing = Optional.empty();
+    }
+    CalendarToken token = existing.orElseGet(() -> createToken(user));
 
     return buildTokenDto(token);
   }
@@ -132,11 +153,34 @@ public class CalendarService {
     return buildTokenDto(newToken);
   }
 
+  /**
+   * The owner of a live feed token. A token silent for {@code pedalons.calendar.token.inactivity-days}
+   * is refused like an unknown one (docs/LEDGER_*.md SEC-17): a subscription a calendar app still
+   * polls never gets there, a token copied somewhere and forgotten does.
+   *
+   * <p>The fetch is recorded at most once a day, by an update that leaves the versioned row alone.
+   */
   User validateToken(String token) {
-    return calendarTokenRepository
-        .findByToken(token)
-        .map(CalendarToken::getUser)
-        .orElseThrow(ForbiddenException::new);
+    CalendarToken calendarToken =
+        calendarTokenRepository
+            .findByToken(token)
+            .filter(this::isActive)
+            .orElseThrow(ForbiddenException::new);
+    Instant lastUsedAt = calendarToken.getLastUsedAt();
+    if (lastUsedAt == null || lastUsedAt.isBefore(Instant.now().minus(Duration.ofDays(1)))) {
+      QuarkusTransaction.joiningExisting()
+          .run(() -> calendarTokenRepository.markUsed(calendarToken.getId()));
+    }
+    return calendarToken.getUser();
+  }
+
+  boolean isActive(CalendarToken token) {
+    return token.lastActivity().isAfter(inactivityCutoff());
+  }
+
+  /** Tokens whose last sign of life is older than this are dead. */
+  public Instant inactivityCutoff() {
+    return Instant.now().minus(Duration.ofDays(tokenInactivityDays));
   }
 
   @Transactional
