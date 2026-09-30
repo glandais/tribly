@@ -340,15 +340,6 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
 
 ### Vie privée : ce que la politique doit encore décrire faute de mieux
 
-- [ ] `API-46` **Les vidéos jointes gardent leur position GPS** — une pièce jointe MP4/MOV
-      (ISO-BMFF `isom`/`mp42`/`qt`) est acceptée comme `ATTACHMENT` et stockée telle quelle, avec
-      ses boîtes `udta`/`meta` (`©xyz`, lieu de la prise). `API-43` ne nettoie que les images. Soit
-      refuser les vidéos (`FileTypeCategory.ATTACHMENT`), soit retirer `udta`/`meta` dans
-      `S3StorageService.store` à côté du réencodage des images. Tant que ce n'est pas fait, le §1
-      de la politique dit que les vidéos sont gardées telles quelles. Taille : S (refus) à M.
-      Évaluation du 29 septembre 2026 (`API-54`) : exiftool retire `udta`/`©xyz` mais laisse
-      probablement les pistes GPS temporisées (GoPro, DJI) et les dates `mvhd`. Côté maison,
-      remplacer `udta`/`meta` par une boîte `free` de même taille évite de réécrire `stco`/`co64`.
 - [ ] `API-47` **Les documents joints gardent leurs métadonnées** — PDF (auteur, JPEG embarqués
       avec leur EXIF), fichiers bureautiques (`docProps`), PSD (EXIF/IPTC) sont stockés tels quels ;
       la politique (§1) le dit. À trancher : les nettoyer (dépendance nouvelle pour le PDF), ou
