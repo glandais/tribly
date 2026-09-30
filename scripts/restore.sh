@@ -13,7 +13,8 @@
 #
 # Only rsync, age and docker are used, so this works both from the production host (root, restricted
 # backup key) and from any machine that can read the backup store over plain SSH — which is how a
-# restore drill is run without touching production.
+# restore drill is run without touching production. It reads the dated snapshots, never incoming/:
+# a night's push is restorable once backup-promote.sh has promoted it on the backup host.
 #
 # The dump and the secrets are encrypted to an age public key (see backup.sh). Decrypting them needs
 # the matching private key, which lives offline: put it in a file for the duration of the restore,

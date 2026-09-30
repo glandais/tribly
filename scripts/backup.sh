@@ -3,25 +3,27 @@
 #
 #   scripts/backup.sh
 #
-# Produces $BACKUP_REMOTE_PATH/<UTC timestamp>/ on the backup host:
+# Updates $BACKUP_REMOTE_PATH/incoming/ on the backup host, which scripts/backup-promote.sh, run by
+# root there, then copies into a dated snapshot this host can no longer touch (docs/LEDGER_*.md
+# SEC-32). incoming/ holds:
 #   postgres.dump.age    pg_dump -Fc of $POSTGRES_DB, encrypted with age
-#   minio/               object storage, hard-linked against the previous snapshot
+#   minio/               object storage, mirrored in place: only changed objects cross the wire
 #   secrets.tar.gz.age   .env, data/keys (JWT keys, FCM service account), data/storage, encrypted
 #   MANIFEST             what this snapshot is, and what to rebuild to restore it
 #   SHA256SUMS           checksums of the two encrypted archives
-#   COMPLETE             written last: a snapshot without it is a failed run, not a backup
+#   COMPLETE             the snapshot's name, written last and removed first: promotion waits for it
 #
 # The dump and the secrets are encrypted to BACKUP_AGE_RECIPIENT, an age public key whose private
 # half is kept offline: this host can write a backup but not read one back. Both are encrypted as
 # they are produced, so neither ever lies in clear on the staging disk. minio/ is not encrypted
-# here — encrypting it would lose the --link-dest incrementals; the backup host keeps its backup
-# root on a LUKS volume instead (docs/OPERATIONS.md).
+# here — encrypting it would lose the incrementals, and the hard links between snapshots; the
+# backup host keeps its backup root on a LUKS volume instead (docs/OPERATIONS.md).
 #
 # rsync is the ONLY channel. The receiving key is restricted to `command="rrsync <root>"`, so this
 # script can neither run a command on the backup host nor touch anything outside its own root — a
-# compromise of this production host stops at its own backup tree. Two consequences shape the code:
-# the dumps are staged locally before being pushed (no remote `cat >`), and retention is not done
-# here but by a prune job on the backup host itself.
+# compromise of this production host stops at incoming/: the snapshots are root's, read-only. Three
+# consequences shape the code: the dumps are staged locally before being pushed (no remote `cat >`),
+# snapshots are made on the backup host, not here, and so is retention (backup-prune.sh).
 #
 # Reading the minio volume needs root, so this runs from root's crontab.
 #
@@ -39,8 +41,7 @@ cd "$REPO_ROOT"
 load_env
 require_vars ENV_NAME POSTGRES_DB BACKUP_REMOTE BACKUP_REMOTE_PATH BACKUP_AGE_RECIPIENT
 
-# Serialize runs: a backup still going when the next one fires would push into a half-written
-# snapshot and hard-link against it.
+# Serialize runs: two backups pushing into incoming/ at once would interleave their files.
 LOCK_FILE="${BACKUP_LOCK_FILE:-/var/lock/pedalons-backup-${ENV_NAME}.lock}"
 exec 9>"$LOCK_FILE"
 flock -n 9 || die "another backup is already running ($LOCK_FILE)"
@@ -71,8 +72,10 @@ finish_failed() {
 }
 trap finish_failed EXIT
 
+INCOMING="$(remote_url incoming)"
+
 hc_ping "/start"
-log "backing up $ENV_NAME to $(remote_url "$STAMP")"
+log "backing up $ENV_NAME to $INCOMING (snapshot $STAMP)"
 
 # Checked before anything is dumped: a run that cannot encrypt must fail, never push clear text.
 # Encrypting an empty input is what validates the recipient — age rejects a malformed key there.
@@ -143,41 +146,37 @@ log "writing MANIFEST"
 (cd "$STAGE" && sha256sum "$DUMP_FILE" "$SECRETS_FILE" > SHA256SUMS)
 
 # --- 4. Push ----------------------------------------------------------------
-
-PREV="$(latest_complete_snapshot || true)"
-if [[ -n "$PREV" ]]; then
-  log "previous snapshot: $PREV (used as --link-dest)"
-else
-  log "no previous snapshot — this run copies everything"
-fi
+#
+# The previous run's COMPLETE goes first: until this run writes its own, incoming/ is a mix of two
+# runs, and backup-promote.sh must not take it for a snapshot. An empty source with only COMPLETE
+# included is how rsync deletes one file — the only removal the restricted key allows.
+EMPTY="$STAGE/.empty"
+mkdir -p "$EMPTY"
+log "withdrawing the previous COMPLETE marker"
+rsync_remote -r --delete --mkpath --include=/COMPLETE --exclude='*' "$EMPTY/" "$INCOMING/"
+rmdir "$EMPTY"
 
 log "pushing dump, secrets and manifest"
-rsync_remote -a --mkpath "$STAGE"/ "$(remote_url "$STAMP")/"
+rsync_remote -a "$STAGE"/ "$INCOMING/"
 
 # --- 5. MinIO ---------------------------------------------------------------
 #
-# rsync of the raw volume: only changed objects cross the wire, and --link-dest hard-links every
-# unchanged one into the previous snapshot, so each dated directory reads as a full copy while
-# costing only its delta on the backup disk.
-#
-# rrsync refuses any path containing "..", so the link target is named explicitly rather than
-# reached with a relative path — hence looking up the previous snapshot above.
+# rsync of the raw volume into incoming/minio: only changed objects cross the wire, --delete drops
+# the ones MinIO deleted. The hard links that make each dated snapshot cost only its delta are made
+# by backup-promote.sh, on the backup host.
 #
 # MinIO stages writes in .minio.sys/tmp/ and renames them into place, so copying a live volume never
 # catches a half-written object — which is what makes backing it up without stopping MinIO sound.
 MINIO_PATH="$(minio_mountpoint)"
 
 sync_minio() {
-  local link=()
-  [[ -n "$PREV" ]] && link=(--link-dest="$(remote_path "$PREV")/minio")
   # .minio.sys/tmp is MinIO's staging area: files appear and disappear there continuously, and
   # rsync rightly refuses them ("failed verification -- update discarded", exit 23). It holds
   # nothing a restore needs — MinIO recreates it — so it is excluded, while the rest of
   # .minio.sys (format.json, bucket metadata) is not: without it MinIO does not recognise its data.
   rsync_remote -a --numeric-ids --delete --mkpath \
     --exclude="/.minio.sys/tmp/**" --exclude="/.minio.sys/tmp.old/**" \
-    "${link[@]}" \
-    "$MINIO_PATH/" "$(remote_url "$STAMP")/minio/"
+    "$MINIO_PATH/" "$INCOMING/minio/"
 }
 
 log "syncing minio from $MINIO_PATH"
@@ -200,15 +199,15 @@ esac
 
 # --- 6. Seal ----------------------------------------------------------------
 #
-# Last write of the run. Only a snapshot carrying this marker is offered by restore.sh, and only one
-# is used as the next run's --link-dest.
-date -u +%Y-%m-%dT%H:%M:%SZ > "$STAGE/COMPLETE"
-rsync_remote -a "$STAGE/COMPLETE" "$(remote_url "$STAMP")/COMPLETE"
+# Last write of the run: backup-promote.sh promotes incoming/ only once COMPLETE names the snapshot
+# its MANIFEST describes.
+printf '%s\n' "$STAMP" > "$STAGE/COMPLETE"
+rsync_remote -a "$STAGE/COMPLETE" "$INCOMING/COMPLETE"
 
 # The staged archives are encrypted, but there is no reason to keep them; they have done their job.
 rm -rf "$STAGE"
 
-log "backup complete: $(remote_url "$STAMP")"
+log "backup complete: $INCOMING, promoted to $STAMP by backup-promote.sh on the backup host"
 trap - EXIT
 flush_log
 hc_ping "" "$RUN_LOG"

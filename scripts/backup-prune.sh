@@ -5,13 +5,13 @@
 #
 # It cannot live in backup.sh: the production host pushes through a key restricted to
 # `command="rrsync <root>"`, which accepts an rsync transfer and nothing else. That is deliberate —
-# a compromised production host must not be able to delete its own history (not fully true yet:
-# rrsync still honours `rsync --delete`, see docs/LEDGER_*.md SEC-16) — and the price is that
-# expiry is decided here, by the machine that owns the disk.
+# a compromised production host must not be able to delete its own history: it writes to incoming/
+# only, and the snapshots backup-promote.sh makes from it are root's and read-only (docs/LEDGER_*.md
+# SEC-32) — and the price is that expiry is decided here, by the machine that owns the disk.
 #
-# Keeps the `keep` most recent COMPLETE snapshots. Snapshots without a COMPLETE marker are failed
-# runs; they are dropped once they are older than a day, never immediately (a run in flight has no
-# marker yet).
+# Keeps the `keep` most recent COMPLETE snapshots. Promotion only ever renames a whole snapshot into
+# place, so a dated directory without COMPLETE predates it (a run of the old backup.sh that failed);
+# such a directory is dropped once it is older than a day. incoming/ is never touched.
 #
 # Retention is by count, not by age: were backups to stop running, an age rule would end up erasing
 # the very snapshots it was meant to protect.

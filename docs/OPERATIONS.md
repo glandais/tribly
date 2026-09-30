@@ -548,9 +548,11 @@ they may carry.
 
 ## Backup and restore
 
-`scripts/backup.sh` pushes one dated snapshot per run from a deployed environment to the backup
-host; `scripts/restore.sh` brings an environment back from one, on the same machine or a new one;
-`scripts/backup-prune.sh` expires old snapshots and runs **on the backup host**.
+`scripts/backup.sh` pushes each run of a deployed environment into `incoming/` on the backup host;
+`scripts/backup-promote.sh`, **on the backup host**, turns each complete push into a dated snapshot
+that production can no longer touch; `scripts/restore.sh` brings an environment back from one, on
+the same machine or a new one; `scripts/backup-prune.sh` expires old snapshots, on the backup host
+too.
 
 Production is backed up nightly to the backup host over a WireGuard tunnel (`<prod-tunnel-ip>` → `<backup-tunnel-ip>`).
 
@@ -559,18 +561,29 @@ Production is backed up nightly to the backup host over a WireGuard tunnel (`<pr
 The receiving account's key is restricted to `command="rrsync <root>",restrict,from="<prod-tunnel-ip>"`:
 it accepts an `rsync --server` invocation and refuses everything else, confined to one directory.
 A compromise of the production host therefore stops at its own backup tree — it cannot read the
-other backups on the host. Within that tree it can still delete or overwrite its own snapshots:
-`rrsync` runs without `-no-del` and honours `rsync --delete` (ledger `SEC-16`). What it cannot do is
-read them back in clear: the dump and the secrets are encrypted to a key it does not hold
-([Encryption](#encryption)). Three consequences run through the scripts, and none of them are
+other backups on the host — and, within it, at `incoming/` (ledger `SEC-32`): `<root>` and every dated
+snapshot belong to `root:<backup-user>`, directories `0750` and files `0440`. The key reads them —
+which is how a restore goes through it — but cannot write, delete, rename or re-permission one;
+`rrsync` itself honours `rsync --delete`, and only `incoming/`, the account's own, is open to it.
+Nor can it read them back in clear: the dump and the secrets are encrypted to a key it does not hold
+([Encryption](#encryption)). Four consequences run through the scripts, and none of them are
 incidental:
 
 - **the dumps are staged locally** (`/var/backups/pedalons/<env>`) before being pushed — there is no
   remote `cat >`; they are encrypted as they are written, so nothing lands there in clear; the staging
   directory is removed once the run succeeds; a failed run leaves it (mode 700) until the next run
   wipes it on start;
-- **the previous snapshot is named explicitly** in `--link-dest`, because `rrsync` rejects any path
-  containing `..`;
+- **production only ever writes `incoming/`**, a mirror it updates in place: `COMPLETE` is removed
+  first and written last, holding the snapshot's name;
+- **snapshots are made on the backup host** by `backup-promote.sh` (root's crontab, every 15
+  minutes): once `incoming/COMPLETE` names the snapshot its `MANIFEST` describes, it copies
+  `incoming/` hard-linked against the previous snapshot, owned by root and read-only, checks
+  `SHA256SUMS`, and renames it into place. **At most one promotion per 20 hours**
+  (`MIN_INTERVAL_HOURS`): the name comes from production and retention keeps a count, so without a
+  floor a compromised host could push thirty snapshots in a night and have the prune expire every
+  real one. A name must also be later than the last snapshot and not in the future. A manual extra
+  run waits for the next window — `MIN_INTERVAL_HOURS=0 backup-promote.sh <backup-root>` promotes it
+  at once;
 - **retention lives on the backup host** (`backup-prune.sh`, root's crontab there), not in the
   backup script.
 
@@ -585,16 +598,17 @@ incidental:
 | `secrets.tar.gz.age` | `.env`, `data/keys` (JWT keys, FCM service account), `data/storage`, encrypted with age | The JWT keys sign every session and passkey; the service account sends every push; `ENCRYPTION_KEY` decrypts the stored Karoo/Garmin/Wahoo tokens and the per-domain GPS client secrets |
 | `MANIFEST` | Timestamp, env, git commit, image tags, file names | Says which commit to rebuild before restoring |
 | `SHA256SUMS` | Checksums of the two encrypted archives | Verified by `restore.sh` before it decrypts or destroys anything |
-| `COMPLETE` | Written last, after everything else landed | A dated directory without it is a failed run, not a backup — the scripts never delete on the backup host, so it has to be recognisable |
+| `COMPLETE` | The snapshot's name, written last into `incoming/` | Promotion waits for it; a dated directory is renamed into place whole, so every snapshot has one |
 
 Postgres is dumped **before** MinIO on purpose: `AssetService` uploads to S3 and only then persists
 the row, so a file landing mid-backup leaves an orphan object rather than a row pointing at a
 missing one. `pg_dump -Fc` is transactional, and MinIO renames objects into place, so neither needs
 the stack stopped.
 
-Unchanged MinIO objects are hard-linked to the previous snapshot (`rsync --link-dest`): each dated
-directory reads as a full copy but only costs its delta. Measured on production: a first snapshot
-takes ~60 s and 1.7 GB; the next takes ~18 s and near-zero disk.
+Only changed MinIO objects cross the wire into `incoming/`, and `backup-promote.sh` hard-links the
+unchanged ones to the previous snapshot (`rsync --link-dest`): each dated directory reads as a full
+copy but only costs its delta, plus `incoming/` itself — one more copy of the store. Measured on
+production: a first snapshot takes ~60 s and 1.7 GB; the next takes ~18 s and near-zero disk.
 
 `.minio.sys/tmp/` is excluded: MinIO stages every write there, so rsync catches files mid-flight and
 fails the run with exit 23. The rest of `.minio.sys` is *not* excluded — without `format.json` MinIO
@@ -677,7 +691,18 @@ stays the single source of truth instead of a copy that quietly drifts:
 ```
 
 `;` rather than `&&` between the two: a failed fetch must not skip the night's pruning, it just runs
-the last version that landed. The checkout is read-only, shallow and sparse (5 MB, `scripts/` only):
+the last version that landed. Promotion runs from the same checkout, every quarter of an hour:
+
+```
+*/15 * * * * /opt/pedalons-scripts/scripts/backup-promote.sh <backup-root> >> /var/log/backup/pedalons-backup-promote.log 2>&1
+```
+
+It reports to its own Healthchecks check, set in `/etc/default/pedalons-backup-promote` (root,
+`0600`): `BACKUP_PROMOTE_PING_URL=https://hc-ping.com/<uuid>`, a daily check — a ping per promotion,
+`/fail` when a push is refused. Nothing to promote pings nothing, so a night without a snapshot shows
+up as a late check.
+
+The checkout is read-only, shallow and sparse (5 MB, `scripts/` only):
 
 ```bash
 git clone --depth 1 --single-branch --branch develop --no-checkout \
@@ -717,9 +742,11 @@ adduser --system --group --home /home/<backup-user> --shell /bin/bash <backup-us
 mkdir -p /home/<backup-user>/.ssh <backup-root>
 echo 'from="<prod-tunnel-ip>",restrict,command="rrsync <backup-root>" ssh-ed25519 AAAA... backup-pedalons-prod' \
   > /home/<backup-user>/.ssh/authorized_keys
-chown -R <backup-user>:<backup-user> /home/<backup-user> <backup-root>
+chown -R <backup-user>:<backup-user> /home/<backup-user>
 chmod 700 /home/<backup-user>/.ssh && chmod 600 /home/<backup-user>/.ssh/authorized_keys
-chmod 750 <backup-root>
+# The root and the snapshots are root's; the account writes incoming/ only (SEC-32).
+chown root:<backup-user> <backup-root> && chmod 750 <backup-root>
+mkdir -p <backup-root>/incoming && chown <backup-user>:<backup-user> <backup-root>/incoming && chmod 700 <backup-root>/incoming
 ```
 
 Check the restriction actually bites — this must fail:
@@ -742,7 +769,8 @@ cryptsetup open --allow-discards <backup-root>.luks pedalons-backup
 mkfs.ext4 /dev/mapper/pedalons-backup
 chattr +i <backup-root>                                      # the bare mount point: unwritable
 mount /dev/mapper/pedalons-backup <backup-root>
-chown <backup-user>:<backup-user> <backup-root> && chmod 750 <backup-root>
+chown root:<backup-user> <backup-root> && chmod 750 <backup-root>
+mkdir <backup-root>/incoming && chown <backup-user>:<backup-user> <backup-root>/incoming && chmod 700 <backup-root>/incoming
 cryptsetup luksHeaderBackup <backup-root>.luks --header-backup-file /root/pedalons-backup.luks-header
 ```
 
@@ -761,7 +789,7 @@ cryptsetup open --allow-discards <backup-root>.luks pedalons-backup && mount /de
 ```
 
 Until then each night's backup fails, and Healthchecks says so; `backup-prune.sh` finds an empty
-directory and removes nothing.
+directory and removes nothing, and `backup-promote.sh` finds no `incoming/`.
 
 ### Restoring
 
@@ -774,7 +802,7 @@ install -m 600 /dev/null /dev/shm/pedalons-backup.key
 $EDITOR /dev/shm/pedalons-backup.key         # paste the AGE-SECRET-KEY-1... line
 export BACKUP_AGE_IDENTITY=/dev/shm/pedalons-backup.key
 
-scripts/restore.sh --list                    # complete snapshots, and failed runs marked as such
+scripts/restore.sh --list                    # the promoted snapshots (not incoming/)
 scripts/restore.sh                           # restore the newest complete one (asks to confirm)
 scripts/restore.sh --snapshot 2026-07-24T031500Z
 

@@ -40,7 +40,7 @@
 | M9 | Moyenne | Le jeton d'accès des appareils a une durée longue pour un jeton non révocable | Corrigé (ledger `SEC-11`) |
 | M10 | Moyenne | Aucune limitation de débit HTTP globale | Corrigé (ledger `SEC-28`) ; le seuil suppose Caddy seul en entrée, à vérifier au déploiement |
 | L1–L14 | Faible | Voir la section dédiée | L1 et L4 à L9, L12 à L14 corrigés, L2 caduc, L11 partiellement corrigé ; L3 et L10 ouverts |
-| V1–V8 | À valider | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | V1 non confirmé (ledger `SEC-5`) ; V2 caduc pour l'avenir ; V3 conforme par Caddy ; V4 traité sauf la CSP des scripts (`SEC-30`, `SEC-31`) ; V6 sans tenants voisins ; V5, V7, V8 à valider |
+| V1–V8 | À valider | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | V1 non confirmé (ledger `SEC-5`) ; V2 caduc pour l'avenir ; V3 conforme par Caddy ; V4 traité sauf la CSP des scripts (`SEC-30`, `SEC-31`) ; V5 corrigé (`SEC-32`) ; V6 sans tenants voisins ; V7, V8 à valider |
 
 H5, M7 à M10 et L12 à L14 viennent de l'audit d'infrastructure de février
 ([`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md), lignes S2 à S11), versés ici
@@ -146,7 +146,7 @@ Informationnel :
 | V2 | La migration biketeam par dump pouvait rattacher un compte Pedalons existant sur une preuve d'e-mail insuffisante | Caduc pour l'avenir : l'import par dump a été retiré (commit `d93fd3af`) et la migration en direct n'importe aucune personne. Les comptes déjà importés n'existent plus en staging ni en prod (vérifié le 2026-09-29, `SEC-15`) |
 | V3 | La confiance accordée aux en-têtes `X-Forwarded-*` dépend de la configuration du proxy de l'hôte | **Conforme par Caddy** (vérifié le 2026-09-30) : un `X-Forwarded-Host` ou un `X-Forwarded-For` forgé ne change ni le tenant ni le client. Traefik était joignable sans Caddy en IPv6, fermé et vérifié le même jour (ledger `SEC-29`) |
 | V4 | Les en-têtes de sécurité HTTP dépendent de la configuration du proxy de l'hôte | **Confirmé** (vérifié le 2026-09-30) : ni HSTS, ni CSP, ni `X-Frame-Options`, ni `nosniff` sur les pages et l'API, et `X-Powered-By: Express`. Posés par Traefik (ledger `SEC-30`), sauf la CSP des scripts (ledger `SEC-31`) |
-| V5 | L'intégrité de l'historique des sauvegardes dépend de la configuration de l'hôte de sauvegarde | À valider |
+| V5 | L'intégrité de l'historique des sauvegardes dépend de la configuration de l'hôte de sauvegarde | **Confirmé puis corrigé** (2026-09-30, ledger `SEC-32`) : la production écrivait les snapshots eux-mêmes ; elle n'écrit plus qu'un dépôt, que l'hôte de sauvegarde promeut en snapshots en lecture seule appartenant à root |
 | V6 | La protection CSRF entre tenants dépend de la façon dont leurs domaines sont enregistrés | Un seul domaine par base en prod et en staging (vérifié le 2026-09-30) : pas de tenants voisins. Reste que d'autres sites de l'hôte sont des sous-domaines de `pedalons.fr`, donc « same-site » pour la prod |
 | V7 | La neutralisation des en-têtes des e-mails dépend du client SMTP | À valider |
 | V8 | Le traitement des SVG par imgproxy dépend de sa configuration | À valider |
