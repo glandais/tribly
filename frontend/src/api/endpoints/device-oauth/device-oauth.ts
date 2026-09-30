@@ -16,6 +16,7 @@ import type {
 
 import type {
   CompleteRequest,
+  DenyRequest,
   DeviceCodeResponse,
   DeviceRequest,
   DeviceTokenRequest,
@@ -130,6 +131,92 @@ export const useDeviceComplete = <TError = ErrorType<ErrorResponse | void>, TCon
   TContext
 > => {
   return useMutation(getDeviceCompleteMutationOptions(options), queryClient)
+}
+/**
+ * The signed-in user refuses to pair the device showing this code: the code expires at once, and the device polling /token is told TOKEN_EXPIRED
+ * @summary Deny device authorization
+ */
+export const deviceDeny = (
+  denyRequest: BodyType<DenyRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<unknown>(
+    {
+      url: `/api/device/oauth/deny`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: denyRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getDeviceDenyMutationKey = () => ['deviceDeny'] as const
+
+export const getDeviceDenyMutationOptions = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deviceDeny>>,
+    TError,
+    DeviceDenyMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deviceDeny>>,
+  TError,
+  DeviceDenyMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeviceDenyMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deviceDeny>>,
+    DeviceDenyMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return deviceDeny(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type DeviceDenyMutationResult = NonNullable<Awaited<ReturnType<typeof deviceDeny>>>
+export type DeviceDenyMutationBody = BodyType<DenyRequest>
+export type DeviceDenyMutationError = ErrorType<ErrorResponse | void>
+export type DeviceDenyMutationVariables = { data: BodyType<DenyRequest> }
+
+/**
+ * @summary Deny device authorization
+ */
+export const useDeviceDeny = <TError = ErrorType<ErrorResponse | void>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deviceDeny>>,
+      TError,
+      DeviceDenyMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof deviceDeny>>,
+  TError,
+  DeviceDenyMutationVariables,
+  TContext
+> => {
+  return useMutation(getDeviceDenyMutationOptions(options), queryClient)
 }
 /**
  * Start device code flow - returns user code and verification URL

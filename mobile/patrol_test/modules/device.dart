@@ -20,6 +20,16 @@ final class Device extends Module {
     ).waitUntilExists(timeout: const Duration(seconds: 10));
   }
 
+  /// Waits for the confirmation card, then presses « Autoriser » — the only
+  /// way a device gets paired (docs/LEDGER_*.md SEC-2).
+  Future<void> authorize() async {
+    await $(
+      keys.device.confirm,
+    ).waitUntilExists(timeout: const Duration(seconds: 10));
+    await $(keys.device.authorizeButton).scrollTo();
+    await $(keys.device.authorizeButton).tap();
+  }
+
   Future<void> tryAgain() async {
     await $(keys.device.tryAgainButton).tap();
     await $(keys.device.codeField).waitUntilVisible();

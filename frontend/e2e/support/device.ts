@@ -76,16 +76,26 @@ export const NEVER_ISSUED_CODE = '0I1O0I'
 
 /** Counts the page's POST /api/device/oauth/complete — call it before the first `goto`. */
 export function countCompletions(page: Page): () => number {
+  return countPosts(page, '/api/device/oauth/complete')
+}
+
+/** Counts the page's POST /api/device/oauth/deny — call it before the first `goto`. */
+export function countDenials(page: Page): () => number {
+  return countPosts(page, '/api/device/oauth/deny')
+}
+
+function countPosts(page: Page, path: string): () => number {
   let count = 0
   page.on('request', (request) => {
-    if (request.method() === 'POST' && request.url().endsWith('/api/device/oauth/complete'))
-      count += 1
+    if (request.method() === 'POST' && request.url().endsWith(path)) count += 1
   })
   return () => count
 }
 
 /** The verification page's card headings, as the rider reads them. */
 export const DEVICE_PAGE = {
+  confirm: 'Autoriser cet appareil ?',
+  denied: 'Demande refusée',
   success: 'Connexion réussie !',
   error: 'Erreur',
   manualEntry: 'Entrez le code',

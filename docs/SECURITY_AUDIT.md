@@ -26,7 +26,7 @@
 |---|---|---|---|
 | H1 | **Élevée** | Le code OTP à 6 chiffres se brute-force sans limite : prise de compte, admin plateforme compris | Corrigé (commit `911e93a2`) |
 | H2 | **Élevée** | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif (XSS stockée) | Corrigé (ledger `SEC-1`) |
-| H3 | **Élevée** | L'autorisation d'un appareil peut aboutir sans confirmation explicite de l'utilisateur | Ouvert |
+| H3 | **Élevée** | L'autorisation d'un appareil peut aboutir sans confirmation explicite de l'utilisateur | Corrigé (ledger `SEC-2`) |
 | H4 | **Élevée** | L'app mobile peut transmettre ses identifiants à des hôtes autres que l'API | Corrigé (ledger `SEC-3`) |
 | H5 | **Élevée** | Un point du flux d'autorisation des appareils n'a aucune limitation de débit | Corrigé (ledger `SEC-4`) |
 | M1 | Moyenne (élevée en chaîne) | L'access token n'est pas lié à son domaine : l'utilisateur est résolu par e-mail sur le Host de la requête | Corrigé (commit `6a791794`) |
@@ -52,7 +52,7 @@ Les constats ouverts sont suivis, sans détail, sous le préfixe `SEC` de [`LEDG
 changement de statut ici se reporte là-bas.
 
 **Ordre de correction conseillé** :
-1. ~~H1~~, ~~H2~~ et ~~H4~~ (corrigés), H3.
+1. ~~H1~~, ~~H2~~, ~~H3~~ et ~~H4~~ (corrigés).
 2. Vérifier V1.
 3. ~~M1~~ (corrigé).
 4. M3 et ~~M4~~ (corrigé).
@@ -77,7 +77,7 @@ changement de statut ici se reporte là-bas.
   - **À l'envoi** : le SVG est refusé comme image et comme pièce jointe, le XML comme pièce jointe, y compris quand Magika ne donne qu'une étiquette textuelle et que le type viendrait du seul nom de fichier. Seule exception : un GPX joint, réécrit intégralement depuis sa trace avant stockage (ledger `API-49`).
 - **Tests** : `UploadedContentHeadersTest`, `AssetResourceTest` (un GPX joint et un SVG stocké avant le correctif partent en téléchargement, sous CSP), `FileTypeDetectorTest.ActiveDocuments`, `FileTypeCategoryTest`.
 
-### H3 — Approbation d'un appareil sans confirmation — **Ouvert**
+### H3 — Approbation d'un appareil sans confirmation — **Corrigé** (ledger `SEC-2`)
 
 ### H4 — Fuite des identifiants mobiles vers des hôtes tiers — **Corrigé** (ledger `SEC-3`)
 

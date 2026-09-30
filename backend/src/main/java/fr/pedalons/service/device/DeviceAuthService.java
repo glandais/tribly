@@ -243,22 +243,49 @@ public class DeviceAuthService {
   }
 
   /**
-   * Check if a user code exists and get its authorization status.
+   * The pending code {@code userCode} names on this domain, for the confirmation screen.
    *
-   * @param userCode The user code to verify
-   * @return Optional containing the authorization status if code is valid, empty if not found
+   * <p>Anonymous, so only the domain's budget bounds it: without one, this lookup alone would find
+   * the pending codes that completeDeviceCodeFlow then needs a single try to take (SEC-4).
    */
   @Public
-  public Optional<Boolean> isUserCodeAuthorized(String userCode) {
-    // Anonymous, so only the domain's budget bounds it: without one, this lookup alone would find
-    // the pending codes that completeDeviceCodeFlow then needs a single try to take (SEC-4).
+  public Optional<DeviceCode> findPendingUserCode(String userCode) {
     Long domainId = domainResolver.getDomainId();
     authThrottle.checkDeviceCode(domainId, null);
     Optional<DeviceCode> deviceCode = deviceCodeRepository.findValidByUserCode(domainId, userCode);
     if (deviceCode.isEmpty()) {
       authThrottle.recordDeviceCodeFailure(domainId, null);
     }
-    return deviceCode.map(DeviceCode::isAuthorized);
+    return deviceCode;
+  }
+
+  /**
+   * The signed-in user refused to pair the device showing {@code userCode} (docs/LEDGER_*.md
+   * SEC-2). The code expires rather than disappears: the device polling {@code /token} then hears
+   * {@code TOKEN_EXPIRED}, which Karoo and Garmin already handle by starting over, and whoever
+   * sent the link cannot offer the same code to someone else. Unknown codes count like on {@link
+   * #completeDeviceCodeFlow}.
+   */
+  @Transactional
+  @Logged
+  public void denyDeviceCodeFlow(String userCode) {
+    Long userId = pedalonsQueryContext.getUserId();
+    Long domainId = domainResolver.getDomainId();
+
+    authThrottle.checkDeviceCode(domainId, userId);
+    DeviceCode deviceCode =
+        deviceCodeRepository
+            .findValidByUserCode(domainId, userCode)
+            .orElseThrow(
+                () -> {
+                  authThrottle.recordDeviceCodeFailure(domainId, userId);
+                  return new BadRequestException(ErrorCode.TOKEN_INVALID);
+                });
+    deviceCode.setExpiresAt(Instant.now());
+
+    LOG.infov(
+        "Device code denied by user {0}, client={1}, user_code={2}",
+        userId, deviceCode.getClientId(), userCode);
   }
 
   private DeviceTokenResponse createTokenResponse(User user, String clientId) {

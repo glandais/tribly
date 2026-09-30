@@ -13,6 +13,9 @@ abstract class CompleteRequest with _$CompleteRequest {
   const factory CompleteRequest({
     /// User code from device display
     required String userCode,
+
+    /// Must be true: the user explicitly confirmed, on a screen showing the code
+    required bool confirmed,
   }) = _CompleteRequest;
 
   factory CompleteRequest.fromJson(Map<String, Object?> json) =>
