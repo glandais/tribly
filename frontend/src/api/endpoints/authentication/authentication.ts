@@ -7,8 +7,10 @@ import type {
 } from '@tanstack/react-query'
 
 import type {
+  ActivateAccountRequest,
   AuthResponse,
   EmailChangeRequest,
+  EmailLinkPreviewResponse,
   ErrorResponse,
   ForgotPasswordRequest,
   LoginRequest,
@@ -25,6 +27,94 @@ import type { ErrorType, BodyType } from '../../../lib/axiosInstance.ts'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
+/**
+ * Apply an address change from its link. Opens no session: a signed-in client refreshes its user.
+ * @summary Confirm a new address
+ */
+export const confirmEmailChange = (
+  verifyTokenRequest: BodyType<VerifyTokenRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<void>(
+    {
+      url: `/api/auth/confirm-email-change`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: verifyTokenRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getConfirmEmailChangeMutationKey = () => ['confirmEmailChange'] as const
+
+export const getConfirmEmailChangeMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof confirmEmailChange>>,
+    TError,
+    ConfirmEmailChangeMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof confirmEmailChange>>,
+  TError,
+  ConfirmEmailChangeMutationVariables,
+  TContext
+> => {
+  const mutationKey = getConfirmEmailChangeMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof confirmEmailChange>>,
+    ConfirmEmailChangeMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return confirmEmailChange(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ConfirmEmailChangeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof confirmEmailChange>>
+>
+export type ConfirmEmailChangeMutationBody = BodyType<VerifyTokenRequest>
+export type ConfirmEmailChangeMutationError = ErrorType<ErrorResponse>
+export type ConfirmEmailChangeMutationVariables = { data: BodyType<VerifyTokenRequest> }
+
+/**
+ * @summary Confirm a new address
+ */
+export const useConfirmEmailChange = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof confirmEmailChange>>,
+      TError,
+      ConfirmEmailChangeMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof confirmEmailChange>>,
+  TError,
+  ConfirmEmailChangeMutationVariables,
+  TContext
+> => {
+  return useMutation(getConfirmEmailChangeMutationOptions(options), queryClient)
+}
 /**
  * Change the signed-in user's email address. Sends a verification link to the new address; the change applies once that link is followed.
  * @summary Request email change
@@ -773,17 +863,103 @@ export const useResetPassword = <TError = ErrorType<ErrorResponse>, TContext = u
   return useMutation(getResetPasswordMutationOptions(options), queryClient)
 }
 /**
- * Verify email address and complete registration
- * @summary Verify email
+ * Complete a sign-up from its verification link: the password is chosen here, then the new account is signed in.
+ * @summary Activate an account
  */
-export const verifyEmail = (
-  verifyTokenRequest: BodyType<VerifyTokenRequest>,
+export const activateAccount = (
+  activateAccountRequest: BodyType<ActivateAccountRequest>,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<AuthResponse>(
     {
       url: `/api/auth/verify-email`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: activateAccountRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getActivateAccountMutationKey = () => ['activateAccount'] as const
+
+export const getActivateAccountMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof activateAccount>>,
+    TError,
+    ActivateAccountMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof activateAccount>>,
+  TError,
+  ActivateAccountMutationVariables,
+  TContext
+> => {
+  const mutationKey = getActivateAccountMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof activateAccount>>,
+    ActivateAccountMutationVariables
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return activateAccount(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ActivateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof activateAccount>>>
+export type ActivateAccountMutationBody = BodyType<ActivateAccountRequest>
+export type ActivateAccountMutationError = ErrorType<ErrorResponse>
+export type ActivateAccountMutationVariables = { data: BodyType<ActivateAccountRequest> }
+
+/**
+ * @summary Activate an account
+ */
+export const useActivateAccount = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof activateAccount>>,
+      TError,
+      ActivateAccountMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof activateAccount>>,
+  TError,
+  ActivateAccountMutationVariables,
+  TContext
+> => {
+  return useMutation(getActivateAccountMutationOptions(options), queryClient)
+}
+/**
+ * The address a sign-up or address-change link verifies, and what following it does. Does not spend the link: the page shows the address before anything happens.
+ * @summary Read a verification link
+ */
+export const previewEmailLink = (
+  verifyTokenRequest: BodyType<VerifyTokenRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<EmailLinkPreviewResponse>(
+    {
+      url: `/api/auth/verify-email/preview`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: verifyTokenRequest,
@@ -793,26 +969,26 @@ export const verifyEmail = (
   )
 }
 
-export const getVerifyEmailMutationKey = () => ['verifyEmail'] as const
+export const getPreviewEmailLinkMutationKey = () => ['previewEmailLink'] as const
 
-export const getVerifyEmailMutationOptions = <
+export const getPreviewEmailLinkMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof verifyEmail>>,
+    Awaited<ReturnType<typeof previewEmailLink>>,
     TError,
-    VerifyEmailMutationVariables,
+    PreviewEmailLinkMutationVariables,
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof verifyEmail>>,
+  Awaited<ReturnType<typeof previewEmailLink>>,
   TError,
-  VerifyEmailMutationVariables,
+  PreviewEmailLinkMutationVariables,
   TContext
 > => {
-  const mutationKey = getVerifyEmailMutationKey()
+  const mutationKey = getPreviewEmailLinkMutationKey()
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -820,41 +996,43 @@ export const getVerifyEmailMutationOptions = <
     : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof verifyEmail>>,
-    VerifyEmailMutationVariables
+    Awaited<ReturnType<typeof previewEmailLink>>,
+    PreviewEmailLinkMutationVariables
   > = (props) => {
     const { data } = props ?? {}
 
-    return verifyEmail(data, requestOptions)
+    return previewEmailLink(data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
 }
 
-export type VerifyEmailMutationResult = NonNullable<Awaited<ReturnType<typeof verifyEmail>>>
-export type VerifyEmailMutationBody = BodyType<VerifyTokenRequest>
-export type VerifyEmailMutationError = ErrorType<ErrorResponse>
-export type VerifyEmailMutationVariables = { data: BodyType<VerifyTokenRequest> }
+export type PreviewEmailLinkMutationResult = NonNullable<
+  Awaited<ReturnType<typeof previewEmailLink>>
+>
+export type PreviewEmailLinkMutationBody = BodyType<VerifyTokenRequest>
+export type PreviewEmailLinkMutationError = ErrorType<ErrorResponse>
+export type PreviewEmailLinkMutationVariables = { data: BodyType<VerifyTokenRequest> }
 
 /**
- * @summary Verify email
+ * @summary Read a verification link
  */
-export const useVerifyEmail = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+export const usePreviewEmailLink = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof verifyEmail>>,
+      Awaited<ReturnType<typeof previewEmailLink>>,
       TError,
-      VerifyEmailMutationVariables,
+      PreviewEmailLinkMutationVariables,
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
   },
   queryClient?: QueryClient
 ): UseMutationResult<
-  Awaited<ReturnType<typeof verifyEmail>>,
+  Awaited<ReturnType<typeof previewEmailLink>>,
   TError,
-  VerifyEmailMutationVariables,
+  PreviewEmailLinkMutationVariables,
   TContext
 > => {
-  return useMutation(getVerifyEmailMutationOptions(options), queryClient)
+  return useMutation(getPreviewEmailLinkMutationOptions(options), queryClient)
 }

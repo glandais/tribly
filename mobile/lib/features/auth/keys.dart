@@ -27,15 +27,22 @@ class LoginPageKeys {
   final registerDisplayNameField = const _LoginPageKey(
     'registerDisplayNameField',
   );
-  final registerPasswordField = const _LoginPageKey('registerPasswordField');
-  final registerConfirmField = const _LoginPageKey('registerConfirmField');
   final termsCheckbox = const _LoginPageKey('termsCheckbox');
 
   /// Le message sous la case des conditions quand elle n'est pas cochée.
   final termsError = const _LoginPageKey('termsError');
   final registerSubmitButton = const _LoginPageKey('registerSubmitButton');
 
-  // Vérification de l'e-mail.
+  // Vérification de l'e-mail. Un lien d'inscription montre son adresse et
+  // demande le mot de passe avant d'activer quoi que ce soit.
+  final verifyAddress = const _LoginPageKey('verifyAddress');
+  final verifySignedInWarning = const _LoginPageKey('verifySignedInWarning');
+  final verifyPasswordField = const _LoginPageKey('verifyPasswordField');
+  final verifyConfirmField = const _LoginPageKey('verifyConfirmField');
+  final verifyActivateButton = const _LoginPageKey('verifyActivateButton');
+
+  /// Un lien de changement d'adresse, appliqué.
+  final verifyEmailChanged = const _LoginPageKey('verifyEmailChanged');
   final verifySuccess = const _LoginPageKey('verifySuccess');
   final verifyError = const _LoginPageKey('verifyError');
   final verifyBackToLoginButton = const _LoginPageKey(

@@ -4,8 +4,9 @@ import 'common.dart';
 /// Web counterpart: `flow-account.e2e.ts` › sign up, then the verification link.
 ///
 /// Follows `sign_up_terms_test` to the end: the app's own sign-up form, then the link read from
-/// mailpit, opened as a tapped mail link opens it. The verification page signs the rider in —
-/// it is the only way in before the address is verified.
+/// mailpit, opened as a tapped mail link opens it. The verification page shows the address and
+/// asks for the password; activating signs the rider in — the only way in before the address is
+/// verified.
 void main() {
   testApp(
     'A rider signs up in the app, follows the verification link from the mail, and lands signed '
@@ -24,7 +25,6 @@ void main() {
       await modules.auth.fillRegisterForm(
         email: email,
         displayName: displayName,
-        password: password,
       );
       await modules.auth.acceptTerms();
       final seen = await mailpit.mailbox(email);
@@ -36,6 +36,10 @@ void main() {
       expect(await backend.loginStatus(email, password), isNot(200));
 
       await openLink($, '${Paths.verifyEmail()}?token=$token');
+      // The link opens nothing on its own: the page shows the address and asks for the password.
+      expect(modules.auth.showsActivationFor(email), isTrue);
+      expect(await backend.loginStatus(email, password), isNot(200));
+      await modules.auth.activateAccount(password);
       await modules.auth.continueAfterVerification();
       await modules.navigation.waitUntilTabBarIsVisible();
 

@@ -9,6 +9,11 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+/**
+ * No password here: it is chosen on the page the verification link opens ({@link
+ * ActivateAccountRequest}). Chosen at sign-up, it belonged to whoever typed the address, and
+ * survived its owner's click on the link (docs/LEDGER_*.md SEC-24, audit L4).
+ */
 @Schema(description = "User registration request")
 @ValidateSchema
 @Builder
@@ -23,8 +28,6 @@ public record RegisterRequest(
         @AcceptableText
         @Schema(description = "Display name", examples = "John Doe")
         String displayName,
-    @NotBlank @Size(min = 8, max = 100) @Schema(description = "Password (min 8 chars)")
-        String password,
     @AssertTrue
         @Schema(
             description =

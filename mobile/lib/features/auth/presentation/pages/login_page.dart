@@ -35,8 +35,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   // Register fields
   final _regEmailController = TextEditingController();
   final _regDisplayNameController = TextEditingController();
-  final _regPasswordController = TextEditingController();
-  final _regConfirmPasswordController = TextEditingController();
 
   /// La case des conditions d'utilisation, obligatoire. Gardée hors du
   /// `FormField` pour survivre à un aller-retour vers la page des conditions.
@@ -69,8 +67,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     _passwordController.dispose();
     _regEmailController.dispose();
     _regDisplayNameController.dispose();
-    _regPasswordController.dispose();
-    _regConfirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -147,7 +143,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       await authNotifier.register(
         email: _regEmailController.text.trim(),
         displayName: _regDisplayNameController.text.trim(),
-        password: _regPasswordController.text,
         acceptTerms: _acceptTerms,
       );
       TextInput.finishAutofillContext();
@@ -421,42 +416,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     }
                     if (value.length > 100) {
                       return 'auth.errors.displayNameTooLong'.tr();
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  key: keys.login.registerPasswordField,
-                  controller: _regPasswordController,
-                  obscureText: true,
-                  autofillHints: const [AutofillHints.newPassword],
-                  decoration: InputDecoration(
-                    labelText: 'auth.password'.tr(),
-                    prefixIcon: const Icon(Icons.lock),
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.length < 8) {
-                      return 'auth.validation.passwordMin'.tr();
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  key: keys.login.registerConfirmField,
-                  controller: _regConfirmPasswordController,
-                  obscureText: true,
-                  autofillHints: const [AutofillHints.newPassword],
-                  decoration: InputDecoration(
-                    labelText: 'auth.confirmPassword'.tr(),
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value != _regPasswordController.text) {
-                      return 'auth.validation.passwordMismatch'.tr();
                     }
                     return null;
                   },

@@ -47,6 +47,26 @@
           }
         }
       },
+      "ActivateAccountRequest" : {
+        "description" : "Activates an account from its verification link: the password is chosen here, by whoever holds the mailbox, never at sign-up.",
+        "type" : "object",
+        "required" : [ "token", "password" ],
+        "properties" : {
+          "token" : {
+            "type" : "string",
+            "description" : "Verification token",
+            "pattern" : "\\S",
+            "maxLength" : 100
+          },
+          "password" : {
+            "type" : "string",
+            "description" : "Password (min 8 chars)",
+            "pattern" : "\\S",
+            "minLength" : 8,
+            "maxLength" : 100
+          }
+        }
+      },
       "AdContactRequest" : {
         "description" : "A message to relay to the author of an ad",
         "type" : "object",
@@ -1867,6 +1887,26 @@
           }
         }
       },
+      "EmailLinkKind" : {
+        "type" : "string",
+        "enum" : [ "SIGN_UP", "EMAIL_CHANGE" ]
+      },
+      "EmailLinkPreviewResponse" : {
+        "description" : "What a verification link is about, read without spending it: the page shows the address before anything happens, so that nobody activates someone else's account unaware.",
+        "type" : "object",
+        "required" : [ "email", "kind" ],
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "description" : "The address the link verifies"
+          },
+          "kind" : {
+            "description" : "What following the link does",
+            "type" : "string",
+            "$ref" : "#/components/schemas/EmailLinkKind"
+          }
+        }
+      },
       "EntityType" : {
         "type" : "string",
         "enum" : [ "TEAM", "USER", "USER_TEAM", "RIDE_TEMPLATE", "RIDE_TEMPLATE_GROUP", "PLACE", "COMMENT", "ASSET", "TRIP", "TRIP_STAGE", "ROUTE", "RIDE", "RIDE_GROUP", "AD", "POST", "TEAM_PAGE", "CALENDAR", "PUBLICATION", "ANY" ]
@@ -3541,7 +3581,7 @@
       "RegisterRequest" : {
         "description" : "User registration request",
         "type" : "object",
-        "required" : [ "email", "displayName", "password", "acceptTerms" ],
+        "required" : [ "email", "displayName", "acceptTerms" ],
         "properties" : {
           "email" : {
             "type" : "string",
@@ -3557,13 +3597,6 @@
             "pattern" : "\\S",
             "minLength" : 1,
             "maxLength" : 200
-          },
-          "password" : {
-            "type" : "string",
-            "description" : "Password (min 8 chars)",
-            "pattern" : "\\S",
-            "minLength" : 8,
-            "maxLength" : 100
           },
           "acceptTerms" : {
             "type" : "boolean",
@@ -7832,6 +7865,49 @@
         } ]
       }
     },
+    "/api/auth/confirm-email-change" : {
+      "post" : {
+        "summary" : "Confirm a new address",
+        "description" : "Apply an address change from its link. Opens no session: a signed-in client refreshes its user.",
+        "operationId" : "confirmEmailChange",
+        "tags" : [ "Authentication" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/VerifyTokenRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Address changed"
+          },
+          "400" : {
+            "description" : "Invalid, spent or expired link, or not an address-change link",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "EMAIL_ALREADY_EXISTS — another account took the address meanwhile",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/email/change-request" : {
       "post" : {
         "summary" : "Request email change",
@@ -8550,9 +8626,9 @@
     },
     "/api/auth/verify-email" : {
       "post" : {
-        "summary" : "Verify email",
-        "description" : "Verify email address and complete registration",
-        "operationId" : "verifyEmail",
+        "summary" : "Activate an account",
+        "description" : "Complete a sign-up from its verification link: the password is chosen here, then the new account is signed in.",
+        "operationId" : "activateAccount",
         "tags" : [ "Authentication" ],
         "parameters" : [ {
           "name" : "X-Forwarded-For",
@@ -8571,7 +8647,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/VerifyTokenRequest"
+                "$ref" : "#/components/schemas/ActivateAccountRequest"
               }
             }
           },
@@ -8579,7 +8655,7 @@
         },
         "responses" : {
           "200" : {
-            "description" : "Email verified successfully",
+            "description" : "Account created and signed in",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -8589,7 +8665,47 @@
             }
           },
           "400" : {
-            "description" : "Invalid or expired token",
+            "description" : "Invalid, spent or expired link, or not a sign-up link",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/verify-email/preview" : {
+      "post" : {
+        "summary" : "Read a verification link",
+        "description" : "The address a sign-up or address-change link verifies, and what following it does. Does not spend the link: the page shows the address before anything happens.",
+        "operationId" : "previewEmailLink",
+        "tags" : [ "Authentication" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/VerifyTokenRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The link is valid",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EmailLinkPreviewResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid, spent or expired link",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -20105,7 +20221,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "6.3.0",
+    "version" : "7.0.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

@@ -51,6 +51,25 @@ components:
             \ redirect to them. Each one refuses the deletion until another admin\
             \ is named (or, for a platform admin, the switch-over is cancelled on\
             \ biketeam and the team deleted)"
+    ActivateAccountRequest:
+      description: "Activates an account from its verification link: the password\
+        \ is chosen here, by whoever holds the mailbox, never at sign-up."
+      type: object
+      required:
+      - token
+      - password
+      properties:
+        token:
+          type: string
+          description: Verification token
+          pattern: \S
+          maxLength: 100
+        password:
+          type: string
+          description: Password (min 8 chars)
+          pattern: \S
+          minLength: 8
+          maxLength: 100
     AdContactRequest:
       description: A message to relay to the author of an ad
       type: object
@@ -1768,6 +1787,27 @@ components:
           - user@example.com
           pattern: \S
           maxLength: 250
+    EmailLinkKind:
+      type: string
+      enum:
+      - SIGN_UP
+      - EMAIL_CHANGE
+    EmailLinkPreviewResponse:
+      description: "What a verification link is about, read without spending it: the\
+        \ page shows the address before anything happens, so that nobody activates\
+        \ someone else's account unaware."
+      type: object
+      required:
+      - email
+      - kind
+      properties:
+        email:
+          type: string
+          description: The address the link verifies
+        kind:
+          description: What following the link does
+          type: string
+          $ref: "#/components/schemas/EmailLinkKind"
     EntityType:
       type: string
       enum:
@@ -3478,7 +3518,6 @@ components:
       required:
       - email
       - displayName
-      - password
       - acceptTerms
       properties:
         email:
@@ -3496,12 +3535,6 @@ components:
           pattern: \S
           minLength: 1
           maxLength: 200
-        password:
-          type: string
-          description: Password (min 8 chars)
-          pattern: \S
-          minLength: 8
-          maxLength: 100
         acceptTerms:
           type: boolean
           description: "The member accepted the terms of service. Required, and must\
@@ -7165,6 +7198,35 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/auth/confirm-email-change:
+    post:
+      summary: Confirm a new address
+      description: "Apply an address change from its link. Opens no session: a signed-in\
+        \ client refreshes its user."
+      operationId: confirmEmailChange
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyTokenRequest"
+        required: true
+      responses:
+        "204":
+          description: Address changed
+        "400":
+          description: "Invalid, spent or expired link, or not an address-change link"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: EMAIL_ALREADY_EXISTS — another account took the address meanwhile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/auth/email/change-request:
     post:
       summary: Request email change
@@ -7652,9 +7714,10 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
   /api/auth/verify-email:
     post:
-      summary: Verify email
-      description: Verify email address and complete registration
-      operationId: verifyEmail
+      summary: Activate an account
+      description: "Complete a sign-up from its verification link: the password is\
+        \ chosen here, then the new account is signed in."
+      operationId: activateAccount
       tags:
       - Authentication
       parameters:
@@ -7670,17 +7733,45 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/VerifyTokenRequest"
+              $ref: "#/components/schemas/ActivateAccountRequest"
         required: true
       responses:
         "200":
-          description: Email verified successfully
+          description: Account created and signed in
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
         "400":
-          description: Invalid or expired token
+          description: "Invalid, spent or expired link, or not a sign-up link"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/auth/verify-email/preview:
+    post:
+      summary: Read a verification link
+      description: "The address a sign-up or address-change link verifies, and what\
+        \ following it does. Does not spend the link: the page shows the address before\
+        \ anything happens."
+      operationId: previewEmailLink
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: The link is valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailLinkPreviewResponse"
+        "400":
+          description: "Invalid, spent or expired link"
           content:
             application/json:
               schema:
@@ -15903,7 +15994,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 6.3.0
+  version: 7.0.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

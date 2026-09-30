@@ -103,16 +103,20 @@ export async function loginWithOtp(email: string): Promise<AuthResponse> {
 export const loginWithPassword = (email: string, password: string) =>
   apiPost<AuthResponse>(undefined, '/api/auth/login', { email, password })
 
-/** Sign-up as the app does it: register, then follow the verification link from the mail. */
+/**
+ * Sign-up as the app does it: register, then follow the verification link from the mail and choose
+ * the password there — sign-up itself takes none (SEC-24).
+ */
 export async function register(account: {
   email: string
   displayName: string
   password: string
 }): Promise<AuthResponse> {
+  const { password, ...signUp } = account
   const seen = await mailbox(account.email)
-  await apiPost(undefined, '/api/auth/register', { ...account, acceptTerms: true })
+  await apiPost(undefined, '/api/auth/register', { ...signUp, acceptTerms: true })
   const token = linkTokenIn(await waitForNewMail(account.email, seen))
-  return apiPost<AuthResponse>(undefined, '/api/auth/verify-email', { token })
+  return apiPost<AuthResponse>(undefined, '/api/auth/verify-email', { token, password })
 }
 
 /**

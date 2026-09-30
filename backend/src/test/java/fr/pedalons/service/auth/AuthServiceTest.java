@@ -63,8 +63,7 @@ class AuthServiceTest extends AbstractBaseTest {
 
   @Test
   void register_shouldCreateVerificationToken() {
-    RegisterRequest request =
-        new RegisterRequest("new@example.com", "New User", "password123", true);
+    RegisterRequest request = new RegisterRequest("new@example.com", "New User", true);
 
     authService.register(request);
 
@@ -77,8 +76,7 @@ class AuthServiceTest extends AbstractBaseTest {
 
   @Test
   void register_shouldSendVerificationEmail() {
-    RegisterRequest request =
-        new RegisterRequest("new@example.com", "New User", "password123", true);
+    RegisterRequest request = new RegisterRequest("new@example.com", "New User", true);
 
     authService.register(request);
 
@@ -90,8 +88,7 @@ class AuthServiceTest extends AbstractBaseTest {
   @Test
   void register_shouldThrowIfEmailExists() {
     dataService.createVerifiedUser("existing@example.com", "Existing User");
-    RegisterRequest request =
-        new RegisterRequest("existing@example.com", "New User", "password123", true);
+    RegisterRequest request = new RegisterRequest("existing@example.com", "New User", true);
 
     assertThrows(BadRequestException.class, () -> authService.register(request));
   }
@@ -104,8 +101,7 @@ class AuthServiceTest extends AbstractBaseTest {
     dataService.createAuthToken(
         "test@example.com", "old-hash", AuthTokenType.EMAIL_VERIFICATION, expiresAt);
 
-    RegisterRequest request =
-        new RegisterRequest("test@example.com", "Test User", "password123", true);
+    RegisterRequest request = new RegisterRequest("test@example.com", "Test User", true);
     authService.register(request);
 
     // Old token should be invalidated
@@ -119,7 +115,8 @@ class AuthServiceTest extends AbstractBaseTest {
     // Create a token manually with known hash
     createVerificationToken("verify@example.com", "Verified User", "test-token");
 
-    AuthResult result = authService.verifyEmail("test-token", "Test Agent", "127.0.0.1");
+    AuthResult result =
+        authService.activateAccount("test-token", "ownerpass123", "Test Agent", "127.0.0.1");
 
     assertNotNull(result.response().accessToken());
     assertEquals("verify@example.com", result.response().user().email());
@@ -134,7 +131,8 @@ class AuthServiceTest extends AbstractBaseTest {
   @Test
   void verifyEmail_shouldThrowForInvalidToken() {
     assertThrows(
-        BadRequestException.class, () -> authService.verifyEmail("invalid", "Agent", "IP"));
+        BadRequestException.class,
+        () -> authService.activateAccount("invalid", "ownerpass123", "Agent", "IP"));
   }
 
   @Test
@@ -142,7 +140,8 @@ class AuthServiceTest extends AbstractBaseTest {
     createExpiredVerificationToken("expired@example.com", "User", "expired-token");
 
     assertThrows(
-        BadRequestException.class, () -> authService.verifyEmail("expired-token", "Agent", "IP"));
+        BadRequestException.class,
+        () -> authService.activateAccount("expired-token", "ownerpass123", "Agent", "IP"));
   }
 
   // --- RequestOtp tests ---

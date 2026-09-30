@@ -17,6 +17,15 @@ public class AuthTokenRepository implements PanacheRepository<AuthToken> {
         .firstResultOptional();
   }
 
+  /** A mailed link's token, on the site it was issued for only. */
+  public Optional<AuthToken> findValidByTokenHashAndDomain(String tokenHash, Long domainId) {
+    return find(
+            "tokenHash = ?1 and domainId = ?2 and usedAt is null and expiresAt > CURRENT_TIMESTAMP",
+            tokenHash,
+            domainId)
+        .firstResultOptional();
+  }
+
   public Optional<AuthToken> findValidByEmailAndType(
       String email, AuthTokenType tokenType, Long domainId) {
     return find(

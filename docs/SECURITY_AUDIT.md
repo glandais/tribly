@@ -33,13 +33,13 @@
 | M2 | Moyenne | Le flou d'~1 km de la position des annonces peut être affiné par des requêtes répétées | Ouvert |
 | M3 | Moyenne | Un traitement de tracé GPX n'est pas borné en mémoire (déni de service) | Ouvert |
 | M4 | Moyenne | La connexion par mot de passe n'a ni limitation de débit ni verrouillage | Ouvert |
-| M5 | Moyenne | Un lien de vérification d'e-mail peut connecter la victime à un compte qui n'est pas le sien (login CSRF) | Ouvert |
+| M5 | Moyenne | Un lien de vérification d'e-mail peut connecter la victime à un compte qui n'est pas le sien (login CSRF) | Corrigé (ledger `SEC-9`) |
 | M6 | Moyenne | Une expression régulière appliquée au markdown est exposée au ReDoS | Corrigé : l'expression est linéaire (ledger `SEC-10`), le markdown borné à 100 000 caractères (ledger `SEC-19`) |
 | M7 | Moyenne | Le refresh token n'est pas renouvelé à l'usage | Ouvert |
 | M8 | Moyenne | Deux requêtes de résolution d'identité ne filtrent pas par domaine | Ouvert |
 | M9 | Moyenne | Le jeton d'accès des appareils a une durée longue pour un jeton non révocable | Ouvert |
 | M10 | Moyenne | Aucune limitation de débit HTTP globale | Ouvert |
-| L1–L14 | Faible | Voir la section dédiée | L1, L5 à L9 et L12 à L14 corrigés, L2 caduc, L11 partiellement corrigé ; L3, L4 et L10 ouverts |
+| L1–L14 | Faible | Voir la section dédiée | L1 et L4 à L9, L12 à L14 corrigés, L2 caduc, L11 partiellement corrigé ; L3 et L10 ouverts |
 | V1–V8 | À valider | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | V2 caduc pour l'avenir, les autres à valider |
 
 H5, M7 à M10 et L12 à L14 viennent de l'audit d'infrastructure de février
@@ -91,7 +91,7 @@ changement de statut ici se reporte là-bas.
 
 ### M4 — Pas de throttling sur la connexion par mot de passe — **Ouvert**
 
-### M5 — Login CSRF via le lien de vérification d'e-mail — **Ouvert**
+### M5 — Login CSRF via le lien de vérification d'e-mail — **Corrigé** (ledger `SEC-9`)
 
 ### M6 — ReDoS sur le markdown — **Corrigé** (ledger `SEC-10` et `SEC-19`)
 
@@ -112,7 +112,7 @@ changement de statut ici se reporte là-bas.
 | L1 | Réinitialiser le mot de passe ne révoque pas les sessions existantes | Corrigé (ledger `SEC-20`) |
 | L2 | L'état OAuth Strava n'était pas lié au navigateur qui avait lancé le flux | Caduc : la connexion Strava a été retirée (API 5.0.0) |
 | L3 | Les comptes existants peuvent être énumérés | Ouvert |
-| L4 | Pré-inscription : un mot de passe fixé avant la vérification de l'e-mail survit à celle-ci | Ouvert |
+| L4 | Pré-inscription : un mot de passe fixé avant la vérification de l'e-mail survit à celle-ci | Corrigé (ledger `SEC-24`) |
 | L5 | Le contrôle de domaine est incomplet sur la lecture d'un asset | Corrigé (ledger `SEC-20`) |
 | L6 | Le contrôle de domaine est incomplet sur l'ajout d'un membre à une équipe | Corrigé (ledger `SEC-20`) |
 | L7 | SSR : un contenu utilisateur peut défigurer la page rendue (pas de XSS repérée) | Corrigé (ledger `SEC-20`) |

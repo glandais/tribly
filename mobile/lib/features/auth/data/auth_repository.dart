@@ -26,9 +26,24 @@ class AuthRepository {
     return _authClient.register(body: request);
   }
 
-  /// Verify email with token
-  Future<AuthResponse> verifyEmail(String token) {
-    return _authClient.verifyEmail(body: VerifyTokenRequest(token: token));
+  /// L'adresse et la nature d'un lien de vérification, sans le consommer.
+  Future<EmailLinkPreviewResponse> previewEmailLink(String token) {
+    return _authClient.previewEmailLink(body: VerifyTokenRequest(token: token));
+  }
+
+  /// Active le compte d'un lien d'inscription, avec le mot de passe choisi sur
+  /// la page du lien.
+  Future<AuthResponse> activateAccount(String token, String password) {
+    return _authClient.activateAccount(
+      body: ActivateAccountRequest(token: token, password: password),
+    );
+  }
+
+  /// Applique un changement d'adresse ; n'ouvre aucune session.
+  Future<void> confirmEmailChange(String token) {
+    return _authClient.confirmEmailChange(
+      body: VerifyTokenRequest(token: token),
+    );
   }
 
   /// Request OTP

@@ -1,6 +1,26 @@
 import * as zod from 'zod'
 
 /**
+ * Apply an address change from its link. Opens no session: a signed-in client refreshes its user.
+ * @summary Confirm a new address
+ */
+export const confirmEmailChangeBodyTokenMax = 100
+
+export const confirmEmailChangeBodyTokenRegExp = new RegExp('\\S')
+
+export const ConfirmEmailChangeBody = zod
+  .object({
+    token: zod
+      .string()
+      .max(confirmEmailChangeBodyTokenMax)
+      .regex(confirmEmailChangeBodyTokenRegExp)
+      .describe('Verification token'),
+  })
+  .describe('Token verification request')
+
+export const ConfirmEmailChangeResponse = zod.void()
+
+/**
  * Change the signed-in user's email address. Sends a verification link to the new address; the change applies once that link is followed.
  * @summary Request email change
  */
@@ -371,10 +391,6 @@ export const registerBodyEmailRegExp = new RegExp('\\S')
 export const registerBodyDisplayNameMax = 200
 
 export const registerBodyDisplayNameRegExp = new RegExp('\\S')
-export const registerBodyPasswordMin = 8
-export const registerBodyPasswordMax = 100
-
-export const registerBodyPasswordRegExp = new RegExp('\\S')
 
 export const RegisterBody = zod
   .object({
@@ -389,12 +405,6 @@ export const RegisterBody = zod
       .max(registerBodyDisplayNameMax)
       .regex(registerBodyDisplayNameRegExp)
       .describe('Display name'),
-    password: zod
-      .string()
-      .min(registerBodyPasswordMin)
-      .max(registerBodyPasswordMax)
-      .regex(registerBodyPasswordRegExp)
-      .describe('Password (min 8 chars)'),
     acceptTerms: zod
       .boolean()
       .describe(
@@ -512,29 +522,41 @@ export const ResetPasswordResponse = zod
   .describe('Authentication response')
 
 /**
- * Verify email address and complete registration
- * @summary Verify email
+ * Complete a sign-up from its verification link: the password is chosen here, then the new account is signed in.
+ * @summary Activate an account
  */
-export const VerifyEmailHeader = zod.object({
+export const ActivateAccountHeader = zod.object({
   'X-Forwarded-For': zod.string().optional(),
   'X-Real-IP': zod.string().optional(),
 })
 
-export const verifyEmailBodyTokenMax = 100
+export const activateAccountBodyTokenMax = 100
 
-export const verifyEmailBodyTokenRegExp = new RegExp('\\S')
+export const activateAccountBodyTokenRegExp = new RegExp('\\S')
+export const activateAccountBodyPasswordMin = 8
+export const activateAccountBodyPasswordMax = 100
 
-export const VerifyEmailBody = zod
+export const activateAccountBodyPasswordRegExp = new RegExp('\\S')
+
+export const ActivateAccountBody = zod
   .object({
     token: zod
       .string()
-      .max(verifyEmailBodyTokenMax)
-      .regex(verifyEmailBodyTokenRegExp)
+      .max(activateAccountBodyTokenMax)
+      .regex(activateAccountBodyTokenRegExp)
       .describe('Verification token'),
+    password: zod
+      .string()
+      .min(activateAccountBodyPasswordMin)
+      .max(activateAccountBodyPasswordMax)
+      .regex(activateAccountBodyPasswordRegExp)
+      .describe('Password (min 8 chars)'),
   })
-  .describe('Token verification request')
+  .describe(
+    'Activates an account from its verification link: the password is chosen here, by whoever holds the mailbox, never at sign-up.'
+  )
 
-export const VerifyEmailResponse = zod
+export const ActivateAccountResponse = zod
   .object({
     accessToken: zod.string().optional().describe('JWT access token'),
     expiresIn: zod.int().optional().describe('Token expiry in seconds'),
@@ -602,3 +624,30 @@ export const VerifyEmailResponse = zod
     refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
   })
   .describe('Authentication response')
+
+/**
+ * The address a sign-up or address-change link verifies, and what following it does. Does not spend the link: the page shows the address before anything happens.
+ * @summary Read a verification link
+ */
+export const previewEmailLinkBodyTokenMax = 100
+
+export const previewEmailLinkBodyTokenRegExp = new RegExp('\\S')
+
+export const PreviewEmailLinkBody = zod
+  .object({
+    token: zod
+      .string()
+      .max(previewEmailLinkBodyTokenMax)
+      .regex(previewEmailLinkBodyTokenRegExp)
+      .describe('Verification token'),
+  })
+  .describe('Token verification request')
+
+export const PreviewEmailLinkResponse = zod
+  .object({
+    email: zod.string().describe('The address the link verifies'),
+    kind: zod.enum(['SIGN_UP', 'EMAIL_CHANGE']).describe('What following the link does'),
+  })
+  .describe(
+    "What a verification link is about, read without spending it: the page shows the address before anything happens, so that nobody activates someone else's account unaware."
+  )
