@@ -5,7 +5,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import type { AdDto, PublicationDto, RideDto } from '@/api/dto'
 
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k: string) => k }) }))
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (k: string, o?: { name?: string }) => (o?.name ? `${k}:${o.name}` : k),
+  }),
+}))
 vi.mock('@mantine/notifications', () => ({ notifications: { show: vi.fn() } }))
 
 const changeRideStatus = vi.fn()
@@ -57,7 +61,7 @@ function renderInApp(ui: React.ReactElement) {
 }
 
 async function openMenu() {
-  fireEvent.click(screen.getByRole('button', { name: 'aria.manageActions' }))
+  fireEvent.click(screen.getByRole('button', { name: /^cards\.actions\.menu:/ }))
   // The dropdown lives in a portal jsdom does not lay out: query it with `hidden`.
   await screen.findByRole('menu', { hidden: true })
 }
@@ -94,7 +98,7 @@ describe('PublicationCardActions', () => {
 
   it('offers no calendar file for a finished ride, hence no menu at all for a member', () => {
     renderInApp(<PublicationCardActions publication={ride({ finished: true })} canManage={false} />)
-    expect(screen.queryByRole('button', { name: 'aria.manageActions' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^cards\.actions\.menu:/ })).toBeNull()
   })
 
   it('offers « Publier » on a draft only', async () => {
@@ -119,6 +123,7 @@ describe('AdCardActions', () => {
   afterEach(cleanup)
 
   const ad = {
+    name: 'Vélo',
     slug: 'velo',
     team: { slug: 'np' },
     status: 'PUBLISHED',
@@ -138,6 +143,6 @@ describe('AdCardActions', () => {
   it('gives another member — an organizer included — no menu', () => {
     currentUserId = 'u2'
     renderInApp(<AdCardActions ad={ad} isTeamAdmin={false} />)
-    expect(screen.queryByRole('button', { name: 'aria.manageActions' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^cards\.actions\.menu:/ })).toBeNull()
   })
 })

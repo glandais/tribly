@@ -134,6 +134,7 @@ export function PublicationCardActions({ publication, canManage }: PublicationCa
 
   return (
     <CardActionsMenu
+      title={publication.name}
       editPath={canManage ? editPath : undefined}
       onPublish={canManage && publication.status === 'DRAFT' ? onPublish : undefined}
       onDelete={canManage ? onDelete : undefined}
@@ -164,6 +165,7 @@ export function RouteCardActions({ route, canManage }: RouteCardActionsProps) {
   const teamSlug = route.team.slug
   return (
     <CardActionsMenu
+      title={route.name}
       editPath={paths.routeEdit(teamSlug, route.slug)}
       onDelete={() =>
         deleteRoute(teamSlug, route.slug).then(() => {
@@ -198,6 +200,7 @@ export function AdCardActions({ ad, isTeamAdmin }: AdCardActionsProps) {
   }
   return (
     <CardActionsMenu
+      title={ad.name}
       editPath={paths.adEdit(teamSlug, ad.slug)}
       onPublish={
         ad.status === 'DRAFT'

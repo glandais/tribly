@@ -170,6 +170,7 @@
   "auth.passkey.login": "Se connecter avec Passkey",
   "autocomplete.searchMembers": "Rechercher un membre…",
   "cards.actions.addToCalendar": "Ajouter au calendrier",
+  "cards.actions.menu": "Actions — {{name}}",
   "errors.api.RIDE_GROUP_LEADER_NOT_MEMBER": "Le meneur choisi n'appartient pas à cette équipe.",
   "errors.api.AD_CONTACT_DELIVERY_FAILED": "Le message n'est pas parti. Réessayez dans un moment.",
   "errors.api.AD_CONTACT_OPTED_OUT": "Ce membre a choisi de ne pas recevoir de messages au sujet de ses annonces.",
