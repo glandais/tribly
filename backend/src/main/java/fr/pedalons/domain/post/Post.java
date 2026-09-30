@@ -1,5 +1,6 @@
 package fr.pedalons.domain.post;
 
+import fr.pedalons.domain.common.NotNullableDbValue;
 import fr.pedalons.domain.common.Publication;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
@@ -25,6 +26,7 @@ public class Post extends Publication {
    * API-6.
    */
   @Column(name = "signed_as_team")
+  @NotNullableDbValue
   private boolean signedAsTeam = true;
 
   public Post(
