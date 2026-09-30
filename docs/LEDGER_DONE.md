@@ -913,7 +913,7 @@ Ce qui reste ouvert (`MAX_BULK_SLUGS` comme seul garde-fou) est `API-27`.
 - `OPS-22` **Monitoring mis en service sur l'hôte** (2026-09-30) — la stack `pedalons-monitoring`
   (`AUD-11`, `AUD-12`, `AUD-13`) tourne en prod, dans l'ordre de
   [`OPERATIONS.md`](OPERATIONS.md#setting-it-up) : pare-feu réinstallé (3300 et 2020 en `DROP` sur
-  l'interface publique, v4 et v6, et en timeout vus de l'extérieur), `metrics { per_host }` et site
+  l'interface publique, v4 et v6, et en timeout vus de l'extérieur — en IPv4 seulement : en IPv6, 3300 répondait encore, voir `SEC-29`), `metrics { per_host }` et site
   `:2020` dans le Caddyfile, check Healthchecks du `Watchdog` au vert, relais d'alertes Scaleway TEM
   — **le même que l'application**, contrairement au conseil d'`OPERATIONS.md` : une panne de TEM
   tairait les alertes qui la signalent (le `Watchdog`, qui passe par Healthchecks, n'en dépend

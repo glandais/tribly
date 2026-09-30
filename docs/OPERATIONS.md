@@ -150,6 +150,13 @@ pretend to. And `ufw` cannot close it either: Docker inserts its rules ahead of 
 to go into the `DOCKER-USER` chain, which Docker consults first and never rewrites — one per
 environment port, on the public interface.
 
+**IPv6 bypasses `DOCKER-USER`.** The routing mesh has no IPv6 NAT: Docker serves a published port on
+`[::]` through a `docker-proxy` listening on the host itself, so the packets go through `INPUT` and
+the proxy relays them over IPv4 from the host. The script therefore also drops each of these ports in
+`INPUT`, v4 and v6 (a no-op for IPv4). Without it traefik and Grafana answered from the Internet over
+IPv6 (ledger `SEC-29`). Test from **another machine, over IPv6**, not only IPv4: no AAAA record is
+not a protection.
+
 `docker swarm init` also opens the swarm's own ports on every interface: 2377/tcp (cluster
 management), 7946/tcp+udp (gossip) and 4789/udp — the VXLAN that carries the overlay networks, which
 is **unauthenticated**: anyone who reaches it can inject packets into `pedalons-shared` or an
@@ -174,6 +181,8 @@ systemctl daemon-reload && systemctl enable --now pedalons-firewall.service
 iptables -S DOCKER-USER                                   # one DROP per environment port
 iptables -S FORWARD | head -3                             # -A FORWARD -j DOCKER-USER, first
 iptables -S INPUT | grep -E '2377|7946|4789'              # four DROP; ip6tables alike
+ip6tables -S INPUT | grep -E '8089|8090|3300'             # the IPv6 path, see above
+curl -6 -m 4 http://[<host-ipv6>]:8090/                   # from another machine: must time out
 ```
 
 `--ctorigdstport` matches the port as the client asked for it, before the routing mesh rewrites the

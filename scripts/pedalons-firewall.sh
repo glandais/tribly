@@ -36,6 +36,11 @@ for t in iptables ip6tables; do
   # in over the loopback, which this leaves alone.
   for p in $TRAEFIK_PORTS $MONITORING_PORTS; do
     add "$t" DOCKER-USER -i "$PUBLIC_IF" -p tcp -m conntrack --ctorigdstport "$p" -j DROP
+    # IPv6 never reaches DOCKER-USER: the routing mesh has no IPv6 NAT, so Docker serves a published
+    # port on [::] through a docker-proxy that listens on the host itself — INPUT — then relays over
+    # IPv4 from the host. Without this rule traefik and Grafana answered from the Internet over IPv6
+    # (found 2026-09-30, docs/LEDGER_*.md SEC-29). A no-op for IPv4, which the mesh DNATs to FORWARD.
+    add "$t" INPUT -i "$PUBLIC_IF" -p tcp --dport "$p" -j DROP
   done
   # Cluster management, gossip and the VXLAN of the overlay networks: a single-node swarm needs none
   # of them from outside, and VXLAN is unauthenticated — anyone could inject into an overlay.
