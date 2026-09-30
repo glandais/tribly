@@ -212,6 +212,17 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       requête) et ne change rien quand tout tombe dans une même semaine. **Repli** si l'amont
       tarde : un seuil au rendu serveur (au-delà de N événements, grille vide au premier rendu et
       remplie après montage), ou ne pas rendre la grille côté serveur.
+- [ ] `WEB-36` **Un tap juste après l'affichage d'une page, sous charge, est ignoré (M)** — le HTML
+      du SSR est à l'écran et cliquable avant que React l'ait adopté ; avec l'hydratation
+      concurrente de React 19, un clic qui tombe pendant le rendu d'hydratation, avant son commit,
+      n'atteint pas son gestionnaire et **n'est pas rejoué** (mesuré par la sonde de `WEB-35` : 3 clics
+      sur 40 dans les premières centaines de millisecondes, pile e2e chargée, sur le burger de
+      `Layout.tsx`). Rien ne se passe, sans message : l'utilisateur retape. `WEB-35` ne corrige que
+      les tests (ils attendent le commit). Pistes : capturer les clics sur `document` entre
+      l'affichage et `HydrationMarker` puis les rejouer sur leur cible au commit (attention aux
+      doubles déclenchements et aux liens, que le navigateur suit déjà sans JS), ou raccourcir la
+      fenêtre (hydratation par îlots, moins de travail au premier rendu). Mesurer d'abord sur un
+      vrai téléphone moyen de gamme, hors pile e2e.
 
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 

@@ -4,6 +4,7 @@ import { hydrate, type DehydratedState } from '@tanstack/react-query'
 import type { HydrationState } from 'react-router-dom'
 import App from './App'
 import { AppProviders } from './AppProviders'
+import { HydrationMarker } from './components/common/HydrationMarker'
 import { makeQueryClient } from './lib/queryClient'
 import { fetchAppConfig, seedAppConfig } from './config/appConfig'
 import { getGetConfigQueryKey } from './api/endpoints/configuration/configuration'
@@ -87,6 +88,7 @@ async function bootstrap() {
       <AppProviders i18n={i18n} queryClient={queryClient} defaultColorScheme={initialColorScheme}>
         <App queryClient={queryClient} />
       </AppProviders>
+      <HydrationMarker />
     </StrictMode>
   )
 

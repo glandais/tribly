@@ -9,17 +9,24 @@ import { signIn } from './data'
  */
 
 /**
- * Waits until React has hydrated `locator`'s element — i.e. its event handlers are attached. The
+ * Waits until React has hydrated `locator`'s element — i.e. a click on it reaches its handler. The
  * pages are server-rendered, so a control is on screen (and clickable for Playwright) before that,
- * and a click or keystroke in that window is lost. React marks every node it adopts with a
- * `__reactProps$…` key; that is the signal.
+ * and a click or keystroke in that window is lost.
+ *
+ * Two signals, both needed. React marks every node it adopts with a `__reactProps$…` key — but
+ * while the hydration render is still in progress, before its commit, and a click in between is
+ * dropped, not replayed (docs/LEDGER_*.md WEB-35: 3 lost clicks in 40 on a loaded stack, all on a
+ * not yet committed fiber). `<html data-hydrated>` is set by HydrationMarker (entry-client.tsx) once that commit is
+ * done. The key still matters for an element rendered later, in a lazy part of the page.
  */
 export async function hydrated(locator: Locator) {
   await expect
     .poll(
       () =>
-        locator.evaluate((element) =>
-          Object.keys(element).some((key) => key.startsWith('__reactProps'))
+        locator.evaluate(
+          (element) =>
+            document.documentElement.dataset.hydrated === 'true' &&
+            Object.keys(element).some((key) => key.startsWith('__reactProps'))
         ),
       { timeout: 15_000 }
     )
@@ -27,14 +34,13 @@ export async function hydrated(locator: Locator) {
 }
 
 /**
- * Waits until the app has taken over the server markup (React's container key on #root) and
- * settled its first fetches.
+ * Waits until the app has taken over the server markup (its first render committed) and settled
+ * its first fetches.
  */
 export async function pageHydrated(page: Page) {
-  await page.waitForFunction(() => {
-    const root = document.getElementById('root')
-    return !!root && Object.keys(root).some((key) => key.startsWith('__reactContainer'))
-  })
+  // The container key is set as soon as hydrateRoot is called, long before the markup is React's:
+  // the commit marker (HydrationMarker, WEB-35) is what says the app has taken over.
+  await page.waitForFunction(() => document.documentElement.dataset.hydrated === 'true')
   await page.waitForLoadState('networkidle')
 }
 
