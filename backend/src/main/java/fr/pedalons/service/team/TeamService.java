@@ -20,6 +20,7 @@ import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.TeamSortBy;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.*;
+import fr.pedalons.repository.migration.BiketeamMigrationMapRepository;
 import fr.pedalons.repository.team.TeamQuery;
 import fr.pedalons.repository.team.TeamRepository;
 import fr.pedalons.repository.team.TeamStatsRepository;
@@ -46,6 +47,8 @@ public class TeamService {
   private static final int MAX_ADMIN_TEAMS_PER_USER = 1;
 
   @Inject UserTeamRepository userTeamRepository;
+
+  @Inject BiketeamMigrationMapRepository biketeamMigrationMapRepository;
 
   @Inject protected TeamRepository teamRepository;
 
@@ -295,9 +298,19 @@ public class TeamService {
    *
    * <p>Takes the entity, not a slug: the erasure spans the whole domain, and {@link #getTeam} would
    * refuse any team but the pinned one on a pinned alias host.
+   *
+   * <p><b>Refused for a team migrated from biketeam</b>, whoever asks, platform admins included:
+   * biketeam redirects the team's old addresses here and would send them to a 404. The way out is
+   * cancelling the switch-over on biketeam, whose reset trashes the team itself — it does not come
+   * through here (docs/LEDGER_*.md MIG-5).
+   *
+   * @throws BusinessException {@code MIGRATED_TEAM} for a migrated team
    */
   @Transactional
   public void delete(Team team) {
+    if (biketeamMigrationMapRepository.isMigratedTeam(team.getId())) {
+      throw new BusinessException(MIGRATED_TEAM);
+    }
     team.setDeleted(true);
     teamRepository.persist(team);
   }

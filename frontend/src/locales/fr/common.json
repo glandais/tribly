@@ -478,6 +478,7 @@
   "errors.api.LAST_ADMIN": "Impossible de retirer le dernier administrateur de l'équipe",
   "errors.api.SOLE_TEAM_ADMIN": "Vous êtes le seul administrateur d'une équipe qui compte d'autres membres. Nommez un autre administrateur, ou supprimez l'équipe, avant de supprimer votre compte.",
   "errors.api.SOLE_MIGRATED_TEAM_ADMIN": "Vous êtes le seul administrateur d'une équipe venue de biketeam, dont les anciennes adresses redirigent vers elle. Nommez un autre administrateur avant de supprimer votre compte ; pour supprimer l'équipe, un administrateur de la plateforme doit d'abord annuler sa bascule sur biketeam.",
+  "errors.api.MIGRATED_TEAM": "Cette équipe est venue de biketeam, dont les anciennes adresses redirigent vers elle : elle ne peut pas être supprimée. Un administrateur de la plateforme doit d'abord annuler sa bascule sur biketeam.",
   "errors.api.NOT_FOUND": "La ressource demandée est introuvable",
   "errors.api.NOT_REGISTERED": "Vous n'êtes pas inscrit à cette sortie",
   "errors.api.PASSKEY_NOT_FOUND": "Passkey introuvable",

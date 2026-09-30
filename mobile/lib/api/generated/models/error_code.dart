@@ -28,6 +28,8 @@ enum ErrorCode {
   soleTeamAdmin('SOLE_TEAM_ADMIN'),
   @JsonValue('SOLE_MIGRATED_TEAM_ADMIN')
   soleMigratedTeamAdmin('SOLE_MIGRATED_TEAM_ADMIN'),
+  @JsonValue('MIGRATED_TEAM')
+  migratedTeam('MIGRATED_TEAM'),
   @JsonValue('ALREADY_REGISTERED')
   alreadyRegistered('ALREADY_REGISTERED'),
   @JsonValue('NOT_REGISTERED')

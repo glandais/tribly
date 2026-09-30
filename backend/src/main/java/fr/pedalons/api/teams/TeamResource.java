@@ -210,6 +210,12 @@ public class TeamResource {
         description = "Unauthorized",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
+        responseCode = "400",
+        description =
+            "MIGRATED_TEAM: the team came from biketeam, which redirects its old addresses to it."
+                + " Refused for everyone; the switch-over is cancelled on biketeam instead.",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
         responseCode = "403",
         description = "User is not the team owner",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),

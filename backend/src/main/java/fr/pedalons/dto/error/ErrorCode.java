@@ -17,6 +17,12 @@ public enum ErrorCode {
    * team would go with it while biketeam keeps redirecting its old addresses there.
    */
   SOLE_MIGRATED_TEAM_ADMIN,
+  /**
+   * Deleting a team migrated from biketeam: biketeam redirects its old addresses there, and would
+   * then send them to a 404. The switch-over is cancelled on biketeam instead (docs/LEDGER_*.md
+   * MIG-5).
+   */
+  MIGRATED_TEAM,
   ALREADY_REGISTERED,
   NOT_REGISTERED,
   INVALID_SLUG,

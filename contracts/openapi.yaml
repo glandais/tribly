@@ -1844,6 +1844,7 @@ components:
       - LAST_ADMIN
       - SOLE_TEAM_ADMIN
       - SOLE_MIGRATED_TEAM_ADMIN
+      - MIGRATED_TEAM
       - ALREADY_REGISTERED
       - NOT_REGISTERED
       - INVALID_SLUG
@@ -10245,6 +10246,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: "MIGRATED_TEAM: the team came from biketeam, which redirects\
+            \ its old addresses to it. Refused for everyone; the switch-over is cancelled\
+            \ on biketeam instead."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not the team owner
           content:
@@ -16095,7 +16104,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 7.0.0
+  version: 7.3.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

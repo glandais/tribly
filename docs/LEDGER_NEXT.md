@@ -9,7 +9,7 @@ portage web livré à trois tâches près, et tenu à jour depuis (dernière rel
 Rien ici ne bloque quoi que ce soit. C'est la propriété qui compte : la v2 est livrable en l'état,
 et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de réparer une panne.
 
-**Contrat d'API au 30 septembre 2026 : `7.0.0`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au 30 septembre 2026 : `7.3.0`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
 
@@ -548,10 +548,6 @@ En service en staging ; la mise en production attend biketeam
       d'équipe (FAQ, descriptions) restent pointés vers biketeam et redirigent tant qu'il tourne. À
       corriger — à la main, par l'équipe, ou par une réécriture depuis la table d'URL — **avant**
       l'arrêt de biketeam.
-- [ ] `MIG-5` **Équipe migrée supprimable** : `DELETE /api/teams/{slug}` n'est pas gardé pour une
-      équipe basculée (`TeamService` ne consulte pas `biketeam_migration_map`, alors que la
-      suppression de compte le fait, `SOLE_MIGRATED_TEAM_ADMIN`) : biketeam redirigerait alors vers
-      des 404. Ajouter une garde ou un avertissement.
 - [ ] `MIG-6` **Données exportées mais non importées** : tags de parcours, ville et pays de l'équipe
       arrivent dans l'instantané (`BiketeamSnapshot`) sans être utilisés (plan §13, décision 14). À
       décider.

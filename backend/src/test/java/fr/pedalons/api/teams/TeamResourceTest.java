@@ -11,6 +11,7 @@ import fr.pedalons.dto.common.request.SlugChangeRequest;
 import fr.pedalons.dto.teams.request.TeamRequest;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.service.migration.live.BiketeamTestData;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.team.TeamService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -24,6 +25,7 @@ class TeamResourceTest extends AbstractResourceTest {
 
   @Inject TeamService teamService;
   @Inject PedalonsQueryContext queryContext;
+  @Inject BiketeamTestData biketeamData;
 
   @Override
   @BeforeEach
@@ -463,6 +465,45 @@ class TeamResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(201)
         .body("slug", equalTo(firstSlug + "-1"));
+  }
+
+  // docs/LEDGER_*.md MIG-5: biketeam redirects a migrated team's old addresses to it.
+
+  @Test
+  void deleteTeam_migratedFromBiketeam_isRefusedToItsAdmin_andTheTeamStays() {
+    biketeamData.mapTeam("team-one", team1);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .delete("/api/teams/" + team1Slug)
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("MIGRATED_TEAM"));
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/teams/" + team1Slug)
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  void deleteTeam_migratedFromBiketeam_isRefusedToAPlatformAdminToo() {
+    biketeamData.mapTeam("team-one", team1);
+    dataService.createPlatformAdminUser("godmode@example.com", "God Mode");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken("godmode"))
+        .when()
+        .delete("/api/teams/" + team1Slug)
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("MIGRATED_TEAM"));
   }
 
   @Test

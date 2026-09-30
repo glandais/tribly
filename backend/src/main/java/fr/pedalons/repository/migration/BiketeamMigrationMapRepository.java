@@ -1,6 +1,7 @@
 package fr.pedalons.repository.migration;
 
 import fr.pedalons.domain.migration.BiketeamMigrationMap;
+import fr.pedalons.service.migration.BiketeamMigrationService;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
@@ -24,6 +25,14 @@ public class BiketeamMigrationMapRepository
     return findByBiketeamId(entityType, biketeamId)
         .map(BiketeamMigrationMap::getTriblyId)
         .orElse(null);
+  }
+
+  /**
+   * Whether the team came from biketeam — a {@code TEAM} row points at it, which is where biketeam
+   * redirects the team's old addresses (docs/LEDGER_*.md MIG-5).
+   */
+  public boolean isMigratedTeam(long teamId) {
+    return count("entityType = ?1 and triblyId = ?2", BiketeamMigrationService.T_TEAM, teamId) > 0;
   }
 
   /** Binds per statement, well under Postgres' 65535; a team holds a few thousand rows at most. */
