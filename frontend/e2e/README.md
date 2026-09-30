@@ -40,6 +40,15 @@ or `backend`, about a minute each) and `up` before testing a change. `E2E_BASE_U
 `E2E_MAILPIT_URL` override where the suite looks, but the stack behind them must be one whose
 bootstrap admin is `admin@e2e.test` — not the workstation stack.
 
+## In CI
+
+`.github/workflows/e2e.yml` runs the whole suite **every night on `develop`** and **on demand**
+(Actions › E2E › Run workflow), never on pull requests. It builds both images on a GitHub-hosted
+runner, starts this same stack with `scripts/e2e.sh up`, and uploads the report, the traces and the
+stack's logs when something fails. There is no valhalla there: `E2E_NO_ROUTING=1` makes
+`playwright.config.ts` skip `gpx-planner.e2e.ts`. The job's first step fails unless `.env.e2e` still
+points the mailer at mailpit.
+
 ## Why a separate stack
 
 The workstation database is a biketeam restore holding thousands of real member addresses, and a
