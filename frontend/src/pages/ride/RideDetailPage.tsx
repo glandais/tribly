@@ -62,6 +62,7 @@ import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
+import { ShareButton } from '../../components/common/ShareButton'
 import { CommentSection } from '../../components/comment'
 import { paths } from '@/config/paths'
 import { invalidateRideRegistration } from '@/lib/rideRegistration'
@@ -416,6 +417,7 @@ export function RideDetailPage() {
                 </Menu>
               </Button.Group>
             )}
+            <ShareButton title={ride.name} />
             <ContentActionsMenu
               teamSlug={ride.team.slug}
               teamName={ride.team.name}

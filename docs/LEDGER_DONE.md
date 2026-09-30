@@ -364,6 +364,17 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   session du navigateur **et** une session ouverte ailleurs ne se rafraîchissent plus. Non couvert
   de bout en bout : le rafraîchissement d'un jeton expiré avant l'appel (pendant web de `MOB-38`).
 
+- `WEB-32` **Une image se glisse ou se colle dans l'éditeur** (2026-09-30, sans changement de
+  contrat) — seul le bouton de la barre d'outils téléversait une image. `MarkdownEditor` prend
+  maintenant les fichiers déposés (`handleDrop`, à l'endroit du lâcher) et collés (`handlePaste`, au
+  curseur) par le même téléversement : `tiptap/insertAsset.ts` (`imageFiles`, `uploadAndInsert`),
+  que le bouton utilise aussi. Plusieurs images arrivent dans l'ordre, **l'une après l'autre** : chaque
+  téléversement ajoute à la liste d'assets du formulaire, des écritures parallèles s'y
+  marcheraient dessus. Un fichier qui n'est pas une image, un éditeur sans équipe ou en lecture
+  seule laissent l'événement à ProseMirror ; un déplacement d'image à l'intérieur de l'éditeur
+  aussi. Couvert par `tiptap/insertAsset.test.ts` (filtre, HEIC sans type MIME, ordre, échec
+  isolé) ; le glisser-déposer réel n'a pas de test e2e.
+
 ### Référencement
 
 - `WEB-4` **`PUBLIC_UNLISTED` n'est plus indexé** (2026-09-30) — `frontend/index.html` servait un
@@ -382,6 +393,39 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   de cette équipe). Ne pas remettre de balise robots dans `index.html` : elle côtoierait la balise
   par page et la contredirait. Le mode dev SPA sans SSR n'a pas de balise robots, ce qui vaut
   `index, follow`.
+
+- `WEB-30` **Un bouton de partage sur le site** (2026-09-30, sans changement de contrat) — le mobile
+  partageait déjà un lien (`share_link.dart`), le web n'avait rien. `components/common/ShareButton.tsx`
+  est posé dans l'en-tête des pages de sortie, d'article, de voyage, d'étape et de parcours, et dans
+  celui de l'équipe (`TeamLayout`) : la feuille de partage du système quand `navigator.share`
+  existe, la copie du lien sinon (Firefox et Chrome de bureau), avec un bandeau qui dit si la copie
+  a échoué. Le lien est celui de la **barre d'adresse**, pas un `paths.xxx()` : sur un hôte épinglé
+  à une équipe, le chemin du routeur est préfixé et l'adresse visible ne l'est pas — c'est elle qui
+  marche chez le destinataire. Pas de bouton sur les annonces, comme au mobile : elles ne se lisent
+  qu'entre membres. Couvert par `ShareButton.test.tsx` (feuille, fermeture sans bandeau, copie,
+  copie refusée).
+
+- `WEB-31` **Un `sitemap.xml` par site** (2026-09-30, API `6.2.0`) — `GET /api/sitemap`
+  (`SitemapService`) liste ce qu'un moteur peut indexer sur le site de la requête : les équipes
+  `PUBLIC`, leur page « à propos », leurs pages, sorties, articles, voyages et étapes publics. Chaque type passe par la requête de liste de son dépôt (`TeamEntityRepository.findIndexable`,
+  requête anonyme, projection seule) : visibilité, statut, modération et modules sont ceux de la
+  liste, le sitemap ne peut pas annoncer une page que le site refuserait. S'y ajoute
+  `te.team.visibility = 'PUBLIC'` même sur un hôte épinglé, où la liste laisse passer une équipe non
+  listée dont toutes les pages sont pourtant `noindex` (`WEB-4`). Une étape n'a pas de visibilité
+  propre : elle est listée sous un voyage qui l'est. Plafond de 50 000 entrées (limite du protocole),
+  les plus récentes d'abord. **Jamais les annonces** (lues entre membres seulement), **ni les
+  parcours** (une carte et un GPX plutôt qu'un texte à indexer ; décision du 30 septembre 2026),
+  **ni les pages carte** (`…/carte`) : aucun type d'entrée ne les désigne. Le serveur SSR sert `/sitemap.xml`
+  (`renderSitemap` dans `entry-server.tsx`, XML par `lib/sitemap.ts`) avec les chemins **français**
+  seulement — la langue servie à un robot, et les deux variantes de chemin rendent la même page —,
+  sans préfixe d'équipe sur un hôte épinglé (`toBrowser`), en cache public une heure ; et
+  `/robots.txt`, dont les règles restent dans `public/robots.txt`, avec la ligne `Sitemap:` de l'hôte
+  ajoutée à la volée (le protocole veut une URL absolue). Couvert par `SitemapServiceTest`
+  (contenu, parcours, annonces, contenu non public, équipes non publiques, étapes d'un voyage caché, hôte
+  épinglé, hôte épinglé d'une équipe non listée) et `lib/sitemap.test.ts` (chemins, ni parcours ni
+  page carte, hôte épinglé, échappement). Ne pas y ajouter les parcours, les pages carte ni les
+  annonces ; ne pas
+  construire les entrées par une requête écrite à la main plutôt que par `findIndexable`.
 
 ---
 

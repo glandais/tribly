@@ -29,6 +29,7 @@ import 'clients/publications_client.dart';
 import 'clients/moderation_client.dart';
 import 'clients/router_client.dart';
 import 'clients/routes_client.dart';
+import 'clients/sitemap_client.dart';
 import 'clients/teams_client.dart';
 import 'clients/assets_client.dart';
 import 'clients/ads_client.dart';
@@ -48,7 +49,7 @@ import 'clients/team_webhook_client.dart';
 import 'clients/tiles_client.dart';
 import 'clients/server_version_client.dart';
 
-/// Pedalons API `v6.1.0`.
+/// Pedalons API `v6.2.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
 class PedalonsApiClient {
@@ -61,7 +62,7 @@ class PedalonsApiClient {
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '6.1.0';
+  static String get version => '6.2.0';
 
   AdminBetaSignupsClient? _adminBetaSignups;
   AdminDomainsClient? _adminDomains;
@@ -88,6 +89,7 @@ class PedalonsApiClient {
   ModerationClient? _moderation;
   RouterClient? _router;
   RoutesClient? _routes;
+  SitemapClient? _sitemap;
   TeamsClient? _teams;
   AssetsClient? _assets;
   AdsClient? _ads;
@@ -178,6 +180,9 @@ class PedalonsApiClient {
   RouterClient get router => _router ??= RouterClient(_dio, baseUrl: _baseUrl);
 
   RoutesClient get routes => _routes ??= RoutesClient(_dio, baseUrl: _baseUrl);
+
+  SitemapClient get sitemap =>
+      _sitemap ??= SitemapClient(_dio, baseUrl: _baseUrl);
 
   TeamsClient get teams => _teams ??= TeamsClient(_dio, baseUrl: _baseUrl);
 

@@ -8,4 +8,4 @@ Disallow: /notifications
 Disallow: /platform
 Disallow: /plateforme
 
-# No sitemap yet: a dynamic sitemap.xml needs a backend endpoint (docs/BACKLOG.md, Discoverability).
+# The Sitemap line is appended per host by server.js (the protocol wants an absolute URL).

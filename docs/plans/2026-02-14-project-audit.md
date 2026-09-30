@@ -118,7 +118,7 @@ En février 2026 : React 19, TypeScript 5.9, Vite 7, Mantine 8, ~97 composants T
 | F9 | "Groupe" hardcode en francais dans RideEditor | Important | S | `RideEditor.tsx:96` | ✅ |
 | F10 | Message validation Zod hardcode en anglais | Important | S | `RideEditor.tsx:42` | ✅ |
 | F11 | Liens `/terms` et `/privacy` vers pages inexistantes | Important | M | `LoginPage.tsx:280-281` | ✅ |
-| F12 | Sitemap.xml manquant | Important | M | Backend endpoint | |
+| F12 | Sitemap.xml manquant | Important | M | Backend endpoint | ✅ (`WEB-31`) |
 | F13 | Pas de SSR = SEO limite pour les bots | Important | XL | Migration architecturale | ✅ (SSR Express, `frontend/docs/SSR.md`) |
 | F14 | `dayjs` utilise uniquement dans `i18n/index.ts` | Mineur | S | `package.json` | ✅ (sans objet : dayjs utilisé aussi par le calendrier et `RideDetailPage`) |
 | F15 | 8 cles `_many` manquantes en EN (coherence structurelle) | Mineur | S | `en/common.json` | ✅ |
@@ -410,7 +410,7 @@ Les deux clients partagent des problemes communs :
 | 34 | Migrer l'etat OAuth en DB/Redis | Backend | ✅ |
 | 35 | Ajouter renderer Markdown dans le mobile | Mobile | ✅ |
 | 36 | Extraire widgets dupliques dans le mobile | Mobile | ✅ |
-| 37 | Generer un sitemap.xml dynamique | Frontend/Backend |
+| 37 | Generer un sitemap.xml dynamique | Frontend/Backend | ✅ |
 | 38 | Securiser imgproxy (KEY/SALT) | Infra |
 | 39 | Enrichir la config VCL Varnish | Infra |
 | 40 | Ajouter des tests Karoo (AuthManager, Models) | Karoo |

@@ -9,7 +9,7 @@ portage web livré à trois tâches près, et tenu à jour depuis (dernière rel
 Rien ici ne bloque quoi que ce soit. C'est la propriété qui compte : la v2 est livrable en l'état,
 et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de réparer une panne.
 
-**Contrat d'API au 30 septembre 2026 : `5.12.0`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au 30 septembre 2026 : `6.2.0`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
 
@@ -656,7 +656,7 @@ Deux gestes d'exploitation de l'audit sont sous `OPS` : I13 (`OPS-7`) et I20 (`O
 Suivis ailleurs : les lignes de sécurité S2 à S12 sont versées dans `SECURITY_AUDIT.md`, donc sous
 `SEC` (H5 = `SEC-4`, M7 à M10 = `SEC-11`, L12 à L14 dans `SEC-12` ; S8 et S12 y sont rangées comme
 conformes). K12 (= S13, jetons Karoo en clair) est L10, dans `SEC-12` ; P2-44 (en-têtes CSP/HSTS) est
-V4, dans `SEC-16` ; F12 (sitemap) reste au [`BACKLOG.md`](BACKLOG.md).
+V4, dans `SEC-16` ; F12 (sitemap) est livré sous `WEB-31`.
 
 ---
 

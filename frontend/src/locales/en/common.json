@@ -1607,5 +1607,8 @@
   "feedback.send": "Send",
   "feedback.sent": "Thank you! Your report has been passed on to the team.",
   "feedback.showPreview": "See what will be sent",
-  "feedback.title": "Report a problem"
+  "feedback.title": "Report a problem",
+  "share.button": "Share",
+  "share.copied": "Link copied",
+  "share.copyFailed": "Could not copy the link"
 }

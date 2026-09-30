@@ -4566,6 +4566,53 @@
         "type" : "string",
         "enum" : [ "ID", "SLUG" ]
       },
+      "SitemapDto" : {
+        "description" : "Every page of the site a search engine may index: the public content of public teams, without classified ads nor routes. Capped at 50,000 entries, the sitemap protocol's limit; newest first within each type.",
+        "type" : "object",
+        "required" : [ "entries" ],
+        "properties" : {
+          "entries" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SitemapEntryDto"
+            },
+            "description" : "Indexable pages"
+          }
+        }
+      },
+      "SitemapEntryDto" : {
+        "type" : "object",
+        "description" : "One indexable page. The API returns slugs, not URLs: the path is localised and belongs to the client's route table.",
+        "required" : [ "type", "teamSlug", "lastModified" ],
+        "properties" : {
+          "type" : {
+            "description" : "Which page this is",
+            "type" : "string",
+            "$ref" : "#/components/schemas/SitemapEntryType"
+          },
+          "teamSlug" : {
+            "type" : "string",
+            "description" : "Slug of the team the page belongs to"
+          },
+          "tripSlug" : {
+            "type" : "string",
+            "description" : "Slug of the trip a TRIP_STAGE belongs to; null for every other type"
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Slug of the page itself; null for TEAM and TEAM_ABOUT"
+          },
+          "lastModified" : {
+            "description" : "Last modification of the page's content",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "SitemapEntryType" : {
+        "type" : "string",
+        "enum" : [ "TEAM", "TEAM_ABOUT", "TEAM_PAGE", "RIDE", "POST", "TRIP", "TRIP_STAGE" ]
+      },
       "SlugChangeRequest" : {
         "description" : "Slug change request",
         "type" : "object",
@@ -6155,6 +6202,9 @@
   }, {
     "name" : "Server Version",
     "description" : "Server version and build information"
+  }, {
+    "name" : "Sitemap",
+    "description" : "Pages a search engine may index"
   }, {
     "name" : "Team Invitations",
     "description" : "Invite people to a team by e-mail"
@@ -11499,6 +11549,26 @@
           },
           "401" : {
             "description" : "Invalid or expired tile token"
+          }
+        }
+      }
+    },
+    "/api/sitemap" : {
+      "get" : {
+        "summary" : "Get the indexable pages of this site",
+        "description" : "Public teams and their public content, as an anonymous visitor sees it, for the site the request arrived on (a pinned host lists its one team). Classified ads and routes are never listed. Anonymous by construction: the caller's session does not widen it.",
+        "operationId" : "getSitemap",
+        "tags" : [ "Sitemap" ],
+        "responses" : {
+          "200" : {
+            "description" : "Indexable pages",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SitemapDto"
+                }
+              }
+            }
           }
         }
       }
@@ -20028,7 +20098,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "6.1.0",
+    "version" : "6.2.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Box } from '@mantine/core'
 import { RichTextEditor } from '@mantine/tiptap'
-import { useEditor } from '@tiptap/react'
+import { useEditor, type Editor } from '@tiptap/react'
+import type { EditorView } from '@tiptap/pm/view'
 import StarterKit from '@tiptap/starter-kit'
 import { Table } from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
@@ -13,7 +14,15 @@ import { Markdown } from 'tiptap-markdown'
 import '@mantine/tiptap/styles.css'
 
 import type { AssetDto } from '@/api/dto'
-import { AssetNode, AssetImagesProvider, markdownToEditor, ImageUploadControl } from './tiptap'
+import {
+  AssetNode,
+  AssetImagesProvider,
+  markdownToEditor,
+  ImageUploadControl,
+  imageFiles,
+  uploadAndInsert,
+  type ImageUploadHandler,
+} from './tiptap'
 import './tiptap/tiptap.css'
 
 // Debounce utility
@@ -56,7 +65,7 @@ export interface MarkdownEditorProps {
   maxHeight?: string
   disabled?: boolean
   ariaLabel?: string
-  onImageUpload?: (file: File) => Promise<{ id: string; fileName: string } | null>
+  onImageUpload?: ImageUploadHandler
   isUploadingImage?: boolean
   images?: AssetDto[]
 }
@@ -121,6 +130,28 @@ export function MarkdownEditor({
     [debouncedOnChange]
   )
 
+  // The drop and paste handlers are fixed when the editor is created; they read the upload handler
+  // and the editor through refs, for the same reason as onChangeRef above.
+  const onImageUploadRef = useRef(onImageUpload)
+  useEffect(() => {
+    onImageUploadRef.current = onImageUpload
+  }, [onImageUpload])
+  const editorRef = useRef<Editor | null>(null)
+
+  /**
+   * Image files dropped or pasted into the text go through the same upload as the toolbar button.
+   * False — let ProseMirror handle the event — when there is no image, no upload (an editor without
+   * a team), or the editor is read-only.
+   */
+  const uploadFiles = (view: EditorView, files: FileList | null | undefined, pos: number) => {
+    const upload = onImageUploadRef.current
+    const current = editorRef.current
+    const images = imageFiles(files)
+    if (!upload || !current || !view.editable || images.length === 0) return false
+    void uploadAndInsert(current, pos, images, upload)
+    return true
+  }
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -152,6 +183,16 @@ export function MarkdownEditor({
         'aria-multiline': 'true',
         ...(ariaLabel ? { 'aria-label': ariaLabel } : {}),
       },
+      handleDrop: (view, event, _slice, moved) => {
+        // `moved` is a drag inside the editor (an image being repositioned), not a file.
+        if (moved) return false
+        const at = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos
+        const handled = uploadFiles(view, event.dataTransfer?.files, at ?? view.state.selection.to)
+        if (handled) event.preventDefault()
+        return handled
+      },
+      handlePaste: (view, event) =>
+        uploadFiles(view, event.clipboardData?.files, view.state.selection.to),
     },
     onBlur: () => debouncedOnChange.flush(),
     onUpdate: ({ editor }) => {
@@ -161,6 +202,10 @@ export function MarkdownEditor({
       handleEditorChange(markdown)
     },
   })
+
+  useEffect(() => {
+    editorRef.current = editor
+  }, [editor])
 
   // Sync external value changes to editor
   useEffect(() => {

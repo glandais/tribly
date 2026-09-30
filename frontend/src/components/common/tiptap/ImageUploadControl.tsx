@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { RichTextEditor, useRichTextEditorContext } from '@mantine/tiptap'
 import { IconPhoto } from '@tabler/icons-react'
 import { Loader } from '@mantine/core'
+import { uploadAndInsert, type ImageUploadHandler } from './insertAsset'
 
 export interface ImageUploadControlProps {
-  onImageUpload: (file: File) => Promise<{ id: string; fileName: string } | null>
+  onImageUpload: ImageUploadHandler
   isUploading?: boolean
 }
 
@@ -22,26 +23,7 @@ export function ImageUploadControl({ onImageUpload, isUploading }: ImageUploadCo
     const file = e.target.files?.[0]
     if (!file || !editor) return
 
-    const result = await onImageUpload(file)
-    if (result) {
-      const altText = result.fileName.replace(/\.[^/.]+$/, '') // Remove extension
-      // Insert *after* the selection, never over it: an asset node is an atom, and inserting one
-      // leaves it selected. `insertContent` replaces the selection, so a second upload would
-      // silently swap out the image the first one just added.
-      const insertPos = editor.state.selection.to
-      editor
-        .chain()
-        .focus()
-        .insertContentAt(insertPos, {
-          type: 'asset',
-          attrs: {
-            id: result.id,
-            alt: altText,
-            size: 'medium',
-          },
-        })
-        .run()
-    }
+    await uploadAndInsert(editor, editor.state.selection.to, [file], onImageUpload)
     // Reset input to allow selecting the same file again
     e.target.value = ''
   }
