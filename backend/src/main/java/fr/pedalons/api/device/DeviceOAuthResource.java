@@ -213,17 +213,17 @@ public class DeviceOAuthResource {
       return Response.status(Response.Status.NOT_FOUND).entity(ErrorResponse.notFound()).build();
     }
 
-    var deviceCode = deviceAuthService.findPendingUserCode(userCode);
-    if (deviceCode.isEmpty()) {
+    var pending = deviceAuthService.findPendingUserCode(userCode);
+    if (pending.isEmpty()) {
       return Response.status(Response.Status.NOT_FOUND).entity(ErrorResponse.notFound()).build();
     }
 
     return Response.ok(
             new VerifyResponse(
                 userCode.toUpperCase(),
-                deviceCode.get().isAuthorized(),
-                deviceCode.get().getClientId(),
-                deviceCode.get().getCreatedAt()))
+                pending.get().authorized(),
+                pending.get().clientId(),
+                pending.get().requestedAt()))
         .build();
   }
 

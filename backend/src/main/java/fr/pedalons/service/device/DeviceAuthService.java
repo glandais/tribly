@@ -249,14 +249,16 @@ public class DeviceAuthService {
    * the pending codes that completeDeviceCodeFlow then needs a single try to take (SEC-4).
    */
   @Public
-  public Optional<DeviceCode> findPendingUserCode(String userCode) {
+  public Optional<PendingDeviceCode> findPendingUserCode(String userCode) {
     Long domainId = domainResolver.getDomainId();
     authThrottle.checkDeviceCode(domainId, null);
     Optional<DeviceCode> deviceCode = deviceCodeRepository.findValidByUserCode(domainId, userCode);
     if (deviceCode.isEmpty()) {
       authThrottle.recordDeviceCodeFailure(domainId, null);
     }
-    return deviceCode;
+    return deviceCode.map(
+        code ->
+            new PendingDeviceCode(code.isAuthorized(), code.getClientId(), code.getCreatedAt()));
   }
 
   /**
