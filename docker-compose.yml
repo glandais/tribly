@@ -118,10 +118,21 @@ services:
       # Global per-client rate limit (audit M10, docs/LEDGER_*.md SEC-28): 429 past it. The client is
       # the last X-Forwarded-For hop, the one the host's Caddy sets — the only way in, see
       # docs/OPERATIONS.md « Rate limiting ». Wide on purpose: a map pans in bursts of tiles.
-      - "traefik.http.routers.quarkus.middlewares=ratelimit-api"
+      - "traefik.http.routers.quarkus.middlewares=ratelimit-api,api-headers"
       - "traefik.http.middlewares.ratelimit-api.ratelimit.average=${RATE_LIMIT_API_AVERAGE:-50}"
       - "traefik.http.middlewares.ratelimit-api.ratelimit.burst=${RATE_LIMIT_API_BURST:-200}"
       - "traefik.http.middlewares.ratelimit-api.ratelimit.sourcecriterion.ipstrategy.depth=1"
+      # Security headers (audit V4, docs/LEDGER_*.md SEC-30), the site's being `site-headers` in the
+      # frontend's labels: each router uses its own service's middleware, so neither goes down with the
+      # other. No Content-Security-Policy on the API: the downloads' sandbox CSP (UploadedContentHeaders)
+      # must reach the browser untouched, and a PDF must keep none. nosniff repeats theirs. HSTS needs
+      # forceSTSHeader: Caddy talks plain HTTP to traefik, which otherwise sends it on TLS requests only.
+      - "traefik.http.middlewares.api-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.api-headers.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.api-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.api-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.api-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.middlewares.api-headers.headers.permissionsPolicy=camera=(), microphone=(), payment=(), usb=(), geolocation=(self)"
     # What Swarm waits for before stopping the old task. Boot runs Flyway, hence the start period.
     healthcheck:
       test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/q/health/ready"]
@@ -174,10 +185,21 @@ services:
       - "traefik.http.services.frontend.loadbalancer.healthcheck.timeout=10s"
       # Same limit as the API's (see the backend labels), wider: a first visit loads every chunk,
       # and each document costs server-side renders that reach the backend without passing here.
-      - "traefik.http.routers.frontend.middlewares=ratelimit-frontend"
+      - "traefik.http.routers.frontend.middlewares=ratelimit-frontend,site-headers"
       - "traefik.http.middlewares.ratelimit-frontend.ratelimit.average=${RATE_LIMIT_FRONTEND_AVERAGE:-100}"
       - "traefik.http.middlewares.ratelimit-frontend.ratelimit.burst=${RATE_LIMIT_FRONTEND_BURST:-400}"
       - "traefik.http.middlewares.ratelimit-frontend.ratelimit.sourcecriterion.ipstrategy.depth=1"
+      # The API's headers (see the backend labels), plus the site's CSP: only the directives that
+      # constrain no script, style or origin — nothing embeds the site, and no page posts a form
+      # elsewhere or loads a plugin. Restricting scripts needs a nonce on the two inline scripts
+      # server.js writes per request (docs/LEDGER_*.md SEC-31).
+      - "traefik.http.middlewares.site-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.site-headers.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.site-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.site-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.site-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.middlewares.site-headers.headers.permissionsPolicy=camera=(), microphone=(), payment=(), usb=(), geolocation=(self)"
+      - "traefik.http.middlewares.site-headers.headers.contentSecurityPolicy=frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/health"]
       interval: 5s

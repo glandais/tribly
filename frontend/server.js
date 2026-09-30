@@ -52,6 +52,8 @@ function webManifest(appName) {
 
 async function createServer() {
   const app = express()
+  // No `X-Powered-By: Express` (audit V4, docs/LEDGER_*.md SEC-30).
+  app.disable('x-powered-by')
 
   // Behind traefik (prod) / http-proxy-middleware (dev) — trust X-Forwarded-* so
   // req.protocol and req.ip reflect the original client.
