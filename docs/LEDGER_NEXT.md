@@ -596,7 +596,6 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 |---|---|---|---|---|
 | `SEC-1` | 1 | H2 | Élevée | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif |
 | `SEC-2` | 1 | H3 | Élevée | L'autorisation d'un appareil peut aboutir sans confirmation explicite |
-| `SEC-3` | 1 | H4 | Élevée | L'app mobile peut transmettre ses identifiants à d'autres hôtes que l'API |
 | `SEC-5` | 2 | V1 | **Critique si confirmé** | Clé JWT présente dans l'historique public : vérifier que prod et staging n'en sont pas des copies |
 | `SEC-6` | 4 | M3 | Moyenne | Traitement GPX non borné en mémoire |
 | `SEC-8` | — | M2 | Moyenne | Flou d'~1 km des annonces affinable par requêtes répétées (contredit la décision `API-31`) |
