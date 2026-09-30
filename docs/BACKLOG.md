@@ -21,7 +21,7 @@ Must-have for public launch. Focus on first impressions and core UX.
 ### Discoverability
 - [x] SEO/robots.txt — Phase 1 complete (static meta); `robots.txt` realigned on
       `contracts/routes.yaml` on 2026-09-29 (both locales, no route that no longer exists)
-  - [ ] llms.txt
+  - [x] llms.txt — `/llms.txt` per host, public teams and a pointer to the sitemap (ledger `WEB-34`)
 - [X] SSR/Dynamic meta — shipped without Next.js: Express server-side rendering of the React app
       (`frontend/docs/SSR.md`) and per-page Open Graph/Twitter tags (`frontend/docs/LINK_PREVIEW.md`)
 - [x] Dynamic sitemap.xml — `/sitemap.xml` per host, public content of public teams, no ads,
