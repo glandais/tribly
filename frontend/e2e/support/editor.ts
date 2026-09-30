@@ -38,12 +38,29 @@ export const KEY = {
 } as const
 
 /**
- * Lets a Tiptap `focus()` finish. It focuses at once on Android (the mobile project's user agent),
- * then writes its selection back into the DOM on the next animation frame: a key pressed in
- * between is undone. Its frame callback was queued first, so it has run once ours runs.
+ * Puts the caret at the end of the block it is in, pressing `key` (a {@link KEY}, idempotent there)
+ * until the editor's **own** selection — ProseMirror's state, which Enter and typing act on — says
+ * so. The DOM's selection is not enough: for 20 ms after a focus (more under load) ProseMirror
+ * writes its state's selection back into the DOM if it has not read the DOM's yet, undoing a key
+ * pressed in between (prosemirror-view, `handlers.focus`); Tiptap's `focus()` does the same one
+ * animation frame later.
  */
-export async function editorFocusSettled(page: Page) {
-  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+export async function caretToBlockEnd(page: Page, editor: Locator, key: string) {
+  const atBlockEnd = () =>
+    editor.evaluate((element) => {
+      type Resolved = { parentOffset: number; parent: { content: { size: number } } }
+      const { selection } = (
+        element as HTMLElement & {
+          editor: { state: { selection: { empty: boolean; $from: Resolved } } }
+        }
+      ).editor.state
+      const { $from } = selection
+      return selection.empty && $from.parentOffset === $from.parent.content.size
+    })
+  await expect(async () => {
+    if (!(await atBlockEnd())) await page.keyboard.press(key)
+    expect(await atBlockEnd(), 'the caret is at the end of its block').toBe(true)
+  }).toPass()
 }
 
 /**

@@ -6,7 +6,7 @@ import { addMember, markdownMedia, newTeam, newUser, signIn } from './support/da
 import { frenchDateTime, parisDaysAhead, parisInstant } from './support/dates'
 import {
   addImage,
-  editorFocusSettled,
+  caretToBlockEnd,
   KEY,
   richText,
   toolbarButton,
@@ -137,14 +137,10 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
     await expect(urlInput).toBeHidden()
     await expect(editor).toBeFocused()
     await expect(editor.getByRole('link', { name: linkText, exact: true })).toBeVisible()
-    // The selection comes back after the focus: a key pressed before it would be undone by it, and
-    // Enter would then replace the linked words.
+    // The linked words are still selected: Enter now would replace them.
     const selection = () => page.evaluate(() => window.getSelection()?.toString() ?? '')
     await expect.poll(selection).toBe(linkText)
-    await editorFocusSettled(page)
-    // Not End either (only scrolls on macOS): ArrowRight collapses the selection to its end.
-    await page.keyboard.press('ArrowRight')
-    await expect.poll(selection).toBe('')
+    await caretToBlockEnd(page, editor, KEY.lineEnd)
     await page.keyboard.press('Enter')
     // Bullet list
     await toolbarButton(main, 'Bullet list').click()
@@ -281,7 +277,7 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
     await expectImageLoaded(editor.getByRole('img', { name: IMAGE_ALT }))
     // The heading is short enough not to wrap on a phone, so the line's end is the end of its text.
     await editor.locator('h2').click()
-    await page.keyboard.press(KEY.lineEnd)
+    await caretToBlockEnd(page, editor, KEY.lineEnd)
     await page.keyboard.type(' du dimanche')
     await expect(editor.locator('h2')).toHaveText('Au programme du dimanche')
 
@@ -569,7 +565,7 @@ test.describe('regressions', () => {
     // The author types the last words and clicks « Enregistrer » straight away: the clock stands
     // still, so the click lands inside the debounce whatever the machine's speed.
     await editor.click()
-    await page.keyboard.press(KEY.documentEnd)
+    await caretToBlockEnd(page, editor, KEY.documentEnd)
     await page.clock.pauseAt(Date.now() + 60_000)
     await page.keyboard.type(' Relu.')
     await expect(editor, 'the editor shows the typed words').toHaveText('Premier jet. Relu.')
