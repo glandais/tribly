@@ -649,7 +649,7 @@ class AuthResourceTest extends AbstractResourceTest {
         .body("email", equalTo("preview@example.com"))
         .body("kind", equalTo("SIGN_UP"))
         .body("accessToken", is(nullValue()))
-        .cookie("refresh_token", is(nullValue()));
+        .header("Set-Cookie", is(nullValue()));
     preview("preview-token").statusCode(200);
 
     assertThat(userRepository.count("email", "preview@example.com"), is(0L));
@@ -687,7 +687,7 @@ class AuthResourceTest extends AbstractResourceTest {
         .post("/api/auth/confirm-email-change")
         .then()
         .statusCode(204)
-        .cookie("refresh_token", is(nullValue()));
+        .header("Set-Cookie", is(nullValue()));
 
     assertThat(dataService.findUserByEmail("after@example.com").getId(), equalTo(user.getId()));
     // Spent.
