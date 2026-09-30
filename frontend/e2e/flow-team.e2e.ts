@@ -93,7 +93,7 @@ test.describe('creating a team', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Créer une équipe' })).toBeVisible()
 
     const form = main(page).locator('form')
-    const nameInput = form.getByLabel("Nom de l'équipe")
+    const nameInput = form.getByRole('textbox', { name: "Nom de l'équipe" })
     await hydrated(nameInput)
     const submit = form.getByRole('button', { name: "Créer l'équipe" })
     await expect(submit, 'precondition: a nameless team cannot be submitted').toBeDisabled()
@@ -177,10 +177,10 @@ test.describe('team settings', () => {
       page.getByRole('heading', { level: 2, name: "Paramètres de l'équipe" })
     ).toBeVisible()
 
-    const nameInput = main(page).getByLabel("Nom de l'équipe")
+    const nameInput = main(page).getByRole('textbox', { name: "Nom de l'équipe" })
     const form = main(page)
       .locator('form')
-      .filter({ has: page.getByLabel("Nom de l'équipe") })
+      .filter({ has: page.getByRole('textbox', { name: "Nom de l'équipe" }) })
     await expect(nameInput).toHaveValue(team.name)
     await expect(richText(form, EDITOR_LABEL.team)).toHaveText('Ancienne description')
     await nameInput.fill(renamed)
@@ -491,10 +491,10 @@ test.describe('the team list', () => {
     await setTeamAttributes(team, { visibilityEditable: true })
     await signIn(context, owner)
     await page.goto(`/equipes/${team.slug}/admin/parametres`)
-    const nameInput = main(page).getByLabel("Nom de l'équipe")
+    const nameInput = main(page).getByRole('textbox', { name: "Nom de l'équipe" })
     const form = main(page)
       .locator('form')
-      .filter({ has: page.getByLabel("Nom de l'équipe") })
+      .filter({ has: page.getByRole('textbox', { name: "Nom de l'équipe" }) })
     await hydrated(nameInput)
     const visibility = form.getByRole('combobox', { name: "Visibilité de l'équipe" })
     await expect(visibility).toHaveValue('Équipe uniquement')
@@ -818,7 +818,7 @@ test.describe('regressions', () => {
     await page.goto('/equipes/nouvelle')
     const form = main(page).locator('form')
     await expect(
-      form.getByLabel("Nom de l'équipe"),
+      form.getByRole('textbox', { name: "Nom de l'équipe" }),
       'precondition: the form is rendered'
     ).toBeVisible()
     await expect(richText(form, EDITOR_LABEL.team)).toHaveAttribute('contenteditable', 'true')

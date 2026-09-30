@@ -49,11 +49,11 @@ const main = (page: Page) => page.getByRole('main')
 /** The team settings form, once hydrated. */
 async function settingsForm(page: Page, slug: string) {
   await page.goto(`/equipes/${slug}/admin/parametres`)
-  const nameInput = main(page).getByLabel("Nom de l'équipe")
+  const nameInput = main(page).getByRole('textbox', { name: "Nom de l'équipe" })
   await hydrated(nameInput)
   return main(page)
     .locator('form')
-    .filter({ has: page.getByLabel("Nom de l'équipe") })
+    .filter({ has: page.getByRole('textbox', { name: "Nom de l'équipe" }) })
 }
 
 const teamHeading = (page: Page, name: string) =>

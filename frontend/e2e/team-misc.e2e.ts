@@ -75,7 +75,7 @@ test.describe('team settings loaded directly', () => {
     await expect(
       page.getByRole('heading', { level: 2, name: "Paramètres de l'équipe" })
     ).toBeVisible()
-    const name = page.getByLabel("Nom de l'équipe")
+    const name = page.getByRole('textbox', { name: "Nom de l'équipe" })
     await expect(name).toHaveValue(team.name)
     await expect(page.getByText('le dimanche', { exact: false })).toBeVisible()
 
