@@ -281,6 +281,9 @@ const uploadPreview = (owner: AuthResponse, name: string) =>
   )
 
 test('my GPX files: page 2 from the server, back to it, p=abc, p=99', async ({ page, context }) => {
+  // Each file is a GPX parsed and stored by the server: under load, the uploads alone can take
+  // half of the default 30 s.
+  test.slow()
   const owner = await newUser('pagination-gpx')
   for (let i = 0; i < COUNT; i++)
     await uploadPreview(owner, unique(`Fichier ${String(i + 1).padStart(2, '0')}`))

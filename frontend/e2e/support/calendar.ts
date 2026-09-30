@@ -54,9 +54,12 @@ export async function openCalendarAt(page: Page, path: string, day: WallClock) {
     await hydrated(dayButton)
     await dayButton.click()
   } else {
+    // Even on the current month: the caller clicks an event next, and the grid is heavy enough
+    // that a click right after it shows lands before hydration and is lost (WEB-35).
+    await hydrated(visibleButton('Suivant'))
     for (let i = 0; i < monthsAhead; i++) {
-      await hydrated(visibleButton('Suivant'))
       await visibleButton('Suivant').click()
+      await hydrated(visibleButton('Suivant'))
     }
   }
 }

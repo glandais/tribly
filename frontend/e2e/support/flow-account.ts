@@ -207,8 +207,13 @@ export async function addPasskeyFromProfile(page: Page, deviceName: string) {
   const registered = page.waitForResponse(
     (r) => r.request().method() === 'POST' && r.url().includes('/api/auth/passkeys/register')
   )
+  // The list is read again once the passkey is stored; under load that read can outlast an expect.
+  const relisted = page.waitForResponse(
+    (r) => r.request().method() === 'GET' && r.url().endsWith('/api/auth/passkeys')
+  )
   await dialog.getByRole('button', { name: 'Enregistrer' }).click()
   expect((await registered).ok()).toBe(true)
+  expect((await relisted).ok(), 'the passkey list was read again').toBe(true)
   await expect(dialog).toBeHidden()
   await expect(main.getByText(deviceName, { exact: true })).toBeVisible()
 }

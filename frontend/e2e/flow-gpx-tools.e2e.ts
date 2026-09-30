@@ -306,7 +306,12 @@ test('an owner saves a preview as a route of their team', async ({ page, context
   await dialog.getByRole('combobox', { name: 'Équipe' }).click()
   await page.getByRole('option', { name: team.name }).click()
   await expect(confirm).toBeEnabled()
+  // The track is copied and processed before the answer, which can outlast an expect under load.
+  const saved = page.waitForResponse(
+    (r) => r.request().method() === 'POST' && r.url().endsWith(`/routes/${team.slug}`)
+  )
   await confirm.click()
+  expect((await saved).ok(), 'the route was created').toBe(true)
 
   // On the new route's page, in that team.
   await expect(main.getByRole('heading', { level: 1, name })).toBeVisible()
