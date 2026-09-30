@@ -46,6 +46,8 @@ export const ListAdsQueryParams = zod.object({
     ),
 })
 
+export const listAdsResponseAdsItemMediaMarkdownMax = 100000
+
 export const ListAdsResponse = zod
   .object({
     ads: zod
@@ -73,7 +75,10 @@ export const ListAdsResponse = zod
             name: zod.string().describe('Ad name'),
             media: zod
               .object({
-                markdown: zod.string().describe('Markdown'),
+                markdown: zod
+                  .string()
+                  .max(listAdsResponseAdsItemMediaMarkdownMax)
+                  .describe('Markdown'),
                 assets: zod
                   .object({
                     logo: zod
@@ -287,6 +292,8 @@ export const CreateAdParams = zod.object({
 export const createAdBodyNameMax = 200
 
 export const createAdBodyNameRegExp = new RegExp('\\S')
+export const createAdBodyMediaMarkdownMax = 100000
+
 export const createAdBodyLocationDescriptionMax = 200
 
 export const CreateAdBody = zod
@@ -299,7 +306,7 @@ export const CreateAdBody = zod
       .describe('Ad name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createAdBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -466,6 +473,8 @@ export const CreateAdBody = zod
   })
   .describe('Ad request')
 
+export const createAdResponseMediaMarkdownMax = 100000
+
 export const CreateAdResponse = zod
   .object({
     team: zod
@@ -489,7 +498,7 @@ export const CreateAdResponse = zod
     name: zod.string().describe('Ad name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createAdResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -731,6 +740,8 @@ export const UpdateAdParams = zod.object({
 export const updateAdBodyNameMax = 200
 
 export const updateAdBodyNameRegExp = new RegExp('\\S')
+export const updateAdBodyMediaMarkdownMax = 100000
+
 export const updateAdBodyLocationDescriptionMax = 200
 
 export const UpdateAdBody = zod
@@ -743,7 +754,7 @@ export const UpdateAdBody = zod
       .describe('Ad name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updateAdBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -910,6 +921,8 @@ export const UpdateAdBody = zod
   })
   .describe('Ad request')
 
+export const updateAdResponseMediaMarkdownMax = 100000
+
 export const UpdateAdResponse = zod
   .object({
     team: zod
@@ -933,7 +946,7 @@ export const UpdateAdResponse = zod
     name: zod.string().describe('Ad name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updateAdResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1136,6 +1149,8 @@ export const GetAdParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const getAdResponseMediaMarkdownMax = 100000
+
 export const GetAdResponse = zod
   .object({
     team: zod
@@ -1159,7 +1174,7 @@ export const GetAdResponse = zod
     name: zod.string().describe('Ad name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(getAdResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1402,6 +1417,8 @@ export const GetAdEditParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const getAdEditResponseMediaMarkdownMax = 100000
+
 export const GetAdEditResponse = zod
   .object({
     team: zod
@@ -1425,7 +1442,7 @@ export const GetAdEditResponse = zod
     name: zod.string().describe('Ad name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(getAdEditResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1613,6 +1630,8 @@ export const ChangeAdSlugBody = zod
   })
   .describe('Slug change request')
 
+export const changeAdSlugResponseMediaMarkdownMax = 100000
+
 export const ChangeAdSlugResponse = zod
   .object({
     team: zod
@@ -1636,7 +1655,7 @@ export const ChangeAdSlugResponse = zod
     name: zod.string().describe('Ad name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(changeAdSlugResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1839,6 +1858,8 @@ export const UndeleteAdParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const undeleteAdResponseMediaMarkdownMax = 100000
+
 export const UndeleteAdResponse = zod
   .object({
     team: zod
@@ -1862,7 +1883,7 @@ export const UndeleteAdResponse = zod
     name: zod.string().describe('Ad name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(undeleteAdResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod

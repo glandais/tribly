@@ -62,6 +62,8 @@ export const ListAllRoutesQueryParams = zod.object({
     .describe('Filter by wind direction'),
 })
 
+export const listAllRoutesResponseRoutesItemMediaMarkdownMax = 100000
+
 export const ListAllRoutesResponse = zod
   .object({
     routes: zod
@@ -89,7 +91,10 @@ export const ListAllRoutesResponse = zod
             name: zod.string().describe('Route name'),
             media: zod
               .object({
-                markdown: zod.string().describe('Markdown'),
+                markdown: zod
+                  .string()
+                  .max(listAllRoutesResponseRoutesItemMediaMarkdownMax)
+                  .describe('Markdown'),
                 assets: zod
                   .object({
                     logo: zod
@@ -503,6 +508,8 @@ export const ListRoutesQueryParams = zod.object({
     .describe('Filter by wind direction'),
 })
 
+export const listRoutesResponseRoutesItemMediaMarkdownMax = 100000
+
 export const ListRoutesResponse = zod
   .object({
     routes: zod
@@ -530,7 +537,10 @@ export const ListRoutesResponse = zod
             name: zod.string().describe('Route name'),
             media: zod
               .object({
-                markdown: zod.string().describe('Markdown'),
+                markdown: zod
+                  .string()
+                  .max(listRoutesResponseRoutesItemMediaMarkdownMax)
+                  .describe('Markdown'),
                 assets: zod
                   .object({
                     logo: zod
@@ -724,6 +734,7 @@ export const createRouteBodyRouteNameMin = 3
 export const createRouteBodyRouteNameMax = 200
 
 export const createRouteBodyRouteNameRegExp = new RegExp('\\S')
+export const createRouteBodyRouteMediaMarkdownMax = 100000
 
 export const CreateRouteBody = zod.object({
   route: zod
@@ -736,7 +747,7 @@ export const CreateRouteBody = zod.object({
         .describe('Route name'),
       media: zod
         .object({
-          markdown: zod.string().describe('Markdown'),
+          markdown: zod.string().max(createRouteBodyRouteMediaMarkdownMax).describe('Markdown'),
           assets: zod
             .object({
               logo: zod
@@ -900,6 +911,8 @@ export const CreateRouteBody = zod.object({
   gpxFile: zod.instanceof(Blob).optional(),
 })
 
+export const createRouteResponseMediaMarkdownMax = 100000
+
 export const CreateRouteResponse = zod
   .object({
     id: zod.string().describe('Route ID (TSID)'),
@@ -923,7 +936,7 @@ export const CreateRouteResponse = zod
     name: zod.string().describe('Route name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createRouteResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1181,6 +1194,8 @@ export const GetRoutesBulkQueryParams = zod.object({
     ),
 })
 
+export const getRoutesBulkResponseRoutesItemMediaMarkdownMax = 100000
+
 export const GetRoutesBulkResponse = zod
   .object({
     routes: zod
@@ -1208,7 +1223,10 @@ export const GetRoutesBulkResponse = zod
             name: zod.string().describe('Route name'),
             media: zod
               .object({
-                markdown: zod.string().describe('Markdown'),
+                markdown: zod
+                  .string()
+                  .max(getRoutesBulkResponseRoutesItemMediaMarkdownMax)
+                  .describe('Markdown'),
                 assets: zod
                   .object({
                     logo: zod
@@ -1592,6 +1610,7 @@ export const updateRouteBodyRouteNameMin = 3
 export const updateRouteBodyRouteNameMax = 200
 
 export const updateRouteBodyRouteNameRegExp = new RegExp('\\S')
+export const updateRouteBodyRouteMediaMarkdownMax = 100000
 
 export const UpdateRouteBody = zod.object({
   route: zod
@@ -1604,7 +1623,7 @@ export const UpdateRouteBody = zod.object({
         .describe('Route name'),
       media: zod
         .object({
-          markdown: zod.string().describe('Markdown'),
+          markdown: zod.string().max(updateRouteBodyRouteMediaMarkdownMax).describe('Markdown'),
           assets: zod
             .object({
               logo: zod
@@ -1768,6 +1787,8 @@ export const UpdateRouteBody = zod.object({
   gpxFile: zod.instanceof(Blob).optional(),
 })
 
+export const updateRouteResponseMediaMarkdownMax = 100000
+
 export const UpdateRouteResponse = zod
   .object({
     id: zod.string().describe('Route ID (TSID)'),
@@ -1791,7 +1812,7 @@ export const UpdateRouteResponse = zod
     name: zod.string().describe('Route name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updateRouteResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1975,6 +1996,8 @@ export const GetRouteParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const getRouteResponseMediaMarkdownMax = 100000
+
 export const GetRouteResponse = zod
   .object({
     id: zod.string().describe('Route ID (TSID)'),
@@ -1998,7 +2021,7 @@ export const GetRouteResponse = zod
     name: zod.string().describe('Route name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(getRouteResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -2279,6 +2302,8 @@ export const ChangeRouteSlugBody = zod
   })
   .describe('Slug change request')
 
+export const changeRouteSlugResponseMediaMarkdownMax = 100000
+
 export const ChangeRouteSlugResponse = zod
   .object({
     id: zod.string().describe('Route ID (TSID)'),
@@ -2302,7 +2327,7 @@ export const ChangeRouteSlugResponse = zod
     name: zod.string().describe('Route name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(changeRouteSlugResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -2558,6 +2583,8 @@ export const UndeleteRouteParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const undeleteRouteResponseMediaMarkdownMax = 100000
+
 export const UndeleteRouteResponse = zod
   .object({
     id: zod.string().describe('Route ID (TSID)'),
@@ -2581,7 +2608,7 @@ export const UndeleteRouteResponse = zod
     name: zod.string().describe('Route name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(undeleteRouteResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod

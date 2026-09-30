@@ -85,6 +85,8 @@ export const CreateTemplateParams = zod.object({
 export const createTemplateBodyNameMax = 200
 
 export const createTemplateBodyNameRegExp = new RegExp('\\S')
+export const createTemplateBodyMarkdownMax = 100000
+
 export const createTemplateBodyGroupsItemNameMax = 200
 
 export const createTemplateBodyGroupsItemNameRegExp = new RegExp('\\S')
@@ -97,7 +99,10 @@ export const CreateTemplateBody = zod
       .max(createTemplateBodyNameMax)
       .regex(createTemplateBodyNameRegExp)
       .describe('Template name'),
-    markdown: zod.string().describe('Template description (markdown)'),
+    markdown: zod
+      .string()
+      .max(createTemplateBodyMarkdownMax)
+      .describe('Template description (markdown)'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     status: zod
       .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
@@ -179,6 +184,8 @@ export const UpdateTemplateParams = zod.object({
 export const updateTemplateBodyNameMax = 200
 
 export const updateTemplateBodyNameRegExp = new RegExp('\\S')
+export const updateTemplateBodyMarkdownMax = 100000
+
 export const updateTemplateBodyGroupsItemNameMax = 200
 
 export const updateTemplateBodyGroupsItemNameRegExp = new RegExp('\\S')
@@ -191,7 +198,10 @@ export const UpdateTemplateBody = zod
       .max(updateTemplateBodyNameMax)
       .regex(updateTemplateBodyNameRegExp)
       .describe('Template name'),
-    markdown: zod.string().describe('Template description (markdown)'),
+    markdown: zod
+      .string()
+      .max(updateTemplateBodyMarkdownMax)
+      .describe('Template description (markdown)'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     status: zod
       .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])

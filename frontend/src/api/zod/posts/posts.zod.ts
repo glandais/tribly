@@ -11,6 +11,7 @@ export const CreatePostParams = zod.object({
 export const createPostBodyNameMax = 200
 
 export const createPostBodyNameRegExp = new RegExp('\\S')
+export const createPostBodyMediaMarkdownMax = 100000
 
 export const CreatePostBody = zod
   .object({
@@ -22,7 +23,7 @@ export const CreatePostBody = zod
       .describe('Post name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createPostBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -177,6 +178,8 @@ export const CreatePostBody = zod
   })
   .describe('Post request')
 
+export const createPostResponseMediaMarkdownMax = 100000
+
 export const CreatePostResponse = zod
   .object({
     type: zod.enum(['POST']),
@@ -201,7 +204,7 @@ export const CreatePostResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createPostResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -385,6 +388,7 @@ export const UpdatePostParams = zod.object({
 export const updatePostBodyNameMax = 200
 
 export const updatePostBodyNameRegExp = new RegExp('\\S')
+export const updatePostBodyMediaMarkdownMax = 100000
 
 export const UpdatePostBody = zod
   .object({
@@ -396,7 +400,7 @@ export const UpdatePostBody = zod
       .describe('Post name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updatePostBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -551,6 +555,8 @@ export const UpdatePostBody = zod
   })
   .describe('Post request')
 
+export const updatePostResponseMediaMarkdownMax = 100000
+
 export const UpdatePostResponse = zod
   .object({
     type: zod.enum(['POST']),
@@ -575,7 +581,7 @@ export const UpdatePostResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updatePostResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -756,6 +762,8 @@ export const GetPostParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const getPostResponseMediaMarkdownMax = 100000
+
 export const GetPostResponse = zod
   .object({
     type: zod.enum(['POST']),
@@ -780,7 +788,7 @@ export const GetPostResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(getPostResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -986,6 +994,8 @@ export const ChangePostSlugBody = zod
   })
   .describe('Slug change request')
 
+export const changePostSlugResponseMediaMarkdownMax = 100000
+
 export const ChangePostSlugResponse = zod
   .object({
     type: zod.enum(['POST']),
@@ -1010,7 +1020,7 @@ export const ChangePostSlugResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(changePostSlugResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1191,6 +1201,8 @@ export const UndeletePostParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const undeletePostResponseMediaMarkdownMax = 100000
+
 export const UndeletePostResponse = zod
   .object({
     type: zod.enum(['POST']),
@@ -1215,7 +1227,7 @@ export const UndeletePostResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(undeletePostResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod

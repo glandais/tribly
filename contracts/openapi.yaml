@@ -2510,6 +2510,7 @@ components:
         markdown:
           type: string
           description: Markdown
+          maxLength: 100000
         assets:
           description: Assets
           type: object
@@ -4071,6 +4072,7 @@ components:
         markdown:
           type: string
           description: Template description (markdown)
+          maxLength: 100000
         visibility:
           description: Visibility level
           type: string

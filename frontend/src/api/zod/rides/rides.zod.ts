@@ -12,6 +12,8 @@ export const createRideBodyNameMin = 3
 export const createRideBodyNameMax = 200
 
 export const createRideBodyNameRegExp = new RegExp('\\S')
+export const createRideBodyMediaMarkdownMax = 100000
+
 export const createRideBodyGroupsItemNameMax = 200
 
 export const createRideBodyGroupsItemNameRegExp = new RegExp('\\S')
@@ -29,7 +31,7 @@ export const CreateRideBody = zod
       .describe('Ride name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createRideBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -220,6 +222,8 @@ export const CreateRideBody = zod
   })
   .describe('Ride request')
 
+export const createRideResponseMediaMarkdownMax = 100000
+
 export const CreateRideResponse = zod
   .object({
     type: zod.enum(['RIDE']),
@@ -244,7 +248,7 @@ export const CreateRideResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createRideResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -570,6 +574,8 @@ export const updateRideBodyNameMin = 3
 export const updateRideBodyNameMax = 200
 
 export const updateRideBodyNameRegExp = new RegExp('\\S')
+export const updateRideBodyMediaMarkdownMax = 100000
+
 export const updateRideBodyGroupsItemNameMax = 200
 
 export const updateRideBodyGroupsItemNameRegExp = new RegExp('\\S')
@@ -587,7 +593,7 @@ export const UpdateRideBody = zod
       .describe('Ride name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updateRideBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -778,6 +784,8 @@ export const UpdateRideBody = zod
   })
   .describe('Ride request')
 
+export const updateRideResponseMediaMarkdownMax = 100000
+
 export const UpdateRideResponse = zod
   .object({
     type: zod.enum(['RIDE']),
@@ -802,7 +810,7 @@ export const UpdateRideResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updateRideResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1124,6 +1132,8 @@ export const GetRideParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const getRideResponseMediaMarkdownMax = 100000
+
 export const GetRideResponse = zod
   .object({
     type: zod.enum(['RIDE']),
@@ -1148,7 +1158,7 @@ export const GetRideResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(getRideResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1525,6 +1535,8 @@ export const ChangeRideSlugBody = zod
   })
   .describe('Slug change request')
 
+export const changeRideSlugResponseMediaMarkdownMax = 100000
+
 export const ChangeRideSlugResponse = zod
   .object({
     type: zod.enum(['RIDE']),
@@ -1549,7 +1561,7 @@ export const ChangeRideSlugResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(changeRideSlugResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1871,6 +1883,8 @@ export const UndeleteRideParams = zod.object({
   teamSlug: zod.string().describe('Team URL slug'),
 })
 
+export const undeleteRideResponseMediaMarkdownMax = 100000
+
 export const UndeleteRideResponse = zod
   .object({
     type: zod.enum(['RIDE']),
@@ -1895,7 +1909,7 @@ export const UndeleteRideResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(undeleteRideResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod

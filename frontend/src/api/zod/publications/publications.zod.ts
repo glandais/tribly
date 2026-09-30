@@ -47,6 +47,16 @@ export const ListAllPublicationsQueryParams = zod.object({
     ),
 })
 
+export const listAllPublicationsResponsePublicationsItemOneMediaMarkdownMax = 100000
+
+export const listAllPublicationsResponsePublicationsItemTwoMediaMarkdownMax = 100000
+
+export const listAllPublicationsResponsePublicationsItemThreeMediaMarkdownMax = 100000
+
+export const listAllPublicationsResponsePublicationsItemThreeStagesItemRouteMediaMarkdownMax = 100000
+
+export const listAllPublicationsResponsePublicationsItemThreeStagesItemMediaMarkdownMax = 100000
+
 export const ListAllPublicationsResponse = zod
   .object({
     publications: zod
@@ -77,7 +87,10 @@ export const ListAllPublicationsResponse = zod
                 name: zod.string().describe('Publication name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(listAllPublicationsResponsePublicationsItemOneMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -431,7 +444,10 @@ export const ListAllPublicationsResponse = zod
                 name: zod.string().describe('Publication name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(listAllPublicationsResponsePublicationsItemTwoMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -636,7 +652,10 @@ export const ListAllPublicationsResponse = zod
                 name: zod.string().describe('Publication name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(listAllPublicationsResponsePublicationsItemThreeMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -854,7 +873,12 @@ export const ListAllPublicationsResponse = zod
                             name: zod.string().describe('Route name'),
                             media: zod
                               .object({
-                                markdown: zod.string().describe('Markdown'),
+                                markdown: zod
+                                  .string()
+                                  .max(
+                                    listAllPublicationsResponsePublicationsItemThreeStagesItemRouteMediaMarkdownMax
+                                  )
+                                  .describe('Markdown'),
                                 assets: zod
                                   .object({
                                     logo: zod
@@ -1099,7 +1123,12 @@ export const ListAllPublicationsResponse = zod
                           .describe('End place'),
                         media: zod
                           .object({
-                            markdown: zod.string().describe('Markdown'),
+                            markdown: zod
+                              .string()
+                              .max(
+                                listAllPublicationsResponsePublicationsItemThreeStagesItemMediaMarkdownMax
+                              )
+                              .describe('Markdown'),
                             assets: zod
                               .object({
                                 logo: zod
@@ -1409,6 +1438,16 @@ export const ListPublicationsQueryParams = zod.object({
     ),
 })
 
+export const listPublicationsResponsePublicationsItemOneMediaMarkdownMax = 100000
+
+export const listPublicationsResponsePublicationsItemTwoMediaMarkdownMax = 100000
+
+export const listPublicationsResponsePublicationsItemThreeMediaMarkdownMax = 100000
+
+export const listPublicationsResponsePublicationsItemThreeStagesItemRouteMediaMarkdownMax = 100000
+
+export const listPublicationsResponsePublicationsItemThreeStagesItemMediaMarkdownMax = 100000
+
 export const ListPublicationsResponse = zod
   .object({
     publications: zod
@@ -1439,7 +1478,10 @@ export const ListPublicationsResponse = zod
                 name: zod.string().describe('Publication name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(listPublicationsResponsePublicationsItemOneMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -1793,7 +1835,10 @@ export const ListPublicationsResponse = zod
                 name: zod.string().describe('Publication name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(listPublicationsResponsePublicationsItemTwoMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -1998,7 +2043,10 @@ export const ListPublicationsResponse = zod
                 name: zod.string().describe('Publication name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(listPublicationsResponsePublicationsItemThreeMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -2216,7 +2264,12 @@ export const ListPublicationsResponse = zod
                             name: zod.string().describe('Route name'),
                             media: zod
                               .object({
-                                markdown: zod.string().describe('Markdown'),
+                                markdown: zod
+                                  .string()
+                                  .max(
+                                    listPublicationsResponsePublicationsItemThreeStagesItemRouteMediaMarkdownMax
+                                  )
+                                  .describe('Markdown'),
                                 assets: zod
                                   .object({
                                     logo: zod
@@ -2461,7 +2514,12 @@ export const ListPublicationsResponse = zod
                           .describe('End place'),
                         media: zod
                           .object({
-                            markdown: zod.string().describe('Markdown'),
+                            markdown: zod
+                              .string()
+                              .max(
+                                listPublicationsResponsePublicationsItemThreeStagesItemMediaMarkdownMax
+                              )
+                              .describe('Markdown'),
                             assets: zod
                               .object({
                                 logo: zod

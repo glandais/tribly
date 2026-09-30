@@ -11,9 +11,12 @@ export const CreateTripParams = zod.object({
 export const createTripBodyNameMax = 200
 
 export const createTripBodyNameRegExp = new RegExp('\\S')
+export const createTripBodyMediaMarkdownMax = 100000
+
 export const createTripBodyStagesItemNameMax = 200
 
 export const createTripBodyStagesItemNameRegExp = new RegExp('\\S')
+export const createTripBodyStagesItemMediaMarkdownMax = 100000
 
 export const CreateTripBody = zod
   .object({
@@ -25,7 +28,7 @@ export const CreateTripBody = zod
       .describe('Trip name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createTripBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -195,7 +198,10 @@ export const CreateTripBody = zod
             endPlaceId: zod.string().optional().describe('End place ID (TSID)'),
             media: zod
               .object({
-                markdown: zod.string().describe('Markdown'),
+                markdown: zod
+                  .string()
+                  .max(createTripBodyStagesItemMediaMarkdownMax)
+                  .describe('Markdown'),
                 assets: zod
                   .object({
                     logo: zod
@@ -347,6 +353,12 @@ export const CreateTripBody = zod
   })
   .describe('Trip request')
 
+export const createTripResponseMediaMarkdownMax = 100000
+
+export const createTripResponseStagesItemRouteMediaMarkdownMax = 100000
+
+export const createTripResponseStagesItemMediaMarkdownMax = 100000
+
 export const CreateTripResponse = zod
   .object({
     type: zod.enum(['TRIP']),
@@ -371,7 +383,7 @@ export const CreateTripResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(createTripResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -579,7 +591,10 @@ export const CreateTripResponse = zod
                 name: zod.string().describe('Route name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(createTripResponseStagesItemRouteMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -796,7 +811,10 @@ export const CreateTripResponse = zod
               .describe('End place'),
             media: zod
               .object({
-                markdown: zod.string().describe('Markdown'),
+                markdown: zod
+                  .string()
+                  .max(createTripResponseStagesItemMediaMarkdownMax)
+                  .describe('Markdown'),
                 assets: zod
                   .object({
                     logo: zod
@@ -998,9 +1016,12 @@ export const UpdateTripParams = zod.object({
 export const updateTripBodyNameMax = 200
 
 export const updateTripBodyNameRegExp = new RegExp('\\S')
+export const updateTripBodyMediaMarkdownMax = 100000
+
 export const updateTripBodyStagesItemNameMax = 200
 
 export const updateTripBodyStagesItemNameRegExp = new RegExp('\\S')
+export const updateTripBodyStagesItemMediaMarkdownMax = 100000
 
 export const UpdateTripBody = zod
   .object({
@@ -1012,7 +1033,7 @@ export const UpdateTripBody = zod
       .describe('Trip name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updateTripBodyMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1182,7 +1203,10 @@ export const UpdateTripBody = zod
             endPlaceId: zod.string().optional().describe('End place ID (TSID)'),
             media: zod
               .object({
-                markdown: zod.string().describe('Markdown'),
+                markdown: zod
+                  .string()
+                  .max(updateTripBodyStagesItemMediaMarkdownMax)
+                  .describe('Markdown'),
                 assets: zod
                   .object({
                     logo: zod
@@ -1334,6 +1358,12 @@ export const UpdateTripBody = zod
   })
   .describe('Trip request')
 
+export const updateTripResponseMediaMarkdownMax = 100000
+
+export const updateTripResponseStagesItemRouteMediaMarkdownMax = 100000
+
+export const updateTripResponseStagesItemMediaMarkdownMax = 100000
+
 export const UpdateTripResponse = zod
   .object({
     type: zod.enum(['TRIP']),
@@ -1358,7 +1388,7 @@ export const UpdateTripResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(updateTripResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -1566,7 +1596,10 @@ export const UpdateTripResponse = zod
                 name: zod.string().describe('Route name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(updateTripResponseStagesItemRouteMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -1783,7 +1816,10 @@ export const UpdateTripResponse = zod
               .describe('End place'),
             media: zod
               .object({
-                markdown: zod.string().describe('Markdown'),
+                markdown: zod
+                  .string()
+                  .max(updateTripResponseStagesItemMediaMarkdownMax)
+                  .describe('Markdown'),
                 assets: zod
                   .object({
                     logo: zod
@@ -1982,6 +2018,12 @@ export const GetTripParams = zod.object({
   tripSlug: zod.string().describe('Trip URL slug'),
 })
 
+export const getTripResponseMediaMarkdownMax = 100000
+
+export const getTripResponseStagesItemRouteMediaMarkdownMax = 100000
+
+export const getTripResponseStagesItemMediaMarkdownMax = 100000
+
 export const GetTripResponse = zod
   .object({
     type: zod.enum(['TRIP']),
@@ -2006,7 +2048,7 @@ export const GetTripResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(getTripResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -2214,7 +2256,10 @@ export const GetTripResponse = zod
                 name: zod.string().describe('Route name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(getTripResponseStagesItemRouteMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -2431,7 +2476,10 @@ export const GetTripResponse = zod
               .describe('End place'),
             media: zod
               .object({
-                markdown: zod.string().describe('Markdown'),
+                markdown: zod
+                  .string()
+                  .max(getTripResponseStagesItemMediaMarkdownMax)
+                  .describe('Markdown'),
                 assets: zod
                   .object({
                     logo: zod
@@ -2683,6 +2731,12 @@ export const ChangeTripSlugBody = zod
   })
   .describe('Slug change request')
 
+export const changeTripSlugResponseMediaMarkdownMax = 100000
+
+export const changeTripSlugResponseStagesItemRouteMediaMarkdownMax = 100000
+
+export const changeTripSlugResponseStagesItemMediaMarkdownMax = 100000
+
 export const ChangeTripSlugResponse = zod
   .object({
     type: zod.enum(['TRIP']),
@@ -2707,7 +2761,7 @@ export const ChangeTripSlugResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(changeTripSlugResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -2915,7 +2969,10 @@ export const ChangeTripSlugResponse = zod
                 name: zod.string().describe('Route name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(changeTripSlugResponseStagesItemRouteMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -3132,7 +3189,10 @@ export const ChangeTripSlugResponse = zod
               .describe('End place'),
             media: zod
               .object({
-                markdown: zod.string().describe('Markdown'),
+                markdown: zod
+                  .string()
+                  .max(changeTripSlugResponseStagesItemMediaMarkdownMax)
+                  .describe('Markdown'),
                 assets: zod
                   .object({
                     logo: zod
@@ -3331,6 +3391,12 @@ export const UndeleteTripParams = zod.object({
   tripSlug: zod.string().describe('Trip URL slug'),
 })
 
+export const undeleteTripResponseMediaMarkdownMax = 100000
+
+export const undeleteTripResponseStagesItemRouteMediaMarkdownMax = 100000
+
+export const undeleteTripResponseStagesItemMediaMarkdownMax = 100000
+
 export const UndeleteTripResponse = zod
   .object({
     type: zod.enum(['TRIP']),
@@ -3355,7 +3421,7 @@ export const UndeleteTripResponse = zod
     name: zod.string().describe('Publication name'),
     media: zod
       .object({
-        markdown: zod.string().describe('Markdown'),
+        markdown: zod.string().max(undeleteTripResponseMediaMarkdownMax).describe('Markdown'),
         assets: zod
           .object({
             logo: zod
@@ -3563,7 +3629,10 @@ export const UndeleteTripResponse = zod
                 name: zod.string().describe('Route name'),
                 media: zod
                   .object({
-                    markdown: zod.string().describe('Markdown'),
+                    markdown: zod
+                      .string()
+                      .max(undeleteTripResponseStagesItemRouteMediaMarkdownMax)
+                      .describe('Markdown'),
                     assets: zod
                       .object({
                         logo: zod
@@ -3780,7 +3849,10 @@ export const UndeleteTripResponse = zod
               .describe('End place'),
             media: zod
               .object({
-                markdown: zod.string().describe('Markdown'),
+                markdown: zod
+                  .string()
+                  .max(undeleteTripResponseStagesItemMediaMarkdownMax)
+                  .describe('Markdown'),
                 assets: zod
                   .object({
                     logo: zod

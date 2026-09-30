@@ -2524,7 +2524,8 @@
         "properties" : {
           "markdown" : {
             "type" : "string",
-            "description" : "Markdown"
+            "description" : "Markdown",
+            "maxLength" : 100000
           },
           "assets" : {
             "description" : "Assets",
@@ -4151,7 +4152,8 @@
           },
           "markdown" : {
             "type" : "string",
-            "description" : "Template description (markdown)"
+            "description" : "Template description (markdown)",
+            "maxLength" : 100000
           },
           "visibility" : {
             "description" : "Visibility level",
