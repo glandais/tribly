@@ -16,6 +16,8 @@ import type {
 
 import type {
   ErrorResponse,
+  GetTripParticipantsParams,
+  ParticipantListResponse,
   SlugChangeRequest,
   TripDto,
   TripParticipationDto,
@@ -615,6 +617,178 @@ export const useLeaveTrip = <TError = ErrorType<ErrorResponse | void>, TContext 
 > => {
   return useMutation(getLeaveTripMutationOptions(options), queryClient)
 }
+/**
+ * One page of the people registered to the trip, earliest registrations first, searchable by display name. The trip detail only embeds the first few; this is the whole list, with its total. Readable by whoever may read the trip.
+ * @summary List trip participants
+ */
+export const getTripParticipants = (
+  teamSlug: string,
+  tripSlug: string,
+  params?: GetTripParticipantsParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<ParticipantListResponse>(
+    { url: `/api/teams/${teamSlug}/trips/${tripSlug}/participants`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getGetTripParticipantsQueryKey = (
+  teamSlug: string,
+  tripSlug: string,
+  params?: GetTripParticipantsParams
+) => {
+  return [
+    `/api/teams/${teamSlug}/trips/${tripSlug}/participants`,
+    ...(params ? [params] : []),
+  ] as const
+}
+
+export const getGetTripParticipantsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTripParticipants>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  tripSlug: string,
+  params?: GetTripParticipantsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTripParticipants>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetTripParticipantsQueryKey(teamSlug, tripSlug, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getTripParticipants>>> = ({ signal }) =>
+    getTripParticipants(teamSlug, tripSlug, params, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && tripSlug !== null && tripSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getTripParticipants>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type GetTripParticipantsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTripParticipants>>
+>
+export type GetTripParticipantsQueryError = ErrorType<ErrorResponse>
+
+export function useGetTripParticipants<
+  TData = Awaited<ReturnType<typeof getTripParticipants>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  tripSlug: string,
+  params: undefined | GetTripParticipantsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getTripParticipants>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTripParticipants>>,
+          TError,
+          Awaited<ReturnType<typeof getTripParticipants>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTripParticipants<
+  TData = Awaited<ReturnType<typeof getTripParticipants>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  tripSlug: string,
+  params?: GetTripParticipantsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getTripParticipants>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTripParticipants>>,
+          TError,
+          Awaited<ReturnType<typeof getTripParticipants>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTripParticipants<
+  TData = Awaited<ReturnType<typeof getTripParticipants>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  tripSlug: string,
+  params?: GetTripParticipantsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTripParticipants>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List trip participants
+ */
+
+export function useGetTripParticipants<
+  TData = Awaited<ReturnType<typeof getTripParticipants>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  tripSlug: string,
+  params?: GetTripParticipantsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTripParticipants>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetTripParticipantsQueryOptions(teamSlug, tripSlug, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary List trip participants
+ */
+export const prefetchGetTripParticipantsQuery = async <
+  TData = Awaited<ReturnType<typeof getTripParticipants>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  tripSlug: string,
+  params?: GetTripParticipantsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTripParticipants>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetTripParticipantsQueryOptions(teamSlug, tripSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
 /**
  * Change trip URL slug. Requires organizer permissions.
  * @summary Change trip slug

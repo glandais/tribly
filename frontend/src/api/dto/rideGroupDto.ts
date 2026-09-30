@@ -18,7 +18,7 @@ export interface RideGroupDto {
   maxParticipants?: number
   /** Current number of participants */
   countParticipants: number
-  /** Participants, empty if not access */
+  /** The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=. */
   participants: PublicUserDto[]
   /** Sort order */
   sortOrder: number

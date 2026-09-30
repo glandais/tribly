@@ -2,19 +2,49 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pedalons/api/generated/export.dart';
+import 'package:pedalons/core/pagination/pagination.dart';
 import 'package:pedalons/core/pdl/pdl.dart';
 import 'package:pedalons/core/theme/pedalons_theme.dart';
+import 'package:pedalons/features/participants/data/participant_repository.dart';
+import 'package:pedalons/features/participants/domain/participant_query.dart';
 import 'package:pedalons/features/participants/presentation/widgets/participants_sheet.dart';
+import 'package:pedalons/keys.dart';
 
-import 'ride_fixtures.dart';
+/// Un serveur en mémoire : pagine et cherche comme `…/participants`, et
+/// retient ce qu'on lui a demandé.
+class _FakeParticipantRepository implements ParticipantRepository {
+  _FakeParticipantRepository(this.people);
 
-/// S12-7 — la pastille « Organisateur du groupe » est **conditionnelle**.
+  final List<PublicUserDto> people;
+  final List<(String search, int page)> calls = <(String, int)>[];
+
+  @override
+  Future<PageResult<PublicUserDto>> fetchPage(
+    ParticipantQuery query, {
+    required int page,
+    required int size,
+  }) async {
+    calls.add((query.search, page));
+    final String needle = query.search.toLowerCase();
+    final List<PublicUserDto> matching = people
+        .where(
+          (PublicUserDto p) => p.displayName.toLowerCase().contains(needle),
+        )
+        .toList();
+    return PageResult<PublicUserDto>(
+      items: matching.skip(page * size).take(size).toList(),
+      total: matching.length,
+    );
+  }
+}
+
+/// S12-7 — la pastille « Organisateur du groupe » est **conditionnelle** ;
+/// `API-12` — la liste est lue page par page et cherchée côté serveur.
 ///
-/// Trois cas, et le premier est le plus fréquent : la plupart des groupes n'ont
-/// pas de meneur désigné. `leader` nul ne rend rien — surtout pas un repli sur
-/// `createdBy`, qui serait le créateur de la sortie, donc la même personne sur
-/// tous ses groupes. C'est précisément le défaut que la colonne `leader_id`
-/// corrige.
+/// Pour la pastille, trois cas, et le premier est le plus fréquent : la
+/// plupart des groupes n'ont pas de meneur désigné. `leader` nul ne rend rien
+/// — surtout pas un repli sur `createdBy`, qui serait le créateur de la
+/// sortie, donc la même personne sur tous ses groupes.
 void main() {
   const String organizerKey = 'participants.groupOrganizer';
 
@@ -22,82 +52,130 @@ void main() {
     id: 'u1',
     displayName: 'Antoine Yvon',
   );
+  const List<PublicUserDto> three = <PublicUserDto>[
+    antoine,
+    PublicUserDto(id: 'u2', displayName: 'Hélène Ebrard'),
+    PublicUserDto(id: 'u3', displayName: 'Gaby Landais'),
+  ];
 
-  RideGroupDto groupWith({PublicUserDto? leader, int participants = 3}) {
-    return fixtureGroup(
-      countParticipants: participants,
-      leader: leader,
-    ).copyWith(
-      participants: <PublicUserDto>[
-        antoine,
-        const PublicUserDto(id: 'u2', displayName: 'Hélène Ebrard'),
-        const PublicUserDto(id: 'u3', displayName: 'Gaby Landais'),
-      ],
+  const RideParticipantSource source = RideParticipantSource(
+    teamSlug: 'team',
+    rideSlug: 'ride',
+    groupId: 'g1',
+  );
+
+  Future<_FakeParticipantRepository> open(
+    WidgetTester tester, {
+    List<PublicUserDto> people = three,
+    String? organizerId,
+  }) async {
+    final _FakeParticipantRepository repository = _FakeParticipantRepository(
+      people,
     );
-  }
-
-  Future<void> open(WidgetTester tester, RideGroupDto group) async {
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [
+          participantRepositoryProvider.overrideWithValue(repository),
+        ],
         child: MaterialApp(
           theme: PedalonsTheme.build(Brightness.light),
           home: Scaffold(
             body: ParticipantsSheet(
-              subtitle: group.name,
-              people: group.participants,
-              count: group.countParticipants,
-              organizerId: group.leader?.id,
+              subtitle: 'Chill Route Long',
+              source: source,
+              count: people.length,
+              organizerId: organizerId,
             ),
           ),
         ),
       ),
     );
     await tester.pump();
+    await tester.pump();
+    return repository;
   }
 
   testWidgets('sans meneur désigné, aucune pastille — le cas courant', (
     WidgetTester tester,
   ) async {
-    await open(tester, groupWith());
+    await open(tester);
     expect(find.text(organizerKey), findsNothing);
+    expect(find.byType(PdlPersonRow), findsNWidgets(3));
   });
 
   testWidgets('un meneur qui participe porte la pastille, et lui seul', (
     WidgetTester tester,
   ) async {
-    await open(tester, groupWith(leader: antoine));
+    await open(tester, organizerId: antoine.id);
     expect(find.text(organizerKey), findsOneWidget);
   });
 
   testWidgets('un meneur qui ne participe pas ne crée pas de ligne', (
     WidgetTester tester,
   ) async {
-    await open(
-      tester,
-      groupWith(
-        leader: const PublicUserDto(id: 'u9', displayName: 'Meneur Absent'),
-      ),
-    );
+    await open(tester, organizerId: 'u9');
     expect(find.text(organizerKey), findsNothing);
-    expect(find.text('Meneur Absent'), findsNothing);
     // Les trois participants restent rendus : l'absence du meneur n'enlève
     // rien à la liste.
     expect(find.text('Antoine Yvon'), findsOneWidget);
+    expect(find.byType(PdlPersonRow), findsNWidgets(3));
   });
 
-  testWidgets('la recherche filtre côté client, sans appel', (
+  testWidgets('la recherche part au serveur, débattue', (
     WidgetTester tester,
   ) async {
-    final RideGroupDto big = fixtureGroup(countParticipants: 12);
-    await open(tester, big);
-    expect(find.text('Membre 0'), findsOneWidget);
+    final _FakeParticipantRepository server = await open(
+      tester,
+      people: <PublicUserDto>[
+        for (int i = 0; i < 12; i++)
+          PublicUserDto(id: 'm$i', displayName: 'Membre $i'),
+      ],
+    );
+    expect(server.calls, <(String, int)>[('', 0)]);
 
     await tester.enterText(find.byType(TextField), 'Membre 7');
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
 
+    // Une seule requête pour la frappe entière, pas une par caractère.
+    expect(server.calls, <(String, int)>[('', 0), ('Membre 7', 0)]);
     // Le champ lui-même porte aussi le texte saisi : on compte les lignes.
     expect(find.byType(PdlPersonRow), findsOneWidget);
     expect(find.text('Membre 0'), findsNothing);
+  });
+
+  testWidgets('au-delà d\'une page, « Afficher plus » charge la suivante', (
+    WidgetTester tester,
+  ) async {
+    final _FakeParticipantRepository server = await open(
+      tester,
+      people: <PublicUserDto>[
+        for (int i = 0; i < 60; i++)
+          PublicUserDto(id: 'm$i', displayName: 'Membre $i'),
+      ],
+    );
+    // Arriver au bout de la liste ne charge rien : seule la demande explicite
+    // le fait.
+    final Finder list = find
+        .descendant(
+          of: find.byType(ListView),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    await tester.scrollUntilVisible(
+      find.byKey(keys.participants.loadMore),
+      500,
+      scrollable: list,
+    );
+    await tester.pump();
+    expect(server.calls, <(String, int)>[('', 0)]);
+    expect(find.byKey(keys.participants.progress), findsOneWidget);
+
+    await tester.tap(find.byKey(keys.participants.loadMore));
+    await tester.pump();
+    await tester.pump();
+
+    expect(server.calls, <(String, int)>[('', 0), ('', 1)]);
+    expect(find.byKey(keys.participants.loadMore), findsNothing);
   });
 }

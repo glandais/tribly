@@ -36,6 +36,7 @@ class PdlAvatarStack extends StatelessWidget {
     this.size = 26,
     this.onTap,
     this.semanticLabel,
+    this.total,
   });
 
   final List<PdlAvatarEntry> people;
@@ -50,13 +51,18 @@ class PdlAvatarStack extends StatelessWidget {
   /// rien, et lire 35 initiales ne renseigne personne.
   final String? semanticLabel;
 
+  /// Tout le monde que la grappe représente, quand [people] n'en est qu'un
+  /// aperçu — un groupe ou un voyage n'embarque que ses premiers
+  /// participants. La pastille « +N » se compte alors sur lui.
+  final int? total;
+
   @override
   Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
     final PdlTypography t = context.pdlText;
 
     final int shown = people.length <= max ? people.length : max;
-    final int rest = people.length - shown;
+    final int rest = (total ?? people.length) - shown;
 
     final Widget more = Container(
       width: size,

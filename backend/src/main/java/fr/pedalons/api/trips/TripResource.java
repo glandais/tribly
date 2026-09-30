@@ -5,6 +5,7 @@ import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.trips.request.TripRequest;
 import fr.pedalons.dto.trips.response.TripDto;
 import fr.pedalons.dto.trips.response.TripParticipationDto;
+import fr.pedalons.dto.users.response.ParticipantListResponse;
 import fr.pedalons.service.trip.TripService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -21,6 +22,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jspecify.annotations.Nullable;
 
 @Path("/api/teams/{teamSlug}/trips")
 @Produces(MediaType.APPLICATION_JSON)
@@ -87,6 +89,40 @@ public class TripResource {
     TripDto trip = tripService.getDto(teamSlug, tripSlug);
     // registered makes this answer specific to the caller.
     return Response.ok(trip).header(HttpHeaders.CACHE_CONTROL, "private, no-store").build();
+  }
+
+  @GET
+  @Path("/{tripSlug}/participants")
+  @PermitAll
+  @Operation(
+      summary = "List trip participants",
+      description =
+          "One page of the people registered to the trip, earliest registrations first,"
+              + " searchable by display name. The trip detail only embeds the first few; this is"
+              + " the whole list, with its total. Readable by whoever may read the trip.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Participants retrieved successfully",
+        content = @Content(schema = @Schema(implementation = ParticipantListResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or trip not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response getTripParticipants(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Trip URL slug") @PathParam("tripSlug") String tripSlug,
+      @Parameter(description = "Search by display name") @QueryParam("search")
+          @Nullable String search,
+      @Parameter(description = "Page number (0-based)") @QueryParam("page") @DefaultValue("0")
+          int page,
+      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("50") int size) {
+
+    ParticipantListResponse participants =
+        tripService.getParticipants(teamSlug, tripSlug, search, page, size);
+    // Who may read the trip decides who may read this: not a shared-cache answer.
+    return Response.ok(participants).header(HttpHeaders.CACHE_CONTROL, "private, no-store").build();
   }
 
   @PUT

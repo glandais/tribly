@@ -556,3 +556,44 @@ test.describe('leaving a ride, seen from the home page and the calendar', () => 
     await expect(feedCard(page, ride.name)).toHaveCount(0)
   })
 })
+
+test.describe('participants', () => {
+  /**
+   * docs/LEDGER_*.md API-12: the ride detail embeds only the first participants of a group; the
+   * modal reads the whole list page by page from the server, searched there, with its « N sur M ».
+   */
+  test('the participant list is read and searched on the server', async ({ page }) => {
+    const { owner, team, organizer, member } = await ridingTeam('participants')
+    const name = unique('Groupe nombreux')
+    const ride = await newRide(organizer, team.slug, unique('Sortie fréquentée'), {
+      groups: [{ name }],
+    })
+    // Ten riders: more than the 8 the detail embeds, so the card and the modal must both go by
+    // the server's count, not by the length of the preview.
+    const riders = await Promise.all(
+      Array.from({ length: 10 }, (_, i) => newUser(unique(`Cycliste ${i}`)))
+    )
+    for (const rider of riders) {
+      await addMember(owner, team.slug, rider)
+      await joinGroup(rider, team.slug, ride, name)
+    }
+
+    await signIn(page.context(), member)
+    await openRide(page, team.slug, ride)
+
+    const card = groupCard(page, name)
+    await expect(card.getByText('10 participants')).toBeVisible()
+    await hydrated(card.getByRole('button', { name: 'Voir tous les participants' }))
+    await card.getByRole('button', { name: 'Voir tous les participants' }).click()
+
+    const modal = page.getByRole('dialog', { name })
+    await expect(modal.getByRole('listitem')).toHaveCount(10)
+    await expect(modal.getByTestId('participants-shown-of')).toHaveText('1–10 sur 10')
+
+    const wanted = riders[7].user.displayName
+    await modal.getByPlaceholder('Rechercher un participant…').fill(wanted)
+    await expect(modal.getByRole('listitem')).toHaveCount(1)
+    await expect(modal.getByRole('listitem')).toContainText(wanted)
+    await expect(modal.getByTestId('participants-shown-of')).toHaveText('1–1 sur 1')
+  })
+})

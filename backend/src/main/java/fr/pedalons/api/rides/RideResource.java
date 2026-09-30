@@ -5,6 +5,7 @@ import fr.pedalons.dto.common.request.SlugChangeRequest;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.rides.request.*;
 import fr.pedalons.dto.rides.response.*;
+import fr.pedalons.dto.users.response.ParticipantListResponse;
 import fr.pedalons.service.ride.RideService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -21,6 +22,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jspecify.annotations.Nullable;
 
 @Path("/api/teams/{teamSlug}/rides")
 @Produces(MediaType.APPLICATION_JSON)
@@ -87,6 +89,50 @@ public class RideResource {
     RideDto ride = rideService.getDto(teamSlug, rideSlug);
     // registered / registeredGroupId make this answer specific to the caller.
     return Response.ok(ride).header(HttpHeaders.CACHE_CONTROL, "private, no-store").build();
+  }
+
+  @GET
+  @Path("/{rideSlug}/participants")
+  @PermitAll
+  @Operation(
+      summary = "List ride participants",
+      description =
+          "One page of the people registered to the ride, or to one of its groups, earliest"
+              + " registrations first, searchable by display name. The ride detail only embeds the"
+              + " first few; this is the whole list, with its total. Readable by whoever may read"
+              + " the ride.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Participants retrieved successfully",
+        content = @Content(schema = @Schema(implementation = ParticipantListResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or ride not found (or group not in this ride)",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response getRideParticipants(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug,
+      @Parameter(description = "Only this group of the ride (TSID); every group when absent")
+          @QueryParam("groupId")
+          @Nullable String groupId,
+      @Parameter(description = "Search by display name") @QueryParam("search")
+          @Nullable String search,
+      @Parameter(description = "Page number (0-based)") @QueryParam("page") @DefaultValue("0")
+          int page,
+      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("50") int size) {
+
+    ParticipantListResponse participants =
+        rideService.getParticipants(
+            teamSlug,
+            rideSlug,
+            groupId != null ? TsidUtils.toLong(groupId) : null,
+            search,
+            page,
+            size);
+    // Who may read the ride decides who may read this: not a shared-cache answer.
+    return Response.ok(participants).header(HttpHeaders.CACHE_CONTROL, "private, no-store").build();
   }
 
   @PUT

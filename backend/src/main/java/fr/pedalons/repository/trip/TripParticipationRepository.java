@@ -2,13 +2,18 @@ package fr.pedalons.repository.trip;
 
 import fr.pedalons.domain.trip.TripParticipation;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.repository.common.BaseRepository;
+import fr.pedalons.repository.common.ParticipantPages;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class TripParticipationRepository implements BaseRepository<TripParticipation> {
@@ -55,5 +60,25 @@ public class TripParticipationRepository implements BaseRepository<TripParticipa
             User.class)
         .setParameter("tripId", tripId)
         .getResultList();
+  }
+
+  /**
+   * One page of the people registered to a trip, in registration order. Two queries (the page and
+   * its count), whatever the size of the trip. docs/LEDGER_*.md API-12.
+   *
+   * @param search matched against the display name, case-insensitively; blank for no filter
+   */
+  public PedalonsPage<User> findParticipants(
+      Long tripId, @Nullable String search, int page, int size) {
+    Map<String, Object> params = new HashMap<>();
+    params.put("tripId", tripId);
+    return ParticipantPages.find(
+        getEntityManager(),
+        "TripParticipation",
+        new StringBuilder(" where p.trip.id = :tripId"),
+        params,
+        search,
+        page,
+        size);
   }
 }

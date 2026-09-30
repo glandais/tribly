@@ -149,8 +149,8 @@ export function TripDetailPage() {
   const isAdmin = team?.role === 'ADMIN'
   const isOrganizer = team?.role === 'ORGANIZER'
   const canEdit = isAdmin || isOrganizer
-  const hasJoined =
-    user && trip.participants ? trip.participants.some((p) => p.id === user.id) : false
+  // Told by the server: `participants` is only a preview of the first few (ledger API-12).
+  const hasJoined = !!user && trip.registered
   const canJoinTrip = isMember && trip.status === Status.PUBLISHED && !hasJoined
 
   const formattedDate = <FormattedDateTime date={trip.dateTime} />
@@ -491,7 +491,7 @@ export function TripDetailPage() {
           </SimpleGrid>
 
           {/* Participants section */}
-          {trip.participants && trip.participants.length > 0 && (
+          {trip.participantCount > 0 && (
             <Paper withBorder p="lg">
               <Title order={3} mb="md">
                 {t('trips.detail.participants.title')}
@@ -501,7 +501,12 @@ export function TripDetailPage() {
                 aria-label={t('trips.detail.participants.viewAll')}
               >
                 <Group gap="sm">
-                  <UserAvatarGroup users={trip.participants} max={8} size="md" />
+                  <UserAvatarGroup
+                    users={trip.participants}
+                    total={trip.participantCount}
+                    max={8}
+                    size="md"
+                  />
                   <Text size="sm" c="dimmed">
                     {t('participantCount', { count: trip.participantCount })}
                   </Text>
@@ -557,7 +562,8 @@ export function TripDetailPage() {
       <ParticipantListModal
         isOpen={showParticipants}
         onClose={() => setShowParticipants(false)}
-        participants={trip.participants ?? []}
+        source={{ kind: 'trip', teamSlug: teamSlug!, tripSlug: trip.slug }}
+        count={trip.participantCount}
         groupName={trip.name}
       />
 

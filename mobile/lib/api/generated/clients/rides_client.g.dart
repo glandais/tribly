@@ -190,6 +190,46 @@ class _RidesClient implements RidesClient {
   }
 
   @override
+  Future<ParticipantListResponse> getRideParticipants({
+    required String rideSlug,
+    required String teamSlug,
+    int? page = 0,
+    int? size = 50,
+    String? groupId,
+    String? search,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'page': page,
+      r'size': size,
+      r'groupId': groupId,
+      r'search': search,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<ParticipantListResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/teams/${teamSlug}/rides/${rideSlug}/participants',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late ParticipantListResponse _value;
+    try {
+      _value = ParticipantListResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<RideDto> changeRideSlug({
     required String rideSlug,
     required String teamSlug,

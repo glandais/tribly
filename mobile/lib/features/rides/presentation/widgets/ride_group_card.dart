@@ -269,6 +269,7 @@ class RideGroupCard extends StatelessWidget {
                   isCurrentUser: p.id == currentUserId,
                 ),
             ],
+            total: group.countParticipants,
             onTap: onShowParticipants,
             semanticLabel: _countLabel(max),
           ),

@@ -1167,7 +1167,9 @@
     "noMatchTitle": "No participant found",
     "noMatchMessage": "No name matches “{search}”.",
     "groupOrganizer": "Group organizer",
-    "emptyTripMessage": "Nobody has joined this trip yet."
+    "emptyTripMessage": "Nobody has joined this trip yet.",
+    "loadMore": "Show more",
+    "noun": "participants"
   },
   "status": {
     "draft": "Draft",

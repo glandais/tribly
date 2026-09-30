@@ -23,7 +23,7 @@ abstract class RideGroupDto with _$RideGroupDto {
     /// Current number of participants
     required int countParticipants,
 
-    /// Participants, empty if not access
+    /// The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.
     required List<PublicUserDto> participants,
 
     /// Sort order

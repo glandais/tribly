@@ -77,7 +77,40 @@ public abstract class AbstractQueryCountTest extends AbstractResourceTest {
         measurePage(name + " [" + SMALL_PAGE + " rows]", as, path, SMALL_PAGE);
     QueryStats.Counters large =
         measurePage(name + " [" + LARGE_PAGE + " rows]", as, path, LARGE_PAGE);
+    assertFlat(name, small, large, MAX_ENTITY_GROWTH);
+  }
 
+  /**
+   * Headroom for {@link #assertFlatAcrossResources}: the detail renders a bounded preview, so going
+   * from 3 related rows to 30 may hydrate only the extra previewed rows — up to 8 per ride group,
+   * and the fixtures use two groups — never one entity per related row. The page budget ({@link
+   * #MAX_ENTITY_GROWTH}) would be too loose here: hydrating every registration and its user is
+   * exactly +54.
+   */
+  protected static final long MAX_BOUNDED_ENTITY_GROWTH = 16;
+
+  /**
+   * Same budget for an endpoint that takes no page size, but embeds an association whose size the
+   * fixture controls: {@code smallPath} must name a resource holding {@link #SMALL_PAGE} related
+   * rows and {@code largePath} one holding {@link #LARGE_PAGE}, and serving the second must not
+   * cost more than the first beyond the budgets. A detail that embeds a bounded preview of a list
+   * is the case in point — the list may grow, the detail must not.
+   */
+  protected void assertFlatAcrossResources(
+      String name, Supplier<RequestSpecification> as, String smallPath, String largePath) {
+    QueryStats.Counters small =
+        queryStats.measureAll(
+            name + " [" + SMALL_PAGE + " related]",
+            () -> as.get().when().get(smallPath).then().statusCode(200));
+    QueryStats.Counters large =
+        queryStats.measureAll(
+            name + " [" + LARGE_PAGE + " related]",
+            () -> as.get().when().get(largePath).then().statusCode(200));
+    assertFlat(name, small, large, MAX_BOUNDED_ENTITY_GROWTH);
+  }
+
+  private static void assertFlat(
+      String name, QueryStats.Counters small, QueryStats.Counters large, long maxEntityGrowth) {
     long statementGrowth = large.statements() - small.statements();
     assertTrue(
         statementGrowth <= MAX_STATEMENT_GROWTH,
@@ -100,7 +133,7 @@ public abstract class AbstractQueryCountTest extends AbstractResourceTest {
 
     long entityGrowth = large.entityLoads() - small.entityLoads();
     assertTrue(
-        entityGrowth <= MAX_ENTITY_GROWTH,
+        entityGrowth <= maxEntityGrowth,
         () ->
             "Entity hydration scales with the association size on "
                 + name
@@ -115,7 +148,7 @@ public abstract class AbstractQueryCountTest extends AbstractResourceTest {
                 + " (+"
                 + entityGrowth
                 + ", budget +"
-                + MAX_ENTITY_GROWTH
+                + maxEntityGrowth
                 + "). The query count may look flat because of batch fetching while the work still"
                 + " grows with the data — a list row is walking an association it only needs an"
                 + " aggregate of. Load that aggregate in bulk for the page instead.");

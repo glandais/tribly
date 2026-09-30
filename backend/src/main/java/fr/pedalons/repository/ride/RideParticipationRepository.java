@@ -2,13 +2,16 @@ package fr.pedalons.repository.ride;
 
 import fr.pedalons.domain.ride.RideParticipation;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.repository.common.BaseRepository;
+import fr.pedalons.repository.common.ParticipantPages;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class RideParticipationRepository implements BaseRepository<RideParticipation> {
@@ -78,5 +81,25 @@ public class RideParticipationRepository implements BaseRepository<RideParticipa
             User.class)
         .setParameter("rideId", rideId)
         .getResultList();
+  }
+
+  /**
+   * One page of the people registered to a ride, or to one of its groups, in registration order.
+   * Two queries (the page and its count), whatever the size of the ride. docs/LEDGER_*.md API-12.
+   *
+   * @param groupId {@code null} for every group of the ride
+   * @param search matched against the display name, case-insensitively; blank for no filter
+   */
+  public PedalonsPage<User> findParticipants(
+      Long rideId, @Nullable Long groupId, @Nullable String search, int page, int size) {
+    StringBuilder where = new StringBuilder(" where p.rideGroup.ride.id = :rideId");
+    Map<String, Object> params = new HashMap<>();
+    params.put("rideId", rideId);
+    if (groupId != null) {
+      where.append(" and p.rideGroup.id = :groupId");
+      params.put("groupId", groupId);
+    }
+    return ParticipantPages.find(
+        getEntityManager(), "RideParticipation", where, params, search, page, size);
   }
 }

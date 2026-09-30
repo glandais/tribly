@@ -10,22 +10,27 @@ import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.trip.TripParticipation;
 import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.trips.request.StageRequest;
 import fr.pedalons.dto.trips.request.TripRequest;
 import fr.pedalons.dto.trips.response.TripDto;
 import fr.pedalons.dto.trips.response.TripParticipationDto;
+import fr.pedalons.dto.users.response.ParticipantListResponse;
+import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.*;
+import fr.pedalons.repository.common.BaseRepository;
 import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.trip.TripParticipationRepository;
 import fr.pedalons.repository.trip.TripRepository;
 import fr.pedalons.repository.trip.TripStageRepository;
 import fr.pedalons.service.comment.CommentCountLookup;
+import fr.pedalons.service.common.ParticipantPreviewLookup;
 import fr.pedalons.service.common.ParticipationLookup;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.notification.NotificationPublisher;
@@ -59,6 +64,8 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
 
   @Inject ParticipationLookup participationLookup;
 
+  @Inject ParticipantPreviewLookup participantPreviewLookup;
+
   @Inject CommentCountLookup commentCountLookup;
 
   @Inject NotificationPublisher notificationPublisher;
@@ -73,10 +80,28 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     // One indexed lookup resolves the "registered" flag; anonymous callers cost nothing.
     return TripDto.from(
         entity,
-        true,
         assetService,
         participationLookup.forTrip(entity.getId()),
-        commentCountLookup.forEntity(entity));
+        commentCountLookup.forEntity(entity),
+        participantPreviewLookup.forTrip(entity.getId()));
+  }
+
+  /**
+   * One page of the people registered to a trip — the list the detail only previews
+   * (docs/LEDGER_*.md API-12). Read like the trip itself.
+   */
+  @CheckAccess(entityType = EntityType.TRIP, action = ActionType.READ)
+  public ParticipantListResponse getParticipants(
+      String teamSlug, String tripSlug, @Nullable String search, int page, int size) {
+    Team team = teamService.getTeam(teamSlug);
+    Trip trip = findBySlug(team, tripSlug);
+    PedalonsPage<User> participants =
+        participationRepository.findParticipants(trip.getId(), search, page, size);
+    return new ParticipantListResponse(
+        participants.items().stream().map(PublicUserDto::from).toList(),
+        participants.total(),
+        page,
+        BaseRepository.effectivePageSize(size));
   }
 
   @Override

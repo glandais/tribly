@@ -333,7 +333,9 @@ export const ListAllPublicationsResponse = zod
                               })
                               .describe('Public user information (limited fields)')
                           )
-                          .describe('Participants, empty if not access'),
+                          .describe(
+                            'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                          ),
                         sortOrder: zod.int().describe('Sort order'),
                         registered: zod
                           .boolean()
@@ -1587,7 +1589,9 @@ export const ListAllPublicationsResponse = zod
                       })
                       .describe('Public user information (limited fields)')
                   )
-                  .describe('Trip participants'),
+                  .describe(
+                    'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+                  ),
                 thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
                 thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
                 thumbnailUrl: zod
@@ -1989,7 +1993,9 @@ export const ListPublicationsResponse = zod
                               })
                               .describe('Public user information (limited fields)')
                           )
-                          .describe('Participants, empty if not access'),
+                          .describe(
+                            'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                          ),
                         sortOrder: zod.int().describe('Sort order'),
                         registered: zod
                           .boolean()
@@ -3243,7 +3249,9 @@ export const ListPublicationsResponse = zod
                       })
                       .describe('Public user information (limited fields)')
                   )
-                  .describe('Trip participants'),
+                  .describe(
+                    'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+                  ),
                 thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
                 thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
                 thumbnailUrl: zod

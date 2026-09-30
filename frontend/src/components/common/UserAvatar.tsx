@@ -27,11 +27,16 @@ interface UserAvatarGroupProps {
   users: Array<Pick<UserDto, 'id' | 'displayName' | 'avatarUrl'>>
   max?: number
   size?: 'xs' | 'sm' | 'md'
+  /**
+   * Everyone the avatars stand for, when `users` is only a preview of them (a ride group or a trip
+   * embeds its first few participants): the « +N » counts from it rather than from `users`.
+   */
+  total?: number
 }
 
-export function UserAvatarGroup({ users, max = 5, size = 'sm' }: UserAvatarGroupProps) {
+export function UserAvatarGroup({ users, max = 5, size = 'sm', total }: UserAvatarGroupProps) {
   const visibleUsers = users.slice(0, max)
-  const remainingCount = users.length - max
+  const remainingCount = (total ?? users.length) - visibleUsers.length
 
   return (
     <Avatar.Group spacing="sm">

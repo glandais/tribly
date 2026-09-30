@@ -237,6 +237,7 @@ class _SocialLine extends StatelessWidget {
         for (final PublicUserDto p in people)
           PdlAvatarEntry(name: p.displayName, imageUrl: p.avatarUrl),
       ],
+      total: count,
       semanticLabel: '$count',
     );
   }
@@ -440,9 +441,9 @@ class _TripBody extends ConsumerWidget {
           ),
       ],
       social: _SocialLine(
-        // Le voyage rend ses participants en clair (`participants`), la sortie
-        // un aperçu (`topParticipants`) ; la grappe borne à cinq de toute
-        // façon.
+        // Le voyage embarque ses premiers participants (`participants`, vide
+        // sur une ligne de liste), la sortie un aperçu (`topParticipants`) ;
+        // la pastille « +N » se compte sur le total.
         people: trip.participants,
         count: trip.participantCount,
       ),

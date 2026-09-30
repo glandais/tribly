@@ -36,6 +36,7 @@ import { useGpsConnections } from '@/hooks/useGpsConnections'
 interface RideGroupCardProps {
   group: RideGroupDto
   teamSlug: string
+  rideSlug: string
   rideRouteSlug?: string
   /**
    * Every route referenced by the ride, keyed by slug — the parent (`RideDetailPage`) fetches
@@ -56,6 +57,7 @@ interface RideGroupCardProps {
 export function RideGroupCard({
   group,
   teamSlug,
+  rideSlug,
   rideRouteSlug,
   routesBySlug,
   canJoin,
@@ -201,7 +203,12 @@ export function RideGroupCard({
         >
           <Group gap="sm">
             {group.participants.length > 0 && (
-              <UserAvatarGroup users={group.participants} max={5} size="sm" />
+              <UserAvatarGroup
+                users={group.participants}
+                total={group.countParticipants}
+                max={5}
+                size="sm"
+              />
             )}
             <Group gap={4}>
               <IconUsers size={16} />
@@ -216,7 +223,7 @@ export function RideGroupCard({
                     })}
               </Text>
             </Group>
-            {group.participants.length > 5 && (
+            {group.countParticipants > 5 && (
               <Text size="xs" fw={500} c="var(--mantine-primary-color-filled)">
                 {t('rides.detail.groups.viewAll')}
               </Text>
@@ -293,7 +300,8 @@ export function RideGroupCard({
       <ParticipantListModal
         isOpen={showParticipants}
         onClose={() => setShowParticipants(false)}
-        participants={group.participants}
+        source={{ kind: 'ride', teamSlug, rideSlug, groupId: group.id }}
+        count={group.countParticipants}
         groupName={group.name}
         leaderId={group.leader?.id}
       />

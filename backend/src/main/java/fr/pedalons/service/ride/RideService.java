@@ -14,15 +14,19 @@ import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.rides.request.GroupRequest;
 import fr.pedalons.dto.rides.request.RideRequest;
 import fr.pedalons.dto.rides.response.*;
+import fr.pedalons.dto.users.response.ParticipantListResponse;
+import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.infrastructure.exception.NotFoundException;
+import fr.pedalons.repository.common.BaseRepository;
 import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.ride.RideGroupRepository;
 import fr.pedalons.repository.ride.RideParticipationRepository;
@@ -30,6 +34,7 @@ import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.asset.ThumbnailLookup;
 import fr.pedalons.service.comment.CommentCountLookup;
+import fr.pedalons.service.common.ParticipantPreviewLookup;
 import fr.pedalons.service.common.ParticipationLookup;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.notification.NotificationPublisher;
@@ -71,6 +76,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
   @Inject ThumbnailLookup thumbnailLookup;
 
+  @Inject ParticipantPreviewLookup participantPreviewLookup;
+
   @Inject UserTeamRepository userTeamRepository;
 
   @Inject NotificationPublisher notificationPublisher;
@@ -96,11 +103,41 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
             .toList();
     return RideDto.from(
         entity,
-        true,
         assetService,
         participationLookup.forRide(entity.getId()),
         commentCountLookup.forEntity(entity),
-        thumbnailLookup.forTeamEntities(groupRouteIds));
+        thumbnailLookup.forTeamEntities(groupRouteIds),
+        participantPreviewLookup.forRideGroups(
+            entity.getGroups().stream().map(RideGroup::getId).toList()));
+  }
+
+  /**
+   * One page of the people registered to a ride, or to one of its groups — the list the detail
+   * only previews (docs/LEDGER_*.md API-12). Read like the ride itself: whoever may read the ride
+   * may read who rides it.
+   *
+   * @param groupId {@code null} for the whole ride; a group of another ride is a 404
+   */
+  @CheckAccess(entityType = EntityType.RIDE, action = ActionType.READ)
+  public ParticipantListResponse getParticipants(
+      String teamSlug,
+      String rideSlug,
+      @Nullable Long groupId,
+      @Nullable String search,
+      int page,
+      int size) {
+    Team team = teamService.getTeam(teamSlug);
+    Ride ride = findBySlug(team, rideSlug);
+    if (groupId != null && rideGroupRepository.findByIdAndRide(groupId, ride.getId()).isEmpty()) {
+      throw new NotFoundException(EntityType.RIDE_GROUP, groupId);
+    }
+    PedalonsPage<User> participants =
+        participationRepository.findParticipants(ride.getId(), groupId, search, page, size);
+    return new ParticipantListResponse(
+        participants.items().stream().map(PublicUserDto::from).toList(),
+        participants.total(),
+        page,
+        BaseRepository.effectivePageSize(size));
   }
 
   @Override

@@ -29,7 +29,7 @@ mixin _$TripDto {
  String get visibility;/// Number of participants
  int get participantCount;/// Number of stages
  int get stageCount;/// Trip stages
- List<TripStageDto> get stages;/// Trip participants
+ List<TripStageDto> get stages;/// The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.
  List<PublicUserDto> get participants;/// Whether the trip is soft-deleted
  bool get deleted;/// Whether the current user is registered for this trip. False if anonymous.
  bool get registered;/// Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter.
@@ -322,9 +322,9 @@ class _TripDto implements TripDto {
   return EqualUnmodifiableListView(_stages);
 }
 
-/// Trip participants
+/// The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.
  final  List<PublicUserDto> _participants;
-/// Trip participants
+/// The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.
 @override List<PublicUserDto> get participants {
   if (_participants is EqualUnmodifiableListView) return _participants;
   // ignore: implicit_dynamic_type
