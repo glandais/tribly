@@ -26,11 +26,11 @@
 |---|---|---|---|
 | H1 | **Élevée** | Le code OTP à 6 chiffres se brute-force sans limite : prise de compte, admin plateforme compris | Corrigé (commit `911e93a2`) |
 | H2 | **Élevée** | Des fichiers téléversés peuvent être servis de façon à exécuter du contenu actif (XSS stockée) | Corrigé (ledger `SEC-1`) |
-| H3 | **Élevée** | L'autorisation d'un appareil peut aboutir sans confirmation explicite de l'utilisateur | Ouvert |
+| H3 | **Élevée** | L'autorisation d'un appareil peut aboutir sans confirmation explicite de l'utilisateur | Corrigé (ledger `SEC-2`) |
 | H4 | **Élevée** | L'app mobile peut transmettre ses identifiants à des hôtes autres que l'API | Corrigé (ledger `SEC-3`) |
 | H5 | **Élevée** | Un point du flux d'autorisation des appareils n'a aucune limitation de débit | Corrigé (ledger `SEC-4`) |
 | M1 | Moyenne (élevée en chaîne) | L'access token n'est pas lié à son domaine : l'utilisateur est résolu par e-mail sur le Host de la requête | Corrigé (commit `6a791794`) |
-| M2 | Moyenne | Le flou d'~1 km de la position des annonces peut être affiné par des requêtes répétées | Ouvert |
+| M2 | Moyenne | Le flou d'~1 km de la position des annonces peut être affiné par des requêtes répétées | Corrigé (ledger `SEC-8`) ; point annexe ouvert sous `SEC-26` |
 | M3 | Moyenne | Un traitement de tracé GPX n'est pas borné en mémoire (déni de service) | Ouvert |
 | M4 | Moyenne | La connexion par mot de passe n'a ni limitation de débit ni verrouillage | Corrigé (ledger `SEC-7`) |
 | M5 | Moyenne | Un lien de vérification d'e-mail peut connecter la victime à un compte qui n'est pas le sien (login CSRF) | Corrigé (ledger `SEC-9`) |
@@ -52,7 +52,7 @@ Les constats ouverts sont suivis, sans détail, sous le préfixe `SEC` de [`LEDG
 changement de statut ici se reporte là-bas.
 
 **Ordre de correction conseillé** :
-1. ~~H1~~, ~~H2~~ et ~~H4~~ (corrigés), H3.
+1. ~~H1~~, ~~H2~~, ~~H3~~ et ~~H4~~ (corrigés).
 2. Vérifier V1.
 3. ~~M1~~ (corrigé).
 4. M3 et ~~M4~~ (corrigé).
@@ -77,7 +77,7 @@ changement de statut ici se reporte là-bas.
   - **À l'envoi** : le SVG est refusé comme image et comme pièce jointe, le XML comme pièce jointe, y compris quand Magika ne donne qu'une étiquette textuelle et que le type viendrait du seul nom de fichier. Seule exception : un GPX joint, réécrit intégralement depuis sa trace avant stockage (ledger `API-49`).
 - **Tests** : `UploadedContentHeadersTest`, `AssetResourceTest` (un GPX joint et un SVG stocké avant le correctif partent en téléchargement, sous CSP), `FileTypeDetectorTest.ActiveDocuments`, `FileTypeCategoryTest`.
 
-### H3 — Approbation d'un appareil sans confirmation — **Ouvert**
+### H3 — Approbation d'un appareil sans confirmation — **Corrigé** (ledger `SEC-2`)
 
 ### H4 — Fuite des identifiants mobiles vers des hôtes tiers — **Corrigé** (ledger `SEC-3`)
 
@@ -92,7 +92,7 @@ changement de statut ici se reporte là-bas.
 - **Constat d'origine** : `PedalonsQueryContext` ignorait les claims `domainId` et `userId` dès que le Host résolvait un domaine, et chargeait l'utilisateur par e-mail sur ce domaine. Une seule clé de signature sert à tous les tenants : un token émis sur le domaine A pour l'e-mail E était accepté sur le domaine B, où il agissait en tant que le compte B de E, qui est un compte distinct. Une révocation sur B restait aussi sans effet sur un token émis par A.
 - **Correctif appliqué** : un JWT dont la claim `domainId` diffère du domaine résolu n'authentifie plus personne. Test `AccessTokenDomainTest`, qui rejoue un token de A contre B.
 
-### M2 — Le filtre de proximité des annonces contourne le flou d'~1 km — **Ouvert**
+### M2 — Le filtre de proximité des annonces contourne le flou d'~1 km — **Corrigé** (ledger `SEC-8` ; point annexe : `SEC-26`)
 
 ### M3 — DoS mémoire sur le traitement GPX — **Ouvert**
 
@@ -166,7 +166,7 @@ Informationnel :
   - Chaque méthode de service appelée depuis `api/` porte `@CheckAccess`, `@Logged`, `@Public` ou `@Admin` (207 appels vérifiés).
   - `TeamEntityRepository.getPedalonsQuery` filtre toujours par domaine.
   - Pas d'assignation de masse de `role`, `domainId`, `teamId` ou `createdBy`.
-- **Invariants de `CLAUDE.md`** : `RideGroupDto.leader` ne retombe jamais sur `createdBy`. `AdDto` floute la position et ne porte aucun contact (le relais e-mail est rate-limité). Seul le filtre de proximité fait exception, voir M2.
+- **Invariants de `CLAUDE.md`** : `RideGroupDto.leader` ne retombe jamais sur `createdBy`. `AdDto` floute la position et ne porte aucun contact (le relais e-mail est rate-limité). Le filtre de proximité mesure lui aussi depuis la position floutée depuis M2 (ledger `SEC-8`).
 - **Parsing** :
   - gpx2web durci contre XXE et billion laughs (1.4.5 à l'audit, toujours vrai en 1.5.2).
   - Clés S3 dérivées de TSID ou UUID, sans path traversal.

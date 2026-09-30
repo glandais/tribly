@@ -10,9 +10,12 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -102,6 +105,35 @@ public class DeviceOAuthResource {
   }
 
   @POST
+  @Path("/deny")
+  @RolesAllowed("user")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(
+      operationId = "deviceDeny",
+      summary = "Deny device authorization",
+      description =
+          "The signed-in user refuses to pair the device showing this code: the code expires at"
+              + " once, and the device polling /token is told TOKEN_EXPIRED")
+  @APIResponses({
+    @APIResponse(responseCode = "200", description = "Code expired"),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid or expired code",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "429",
+        description =
+            "DEVICE_CODE_RATE_LIMITED — too many unknown codes lately, on this account or on the"
+                + " site",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response deny(@Valid DenyRequest request) {
+    deviceAuthService.denyDeviceCodeFlow(request.userCode());
+    return Response.ok().build();
+  }
+
+  @POST
   @Path("/token")
   @PermitAll
   @Consumes(MediaType.APPLICATION_JSON)
@@ -181,12 +213,18 @@ public class DeviceOAuthResource {
       return Response.status(Response.Status.NOT_FOUND).entity(ErrorResponse.notFound()).build();
     }
 
-    var authorizedOpt = deviceAuthService.isUserCodeAuthorized(userCode);
-    if (authorizedOpt.isEmpty()) {
+    var deviceCode = deviceAuthService.findPendingUserCode(userCode);
+    if (deviceCode.isEmpty()) {
       return Response.status(Response.Status.NOT_FOUND).entity(ErrorResponse.notFound()).build();
     }
 
-    return Response.ok(new VerifyResponse(userCode.toUpperCase(), authorizedOpt.get())).build();
+    return Response.ok(
+            new VerifyResponse(
+                userCode.toUpperCase(),
+                deviceCode.get().isAuthorized(),
+                deviceCode.get().getClientId(),
+                deviceCode.get().getCreatedAt()))
+        .build();
   }
 
   @Schema(description = "Device auth request")
@@ -197,11 +235,41 @@ public class DeviceOAuthResource {
   @Schema(description = "Complete device authorization request")
   @ValidateSchema
   public record CompleteRequest(
+      @Schema(description = "User code from device display", required = true) String userCode,
+      /**
+       * The user pressed « Autoriser » on a screen that showed the code (docs/LEDGER_*.md SEC-2,
+       * audit H3). Required, and required true: a client that still approved on its own, the
+       * moment a link opened, sends nothing here and is refused instead of pairing a stranger's
+       * device.
+       */
+      @Schema(
+              description =
+                  "Must be true: the user explicitly confirmed, on a screen showing the code",
+              required = true)
+          @NotNull
+          @AssertTrue
+          Boolean confirmed) {}
+
+  @Schema(description = "Deny device authorization request")
+  @ValidateSchema
+  public record DenyRequest(
       @Schema(description = "User code from device display", required = true) String userCode) {}
 
   @Schema(description = "User code verification response")
   @ValidateSchema
   public record VerifyResponse(
       @Schema(description = "User code", required = true) String userCode,
-      @Schema(description = "Whether authorization is already completed") boolean authorized) {}
+      @Schema(description = "Whether authorization is already completed") boolean authorized,
+      @Schema(
+              description =
+                  "Which kind of device asks (e.g. 'karoo', 'garmin'), to name it on the"
+                      + " confirmation screen",
+              required = true)
+          String clientId,
+      @Schema(
+              description =
+                  "When the device asked for the code: a code the user did not request themselves"
+                      + " a moment ago stands out",
+              required = true)
+          Instant requestedAt) {}
 }

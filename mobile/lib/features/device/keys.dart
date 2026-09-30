@@ -10,4 +10,8 @@ class DeviceVerifyKeys {
   final success = const _DeviceVerifyKey('success');
   final error = const _DeviceVerifyKey('error');
   final tryAgainButton = const _DeviceVerifyKey('tryAgainButton');
+  final confirm = const _DeviceVerifyKey('confirm');
+  final authorizeButton = const _DeviceVerifyKey('authorizeButton');
+  final denyButton = const _DeviceVerifyKey('denyButton');
+  final denied = const _DeviceVerifyKey('denied');
 }

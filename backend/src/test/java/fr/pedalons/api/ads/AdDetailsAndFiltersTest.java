@@ -1,9 +1,15 @@
 package fr.pedalons.api.ads;
 
 import static io.restassured.RestAssured.given;
+import static org.geolatte.geom.builder.DSL.g;
+import static org.geolatte.geom.builder.DSL.point;
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.pedalons.api.AbstractResourceTest;
+import fr.pedalons.common.CoarseLocation;
 import fr.pedalons.domain.ad.Ad;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.team.Team;
@@ -14,6 +20,9 @@ import fr.pedalons.enums.RentalPeriod;
 import fr.pedalons.enums.Visibility;
 import io.quarkus.test.junit.QuarkusTest;
 import java.math.BigDecimal;
+import java.util.List;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -241,6 +250,52 @@ class AdDetailsAndFiltersTest extends AbstractResourceTest {
         .statusCode(200)
         .body("ads.name", hasItem("Velo de route"))
         .body("ads.name", not(hasItem("Remorque")));
+  }
+
+  /**
+   * SEC-8 (audit M2): two ads in the same published cell are indistinguishable to the proximity
+   * filter. It used to measure from the exact position, so a probe one cell east with a one-cell
+   * radius kept the eastern ad and dropped the western one — and enough such probes pinned the
+   * seller's address down however coarse the probe and radius were.
+   */
+  @Test
+  void list_withProximity_neverTellsApartTwoAdsOfTheSameCell() {
+    Point<G2D> cell = CoarseLocation.blur(point(WGS84, g(EXACT_LON, EXACT_LAT)));
+    double lat = cell.getPosition().getLat();
+    double lon = cell.getPosition().getLon();
+    double lonStep = 0.01 / Math.cos(Math.toRadians(lat));
+    // ~930 m apart, each well inside the cell: its western and eastern sides.
+    Ad west = dataService.createAd(team1, user1, "Cote ouest", AdType.SALE);
+    dataService.setAdDetails(west, null, null, lat, lon - 0.4 * lonStep);
+    Ad east = dataService.createAd(team1, user1, "Cote est", AdType.SALE);
+    dataService.setAdDetails(east, null, null, lat, lon + 0.4 * lonStep);
+
+    int together = 0;
+    for (int k = -3; k <= 3; k++) {
+      for (int radius : new int[] {1_110, 2_220, 3_330}) {
+        List<String> names =
+            given()
+                .auth()
+                .oauth2(getAccessToken(USER1))
+                .queryParam("nearLat", lat)
+                .queryParam("nearLon", lon + k * lonStep)
+                .queryParam("nearRadius", radius)
+                .when()
+                .get(list())
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getList("ads.name", String.class);
+        String probe = "cell " + k + ", radius " + radius;
+        assertEquals(names.contains("Cote ouest"), names.contains("Cote est"), probe);
+        if (names.contains("Cote ouest")) {
+          together++;
+        }
+      }
+    }
+    // Not a sweep that simply never finds them.
+    assertTrue(together > 0);
   }
 
   @Test

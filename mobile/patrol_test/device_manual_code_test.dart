@@ -20,6 +20,7 @@ void main() {
       await modules.device.tryAgain();
 
       await modules.device.enterCode(userCode.toLowerCase());
+      await modules.device.authorize();
       await modules.device.waitUntilPaired();
       final tokens = await backend.pollDeviceToken(
         flow['deviceCode'] as String,

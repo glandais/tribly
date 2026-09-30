@@ -982,6 +982,23 @@
       "title": "Connection successful!",
       "message": "Your device has been authorized successfully.",
       "returnToDevice": "You can now return to your device. It should connect automatically."
+    },
+    "confirm": {
+      "title": "Authorize this device?",
+      "question": "Allow {device} to access the account {name}?",
+      "requestedAt": "Code requested {when}.",
+      "warning": "Check that this code is the one shown on your device, in front of you. If someone sent you this link, deny: they would get access to your account.",
+      "authorize": "Authorize",
+      "deny": "Deny"
+    },
+    "client": {
+      "karoo": "a Karoo",
+      "garmin": "a Garmin device",
+      "other": "a GPS device"
+    },
+    "denied": {
+      "title": "Request denied",
+      "message": "This code is no longer valid: the device cannot use it. To connect your own device, start the connection again from it."
     }
   },
   "errors": {

@@ -7,6 +7,7 @@ import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
 import '../models/complete_request.dart';
+import '../models/deny_request.dart';
 import '../models/device_code_response.dart';
 import '../models/device_request.dart';
 import '../models/device_token_request.dart';
@@ -27,6 +28,16 @@ abstract class DeviceOAuthClient {
   @POST('/api/device/oauth/complete')
   Future<void> deviceComplete({
     @Body() required CompleteRequest body,
+  });
+
+  /// Deny device authorization.
+  ///
+  /// The signed-in user refuses to pair the device showing this code: the code expires at once, and the device polling /token is told TOKEN_EXPIRED.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/device/oauth/deny')
+  Future<void> deviceDeny({
+    @Body() required DenyRequest body,
   });
 
   /// Request device code.

@@ -10,6 +10,9 @@ import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -110,6 +113,7 @@ public class FileTypeDetector {
     if (image != null) {
       return image;
     }
+    refuseVideo(file, fileName, assetType, category);
     DetectedFileType detected = detect(file, fileName);
     refuseActiveDocument(detected, fileName, assetType, category);
     boolean acceptedByLabel = category.accepts(detected.label());
@@ -191,6 +195,49 @@ public class FileTypeDetector {
           fileName, assetType, detected.mimeType());
       throw new BadRequestException(ErrorCode.FILE_TYPE_REJECTED);
     }
+  }
+
+  /**
+   * A video container read from its first bytes, refused in images and attachments whatever label
+   * Magika gives it: a recording carries where it was made, in boxes and in timed GPS tracks that
+   * cleaning cannot reach (docs/LEDGER_*.md API-46). An ISO base media file ({@code ftyp}) gets
+   * here only when it is not a still image — {@link ImageFormat} took HEIF and AVIF before —, so
+   * MP4, MOV and 3GP are refused, and the M4A audio built on the same container with them. Then
+   * Matroska and WebM (EBML), AVI and FLV.
+   */
+  private static void refuseVideo(
+      File file, @Nullable String fileName, AssetType assetType, FileTypeCategory category) {
+    if (category != FileTypeCategory.IMAGE && category != FileTypeCategory.ATTACHMENT) {
+      return;
+    }
+    byte[] head;
+    try (InputStream in = Files.newInputStream(file.toPath())) {
+      head = in.readNBytes(12);
+    } catch (IOException e) {
+      throw new BadRequestException(ErrorCode.FILE_DETECTION_FAILED, e);
+    }
+    if (isVideoContainer(head)) {
+      LOG.warnf("Rejecting upload fileName=%s assetType=%s: a video", fileName, assetType);
+      throw new BadRequestException(ErrorCode.FILE_TYPE_REJECTED);
+    }
+  }
+
+  static boolean isVideoContainer(byte[] head) {
+    int n = head.length;
+    boolean isoBaseMedia = n >= 8 && ascii(head, 4, 4).equals("ftyp");
+    boolean ebml =
+        n >= 4
+            && (head[0] & 0xFF) == 0x1A
+            && (head[1] & 0xFF) == 0x45
+            && (head[2] & 0xFF) == 0xDF
+            && (head[3] & 0xFF) == 0xA3;
+    boolean avi = n >= 12 && ascii(head, 0, 4).equals("RIFF") && ascii(head, 8, 4).equals("AVI ");
+    boolean flv = n >= 3 && ascii(head, 0, 3).equals("FLV");
+    return isoBaseMedia || ebml || avi || flv;
+  }
+
+  private static String ascii(byte[] b, int offset, int length) {
+    return new String(b, offset, length, StandardCharsets.ISO_8859_1);
   }
 
   private static String policyKey(FileTypeCategory category) {

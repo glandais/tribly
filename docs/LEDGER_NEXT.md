@@ -184,12 +184,6 @@ navigateur), la connexion par code e-mailé et une préférence de fuseau.
 - [ ] `MOB-37` **Les tests Patrol ne tournent qu'en local** — aucun workflow de `.github/` ne les
       lance : `ci.yml` ne passe que les tests unitaires. Il faudrait un runner macOS (simulateur) ou un
       émulateur Android, plus la stack e2e (`scripts/e2e.sh up`) dans le job. Pendant web : `AUD-3`.
-- [ ] `MOB-38` **Un jeton d'accès expiré, de bout en bout** — 08aa46ef fait rafraîchir le jeton aux
-      appels authentifiés sous `/api/auth/` (`getMe`, gestion des clés d'accès, `logout-all`) ; ses
-      tests unitaires vérifient la table des chemins, pas le cycle 401 → refresh → nouvel essai, que
-      l'intercepteur fait sur une instance `Dio` qu'un test ne peut pas intercepter. Un test Patrol
-      ouvrirait l'app avec un jeton d'accès invalide dans la session stockée (`openAppSignedIn`) et
-      vérifierait que le profil charge et que « Déconnecter tous les appareils » aboutit. (S)
 
 ---
 
@@ -347,15 +341,6 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
 
 ### Vie privée : ce que la politique doit encore décrire faute de mieux
 
-- [ ] `API-46` **Les vidéos jointes gardent leur position GPS** — une pièce jointe MP4/MOV
-      (ISO-BMFF `isom`/`mp42`/`qt`) est acceptée comme `ATTACHMENT` et stockée telle quelle, avec
-      ses boîtes `udta`/`meta` (`©xyz`, lieu de la prise). `API-43` ne nettoie que les images. Soit
-      refuser les vidéos (`FileTypeCategory.ATTACHMENT`), soit retirer `udta`/`meta` dans
-      `S3StorageService.store` à côté du réencodage des images. Tant que ce n'est pas fait, le §1
-      de la politique dit que les vidéos sont gardées telles quelles. Taille : S (refus) à M.
-      Évaluation du 29 septembre 2026 (`API-54`) : exiftool retire `udta`/`©xyz` mais laisse
-      probablement les pistes GPS temporisées (GoPro, DJI) et les dates `mvhd`. Côté maison,
-      remplacer `udta`/`meta` par une boîte `free` de même taille évite de réécrire `stco`/`co64`.
 - [ ] `API-47` **Les documents joints gardent leurs métadonnées** — PDF (auteur, JPEG embarqués
       avec leur EXIF), fichiers bureautiques (`docProps`), PSD (EXIF/IPTC) sont stockés tels quels ;
       la politique (§1) le dit. À trancher : les nettoyer (dépendance nouvelle pour le PDF), ou
@@ -363,12 +348,6 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       `API-54`) : il ajoute une mise à jour incrémentale réversible, le dictionnaire Info reste dans
       les octets, et l'EXIF des JPEG embarqués est intact. Seule voie : réécriture complète (PDFBox)
       en faisant réencoder les JPEG embarqués comme les images (`API-43`).
-- [ ] `API-48` **ICO stockés tels quels, et les SVG d'avant `SEC-1`** — un ICO est dans la liste
-      blanche `IMAGE` sans être réencodé par imgproxy : il peut porter des PNG avec `tEXt`/`eXIf`.
-      Les SVG, qui pouvaient embarquer une photo en base64 avec son EXIF/GPS, sont **refusés à
-      l'envoi depuis `SEC-1`** ; ceux déjà stockés restent tels quels (servis en téléchargement,
-      sous CSP). Reste : faire réencoder les ICO (imgproxy les lit), et décider du sort des SVG
-      existants. Taille : S.
 - [ ] `API-50` **Le rédacteur GPX de gpx2web écrit un `creator` fixe et une heure epoch** — la
       bibliothèque (gpx 1.5.x) écrit `creator="https://www.mapstogpx.com/strava"` (trompeur, pas
       personnel) et `<time>1970-01-01T00:00:00Z</time>` sur chaque point depuis `API-44`. Ne pas
@@ -595,16 +574,15 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 
 | ID | Priorité (audit) | Audit | Sévérité | Constat |
 |---|---|---|---|---|
-| `SEC-2` | 1 | H3 | Élevée | L'autorisation d'un appareil peut aboutir sans confirmation explicite |
 | `SEC-5` | 2 | V1 | **Critique si confirmé** | Clé JWT présente dans l'historique public : vérifier que prod et staging n'en sont pas des copies |
 | `SEC-6` | 4 | M3 | Moyenne | Traitement GPX non borné en mémoire |
-| `SEC-8` | — | M2 | Moyenne | Flou d'~1 km des annonces affinable par requêtes répétées (contredit la décision `API-31`) |
 | `SEC-11` | — | M9 | Moyenne | Jeton d'accès des appareils long et non révocable (audit de février, S6 ; M8 livré sous `SEC-25`, M10 sous `SEC-28`) |
 | `SEC-27` | — | M7 | Moyenne | Refresh token non renouvelé à l'usage (audit de février, S3 ; détaché de `SEC-11`) |
 | `SEC-12` | — | L3, L10 | Faible | Voir la table des constats faibles de l'audit ; L1 et L5 à L9 sont livrés sous `SEC-20`, L12 et L13 sous `SEC-22`, L14 sous `SEC-23`, L4 sous `SEC-24` |
 | `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | `SEC-14` | — | Info | — | Images externes dans le markdown ; le parseur XML et le paramètre non encodé sont livrés sous `SEC-21` |
 | `SEC-16` | — | V3–V8 | À valider | Configuration hors dépôt : proxy de l'hôte, hôte de sauvegarde, SMTP, imgproxy |
+| `SEC-26` | — | M2 (annexe) | Faible | La page d'édition d'une annonce (`AdEditDto`, `GET …/classifieds/{slug}/edit`) donne la position exacte à tout admin de l'équipe, pas seulement au vendeur. Flouter pour les admins demande qu'un enregistrement par un admin ne remplace pas le point exact par le point flouté |
 
 ---
 
@@ -664,7 +642,7 @@ redevient une entrée de sa section sous le même identifiant.
 |---|---|---|---|
 | `API-29` | **Liste d'attente (`waitlisted`)** | N'existe pas en base ; ni colonne, ni statut, ni rang sur `RideParticipation` | « Complet » est un **état terminal**. Ne pas câbler un `waitlisted: false` en dur : un champ toujours faux rend la vraie fonctionnalité indétectable en revue |
 | `API-30` | **Repli sur `createdBy` pour le meneur** | **Interdit partout** — base, DTO, client | `createdBy` vaut le créateur de la **sortie**, donc le même nom sur tous ses groupes : un repli serait faux presque partout, et faux de la façon qui ne se signale pas. C'est le défaut que `leader_id` corrige. Gardé par `groupLeader_isNotTheRideCreator` |
-| `API-31` | **Position exacte d'une annonce** | Floutée à ~1 km, **et la sonde de proximité quantifiée sur la même grille** | Flouter la sortie ne suffit pas : répéter « cette annonce est-elle à moins de R de C ? » en déplaçant C multilatère la position réelle. D'où le rayon arrondi au multiple de cellule (3 km servis comme 3,33 km) : l'interface annonce un **ordre de grandeur**, pas une valeur exacte. Et **jamais de punaise**. **L'audit de sécurité garde pourtant M2 ouvert** (le flou peut encore être affiné par des requêtes répétées) : la quantification ne suffit pas, voir `SEC-8` |
+| `API-31` | **Position exacte d'une annonce** | Floutée à ~1 km, **et la sonde de proximité quantifiée sur la même grille** | Flouter la sortie ne suffit pas : répéter « cette annonce est-elle à moins de R de C ? » en déplaçant C multilatère la position réelle. D'où le rayon arrondi au multiple de cellule (3 km servis comme 3,33 km) : l'interface annonce un **ordre de grandeur**, pas une valeur exacte. Et **jamais de punaise**. La quantification seule ne suffisait pas (audit M2) : depuis `SEC-8`, le filtre mesure aussi depuis la position **floutée** de l'annonce, jamais l'exacte |
 | `API-32` | **Champ de contact libre sur une annonce** | Écarté au profit du relais e-mail | C'était la solution la moins chère, et elle publie une donnée personnelle **irrévocablement** à toute l'équipe (jusqu'à 1 999 personnes) : ce qui a été lu ne se dépublie pas. Retirer le champ plus tard ne répare rien |
 | `API-33` | **`GET /api/rides` et listes mono-type** | Non créées ; `/api/publications?type=RIDE` est la surface canonique | Deux surfaces = deux jeux de filtres à garder cohérents. `RideListResponse` / `TripListResponse` existent encore comme records retournés par **aucun endpoint** — les supprimer serait un MAJOR gratuit |
 | `API-34` | **`acceptTerms` obligatoire à l'inscription (contrat `4.1.0`)** | Laissé en mineure | Les builds mobiles qui n'envoient pas le champ reçoivent un 400 `VALIDATION` à l'inscription. La rupture est acceptée sans passer en `5.0.0` |

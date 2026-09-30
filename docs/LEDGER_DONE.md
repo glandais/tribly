@@ -118,6 +118,16 @@ couvert » ; les tests ne tournent qu'en local (`MOB-37`).
   Le signalement n'est vérifié que par le 204 et l'interface : aucune API ne relit un
   signalement (il part en issue GitHub). Le bouton « Télécharger l'APK » ouvre un lien externe
   et n'est pas suivi.*
+- [x] `MOB-38` **Un jeton d'accès refusé, de bout en bout** (30 septembre 2026, contrat inchangé)
+  — l'app ouverte et connectée reçoit un jeton d'accès que le serveur refuse, le jeton de
+  rafraîchissement restant valide (`replaceAccessToken` de `patrol_test/common.dart`) : le profil
+  charge quand même (le badge « Mes sorties à venir », `GET /api/users/me/participations`) avec un
+  jeton neuf, et « Déconnecter tous les appareils », sous `/api/auth/`, atteint le serveur — la
+  session d'un autre appareil ne se rafraîchit plus. C'est le cycle 401 → rafraîchissement → nouvel
+  essai que l'intercepteur fait sur son propre `Dio`, hors de portée des tests unitaires de
+  08aa46ef. `expired_access_token_test.dart`. **Pas encore lancé** : écrit et analysé sans émulateur
+  ni pile e2e démarrés. *Non couvert : un jeton réellement expiré (signé, `exp` passé) plutôt que
+  refusé, et plusieurs appels en file pendant un même rafraîchissement.*
 
 ---
 
@@ -586,6 +596,37 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   marqueur oublié ferait sauter la passe à tout test qui appellerait `runOnce`. **Écrits sans avoir
   été lancés** (les tests backend sont au propriétaire du dépôt) : `mvn test
   -Dtest=GpxSanitizationBackfillTest`.
+
+- `API-46` **Les vidéos ne sont plus acceptées** (2026-09-30, contrat inchangé, pas de migration) —
+  une pièce jointe MP4/MOV était stockée telle quelle, avec le lieu de la prise dans `udta`/`meta`.
+  Décision de l'utilisateur : **refuser les vidéos plutôt que les nettoyer**. Retirer `udta`/`meta`
+  (même en les remplaçant par des boîtes `free` de même taille) aurait laissé les dates de `mvhd` et
+  surtout les **pistes GPS temporisées** des caméras d'action (GoPro `gpmd`, DJI), qui sont des
+  pistes du `moov` et non des boîtes de métadonnées : les retirer demande de réécrire `moov` et les
+  tables d'offsets (`stco`/`co64`). Refus sur deux lignes : les étiquettes Magika `mp4`, `qt`, `3gp`,
+  `mkv`, `webm` et `flv` entrent dans la liste noire `ATTACHMENT` ; et `FileTypeDetector.refuseVideo`
+  refuse, en image comme en pièce jointe, tout conteneur vidéo lu à ses premiers octets, quels que
+  soient l'étiquette et le nom : ISO base media (`ftyp`) qui n'est pas une image fixe (HEIF et AVIF
+  sont reconnus avant par `ImageFormat`), EBML (Matroska, WebM), AVI, FLV. **Effet de bord
+  assumé** : l'audio M4A, qui partage le conteneur ISO base media, est refusé avec eux. **Rien
+  d'existant** : la production ne contenait aucune vidéo. **Politique de confidentialité modifiée**
+  (§1, français et anglais ensemble) : les vidéos ne sont pas acceptées, et pourquoi ; les autres
+  pièces jointes restent conservées telles quelles. Couvert par `FileTypeDetectorTest.Videos` (MP4,
+  MOV, 3GP, WebM, AVI, FLV, un conteneur MP4 nommé `.pdf`, une WebP qui n'en est pas une) et
+  `FileTypeCategoryTest.Attachment.rejectsVideoLabels`.
+
+- `API-48` **Une icône est réencodée en PNG** (2026-09-30, contrat inchangé, pas de migration) —
+  un ICO passait la liste blanche `IMAGE` sans être réencodé, et ses images peuvent être des PNG
+  avec leurs blocs `tEXt`/`eXIf`. `ImageFormat` le reconnaît à son en-tête (réservé 0, type 1, au
+  moins une image, octet réservé de la première entrée à 0 — pour ne pas le confondre avec un flux
+  MPEG qui s'ouvre aussi sur `00 00 01`) et `S3StorageService.store` le fait réencoder par imgproxy
+  **en PNG** : `favicon.ico` est stocké `favicon.png`, `image/png`. L'autre moitié de l'entrée,
+  les SVG, est réglée par `SEC-1` (refusés à l'envoi). **Rien d'existant à rattraper** : la
+  production ne contenait encore aucun fichier (décision de l'utilisateur, pas de rattrapage ni de
+  migration). **La politique de confidentialité ne change pas** : son §1 disait déjà que toute image
+  est réencodée ou refusée, ce qui devient exact pour les icônes. Couvert par
+  `ImageFormatTest.anIconBecomesAPng`, `StorageImageReencodingTest` (`photo.ico`, le `photo.png` de
+  test et ses métadonnées dans un conteneur ICO) et `AssetServiceTest.storesAnIconAsAPngWithoutItsMetadata`.
 
 - `API-49` **Un GPX joint en pièce jointe ne garde que sa trace** (2026-09-30, contrat inchangé) —
   `API-44` ne couvrait que les parcours et l'outil GPX ; un `.gpx` déposé comme `ATTACHMENT` était
@@ -1146,6 +1187,22 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   **écrits sans avoir été lancés**. Ne pas réintroduire de recherche par identifiant sans domaine
   dans un chemin de requête.
 
+- `SEC-8` **Le filtre de proximité des annonces mesure depuis la position floutée : M2**
+  (2026-09-30, contrat : description d'`AdDto.locationGeometry` seulement, aucune migration) — la
+  décision `API-31` quantifiait la sonde et le rayon sur la grille du flou, mais le filtre mesurait
+  encore depuis la position **exacte** : chaque réponse coupait la cellule le long d'un cercle, et
+  des cercles de centres différents la découpaient plus fin qu'elle. `AdRepository` mesure
+  désormais depuis `coarse_location(te.locationGeometry)`, une fonction HQL
+  (`PedalonsFunctionContributor`) qui refait `CoarseLocation.blur` en SQL à partir des mêmes
+  constantes (`CoarseLocation.SQL_PATTERN`) ; la sonde et le rayon restent quantifiés. La réponse ne
+  dépend donc plus que de cellules publiées : deux annonces d'une même cellule reviennent toujours
+  ensemble. Choix de l'utilisateur : **le calcul dans la requête**, pas une colonne stockée (même
+  résultat, sans migration ni fenêtre de déploiement progressif). **Décisions** : aucun filtre, tri
+  ou calcul ne lit la position exacte d'une annonce hors de son édition ; toute modification de
+  `blur` se reporte dans `SQL_PATTERN`. Tests : `CoarseLocationSqlTest` (parité Java/SQL, pôles,
+  hémisphères, bords de cellule), `AdDetailsAndFiltersTest.list_withProximity_neverTellsApartTwoAdsOfTheSameCell`.
+  Le point annexe de l'audit, la position exacte servie aux admins par l'édition, est `SEC-26`.
+
 - `SEC-1` **Un fichier téléversé ne s'exécute plus dans l'origine de l'application : H2**
   (2026-09-30, contrat inchangé, pas de migration) — la route de téléchargement des assets servait
   tout fichier `inline`, sous son type d'origine, sans `nosniff` ni CSP, et un SVG ou un XML s'y
@@ -1183,6 +1240,29 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   le même hôte ferait circuler le jeton en clair. Ne jamais reposer l'en-tête à la main hors de ces
   deux fonctions. Tests : `test/api/credential_scope_test.dart`. Livré avant la republication
   mobile qu'impose `SEC-2`.
+
+- `SEC-2` **Un appareil n'est appairé que sur un « Autoriser » explicite : H3** (2026-09-30,
+  **API 8.0.0**, contrat cassant) — la page d'appairage (`/karoo`, `/garmin`), sur le web comme
+  dans l'app, autorisait l'appareil d'elle-même dès qu'un utilisateur connecté l'ouvrait avec un
+  code valide. Elle affiche désormais une carte de confirmation (RFC 8628 §5.4) : l'appareil
+  (« un Karoo », « un appareil Garmin »), le compte, le code en grand, depuis quand il a été demandé,
+  un avertissement (« si quelqu'un vous a envoyé ce lien, refusez »), et deux boutons. Côté serveur,
+  `CompleteRequest` exige `confirmed: true` (`@NotNull @AssertTrue`) : un client ancien qui
+  approuvait seul reçoit 400 au lieu d'appairer. `VerifyResponse` gagne `clientId` et
+  `requestedAt`. Nouveau `POST /api/device/oauth/deny` : le code **expire** (plutôt que d'être
+  supprimé), si bien que l'appareil qui interroge `/token` entend `TOKEN_EXPIRED`, que Karoo et
+  Garmin traitent déjà en recommençant — ni la requête ni la réponse de `/device` et `/token`
+  n'ont changé, les deux apps d'appareil n'ont pas à être republiées ; `/deny` compte les codes
+  inconnus comme `/complete` (`SEC-4`). Décisions de l'utilisateur à garder : garde **à la fois**
+  dans l'interface et sur le serveur ; le code du lien reste pré-rempli, confirmé par un bouton
+  (pas de ressaisie, qui ôterait son intérêt au QR code). **Contrat cassant : le mobile doit être
+  republié en même temps que le backend.** Tests : `DeviceOAuthConfirmationTest` (sans
+  confirmation ou `false` refusé et rien d'appairé, confirmé appairé, `verify` nomme l'appareil et
+  l'heure, refus qui fait expirer le code pour tous, code inconnu, refus anonyme) — **écrits sans
+  avoir été lancés** ; `DeviceOAuthThrottleTest` adapté ; e2e `flow-device.e2e.ts` (confirmation
+  attendue après connexion, aucun `/complete` avant le clic, nouveau test du refus) et Patrol
+  (`device_link_test`, `device_link_signed_out_test`, `device_manual_code_test`, étape
+  `authorize()`) — **non lancés**.
 
 - `SEC-17` **Le jeton du flux ICS meurt après 90 jours de silence** (2026-09-30, contrat
   inchangé, migration `V51__calendar_token_last_used`) — il n'expirait jamais. Chaque consultation

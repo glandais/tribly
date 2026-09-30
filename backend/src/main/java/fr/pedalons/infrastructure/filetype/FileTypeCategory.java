@@ -118,6 +118,16 @@ public enum FileTypeCategory {
           // OS housekeeping artifacts
           "thumbsdb",
           "dsstore",
+          // Video: a recording carries where and when it was made — the udta/meta boxes, and the
+          // timed GPS tracks of action cameras, which no box-level cleaning removes. Refused rather
+          // than cleaned (docs/LEDGER_*.md API-46); FileTypeDetector also refuses a video container
+          // by its first bytes, whatever the label.
+          "mp4",
+          "qt",
+          "3gp",
+          "mkv",
+          "webm",
+          "flv",
           // JPEG 2000: its metadata cannot be removed, imgproxy does not read it — docs/LEDGER_*.md
           // API-43. FileTypeDetector also refuses it by its first bytes, whatever the label.
           "jp2",

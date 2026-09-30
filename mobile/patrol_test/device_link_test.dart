@@ -1,8 +1,8 @@
 import 'common.dart';
 
-/// Web counterpart: `flow-device.e2e.ts` › « a signed-in rider opening the Karoo link authorizes
-/// it… » (audit P0 #8). The device shows a QR code of `/karoo?code=…`; the phone opens it in the
-/// app, which pairs the device for the signed-in rider.
+/// Web counterpart: `flow-device.e2e.ts` › « a signed-in rider opening the Karoo link is asked
+/// first… » (audit P0 #8). The device shows a QR code of `/karoo?code=…`; the phone opens it in the
+/// app, and the rider's « Autoriser » pairs the device (SEC-2: the link alone pairs nothing).
 void main() {
   testApp(
     'A signed-in rider opening the Karoo link pairs the device with their account',
@@ -20,6 +20,7 @@ void main() {
         $,
         '${Paths.deviceVerifyKaroo()}?code=${flow['userCode']}',
       );
+      await modules.device.authorize();
       await modules.device.waitUntilPaired();
 
       final tokens = await backend.pollDeviceToken(

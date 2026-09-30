@@ -93,16 +93,16 @@ public class AdRepository implements TeamEntityRepository<Ad, AdQuery> {
     // Geographic proximity, same shape as RouteRepository — one point here, so no NearType.
     //
     // The column holds the seller's exact position; only the blurred one is ever published
-    // (see CoarseLocation). A proximity filter reading the exact column is therefore an oracle:
-    // ask "is this ad within R of C?" repeatedly and you recover what the blur was meant to hide.
-    // Flooring R does not help — an attacker who cannot shrink the radius simply moves C and
-    // intersects the discs, which multilaterates the true point to arbitrary precision.
+    // (see CoarseLocation). The filter therefore measures from the blurred point, never the exact
+    // one: over the exact column, "is this ad within R of C?" is an oracle, and quantising C and R
+    // does not close it — each answer still splits the cell along a circle, and circles from
+    // different centres cut it finer than the cell (docs/LEDGER_*.md SEC-8). Over the blurred
+    // point, the answer depends only on the published cell, so two ads in the same cell always
+    // come back together.
     //
-    // What closes it is quantising the *probe* rather than the answer: C is snapped to the same
-    // grid the published point uses, and R to whole cells. Every reachable query is then one the
-    // published data already answers, so the filter cannot resolve finer than what we publish.
-    // Cost: results shift by under a cell — irrelevant when choosing between "a short ride" and
-    // "a drive away", which is all this filter is for.
+    // The probe and the radius stay quantised as well (API-31): the answer is then a function of
+    // cells alone. Cost: results shift by under a cell — irrelevant when choosing between "a short
+    // ride" and "a drive away", which is all this filter is for.
     if (query.nearLat() != null && query.nearLon() != null) {
       Point<G2D> probe = CoarseLocation.blur(point(WGS84, g(query.nearLon(), query.nearLat())));
       double radius = query.nearRadius() != null ? query.nearRadius() : DEFAULT_NEAR_RADIUS;
@@ -112,7 +112,7 @@ public class AdRepository implements TeamEntityRepository<Ad, AdQuery> {
       radius = CoarseLocation.snapRadiusUp(radius);
       pedalonsQuery =
           pedalonsQuery.and(
-              "st_distancesphere(te.locationGeometry, :nearPoint) <= :nearRadius",
+              "st_distancesphere(coarse_location(te.locationGeometry), :nearPoint) <= :nearRadius",
               Map.of("nearPoint", probe, "nearRadius", radius));
     }
 

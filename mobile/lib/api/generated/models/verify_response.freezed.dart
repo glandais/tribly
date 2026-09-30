@@ -17,7 +17,9 @@ T _$identity<T>(T value) => value;
 mixin _$VerifyResponse {
 
 /// User code
- String get userCode;/// Whether authorization is already completed
+ String get userCode;/// Which kind of device asks (e.g. 'karoo', 'garmin'), to name it on the confirmation screen
+ String get clientId;/// When the device asked for the code: a code the user did not request themselves a moment ago stands out
+ String get requestedAt;/// Whether authorization is already completed
  bool? get authorized;
 /// Create a copy of VerifyResponse
 /// with the given fields replaced by the non-null parameter values.
@@ -32,20 +34,20 @@ $VerifyResponseCopyWith<VerifyResponse> get copyWith => _$VerifyResponseCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as VerifyResponse;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VerifyResponse&&(identical(other.userCode, _this.userCode) || other.userCode == _this.userCode)&&(identical(other.authorized, _this.authorized) || other.authorized == _this.authorized));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VerifyResponse&&(identical(other.userCode, _this.userCode) || other.userCode == _this.userCode)&&(identical(other.clientId, _this.clientId) || other.clientId == _this.clientId)&&(identical(other.requestedAt, _this.requestedAt) || other.requestedAt == _this.requestedAt)&&(identical(other.authorized, _this.authorized) || other.authorized == _this.authorized));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as VerifyResponse;
-  return Object.hash(runtimeType,_this.userCode,_this.authorized);
+  return Object.hash(runtimeType,_this.userCode,_this.clientId,_this.requestedAt,_this.authorized);
 }
 
 @override
 String toString() {
   final _this = this as VerifyResponse;
-  return 'VerifyResponse(userCode: ${_this.userCode}, authorized: ${_this.authorized})';
+  return 'VerifyResponse(userCode: ${_this.userCode}, clientId: ${_this.clientId}, requestedAt: ${_this.requestedAt}, authorized: ${_this.authorized})';
 }
 
 
@@ -56,7 +58,7 @@ abstract mixin class $VerifyResponseCopyWith<$Res>  {
   factory $VerifyResponseCopyWith(VerifyResponse value, $Res Function(VerifyResponse) _then) = _$VerifyResponseCopyWithImpl;
 @useResult
 $Res call({
- String userCode, bool? authorized
+ String userCode, String clientId, String requestedAt, bool? authorized
 });
 
 
@@ -73,9 +75,11 @@ class _$VerifyResponseCopyWithImpl<$Res>
 
 /// Create a copy of VerifyResponse
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? userCode = null,Object? authorized = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? userCode = null,Object? clientId = null,Object? requestedAt = null,Object? authorized = freezed,}) {
   return _then(VerifyResponse(
 userCode: null == userCode ? _self.userCode : userCode // ignore: cast_nullable_to_non_nullable
+as String,clientId: null == clientId ? _self.clientId : clientId // ignore: cast_nullable_to_non_nullable
+as String,requestedAt: null == requestedAt ? _self.requestedAt : requestedAt // ignore: cast_nullable_to_non_nullable
 as String,authorized: freezed == authorized ? _self.authorized : authorized // ignore: cast_nullable_to_non_nullable
 as bool?,
   ));
@@ -162,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userCode,  bool? authorized)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userCode,  String clientId,  String requestedAt,  bool? authorized)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VerifyResponse() when $default != null:
-return $default(_that.userCode,_that.authorized);case _:
+return $default(_that.userCode,_that.clientId,_that.requestedAt,_that.authorized);case _:
   return orElse();
 
 }
@@ -183,10 +187,10 @@ return $default(_that.userCode,_that.authorized);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userCode,  bool? authorized)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userCode,  String clientId,  String requestedAt,  bool? authorized)  $default,) {final _that = this;
 switch (_that) {
 case _VerifyResponse():
-return $default(_that.userCode,_that.authorized);case _:
+return $default(_that.userCode,_that.clientId,_that.requestedAt,_that.authorized);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +207,10 @@ return $default(_that.userCode,_that.authorized);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userCode,  bool? authorized)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userCode,  String clientId,  String requestedAt,  bool? authorized)?  $default,) {final _that = this;
 switch (_that) {
 case _VerifyResponse() when $default != null:
-return $default(_that.userCode,_that.authorized);case _:
+return $default(_that.userCode,_that.clientId,_that.requestedAt,_that.authorized);case _:
   return null;
 
 }
@@ -218,11 +222,15 @@ return $default(_that.userCode,_that.authorized);case _:
 @JsonSerializable()
 
 class _VerifyResponse implements VerifyResponse {
-  const _VerifyResponse({required this.userCode, this.authorized});
+  const _VerifyResponse({required this.userCode, required this.clientId, required this.requestedAt, this.authorized});
   factory _VerifyResponse.fromJson(Map<String, dynamic> json) => _$VerifyResponseFromJson(json);
 
 /// User code
 @override final  String userCode;
+/// Which kind of device asks (e.g. 'karoo', 'garmin'), to name it on the confirmation screen
+@override final  String clientId;
+/// When the device asked for the code: a code the user did not request themselves a moment ago stands out
+@override final  String requestedAt;
 /// Whether authorization is already completed
 @override final  bool? authorized;
 
@@ -239,18 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VerifyResponse&&(identical(other.userCode, userCode) || other.userCode == userCode)&&(identical(other.authorized, authorized) || other.authorized == authorized));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VerifyResponse&&(identical(other.userCode, userCode) || other.userCode == userCode)&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.requestedAt, requestedAt) || other.requestedAt == requestedAt)&&(identical(other.authorized, authorized) || other.authorized == authorized));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,userCode,authorized);
+    return Object.hash(runtimeType,userCode,clientId,requestedAt,authorized);
 }
 
 @override
 String toString() {
-    return 'VerifyResponse(userCode: $userCode, authorized: $authorized)';
+    return 'VerifyResponse(userCode: $userCode, clientId: $clientId, requestedAt: $requestedAt, authorized: $authorized)';
 }
 
 
@@ -261,7 +269,7 @@ abstract mixin class _$VerifyResponseCopyWith<$Res> implements $VerifyResponseCo
   factory _$VerifyResponseCopyWith(_VerifyResponse value, $Res Function(_VerifyResponse) _then) = __$VerifyResponseCopyWithImpl;
 @override @useResult
 $Res call({
- String userCode, bool? authorized
+ String userCode, String clientId, String requestedAt, bool? authorized
 });
 
 
@@ -278,9 +286,11 @@ class __$VerifyResponseCopyWithImpl<$Res>
 
 /// Create a copy of VerifyResponse
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? userCode = null,Object? authorized = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? userCode = null,Object? clientId = null,Object? requestedAt = null,Object? authorized = freezed,}) {
   return _then(_VerifyResponse(
 userCode: null == userCode ? _self.userCode : userCode // ignore: cast_nullable_to_non_nullable
+as String,clientId: null == clientId ? _self.clientId : clientId // ignore: cast_nullable_to_non_nullable
+as String,requestedAt: null == requestedAt ? _self.requestedAt : requestedAt // ignore: cast_nullable_to_non_nullable
 as String,authorized: freezed == authorized ? _self.authorized : authorized // ignore: cast_nullable_to_non_nullable
 as bool?,
   ));
