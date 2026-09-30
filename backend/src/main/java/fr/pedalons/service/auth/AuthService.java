@@ -349,7 +349,7 @@ public class AuthService {
             .findValidByEmailAndType(email, AuthTokenType.OTP, domainId)
             .orElse(null);
     if (authToken == null) {
-      logFailedLogin("otp", "no_valid_code", email, ipAddress);
+      logFailedLogin("otp", "no_valid_code", email, domainId, ipAddress);
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
 
@@ -358,7 +358,7 @@ public class AuthService {
         authToken.getTokenHash().getBytes(StandardCharsets.UTF_8),
         tokenHash.getBytes(StandardCharsets.UTF_8))) {
       authToken.recordFailedAttempt(otpMaxVerifyAttempts);
-      logFailedLogin("otp", "wrong_code", email, ipAddress);
+      logFailedLogin("otp", "wrong_code", email, domainId, ipAddress);
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
 
@@ -381,19 +381,19 @@ public class AuthService {
     Domain domain = domainResolver.getDomain();
     User user = userRepository.findByEmailAndDomain(domain.getId(), email).orElse(null);
     if (user == null) {
-      logFailedLogin("password", "unknown_account", email, ipAddress);
+      logFailedLogin("password", "unknown_account", email, domain.getId(), ipAddress);
       throw new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
     }
 
     if (user.getPasswordHash() == null) {
       // Return INVALID_CREDENTIALS to avoid leaking whether the account exists
       // (same response as user-not-found above)
-      logFailedLogin("password", "no_password", email, ipAddress);
+      logFailedLogin("password", "no_password", email, domain.getId(), ipAddress);
       throw new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
     }
 
     if (!BcryptUtil.matches(password, user.getPasswordHash())) {
-      logFailedLogin("password", "wrong_password", email, ipAddress);
+      logFailedLogin("password", "wrong_password", email, domain.getId(), ipAddress);
       throw new BadRequestException(ErrorCode.INVALID_CREDENTIALS);
     }
 
@@ -493,12 +493,15 @@ public class AuthService {
   @Public
   public AuthResult authenticateWithPasskey(
       Map<String, Object> response, String userAgent, String ipAddress) {
+    // Resolved before the verification: once it has failed, the transaction can no longer reach
+    // the database, and resolving the domain then turned a refused passkey into a 500.
+    Long domainId = domainResolver.getDomainId();
     User user;
     try {
       user = passkeyService.verifyAuthentication(response);
     } catch (PedalonsException e) {
       // No address here: the assertion names a credential, and a failed one names nobody sure.
-      logFailedLogin("passkey", e.getErrorCode().name(), null, ipAddress);
+      logFailedLogin("passkey", e.getErrorCode().name(), null, domainId, ipAddress);
       throw e;
     }
     userRepository.recordLogin(user.getId());
@@ -564,13 +567,15 @@ public class AuthService {
    * (docs/LEDGER_*.md SEC-23, audit L14). The answer to the visitor stays the same whatever the
    * reason — only this line tells an unknown account from a wrong password. Never the password nor
    * the code: the privacy policy promises no credential in the logs, and a typo'd password is often
-   * one digit away from the real one.
+   * one digit away from the real one. The caller passes the domain it resolved before failing:
+   * this line must not touch the database, whose transaction a failed verification may have
+   * broken.
    */
   private void logFailedLogin(
-      String method, String reason, @Nullable String email, String ipAddress) {
+      String method, String reason, @Nullable String email, Long domainId, String ipAddress) {
     Log.warnf(
         "Login failed method=%s reason=%s email=%s domain=%d ip=%s",
-        method, reason, email, domainResolver.getDomainId(), ipAddress);
+        method, reason, email, domainId, ipAddress);
   }
 
   public User getUserByEmail(String email) {
