@@ -11,17 +11,6 @@ export const DownloadDataExportQueryParams = zod.object({
 export const DownloadDataExportResponse = zod.unknown()
 
 /**
- * Deprecated: puts the token in the URL path, which the access log records. Use GET /api/export/download?token=.
- * @deprecated
- * @summary Download a personal data export (deprecated)
- */
-export const DownloadDataExportByPathParams = zod.object({
-  token: zod.string().describe('Download token from the notification email'),
-})
-
-export const DownloadDataExportByPathResponse = zod.unknown()
-
-/**
  * Update the current user's profile
  * @summary Update current user
  */

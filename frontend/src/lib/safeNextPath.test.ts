@@ -3,7 +3,7 @@ import { safeNextPath } from './safeNextPath'
 
 describe('safeNextPath', () => {
   it('keeps a same-origin path, with its query and hash', () => {
-    expect(safeNextPath('/api/export/download/abc')).toBe('/api/export/download/abc')
+    expect(safeNextPath('/api/export/download?token=abc')).toBe('/api/export/download?token=abc')
     expect(safeNextPath('/sorties/x?p=2#groupes')).toBe('/sorties/x?p=2#groupes')
   })
 

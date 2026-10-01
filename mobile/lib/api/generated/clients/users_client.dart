@@ -33,17 +33,6 @@ abstract class UsersClient {
     @Query('token') required String token,
   });
 
-  /// Download a personal data export (deprecated).
-  ///
-  /// Deprecated: puts the token in the URL path, which the access log records. Use GET /api/export/download?token=.
-  ///
-  /// [token] - Download token from the notification email.
-  @Deprecated('This method is marked as deprecated')
-  @GET('/api/export/download/{token}')
-  Future<void> downloadDataExportByPath({
-    @Path('token') required String token,
-  });
-
   /// Update current user.
   ///
   /// Update the current user's profile.

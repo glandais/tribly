@@ -111,22 +111,25 @@ class PushDeviceResourceTest extends AbstractResourceTest {
   }
 
   /**
-   * The former form, the token in the path, still works for the app builds already installed
-   * (docs/LEDGER_*.md API-45; API-56 removes it).
+   * The former form put the token in the path, hence in the access log; it is gone, and must not
+   * come back (docs/LEDGER_*.md API-45, API-56).
    */
   @Test
-  void unregisteringThroughTheDeprecatedPath_stillWorks() {
+  void unregisteringThroughTheFormerPath_isNotServed() {
     register(USER1, registration(TOKEN, "Pixel 8a"), 204);
 
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER1))
-        .when()
-        .delete("/api/push-devices/" + TOKEN)
-        .then()
-        .statusCode(204);
+    int status =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .when()
+            .delete("/api/push-devices/" + TOKEN)
+            .then()
+            .extract()
+            .statusCode();
 
-    assertTrue(devices.of(user1).isEmpty());
+    assertTrue(status == 404 || status == 405, "status " + status);
+    assertEquals(1, devices.of(user1).size());
   }
 
   @Test

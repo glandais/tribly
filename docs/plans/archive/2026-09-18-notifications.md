@@ -195,7 +195,7 @@ phase 5, les deux portent aussi `teams` (les équipes coupées) et `emailDigest`
 | `GET` | `/api/notifications/preferences` | matrice type × canal |
 | `PUT` | `/api/notifications/preferences` | modifier des cases |
 | `POST` | `/api/push-devices` | enregistrer un appareil push (phase 4) |
-| `DELETE` | `/api/push-devices/{token}` | oublier un appareil push |
+| `DELETE` | `/api/push-devices/{token}` | oublier un appareil push — devenu `POST /api/push-devices/unregister`, jeton dans le corps (ledger `API-45`, `API-56`) |
 | `GET`, `PUT`, `DELETE` | `/api/teams/{teamSlug}/webhook` | webhook d'équipe (phase 5, §12) |
 | `POST` | `/api/teams/{teamSlug}/webhook/test` | message d'essai |
 

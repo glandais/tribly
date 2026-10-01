@@ -13,7 +13,6 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
@@ -78,34 +77,6 @@ public class PushDeviceResource {
   })
   public Response unregister(@Valid PushDeviceUnregistration unregistration) {
     pushDeviceService.unregister(unregistration.token());
-    return Response.noContent().build();
-  }
-
-  /**
-   * The former form, the token in the path — hence in the access log. Kept for the app builds
-   * already installed; to remove once none calls it (docs/LEDGER_*.md API-45, API-56).
-   */
-  @DELETE
-  @Path("/{token}")
-  @Deprecated
-  @Operation(
-      operationId = "unregisterPushDeviceByPath",
-      deprecated = true,
-      summary = "Stop sending push notifications to a device (deprecated)",
-      description =
-          "Deprecated: puts the token in the URL, which the access log records. Use POST"
-              + " /api/push-devices/unregister.")
-  @APIResponses({
-    @APIResponse(responseCode = "204", description = "Device unregistered"),
-    @APIResponse(
-        responseCode = "401",
-        description = "Unauthorized",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-  })
-  public Response unregisterByPath(
-      @Parameter(description = "The FCM registration token to drop") @PathParam("token")
-          String token) {
-    pushDeviceService.unregister(token);
     return Response.noContent().build();
   }
 }

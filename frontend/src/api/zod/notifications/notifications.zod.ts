@@ -355,14 +355,3 @@ export const UnregisterPushDeviceBody = zod
   .describe('A device to stop sending push notifications to')
 
 export const UnregisterPushDeviceResponse = zod.void()
-
-/**
- * Deprecated: puts the token in the URL, which the access log records. Use POST /api/push-devices/unregister.
- * @deprecated
- * @summary Stop sending push notifications to a device (deprecated)
- */
-export const UnregisterPushDeviceByPathParams = zod.object({
-  token: zod.string().describe('The FCM registration token to drop'),
-})
-
-export const UnregisterPushDeviceByPathResponse = zod.void()

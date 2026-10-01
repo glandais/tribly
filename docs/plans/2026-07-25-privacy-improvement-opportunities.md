@@ -308,7 +308,11 @@ send a generic `New reply on "<title>"` and let the app fetch details; set Andro
 private with a redacted public version. Also send the iOS model identifier instead of the user-assigned
 device name (`push_device_repository.dart` uses `iosInfo.name`, often "<First name>'s iPhone").
 
-### 25. Keep push tokens out of access logs **[Harden]**
+### ~~25. Keep push tokens out of access logs~~ **[Harden]**
+> **Done (2026-09-30, `API-45`; 2026-10-01, `API-56`):** `POST /api/push-devices/unregister` carries
+> the token in the body (the export link moved to `?token=` too); the former path forms were removed
+> from the API in 10.0.0.
+
 `DELETE /api/push-devices/{token}` (`PushDeviceResource.java:59-78`) carries the FCM token in the URL
 path, so it lands in the Traefik access log (`docker-compose.yml` `--accesslog.filepath`). Move it to a
 request body (or `POST …/unregister`).

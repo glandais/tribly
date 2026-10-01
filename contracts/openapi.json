@@ -9620,45 +9620,6 @@
         }
       }
     },
-    "/api/export/download/{token}" : {
-      "get" : {
-        "summary" : "Download a personal data export (deprecated)",
-        "description" : "Deprecated: puts the token in the URL path, which the access log records. Use GET /api/export/download?token=.",
-        "operationId" : "downloadDataExportByPath",
-        "deprecated" : true,
-        "tags" : [ "Users" ],
-        "parameters" : [ {
-          "description" : "Download token from the notification email",
-          "required" : true,
-          "name" : "token",
-          "in" : "path",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "The export archive",
-            "content" : {
-              "application/zip" : { }
-            }
-          },
-          "303" : {
-            "description" : "No session: sent to sign in first"
-          },
-          "404" : {
-            "description" : "Unknown, expired or already-purged export",
-            "content" : {
-              "application/zip" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/feedback" : {
       "post" : {
         "summary" : "Report a bug or suggest something",
@@ -11251,45 +11212,6 @@
                 }
               }
             }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Not Allowed"
-          }
-        },
-        "security" : [ {
-          "SecurityScheme" : [ "user" ]
-        } ]
-      }
-    },
-    "/api/push-devices/{token}" : {
-      "delete" : {
-        "summary" : "Stop sending push notifications to a device (deprecated)",
-        "description" : "Deprecated: puts the token in the URL, which the access log records. Use POST /api/push-devices/unregister.",
-        "operationId" : "unregisterPushDeviceByPath",
-        "deprecated" : true,
-        "tags" : [ "Notifications" ],
-        "parameters" : [ {
-          "description" : "The FCM registration token to drop",
-          "name" : "token",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "204" : {
-            "description" : "Device unregistered"
           },
           "401" : {
             "description" : "Unauthorized",
@@ -21139,7 +21061,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "9.3.0",
+    "version" : "10.0.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

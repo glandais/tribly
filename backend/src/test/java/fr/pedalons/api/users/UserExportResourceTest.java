@@ -202,11 +202,11 @@ class UserExportResourceTest extends AbstractResourceTest {
   }
 
   /**
-   * The links emailed before API-45 put the token in the path; they stay valid 7 days, so the
-   * deprecated form still serves (docs/LEDGER_*.md API-56 removes it).
+   * The former link put the token in the path, hence in the access log; it is gone, and must not
+   * come back (docs/LEDGER_*.md API-45, API-56).
    */
   @Test
-  void download_throughTheDeprecatedPath_stillReturnsTheArchive() {
+  void download_throughTheFormerPath_isNotServed() {
     String token = readyExportWithToken(domain, user1, "zip-bytes");
 
     given()
@@ -214,7 +214,7 @@ class UserExportResourceTest extends AbstractResourceTest {
         .when()
         .get("/api/export/download/" + token)
         .then()
-        .statusCode(200);
+        .statusCode(404);
   }
 
   @Test

@@ -758,7 +758,7 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
 
   Les anciennes formes restent servies et marquées `deprecated` au contrat
   (`unregisterPushDeviceByPath`, `downloadDataExportByPath`) pour les builds mobiles installés et
-  les liens déjà envoyés : leur retrait est `API-56`. En chemin, deux fuites que le chemin masquait
+  les liens déjà envoyés : elles ont été retirées le 1er octobre 2026 en 10.0.0 (`API-56`). En chemin, deux fuites que le chemin masquait
   aussi : sans session, le jeton d'export repart dans `/login?next=…`, et les ressources de cette
   page le portent en `Referer` ; le snippet Caddy d'`OPERATIONS.md` les couvre désormais, appliqué
   sur l'hôte le 30 septembre 2026 (`OPS-24`). Tests : `PushDeviceResourceTest`
@@ -767,6 +767,19 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   -Dtest=PushDeviceResourceTest,UserExportResourceTest,UserExportServiceTest` ; e2e `pwa.e2e.ts`
   (la déconnexion envoie le jeton dans le corps, pas dans l'URL) et `flow-account.e2e.ts` (lien du
   courriel, aller-retour par la connexion) ; `mobile/check.sh` (684 tests).
+
+- `API-56` **Les formes dépréciées d'`API-45` retirées** (2026-10-01, **API 10.0.0**, majeure) —
+  `DELETE /api/push-devices/{token}` (`unregisterPushDeviceByPath`) et `GET
+  /api/export/download/{token}` (`downloadDataExportByPath`) ne sont plus servies : plus aucun
+  jeton dans un chemin d'URL. Retirées une fois la nouvelle app mobile déployée et sans export en
+  attente de téléchargement (confirmé par le mainteneur). Clients web et mobile régénérés ; aucun
+  appel manuscrit ne les utilisait (le web et le mobile passaient déjà par les formes d'`API-45`,
+  karoo et garmin-app ne les connaissent pas). Tests : `PushDeviceResourceTest
+  .unregisteringThroughTheFormerPath_isNotServed` (404/405, l'appareil reste enregistré) et
+  `UserExportResourceTest.download_throughTheFormerPath_isNotServed` (404), lancés le 1er octobre
+  avec `UserExportServiceTest` (39 tests verts) ; `mobile/check.sh` (698 tests). **À ne pas
+  défaire** : ne pas rétablir de jeton dans un chemin, même « déprécié » — le masquage du journal
+  d'accès ne porte que sur les paramètres de requête.
 
 ### `API-39` T5.4 — Trombinoscope : débloqué par un réglage d'équipe (contrat `3.0.0`)
 

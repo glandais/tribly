@@ -377,12 +377,6 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       émettre `<time>` quand l'instant est `EPOCH` donnerait des fichiers plus propres. Changement de
       bibliothèque, pas de Pédalons ; `GpxSanitizationBackfill.isDirty` accepte déjà l'absence de
       `<time>`. Taille : S.
-- [ ] `API-56` **Retirer les deux formes dépréciées de `API-45`** — `DELETE
-      /api/push-devices/{token}` (`unregisterPushDeviceByPath`) et `GET
-      /api/export/download/{token}` (`downloadDataExportByPath`) restent servies, jetons dans le
-      chemin donc dans le journal d'accès, pour les builds mobiles installés et les liens d'export
-      déjà envoyés. À retirer (contrat **majeur**) quand les liens envoyés avant le déploiement de
-      6.5.0 ont expiré (7 jours) **et** que le mobile a été republié. Taille : XS.
 - [ ] `API-57` **La colonne `auth_tokens.pending_password_hash` n'est plus écrite** — depuis
       `SEC-24` (API 7.0.0), l'inscription ne prend plus de mot de passe : le lien le demande. La
       colonne est gardée pour le déploiement progressif (l'ancienne version l'écrit encore pendant

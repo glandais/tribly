@@ -89,15 +89,4 @@ abstract class NotificationsClient {
   Future<void> unregisterPushDevice({
     @Body() required PushDeviceUnregistration body,
   });
-
-  /// Stop sending push notifications to a device (deprecated).
-  ///
-  /// Deprecated: puts the token in the URL, which the access log records. Use POST /api/push-devices/unregister.
-  ///
-  /// [token] - The FCM registration token to drop.
-  @Deprecated('This method is marked as deprecated')
-  @DELETE('/api/push-devices/{token}')
-  Future<void> unregisterPushDeviceByPath({
-    @Path('token') required String token,
-  });
 }

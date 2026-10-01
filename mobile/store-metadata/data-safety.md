@@ -49,7 +49,7 @@ The capabilities added, and their exact boundary:
 
 - **`firebase_core` + `firebase_messaging`** — Firebase Cloud Messaging, *messaging only*. The app
   sends the FCM registration token to `POST /api/push-devices` with the device name (the name the
-  user gave the phone on iOS, manufacturer and model on Android) and the app version, and deletes it with `DELETE /api/push-devices/{token}` on sign-out. Nothing else of
+  user gave the phone on iOS, manufacturer and model on Android) and the app version, and deletes it with `POST /api/push-devices/unregister` (the token in the body) on sign-out. Nothing else of
   Firebase is initialized: **no Analytics, no Crashlytics, no Performance, no Remote Config, no
   Installations-based measurement** — the Firebase project itself was created with Analytics
   switched off (`docs/LEDGER_*.md` NOTIF-9). The app asks for notification

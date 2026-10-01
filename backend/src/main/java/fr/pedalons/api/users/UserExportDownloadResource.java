@@ -8,7 +8,6 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
@@ -62,37 +61,6 @@ public class UserExportDownloadResource {
     if (token == null || token.isBlank()) {
       throw new NotFoundException();
     }
-    return serve(token);
-  }
-
-  /**
-   * The former link, the token in the path — hence in the access log. Kept for the links already
-   * emailed, valid 7 days; to remove after that (docs/LEDGER_*.md API-45, API-56).
-   */
-  @GET
-  @Path("/download/{token}")
-  @PermitAll
-  @Produces("application/zip")
-  @Deprecated
-  @Operation(
-      operationId = "downloadDataExportByPath",
-      deprecated = true,
-      summary = "Download a personal data export (deprecated)",
-      description =
-          "Deprecated: puts the token in the URL path, which the access log records. Use GET"
-              + " /api/export/download?token=.")
-  @APIResponses({
-    @APIResponse(responseCode = "200", description = "The export archive"),
-    @APIResponse(responseCode = "303", description = "No session: sent to sign in first"),
-    @APIResponse(
-        responseCode = "404",
-        description = "Unknown, expired or already-purged export",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-  })
-  public Response downloadByPath(
-      @Parameter(description = "Download token from the notification email", required = true)
-          @PathParam("token")
-          String token) {
     return serve(token);
   }
 
