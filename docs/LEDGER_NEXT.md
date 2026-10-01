@@ -471,6 +471,26 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       indépendant (le SMTP d'une messagerie personnelle, avec un mot de passe d'application), le
       mettre dans le `.env`, `deploy.sh --monitoring`, puis un `amtool alert add` pour voir arriver
       le courriel ([`OPERATIONS.md`](OPERATIONS.md#alerts)). Taille : XS.
+- [ ] `OPS-26` **Recette de la première promotion des sauvegardes** (`SEC-32`) — depuis le
+      1er octobre 2026, la prod ne pousse plus que dans `incoming/` et `backup-promote.sh` (crontab
+      root de l'hôte de sauvegarde, toutes les 15 min) en fait les snapshots. Rien ne l'a encore vu
+      tourner sur une vraie nuit. Après la sauvegarde de 01 h 15 UTC, vérifier sur l'hôte de
+      sauvegarde : `pedalons-backup.log` de la prod sans erreur ; une ligne `promoted <stamp>` vers
+      01 h 30 dans `/var/log/backup/pedalons-backup-promote.log` ; le nouveau snapshot
+      `root:<backup-user>`, `0750`/`0440`, avec son `COMPLETE` ; presque rien de neuf sur le disque
+      (`du -sh` de la racine stable à ~1,7 Go près, le premier envoi remplissant `incoming/`) — un
+      objet MinIO inchangé doit avoir un compte de liens > 1 (`stat -c %h`) ; `restore.sh --list`
+      depuis la prod le montre. Puis la nuit suivante, la seconde promotion (plancher de 20 h
+      franchi) et la purge qui retire le plus ancien. Taille : XS.
+- [ ] `OPS-27` **Healthchecks pour la promotion des sauvegardes** (`SEC-32`) — `backup-promote.sh`
+      sait pinguer `BACKUP_PROMOTE_PING_URL` (un ping par promotion, `/fail` quand un envoi est
+      refusé : nom forgé, `SHA256SUMS` faux, rsync en échec), mais aucun check n'existe : une nuit
+      sans promotion, ou une promotion refusée, ne préviendrait personne — le check de `backup.sh`
+      reste vert, l'envoi vers `incoming/` ayant réussi. Créer un check quotidien (période 1 jour,
+      grâce ~2 h), mettre `BACKUP_PROMOTE_PING_URL=https://hc-ping.com/<uuid>` dans
+      `/etc/default/pedalons-backup-promote` (root, `0600`) sur l'hôte de sauvegarde, puis vérifier
+      qu'il passe au vert à la promotion suivante ([`OPERATIONS.md`](OPERATIONS.md), « Backup and
+      restore »). Taille : XS.
 - [ ] `OPS-8` **Exercice de restauration** (audit de février, I20) — la procédure est écrite
       ([`OPERATIONS.md`](OPERATIONS.md), « Restore drill from another machine ») mais rien ne dit
       qu'elle a été menée de bout en bout sur une autre machine.
@@ -595,7 +615,7 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 | `SEC-12` | — | L3, L10 | Faible | Voir la table des constats faibles de l'audit ; L1 et L5 à L9 sont livrés sous `SEC-20`, L12 et L13 sous `SEC-22`, L14 sous `SEC-23`, L4 sous `SEC-24` |
 | `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | `SEC-14` | — | Info | — | Images externes dans le markdown ; le parseur XML et le paramètre non encodé sont livrés sous `SEC-21` |
-| `SEC-16` | — | V3–V8 | À valider | Configuration hors dépôt. Vérifié le 2026-09-30 : V3 conforme par Caddy, V6 sans tenants voisins (mais `staging`, `np-vintage`, `auth` et `tiles.pedalons.fr` sont « same-site » pour la prod), V4 traité par `SEC-30` sauf la CSP des scripts (`SEC-31`). V5 traité par `SEC-32` (vérifier la première promotion, nuit du 1er octobre 2026). Restent V7 (SMTP), V8 (`IMGPROXY_SANITIZE_SVG` à lire dans le conteneur) |
+| `SEC-16` | — | V3–V8 | À valider | Configuration hors dépôt. Vérifié le 2026-09-30 : V3 conforme par Caddy, V6 sans tenants voisins (mais `staging`, `np-vintage`, `auth` et `tiles.pedalons.fr` sont « same-site » pour la prod), V4 traité par `SEC-30` sauf la CSP des scripts (`SEC-31`). V5 traité par `SEC-32` (recette : `OPS-26`, alerte : `OPS-27`). Restent V7 (SMTP), V8 (`IMGPROXY_SANITIZE_SVG` à lire dans le conteneur) |
 | `SEC-26` | — | M2 (annexe) | Faible | La page d'édition d'une annonce (`AdEditDto`, `GET …/classifieds/{slug}/edit`) donne la position exacte à tout admin de l'équipe, pas seulement au vendeur. Flouter pour les admins demande qu'un enregistrement par un admin ne remplace pas le point exact par le point flouté |
 | `SEC-31` | — | V4 (suite) | Moyenne | La CSP du site ne contraint encore ni les scripts, ni les styles, ni les origines (`SEC-30` n'a posé que `frame-ancestors`, `base-uri`, `object-src`, `form-action`) : une XSS n'y trouve aucun obstacle. `server.js` écrit à chaque requête deux scripts inline exécutables (`__REACT_QUERY_STATE__`, `__AUTH_STATE__`), et `index.html` le script de thème : poser un nonce par requête (ou passer les deux états en `<script type="application/json">`), un hash pour le thème, `getStyleNonce` de Mantine. `style-src` garde `'unsafe-inline'` (~225 attributs `style`). `connect-src`/`img-src` doivent suivre les fonds de carte de `application.properties` (surchargeables) et FCM ; les images des textes markdown viennent de n'importe quel hôte. Déployer d'abord en `Content-Security-Policy-Report-Only`. Taille : M |
 
