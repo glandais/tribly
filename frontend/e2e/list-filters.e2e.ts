@@ -193,7 +193,14 @@ test('team routes: distance, surface, sort and density from the URL, server-rend
   )
 
   // Descending is the default direction: it leaves the URL.
-  await main.getByRole('button', { name: 'Croissant', exact: true }).click()
+  const ascending = main.getByRole('button', { name: 'Croissant', exact: true })
+  // The panel opens over 200 ms, its height animated under `overflow: hidden` (Mantine's Collapse):
+  // until it ends, a control at its bottom — this one, on a phone's single column — is clipped and
+  // a click on it lands on what lies below. The inline height goes once the transition is over.
+  await expect(
+    ascending.locator('xpath=ancestor::div[@aria-hidden="false"][1]')
+  ).not.toHaveAttribute('style', /height/)
+  await ascending.click()
   await expectQuery(page, { surf: 'GRAVEL', dmin: filtered.dmin, sort: 'DISTANCE', d: 'row' })
   await expectNames([long, mid])
 
