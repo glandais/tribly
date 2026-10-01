@@ -794,6 +794,13 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   défaire** : ne pas supprimer la colonne dans la même release que le champ — la 9.3.0, encore en
   service pendant le recouvrement start-first, l'écrit à chaque `INSERT` ; et ne pas la rendre
   `NOT NULL`.
+- `API-58` **La colonne `auth_tokens.pending_password_hash` est supprimée** (2026-10-01, migration
+  `V54__drop_pending_password_hash.sql`, contrat inchangé) — livrée une release après `API-57`,
+  une fois 10.0.0 déployée en prod et en staging : pendant le recouvrement start-first, la release
+  précédente (10.0.0) ne mappe plus la colonne. Les tests ne passent pas par Flyway (schéma
+  généré depuis les entités) : la migration a été vérifiée sur la base locale, dans une
+  transaction annulée. **À ne pas défaire** : ne pas réintroduire de mot de passe stocké avant la
+  vérification de l'e-mail (`SEC-24`).
 
 ### `API-39` T5.4 — Trombinoscope : débloqué par un réglage d'équipe (contrat `3.0.0`)
 
@@ -1694,7 +1701,7 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   aux lettres. Web (`LoginPage`, `VerifyEmailPage`) et mobile (`login_page.dart`,
   `verify_email_page.dart`) déplacent les deux champs. La colonne `pending_password_hash` n'est plus
   écrite mais reste, pour le déploiement progressif et les liens émis avant — `activateAccount`
-  ignore leur hachage ; le champ a été retiré en 10.0.0 (`API-57`), la colonne le sera par `API-58`. La politique de confidentialité (§1, liens envoyés
+  ignore leur hachage ; le champ a été retiré en 10.0.0 (`API-57`), la colonne ensuite par `V54` (`API-58`). La politique de confidentialité (§1, liens envoyés
   par e-mail) ne dit plus qu'un mot de passe haché est gardé en attente, en parité FR/EN.
   **Décision** : ne jamais recréer un compte avec un mot de passe venu de l'inscription. Tests :
   `AuthResourceTest.verifyEmail_setsThePasswordChosenOnActivation_neverTheOneFromSignUp` (un jeton
