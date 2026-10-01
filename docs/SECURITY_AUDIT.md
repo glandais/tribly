@@ -40,7 +40,7 @@
 | M9 | Moyenne | Le jeton d'accès des appareils a une durée longue pour un jeton non révocable | Corrigé (ledger `SEC-11`) |
 | M10 | Moyenne | Aucune limitation de débit HTTP globale | Corrigé (ledger `SEC-28`) ; le seuil suppose Caddy seul en entrée, à vérifier au déploiement |
 | L1–L14 | Faible | Voir la section dédiée | L1 et L4 à L9, L12 à L14 corrigés, L2 caduc, L11 partiellement corrigé ; L3 et L10 ouverts |
-| V1–V8 | À valider | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | V1 non confirmé (ledger `SEC-5`) ; V2 caduc pour l'avenir ; V3 conforme par Caddy ; V4 traité sauf la CSP des scripts (`SEC-30`, `SEC-31`) ; V5 corrigé (`SEC-32`) ; V6 sans tenants voisins ; V7, V8 à valider |
+| V1–V8 | À valider | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | V1 non confirmé (ledger `SEC-5`) ; V2 caduc pour l'avenir ; V3 conforme par Caddy ; V4 traité sauf la CSP des scripts (`SEC-30`, `SEC-31`) ; V5 corrigé (`SEC-32`) ; V6 sans tenants voisins ; V8 caduc ; V7 à valider |
 
 H5, M7 à M10 et L12 à L14 viennent de l'audit d'infrastructure de février
 ([`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md), lignes S2 à S11), versés ici
@@ -149,7 +149,7 @@ Informationnel :
 | V5 | L'intégrité de l'historique des sauvegardes dépend de la configuration de l'hôte de sauvegarde | **Confirmé puis corrigé** (2026-09-30, ledger `SEC-32`) : la production écrivait les snapshots eux-mêmes ; elle n'écrit plus qu'un dépôt, que l'hôte de sauvegarde promeut en snapshots en lecture seule appartenant à root |
 | V6 | La protection CSRF entre tenants dépend de la façon dont leurs domaines sont enregistrés | Un seul domaine par base en prod et en staging (vérifié le 2026-09-30) : pas de tenants voisins. Reste que d'autres sites de l'hôte sont des sous-domaines de `pedalons.fr`, donc « same-site » pour la prod |
 | V7 | La neutralisation des en-têtes des e-mails dépend du client SMTP | À valider |
-| V8 | Le traitement des SVG par imgproxy dépend de sa configuration | À valider |
+| V8 | Le traitement des SVG par imgproxy dépend de sa configuration | **Caduc** (vérifié le 2026-10-01) : imgproxy ne recevrait un SVG que par le chemin `images/…` d'un asset stocké en SVG ; l'envoi en est refusé depuis H2 (`SEC-1`, `FILE_TYPE_REJECTED` constaté en prod), aucun asset SVG n'existe en prod ni en staging, et la réponse porte de toute façon `nosniff` et la CSP `sandbox` du backend |
 
 ---
 
