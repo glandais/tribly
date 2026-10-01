@@ -1281,7 +1281,10 @@ accepté parce que ces URL visent `localhost`.
 1. Pédalons (fonction éteinte : aucune variable), puis biketeam (idem) — les deux sans effet.
 2. Secrets des deux côtés, URL M2M en `https://` (entrées publiques, pas de VPN — §3.4),
    redémarrages, lignes « enabled » dans les deux journaux.
-3. Essai sur une petite équipe (`gaby`, 7 membres) vers **staging**, puis vers prod, puis définitif.
+3. **Tags de parcours livrés** (ledger `API-59`, import des `maps[].tags`) avant le **premier
+   définitif** en prod : une équipe basculée ne se voit plus proposer la migration, ses tags ne
+   seraient jamais rattrapés. Les essais peuvent précéder, ils se rejouent.
+4. Essai sur une petite équipe (`gaby`, 7 membres) vers **staging**, puis vers prod, puis définitif.
 
 ---
 

@@ -161,6 +161,12 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       seul jeton** à faire tomber à 0 (`PdlMotion.blurToolbar`, surface opaque), aucun écran à
       rouvrir.
 
+### Tags d'équipe
+
+- [ ] `MOB-39` **Tags d'équipe dans l'application (S)** — affichage en carte et en fiche, filtre
+      par tag dans les listes d'équipe dédiées ; ni étiquetage ni admin en V1. Dépend de `API-59` ;
+      voir [plan](plans/2026-10-01-tags.md) §6.
+
 ### Couverture e2e Patrol — ce que les tests ne couvrent pas encore
 
 `mobile/patrol_test/` couvre les P0 de l'audit de couverture e2e (`WEB-26`) transposés à l'app, et
@@ -238,6 +244,11 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       la seconde rend la page sans `__AUTH_STATE__` pour que le client fasse son refresh, et
       n'émet pas de 404 d'équipe ; ne pas abandonner un refresh déjà parti sans en relayer le
       `Set-Cookie`, ou le laisser finir en arrière-plan.
+
+- [ ] `WEB-40` **Tags d'équipe côté site (M)** — affichage en carte et en fiche (SSR compris),
+      filtre `?tags=` dans les listes d'équipe dédiées, étiquetage dans les formulaires des cinq
+      types et du modèle de sortie, écran d'admin du vocabulaire. Dépend de `API-59` ; voir
+      [plan](plans/2026-10-01-tags.md) §5.
 
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
@@ -361,6 +372,16 @@ ceux du plan (`API-1`, l'URL de tuile authentifiable, est livré).
 Le meneur de groupe (`API-41`, livré en 1.5.0) et l'URL de tuile (`API-1`) sont dans
 [`LEDGER_DONE.md`](LEDGER_DONE.md). Les **gabarits de sortie n'ont volontairement pas de meneur** —
 décision produit : `RideTemplateGroupRequest` reste sans champ.
+
+### Tags d'équipe
+
+- [ ] `API-59` **Tags d'équipe sur les cinq types de contenu (L)** — aucun contenu ne peut être
+      étiqueté ni filtré par thème ; le backlog P1 le demande et biketeam l'offrait sur les parcours.
+      Vocabulaire par équipe et par type, géré par les admins, couleur dans les familles de la
+      charte, filtre en OU par id dans les listes d'équipe dédiées, import des tags biketeam.
+      **À livrer avant les bascules de production de la migration biketeam**, faute de quoi les
+      équipes basculées perdent leurs tags. Besoin et décisions : [plan](plans/2026-10-01-tags.md).
+      Clients : `WEB-40`, `MOB-39`.
 
 ### Vie privée : ce que la politique doit encore décrire faute de mieux
 
@@ -558,8 +579,9 @@ En service en staging ; la mise en production attend biketeam
       corriger — à la main, par l'équipe, ou par une réécriture depuis la table d'URL — **avant**
       l'arrêt de biketeam.
 - [ ] `MIG-6` **Données exportées mais non importées** : tags de parcours, ville et pays de l'équipe
-      arrivent dans l'instantané (`BiketeamSnapshot`) sans être utilisés (plan §13, décision 14). À
-      décider.
+      arrivent dans l'instantané (`BiketeamSnapshot`) sans être utilisés (plan §13, décision 14).
+      Tags : import décidé, livré avec `API-59` ([plan](plans/2026-10-01-tags.md) §7). Ville et
+      pays : à décider.
 - [ ] `MIG-7` **Avant l'arrêt de biketeam** : outre les liens internes (`MIG-3`), les logos
       `/{t}/image` ne sont pas redirigés et restent servis par biketeam (plan, écarts biketeam,
       point 16).

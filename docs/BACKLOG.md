@@ -55,7 +55,7 @@ Drive engagement and reduce friction for organizers.
   - [X] Use image asset endpoint in display
   - [X] Allow any image format (heic, ...)
   - [x] Drag/drop image support — drop or paste into the editor (ledger `WEB-32`)
-- [ ] Tags on Ride, Post, Trip, Route, Ad — Filtering/discovery (one tag set per type)
+- [ ] Tags on Ride, Post, Trip, Route, Ad — Filtering/discovery (one tag set per type) — ledger `API-59`
 
 ---
 
