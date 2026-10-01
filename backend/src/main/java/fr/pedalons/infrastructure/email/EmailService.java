@@ -124,7 +124,16 @@ public class EmailService {
     }
 
     // strip(): the newline that follows the hidden subject fragment is still part of the body.
-    String subject = textTemplate.getFragment("subject").data("params", params).render().strip();
+    // Line breaks become spaces: the subject interpolates names the API takes with line breaks in
+    // them, and the mail client refuses a subject holding CR or LF rather than send it — no header
+    // injection, but a mail lost (docs/LEDGER_*.md SEC-33).
+    String subject =
+        textTemplate
+            .getFragment("subject")
+            .data("params", params)
+            .render()
+            .replaceAll("\\R+", " ")
+            .strip();
     String text = textTemplate.data("params", params).render().strip() + "\n";
     String html = htmlTemplate.data("params", params).render();
 

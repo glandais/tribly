@@ -122,6 +122,23 @@ class EmailServiceTest extends AbstractBaseTest {
     assertTrue(mail.getHtml().contains("&lt;script&gt;"));
   }
 
+  /**
+   * A name with a line break in it still gets its mail, on one subject line: the mail client
+   * refuses a subject holding CR or LF, and the API accepts names that do (SEC-33).
+   */
+  @Test
+  void lineBreaksInANameBecomeSpacesInTheSubject() {
+    var params = new java.util.HashMap<>(ALL_PARAMS);
+    params.put("senderName", "Sender\nX-Injected: yes");
+    params.put("adName", "Vélo\r\nBcc: victim@example.com fin");
+    emailService.sendEmail("crlf@example.com", EmailService.AD_CONTACT, "fr", params);
+
+    var mail = mailbox.getMailsSentTo("crlf@example.com").getFirst();
+    assertEquals(
+        "Sender X-Injected: yes vous écrit au sujet de « Vélo Bcc: victim@example.com fin »",
+        mail.getSubject());
+  }
+
   @Test
   void unknownTemplateIsRejected() {
     assertThrows(

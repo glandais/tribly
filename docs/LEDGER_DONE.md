@@ -1260,6 +1260,19 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
 
 Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md).
 
+- `SEC-33` **Un saut de ligne dans un nom ne fait plus échouer un courriel** (2026-10-01, contrat
+  inchangé, relevé en vérifiant V7 sous `SEC-16`) — le client SMTP (Vert.x Mail) refuse un sujet qui
+  contient CR ou LF, ce qui exclut toute injection d'en-tête mais faisait lever l'envoi : les sujets
+  interpolent `senderName`, `adName`, `inviterName`, `teamName` et le `subject` des notifications,
+  et l'API accepte ces noms avec un saut de ligne (ni `@AcceptableText` ni `@Size` ne l'interdisent).
+  `EmailService.sendEmail` remplace désormais toute suite de sauts de ligne (`\R+`, donc aussi
+  `U+0085`, `U+2028`) par une espace avant d'envoyer. Choix : au rendu du sujet, seul point commun
+  à tous les courriels, plutôt qu'une validation de chaque champ de nom — un nom existant ou importé
+  est couvert aussi, et le corps du message garde ses sauts de ligne. Test :
+  `EmailServiceTest.lineBreaksInANameBecomeSpacesInTheSubject`, lancé le 1er octobre 2026 (la
+  classe passe) ; sans le correctif il échoue sur l'erreur même du client (« Single-line text contains
+  the LF char », puis « Mail not sent »).
+
 - `SEC-16` **Les faits hors dépôt de l'audit, V3 à V8, tous tranchés** (2026-09-30 → 2026-10-01,
   contrat inchangé) — vérifiés sur les hôtes, chacun avec son statut dans `SECURITY_AUDIT.md` :
   V3 conforme par Caddy (`X-Forwarded-*` forgés sans effet), avec une faille annexe, Traefik joignable
@@ -1268,7 +1281,7 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   tenants voisins (un domaine par base), mais d'autres sites de l'hôte sont des sous-domaines de
   `pedalons.fr`, donc « same-site » pour la prod ; V7 non confirmé — Vert.x Mail 4.5.34 refuse CR et LF
   dans un sujet et encode les autres séparateurs en RFC 2047, essayé sur son `MailEncoder` (annexe :
-  `SEC-33`) ; V8 caduc — aucun SVG stocké en prod ni en staging, leur envoi refusé depuis `SEC-1`.
+  `SEC-33`, corrigé) ; V8 caduc — aucun SVG stocké en prod ni en staging, leur envoi refusé depuis `SEC-1`.
   **À ne pas défaire** : V7 repose sur le client SMTP ; un changement de bibliothèque de courriel
   doit reverser la question, ou `SEC-33` la régler côté application.
 
