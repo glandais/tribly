@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:pedalons/core/adaptive/navigation_destination.dart';
 
+import '../common.dart';
 import 'module.dart';
 
 /// The calendar: the tab of all my teams, a team's own section, its agenda cards and the ICS
@@ -54,10 +55,20 @@ final class Calendar extends Module {
   }
 
   /// Taps the copy button of the subscription card, and returns what the clipboard received.
+  ///
+  /// The clipboard is emptied first, then read until the copy has landed: the notice is no proof of
+  /// it on a second copy (it is still there from the first one, or from « Régénérer »), and on
+  /// Android the clipboard write can trail the tap.
   Future<String?> copyFeedUrl() async {
+    await Clipboard.setData(const ClipboardData(text: ''));
     await (await scrolledTo(keys.calendar.subscriptionCopyButton)).tap();
     await $(keys.calendar.subscriptionNotice).waitUntilExists();
-    return (await Clipboard.getData(Clipboard.kTextPlain))?.text;
+    return eventually(
+      () async => (await Clipboard.getData(Clipboard.kTextPlain))?.text,
+      until: (String? text) => text != null && text.isNotEmpty,
+      description: 'the feed URL in the clipboard',
+      timeout: const Duration(seconds: 10),
+    );
   }
 
   /// « Régénérer », then the confirmation of the closed question.
