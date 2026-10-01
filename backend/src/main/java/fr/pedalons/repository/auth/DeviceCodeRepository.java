@@ -3,6 +3,7 @@ package fr.pedalons.repository.auth;
 import fr.pedalons.domain.auth.DeviceCode;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +24,20 @@ public class DeviceCodeRepository implements PanacheRepository<DeviceCode> {
             "domainId = ?1 and userCode = ?2 and expiresAt > CURRENT_TIMESTAMP",
             domainId,
             userCode.toUpperCase())
+        .firstResultOptional();
+  }
+
+  /**
+   * {@link #findValidByUserCode}, the row locked ({@code SELECT … FOR UPDATE}) until the
+   * transaction ends: two approvals of the same code then run one after the other, and the second
+   * sees the first (docs/LEDGER_*.md AUD-16).
+   */
+  public Optional<DeviceCode> findValidByUserCodeForUpdate(Long domainId, String userCode) {
+    return find(
+            "domainId = ?1 and userCode = ?2 and expiresAt > CURRENT_TIMESTAMP",
+            domainId,
+            userCode.toUpperCase())
+        .withLock(LockModeType.PESSIMISTIC_WRITE)
         .firstResultOptional();
   }
 

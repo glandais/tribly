@@ -137,9 +137,11 @@ public class DeviceAuthService {
     Long domainId = domainResolver.getDomainId();
 
     authThrottle.checkDeviceCode(domainId, userId);
+    // Locked: "the first approval stands" below is a check-then-act, and two accounts confirming
+    // the same code at once would otherwise both read it unauthorized (docs/LEDGER_*.md AUD-16).
     DeviceCode deviceCode =
         deviceCodeRepository
-            .findValidByUserCode(domainId, userCode)
+            .findValidByUserCodeForUpdate(domainId, userCode)
             .orElseThrow(
                 () -> {
                   authThrottle.recordDeviceCodeFailure(domainId, userId);
