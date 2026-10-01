@@ -1300,8 +1300,10 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   (rien n'embarque le site en iframe, aucun formulaire ne poste ailleurs) ; la contrainte des scripts
   est `SEC-31`. `server.js` ne dit plus `X-Powered-By`. **À ne pas défaire** : pas de CSP sur le
   routeur de l'API — elle écraserait la CSP bac à sable des téléchargements (`UploadedContentHeaders`,
-  `SEC-1`) et empêcherait la visionneuse PDF de démarrer. Vérifié sur la pile locale (en-têtes sur `/`
-  et `/api/version`). Pas de test automatisé (configuration du proxy).
+  `SEC-1`) et empêcherait la visionneuse PDF de démarrer. Vérifié sur la pile locale, puis en prod
+  et en staging le 1er octobre 2026 après déploiement : les en-têtes sur `/` et `/api/version`, plus
+  de `X-Powered-By`, et la CSP bac à sable d'un téléchargement réel arrive intacte. Pas de test
+  automatisé (configuration du proxy).
 
 - `SEC-29` **Les ports Swarm fermés aussi en IPv6** (2026-09-30, contrat inchangé, relevé en
   vérifiant V3 sous `SEC-16`) — en IPv6, Traefik (8089, 8090) et Grafana (3300) répondaient depuis
