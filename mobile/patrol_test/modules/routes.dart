@@ -52,6 +52,26 @@ final class Routes extends Module {
     await $(keys.routes.emptyState).waitUntilExists();
   }
 
+  /// Whether the tags of [routeSlug]'s card name [label] — brought into view first.
+  Future<bool> cardTagsShow(String routeSlug, String label) async {
+    await scrolledIntoView(keys.routes.cardTags(routeSlug));
+    return shows(keys.routes.cardTags(routeSlug), label);
+  }
+
+  /// The « Tags » chip of a team's list → ticks [tagId] in the sheet → « Appliquer ». The chip is
+  /// the last of its row, past its right edge on a phone.
+  Future<void> filterByTag(String tagId) async {
+    await $(
+      keys.tags.filterChip,
+    ).waitUntilExists(timeout: const Duration(seconds: 20));
+    await $.tester.ensureVisible(find.byKey(keys.tags.filterChip));
+    await $.pump(const Duration(milliseconds: 300));
+    await $(keys.tags.filterChip).tap();
+    await $(keys.tags.pickerRow(tagId)).tap();
+    await $(keys.tags.pickerApply).tap();
+    await waitUntilGone(keys.tags.pickerApply);
+  }
+
   Future<void> switchToMap() async {
     await $(keys.routes.mapViewSegment).tap();
     await $(keys.routes.mapView).waitUntilExists();

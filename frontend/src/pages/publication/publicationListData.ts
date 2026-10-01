@@ -10,11 +10,12 @@ import {
 import { usePaginatedQuery } from '@/hooks/usePaginatedQuery'
 import { useUrlFilters, readUrlFilters } from '@/hooks/useUrlFilters'
 import {
-  publicationFiltersSchema,
-  publicationFiltersAlias,
-  publicationApiParams,
+  teamPublicationFiltersSchema,
+  teamPublicationFiltersAlias,
+  teamPublicationApiParams,
+  publicationFilterToType,
 } from '@/hooks/filters/publicationFilters'
-import { prefetchPageWindow } from '@/config/prefetchHelpers'
+import { prefetchPageWindow, prefetchTeamTags } from '@/config/prefetchHelpers'
 import { hourAlignedNowIso } from '@/utils/nowIso'
 
 /**
@@ -33,8 +34,8 @@ import { hourAlignedNowIso } from '@/utils/nowIso'
 
 /** The schema/alias pair both readers must use — the page through the URL, the prefetch through `url.searchParams`. */
 export const publicationListFilterOptions = {
-  schema: publicationFiltersSchema,
-  alias: publicationFiltersAlias,
+  schema: teamPublicationFiltersSchema,
+  alias: teamPublicationFiltersAlias,
 } as const
 
 /**
@@ -52,7 +53,7 @@ export function usePublicationListData(teamSlug?: string) {
   const team = useGetTeam(teamSlug!, { query: { enabled: !!teamSlug } })
 
   // `filter` is the page's own value; the API wants a PublicationType.
-  const apiParams = useMemo(() => publicationApiParams(filters, nowIso), [filters, nowIso])
+  const apiParams = useMemo(() => teamPublicationApiParams(filters, nowIso), [filters, nowIso])
   const publications = useListPublications(teamSlug!, apiParams, {
     query: { enabled: !!teamSlug },
   })
@@ -86,10 +87,13 @@ export async function prefetchPublicationList(
   url: URL
 ): Promise<void> {
   const filters = readUrlFilters(url.searchParams, publicationListFilterOptions)
+  // The tag filter only shows on a feed narrowed to one kind (`TagFilter` in the page).
+  const tagTarget = publicationFilterToType[filters.filter]
   await Promise.all([
     prefetchGetTeamQuery(queryClient, teamSlug),
-    prefetchPageWindow(publicationApiParams(filters, hourAlignedNowIso()), (p) =>
+    prefetchPageWindow(teamPublicationApiParams(filters, hourAlignedNowIso()), (p) =>
       prefetchListPublicationsQuery(queryClient, teamSlug, p)
     ),
+    tagTarget ? prefetchTeamTags(queryClient, teamSlug, tagTarget) : undefined,
   ])
 }

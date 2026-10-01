@@ -119,6 +119,17 @@ public enum ErrorCode {
   BLOCK_SELF,
   /** A text failed the publication filter (see TextFilter). */
   CONTENT_REJECTED,
+  // Team tags (docs/LEDGER_*.md API-59)
+  /** A tag label is empty once trimmed, or longer than 32 characters. */
+  TAG_LABEL_INVALID,
+  /** Another tag of the same team and kind already has this label, whatever the case. */
+  TAG_LABEL_TAKEN,
+  /** The team already has 100 tags of this kind. */
+  TAG_LIMIT_REACHED,
+  /** A tag id of a content is unknown, of another team, or of another kind of content. */
+  TAG_INVALID,
+  /** More than 10 tags on one content. */
+  TOO_MANY_TAGS,
   // Biketeam live migration (docs/plans/2026-09-22-biketeam-live-migration.md)
   /** The signed biketeam request is malformed, forged, or not for this site. */
   BIKETEAM_REQUEST_INVALID,

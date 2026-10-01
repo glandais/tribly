@@ -20,8 +20,8 @@ on biketeam after the switches have settled (ledger `MIG-2`) — and turn the te
 either side.
 
 What comes over: the team (name, visibility, `joinable`), its about page (presentation + contact
-details), its FAQ page, its logo (not the placeholder), places, routes with their GPX, ride
-templates, publications (as posts), rides with their groups, trips with their stages, and their
+details), its FAQ page, its logo (not the placeholder), places, routes with their GPX and
+their tags, ride templates, publications (as posts), rides with their groups, trips with their stages, and their
 images. What does **not**: users, memberships, participations, comments, registrations, route
 ratings and favourites. The Pédalons account that confirmed becomes the team's **ADMIN** and the
 author (`createdBy`) of everything; members join afterwards through the usual invitation link or,
@@ -121,6 +121,10 @@ see [Known failures](#known-failures)). Read them after the trial; whether to go
 One warning is not a failure: `TRIP_STAGES_OUTSIDE_DATES` flags a trip whose stages fall outside its
 biketeam start/end dates — migrated as is, but Pédalons ends a trip with its last stage, so its
 biketeam end date is lost. Fix the dates on either side.
+Neither is `TAGS_TRUNCATED`: a route's free-form biketeam tags become `ROUTE` tags of the team
+(found by label case-insensitively, else created gray with the first spelling met; ledger `MIG-14`),
+and the warning names a label cut to 32 characters or tags dropped beyond 10 on the route or 100 in
+the team — the route keeps the first ones. `defaultSearchTags` is not migrated.
 
 ## Both applications on a workstation
 

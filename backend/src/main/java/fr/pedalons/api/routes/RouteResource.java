@@ -43,6 +43,15 @@ import org.jspecify.annotations.Nullable;
 @Tag(name = "Routes", description = "GPX route management operations")
 public class RouteResource {
 
+  /**
+   * The {@code ?tags=} filter, team-scoped only (docs/plans/archive/2026-10-01-tags.md D7): declared here
+   * rather than on {@code RouteFilterParams}, which the cross-team endpoints share.
+   */
+  static final String TAGS_PARAM_DESCRIPTION =
+      "Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags,"
+          + " comma-separated or repeated. Unknown ids are ignored; a filter left with no known id"
+          + " filters nothing.";
+
   /** Route payloads carry commentCount, which depends on who is asking. */
   static final String PRIVATE_NO_STORE = "private, no-store";
 
@@ -68,9 +77,12 @@ public class RouteResource {
   })
   public Response listRoutes(
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
-      @BeanParam RouteListParams params) {
+      @BeanParam RouteListParams params,
+      @Parameter(description = TAGS_PARAM_DESCRIPTION) @QueryParam("tags")
+          @Nullable List<String> tags) {
 
-    RouteListResponse routes = routeService.getRoutes(teamSlug, params.toSearchParams());
+    RouteListResponse routes =
+        routeService.getRoutes(teamSlug, params.toBuilder().tags(tags).build());
 
     // Rows carry a per-user field (commentCount, which follows the caller's team
     // membership): never let a shared cache keep one user's answer for the next one.
@@ -103,9 +115,12 @@ public class RouteResource {
   })
   public Response countRoutes(
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
-      @BeanParam RouteFilterParams params) {
+      @BeanParam RouteFilterParams params,
+      @Parameter(description = TAGS_PARAM_DESCRIPTION) @QueryParam("tags")
+          @Nullable List<String> tags) {
 
-    return Response.ok(routeService.countRoutes(teamSlug, params.toSearchParams())).build();
+    return Response.ok(routeService.countRoutes(teamSlug, params.toBuilder().tags(tags).build()))
+        .build();
   }
 
   /**
@@ -148,10 +163,12 @@ public class RouteResource {
                       + " session cookie and then to the anonymous visitor.")
           @QueryParam("t")
           @Nullable String tileToken,
-      @BeanParam RouteFilterParams params) {
+      @BeanParam RouteFilterParams params,
+      @Parameter(description = TAGS_PARAM_DESCRIPTION) @QueryParam("tags")
+          @Nullable List<String> tags) {
 
     return RouteTiles.response(
-        routeService.getRoutesTile(teamSlug, params.toSearchParams(), z, x, y));
+        routeService.getRoutesTile(teamSlug, params.toBuilder().tags(tags).build(), z, x, y));
   }
 
   /**
@@ -178,9 +195,13 @@ public class RouteResource {
   })
   public Response getRoutesBounds(
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
-      @BeanParam RouteFilterParams params) {
+      @BeanParam RouteFilterParams params,
+      @Parameter(description = TAGS_PARAM_DESCRIPTION) @QueryParam("tags")
+          @Nullable List<String> tags) {
 
-    return Response.ok(routeService.getRoutesBounds(teamSlug, params.toSearchParams())).build();
+    return Response.ok(
+            routeService.getRoutesBounds(teamSlug, params.toBuilder().tags(tags).build()))
+        .build();
   }
 
   /**

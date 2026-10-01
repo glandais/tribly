@@ -10,6 +10,7 @@ import { SlugEditor } from '../common/SlugEditor'
 import { paths } from '@/config/paths'
 import { Status, PostRequest } from '@/api/dto'
 import { CreatePostBody } from '@/api/zod/posts/posts.zod'
+import { TagPicker } from '@/components/tag'
 
 interface PostEditorProps {
   team: TeamDetailDto
@@ -112,6 +113,14 @@ export function PostEditor({
             teamSlug={teamSlug}
           />
         </Stack>
+
+        <TagPicker
+          teamSlug={teamSlug}
+          type="POST"
+          value={form.values.tagIds}
+          onChange={(ids) => form.setFieldValue('tagIds', ids)}
+          disabled={isPending}
+        />
 
         {team.visibility !== 'TEAM' && (
           <Radio.Group label={t('visibility.label')} {...form.getInputProps('visibility')}>

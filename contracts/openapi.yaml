@@ -103,6 +103,7 @@ components:
       - createdById
       - createdByDisplayName
       - deleted
+      - tags
       properties:
         team:
           description: Team
@@ -212,6 +213,12 @@ components:
         deleted:
           type: boolean
           description: Whether the ad is soft-deleted
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagDto"
+          description: "The team's AD tags the ad carries, sorted by label. Empty\
+            \ when it carries none."
     AdEditDto:
       description: Ad data
       type: object
@@ -228,6 +235,7 @@ components:
       - updatedAt
       - createdById
       - deleted
+      - tags
       properties:
         team:
           description: Team
@@ -308,6 +316,12 @@ components:
         deleted:
           type: boolean
           description: Whether the ad is soft-deleted
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagDto"
+          description: "The team's AD tags the ad carries, sorted by label — what\
+            \ the edit form's tagIds starts from."
     AdListResponse:
       description: Paginated ad list response
       type: object
@@ -394,6 +408,14 @@ components:
               examples:
               - - 2.3522
                 - 48.8566
+        tagIds:
+          type: array
+          items:
+            type: string
+          description: "IDs (TSID) of the team's AD tags the ad carries, replacing\
+            \ the whole set — at most 10, each a tag of this team and of kind AD,\
+            \ else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all.\
+            \ Omitted: none on a creation, left as they are on an update."
     AdSortBy:
       type: string
       enum:
@@ -1864,6 +1886,7 @@ components:
       - POST
       - TEAM_PAGE
       - CALENDAR
+      - TAG
       - PUBLICATION
       - ANY
     ErrorCode:
@@ -1958,6 +1981,11 @@ components:
       - REPORT_SELF
       - BLOCK_SELF
       - CONTENT_REJECTED
+      - TAG_LABEL_INVALID
+      - TAG_LABEL_TAKEN
+      - TAG_LIMIT_REACHED
+      - TAG_INVALID
+      - TOO_MANY_TAGS
       - BIKETEAM_REQUEST_INVALID
       - BIKETEAM_REQUEST_EXPIRED
       - BIKETEAM_REQUEST_ALREADY_USED
@@ -3363,6 +3391,7 @@ components:
       - visibility
       - deleted
       - signedAsTeam
+      - tags
       properties:
         type:
           description: Type
@@ -3435,6 +3464,12 @@ components:
             — render the team instead.
           type: object
           $ref: "#/components/schemas/PublicUserDto"
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagDto"
+          description: "The team's POST tags the post carries, sorted by label. Empty\
+            \ when it carries none."
     PostListResponse:
       description: Paginated post list response
       type: object
@@ -3502,6 +3537,14 @@ components:
           description: "Sign the post as the team rather than as its author. Omitted:\
             \ on creation, the team's postsAsTeamByDefault; on an update, left as\
             \ it is."
+        tagIds:
+          type: array
+          items:
+            type: string
+          description: "IDs (TSID) of the team's POST tags the post carries, replacing\
+            \ the whole set — at most 10, each a tag of this team and of kind POST,\
+            \ else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all.\
+            \ Omitted: none on a creation, left as they are on an update."
     PublicUserDto:
       type: object
       description: Public user information (limited fields)
@@ -3761,6 +3804,7 @@ components:
       - deleted
       - registered
       - full
+      - tags
       properties:
         type:
           description: Type
@@ -3892,6 +3936,12 @@ components:
           description: "Number of comments, replies included. Absent when the caller\
             \ may not read the comments of this ride — comments are members-only,\
             \ so an outsider is told nothing, not even zero."
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagDto"
+          description: "The team's RIDE tags the ride carries, sorted by label. Empty\
+            \ when it carries none."
     RideGroupDto:
       type: object
       description: Ride group information
@@ -4070,6 +4120,14 @@ components:
           items:
             $ref: "#/components/schemas/GroupRequest"
           description: Ride groups to create
+        tagIds:
+          type: array
+          items:
+            type: string
+          description: "IDs (TSID) of the team's RIDE tags the ride carries, replacing\
+            \ the whole set — at most 10, each a tag of this team and of kind RIDE,\
+            \ else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all.\
+            \ Omitted: none on a creation, left as they are on an update."
     RideTemplateDto:
       description: Ride template response
       type: object
@@ -4085,6 +4143,7 @@ components:
       - updatedAt
       - groupCount
       - groups
+      - tags
       properties:
         team:
           description: Team
@@ -4127,6 +4186,13 @@ components:
           items:
             $ref: "#/components/schemas/RideTemplateGroupDto"
           description: Template groups
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagDto"
+          description: "The team's RIDE tags of the template, sorted by label. Copied\
+            \ onto a ride created from it: a client prefills the ride's tagIds with\
+            \ them, editable before and after."
     RideTemplateGroupDto:
       type: object
       description: Ride template group information
@@ -4243,6 +4309,15 @@ components:
           items:
             $ref: "#/components/schemas/RideTemplateGroupRequest"
           description: Template groups
+        tagIds:
+          type: array
+          items:
+            type: string
+          description: "IDs (TSID) of the team's RIDE tags the template carries (copied\
+            \ onto the rides created from it), replacing the whole set — at most 10,\
+            \ each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS).\
+            \ An empty list removes them all. Omitted: none on a creation, left as\
+            \ they are on an update."
     RouteBoundsResponse:
       description: Bounding box of the routes matching a filter set
       type: object
@@ -4271,6 +4346,7 @@ components:
       - tracks
       - waypoints
       - deleted
+      - tags
       properties:
         id:
           type: string
@@ -4348,6 +4424,12 @@ components:
           description: "Number of comments, replies included. Absent when the caller\
             \ may not read the comments of this route — comments are members-only,\
             \ so an outsider is told nothing, not even zero."
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagDto"
+          description: "The team's ROUTE tags the route carries, sorted by label.\
+            \ Empty when it carries none."
     RouteDto:
       type: object
       description: Route summary data
@@ -4364,6 +4446,7 @@ components:
       - visibility
       - createdAt
       - deleted
+      - tags
       properties:
         id:
           type: string
@@ -4426,6 +4509,12 @@ components:
           description: "Number of comments, replies included. Absent when the caller\
             \ may not read the comments of this route — comments are members-only,\
             \ so an outsider is told nothing, not even zero."
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagDto"
+          description: "The team's ROUTE tags the route carries, sorted by label.\
+            \ Empty when it carries none."
     RouteListResponse:
       description: Paginated route list response
       type: object
@@ -4485,6 +4574,14 @@ components:
             $ref: "#/components/schemas/GeoPoint"
           description: Points from frontend routing
           maxItems: 100000
+        tagIds:
+          type: array
+          items:
+            type: string
+          description: "IDs (TSID) of the team's ROUTE tags the route carries, replacing\
+            \ the whole set — at most 10, each a tag of this team and of kind ROUTE,\
+            \ else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all.\
+            \ Omitted: none on a creation, left as they are on an update."
     RouteSortBy:
       type: string
       enum:
@@ -4748,6 +4845,123 @@ components:
       - GRAVEL
       - MTB
       - MIXED
+    TagColor:
+      type: string
+      enum:
+      - INDIGO
+      - BLUE
+      - GREEN
+      - RED
+      - YELLOW
+      - ORANGE
+      - GRAPE
+      - TEAL
+      - GRAY
+    TagCreateRequest:
+      description: Tag creation request
+      type: object
+      required:
+      - type
+      - label
+      - color
+      properties:
+        type:
+          description: Kind of content the tag applies to
+          type: string
+          $ref: "#/components/schemas/TagTarget"
+        label:
+          type: string
+          description: "Label, trimmed; unique in the team and kind whatever the case,\
+            \ at most 32 characters once trimmed (TAG_LABEL_INVALID otherwise)"
+          maxLength: 255
+        color:
+          description: Colour family
+          type: string
+          $ref: "#/components/schemas/TagColor"
+    TagDeletedDto:
+      description: Result of a tag deletion
+      type: object
+      required:
+      - detachedCount
+      properties:
+        detachedCount:
+          type: integer
+          format: int64
+          description: "Contents the tag was detached from, counted like usageCount\
+            \ (trashed contents lose it too, uncounted)"
+    TagDto:
+      type: object
+      description: A team tag on a content
+      required:
+      - id
+      - label
+      - color
+      properties:
+        id:
+          type: string
+          description: Tag ID (TSID)
+          examples:
+          - 0h4a8xzk8jv80
+        label:
+          type: string
+          description: "Label, at most 32 characters"
+        color:
+          description: Colour family
+          type: string
+          $ref: "#/components/schemas/TagColor"
+    TagTarget:
+      type: string
+      enum:
+      - RIDE
+      - POST
+      - TRIP
+      - ROUTE
+      - AD
+    TagUpdateRequest:
+      description: Tag update request — absent fields are unchanged
+      type: object
+      properties:
+        label:
+          type: string
+          description: "New label, trimmed, at most 32 characters once trimmed (TAG_LABEL_INVALID\
+            \ otherwise)"
+          maxLength: 255
+        color:
+          description: New colour family
+          type: string
+          $ref: "#/components/schemas/TagColor"
+    TagWithUsageDto:
+      description: A team tag with its usage count
+      type: object
+      required:
+      - id
+      - label
+      - color
+      - type
+      - usageCount
+      properties:
+        id:
+          type: string
+          description: Tag ID (TSID)
+          examples:
+          - 0h4a8xzk8jv80
+        label:
+          type: string
+          description: "Label, at most 32 characters"
+        color:
+          description: Colour family
+          type: string
+          $ref: "#/components/schemas/TagColor"
+        type:
+          description: Kind of content the tag applies to
+          type: string
+          $ref: "#/components/schemas/TagTarget"
+        usageCount:
+          type: integer
+          format: int64
+          description: "Contents carrying the tag: rides, posts, trips, routes and\
+            \ ads out of the trash, plus ride templates — what a deletion would detach\
+            \ it from"
     TeamDetailDto:
       description: Detailed team information
       type: object
@@ -5508,6 +5722,7 @@ components:
       - participants
       - deleted
       - registered
+      - tags
       properties:
         type:
           description: Type
@@ -5626,6 +5841,12 @@ components:
           description: "Number of comments, replies included. Absent when the caller\
             \ may not read the comments of this trip — comments are members-only,\
             \ so an outsider is told nothing, not even zero."
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagDto"
+          description: "The team's TRIP tags the trip carries, sorted by label. Empty\
+            \ when it carries none."
     TripListResponse:
       description: Paginated trip list response
       type: object
@@ -5716,6 +5937,14 @@ components:
           items:
             $ref: "#/components/schemas/StageRequest"
           description: Trip stages to create
+        tagIds:
+          type: array
+          items:
+            type: string
+          description: "IDs (TSID) of the team's TRIP tags the trip carries, replacing\
+            \ the whole set — at most 10, each a tag of this team and of kind TRIP,\
+            \ else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all.\
+            \ Omitted: none on a creation, left as they are on an update."
     TripStageDto:
       type: object
       description: Trip stage information
@@ -6232,6 +6461,8 @@ tags:
   description: Server version and build information
 - name: Sitemap
   description: Pages a search engine may index
+- name: Tags
+  description: "Team tag vocabulary, one set per kind of content"
 - name: Team Invitations
   description: Invite people to a team by e-mail
 - name: Team Members
@@ -10622,6 +10853,15 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/SortDirection"
+      - description: "Only the ads carrying at least one of these tags — ids (TSID)\
+          \ of the team's AD tags, comma-separated or repeated. Unknown ids are ignored;\
+          \ a filter left with no known id filters nothing."
+        name: tags
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
       - description: End date filter (ISO format)
         name: to
         in: query
@@ -10774,6 +11014,15 @@ paths:
         in: query
         schema:
           type: string
+      - description: "Only the ads carrying at least one of these tags — ids (TSID)\
+          \ of the team's AD tags, comma-separated or repeated. Unknown ids are ignored;\
+          \ a filter left with no known id filters nothing."
+        name: tags
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
       - description: End date filter (ISO format)
         name: to
         in: query
@@ -12958,6 +13207,16 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/Status"
+      - description: "Only the publications carrying at least one of these tags —\
+          \ ids (TSID) of the team's tags of kind 'type', comma-separated or repeated.\
+          \ Honoured with a 'type' only: the mixed feed has no tag filter and ignores\
+          \ it. Unknown ids are ignored; a filter left with no known id filters nothing."
+        name: tags
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
       - description: End date filter (ISO format)
         name: to
         in: query
@@ -13030,6 +13289,16 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/Status"
+      - description: "Only the publications carrying at least one of these tags —\
+          \ ids (TSID) of the team's tags of kind 'type', comma-separated or repeated.\
+          \ Honoured with a 'type' only: the mixed feed has no tag filter and ignores\
+          \ it. Unknown ids are ignored; a filter left with no known id filters nothing."
+        name: tags
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
       - description: End date filter (ISO format)
         name: to
         in: query
@@ -14229,6 +14498,15 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/SurfaceType"
+      - description: "Only the routes carrying at least one of these tags — ids (TSID)\
+          \ of the team's ROUTE tags, comma-separated or repeated. Unknown ids are\
+          \ ignored; a filter left with no known id filters nothing."
+        name: tags
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
       - description: "How much of each row to send. COMPACT (case-insensitive) returns\
           \ media.markdown empty and media.assets trimmed to the logo, the first image\
           \ and the themed thumbnails — read 'excerpt' and 'thumbnailUrl' instead,\
@@ -14397,6 +14675,15 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/SurfaceType"
+      - description: "Only the routes carrying at least one of these tags — ids (TSID)\
+          \ of the team's ROUTE tags, comma-separated or repeated. Unknown ids are\
+          \ ignored; a filter left with no known id filters nothing."
+        name: tags
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
       - description: Filter by wind direction
         name: windDirection
         in: query
@@ -14560,6 +14847,15 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/SurfaceType"
+      - description: "Only the routes carrying at least one of these tags — ids (TSID)\
+          \ of the team's ROUTE tags, comma-separated or repeated. Unknown ids are\
+          \ ignored; a filter left with no known id filters nothing."
+        name: tags
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
       - description: Filter by wind direction
         name: windDirection
         in: query
@@ -14686,6 +14982,15 @@ paths:
         in: query
         schema:
           type: string
+      - description: "Only the routes carrying at least one of these tags — ids (TSID)\
+          \ of the team's ROUTE tags, comma-separated or repeated. Unknown ids are\
+          \ ignored; a filter left with no known id filters nothing."
+        name: tags
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
       - description: Filter by wind direction
         name: windDirection
         in: query
@@ -15207,6 +15512,224 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: Slug already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/tags:
+    get:
+      summary: List team tags
+      description: "The team's tags, sorted by label, each with its usage count. Open\
+        \ to whoever can see the team."
+      operationId: listTeamTags
+      tags:
+      - Tags
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Only the tags of this kind of content; all kinds when absent
+        name: type
+        in: query
+        schema:
+          $ref: "#/components/schemas/TagTarget"
+      responses:
+        "200":
+          description: Tags retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TagWithUsageDto"
+        "403":
+          description: Team not visible to the caller
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create a team tag
+      description: Requires team admin permissions.
+      operationId: createTeamTag
+      tags:
+      - Tags
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TagCreateRequest"
+        required: true
+      responses:
+        "201":
+          description: Tag created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagWithUsageDto"
+        "400":
+          description: Invalid label (TAG_LABEL_INVALID) or 100 tags of this kind
+            already (TAG_LIMIT_REACHED)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a team admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Label already used in this team and kind, whatever the case\
+            \ (TAG_LABEL_TAKEN)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/tags/{tagId}:
+    patch:
+      summary: Rename or recolour a team tag
+      description: Absent fields are unchanged; the kind never changes. Requires team
+        admin.
+      operationId: updateTeamTag
+      tags:
+      - Tags
+      parameters:
+      - description: Tag ID (TSID)
+        name: tagId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TagUpdateRequest"
+        required: true
+      responses:
+        "200":
+          description: Tag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagWithUsageDto"
+        "400":
+          description: Invalid label (TAG_LABEL_INVALID)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a team admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or tag not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Label already used in this team and kind, whatever the case\
+            \ (TAG_LABEL_TAKEN)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+    delete:
+      summary: Delete a team tag
+      description: Detaches the tag from every content and deletes it for good. Requires
+        team admin.
+      operationId: deleteTeamTag
+      tags:
+      - Tags
+      parameters:
+      - description: Tag ID (TSID)
+        name: tagId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Tag deleted; how many contents lost it
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagDeletedDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a team admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or tag not found
           content:
             application/json:
               schema:
@@ -16668,7 +17191,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 10.0.0
+  version: 10.1.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

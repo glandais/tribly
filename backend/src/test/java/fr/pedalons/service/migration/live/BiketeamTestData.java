@@ -392,4 +392,33 @@ public class BiketeamTestData {
     Long mapped = mapRepository.findTriblyId(BiketeamMigrationService.T_TEAM, biketeamTeamId);
     return mapped != null && mapped == teamId;
   }
+
+  /** A team's ROUTE tag, as the migration made it. */
+  public record TagView(String label, String color) {}
+
+  /** The team's ROUTE tags, by label (docs/LEDGER_*.md MIG-14). */
+  @Transactional
+  public List<TagView> routeTags(long teamId) {
+    return em.createQuery(
+            "select t from Tag t where t.team.id = :t and t.type = :type order by lower(t.label)",
+            fr.pedalons.domain.tag.Tag.class)
+        .setParameter("t", teamId)
+        .setParameter("type", fr.pedalons.enums.TagTarget.ROUTE)
+        .getResultStream()
+        .map(t -> new TagView(t.getLabel(), t.getColor().name()))
+        .toList();
+  }
+
+  /** The labels of the tags a live route carries, by label — a doubled link shows twice. */
+  @Transactional
+  public List<String> routeTagLabels(long teamId, String routeName) {
+    return em.createQuery(
+            "select l.tag.label from TeamEntityTag l, Route r where l.teamEntity.id = r.id"
+                + " and r.team.id = :t and r.name = :n and r.deleted = false"
+                + " order by lower(l.tag.label)",
+            String.class)
+        .setParameter("t", teamId)
+        .setParameter("n", routeName)
+        .getResultList();
+  }
 }

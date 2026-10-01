@@ -23,6 +23,7 @@ abstract final class RouteFilterLabels {
     RouteFilterField.surfaceType => 'routes.filters.surfaceType'.tr(),
     RouteFilterField.windDirection => 'routes.filters.windDirection'.tr(),
     RouteFilterField.proximity => 'routes.filters.proximity'.tr(),
+    RouteFilterField.tags => 'tags.filter'.tr(),
   };
 
   static String hillinessName(Hilliness value) =>
@@ -83,6 +84,13 @@ abstract final class RouteFilterLabels {
                   ),
                 },
               ),
+      // Le compte seul : les libellés sont au vocabulaire de l'équipe, que
+      // ce fichier ne charge pas. La barre de chips, qui l'a, fait mieux
+      // (`tagFilterLabel`).
+      RouteFilterField.tags =>
+        filters.tagIds.isEmpty
+            ? null
+            : 'tags.filterCount'.plural(filters.tagIds.length),
     };
   }
 

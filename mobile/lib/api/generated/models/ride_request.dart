@@ -46,6 +46,9 @@ abstract class RideRequest with _$RideRequest {
 
     /// Publication timestamp (for scheduled publishing)
     String? publishAt,
+
+    /// IDs (TSID) of the team's RIDE tags the ride carries, replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
+    List<String>? tagIds,
   }) = _RideRequest;
 
   factory RideRequest.fromJson(Map<String, Object?> json) =>

@@ -32,4 +32,6 @@ export interface AdRequest {
   locationDescription?: string
   /** Location coordinates [longitude, latitude] */
   locationGeometry?: AdRequestLocationGeometry
+  /** IDs (TSID) of the team's AD tags the ad carries, replacing the whole set — at most 10, each a tag of this team and of kind AD, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update. */
+  tagIds?: string[]
 }

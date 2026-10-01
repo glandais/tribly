@@ -19,6 +19,10 @@ export type CountPublicationsParams = {
    */
   status?: Status
   /**
+   * Only the publications carrying at least one of these tags — ids (TSID) of the team's tags of kind 'type', comma-separated or repeated. Honoured with a 'type' only: the mixed feed has no tag filter and ignores it. Unknown ids are ignored; a filter left with no known id filters nothing.
+   */
+  tags?: string[]
+  /**
    * End date filter (ISO format)
    */
   to?: string

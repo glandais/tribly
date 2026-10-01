@@ -16,6 +16,9 @@ import org.jspecify.annotations.Nullable;
  *     Yields nothing for an anonymous caller, the same way {@link #minRole()} does.
  * @param ascending order by {@code dateTime} ascending instead of the default descending — what "my
  *     next outing" needs.
+ * @param tagIds keep only the publications carrying at least one of these tags (plan D6). Set by
+ *     a team's dedicated list only — the rides, the posts or the trips of one team — never by the
+ *     mixed feed nor by a cross-team list (plan D7, D13). Null or empty: no filter.
  */
 @Builder
 public record PublicationQuery(
@@ -31,6 +34,7 @@ public record PublicationQuery(
     @Nullable Instant to,
     @Nullable MinRole minRole,
     @Nullable Status status,
+    @Nullable Set<Long> tagIds,
     boolean participating,
     boolean ascending,
     int page,

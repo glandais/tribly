@@ -751,6 +751,133 @@ class BiketeamLiveMigrationTest extends AbstractResourceTest {
         () -> "warnings: " + status.warnings());
   }
 
+  // ─── route tags (docs/LEDGER_*.md MIG-14, docs/plans/archive/2026-10-01-tags.md §7) ─────
+
+  static final String FIXTURE_TAGS = "\"tags\": [\"littoral\"]";
+
+  /** Rewrites the tags of the fixture's route {@code map-1} to {@code tagsJson}. */
+  private void routeTagsInSnapshot(String tagsJson) {
+    snapshotEdit =
+        json -> {
+          assertTrue(json.contains(FIXTURE_TAGS), "the fixture's route tags moved");
+          return json.replace(FIXTURE_TAGS, "\"tags\": " + tagsJson);
+        };
+  }
+
+  @Test
+  void routeTags_becomeGrayRouteTags_mergedByCase_withTheFirstSpellingKept() throws IOException {
+    routeTagsInSnapshot("[\" Littoral \", \"gravel\", \"LITTORAL\", \"  \", \"Gravel\"]");
+
+    BiketeamJobStatusDto status = migrate(USER4, true, false);
+
+    assertEquals("SUCCEEDED", status.status(), () -> "error: " + status.error());
+    long teamId = biketeamData.team(domain, TEAM).id();
+    assertEquals(
+        List.of(
+            new BiketeamTestData.TagView("gravel", "GRAY"),
+            new BiketeamTestData.TagView("Littoral", "GRAY")),
+        biketeamData.routeTags(teamId));
+    assertEquals(
+        List.of("gravel", "Littoral"), biketeamData.routeTagLabels(teamId, "Boucle du littoral"));
+    assertTrue(
+        status.warnings().stream().noneMatch(w -> w.code().equals("TAGS_TRUNCATED")),
+        () -> "warnings: " + status.warnings());
+  }
+
+  @Test
+  void routeTags_replay_duplicatesNothing_andReplacesTheRoutesSet() throws IOException {
+    migrate(USER4, true, false);
+    long teamId = biketeamData.team(domain, TEAM).id();
+    assertEquals(List.of("littoral"), biketeamData.routeTagLabels(teamId, "Boucle du littoral"));
+
+    // Another spelling of the same tag, and a new one.
+    routeTagsInSnapshot("[\"LITTORAL\", \"Côte Est\"]");
+    migrate(USER4, false, false);
+
+    assertEquals(
+        List.of(
+            new BiketeamTestData.TagView("Côte Est", "GRAY"),
+            new BiketeamTestData.TagView("littoral", "GRAY")),
+        biketeamData.routeTags(teamId));
+    assertEquals(
+        List.of("Côte Est", "littoral"), biketeamData.routeTagLabels(teamId, "Boucle du littoral"));
+
+    // Gone on biketeam: off the route, still in the team's vocabulary.
+    routeTagsInSnapshot("[\"Côte Est\"]");
+    migrate(USER4, false, false);
+
+    assertEquals(List.of("Côte Est"), biketeamData.routeTagLabels(teamId, "Boucle du littoral"));
+    assertEquals(2, biketeamData.routeTags(teamId).size());
+  }
+
+  @Test
+  void routeTags_beyond10OrLongerThan32_keepTheFirstOnes_cutOnCodePoints_andWarn()
+      throws IOException {
+    String longLabel = "Une très longue étiquette de parcours biketeam";
+    // 33 code points, the 32nd a surrogate pair: the cut keeps it whole, never half of it.
+    String emojiLabel = "v".repeat(31) + "\uD83D\uDEB4\uD83D\uDEB4";
+    List<String> labels = new ArrayList<>();
+    labels.add(longLabel);
+    labels.add(emojiLabel);
+    for (int i = 1; i <= 11; i++) {
+      labels.add("T" + i);
+    }
+    routeTagsInSnapshot(objectMapper.writeValueAsString(labels));
+
+    BiketeamJobStatusDto status = migrate(USER4, true, false);
+
+    assertEquals("SUCCEEDED", status.status(), () -> "error: " + status.error());
+    assertEquals(1, status.counts().routes().migrated());
+    long teamId = biketeamData.team(domain, TEAM).id();
+    List<String> onRoute = biketeamData.routeTagLabels(teamId, "Boucle du littoral");
+    assertEquals(10, onRoute.size(), () -> "tags: " + onRoute);
+    String cut = longLabel.substring(0, 32).strip();
+    assertTrue(onRoute.contains(cut), () -> "tags: " + onRoute);
+    String emojiCut = "v".repeat(31) + "\uD83D\uDEB4";
+    assertTrue(onRoute.contains(emojiCut), () -> "tags: " + onRoute);
+    assertTrue(onRoute.contains("T8"));
+    assertFalse(onRoute.contains("T9"));
+    assertFalse(onRoute.contains("T10"));
+    assertFalse(onRoute.contains("T11"));
+    assertTrue(
+        status.warnings().stream()
+            .anyMatch(
+                w ->
+                    w.entityType().equals("ROUTE")
+                        && w.biketeamId().equals("map-1")
+                        && w.code().equals("TAGS_TRUNCATED")
+                        && w.message().contains(cut)
+                        && w.message().contains(emojiCut + "'")
+                        && w.message().contains("T9")
+                        && w.message().contains("T10")
+                        && w.message().contains("T11")),
+        () -> "warnings: " + status.warnings());
+  }
+
+  @Test
+  void routeTags_whenTheTeamHas100RouteTags_aNewLabelIsDropped_anExistingOneStillApplies()
+      throws IOException {
+    migrate(USER4, true, false);
+    BiketeamTestData.TeamView view = biketeamData.team(domain, TEAM);
+    Team team = dataService.findTeamBySlug(domain, view.slug());
+    for (int i = 1; i < fr.pedalons.service.tag.TagService.MAX_TAGS_PER_TEAM_AND_TYPE; i++) {
+      dataService.createTag(team, user4, fr.pedalons.enums.TagTarget.ROUTE, "Existant " + i);
+    }
+
+    routeTagsInSnapshot("[\"Nouveau\", \"Littoral\", \"existant 7\"]");
+    BiketeamJobStatusDto status = migrate(USER4, false, false);
+
+    assertEquals("SUCCEEDED", status.status(), () -> "error: " + status.error());
+    assertEquals(
+        List.of("Existant 7", "littoral"),
+        biketeamData.routeTagLabels(view.id(), "Boucle du littoral"));
+    assertEquals(100, biketeamData.routeTags(view.id()).size());
+    assertTrue(
+        status.warnings().stream()
+            .anyMatch(w -> w.code().equals("TAGS_TRUNCATED") && w.message().contains("'Nouveau'")),
+        () -> "warnings: " + status.warnings());
+  }
+
   // ─── recovery of stuck jobs ───────────────────────────────────────────────
 
   @Test

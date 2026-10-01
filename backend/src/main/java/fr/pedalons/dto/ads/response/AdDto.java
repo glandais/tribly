@@ -7,6 +7,8 @@ import fr.pedalons.domain.ad.Ad;
 import fr.pedalons.dto.common.GeoJsonPoint;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.publications.response.TeamPublicationDto;
+import fr.pedalons.dto.tags.response.ContentTags;
+import fr.pedalons.dto.tags.response.TagDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.AdType;
 import fr.pedalons.enums.ListViewMode;
@@ -84,17 +86,24 @@ public record AdDto(
                     + " a phone number) is a product decision, not a serialisation one.",
             required = true)
         String createdByDisplayName,
-    @Schema(description = "Whether the ad is soft-deleted", required = true) boolean deleted) {
+    @Schema(description = "Whether the ad is soft-deleted", required = true) boolean deleted,
+    @Schema(
+            description =
+                "The team's AD tags the ad carries, sorted by label. Empty when it carries none.",
+            required = true)
+        List<TagDto> tags) {
 
-  public static AdDto from(Ad ad, AssetService assetService) {
-    return from(ad, assetService, ListViewMode.FULL);
+  public static AdDto from(Ad ad, AssetService assetService, ContentTags tags) {
+    return from(ad, assetService, tags, ListViewMode.FULL);
   }
 
   /**
+   * @param tags the tags of this whole page, resolved in one query by {@code TagLookup}
    * @param view {@link ListViewMode#COMPACT} leaves the description and the asset inventory out of the
    *     row; {@code excerpt} and {@code thumbnailUrl} carry what it renders instead
    */
-  public static AdDto from(Ad ad, AssetService assetService, @Nullable ListViewMode view) {
+  public static AdDto from(
+      Ad ad, AssetService assetService, ContentTags tags, @Nullable ListViewMode view) {
     return new AdDto(
         TeamPublicationDto.from(ad.getTeam()),
         TsidUtils.toString(ad.getId()),
@@ -117,6 +126,7 @@ public record AdDto(
         ad.getUpdatedAt(),
         TsidUtils.toString(ad.getCreatedBy().getId()),
         ad.getCreatedBy().getDisplayName(),
-        ad.isDeleted());
+        ad.isDeleted(),
+        tags.forContent(ad.getId()));
   }
 }

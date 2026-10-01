@@ -24,6 +24,7 @@ RouteDto fixtureStageRoute({
   double distance = 78400,
   double elevationGain = 1120,
 }) => RouteDto(
+  tags: const [],
   id: 'route-$slug',
   slug: slug,
   team: kFixtureTeam,
@@ -100,6 +101,7 @@ TripDto fixtureTrip({
         fixtureStage(index: 3),
       ];
   return TripDto(
+    tags: const [],
     type: 'TRIP',
     team: kFixtureTeam,
     id: 'trip1',

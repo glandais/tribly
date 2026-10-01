@@ -17,22 +17,27 @@ import type { RouteFilters } from '@/hooks/filters/routeFilters'
  * The filter keys a dead-end may propose lifting. Range bounds are lifted in pairs:
  * dropping only `minDistance` leaves a half-open range that is not what the user set.
  */
-type LiftableKey = 'distance' | 'elevationGain' | 'hilliness' | 'surfaceType' | 'windDirection'
+type LiftableKey =
+  'distance' | 'elevationGain' | 'hilliness' | 'surfaceType' | 'windDirection' | 'tags'
 
-const LIFTABLE: { key: LiftableKey | 'search'; clears: (keyof RouteFilters)[] }[] = [
+/** A team's list also filters by tag; the cross-team one has no `tags`, so it never lifts them. */
+type DeadEndFilters = RouteFilters & { tags?: string[] }
+
+const LIFTABLE: { key: LiftableKey | 'search'; clears: (keyof DeadEndFilters)[] }[] = [
   { key: 'search', clears: ['search'] },
   { key: 'distance', clears: ['minDistance', 'maxDistance'] },
   { key: 'elevationGain', clears: ['minElevationGain', 'maxElevationGain'] },
   { key: 'hilliness', clears: ['hilliness'] },
   { key: 'surfaceType', clears: ['surfaceType'] },
   { key: 'windDirection', clears: ['windDirection'] },
+  { key: 'tags', clears: ['tags'] },
 ]
 
 interface RouteDeadEndProps {
-  filters: RouteFilters
+  filters: DeadEndFilters
   /** Team list when set, cross-team list when not. */
   teamSlug?: string
-  onSetFilters: (patch: Partial<RouteFilters>) => void
+  onSetFilters: (patch: Partial<DeadEndFilters>) => void
   onClearFilters: () => void
 }
 

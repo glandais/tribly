@@ -1,6 +1,7 @@
 import type { Instant } from './instant.ts'
 import type { RideTemplateGroupDto } from './rideTemplateGroupDto.ts'
 import type { Status } from './status.ts'
+import type { TagDto } from './tagDto.ts'
 import type { TeamPublicationDto } from './teamPublicationDto.ts'
 import type { Visibility } from './visibility.ts'
 
@@ -30,4 +31,6 @@ export interface RideTemplateDto {
   groupCount: number
   /** Template groups */
   groups: RideTemplateGroupDto[]
+  /** The team's RIDE tags of the template, sorted by label. Copied onto a ride created from it: a client prefills the ride's tagIds with them, editable before and after. */
+  tags: TagDto[]
 }

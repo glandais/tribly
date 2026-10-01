@@ -12,6 +12,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../tags/presentation/content_tags.dart';
 
 /// La carte d'une annonce dans la liste de la rubrique.
 ///
@@ -105,6 +106,10 @@ class AdCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (ad.tags.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: PdlSpacing.chipGap),
+                  ContentTagRow(tags: ad.tags, maxVisible: kCardTagLimit),
+                ],
                 const SizedBox(height: PdlSpacing.cardTight),
                 PdlStatRow(
                   stats: <PdlStat>[

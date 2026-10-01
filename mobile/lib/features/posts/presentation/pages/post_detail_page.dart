@@ -22,6 +22,7 @@ import '../../../comments/data/comment_repository.dart';
 import '../../../comments/presentation/widgets/comment_thread.dart';
 import '../../../moderation/presentation/moderation_menu.dart';
 import '../../../teams/providers/team_providers.dart';
+import '../../../tags/presentation/content_tags.dart';
 import '../../data/post_repository.dart';
 import '../../domain/post_neighbours.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
@@ -297,6 +298,12 @@ class _PostDetailContent extends ConsumerWidget {
         ] else if (at != null) ...<Widget>[
           const SizedBox(height: 4),
           Text(AppFormatters.formatFullDate(at), style: t.sub),
+        ],
+        // Les tags sous la signature : ils qualifient le contenu, pas son
+        // statut (ledger `MOB-39`).
+        if (post.tags.isNotEmpty) ...<Widget>[
+          const SizedBox(height: PdlSpacing.chipGap),
+          ContentTagRow(tags: post.tags),
         ],
       ],
     );

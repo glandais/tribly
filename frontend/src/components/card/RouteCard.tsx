@@ -16,6 +16,7 @@ import {
 } from './common'
 import { EntityLogo } from '../common/EntityLogo'
 import { paths } from '@/config/paths'
+import { TagList } from '../tag/TagList'
 
 interface RouteCardProps {
   route: RouteDto
@@ -72,6 +73,8 @@ export function RouteCard({ route, showTeam, actions }: RouteCardProps) {
           )}
           <VisibilityBadge visibility={route.visibility} />
         </Group>
+
+        <TagList tags={route.tags} max={3} mt="xs" />
       </CardContent>
     </Card>
   )

@@ -36,10 +36,13 @@ import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.notification.NotificationPublisher;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.annotation.CheckAccess;
+import fr.pedalons.service.tag.TagLookup;
+import fr.pedalons.service.tag.TagService;
 import fr.pedalons.service.thumbnail.ThumbnailService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -70,6 +73,10 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
 
   @Inject NotificationPublisher notificationPublisher;
 
+  @Inject TagService tagService;
+
+  @Inject TagLookup tagLookup;
+
   @Override
   protected TripRepository getRepository() {
     return tripRepository;
@@ -77,13 +84,21 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
 
   @Override
   protected TripDto toDto(Trip entity) {
+    // The trip's tags and those of its stages' routes, in one query: the stage cards show their
+    // route's tags (docs/plans/archive/2026-10-01-tags.md D15).
+    List<Long> taggedIds = new ArrayList<>();
+    taggedIds.add(entity.getId());
+    entity.getStages().stream()
+        .filter(stage -> !stage.isDeleted() && stage.getRoute() != null)
+        .forEach(stage -> taggedIds.add(stage.getRoute().getId()));
     // One indexed lookup resolves the "registered" flag; anonymous callers cost nothing.
     return TripDto.from(
         entity,
         assetService,
         participationLookup.forTrip(entity.getId()),
         commentCountLookup.forEntity(entity),
-        participantPreviewLookup.forTrip(entity.getId()));
+        participantPreviewLookup.forTrip(entity.getId()),
+        tagLookup.forContents(taggedIds));
   }
 
   /**
@@ -148,6 +163,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
       createTripStage(teamSlug, creator, trip, stageRequest, sortOrder);
       sortOrder++;
     }
+    tagService.replaceTags(trip, request.tagIds());
 
     thumbnailService.generateTripThumbnails(trip);
     notificationPublisher.publicationStatusChanged(trip, null, creator);
@@ -279,6 +295,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
       }
       sortOrder++;
     }
+    tagService.replaceTags(trip, request.tagIds());
 
     tripRepository.persist(trip);
 

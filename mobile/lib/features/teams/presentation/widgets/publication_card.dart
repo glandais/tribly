@@ -16,6 +16,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/deleted_badge.dart';
 import '../../../posts/domain/post_neighbours.dart';
 import '../../../rides/providers/participation_changes.dart';
+import '../../../tags/presentation/content_tags.dart';
 
 /// Les quatre hauteurs de bandeau média de la charte, **partagées**.
 ///
@@ -103,6 +104,7 @@ class _CardShell extends StatelessWidget {
     this.trailingThumbnailUrl,
     this.social,
     this.stats = const <PdlStat>[],
+    this.tags = const <TagDto>[],
   });
 
   final VoidCallback onTap;
@@ -125,6 +127,11 @@ class _CardShell extends StatelessWidget {
   final Widget? social;
 
   final List<PdlStat> stats;
+
+  /// Les tags d'équipe du contenu, tronqués à [kCardTagLimit] (ledger
+  /// `MOB-39`). Sous le titre : ils disent *de quoi* parle le contenu, comme
+  /// l'extrait, et non *où il en est*, qui est l'affaire des badges.
+  final List<TagDto> tags;
 
   @override
   Widget build(BuildContext context) {
@@ -189,6 +196,10 @@ class _CardShell extends StatelessWidget {
                     ],
                   ],
                 ),
+                if (tags.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: PdlSpacing.chipGap),
+                  ContentTagRow(tags: tags, maxVisible: kCardTagLimit),
+                ],
                 if (social != null || trailingThumbnailUrl != null) ...<Widget>[
                   const SizedBox(height: PdlSpacing.cardTight),
                   Row(
@@ -285,6 +296,7 @@ class _RideBody extends ConsumerWidget {
       // **`excerpt`, pas `media.markdown`** : en vue compacte le corps n'est
       // même pas envoyé, et l'aplatir côté client rendait des liens bruts.
       excerpt: ride.excerpt,
+      tags: ride.tags,
       badges: <Widget>[
         ...deletedBadgeFirst(ride.deleted),
         PdlBadge(
@@ -371,6 +383,7 @@ class _PostBody extends StatelessWidget {
       teamLogoUrl: post.team.logoUrl,
       title: post.name,
       excerpt: post.excerpt,
+      tags: post.tags,
       badges: <Widget>[
         ...deletedBadgeFirst(post.deleted),
         PdlBadge(
@@ -427,6 +440,7 @@ class _TripBody extends ConsumerWidget {
       teamLogoUrl: trip.team.logoUrl,
       title: trip.name,
       excerpt: trip.excerpt,
+      tags: trip.tags,
       badges: <Widget>[
         ...deletedBadgeFirst(trip.deleted),
         PdlBadge(

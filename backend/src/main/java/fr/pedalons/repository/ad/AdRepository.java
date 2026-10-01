@@ -12,6 +12,7 @@ import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.repository.common.TeamEntityRepository;
 import fr.pedalons.repository.query.PedalonsQuery;
+import fr.pedalons.repository.tag.TagFilter;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Map;
@@ -114,6 +115,11 @@ public class AdRepository implements TeamEntityRepository<Ad, AdQuery> {
           pedalonsQuery.and(
               "st_distancesphere(coarse_location(te.locationGeometry), :nearPoint) <= :nearRadius",
               Map.of("nearPoint", probe, "nearRadius", radius));
+    }
+
+    Set<Long> tagIds = query.tagIds();
+    if (tagIds != null) {
+      pedalonsQuery = TagFilter.andTaggedWithAny(pedalonsQuery, "te", tagIds);
     }
 
     if (query.sortBy() != null) {

@@ -17,6 +17,7 @@ import fr.pedalons.dto.ads.response.AdListResponse;
 import fr.pedalons.dto.common.CountResponse;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.error.ErrorCode;
+import fr.pedalons.dto.tags.response.ContentTags;
 import fr.pedalons.enums.*;
 import fr.pedalons.repository.ad.AdContactRepository;
 import fr.pedalons.repository.ad.AdQuery;
@@ -24,6 +25,8 @@ import fr.pedalons.repository.ad.AdRepository;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.security.annotation.Logged;
+import fr.pedalons.service.tag.TagLookup;
+import fr.pedalons.service.tag.TagService;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -46,6 +49,10 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
 
   @Inject AdContactEmailService adContactEmailService;
 
+  @Inject TagService tagService;
+
+  @Inject TagLookup tagLookup;
+
   /**
    * Tolerance when matching a submitted point against the blurred one served: ~1 cm, below the six
    * decimals {@link CoarseLocation} rounds to, so a JSON round trip never reads as a move.
@@ -65,7 +72,7 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
 
   @Override
   protected AdDto toDto(Ad entity) {
-    return AdDto.from(entity, assetService);
+    return AdDto.from(entity, assetService, tagLookup.forContents(List.of(entity.getId())));
   }
 
   @Override
@@ -131,6 +138,7 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
   public AdListResponse listAds(
       String teamSlug, AdSearchParams params, @Nullable ListViewMode view, int page, int size) {
     Team team = teamService.getTeam(teamSlug);
+    Set<Long> tagIds = tagFilter(team, params);
     PedalonsPage<Ad> ads =
         adRepository.find(
             AdQuery.builder()
@@ -146,13 +154,17 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
                 .nearLat(params.nearLat())
                 .nearLon(params.nearLon())
                 .nearRadius(params.nearRadius())
+                .tagIds(tagIds)
                 .sortBy(params.sortBy())
                 .sortDir(params.sortDir())
                 .page(page)
                 .size(size)
                 .platformAdmin(isPlatformAdmin())
                 .build());
-    List<AdDto> dtos = ads.items().stream().map(ad -> AdDto.from(ad, assetService, view)).toList();
+    // One query for the tags of the whole page, none for an empty one.
+    ContentTags tags = tagLookup.forContents(ads.items().stream().map(Ad::getId).toList());
+    List<AdDto> dtos =
+        ads.items().stream().map(ad -> AdDto.from(ad, assetService, tags, view)).toList();
     return new AdListResponse(dtos, ads.total(), page, size);
   }
 
@@ -179,8 +191,18 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
                 .nearLat(params.nearLat())
                 .nearLon(params.nearLon())
                 .nearRadius(params.nearRadius())
+                .tagIds(tagFilter(team, params))
                 .platformAdmin(isPlatformAdmin())
                 .build()));
+  }
+
+  /** The resolved {@code ?tags=} filter of the list and of its count, or null for none. */
+  private @Nullable Set<Long> tagFilter(Team team, AdSearchParams params) {
+    List<String> tags = params.tags();
+    if (tags == null || tags.isEmpty()) {
+      return null;
+    }
+    return tagService.resolveFilter(team, TagTarget.AD, tags);
   }
 
   @Transactional
@@ -201,10 +223,11 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
     adRepository.persistAndFlush(ad);
 
     updateMedia(ad, request.media());
+    tagService.replaceTags(ad, request.tagIds());
 
     adRepository.persist(ad);
 
-    return AdDto.from(ad, assetService);
+    return toDto(ad);
   }
 
   @Transactional
@@ -226,10 +249,11 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
     }
 
     updateMedia(ad, request.media());
+    tagService.replaceTags(ad, request.tagIds());
 
     adRepository.persist(ad);
 
-    return AdDto.from(ad, assetService);
+    return toDto(ad);
   }
 
   /** Changes the status alone. An ad is a draft or published, never cancelled (see verifyAd). */
@@ -243,7 +267,7 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
     Ad ad = findBySlug(team, adSlug);
     ad.setStatus(status);
     adRepository.persist(ad);
-    return AdDto.from(ad, assetService);
+    return toDto(ad);
   }
 
   @CheckAccess(entityType = EntityType.AD, action = ActionType.UPDATE)
@@ -337,7 +361,7 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
    * else's ad gets the same ~1 km cell centre as every other reader (docs/LEDGER_*.md SEC-26).
    */
   private AdEditDto toEditDto(Ad ad) {
-    return AdEditDto.from(ad, assetService, isAuthor(ad));
+    return AdEditDto.from(ad, assetService, isAuthor(ad), tagLookup.forContent(ad.getId()));
   }
 
   private boolean isAuthor(Ad ad) {

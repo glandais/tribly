@@ -15,6 +15,9 @@ _RouteRequest _$RouteRequestFromJson(Map<String, dynamic> json) =>
       points: (json['points'] as List<dynamic>?)
           ?.map((e) => GeoPoint.fromJson(e as Map<String, dynamic>))
           .toList(),
+      tagIds: (json['tagIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$RouteRequestToJson(_RouteRequest instance) =>
@@ -24,4 +27,5 @@ Map<String, dynamic> _$RouteRequestToJson(_RouteRequest instance) =>
       'surfaceType': instance.surfaceType,
       'visibility': instance.visibility,
       'points': instance.points?.map((e) => e.toJson()).toList(),
+      'tagIds': instance.tagIds,
     };

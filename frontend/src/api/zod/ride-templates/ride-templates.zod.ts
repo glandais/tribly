@@ -64,6 +64,31 @@ export const ListTemplatesResponse = zod
                   .describe('Ride template group information')
               )
               .describe('Template groups'),
+            tags: zod
+              .array(
+                zod
+                  .object({
+                    id: zod.string().describe('Tag ID (TSID)'),
+                    label: zod.string().describe('Label, at most 32 characters'),
+                    color: zod
+                      .enum([
+                        'INDIGO',
+                        'BLUE',
+                        'GREEN',
+                        'RED',
+                        'YELLOW',
+                        'ORANGE',
+                        'GRAPE',
+                        'TEAL',
+                        'GRAY',
+                      ])
+                      .describe('Colour family'),
+                  })
+                  .describe('A team tag on a content')
+              )
+              .describe(
+                "The team's RIDE tags of the template, sorted by label. Copied onto a ride created from it: a client prefills the ride's tagIds with them, editable before and after."
+              ),
           })
           .describe('Ride template response')
       )
@@ -125,6 +150,12 @@ export const CreateTemplateBody = zod
           .describe('Ride template group request')
       )
       .describe('Template groups'),
+    tagIds: zod
+      .array(zod.string())
+      .optional()
+      .describe(
+        "IDs (TSID) of the team's RIDE tags the template carries (copied onto the rides created from it), replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
+      ),
   })
   .describe('Ride template request')
 
@@ -169,6 +200,21 @@ export const CreateTemplateResponse = zod
           .describe('Ride template group information')
       )
       .describe('Template groups'),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's RIDE tags of the template, sorted by label. Copied onto a ride created from it: a client prefills the ride's tagIds with them, editable before and after."
+      ),
   })
   .describe('Ride template response')
 
@@ -224,6 +270,12 @@ export const UpdateTemplateBody = zod
           .describe('Ride template group request')
       )
       .describe('Template groups'),
+    tagIds: zod
+      .array(zod.string())
+      .optional()
+      .describe(
+        "IDs (TSID) of the team's RIDE tags the template carries (copied onto the rides created from it), replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
+      ),
   })
   .describe('Ride template request')
 
@@ -268,6 +320,21 @@ export const UpdateTemplateResponse = zod
           .describe('Ride template group information')
       )
       .describe('Template groups'),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's RIDE tags of the template, sorted by label. Copied onto a ride created from it: a client prefills the ride's tagIds with them, editable before and after."
+      ),
   })
   .describe('Ride template response')
 
@@ -321,6 +388,21 @@ export const GetTemplateResponse = zod
           .describe('Ride template group information')
       )
       .describe('Template groups'),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's RIDE tags of the template, sorted by label. Copied onto a ride created from it: a client prefills the ride's tagIds with them, editable before and after."
+      ),
   })
   .describe('Ride template response')
 

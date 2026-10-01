@@ -1,11 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../keys.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
+import '../../../tags/presentation/tag_filter.dart';
+import '../../../tags/providers/team_tags_provider.dart';
 import '../../domain/ad_filters.dart';
 import 'ad_sort_sheet.dart';
 
@@ -15,14 +18,22 @@ import 'ad_sort_sheet.dart';
 /// en premier** : elle porte le seul réglage qui ne se devine pas de la liste
 /// elle-même. Suivent les quatre chips de type, **exclusives** — un choix, pas
 /// une combinaison, parce que `adType` est un paramètre unique au contrat.
-class AdsToolbar extends StatelessWidget {
+///
+/// La chip « Tags » ferme la rangée, et seulement quand l'équipe a des tags
+/// d'annonce (ledger `MOB-39`) : elle combine, elle, plusieurs choix en OU.
+class AdsToolbar extends ConsumerWidget {
   const AdsToolbar({super.key, required this.filters, required this.onChanged});
 
   final AdFilters filters;
   final ValueChanged<AdFilters> onChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final List<TagWithUsageDto> vocabulary = teamTagsOrEmpty(ref, (
+      teamSlug: filters.teamSlug,
+      type: TagTarget.ad,
+    ));
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -69,6 +80,13 @@ class AdsToolbar extends StatelessWidget {
                       ? filters.copyWith(clearAdType: true)
                       : filters.copyWith(adType: type),
                 ),
+              ),
+            if (vocabulary.isNotEmpty)
+              TagFilterChip(
+                vocabulary: vocabulary,
+                selected: filters.tagIds,
+                onChanged: (List<String> ids) =>
+                    onChanged(filters.copyWith(tagIds: ids)),
               ),
           ],
         ),

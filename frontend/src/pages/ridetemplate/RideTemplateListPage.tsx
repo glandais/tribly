@@ -37,6 +37,7 @@ import type { RideTemplateDto } from '@/api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useUnits } from '@/hooks/useUnits'
 import { VISIBILITY_COLORS } from '@/lib/badgeColors.generated'
+import { TagList } from '@/components/tag'
 
 export function RideTemplateListPage() {
   const { t } = useTranslation()
@@ -169,6 +170,8 @@ export function RideTemplateListPage() {
                           ))}
                         </Group>
                       )}
+                      {/* Copied onto each ride created from the template (plan D14). */}
+                      <TagList tags={template.tags} mt="xs" />
                     </Stack>
                     {canManage && (
                       <Group gap="xs" ml="md">

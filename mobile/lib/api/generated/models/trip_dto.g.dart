@@ -27,6 +27,9 @@ _TripDto _$TripDtoFromJson(Map<String, dynamic> json) => _TripDto(
       .toList(),
   deleted: json['deleted'] as bool,
   registered: json['registered'] as bool,
+  tags: (json['tags'] as List<dynamic>)
+      .map((e) => TagDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
   excerpt: json['excerpt'] as String?,
   endDate: json['endDate'] as String?,
   publishAt: json['publishAt'] as String?,
@@ -57,6 +60,7 @@ Map<String, dynamic> _$TripDtoToJson(_TripDto instance) => <String, dynamic>{
   'participants': instance.participants.map((e) => e.toJson()).toList(),
   'deleted': instance.deleted,
   'registered': instance.registered,
+  'tags': instance.tags.map((e) => e.toJson()).toList(),
   'excerpt': instance.excerpt,
   'endDate': instance.endDate,
   'publishAt': instance.publishAt,

@@ -2,6 +2,7 @@ package fr.pedalons.dto.routes.request;
 
 import fr.pedalons.enums.*;
 import fr.pedalons.service.team.request.MinRole;
+import java.util.List;
 import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 
@@ -29,4 +30,7 @@ public record RouteSearchParams(
     @Nullable NearType nearType,
     @Nullable RouteSortBy sortBy,
     @Nullable SortDirection sortDir,
-    @Nullable ListViewMode view) {}
+    @Nullable ListViewMode view,
+    // The ?tags= filter, raw — team-scoped endpoints only (docs/plans/archive/2026-10-01-tags.md
+    // D7).
+    @Nullable List<String> tags) {}

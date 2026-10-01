@@ -22,6 +22,7 @@ import '../../../comments/presentation/widgets/comment_thread.dart';
 import '../../../moderation/presentation/moderation_menu.dart';
 import '../../../participants/presentation/widgets/participants_sheet.dart';
 import '../../../teams/providers/team_providers.dart';
+import '../../../tags/presentation/content_tags.dart';
 import '../../providers/trip_detail_provider.dart';
 import '../../providers/trip_participation_controller.dart';
 import '../../providers/trip_stage_selection_provider.dart';
@@ -422,6 +423,10 @@ class _TripDetailContent extends ConsumerWidget {
                 ),
             ],
           ),
+          if (trip.tags.isNotEmpty) ...<Widget>[
+            const SizedBox(height: PdlSpacing.chipGap),
+            ContentTagRow(tags: trip.tags),
+          ],
         ],
       ),
     );

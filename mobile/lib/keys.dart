@@ -16,6 +16,7 @@ import 'features/posts/keys.dart';
 import 'features/profile/keys.dart';
 import 'features/rides/keys.dart';
 import 'features/routes/keys.dart';
+import 'features/tags/keys.dart';
 import 'features/teams/keys.dart';
 import 'features/trips/keys.dart';
 
@@ -49,4 +50,5 @@ class Keys {
   final routeDetail = RouteDetailKeys();
   final feed = FeedKeys();
   final adsList = AdsListKeys();
+  final tags = TagKeys();
 }

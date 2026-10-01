@@ -24,8 +24,10 @@ import fr.pedalons.dto.routes.response.RouteUsageDto;
 import fr.pedalons.dto.routes.response.RouteUsagesResponse;
 import fr.pedalons.dto.routes.response.RoutesBulkResponse;
 import fr.pedalons.dto.routes.response.TrackDto;
+import fr.pedalons.dto.tags.response.ContentTags;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
+import fr.pedalons.enums.TagTarget;
 import fr.pedalons.enums.WindDirection;
 import fr.pedalons.repository.asset.AssetRepository;
 import fr.pedalons.repository.common.TeamEntityQueryBasic;
@@ -38,6 +40,8 @@ import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.route.response.TrackMetadata;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.security.annotation.Public;
+import fr.pedalons.service.tag.TagLookup;
+import fr.pedalons.service.tag.TagService;
 import io.github.glandais.gpx.data.GPX;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -88,6 +92,10 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
 
   @Inject TripRepository tripRepository;
 
+  @Inject TagService tagService;
+
+  @Inject TagLookup tagLookup;
+
   @Override
   protected RouteRepository getRepository() {
     return routeRepository;
@@ -95,7 +103,8 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
 
   @Override
   protected RouteDetailDto toDto(Route entity) {
-    return RouteDetailDto.from(entity, assetService, commentCountLookup.forEntity(entity), true);
+    return RouteDetailDto.from(
+        entity, assetService, commentCountLookup.forEntity(entity), tagsOf(entity), true);
   }
 
   @Override
@@ -163,11 +172,12 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
     // Two queries for the whole batch — the comment count of a bulk row must not cost a
     // round-trip per row, same rule as any other page.
     CommentCounts commentCounts = commentCountLookup.forEntities(routes);
+    ContentTags tags = tagLookup.forContents(routes.stream().map(Route::getId).toList());
 
     Map<String, RouteDetailDto> bySlug = new LinkedHashMap<>();
     for (Route route : routes) {
       bySlug.put(
-          route.getSlug(), RouteDetailDto.from(route, assetService, commentCounts, geometry));
+          route.getSlug(), RouteDetailDto.from(route, assetService, commentCounts, tags, geometry));
     }
 
     List<RouteDetailDto> ordered =
@@ -273,6 +283,8 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
 
     // Persist to get ID for file storage
     routeRepository.persistAndFlush(route);
+    // Before the GPX work: a refused tag is a 400 with nothing stored yet.
+    tagService.replaceTags(route, request.tagIds());
 
     try {
 
@@ -299,7 +311,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
 
       updateMedia(route, request.media());
       routeRepository.persist(route);
-      return RouteDto.from(route, assetService, commentCountLookup.forEntity(route));
+      return RouteDto.from(route, assetService, commentCountLookup.forEntity(route), tagsOf(route));
     } catch (Exception e) {
       gpxProcessingService.deleteRouteFiles(route);
       throw e;
@@ -348,6 +360,8 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
     route.setSurfaceType(request.surfaceType());
     route.setVisibility(request.visibility());
     route.setDateTime(Instant.now());
+    // Before the GPX work, for the same reason as on creation.
+    tagService.replaceTags(route, request.tagIds());
 
     // Read before the try below: a file refused here (unparseable, or too long — SEC-6) keeps its
     // own error code and leaves the route's current files alone, which the catch would delete.
@@ -391,7 +405,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
 
     updateMedia(route, request.media());
     routeRepository.persist(route);
-    return RouteDto.from(route, assetService, commentCountLookup.forEntity(route));
+    return RouteDto.from(route, assetService, commentCountLookup.forEntity(route), tagsOf(route));
   }
 
   @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.UPDATE)
@@ -408,7 +422,11 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   public RouteListResponse getRoutes(String teamSlug, RouteSearchParams params) {
     Team team = teamService.getTeam(teamSlug);
     return getRoutesWithTeamIds(
-        Set.of(team.getId()), pedalonsContext.getUserNullable(), params, isIncludeDeleted(team));
+        Set.of(team.getId()),
+        pedalonsContext.getUserNullable(),
+        params,
+        isIncludeDeleted(team),
+        tagFilter(team, params));
   }
 
   /**
@@ -416,7 +434,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
    */
   @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST_ALL_TEAMS)
   public RouteListResponse getAllRoutes(RouteSearchParams params) {
-    return getRoutesWithTeamIds(null, pedalonsContext.getUserNullable(), params, false);
+    return getRoutesWithTeamIds(null, pedalonsContext.getUserNullable(), params, false, null);
   }
 
   /**
@@ -434,7 +452,8 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
                 Set.of(team.getId()),
                 pedalonsContext.getUserNullable(),
                 params,
-                isIncludeDeleted(team))));
+                isIncludeDeleted(team),
+                tagFilter(team, params))));
   }
 
   /** How many routes {@link #getAllRoutes} would list, without listing them. */
@@ -442,7 +461,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   public CountResponse countAllRoutes(RouteSearchParams params) {
     return new CountResponse(
         routeRepository.countMatching(
-            listQuery(null, pedalonsContext.getUserNullable(), params, false)));
+            listQuery(null, pedalonsContext.getUserNullable(), params, false, null)));
   }
 
   /**
@@ -451,7 +470,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST)
   public byte[] getRoutesTile(String teamSlug, RouteSearchParams params, int z, int x, int y) {
     Team team = teamService.getTeam(teamSlug);
-    return tile(Set.of(team.getId()), params, z, x, y);
+    return tile(Set.of(team.getId()), params, tagFilter(team, params), z, x, y);
   }
 
   /**
@@ -460,7 +479,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
    */
   @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST_ALL_TEAMS)
   public byte[] getAllRoutesTile(RouteSearchParams params, int z, int x, int y) {
-    return tile(null, params, z, x, y);
+    return tile(null, params, null, z, x, y);
   }
 
   /**
@@ -470,7 +489,8 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   public RouteBoundsResponse getRoutesBounds(String teamSlug, RouteSearchParams params) {
     Team team = teamService.getTeam(teamSlug);
     return new RouteBoundsResponse(
-        routeRepository.bounds(aggregateQuery(Set.of(team.getId()), params)));
+        routeRepository.bounds(
+            aggregateQuery(Set.of(team.getId()), params, tagFilter(team, params))));
   }
 
   /**
@@ -479,11 +499,34 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
    */
   @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST_ALL_TEAMS)
   public RouteBoundsResponse getAllRoutesBounds(RouteSearchParams params) {
-    return new RouteBoundsResponse(routeRepository.bounds(aggregateQuery(null, params)));
+    return new RouteBoundsResponse(routeRepository.bounds(aggregateQuery(null, params, null)));
   }
 
-  private byte[] tile(@Nullable Set<Long> teamIds, RouteSearchParams params, int z, int x, int y) {
-    return routeRepository.mvtTile(aggregateQuery(teamIds, params), z, x, y);
+  private byte[] tile(
+      @Nullable Set<Long> teamIds,
+      RouteSearchParams params,
+      @Nullable Set<Long> tagIds,
+      int z,
+      int x,
+      int y) {
+    return routeRepository.mvtTile(aggregateQuery(teamIds, params, tagIds), z, x, y);
+  }
+
+  /**
+   * The resolved {@code ?tags=} filter of a team's route list, tile, bounds or count — one
+   * resolution for all four, so the map and the list it sits beside agree. The cross-team
+   * endpoints never filter on a tag (plan D7) and pass null instead.
+   */
+  private @Nullable Set<Long> tagFilter(Team team, RouteSearchParams params) {
+    List<String> tags = params.tags();
+    if (tags == null || tags.isEmpty()) {
+      return null;
+    }
+    return tagService.resolveFilter(team, TagTarget.ROUTE, tags);
+  }
+
+  private ContentTags tagsOf(Route route) {
+    return tagLookup.forContents(List.of(route.getId()));
   }
 
   /**
@@ -491,7 +534,8 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
    * sort and the pagination of {@code params} are therefore deliberately dropped — an {@code ORDER
    * BY} would break an aggregate projection, and neither answer is paginated.
    */
-  private RouteQuery aggregateQuery(@Nullable Set<Long> teamIds, RouteSearchParams params) {
+  private RouteQuery aggregateQuery(
+      @Nullable Set<Long> teamIds, RouteSearchParams params, @Nullable Set<Long> tagIds) {
     User user = pedalonsContext.getUserNullable();
     return RouteQuery.builder()
         .domainId(pedalonsContext.getDomainId())
@@ -511,6 +555,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
         .nearLon(params.nearLon())
         .nearRadius(params.nearRadius())
         .nearType(params.nearType())
+        .tagIds(tagIds)
         .includeDeleted(false)
         .platformAdmin(isPlatformAdmin())
         .build();
@@ -524,7 +569,8 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
       @Nullable Set<Long> teamIds,
       @Nullable User user,
       RouteSearchParams params,
-      boolean includeDeleted) {
+      boolean includeDeleted,
+      @Nullable Set<Long> tagIds) {
     return RouteQuery.builder()
         .domainId(pedalonsContext.getDomainId())
         .pinnedTeamId(pedalonsContext.getPinnedTeamIdNullable())
@@ -545,6 +591,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
         .nearLon(params.nearLon())
         .nearRadius(params.nearRadius())
         .nearType(params.nearType())
+        .tagIds(tagIds)
         .sortBy(params.sortBy())
         .sortDir(params.sortDir())
         .includeDeleted(includeDeleted)
@@ -556,15 +603,19 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
       @Nullable Set<Long> teamIds,
       @Nullable User user,
       RouteSearchParams params,
-      boolean includeDeleted) {
+      boolean includeDeleted,
+      @Nullable Set<Long> tagIds) {
     PedalonsPage<Route> routes =
-        routeRepository.find(listQuery(teamIds, user, params, includeDeleted));
+        routeRepository.find(listQuery(teamIds, user, params, includeDeleted, tagIds));
     // Two queries for the whole page — the comment count of a list row must not cost a round-trip
     // per row, and it is only filled in for teams this caller belongs to.
     CommentCounts commentCounts = commentCountLookup.forEntities(routes.items());
+    // One more for the tags of the whole page, cross-team lists included (plan D7: shown there,
+    // just not filterable).
+    ContentTags tags = tagLookup.forContents(routes.items().stream().map(Route::getId).toList());
     List<RouteDto> dtos =
         routes.items().stream()
-            .map(route -> RouteDto.from(route, assetService, commentCounts, params.view()))
+            .map(route -> RouteDto.from(route, assetService, commentCounts, tags, params.view()))
             .toList();
     return new RouteListResponse(dtos, routes.total(), params.page(), params.size());
   }

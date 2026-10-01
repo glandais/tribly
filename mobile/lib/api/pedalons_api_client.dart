@@ -168,6 +168,10 @@ final teamPagesClientProvider = Provider<TeamPagesClient>((ref) {
   return ref.watch(apiClientProvider).teamPages;
 });
 
+final tagsClientProvider = Provider<TagsClient>((ref) {
+  return ref.watch(apiClientProvider).tags;
+});
+
 // Les quatre clients de commentaires. Ils partagent la même forme d'API mais
 // pas d'interface commune côté généré : c'est `CommentRepository` qui les
 // unifie derrière un `CommentTarget`.

@@ -13,6 +13,7 @@ import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.infrastructure.geom.TileUtils;
 import fr.pedalons.repository.common.TeamEntityRepository;
 import fr.pedalons.repository.query.PedalonsQuery;
+import fr.pedalons.repository.tag.TagFilter;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.TypedQuery;
 import java.util.List;
@@ -202,6 +203,11 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
           };
       pedalonsQuery =
           pedalonsQuery.and(geoClause, Map.of("nearPoint", nearPoint, "nearRadius", radius));
+    }
+
+    Set<Long> tagIds = query.tagIds();
+    if (tagIds != null) {
+      pedalonsQuery = TagFilter.andTaggedWithAny(pedalonsQuery, "te", tagIds);
     }
 
     // Custom sorting

@@ -3,6 +3,7 @@ import type { MediaDto } from './mediaDto.ts'
 import type { PostDtoType } from './postDtoType.ts'
 import type { PublicUserDto } from './publicUserDto.ts'
 import type { Status } from './status.ts'
+import type { TagDto } from './tagDto.ts'
 import type { TeamPublicationDto } from './teamPublicationDto.ts'
 import type { Visibility } from './visibility.ts'
 
@@ -43,4 +44,6 @@ export interface PostDto {
   signedAsTeam: boolean
   /** Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead. */
   createdBy?: PublicUserDto
+  /** The team's POST tags the post carries, sorted by label. Empty when it carries none. */
+  tags: TagDto[]
 }

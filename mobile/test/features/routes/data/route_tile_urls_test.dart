@@ -87,6 +87,29 @@ void main() {
     /// Les doubles entiers sortent sans décimale : `10000.0` serait accepté par
     /// le backend mais ferait une URL différente de celle du web, donc un cache
     /// de tuiles distinct pour rien.
+    test('les tags d\'une équipe passent, joints par des virgules', () {
+      final String url = RouteTileUrls.teamRoutes(
+        apiBaseUrl: _base,
+        teamSlug: 'n-peloton',
+        token: 'abc',
+        filters: const RouteFilters(
+          teamSlug: 'n-peloton',
+          tagIds: <String>['a1', 'b2'],
+        ),
+      );
+      expect(url, contains('tags=a1%2Cb2&t=abc'));
+    });
+
+    test('sans tag, pas de paramètre tags', () {
+      final String url = RouteTileUrls.teamRoutes(
+        apiBaseUrl: _base,
+        teamSlug: 'n-peloton',
+        token: 'abc',
+        filters: const RouteFilters(teamSlug: 'n-peloton'),
+      );
+      expect(url, isNot(contains('tags=')));
+    });
+
     test('les distances entières sortent sans décimale', () {
       final String url = RouteTileUrls.allRoutes(
         apiBaseUrl: _base,

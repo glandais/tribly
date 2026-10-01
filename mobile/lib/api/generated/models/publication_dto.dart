@@ -13,6 +13,7 @@ import 'publication_type.dart';
 import 'ride_dto.dart';
 import 'ride_group_dto.dart';
 import 'status.dart';
+import 'tag_dto.dart';
 import 'team_publication_dto.dart';
 import 'trip_dto.dart';
 import 'trip_stage_dto.dart';
@@ -73,6 +74,9 @@ sealed class PublicationDto with _$PublicationDto {
 
     /// Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.
     required bool full,
+
+    /// The team's RIDE tags the ride carries, sorted by label. Empty when it carries none.
+    required List<TagDto> tags,
 
     /// Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter.
     String? excerpt,
@@ -146,6 +150,9 @@ sealed class PublicationDto with _$PublicationDto {
     /// Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.
     required bool signedAsTeam,
 
+    /// The team's POST tags the post carries, sorted by label. Empty when it carries none.
+    required List<TagDto> tags,
+
     /// Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter.
     String? excerpt,
 
@@ -211,6 +218,9 @@ sealed class PublicationDto with _$PublicationDto {
 
     /// Whether the current user is registered for this trip. False if anonymous.
     required bool registered,
+
+    /// The team's TRIP tags the trip carries, sorted by label. Empty when it carries none.
+    required List<TagDto> tags,
 
     /// Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter.
     String? excerpt,

@@ -63,6 +63,13 @@ public interface BiketeamMigrationProgress {
      */
     public static final String TRIP_STAGES_OUTSIDE_DATES = "TRIP_STAGES_OUTSIDE_DATES";
 
+    /**
+     * A route whose biketeam tags did not all fit Pédalons' bounds (plan 2026-10-01-tags D16): a
+     * label cut to 32 characters, or tags dropped beyond 10 on the route or 100 in the team. The
+     * route is migrated with the first ones.
+     */
+    public static final String TAGS_TRUNCATED = "TAGS_TRUNCATED";
+
     private Codes() {}
   }
 

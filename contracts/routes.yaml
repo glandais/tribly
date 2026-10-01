@@ -337,6 +337,14 @@ routes:
     params:
       - teamSlug
     web: true
+  # Vocabulary of the team's tags, one tab per kind of content (docs/LEDGER_*.md WEB-40).
+  - id: teamAdminTags
+    path:
+      en: /teams/{teamSlug}/admin/tags
+      fr: /equipes/{teamSlug}/admin/tags
+    params:
+      - teamSlug
+    web: true
   - id: teamAdminPages
     path:
       en: /teams/{teamSlug}/admin/pages

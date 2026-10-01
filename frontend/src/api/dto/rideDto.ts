@@ -5,6 +5,7 @@ import type { PublicUserDto } from './publicUserDto.ts'
 import type { RideDtoType } from './rideDtoType.ts'
 import type { RideGroupDto } from './rideGroupDto.ts'
 import type { Status } from './status.ts'
+import type { TagDto } from './tagDto.ts'
 import type { TeamPublicationDto } from './teamPublicationDto.ts'
 import type { Visibility } from './visibility.ts'
 
@@ -71,4 +72,6 @@ export interface RideDto {
   maxParticipants?: number
   /** Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero. */
   commentCount?: number
+  /** The team's RIDE tags the ride carries, sorted by label. Empty when it carries none. */
+  tags: TagDto[]
 }

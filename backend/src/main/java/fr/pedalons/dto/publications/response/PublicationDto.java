@@ -10,6 +10,7 @@ import fr.pedalons.dto.comments.response.CommentCounts;
 import fr.pedalons.dto.posts.response.PostAuthors;
 import fr.pedalons.dto.posts.response.PostDto;
 import fr.pedalons.dto.rides.response.RideDto;
+import fr.pedalons.dto.tags.response.ContentTags;
 import fr.pedalons.dto.trips.response.TripDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.ListViewMode;
@@ -48,22 +49,10 @@ public interface PublicationDto {
 
   String getName();
 
-  static PublicationDto from(Publication publication, AssetService assetService) {
-    return from(
-        publication,
-        assetService,
-        PublicationListSummaries.EMPTY,
-        UserParticipations.NONE,
-        CommentCounts.NONE);
-  }
-
-  static PublicationDto from(
-      Publication publication, AssetService assetService, PublicationListSummaries summaries) {
-    return from(publication, assetService, summaries, UserParticipations.NONE, CommentCounts.NONE);
-  }
-
   /**
-   * Builds one row of a publication list.
+   * Builds one row of a publication list at the requested level of detail. Every page lookup is
+   * required: no overload defaults one, so a list caller cannot silently render rows without their
+   * tags or « me » fields.
    *
    * @param summaries the association aggregates for this page, loaded in bulk so no row has to walk
    *     an association it only needs a count of
@@ -71,31 +60,12 @@ public interface PublicationDto {
    *     bulk — the "me" fields must not cost a query per row
    * @param commentCounts the comment count of each row the caller may read, also loaded in bulk; a
    *     row absent from it renders no {@code commentCount} at all
-   */
-  static PublicationDto from(
-      Publication publication,
-      AssetService assetService,
-      PublicationListSummaries summaries,
-      UserParticipations participations,
-      CommentCounts commentCounts) {
-    return from(
-        publication,
-        assetService,
-        summaries,
-        participations,
-        commentCounts,
-        PostAuthors.NONE,
-        ListViewMode.FULL);
-  }
-
-  /**
-   * Builds one row of a publication list at the requested level of detail.
-   *
    * @param view {@link ListViewMode#COMPACT} leaves the markdown body and the asset inventory out of
    *     every row — a feed of twenty publications stops carrying twenty full articles for forty
    *     rendered lines. {@code excerpt} and {@code thumbnailUrl} are what a compact row reads, and
    *     they are present either way.
    * @param postAuthors who wrote each post of the page the caller may know of, loaded in bulk
+   * @param tags the tags of every row of the page, loaded in bulk by {@code TagLookup}
    */
   static PublicationDto from(
       Publication publication,
@@ -104,9 +74,10 @@ public interface PublicationDto {
       UserParticipations participations,
       CommentCounts commentCounts,
       PostAuthors postAuthors,
+      ContentTags tags,
       @Nullable ListViewMode view) {
     return switch (publication) {
-      case Post post -> PostDto.from(post, assetService, commentCounts, postAuthors, view);
+      case Post post -> PostDto.from(post, assetService, commentCounts, postAuthors, tags, view);
       case Ride ride ->
           RideDto.fromListItem(
               ride,
@@ -114,6 +85,7 @@ public interface PublicationDto {
               assetService,
               participations,
               commentCounts,
+              tags,
               view);
       case Trip trip ->
           TripDto.fromListItem(
@@ -122,6 +94,7 @@ public interface PublicationDto {
               assetService,
               participations,
               commentCounts,
+              tags,
               view);
       default -> throw new IllegalStateException("Invalid Publication object");
     };

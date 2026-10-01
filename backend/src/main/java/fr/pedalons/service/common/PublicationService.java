@@ -14,11 +14,13 @@ import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.publications.response.PublicationListSummaries;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.dto.publications.response.UserParticipations;
+import fr.pedalons.dto.tags.response.ContentTags;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.Status;
+import fr.pedalons.enums.TagTarget;
 import fr.pedalons.repository.common.AllPublicationRepository;
 import fr.pedalons.repository.common.PublicationQuery;
 import fr.pedalons.repository.ride.RideSummaryRepository;
@@ -28,6 +30,8 @@ import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.post.PostAuthorLookup;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.CheckAccess;
+import fr.pedalons.service.tag.TagLookup;
+import fr.pedalons.service.tag.TagService;
 import fr.pedalons.service.team.TeamService;
 import fr.pedalons.service.team.request.MinRole;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -59,6 +63,10 @@ public class PublicationService {
   @Inject CommentCountLookup commentCountLookup;
 
   @Inject PostAuthorLookup postAuthorLookup;
+
+  @Inject TagLookup tagLookup;
+
+  @Inject TagService tagService;
 
   /** Without the "me" filters — kept so existing callers do not have to pass two nulls. */
   @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST_ALL_TEAMS)
@@ -209,6 +217,30 @@ public class PublicationService {
       @Nullable ListViewMode view,
       int page,
       int size) {
+    return listTeam(
+        teamSlug, type, search, from, to, status, participating, null, view, page, size);
+  }
+
+  /**
+   * @param tags the {@code ?tags=} filter of a team's dedicated list (plan D6, D18): ids of the
+   *     team's tags of kind {@code type}, comma-separated or repeated. Honoured only with a {@code
+   *     type} — the rides, the posts or the trips of the team; the mixed feed has no tag filter
+   *     (plan D13) and ignores it. Unknown ids are ignored, and a filter left with none is no
+   *     filter.
+   */
+  @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST)
+  public PublicationListResponse listTeam(
+      String teamSlug,
+      @Nullable PublicationType type,
+      @Nullable String search,
+      @Nullable Instant from,
+      @Nullable Instant to,
+      @Nullable Status status,
+      boolean participating,
+      @Nullable List<String> tags,
+      @Nullable ListViewMode view,
+      int page,
+      int size) {
     Team team = teamService.getTeam(teamSlug);
     boolean includeDeleted = includeDeletedService.isTeamEntityIncludeDeleted(team);
     return list(
@@ -219,6 +251,7 @@ public class PublicationService {
             .from(from)
             .to(to)
             .status(status)
+            .tagIds(tagFilter(team, type, tags))
             .participating(participating)
             .includeDeleted(includeDeleted)
             .build(),
@@ -258,6 +291,20 @@ public class PublicationService {
       @Nullable Instant to,
       @Nullable Status status,
       boolean participating) {
+    return countTeam(teamSlug, type, search, from, to, status, participating, null);
+  }
+
+  /** Same, with the {@code ?tags=} filter of {@link #listTeam}. */
+  @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST)
+  public CountResponse countTeam(
+      String teamSlug,
+      @Nullable PublicationType type,
+      @Nullable String search,
+      @Nullable Instant from,
+      @Nullable Instant to,
+      @Nullable Status status,
+      boolean participating,
+      @Nullable List<String> tags) {
     Team team = teamService.getTeam(teamSlug);
     boolean includeDeleted = includeDeletedService.isTeamEntityIncludeDeleted(team);
     return count(
@@ -268,9 +315,22 @@ public class PublicationService {
             .from(from)
             .to(to)
             .status(status)
+            .tagIds(tagFilter(team, type, tags))
             .participating(participating)
             .includeDeleted(includeDeleted)
             .build());
+  }
+
+  /**
+   * The resolved {@code ?tags=} filter of a team list, or null. Without a type the list is the
+   * mixed feed, which filters on no tag (plan D13): the parameter is then ignored, not an error.
+   */
+  private @Nullable Set<Long> tagFilter(
+      Team team, @Nullable PublicationType type, @Nullable List<String> tags) {
+    if (type == null || tags == null || tags.isEmpty()) {
+      return null;
+    }
+    return tagService.resolveFilter(team, TagTarget.valueOf(type.name()), tags);
   }
 
   /**
@@ -340,6 +400,9 @@ public class PublicationService {
     // At most two more, for the authors of the posts on the page (docs/LEDGER_*.md API-6).
     PostAuthors postAuthors =
         postAuthorLookup.forPosts(itemsOfType(publications.items(), Post.class));
+    // One more for the tags of every row (docs/LEDGER_*.md API-59), none for an empty page.
+    ContentTags tags =
+        tagLookup.forContents(publications.items().stream().map(Publication::getId).toList());
     List<PublicationDto> dtos =
         publications.items().stream()
             .map(
@@ -351,6 +414,7 @@ public class PublicationService {
                         participations,
                         commentCounts,
                         postAuthors,
+                        tags,
                         view))
             .toList();
     return new PublicationListResponse(dtos, publications.total(), query.page(), query.size());

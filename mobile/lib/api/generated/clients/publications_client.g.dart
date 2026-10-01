@@ -125,6 +125,7 @@ class _PublicationsClient implements PublicationsClient {
     String? from,
     String? search,
     Status? status,
+    List<String>? tags,
     String? to,
     PublicationType? type,
     ListViewMode? view,
@@ -137,6 +138,7 @@ class _PublicationsClient implements PublicationsClient {
       r'from': from,
       r'search': search,
       r'status': status?.toJson(),
+      r'tags': tags,
       r'to': to,
       r'type': type?.toJson(),
       r'view': view?.toJson(),
@@ -172,6 +174,7 @@ class _PublicationsClient implements PublicationsClient {
     String? from,
     String? search,
     Status? status,
+    List<String>? tags,
     String? to,
     PublicationType? type,
   }) async {
@@ -181,6 +184,7 @@ class _PublicationsClient implements PublicationsClient {
       r'from': from,
       r'search': search,
       r'status': status?.toJson(),
+      r'tags': tags,
       r'to': to,
       r'type': type?.toJson(),
     };

@@ -33,6 +33,7 @@ import { Pagination } from '../../components/common/Pagination'
 import { ResultCount } from '../../components/common/ResultCount'
 import { SearchInput } from '../../components/common/SearchInput'
 import { TeamLayout } from '../../components/team/TeamLayout'
+import { TagFilter } from '../../components/tag'
 import { paths } from '@/config/paths'
 import { AdType } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
@@ -96,6 +97,7 @@ export function AdListPage() {
       adType: undefined,
       minPrice: undefined,
       maxPrice: undefined,
+      tags: undefined,
       page: 0,
     })
   }
@@ -192,6 +194,14 @@ export function AdListPage() {
           {t('ads.list.filters.priceHint')}
         </Text>
       </Group>
+
+      <TagFilter
+        teamSlug={teamData.slug}
+        type="AD"
+        value={filters.tags}
+        onChange={(tags) => setFilters({ tags })}
+        mt="xs"
+      />
 
       <Space h="md" />
 

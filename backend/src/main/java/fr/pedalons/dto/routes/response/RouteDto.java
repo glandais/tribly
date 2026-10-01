@@ -6,12 +6,15 @@ import fr.pedalons.domain.route.Route;
 import fr.pedalons.dto.comments.response.CommentCounts;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.publications.response.TeamPublicationDto;
+import fr.pedalons.dto.tags.response.ContentTags;
+import fr.pedalons.dto.tags.response.TagDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.SurfaceType;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
 import java.time.Instant;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
@@ -54,17 +57,21 @@ public record RouteDto(
                 "Number of comments, replies included. Absent when the caller may not read the"
                     + " comments of this route — comments are members-only, so an outsider is told"
                     + " nothing, not even zero.")
-        Integer commentCount) {
+        Integer commentCount,
+    @Schema(
+            description =
+                "The team's ROUTE tags the route carries, sorted by label. Empty when it carries"
+                    + " none.",
+            required = true)
+        List<TagDto> tags) {
 
-  public static RouteDto from(Route route, AssetService assetService) {
-    return from(route, assetService, CommentCounts.NONE);
-  }
-
-  public static RouteDto from(Route route, AssetService assetService, CommentCounts commentCounts) {
-    return from(route, assetService, commentCounts, ListViewMode.FULL);
+  public static RouteDto from(
+      Route route, AssetService assetService, CommentCounts commentCounts, ContentTags tags) {
+    return from(route, assetService, commentCounts, tags, ListViewMode.FULL);
   }
 
   /**
+   * @param tags the tags of this whole page, resolved in one query by {@code TagLookup}
    * @param view {@link ListViewMode#COMPACT} leaves the description and the asset inventory out of the
    *     row; {@code excerpt} and {@code thumbnailUrl} carry what it renders instead
    */
@@ -72,6 +79,7 @@ public record RouteDto(
       Route route,
       AssetService assetService,
       CommentCounts commentCounts,
+      ContentTags tags,
       @Nullable ListViewMode view) {
     return new RouteDto(
         TsidUtils.toString(route.getId()),
@@ -88,7 +96,8 @@ public record RouteDto(
         route.getVisibility(),
         route.getCreatedAt(),
         route.isDeleted(),
-        commentCounts.forEntity(route.getId()));
+        commentCounts.forEntity(route.getId()),
+        tags.forContent(route.getId()));
   }
 
   /** The route's own thumbnail, light preferred over dark — the map preview a card shows. */

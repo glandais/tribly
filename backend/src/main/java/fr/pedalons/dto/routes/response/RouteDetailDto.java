@@ -6,6 +6,8 @@ import fr.pedalons.dto.comments.response.CommentCounts;
 import fr.pedalons.dto.common.GeoJsonPoint;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.publications.response.TeamPublicationDto;
+import fr.pedalons.dto.tags.response.ContentTags;
+import fr.pedalons.dto.tags.response.TagDto;
 import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.SurfaceType;
@@ -55,11 +57,13 @@ public record RouteDetailDto(
                 "Number of comments, replies included. Absent when the caller may not read the"
                     + " comments of this route — comments are members-only, so an outsider is told"
                     + " nothing, not even zero.")
-        Integer commentCount) {
-
-  public static RouteDetailDto from(Route route, AssetService assetService) {
-    return from(route, assetService, CommentCounts.NONE, true);
-  }
+        Integer commentCount,
+    @Schema(
+            description =
+                "The team's ROUTE tags the route carries, sorted by label. Empty when it carries"
+                    + " none.",
+            required = true)
+        List<TagDto> tags) {
 
   /**
    * The route detail.
@@ -68,9 +72,16 @@ public record RouteDetailDto(
    * empty lines — a GeoJSON {@code LineString} with no coordinate is not a valid geometry. It
    * exists for the screens that show a route's name and figures without drawing it; everything
    * else about the payload is identical.
+   *
+   * @param tags the tags of the route — of the whole batch on the bulk path — from {@code
+   *     TagLookup}
    */
   public static RouteDetailDto from(
-      Route route, AssetService assetService, CommentCounts commentCounts, boolean withGeometry) {
+      Route route,
+      AssetService assetService,
+      CommentCounts commentCounts,
+      ContentTags tags,
+      boolean withGeometry) {
     return new RouteDetailDto(
         TsidUtils.toString(route.getId()),
         route.getSlug(),
@@ -92,7 +103,8 @@ public record RouteDetailDto(
             : List.of(),
         route.getWaypoints().stream().map(WaypointDto::from).toList(),
         route.isDeleted(),
-        commentCounts.forEntity(route.getId()));
+        commentCounts.forEntity(route.getId()),
+        tags.forContent(route.getId()));
   }
 
   /** The route's waypoints, to name the climbs they mark (docs/LEDGER_*.md API-10). */

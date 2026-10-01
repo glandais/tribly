@@ -55,7 +55,9 @@ Drive engagement and reduce friction for organizers.
   - [X] Use image asset endpoint in display
   - [X] Allow any image format (heic, ...)
   - [x] Drag/drop image support — drop or paste into the editor (ledger `WEB-32`)
-- [ ] Tags on Ride, Post, Trip, Route, Ad — Filtering/discovery (one tag set per type) — ledger `API-59`
+- [x] Tags on Ride, Post, Trip, Route, Ad — Filtering/discovery (one tag set per type) — delivered
+  2026-10-01, API 10.1.0: team vocabulary per type, `?tags=` filter on team lists, web tagging and
+  admin, mobile display and filter (ledger `API-59`, `WEB-40`, `MOB-39`)
 
 ---
 

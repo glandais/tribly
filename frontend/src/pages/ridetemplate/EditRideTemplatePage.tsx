@@ -49,7 +49,7 @@ export function EditRideTemplatePage() {
     return <Navigate to={paths.rideTemplates(teamSlug!)} replace />
   }
 
-  const initialValues = { ...template }
+  const initialValues = { ...template, tagIds: template.tags.map((tag) => tag.id) }
 
   const handleSubmit = (data: RideTemplateRequest) => {
     updateMutation.mutate(

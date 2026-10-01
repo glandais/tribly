@@ -11,6 +11,8 @@ import fr.pedalons.dto.publications.response.PublicationDto;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.dto.publications.response.TeamPublicationDto;
 import fr.pedalons.dto.publications.response.UserParticipations;
+import fr.pedalons.dto.tags.response.ContentTags;
+import fr.pedalons.dto.tags.response.TagDto;
 import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.ListViewMode;
@@ -157,6 +159,12 @@ public class TripDto implements PublicationDto {
               + " even zero.")
   final Integer commentCount;
 
+  @Schema(
+      description =
+          "The team's TRIP tags the trip carries, sorted by label. Empty when it carries none.",
+      required = true)
+  final List<TagDto> tags;
+
   public TripDto(
       TeamPublicationDto team,
       String id,
@@ -182,7 +190,8 @@ public class TripDto implements PublicationDto {
       @Nullable String thumbnailUrl,
       boolean deleted,
       boolean registered,
-      @Nullable Integer commentCount) {
+      @Nullable Integer commentCount,
+      List<TagDto> tags) {
     super();
     this.team = team;
     this.id = id;
@@ -211,36 +220,22 @@ public class TripDto implements PublicationDto {
     this.deleted = deleted;
     this.registered = registered;
     this.commentCount = commentCount;
+    this.tags = tags;
   }
 
   /**
    * Builds a list row without touching {@code trip.getStages()} or {@code trip.getParticipations()}.
    *
    * <p>A list row renders neither stages nor participants — only their counts — and {@link
-   * TripListSummary} carries those, loaded in bulk for the whole page. Going through {@link
-   * #from(Trip, boolean, AssetService)} here would load both collections of every trip on the page
-   * just to call {@code size()} on them.
-   */
-  public static TripDto fromListItem(
-      Trip trip, TripListSummary summary, AssetService assetService) {
-    return fromListItem(trip, summary, assetService, UserParticipations.NONE, CommentCounts.NONE);
-  }
-
-  /**
+   * TripListSummary} carries those, loaded in bulk for the whole page. Going through {@link #from}
+   * here would load both collections of every trip on the page just to call {@code size()} on them.
+   *
+   * <p>No overload defaults the page lookups: a list caller that forgot one would render the row
+   * silently without it (no tags, no « me » fields) instead of failing to compile.
+   *
    * @param participations the current user's registrations for this whole page, resolved in one
    *     query by {@code ParticipationLookup} — never one lookup per row
-   */
-  public static TripDto fromListItem(
-      Trip trip,
-      TripListSummary summary,
-      AssetService assetService,
-      UserParticipations participations,
-      CommentCounts commentCounts) {
-    return fromListItem(
-        trip, summary, assetService, participations, commentCounts, ListViewMode.FULL);
-  }
-
-  /**
+   * @param tags the tags of this whole page, resolved in one query by {@code TagLookup}
    * @param view {@link ListViewMode#COMPACT} leaves the markdown body and the asset inventory out of the
    *     row; {@code excerpt} and {@code thumbnailUrl} carry what it renders instead
    */
@@ -250,6 +245,7 @@ public class TripDto implements PublicationDto {
       AssetService assetService,
       UserParticipations participations,
       CommentCounts commentCounts,
+      ContentTags tags,
       @Nullable ListViewMode view) {
     return build(
         trip,
@@ -263,6 +259,7 @@ public class TripDto implements PublicationDto {
         assetService,
         participations.isRegisteredToTrip(trip.getId()),
         commentCounts.forEntity(trip.getId()),
+        tags.forContent(trip.getId()),
         view);
   }
 
@@ -270,13 +267,16 @@ public class TripDto implements PublicationDto {
    * @param participants the count and first participants of the trip, resolved by {@code
    *     ParticipantPreviewLookup} — never by walking {@code trip.getParticipations()}, which
    *     hydrates every registration (docs/LEDGER_*.md API-12)
+   * @param tags the tags of the trip and of its stages' routes, resolved together in one query by
+   *     {@code TagLookup}
    */
   public static TripDto from(
       Trip trip,
       AssetService assetService,
       UserParticipations participations,
       CommentCounts commentCounts,
-      ParticipantPreview participants) {
+      ParticipantPreview participants,
+      ContentTags tags) {
     List<TripStage> liveStages =
         trip.getStages().stream()
             .filter(s -> !s.isDeleted())
@@ -286,7 +286,9 @@ public class TripDto implements PublicationDto {
     List<TripStageDto> stageDtos =
         IntStream.range(0, liveStages.size())
             .mapToObj(
-                i -> TripStageDto.from(liveStages.get(i), assetService, i + 1, liveStages.size()))
+                i ->
+                    TripStageDto.from(
+                        liveStages.get(i), assetService, tags, i + 1, liveStages.size()))
             .toList();
     List<PublicUserDto> participantDtos = participants.users();
 
@@ -302,6 +304,7 @@ public class TripDto implements PublicationDto {
         assetService,
         participations.isRegisteredToTrip(trip.getId()),
         commentCounts.forEntity(trip.getId()),
+        tags.forContent(trip.getId()),
         ListViewMode.FULL);
   }
 
@@ -346,6 +349,7 @@ public class TripDto implements PublicationDto {
       AssetService assetService,
       boolean registered,
       @Nullable Integer commentCount,
+      List<TagDto> tags,
       @Nullable ListViewMode view) {
     // Get thumbnail URLs from trip's own assets
     String thumbnailLightUrl = null;
@@ -393,6 +397,7 @@ public class TripDto implements PublicationDto {
         thumbnailLightUrl != null ? thumbnailLightUrl : thumbnailDarkUrl,
         trip.isDeleted(),
         registered,
-        commentCount);
+        commentCount,
+        tags);
   }
 }

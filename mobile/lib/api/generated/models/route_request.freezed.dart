@@ -21,7 +21,8 @@ mixin _$RouteRequest {
  MediaDto get media;/// Surface type
  String get surfaceType;/// Whether the route is publicly visible
  String get visibility;/// Points from frontend routing
- List<GeoPoint>? get points;
+ List<GeoPoint>? get points;/// IDs (TSID) of the team's ROUTE tags the route carries, replacing the whole set — at most 10, each a tag of this team and of kind ROUTE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
+ List<String>? get tagIds;
 /// Create a copy of RouteRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -35,20 +36,20 @@ $RouteRequestCopyWith<RouteRequest> get copyWith => _$RouteRequestCopyWithImpl<R
 @override
 bool operator ==(Object other) {
   final _this = this as RouteRequest;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.surfaceType, _this.surfaceType) || other.surfaceType == _this.surfaceType)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&const DeepCollectionEquality().equals(other.points, _this.points));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.surfaceType, _this.surfaceType) || other.surfaceType == _this.surfaceType)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&const DeepCollectionEquality().equals(other.points, _this.points)&&const DeepCollectionEquality().equals(other.tagIds, _this.tagIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as RouteRequest;
-  return Object.hash(runtimeType,_this.name,_this.media,_this.surfaceType,_this.visibility,const DeepCollectionEquality().hash(_this.points));
+  return Object.hash(runtimeType,_this.name,_this.media,_this.surfaceType,_this.visibility,const DeepCollectionEquality().hash(_this.points),const DeepCollectionEquality().hash(_this.tagIds));
 }
 
 @override
 String toString() {
   final _this = this as RouteRequest;
-  return 'RouteRequest(name: ${_this.name}, media: ${_this.media}, surfaceType: ${_this.surfaceType}, visibility: ${_this.visibility}, points: ${_this.points})';
+  return 'RouteRequest(name: ${_this.name}, media: ${_this.media}, surfaceType: ${_this.surfaceType}, visibility: ${_this.visibility}, points: ${_this.points}, tagIds: ${_this.tagIds})';
 }
 
 
@@ -59,7 +60,7 @@ abstract mixin class $RouteRequestCopyWith<$Res>  {
   factory $RouteRequestCopyWith(RouteRequest value, $Res Function(RouteRequest) _then) = _$RouteRequestCopyWithImpl;
 @useResult
 $Res call({
- String name, MediaDto media, String surfaceType, String visibility, List<GeoPoint>? points
+ String name, MediaDto media, String surfaceType, String visibility, List<GeoPoint>? points, List<String>? tagIds
 });
 
 
@@ -76,14 +77,15 @@ class _$RouteRequestCopyWithImpl<$Res>
 
 /// Create a copy of RouteRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? media = null,Object? surfaceType = null,Object? visibility = null,Object? points = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? media = null,Object? surfaceType = null,Object? visibility = null,Object? points = freezed,Object? tagIds = freezed,}) {
   return _then(RouteRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
 as MediaDto,surfaceType: null == surfaceType ? _self.surfaceType : surfaceType // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,points: freezed == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
-as List<GeoPoint>?,
+as List<GeoPoint>?,tagIds: freezed == tagIds ? _self.tagIds : tagIds // ignore: cast_nullable_to_non_nullable
+as List<String>?,
   ));
 }
 /// Create a copy of RouteRequest
@@ -177,10 +179,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  MediaDto media,  String surfaceType,  String visibility,  List<GeoPoint>? points)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  MediaDto media,  String surfaceType,  String visibility,  List<GeoPoint>? points,  List<String>? tagIds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RouteRequest() when $default != null:
-return $default(_that.name,_that.media,_that.surfaceType,_that.visibility,_that.points);case _:
+return $default(_that.name,_that.media,_that.surfaceType,_that.visibility,_that.points,_that.tagIds);case _:
   return orElse();
 
 }
@@ -198,10 +200,10 @@ return $default(_that.name,_that.media,_that.surfaceType,_that.visibility,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  MediaDto media,  String surfaceType,  String visibility,  List<GeoPoint>? points)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  MediaDto media,  String surfaceType,  String visibility,  List<GeoPoint>? points,  List<String>? tagIds)  $default,) {final _that = this;
 switch (_that) {
 case _RouteRequest():
-return $default(_that.name,_that.media,_that.surfaceType,_that.visibility,_that.points);case _:
+return $default(_that.name,_that.media,_that.surfaceType,_that.visibility,_that.points,_that.tagIds);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -218,10 +220,10 @@ return $default(_that.name,_that.media,_that.surfaceType,_that.visibility,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  MediaDto media,  String surfaceType,  String visibility,  List<GeoPoint>? points)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  MediaDto media,  String surfaceType,  String visibility,  List<GeoPoint>? points,  List<String>? tagIds)?  $default,) {final _that = this;
 switch (_that) {
 case _RouteRequest() when $default != null:
-return $default(_that.name,_that.media,_that.surfaceType,_that.visibility,_that.points);case _:
+return $default(_that.name,_that.media,_that.surfaceType,_that.visibility,_that.points,_that.tagIds);case _:
   return null;
 
 }
@@ -233,7 +235,7 @@ return $default(_that.name,_that.media,_that.surfaceType,_that.visibility,_that.
 @JsonSerializable()
 
 class _RouteRequest implements RouteRequest {
-  const _RouteRequest({required this.name, required this.media, required this.surfaceType, required this.visibility,  List<GeoPoint>? points}): _points = points;
+  const _RouteRequest({required this.name, required this.media, required this.surfaceType, required this.visibility,  List<GeoPoint>? points,  List<String>? tagIds}): _points = points,_tagIds = tagIds;
   factory _RouteRequest.fromJson(Map<String, dynamic> json) => _$RouteRequestFromJson(json);
 
 /// Route name
@@ -255,6 +257,17 @@ class _RouteRequest implements RouteRequest {
   return EqualUnmodifiableListView(value);
 }
 
+/// IDs (TSID) of the team's ROUTE tags the route carries, replacing the whole set — at most 10, each a tag of this team and of kind ROUTE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
+ final  List<String>? _tagIds;
+/// IDs (TSID) of the team's ROUTE tags the route carries, replacing the whole set — at most 10, each a tag of this team and of kind ROUTE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
+@override List<String>? get tagIds {
+  final value = _tagIds;
+  if (value == null) return null;
+  if (_tagIds is EqualUnmodifiableListView) return _tagIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
 
 /// Create a copy of RouteRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -269,18 +282,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other.points, _points));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.surfaceType, surfaceType) || other.surfaceType == surfaceType)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other.points, _points)&&const DeepCollectionEquality().equals(other.tagIds, _tagIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,media,surfaceType,visibility,const DeepCollectionEquality().hash(_points));
+    return Object.hash(runtimeType,name,media,surfaceType,visibility,const DeepCollectionEquality().hash(_points),const DeepCollectionEquality().hash(_tagIds));
 }
 
 @override
 String toString() {
-    return 'RouteRequest(name: $name, media: $media, surfaceType: $surfaceType, visibility: $visibility, points: $points)';
+    return 'RouteRequest(name: $name, media: $media, surfaceType: $surfaceType, visibility: $visibility, points: $points, tagIds: $tagIds)';
 }
 
 
@@ -291,7 +304,7 @@ abstract mixin class _$RouteRequestCopyWith<$Res> implements $RouteRequestCopyWi
   factory _$RouteRequestCopyWith(_RouteRequest value, $Res Function(_RouteRequest) _then) = __$RouteRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String name, MediaDto media, String surfaceType, String visibility, List<GeoPoint>? points
+ String name, MediaDto media, String surfaceType, String visibility, List<GeoPoint>? points, List<String>? tagIds
 });
 
 
@@ -308,14 +321,15 @@ class __$RouteRequestCopyWithImpl<$Res>
 
 /// Create a copy of RouteRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? media = null,Object? surfaceType = null,Object? visibility = null,Object? points = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? media = null,Object? surfaceType = null,Object? visibility = null,Object? points = freezed,Object? tagIds = freezed,}) {
   return _then(_RouteRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
 as MediaDto,surfaceType: null == surfaceType ? _self.surfaceType : surfaceType // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,points: freezed == points ? _self._points : points // ignore: cast_nullable_to_non_nullable
-as List<GeoPoint>?,
+as List<GeoPoint>?,tagIds: freezed == tagIds ? _self._tagIds : tagIds // ignore: cast_nullable_to_non_nullable
+as List<String>?,
   ));
 }
 

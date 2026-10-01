@@ -40,6 +40,8 @@ enum EntityType {
   teamPage('TEAM_PAGE'),
   @JsonValue('CALENDAR')
   calendar('CALENDAR'),
+  @JsonValue('TAG')
+  tag('TAG'),
   @JsonValue('PUBLICATION')
   publication('PUBLICATION'),
   @JsonValue('ANY')

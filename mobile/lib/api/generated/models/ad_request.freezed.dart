@@ -24,7 +24,8 @@ mixin _$AdRequest {
  num? get price;/// Rental period (required for RENTAL type)
  String? get rentalPeriod;/// Location description
  String? get locationDescription;/// Location coordinates [longitude, latitude]
- AdRequestLocationGeometry? get locationGeometry;
+ AdRequestLocationGeometry? get locationGeometry;/// IDs (TSID) of the team's AD tags the ad carries, replacing the whole set — at most 10, each a tag of this team and of kind AD, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
+ List<String>? get tagIds;
 /// Create a copy of AdRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -38,20 +39,20 @@ $AdRequestCopyWith<AdRequest> get copyWith => _$AdRequestCopyWithImpl<AdRequest>
 @override
 bool operator ==(Object other) {
   final _this = this as AdRequest;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.adType, _this.adType) || other.adType == _this.adType)&&(identical(other.price, _this.price) || other.price == _this.price)&&(identical(other.rentalPeriod, _this.rentalPeriod) || other.rentalPeriod == _this.rentalPeriod)&&(identical(other.locationDescription, _this.locationDescription) || other.locationDescription == _this.locationDescription)&&(identical(other.locationGeometry, _this.locationGeometry) || other.locationGeometry == _this.locationGeometry));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.adType, _this.adType) || other.adType == _this.adType)&&(identical(other.price, _this.price) || other.price == _this.price)&&(identical(other.rentalPeriod, _this.rentalPeriod) || other.rentalPeriod == _this.rentalPeriod)&&(identical(other.locationDescription, _this.locationDescription) || other.locationDescription == _this.locationDescription)&&(identical(other.locationGeometry, _this.locationGeometry) || other.locationGeometry == _this.locationGeometry)&&const DeepCollectionEquality().equals(other.tagIds, _this.tagIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as AdRequest;
-  return Object.hash(runtimeType,_this.name,_this.media,_this.status,_this.adType,_this.price,_this.rentalPeriod,_this.locationDescription,_this.locationGeometry);
+  return Object.hash(runtimeType,_this.name,_this.media,_this.status,_this.adType,_this.price,_this.rentalPeriod,_this.locationDescription,_this.locationGeometry,const DeepCollectionEquality().hash(_this.tagIds));
 }
 
 @override
 String toString() {
   final _this = this as AdRequest;
-  return 'AdRequest(name: ${_this.name}, media: ${_this.media}, status: ${_this.status}, adType: ${_this.adType}, price: ${_this.price}, rentalPeriod: ${_this.rentalPeriod}, locationDescription: ${_this.locationDescription}, locationGeometry: ${_this.locationGeometry})';
+  return 'AdRequest(name: ${_this.name}, media: ${_this.media}, status: ${_this.status}, adType: ${_this.adType}, price: ${_this.price}, rentalPeriod: ${_this.rentalPeriod}, locationDescription: ${_this.locationDescription}, locationGeometry: ${_this.locationGeometry}, tagIds: ${_this.tagIds})';
 }
 
 
@@ -62,7 +63,7 @@ abstract mixin class $AdRequestCopyWith<$Res>  {
   factory $AdRequestCopyWith(AdRequest value, $Res Function(AdRequest) _then) = _$AdRequestCopyWithImpl;
 @useResult
 $Res call({
- String name, MediaDto media, String status, String adType, num? price, String? rentalPeriod, String? locationDescription, AdRequestLocationGeometry? locationGeometry
+ String name, MediaDto media, String status, String adType, num? price, String? rentalPeriod, String? locationDescription, AdRequestLocationGeometry? locationGeometry, List<String>? tagIds
 });
 
 
@@ -79,7 +80,7 @@ class _$AdRequestCopyWithImpl<$Res>
 
 /// Create a copy of AdRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? media = null,Object? status = null,Object? adType = null,Object? price = freezed,Object? rentalPeriod = freezed,Object? locationDescription = freezed,Object? locationGeometry = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? media = null,Object? status = null,Object? adType = null,Object? price = freezed,Object? rentalPeriod = freezed,Object? locationDescription = freezed,Object? locationGeometry = freezed,Object? tagIds = freezed,}) {
   return _then(AdRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
@@ -89,7 +90,8 @@ as String,price: freezed == price ? _self.price : price // ignore: cast_nullable
 as num?,rentalPeriod: freezed == rentalPeriod ? _self.rentalPeriod : rentalPeriod // ignore: cast_nullable_to_non_nullable
 as String?,locationDescription: freezed == locationDescription ? _self.locationDescription : locationDescription // ignore: cast_nullable_to_non_nullable
 as String?,locationGeometry: freezed == locationGeometry ? _self.locationGeometry : locationGeometry // ignore: cast_nullable_to_non_nullable
-as AdRequestLocationGeometry?,
+as AdRequestLocationGeometry?,tagIds: freezed == tagIds ? _self.tagIds : tagIds // ignore: cast_nullable_to_non_nullable
+as List<String>?,
   ));
 }
 /// Create a copy of AdRequest
@@ -195,10 +197,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  MediaDto media,  String status,  String adType,  num? price,  String? rentalPeriod,  String? locationDescription,  AdRequestLocationGeometry? locationGeometry)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  MediaDto media,  String status,  String adType,  num? price,  String? rentalPeriod,  String? locationDescription,  AdRequestLocationGeometry? locationGeometry,  List<String>? tagIds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdRequest() when $default != null:
-return $default(_that.name,_that.media,_that.status,_that.adType,_that.price,_that.rentalPeriod,_that.locationDescription,_that.locationGeometry);case _:
+return $default(_that.name,_that.media,_that.status,_that.adType,_that.price,_that.rentalPeriod,_that.locationDescription,_that.locationGeometry,_that.tagIds);case _:
   return orElse();
 
 }
@@ -216,10 +218,10 @@ return $default(_that.name,_that.media,_that.status,_that.adType,_that.price,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  MediaDto media,  String status,  String adType,  num? price,  String? rentalPeriod,  String? locationDescription,  AdRequestLocationGeometry? locationGeometry)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  MediaDto media,  String status,  String adType,  num? price,  String? rentalPeriod,  String? locationDescription,  AdRequestLocationGeometry? locationGeometry,  List<String>? tagIds)  $default,) {final _that = this;
 switch (_that) {
 case _AdRequest():
-return $default(_that.name,_that.media,_that.status,_that.adType,_that.price,_that.rentalPeriod,_that.locationDescription,_that.locationGeometry);case _:
+return $default(_that.name,_that.media,_that.status,_that.adType,_that.price,_that.rentalPeriod,_that.locationDescription,_that.locationGeometry,_that.tagIds);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -236,10 +238,10 @@ return $default(_that.name,_that.media,_that.status,_that.adType,_that.price,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  MediaDto media,  String status,  String adType,  num? price,  String? rentalPeriod,  String? locationDescription,  AdRequestLocationGeometry? locationGeometry)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  MediaDto media,  String status,  String adType,  num? price,  String? rentalPeriod,  String? locationDescription,  AdRequestLocationGeometry? locationGeometry,  List<String>? tagIds)?  $default,) {final _that = this;
 switch (_that) {
 case _AdRequest() when $default != null:
-return $default(_that.name,_that.media,_that.status,_that.adType,_that.price,_that.rentalPeriod,_that.locationDescription,_that.locationGeometry);case _:
+return $default(_that.name,_that.media,_that.status,_that.adType,_that.price,_that.rentalPeriod,_that.locationDescription,_that.locationGeometry,_that.tagIds);case _:
   return null;
 
 }
@@ -251,7 +253,7 @@ return $default(_that.name,_that.media,_that.status,_that.adType,_that.price,_th
 @JsonSerializable()
 
 class _AdRequest implements AdRequest {
-  const _AdRequest({required this.name, required this.media, required this.status, required this.adType, this.price, this.rentalPeriod, this.locationDescription, this.locationGeometry});
+  const _AdRequest({required this.name, required this.media, required this.status, required this.adType, this.price, this.rentalPeriod, this.locationDescription, this.locationGeometry,  List<String>? tagIds}): _tagIds = tagIds;
   factory _AdRequest.fromJson(Map<String, dynamic> json) => _$AdRequestFromJson(json);
 
 /// Ad name
@@ -270,6 +272,17 @@ class _AdRequest implements AdRequest {
 @override final  String? locationDescription;
 /// Location coordinates [longitude, latitude]
 @override final  AdRequestLocationGeometry? locationGeometry;
+/// IDs (TSID) of the team's AD tags the ad carries, replacing the whole set — at most 10, each a tag of this team and of kind AD, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
+ final  List<String>? _tagIds;
+/// IDs (TSID) of the team's AD tags the ad carries, replacing the whole set — at most 10, each a tag of this team and of kind AD, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
+@override List<String>? get tagIds {
+  final value = _tagIds;
+  if (value == null) return null;
+  if (_tagIds is EqualUnmodifiableListView) return _tagIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
 
 /// Create a copy of AdRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -284,18 +297,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription)&&(identical(other.locationGeometry, locationGeometry) || other.locationGeometry == locationGeometry));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription)&&(identical(other.locationGeometry, locationGeometry) || other.locationGeometry == locationGeometry)&&const DeepCollectionEquality().equals(other.tagIds, _tagIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,media,status,adType,price,rentalPeriod,locationDescription,locationGeometry);
+    return Object.hash(runtimeType,name,media,status,adType,price,rentalPeriod,locationDescription,locationGeometry,const DeepCollectionEquality().hash(_tagIds));
 }
 
 @override
 String toString() {
-    return 'AdRequest(name: $name, media: $media, status: $status, adType: $adType, price: $price, rentalPeriod: $rentalPeriod, locationDescription: $locationDescription, locationGeometry: $locationGeometry)';
+    return 'AdRequest(name: $name, media: $media, status: $status, adType: $adType, price: $price, rentalPeriod: $rentalPeriod, locationDescription: $locationDescription, locationGeometry: $locationGeometry, tagIds: $tagIds)';
 }
 
 
@@ -306,7 +319,7 @@ abstract mixin class _$AdRequestCopyWith<$Res> implements $AdRequestCopyWith<$Re
   factory _$AdRequestCopyWith(_AdRequest value, $Res Function(_AdRequest) _then) = __$AdRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String name, MediaDto media, String status, String adType, num? price, String? rentalPeriod, String? locationDescription, AdRequestLocationGeometry? locationGeometry
+ String name, MediaDto media, String status, String adType, num? price, String? rentalPeriod, String? locationDescription, AdRequestLocationGeometry? locationGeometry, List<String>? tagIds
 });
 
 
@@ -323,7 +336,7 @@ class __$AdRequestCopyWithImpl<$Res>
 
 /// Create a copy of AdRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? media = null,Object? status = null,Object? adType = null,Object? price = freezed,Object? rentalPeriod = freezed,Object? locationDescription = freezed,Object? locationGeometry = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? media = null,Object? status = null,Object? adType = null,Object? price = freezed,Object? rentalPeriod = freezed,Object? locationDescription = freezed,Object? locationGeometry = freezed,Object? tagIds = freezed,}) {
   return _then(_AdRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
@@ -333,7 +346,8 @@ as String,price: freezed == price ? _self.price : price // ignore: cast_nullable
 as num?,rentalPeriod: freezed == rentalPeriod ? _self.rentalPeriod : rentalPeriod // ignore: cast_nullable_to_non_nullable
 as String?,locationDescription: freezed == locationDescription ? _self.locationDescription : locationDescription // ignore: cast_nullable_to_non_nullable
 as String?,locationGeometry: freezed == locationGeometry ? _self.locationGeometry : locationGeometry // ignore: cast_nullable_to_non_nullable
-as AdRequestLocationGeometry?,
+as AdRequestLocationGeometry?,tagIds: freezed == tagIds ? _self._tagIds : tagIds // ignore: cast_nullable_to_non_nullable
+as List<String>?,
   ));
 }
 

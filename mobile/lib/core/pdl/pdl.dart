@@ -28,6 +28,7 @@ export 'pdl_skeleton.dart';
 export 'pdl_stat.dart';
 export 'pdl_stat_row.dart';
 export 'pdl_switch.dart';
+export 'pdl_tag.dart';
 
 // ── Vague B — composés ──────────────────────────────────────────────────────
 export 'pdl_attachment_row.dart';

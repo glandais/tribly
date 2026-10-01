@@ -94,6 +94,23 @@ extension PdlFamilyTone on PdlFamily {
   }
 }
 
+// ── Tags d'équipe ───────────────────────────────────────────────────────────
+
+/// La famille d'un tag d'équipe (`TagDto.color`, ledger `MOB-39`).
+///
+/// `TagColor` n'est pas une valeur métier de `contracts/brand-colors.yaml` :
+/// ses neuf valeurs **sont** les neuf familles, en capitales au contrat. Il n'y
+/// a donc pas de table à générer, seulement le nom à passer en minuscules. Une
+/// valeur inconnue — une famille ajoutée côté serveur avant l'app — retombe sur
+/// le gris plutôt que de faire disparaître le tag.
+PdlFamily tagFamily(String color) {
+  final String name = color.toLowerCase();
+  for (final PdlFamily family in PdlFamily.values) {
+    if (family.name == name) return family;
+  }
+  return PdlFamily.gray;
+}
+
 // ── États dérivés côté client ───────────────────────────────────────────────
 
 /// Les familles de badge qu'aucune énumération du contrat ne porte.

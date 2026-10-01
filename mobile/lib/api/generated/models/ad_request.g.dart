@@ -19,6 +19,7 @@ _AdRequest _$AdRequestFromJson(Map<String, dynamic> json) => _AdRequest(
       : AdRequestLocationGeometry.fromJson(
           json['locationGeometry'] as Map<String, dynamic>,
         ),
+  tagIds: (json['tagIds'] as List<dynamic>?)?.map((e) => e as String).toList(),
 );
 
 Map<String, dynamic> _$AdRequestToJson(_AdRequest instance) =>
@@ -31,4 +32,5 @@ Map<String, dynamic> _$AdRequestToJson(_AdRequest instance) =>
       'rentalPeriod': instance.rentalPeriod,
       'locationDescription': instance.locationDescription,
       'locationGeometry': instance.locationGeometry?.toJson(),
+      'tagIds': instance.tagIds,
     };

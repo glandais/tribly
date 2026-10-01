@@ -21,6 +21,7 @@ import { ReorderControls } from '../common/ReorderControls'
 import { MarkdownEditor } from '../common/MarkdownEditor'
 import type { RideTemplateRequest, TeamDetailDto } from '@/api/dto'
 import { CreateTemplateBody } from '@/api/zod/ride-templates/ride-templates.zod'
+import { TagPicker } from '@/components/tag'
 
 interface RideTemplateEditorProps {
   team: TeamDetailDto
@@ -34,7 +35,7 @@ interface RideTemplateEditorProps {
 
 export function RideTemplateEditor({
   team,
-  teamSlug: _teamSlug,
+  teamSlug,
   initialValues,
   onSubmit,
   onCancel,
@@ -102,6 +103,14 @@ export function RideTemplateEditor({
             ariaLabel={t('form.description')}
           />
         </Stack>
+
+        <TagPicker
+          teamSlug={teamSlug}
+          type="RIDE"
+          value={form.values.tagIds}
+          onChange={(ids) => form.setFieldValue('tagIds', ids)}
+          disabled={isPending}
+        />
 
         {team.visibility !== 'TEAM' && (
           <Radio.Group label={t('visibility.label')} {...form.getInputProps('visibility')}>

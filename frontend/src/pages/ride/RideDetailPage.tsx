@@ -39,7 +39,7 @@ import {
 } from '../../api/endpoints/rides/rides'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { useRideDetailData } from './rideDetailData'
-import { rideToRequest } from './rideFormData'
+import { rideStatusRequest } from './rideFormData'
 import { ReportTargetType, Status } from '@/api/dto'
 import type { RideDto } from '@/api/dto'
 import { ApiClientError } from '@/lib/apiError'
@@ -68,6 +68,7 @@ import { invalidateRideRegistration } from '@/lib/rideRegistration'
 import { ErrorBoundary } from '../../components/common/ErrorBoundary'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { STATUS_COLORS } from '@/lib/badgeColors.generated'
+import { TagList } from '@/components/tag'
 
 export function RideDetailPage() {
   const { t } = useTranslation()
@@ -165,7 +166,7 @@ export function RideDetailPage() {
       {
         teamSlug: teamSlug!,
         rideSlug: rideSlug!,
-        data: { ...rideToRequest(ride), status: Status.PUBLISHED },
+        data: rideStatusRequest(ride, Status.PUBLISHED),
       },
       {
         onSuccess: () => {
@@ -182,7 +183,7 @@ export function RideDetailPage() {
       {
         teamSlug: teamSlug!,
         rideSlug: rideSlug!,
-        data: { ...rideToRequest(ride), status: Status.DRAFT },
+        data: rideStatusRequest(ride, Status.DRAFT),
       },
       {
         onSuccess: () => {
@@ -200,7 +201,7 @@ export function RideDetailPage() {
       {
         teamSlug: teamSlug!,
         rideSlug: rideSlug!,
-        data: { ...rideToRequest(ride), status: Status.CANCELLED },
+        data: rideStatusRequest(ride, Status.CANCELLED),
       },
       {
         onSuccess: () => {
@@ -218,7 +219,7 @@ export function RideDetailPage() {
       {
         teamSlug: teamSlug!,
         rideSlug: rideSlug!,
-        data: { ...rideToRequest(ride), status: Status.DRAFT },
+        data: rideStatusRequest(ride, Status.DRAFT),
       },
       {
         onSuccess: () => {
@@ -490,6 +491,8 @@ export function RideDetailPage() {
             )}
           </Group>
         )}
+        {/* The team tags, every one of them (cards show the first three). */}
+        <TagList tags={ride.tags} mt="md" />
       </Paper>
 
       {/* Map and Groups */}

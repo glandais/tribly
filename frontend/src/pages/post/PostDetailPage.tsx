@@ -43,6 +43,7 @@ import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { STATUS_COLORS } from '@/lib/badgeColors.generated'
+import { TagList } from '@/components/tag'
 
 export function PostDetailPage() {
   const { t } = useTranslation()
@@ -307,6 +308,8 @@ export function PostDetailPage() {
               </Text>
             </Group>
           </Group>
+          {/* The team tags, every one of them (cards show the first three). */}
+          <TagList tags={post.tags} mt="md" />
         </Paper>
 
         {/* Comments Section - only visible to team members */}

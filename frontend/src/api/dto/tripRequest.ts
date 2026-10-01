@@ -29,4 +29,6 @@ export interface TripRequest {
   publishAt?: Instant
   /** Trip stages to create */
   stages: StageRequest[]
+  /** IDs (TSID) of the team's TRIP tags the trip carries, replacing the whole set — at most 10, each a tag of this team and of kind TRIP, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update. */
+  tagIds?: string[]
 }

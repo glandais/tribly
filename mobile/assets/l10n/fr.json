@@ -660,6 +660,20 @@
       "locating": "Localisation…"
     }
   },
+  "tags": {
+    "title": "Tags",
+    "filter": "Tags",
+    "filterCount": {
+      "one": "{} tag",
+      "other": "{} tags"
+    },
+    "pickerTitle": "Filtrer par tag",
+    "pickerHint": "Un contenu apparaît s'il porte au moins un des tags choisis.",
+    "apply": "Appliquer",
+    "clear": "Effacer",
+    "emptyFiltered": "Aucun contenu ne porte ces tags.",
+    "clearFilter": "Retirer le filtre par tag"
+  },
   "calendar": {
     "title": "Calendrier",
     "noEvents": "Aucun événement ce mois-ci",

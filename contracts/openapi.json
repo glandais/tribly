@@ -85,7 +85,7 @@
       "AdDto" : {
         "description" : "Ad data",
         "type" : "object",
-        "required" : [ "team", "id", "slug", "name", "media", "images", "status", "visibility", "adType", "createdAt", "updatedAt", "createdById", "createdByDisplayName", "deleted" ],
+        "required" : [ "team", "id", "slug", "name", "media", "images", "status", "visibility", "adType", "createdAt", "updatedAt", "createdById", "createdByDisplayName", "deleted", "tags" ],
         "properties" : {
           "team" : {
             "description" : "Team",
@@ -194,13 +194,20 @@
           "deleted" : {
             "type" : "boolean",
             "description" : "Whether the ad is soft-deleted"
+          },
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TagDto"
+            },
+            "description" : "The team's AD tags the ad carries, sorted by label. Empty when it carries none."
           }
         }
       },
       "AdEditDto" : {
         "description" : "Ad data",
         "type" : "object",
-        "required" : [ "team", "id", "slug", "name", "media", "status", "visibility", "adType", "createdAt", "updatedAt", "createdById", "deleted" ],
+        "required" : [ "team", "id", "slug", "name", "media", "status", "visibility", "adType", "createdAt", "updatedAt", "createdById", "deleted", "tags" ],
         "properties" : {
           "team" : {
             "description" : "Team",
@@ -290,6 +297,13 @@
           "deleted" : {
             "type" : "boolean",
             "description" : "Whether the ad is soft-deleted"
+          },
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TagDto"
+            },
+            "description" : "The team's AD tags the ad carries, sorted by label — what the edit form's tagIds starts from."
           }
         }
       },
@@ -383,6 +397,13 @@
                 "examples" : [ [ 2.3522, 48.8566 ] ]
               }
             }
+          },
+          "tagIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "description" : "IDs (TSID) of the team's AD tags the ad carries, replacing the whole set — at most 10, each a tag of this team and of kind AD, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
           }
         }
       },
@@ -1932,11 +1953,11 @@
       },
       "EntityType" : {
         "type" : "string",
-        "enum" : [ "TEAM", "USER", "USER_TEAM", "RIDE_TEMPLATE", "RIDE_TEMPLATE_GROUP", "PLACE", "COMMENT", "ASSET", "TRIP", "TRIP_STAGE", "ROUTE", "RIDE", "RIDE_GROUP", "AD", "POST", "TEAM_PAGE", "CALENDAR", "PUBLICATION", "ANY" ]
+        "enum" : [ "TEAM", "USER", "USER_TEAM", "RIDE_TEMPLATE", "RIDE_TEMPLATE_GROUP", "PLACE", "COMMENT", "ASSET", "TRIP", "TRIP_STAGE", "ROUTE", "RIDE", "RIDE_GROUP", "AD", "POST", "TEAM_PAGE", "CALENDAR", "TAG", "PUBLICATION", "ANY" ]
       },
       "ErrorCode" : {
         "type" : "string",
-        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "SOLE_TEAM_ADMIN", "SOLE_MIGRATED_TEAM_ADMIN", "MIGRATED_TEAM", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "RIDE_PAST", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "FILE_TYPE_REJECTED", "FILE_DETECTION_FAILED", "FILE_TOO_LARGE", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "GPX_TOO_LONG", "ROUTE_PLANNER_DISABLED", "INVALID_FORMAT", "INVALID_TIMEZONE", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "LOGIN_RATE_LIMITED", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "USER_TEAM_LIMIT_REACHED", "TEAM_JOIN_NOT_ALLOWED", "TEAM_ADD_MEMBER_NOT_ALLOWED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "DEVICE_CODE_RATE_LIMITED", "GPS_CREDENTIAL_ALREADY_EXISTS", "GPS_TOKEN_EXCHANGE_FAILED", "ENCRYPTION_FAILED", "DECRYPTION_FAILED", "DOMAIN_ALIAS_NOT_FOUND", "DOMAIN_ALIAS_HOSTNAME_EXISTS", "DOMAIN_ALIAS_TEAM_MISMATCH", "EXPORT_IN_PROGRESS", "EXPORT_RATE_LIMITED", "RIDE_GROUP_LEADER_NOT_MEMBER", "AD_CONTACT_SELF", "AD_CONTACT_OPTED_OUT", "AD_CONTACT_RATE_LIMITED", "AD_CONTACT_DELIVERY_FAILED", "EMAIL_NOT_SENT", "FEEDBACK_RATE_LIMITED", "TEAM_INVITE_INVALID", "TEAM_INVITE_EXPIRED", "TEAM_INVITE_REVOKED", "TEAM_INVITE_ALREADY_USED", "TEAM_INVITE_ALREADY_MEMBER", "TEAM_INVITE_EMAIL_MISMATCH", "TEAM_INVITE_SELF", "TEAM_INVITE_NOT_PENDING", "TEAM_INVITE_RATE_LIMITED", "TEAM_INVITE_DELIVERY_FAILED", "WEBHOOK_URL_INVALID", "REPORT_SELF", "BLOCK_SELF", "CONTENT_REJECTED", "BIKETEAM_REQUEST_INVALID", "BIKETEAM_REQUEST_EXPIRED", "BIKETEAM_REQUEST_ALREADY_USED", "BIKETEAM_SLUG_CONFLICT", "BIKETEAM_MIGRATED_IN_OTHER_DOMAIN", "BIKETEAM_NOT_TEAM_ADMIN", "BIKETEAM_MIGRATION_RUNNING", "BIKETEAM_RESET_BLOCKED", "BIKETEAM_GRANT_INVALID", "BIKETEAM_GRANT_EXPIRED", "BIKETEAM_JOB_NOT_FOUND" ]
+        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "SOLE_TEAM_ADMIN", "SOLE_MIGRATED_TEAM_ADMIN", "MIGRATED_TEAM", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "RIDE_PAST", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "FILE_TYPE_REJECTED", "FILE_DETECTION_FAILED", "FILE_TOO_LARGE", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "GPX_TOO_LONG", "ROUTE_PLANNER_DISABLED", "INVALID_FORMAT", "INVALID_TIMEZONE", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "LOGIN_RATE_LIMITED", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "USER_TEAM_LIMIT_REACHED", "TEAM_JOIN_NOT_ALLOWED", "TEAM_ADD_MEMBER_NOT_ALLOWED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "DEVICE_CODE_RATE_LIMITED", "GPS_CREDENTIAL_ALREADY_EXISTS", "GPS_TOKEN_EXCHANGE_FAILED", "ENCRYPTION_FAILED", "DECRYPTION_FAILED", "DOMAIN_ALIAS_NOT_FOUND", "DOMAIN_ALIAS_HOSTNAME_EXISTS", "DOMAIN_ALIAS_TEAM_MISMATCH", "EXPORT_IN_PROGRESS", "EXPORT_RATE_LIMITED", "RIDE_GROUP_LEADER_NOT_MEMBER", "AD_CONTACT_SELF", "AD_CONTACT_OPTED_OUT", "AD_CONTACT_RATE_LIMITED", "AD_CONTACT_DELIVERY_FAILED", "EMAIL_NOT_SENT", "FEEDBACK_RATE_LIMITED", "TEAM_INVITE_INVALID", "TEAM_INVITE_EXPIRED", "TEAM_INVITE_REVOKED", "TEAM_INVITE_ALREADY_USED", "TEAM_INVITE_ALREADY_MEMBER", "TEAM_INVITE_EMAIL_MISMATCH", "TEAM_INVITE_SELF", "TEAM_INVITE_NOT_PENDING", "TEAM_INVITE_RATE_LIMITED", "TEAM_INVITE_DELIVERY_FAILED", "WEBHOOK_URL_INVALID", "REPORT_SELF", "BLOCK_SELF", "CONTENT_REJECTED", "TAG_LABEL_INVALID", "TAG_LABEL_TAKEN", "TAG_LIMIT_REACHED", "TAG_INVALID", "TOO_MANY_TAGS", "BIKETEAM_REQUEST_INVALID", "BIKETEAM_REQUEST_EXPIRED", "BIKETEAM_REQUEST_ALREADY_USED", "BIKETEAM_SLUG_CONFLICT", "BIKETEAM_MIGRATED_IN_OTHER_DOMAIN", "BIKETEAM_NOT_TEAM_ADMIN", "BIKETEAM_MIGRATION_RUNNING", "BIKETEAM_RESET_BLOCKED", "BIKETEAM_GRANT_INVALID", "BIKETEAM_GRANT_EXPIRED", "BIKETEAM_JOB_NOT_FOUND" ]
       },
       "ErrorDetails" : {
         "oneOf" : [ {
@@ -3380,7 +3401,7 @@
       "PostDto" : {
         "description" : "Post summary data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "deleted", "signedAsTeam" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "deleted", "signedAsTeam", "tags" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -3459,6 +3480,13 @@
             "description" : "Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.",
             "type" : "object",
             "$ref" : "#/components/schemas/PublicUserDto"
+          },
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TagDto"
+            },
+            "description" : "The team's POST tags the post carries, sorted by label. Empty when it carries none."
           }
         }
       },
@@ -3531,6 +3559,13 @@
           "signedAsTeam" : {
             "type" : "boolean",
             "description" : "Sign the post as the team rather than as its author. Omitted: on creation, the team's postsAsTeamByDefault; on an update, left as it is."
+          },
+          "tagIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "description" : "IDs (TSID) of the team's POST tags the post carries, replacing the whole set — at most 10, each a tag of this team and of kind POST, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
           }
         }
       },
@@ -3777,7 +3812,7 @@
       "RideDto" : {
         "description" : "Ride summary data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "finished", "visibility", "participantCount", "groupCount", "groups", "topParticipants", "deleted", "registered", "full" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "finished", "visibility", "participantCount", "groupCount", "groups", "topParticipants", "deleted", "registered", "full", "tags" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -3919,6 +3954,13 @@
             "type" : "integer",
             "format" : "int32",
             "description" : "Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero."
+          },
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TagDto"
+            },
+            "description" : "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
           }
         }
       },
@@ -4111,13 +4153,20 @@
               "$ref" : "#/components/schemas/GroupRequest"
             },
             "description" : "Ride groups to create"
+          },
+          "tagIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "description" : "IDs (TSID) of the team's RIDE tags the ride carries, replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
           }
         }
       },
       "RideTemplateDto" : {
         "description" : "Ride template response",
         "type" : "object",
-        "required" : [ "team", "id", "slug", "name", "markdown", "visibility", "status", "createdAt", "updatedAt", "groupCount", "groups" ],
+        "required" : [ "team", "id", "slug", "name", "markdown", "visibility", "status", "createdAt", "updatedAt", "groupCount", "groups", "tags" ],
         "properties" : {
           "team" : {
             "description" : "Team",
@@ -4171,6 +4220,13 @@
               "$ref" : "#/components/schemas/RideTemplateGroupDto"
             },
             "description" : "Template groups"
+          },
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TagDto"
+            },
+            "description" : "The team's RIDE tags of the template, sorted by label. Copied onto a ride created from it: a client prefills the ride's tagIds with them, editable before and after."
           }
         }
       },
@@ -4302,6 +4358,13 @@
               "$ref" : "#/components/schemas/RideTemplateGroupRequest"
             },
             "description" : "Template groups"
+          },
+          "tagIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "description" : "IDs (TSID) of the team's RIDE tags the template carries (copied onto the rides created from it), replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
           }
         }
       },
@@ -4319,7 +4382,7 @@
       "RouteDetailDto" : {
         "description" : "Detailed route information",
         "type" : "object",
-        "required" : [ "id", "slug", "team", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdBy", "createdAt", "updatedAt", "tracks", "waypoints", "deleted" ],
+        "required" : [ "id", "slug", "team", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdBy", "createdAt", "updatedAt", "tracks", "waypoints", "deleted", "tags" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -4413,13 +4476,20 @@
             "type" : "integer",
             "format" : "int32",
             "description" : "Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero."
+          },
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TagDto"
+            },
+            "description" : "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
           }
         }
       },
       "RouteDto" : {
         "type" : "object",
         "description" : "Route summary data",
-        "required" : [ "id", "slug", "team", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdAt", "deleted" ],
+        "required" : [ "id", "slug", "team", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdAt", "deleted", "tags" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -4489,6 +4559,13 @@
             "type" : "integer",
             "format" : "int32",
             "description" : "Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero."
+          },
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TagDto"
+            },
+            "description" : "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
           }
         }
       },
@@ -4555,6 +4632,13 @@
             },
             "description" : "Points from frontend routing",
             "maxItems" : 100000
+          },
+          "tagIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "description" : "IDs (TSID) of the team's ROUTE tags the route carries, replacing the whole set — at most 10, each a tag of this team and of kind ROUTE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
           }
         }
       },
@@ -4825,6 +4909,116 @@
       "SurfaceType" : {
         "type" : "string",
         "enum" : [ "ROAD", "GRAVEL", "MTB", "MIXED" ]
+      },
+      "TagColor" : {
+        "type" : "string",
+        "enum" : [ "INDIGO", "BLUE", "GREEN", "RED", "YELLOW", "ORANGE", "GRAPE", "TEAL", "GRAY" ]
+      },
+      "TagCreateRequest" : {
+        "description" : "Tag creation request",
+        "type" : "object",
+        "required" : [ "type", "label", "color" ],
+        "properties" : {
+          "type" : {
+            "description" : "Kind of content the tag applies to",
+            "type" : "string",
+            "$ref" : "#/components/schemas/TagTarget"
+          },
+          "label" : {
+            "type" : "string",
+            "description" : "Label, trimmed; unique in the team and kind whatever the case, at most 32 characters once trimmed (TAG_LABEL_INVALID otherwise)",
+            "maxLength" : 255
+          },
+          "color" : {
+            "description" : "Colour family",
+            "type" : "string",
+            "$ref" : "#/components/schemas/TagColor"
+          }
+        }
+      },
+      "TagDeletedDto" : {
+        "description" : "Result of a tag deletion",
+        "type" : "object",
+        "required" : [ "detachedCount" ],
+        "properties" : {
+          "detachedCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Contents the tag was detached from, counted like usageCount (trashed contents lose it too, uncounted)"
+          }
+        }
+      },
+      "TagDto" : {
+        "type" : "object",
+        "description" : "A team tag on a content",
+        "required" : [ "id", "label", "color" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Tag ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "label" : {
+            "type" : "string",
+            "description" : "Label, at most 32 characters"
+          },
+          "color" : {
+            "description" : "Colour family",
+            "type" : "string",
+            "$ref" : "#/components/schemas/TagColor"
+          }
+        }
+      },
+      "TagTarget" : {
+        "type" : "string",
+        "enum" : [ "RIDE", "POST", "TRIP", "ROUTE", "AD" ]
+      },
+      "TagUpdateRequest" : {
+        "description" : "Tag update request — absent fields are unchanged",
+        "type" : "object",
+        "properties" : {
+          "label" : {
+            "type" : "string",
+            "description" : "New label, trimmed, at most 32 characters once trimmed (TAG_LABEL_INVALID otherwise)",
+            "maxLength" : 255
+          },
+          "color" : {
+            "description" : "New colour family",
+            "type" : "string",
+            "$ref" : "#/components/schemas/TagColor"
+          }
+        }
+      },
+      "TagWithUsageDto" : {
+        "description" : "A team tag with its usage count",
+        "type" : "object",
+        "required" : [ "id", "label", "color", "type", "usageCount" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Tag ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "label" : {
+            "type" : "string",
+            "description" : "Label, at most 32 characters"
+          },
+          "color" : {
+            "description" : "Colour family",
+            "type" : "string",
+            "$ref" : "#/components/schemas/TagColor"
+          },
+          "type" : {
+            "description" : "Kind of content the tag applies to",
+            "type" : "string",
+            "$ref" : "#/components/schemas/TagTarget"
+          },
+          "usageCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Contents carrying the tag: rides, posts, trips, routes and ads out of the trash, plus ride templates — what a deletion would detach it from"
+          }
+        }
       },
       "TeamDetailDto" : {
         "description" : "Detailed team information",
@@ -5568,7 +5762,7 @@
       "TripDto" : {
         "description" : "Trip data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "finished", "visibility", "participantCount", "stageCount", "stages", "participants", "deleted", "registered" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "finished", "visibility", "participantCount", "stageCount", "stages", "participants", "deleted", "registered", "tags" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -5697,6 +5891,13 @@
             "type" : "integer",
             "format" : "int32",
             "description" : "Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero."
+          },
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TagDto"
+            },
+            "description" : "The team's TRIP tags the trip carries, sorted by label. Empty when it carries none."
           }
         }
       },
@@ -5797,6 +5998,13 @@
               "$ref" : "#/components/schemas/StageRequest"
             },
             "description" : "Trip stages to create"
+          },
+          "tagIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "description" : "IDs (TSID) of the team's TRIP tags the trip carries, replacing the whole set — at most 10, each a tag of this team and of kind TRIP, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
           }
         }
       },
@@ -6372,6 +6580,9 @@
   }, {
     "name" : "Sitemap",
     "description" : "Pages a search engine may index"
+  }, {
+    "name" : "Tags",
+    "description" : "Team tag vocabulary, one set per kind of content"
   }, {
     "name" : "Team Invitations",
     "description" : "Invite people to a team by e-mail"
@@ -12547,6 +12758,16 @@
             "$ref" : "#/components/schemas/SortDirection"
           }
         }, {
+          "description" : "Only the ads carrying at least one of these tags — ids (TSID) of the team's AD tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing.",
+          "name" : "tags",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }, {
           "description" : "End date filter (ISO format)",
           "name" : "to",
           "in" : "query",
@@ -12746,6 +12967,16 @@
           "in" : "query",
           "schema" : {
             "type" : "string"
+          }
+        }, {
+          "description" : "Only the ads carrying at least one of these tags — ids (TSID) of the team's AD tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing.",
+          "name" : "tags",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           }
         }, {
           "description" : "End date filter (ISO format)",
@@ -15878,6 +16109,16 @@
             "$ref" : "#/components/schemas/Status"
           }
         }, {
+          "description" : "Only the publications carrying at least one of these tags — ids (TSID) of the team's tags of kind 'type', comma-separated or repeated. Honoured with a 'type' only: the mixed feed has no tag filter and ignores it. Unknown ids are ignored; a filter left with no known id filters nothing.",
+          "name" : "tags",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }, {
           "description" : "End date filter (ISO format)",
           "name" : "to",
           "in" : "query",
@@ -15965,6 +16206,16 @@
           "in" : "query",
           "schema" : {
             "$ref" : "#/components/schemas/Status"
+          }
+        }, {
+          "description" : "Only the publications carrying at least one of these tags — ids (TSID) of the team's tags of kind 'type', comma-separated or repeated. Honoured with a 'type' only: the mixed feed has no tag filter and ignores it. Unknown ids are ignored; a filter left with no known id filters nothing.",
+          "name" : "tags",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           }
         }, {
           "description" : "End date filter (ISO format)",
@@ -17674,6 +17925,16 @@
             "$ref" : "#/components/schemas/SurfaceType"
           }
         }, {
+          "description" : "Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing.",
+          "name" : "tags",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }, {
           "description" : "How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets trimmed to the logo, the first image and the themed thumbnails — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. The markdown body, the attachments, the GPX and FIT files and every image past the first are dropped. Omitted, or FULL, is the previous behaviour, byte for byte.",
           "name" : "view",
           "in" : "query",
@@ -17905,6 +18166,16 @@
             "$ref" : "#/components/schemas/SurfaceType"
           }
         }, {
+          "description" : "Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing.",
+          "name" : "tags",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }, {
           "description" : "Filter by wind direction",
           "name" : "windDirection",
           "in" : "query",
@@ -18102,6 +18373,16 @@
             "$ref" : "#/components/schemas/SurfaceType"
           }
         }, {
+          "description" : "Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing.",
+          "name" : "tags",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }, {
           "description" : "Filter by wind direction",
           "name" : "windDirection",
           "in" : "query",
@@ -18264,6 +18545,16 @@
           "in" : "query",
           "schema" : {
             "type" : "string"
+          }
+        }, {
+          "description" : "Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing.",
+          "name" : "tags",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           }
         }, {
           "description" : "Filter by wind direction",
@@ -19003,6 +19294,323 @@
           },
           "409" : {
             "description" : "Slug already in use",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{teamSlug}/tags" : {
+      "get" : {
+        "summary" : "List team tags",
+        "description" : "The team's tags, sorted by label, each with its usage count. Open to whoever can see the team.",
+        "operationId" : "listTeamTags",
+        "tags" : [ "Tags" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Only the tags of this kind of content; all kinds when absent",
+          "name" : "type",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/TagTarget"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Tags retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TagWithUsageDto"
+                  }
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Team not visible to the caller",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "summary" : "Create a team tag",
+        "description" : "Requires team admin permissions.",
+        "operationId" : "createTeamTag",
+        "tags" : [ "Tags" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TagCreateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Tag created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TagWithUsageDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid label (TAG_LABEL_INVALID) or 100 tags of this kind already (TAG_LIMIT_REACHED)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not a team admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Label already used in this team and kind, whatever the case (TAG_LABEL_TAKEN)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{teamSlug}/tags/{tagId}" : {
+      "patch" : {
+        "summary" : "Rename or recolour a team tag",
+        "description" : "Absent fields are unchanged; the kind never changes. Requires team admin.",
+        "operationId" : "updateTeamTag",
+        "tags" : [ "Tags" ],
+        "parameters" : [ {
+          "description" : "Tag ID (TSID)",
+          "name" : "tagId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TagUpdateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Tag updated",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TagWithUsageDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid label (TAG_LABEL_INVALID)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not a team admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or tag not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Label already used in this team and kind, whatever the case (TAG_LABEL_TAKEN)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "delete" : {
+        "summary" : "Delete a team tag",
+        "description" : "Detaches the tag from every content and deletes it for good. Requires team admin.",
+        "operationId" : "deleteTeamTag",
+        "tags" : [ "Tags" ],
+        "parameters" : [ {
+          "description" : "Tag ID (TSID)",
+          "name" : "tagId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Tag deleted; how many contents lost it",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TagDeletedDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not a team admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or tag not found",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -21061,7 +21669,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.0.0",
+    "version" : "10.1.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

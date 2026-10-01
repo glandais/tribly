@@ -238,6 +238,7 @@ Exportés par `pdl.dart` comme le reste, et soumis au même contrat (jetons,
 | Widget / type | Fichier | Rôle |
 |---|---|---|
 | `PdlRefresh` | `pdl_refresh.dart` | Le « tirer pour rafraîchir » de l'app, avec une secousse (`mediumImpact`) au relâchement au-delà du seuil |
+| `PdlTag` · `PdlTagRow` · `PdlTagEntry` | `pdl_tag.dart` | Les tags d'équipe d'un contenu (ledger `MOB-39`) : contour neutre, pastille de la famille, libellé neutre — **jamais** la forme d'un badge, pour qu'un tag vert ne se lise pas « Publié ». Tronqué (« +n ») en carte, complet en fiche |
 
 **`map/` — la carte Pédalons**, sans DTO : l'écran traduit ses DTO en types
 `Pdl*` avant de les passer.

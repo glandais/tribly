@@ -1,7 +1,7 @@
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useGetTrip, prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
 import { prefetchRoutesBulkChunked } from '@/config/prefetchHelpers'
-import type { TripDto, TripRequest } from '@/api/dto'
+import type { TripDto, TripRequest, Status } from '@/api/dto'
 import type { QueryClient } from '@tanstack/react-query'
 
 /**
@@ -110,5 +110,16 @@ export function tripToRequest(trip: TripDto): TripRequest {
       endPlaceId: stage.endPlace?.id,
       media: stage.media,
     })),
+    tagIds: trip.tags.map((tag) => tag.id),
   }
+}
+
+/**
+ * The `TripRequest` of the detail page's publish/unpublish/cancel menu: `trip` as it stands with only
+ * its status changed — and no `tagIds`, which the API reads as « unchanged ». Copying the cached
+ * tags instead would send back a tag deleted since the page was loaded, and the API refuses an
+ * unknown tag (`TAG_INVALID`) where it only meant to change the status.
+ */
+export function tripStatusRequest(trip: TripDto, status: Status): TripRequest {
+  return { ...tripToRequest(trip), status, tagIds: undefined }
 }

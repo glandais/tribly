@@ -24,6 +24,7 @@ import { FormattedDateTime } from '../common/FormattedDate'
 import { paths } from '@/config/paths'
 import { PublicationCardProgress } from './PublicationCardProgress'
 import { RouteThumbnail } from '../route/RouteThumbnail'
+import { TagList } from '../tag/TagList'
 import type { PublicationDto, RideDto, TripDto } from '@/api/dto'
 
 interface PublicationCardProps {
@@ -213,6 +214,9 @@ export function PublicationCard({ publication, showTeam, actions }: PublicationC
             <VisibilityBadge visibility={publication.visibility} />
           </Stack>
         </Group>
+
+        {/* The content's team tags, after the badges that say what it is — never mixed with them. */}
+        <TagList tags={publication.tags} max={3} mb="md" />
 
         {/* Participants section - avatars, progress, and route thumbnail */}
         {(participants.length > 0 ||

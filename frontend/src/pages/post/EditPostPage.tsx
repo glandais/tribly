@@ -81,7 +81,7 @@ export function EditPostPage() {
   }
 
   // Prepare initial values from fetched post data
-  const initialValues: PostRequest = { ...post }
+  const initialValues: PostRequest = { ...post, tagIds: post.tags.map((tag) => tag.id) }
 
   return (
     <Container size="sm" py="xl">

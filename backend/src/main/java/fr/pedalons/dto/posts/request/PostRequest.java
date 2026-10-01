@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
@@ -32,5 +33,26 @@ public record PostRequest(
             description =
                 "Sign the post as the team rather than as its author. Omitted: on creation, the"
                     + " team's postsAsTeamByDefault; on an update, left as it is.")
-        Boolean signedAsTeam)
-    implements WithVisibility {}
+        Boolean signedAsTeam,
+    @Nullable
+        @Schema(
+            description =
+                "IDs (TSID) of the team's POST tags the post carries, replacing the whole set — at"
+                    + " most 10, each a tag of this team and of kind POST, else 400 (TAG_INVALID,"
+                    + " TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a"
+                    + " creation, left as they are on an update.")
+        List<String> tagIds)
+    implements WithVisibility {
+
+  /** Without tags: the shape this record had before API-59 — leaves the tags as they are. */
+  public PostRequest(
+      String name,
+      MediaDto media,
+      Instant dateTime,
+      Status status,
+      Visibility visibility,
+      @Nullable Instant publishAt,
+      @Nullable Boolean signedAsTeam) {
+    this(name, media, dateTime, status, visibility, publishAt, signedAsTeam, null);
+  }
+}

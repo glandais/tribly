@@ -955,6 +955,31 @@ export const ListMyParticipationsResponse = zod
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
                   ),
+                tags: zod
+                  .array(
+                    zod
+                      .object({
+                        id: zod.string().describe('Tag ID (TSID)'),
+                        label: zod.string().describe('Label, at most 32 characters'),
+                        color: zod
+                          .enum([
+                            'INDIGO',
+                            'BLUE',
+                            'GREEN',
+                            'RED',
+                            'YELLOW',
+                            'ORANGE',
+                            'GRAPE',
+                            'TEAL',
+                            'GRAY',
+                          ])
+                          .describe('Colour family'),
+                      })
+                      .describe('A team tag on a content')
+                  )
+                  .describe(
+                    "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
+                  ),
               })
               .describe('Ride summary data'),
             zod
@@ -1225,6 +1250,31 @@ export const ListMyParticipationsResponse = zod
                   .optional()
                   .describe(
                     'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+                  ),
+                tags: zod
+                  .array(
+                    zod
+                      .object({
+                        id: zod.string().describe('Tag ID (TSID)'),
+                        label: zod.string().describe('Label, at most 32 characters'),
+                        color: zod
+                          .enum([
+                            'INDIGO',
+                            'BLUE',
+                            'GREEN',
+                            'RED',
+                            'YELLOW',
+                            'ORANGE',
+                            'GRAPE',
+                            'TEAL',
+                            'GRAY',
+                          ])
+                          .describe('Colour family'),
+                      })
+                      .describe('A team tag on a content')
+                  )
+                  .describe(
+                    "The team's POST tags the post carries, sorted by label. Empty when it carries none."
                   ),
               })
               .describe('Post summary data'),
@@ -1779,6 +1829,31 @@ export const ListMyParticipationsResponse = zod
                               .describe(
                                 'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
                               ),
+                            tags: zod
+                              .array(
+                                zod
+                                  .object({
+                                    id: zod.string().describe('Tag ID (TSID)'),
+                                    label: zod.string().describe('Label, at most 32 characters'),
+                                    color: zod
+                                      .enum([
+                                        'INDIGO',
+                                        'BLUE',
+                                        'GREEN',
+                                        'RED',
+                                        'YELLOW',
+                                        'ORANGE',
+                                        'GRAPE',
+                                        'TEAL',
+                                        'GRAY',
+                                      ])
+                                      .describe('Colour family'),
+                                  })
+                                  .describe('A team tag on a content')
+                              )
+                              .describe(
+                                "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+                              ),
                           })
                           .optional()
                           .describe('Route'),
@@ -2093,6 +2168,31 @@ export const ListMyParticipationsResponse = zod
                   .optional()
                   .describe(
                     'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
+                  ),
+                tags: zod
+                  .array(
+                    zod
+                      .object({
+                        id: zod.string().describe('Tag ID (TSID)'),
+                        label: zod.string().describe('Label, at most 32 characters'),
+                        color: zod
+                          .enum([
+                            'INDIGO',
+                            'BLUE',
+                            'GREEN',
+                            'RED',
+                            'YELLOW',
+                            'ORANGE',
+                            'GRAPE',
+                            'TEAL',
+                            'GRAY',
+                          ])
+                          .describe('Colour family'),
+                      })
+                      .describe('A team tag on a content')
+                  )
+                  .describe(
+                    "The team's TRIP tags the trip carries, sorted by label. Empty when it carries none."
                   ),
               })
               .describe('Trip data'),

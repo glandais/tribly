@@ -35,6 +35,7 @@ import { TeamMemberAutocomplete } from '../common/TeamMemberAutocomplete'
 import { UserAvatar } from '../common/UserAvatar'
 import { Status } from '@/api/dto'
 import { CreateRideBody } from '@/api/zod/rides/rides.zod'
+import { TagPicker } from '@/components/tag'
 
 type Target = { type: 'group'; index: number } | { type: 'ride' }
 
@@ -275,6 +276,14 @@ export function RideEditor({
             />
           </Stack>
         </SimpleGrid>
+
+        <TagPicker
+          teamSlug={teamSlug}
+          type="RIDE"
+          value={form.values.tagIds}
+          onChange={(ids) => form.setFieldValue('tagIds', ids)}
+          disabled={isPending}
+        />
 
         {team.visibility !== 'TEAM' && (
           <Radio.Group label={t('visibility.label')} {...form.getInputProps('visibility')}>

@@ -8,6 +8,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.domain.JavaParameter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -307,7 +308,10 @@ class ArchitectureTest {
       @Override
       public void check(JavaClass javaClass, ConditionEvents events) {
         for (JavaField field : javaClass.getFields()) {
-
+          // A constant is not a column.
+          if (field.getModifiers().contains(JavaModifier.STATIC)) {
+            continue;
+          }
           boolean nullable = isNullable(field);
           boolean hasNullableAnnotation = hasNullableTypeAnnotation(field);
           if (nullable && !hasNullableAnnotation) {

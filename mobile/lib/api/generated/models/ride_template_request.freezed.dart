@@ -21,7 +21,8 @@ mixin _$RideTemplateRequest {
  String get markdown;/// Visibility level
  String get visibility;/// Default status for rides created from this template
  String get status;/// Template groups
- List<RideTemplateGroupRequest> get groups;
+ List<RideTemplateGroupRequest> get groups;/// IDs (TSID) of the team's RIDE tags the template carries (copied onto the rides created from it), replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
+ List<String>? get tagIds;
 /// Create a copy of RideTemplateRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -35,20 +36,20 @@ $RideTemplateRequestCopyWith<RideTemplateRequest> get copyWith => _$RideTemplate
 @override
 bool operator ==(Object other) {
   final _this = this as RideTemplateRequest;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideTemplateRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.markdown, _this.markdown) || other.markdown == _this.markdown)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.status, _this.status) || other.status == _this.status)&&const DeepCollectionEquality().equals(other.groups, _this.groups));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideTemplateRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.markdown, _this.markdown) || other.markdown == _this.markdown)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.status, _this.status) || other.status == _this.status)&&const DeepCollectionEquality().equals(other.groups, _this.groups)&&const DeepCollectionEquality().equals(other.tagIds, _this.tagIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as RideTemplateRequest;
-  return Object.hash(runtimeType,_this.name,_this.markdown,_this.visibility,_this.status,const DeepCollectionEquality().hash(_this.groups));
+  return Object.hash(runtimeType,_this.name,_this.markdown,_this.visibility,_this.status,const DeepCollectionEquality().hash(_this.groups),const DeepCollectionEquality().hash(_this.tagIds));
 }
 
 @override
 String toString() {
   final _this = this as RideTemplateRequest;
-  return 'RideTemplateRequest(name: ${_this.name}, markdown: ${_this.markdown}, visibility: ${_this.visibility}, status: ${_this.status}, groups: ${_this.groups})';
+  return 'RideTemplateRequest(name: ${_this.name}, markdown: ${_this.markdown}, visibility: ${_this.visibility}, status: ${_this.status}, groups: ${_this.groups}, tagIds: ${_this.tagIds})';
 }
 
 
@@ -59,7 +60,7 @@ abstract mixin class $RideTemplateRequestCopyWith<$Res>  {
   factory $RideTemplateRequestCopyWith(RideTemplateRequest value, $Res Function(RideTemplateRequest) _then) = _$RideTemplateRequestCopyWithImpl;
 @useResult
 $Res call({
- String name, String markdown, String visibility, String status, List<RideTemplateGroupRequest> groups
+ String name, String markdown, String visibility, String status, List<RideTemplateGroupRequest> groups, List<String>? tagIds
 });
 
 
@@ -76,14 +77,15 @@ class _$RideTemplateRequestCopyWithImpl<$Res>
 
 /// Create a copy of RideTemplateRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? markdown = null,Object? visibility = null,Object? status = null,Object? groups = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? markdown = null,Object? visibility = null,Object? status = null,Object? groups = null,Object? tagIds = freezed,}) {
   return _then(RideTemplateRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,markdown: null == markdown ? _self.markdown : markdown // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,groups: null == groups ? _self.groups : groups // ignore: cast_nullable_to_non_nullable
-as List<RideTemplateGroupRequest>,
+as List<RideTemplateGroupRequest>,tagIds: freezed == tagIds ? _self.tagIds : tagIds // ignore: cast_nullable_to_non_nullable
+as List<String>?,
   ));
 }
 
@@ -168,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String markdown,  String visibility,  String status,  List<RideTemplateGroupRequest> groups)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String markdown,  String visibility,  String status,  List<RideTemplateGroupRequest> groups,  List<String>? tagIds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RideTemplateRequest() when $default != null:
-return $default(_that.name,_that.markdown,_that.visibility,_that.status,_that.groups);case _:
+return $default(_that.name,_that.markdown,_that.visibility,_that.status,_that.groups,_that.tagIds);case _:
   return orElse();
 
 }
@@ -189,10 +191,10 @@ return $default(_that.name,_that.markdown,_that.visibility,_that.status,_that.gr
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String markdown,  String visibility,  String status,  List<RideTemplateGroupRequest> groups)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String markdown,  String visibility,  String status,  List<RideTemplateGroupRequest> groups,  List<String>? tagIds)  $default,) {final _that = this;
 switch (_that) {
 case _RideTemplateRequest():
-return $default(_that.name,_that.markdown,_that.visibility,_that.status,_that.groups);case _:
+return $default(_that.name,_that.markdown,_that.visibility,_that.status,_that.groups,_that.tagIds);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +211,10 @@ return $default(_that.name,_that.markdown,_that.visibility,_that.status,_that.gr
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String markdown,  String visibility,  String status,  List<RideTemplateGroupRequest> groups)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String markdown,  String visibility,  String status,  List<RideTemplateGroupRequest> groups,  List<String>? tagIds)?  $default,) {final _that = this;
 switch (_that) {
 case _RideTemplateRequest() when $default != null:
-return $default(_that.name,_that.markdown,_that.visibility,_that.status,_that.groups);case _:
+return $default(_that.name,_that.markdown,_that.visibility,_that.status,_that.groups,_that.tagIds);case _:
   return null;
 
 }
@@ -224,7 +226,7 @@ return $default(_that.name,_that.markdown,_that.visibility,_that.status,_that.gr
 @JsonSerializable()
 
 class _RideTemplateRequest implements RideTemplateRequest {
-  const _RideTemplateRequest({required this.name, required this.markdown, required this.visibility, required this.status, required  List<RideTemplateGroupRequest> groups}): _groups = groups;
+  const _RideTemplateRequest({required this.name, required this.markdown, required this.visibility, required this.status, required  List<RideTemplateGroupRequest> groups,  List<String>? tagIds}): _groups = groups,_tagIds = tagIds;
   factory _RideTemplateRequest.fromJson(Map<String, dynamic> json) => _$RideTemplateRequestFromJson(json);
 
 /// Template name
@@ -244,6 +246,17 @@ class _RideTemplateRequest implements RideTemplateRequest {
   return EqualUnmodifiableListView(_groups);
 }
 
+/// IDs (TSID) of the team's RIDE tags the template carries (copied onto the rides created from it), replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
+ final  List<String>? _tagIds;
+/// IDs (TSID) of the team's RIDE tags the template carries (copied onto the rides created from it), replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
+@override List<String>? get tagIds {
+  final value = _tagIds;
+  if (value == null) return null;
+  if (_tagIds is EqualUnmodifiableListView) return _tagIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
 
 /// Create a copy of RideTemplateRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -258,18 +271,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideTemplateRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.groups, _groups));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideTemplateRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.groups, _groups)&&const DeepCollectionEquality().equals(other.tagIds, _tagIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,markdown,visibility,status,const DeepCollectionEquality().hash(_groups));
+    return Object.hash(runtimeType,name,markdown,visibility,status,const DeepCollectionEquality().hash(_groups),const DeepCollectionEquality().hash(_tagIds));
 }
 
 @override
 String toString() {
-    return 'RideTemplateRequest(name: $name, markdown: $markdown, visibility: $visibility, status: $status, groups: $groups)';
+    return 'RideTemplateRequest(name: $name, markdown: $markdown, visibility: $visibility, status: $status, groups: $groups, tagIds: $tagIds)';
 }
 
 
@@ -280,7 +293,7 @@ abstract mixin class _$RideTemplateRequestCopyWith<$Res> implements $RideTemplat
   factory _$RideTemplateRequestCopyWith(_RideTemplateRequest value, $Res Function(_RideTemplateRequest) _then) = __$RideTemplateRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String markdown, String visibility, String status, List<RideTemplateGroupRequest> groups
+ String name, String markdown, String visibility, String status, List<RideTemplateGroupRequest> groups, List<String>? tagIds
 });
 
 
@@ -297,14 +310,15 @@ class __$RideTemplateRequestCopyWithImpl<$Res>
 
 /// Create a copy of RideTemplateRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? markdown = null,Object? visibility = null,Object? status = null,Object? groups = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? markdown = null,Object? visibility = null,Object? status = null,Object? groups = null,Object? tagIds = freezed,}) {
   return _then(_RideTemplateRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,markdown: null == markdown ? _self.markdown : markdown // ignore: cast_nullable_to_non_nullable
 as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,groups: null == groups ? _self._groups : groups // ignore: cast_nullable_to_non_nullable
-as List<RideTemplateGroupRequest>,
+as List<RideTemplateGroupRequest>,tagIds: freezed == tagIds ? _self._tagIds : tagIds // ignore: cast_nullable_to_non_nullable
+as List<String>?,
   ));
 }
 

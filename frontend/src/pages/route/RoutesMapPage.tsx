@@ -9,6 +9,7 @@ import { RoutesTileMap } from '../../components/route/RoutesTileMap'
 import { RouteViewToggle } from '../../components/route/RouteViewToggle'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useRoutesMapData } from './routesMapData'
+import { TagFilter } from '../../components/tag'
 
 export function RoutesMapPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
@@ -16,6 +17,7 @@ export function RoutesMapPage() {
 
   const {
     filters,
+    setFilters,
     filtersOpen,
     setFiltersOpen,
     handleFiltersChange,
@@ -50,6 +52,13 @@ export function RoutesMapPage() {
           isOpen={filtersOpen}
           onOpenChange={setFiltersOpen}
           showSort={false}
+        />
+
+        <TagFilter
+          teamSlug={team.slug}
+          type="ROUTE"
+          value={filters.tags}
+          onChange={(tags) => setFilters({ tags })}
         />
 
         <RoutesTileMap

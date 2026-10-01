@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Point;
@@ -37,4 +38,35 @@ public record AdRequest(
         @Schema(
             description = "Location coordinates [longitude, latitude]",
             implementation = GeoJsonPoint.class)
-        Point<G2D> locationGeometry) {}
+        Point<G2D> locationGeometry,
+    @Nullable
+        @Schema(
+            description =
+                "IDs (TSID) of the team's AD tags the ad carries, replacing the whole set — at most"
+                    + " 10, each a tag of this team and of kind AD, else 400 (TAG_INVALID,"
+                    + " TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a"
+                    + " creation, left as they are on an update.")
+        List<String> tagIds) {
+
+  /** Without tags: the shape this record had before API-59 — leaves the tags as they are. */
+  public AdRequest(
+      String name,
+      MediaDto media,
+      Status status,
+      AdType adType,
+      @Nullable BigDecimal price,
+      @Nullable RentalPeriod rentalPeriod,
+      @Nullable String locationDescription,
+      @Nullable Point<G2D> locationGeometry) {
+    this(
+        name,
+        media,
+        status,
+        adType,
+        price,
+        rentalPeriod,
+        locationDescription,
+        locationGeometry,
+        null);
+  }
+}

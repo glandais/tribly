@@ -59,6 +59,11 @@ enum RouteFilterField {
   surfaceType,
   windDirection,
   proximity,
+
+  /// Tags `ROUTE` de l'équipe (ledger `MOB-39`) — seulement quand la portée
+  /// est une équipe : le serveur ne filtre par tag que sur les listes d'une
+  /// équipe (plan des tags, D7).
+  tags,
 }
 
 /// Immutable identity of a route result set.
@@ -104,6 +109,13 @@ class RouteFilters {
   final RouteSortBy sortBy;
   final SortDirection sortDir;
 
+  /// Tags `ROUTE` choisis, triés (`normalizeTagSelection`) ; un parcours sort
+  /// s'il en porte **au moins un** (D6). Vide : pas de filtre.
+  ///
+  /// Les tags sont ceux d'**une** équipe : [copyWith] les lève dès que la
+  /// portée change, et le dépôt ne les envoie qu'aux endpoints d'équipe.
+  final List<String> tagIds;
+
   /// Ordre d'ajout des filtres, du plus ancien au plus récent.
   ///
   /// **Volontairement hors de [operator ==] et de [hashCode]** : deux jeux de
@@ -130,6 +142,7 @@ class RouteFilters {
     this.nearType = NearType.startOrEnd,
     this.sortBy = kDefaultRouteSortBy,
     this.sortDir = kDefaultRouteSortDir,
+    this.tagIds = const <String>[],
     this.addedOrder = const <RouteFilterField>[],
   });
 
@@ -152,6 +165,7 @@ class RouteFilters {
     if (surfaceType != null) RouteFilterField.surfaceType,
     if (windDirection != null) RouteFilterField.windDirection,
     if (hasProximity) RouteFilterField.proximity,
+    if (tagIds.isNotEmpty) RouteFilterField.tags,
   ];
 
   /// Vrai quand la portée est « tout ce que je peux voir ».
@@ -206,6 +220,7 @@ class RouteFilters {
       RouteFilterField.windDirection,
       RouteFilterField.hilliness,
       RouteFilterField.surfaceType,
+      RouteFilterField.tags,
       RouteFilterField.search,
     ];
     final Set<RouteFilterField> active = activeFields.toSet();
@@ -236,6 +251,7 @@ class RouteFilters {
         nearLon: null,
         nearRadius: null,
       ),
+      RouteFilterField.tags => copyWith(tagIds: const <String>[]),
     };
   }
 
@@ -274,11 +290,13 @@ class RouteFilters {
     NearType? nearType,
     RouteSortBy? sortBy,
     SortDirection? sortDir,
+    List<String>? tagIds,
   }) {
+    final String? nextTeamSlug = identical(teamSlug, _unset)
+        ? this.teamSlug
+        : teamSlug as String?;
     final RouteFilters next = RouteFilters(
-      teamSlug: identical(teamSlug, _unset)
-          ? this.teamSlug
-          : teamSlug as String?,
+      teamSlug: nextTeamSlug,
       minRole: identical(minRole, _unset) ? this.minRole : minRole as MinRole?,
       search: identical(search, _unset) ? this.search : search as String?,
       minDistance: identical(minDistance, _unset)
@@ -310,6 +328,11 @@ class RouteFilters {
       nearType: nearType ?? this.nearType,
       sortBy: sortBy ?? this.sortBy,
       sortDir: sortDir ?? this.sortDir,
+      // Changer d'équipe lève les tags : ceux d'une autre équipe ne
+      // désignent rien ici, et le serveur les ignorerait en silence.
+      tagIds:
+          tagIds ??
+          (nextTeamSlug == this.teamSlug ? this.tagIds : const <String>[]),
       addedOrder: addedOrder,
     );
     return next._withOrderFrom(this);
@@ -344,6 +367,7 @@ class RouteFilters {
       nearType: nearType,
       sortBy: sortBy,
       sortDir: sortDir,
+      tagIds: tagIds,
       addedOrder: List<RouteFilterField>.unmodifiable(order),
     );
   }
@@ -367,7 +391,8 @@ class RouteFilters {
           other.nearRadius == nearRadius &&
           other.nearType == nearType &&
           other.sortBy == sortBy &&
-          other.sortDir == sortDir;
+          other.sortDir == sortDir &&
+          listEquals(other.tagIds, tagIds);
 
   @override
   int get hashCode => Object.hash(
@@ -387,6 +412,7 @@ class RouteFilters {
     nearType,
     sortBy,
     sortDir,
+    Object.hashAll(tagIds),
   );
 }
 

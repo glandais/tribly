@@ -9,6 +9,7 @@ import 'instant.dart';
 import 'media_dto.dart';
 import 'public_user_dto.dart';
 import 'surface_type.dart';
+import 'tag_dto.dart';
 import 'team_publication_dto.dart';
 import 'track_dto.dart';
 import 'visibility.dart';
@@ -68,6 +69,9 @@ abstract class RouteDetailDto with _$RouteDetailDto {
 
     /// Whether the route is soft-deleted
     required bool deleted,
+
+    /// The team's ROUTE tags the route carries, sorted by label. Empty when it carries none.
+    required List<TagDto> tags,
     GeoJsonPoint? start,
     GeoJsonPoint? end,
 

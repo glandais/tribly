@@ -16,6 +16,7 @@ import { RouteDeadEnd } from '@/components/route/RouteDeadEnd'
 import { RouteViewToggle } from '../../components/route/RouteViewToggle'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { UploadGpxFiles } from '../../components/route/UploadGpxFiles'
+import { TagFilter } from '../../components/tag'
 
 export function RouteListPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
@@ -76,6 +77,13 @@ export function RouteListPage() {
           onFiltersChange={handleFiltersChange}
           isOpen={filtersOpen}
           onOpenChange={setFiltersOpen}
+        />
+
+        <TagFilter
+          teamSlug={team.slug}
+          type="ROUTE"
+          value={filters.tags}
+          onChange={(tags) => setFilters({ tags })}
         />
 
         <Group justify="space-between" align="center">

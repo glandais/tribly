@@ -660,6 +660,20 @@
       "locating": "Locating…"
     }
   },
+  "tags": {
+    "title": "Tags",
+    "filter": "Tags",
+    "filterCount": {
+      "one": "{} tag",
+      "other": "{} tags"
+    },
+    "pickerTitle": "Filter by tag",
+    "pickerHint": "An item shows up when it carries at least one of the chosen tags.",
+    "apply": "Apply",
+    "clear": "Clear",
+    "emptyFiltered": "Nothing carries these tags.",
+    "clearFilter": "Remove the tag filter"
+  },
   "calendar": {
     "title": "Calendar",
     "noEvents": "No events this month",

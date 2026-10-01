@@ -38,6 +38,7 @@ class AdRepository {
       search: search == null || search.isEmpty ? null : search,
       sortBy: filters.sortBy,
       sortDir: filters.sortDir,
+      tags: filters.tagIds.isEmpty ? null : filters.tagIds,
       view: view,
     );
     return PageResult<AdDto>(items: response.ads, total: response.total);

@@ -10,6 +10,7 @@ import 'instant.dart';
 import 'media_dto.dart';
 import 'rental_period.dart';
 import 'status.dart';
+import 'tag_dto.dart';
 import 'team_publication_dto.dart';
 import 'visibility.dart';
 
@@ -55,6 +56,9 @@ abstract class AdEditDto with _$AdEditDto {
 
     /// Whether the ad is soft-deleted
     required bool deleted,
+
+    /// The team's AD tags the ad carries, sorted by label — what the edit form's tagIds starts from.
+    required List<TagDto> tags,
 
     /// Price
     num? price,

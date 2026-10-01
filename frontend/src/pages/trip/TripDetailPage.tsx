@@ -46,7 +46,7 @@ import {
   getGetTripQueryKey,
 } from '../../api/endpoints/trips/trips'
 import { useTripDetailData } from './tripDetailData'
-import { tripToRequest } from './tripFormData'
+import { tripStatusRequest } from './tripFormData'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { ReportTargetType, Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
@@ -71,6 +71,7 @@ import { ShareButton } from '../../components/common/ShareButton'
 import { CommentSection } from '../../components/comment'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { STATUS_COLORS } from '@/lib/badgeColors.generated'
+import { TagList } from '@/components/tag'
 
 export function TripDetailPage() {
   const { t } = useTranslation()
@@ -160,7 +161,7 @@ export function TripDetailPage() {
       {
         teamSlug: teamSlug!,
         tripSlug: tripSlug!,
-        data: { ...tripToRequest(trip), status: Status.PUBLISHED },
+        data: tripStatusRequest(trip, Status.PUBLISHED),
       },
       {
         onSuccess: () => {
@@ -177,7 +178,7 @@ export function TripDetailPage() {
       {
         teamSlug: teamSlug!,
         tripSlug: tripSlug!,
-        data: { ...tripToRequest(trip), status: Status.DRAFT },
+        data: tripStatusRequest(trip, Status.DRAFT),
       },
       {
         onSuccess: () => {
@@ -195,7 +196,7 @@ export function TripDetailPage() {
       {
         teamSlug: teamSlug!,
         tripSlug: tripSlug!,
-        data: { ...tripToRequest(trip), status: Status.CANCELLED },
+        data: tripStatusRequest(trip, Status.CANCELLED),
       },
       {
         onSuccess: () => {
@@ -213,7 +214,7 @@ export function TripDetailPage() {
       {
         teamSlug: teamSlug!,
         tripSlug: tripSlug!,
-        data: { ...tripToRequest(trip), status: Status.DRAFT },
+        data: tripStatusRequest(trip, Status.DRAFT),
       },
       {
         onSuccess: () => {
@@ -441,6 +442,8 @@ export function TripDetailPage() {
             </Group>
           )}
         </Group>
+        {/* The team tags, every one of them (cards show the first three). */}
+        <TagList tags={trip.tags} mt="md" />
       </Paper>
 
       {/* Overview content — no stage-nav sidebar: the stage cards below are the single list */}

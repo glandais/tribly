@@ -72,6 +72,8 @@ export function CreateRidePage() {
         dateTime: getNextSunday(),
         publishAt: undefined,
         routeSlug: undefined,
+        // The template's tags are copied onto the ride, then editable like any other (plan D14).
+        tagIds: templateValues.tags.map((tag) => tag.id),
       }
     : {
         name: '',

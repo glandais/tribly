@@ -22,6 +22,9 @@ import fr.pedalons.domain.ridetemplate.RideTemplateGroup;
 import fr.pedalons.domain.route.GpxTrack;
 import fr.pedalons.domain.route.GpxWaypoint;
 import fr.pedalons.domain.route.Route;
+import fr.pedalons.domain.tag.RideTemplateTag;
+import fr.pedalons.domain.tag.Tag;
+import fr.pedalons.domain.tag.TeamEntityTag;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.team.TeamInvitation;
 import fr.pedalons.domain.team.TeamPage;
@@ -48,6 +51,9 @@ import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.ridetemplate.RideTemplateGroupRepository;
 import fr.pedalons.repository.ridetemplate.RideTemplateRepository;
 import fr.pedalons.repository.route.RouteRepository;
+import fr.pedalons.repository.tag.RideTemplateTagRepository;
+import fr.pedalons.repository.tag.TagRepository;
+import fr.pedalons.repository.tag.TeamEntityTagRepository;
 import fr.pedalons.repository.team.TeamInvitationRepository;
 import fr.pedalons.repository.team.TeamPageRepository;
 import fr.pedalons.repository.team.TeamRepository;
@@ -62,6 +68,7 @@ import io.github.glandais.gpx.climb.Climbs;
 import io.hypersistence.tsid.TSID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
@@ -1542,5 +1549,86 @@ public class TestDataService {
   @Transactional
   public void hideCommentForModeration(Comment comment) {
     commentRepository.findById(comment.getId()).setModerationHiddenAt(Instant.now());
+  }
+
+  // ─── Tags (docs/LEDGER_*.md API-59) ───────────────────────────────────────
+
+  @Inject TagRepository tagRepository;
+  @Inject TeamEntityTagRepository teamEntityTagRepository;
+  @Inject RideTemplateTagRepository rideTemplateTagRepository;
+
+  @Transactional
+  public Tag createTag(Team team, User createdBy, TagTarget type, String label) {
+    return createTag(team, createdBy, type, label, TagColor.INDIGO);
+  }
+
+  @Transactional
+  public Tag createTag(Team team, User createdBy, TagTarget type, String label, TagColor color) {
+    EntityManager em = tagRepository.getEntityManager();
+    Tag tag =
+        new Tag(
+            em.getReference(User.class, createdBy.getId()),
+            em.getReference(Team.class, team.getId()),
+            type,
+            label,
+            color);
+    tagRepository.persistAndFlush(tag);
+    return tag;
+  }
+
+  /** Links {@code tags} to a content directly, skipping {@code TagService}'s checks. */
+  @Transactional
+  public void tagContent(TeamEntity content, Tag... tags) {
+    EntityManager em = tagRepository.getEntityManager();
+    for (Tag tag : tags) {
+      teamEntityTagRepository.persist(
+          new TeamEntityTag(
+              em.getReference(TeamEntity.class, content.getId()),
+              em.getReference(Tag.class, tag.getId())));
+    }
+    em.flush();
+  }
+
+  @Transactional
+  public void tagTemplate(RideTemplate template, Tag... tags) {
+    EntityManager em = tagRepository.getEntityManager();
+    for (Tag tag : tags) {
+      rideTemplateTagRepository.persist(
+          new RideTemplateTag(
+              em.getReference(RideTemplate.class, template.getId()),
+              em.getReference(Tag.class, tag.getId())));
+    }
+    em.flush();
+  }
+
+  /** The labels of the tags a content carries, by label. */
+  @Transactional
+  public List<String> tagLabelsOf(Long contentId) {
+    return tagRepository
+        .getEntityManager()
+        .createQuery(
+            "select l.tag.label from TeamEntityTag l where l.teamEntity.id = :id"
+                + " order by lower(l.tag.label)",
+            String.class)
+        .setParameter("id", contentId)
+        .getResultList();
+  }
+
+  /** The team's tags of one kind, by label. */
+  @Transactional
+  public List<Tag> tagsOf(Long teamId, TagTarget type) {
+    return tagRepository.findByTeam(teamId, type);
+  }
+
+  /** Every link to the tag — contents (trashed ones included) and ride templates. */
+  @Transactional
+  public long countTagLinks(Long tagId) {
+    return teamEntityTagRepository.count("tag.id", tagId)
+        + rideTemplateTagRepository.count("tag.id", tagId);
+  }
+
+  @Transactional
+  public boolean tagExists(Long tagId) {
+    return tagRepository.findByIdOptional(tagId).isPresent();
   }
 }

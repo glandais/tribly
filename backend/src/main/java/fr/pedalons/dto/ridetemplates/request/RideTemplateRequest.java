@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Ride template request")
 @ValidateSchema
@@ -22,4 +23,24 @@ public record RideTemplateRequest(
     @Schema(description = "Default status for rides created from this template", required = true)
         Status status,
     @Schema(description = "Template groups", required = true)
-        List<@Valid RideTemplateGroupRequest> groups) {}
+        List<@Valid RideTemplateGroupRequest> groups,
+    @Nullable
+        @Schema(
+            description =
+                "IDs (TSID) of the team's RIDE tags the template carries (copied onto the rides"
+                    + " created from it), replacing the whole set — at most 10, each a tag of this"
+                    + " team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list"
+                    + " removes them all. Omitted: none on a creation, left as they are on an"
+                    + " update.")
+        List<String> tagIds) {
+
+  /** Without tags: the shape this record had before API-59 — leaves the tags as they are. */
+  public RideTemplateRequest(
+      String name,
+      String markdown,
+      Visibility visibility,
+      Status status,
+      List<RideTemplateGroupRequest> groups) {
+    this(name, markdown, visibility, status, groups, null);
+  }
+}

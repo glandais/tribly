@@ -33,6 +33,7 @@ PostDto _post({
   bool signedAsTeam = true,
   PublicUserDto? createdBy,
 }) => PostDto(
+  tags: const [],
   type: 'POST',
   team: team,
   id: 'p-$slug',

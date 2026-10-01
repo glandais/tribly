@@ -30,5 +30,27 @@ public record TripRequest(
     @Nullable @Schema(description = "Publication timestamp (for scheduled publishing)")
         Instant publishAt,
     @Schema(description = "Trip stages to create", required = true)
-        List<@Valid StageRequest> stages)
-    implements WithVisibility {}
+        List<@Valid StageRequest> stages,
+    @Nullable
+        @Schema(
+            description =
+                "IDs (TSID) of the team's TRIP tags the trip carries, replacing the whole set — at"
+                    + " most 10, each a tag of this team and of kind TRIP, else 400 (TAG_INVALID,"
+                    + " TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a"
+                    + " creation, left as they are on an update.")
+        List<String> tagIds)
+    implements WithVisibility {
+
+  /** Without tags: the shape this record had before API-59 — leaves the tags as they are. */
+  public TripRequest(
+      String name,
+      MediaDto media,
+      Instant dateTime,
+      Status status,
+      Visibility visibility,
+      @Nullable String routeSlug,
+      @Nullable Instant publishAt,
+      List<StageRequest> stages) {
+    this(name, media, dateTime, status, visibility, routeSlug, publishAt, stages, null);
+  }
+}

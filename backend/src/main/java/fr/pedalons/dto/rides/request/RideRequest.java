@@ -32,5 +32,40 @@ public record RideRequest(
     @Nullable @Schema(description = "Publication timestamp (for scheduled publishing)")
         Instant publishAt,
     @Schema(description = "Ride groups to create", required = true)
-        List<@Valid GroupRequest> groups)
-    implements WithVisibility {}
+        List<@Valid GroupRequest> groups,
+    @Nullable
+        @Schema(
+            description =
+                "IDs (TSID) of the team's RIDE tags the ride carries, replacing the whole set — at"
+                    + " most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID,"
+                    + " TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a"
+                    + " creation, left as they are on an update.")
+        List<String> tagIds)
+    implements WithVisibility {
+
+  /** Without tags: the shape this record had before API-59 — leaves the tags as they are. */
+  public RideRequest(
+      String name,
+      MediaDto media,
+      Instant dateTime,
+      Status status,
+      Visibility visibility,
+      @Nullable String routeSlug,
+      @Nullable String startPlaceId,
+      @Nullable String endPlaceId,
+      @Nullable Instant publishAt,
+      List<GroupRequest> groups) {
+    this(
+        name,
+        media,
+        dateTime,
+        status,
+        visibility,
+        routeSlug,
+        startPlaceId,
+        endPlaceId,
+        publishAt,
+        groups,
+        null);
+  }
+}

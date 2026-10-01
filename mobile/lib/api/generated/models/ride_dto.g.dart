@@ -28,6 +28,9 @@ _RideDto _$RideDtoFromJson(Map<String, dynamic> json) => _RideDto(
   deleted: json['deleted'] as bool,
   registered: json['registered'] as bool,
   full: json['full'] as bool,
+  tags: (json['tags'] as List<dynamic>)
+      .map((e) => TagDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
   excerpt: json['excerpt'] as String?,
   publishAt: json['publishAt'] as String?,
   createdAt: json['createdAt'] as String?,
@@ -67,6 +70,7 @@ Map<String, dynamic> _$RideDtoToJson(_RideDto instance) => <String, dynamic>{
   'deleted': instance.deleted,
   'registered': instance.registered,
   'full': instance.full,
+  'tags': instance.tags.map((e) => e.toJson()).toList(),
   'excerpt': instance.excerpt,
   'publishAt': instance.publishAt,
   'createdAt': instance.createdAt,

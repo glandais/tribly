@@ -4,6 +4,7 @@ import type { Instant } from './instant.ts'
 import type { MediaDto } from './mediaDto.ts'
 import type { RentalPeriod } from './rentalPeriod.ts'
 import type { Status } from './status.ts'
+import type { TagDto } from './tagDto.ts'
 import type { TeamPublicationDto } from './teamPublicationDto.ts'
 import type { Visibility } from './visibility.ts'
 
@@ -51,4 +52,6 @@ export interface AdDto {
   createdByDisplayName: string
   /** Whether the ad is soft-deleted */
   deleted: boolean
+  /** The team's AD tags the ad carries, sorted by label. Empty when it carries none. */
+  tags: TagDto[]
 }

@@ -19,6 +19,7 @@ import '../../../../core/widgets/media_attachments.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../moderation/presentation/moderation_menu.dart';
+import '../../../tags/presentation/content_tags.dart';
 import '../../providers/route_detail_provider.dart';
 import '../../providers/route_elevation_provider.dart';
 import '../widgets/route_climbs_section.dart';
@@ -225,6 +226,14 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
       controller: controller,
       padding: EdgeInsets.only(bottom: footerInset),
       children: <Widget>[
+        // Les tags en tête du corps et non dans l'en-tête de la feuille : à
+        // son cran bas, l'en-tête ne garde que le nom et un badge (ledger
+        // `MOB-39`).
+        if (route.tags.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: ContentTagRow(tags: route.tags),
+          ),
         if (route.hasGeometry)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),

@@ -14,6 +14,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -30,6 +31,12 @@ import org.jspecify.annotations.Nullable;
 public class TeamPublicationResource {
 
   @Inject PublicationService publicationService;
+
+  static final String TAGS_PARAM_DESCRIPTION =
+      "Only the publications carrying at least one of these tags — ids (TSID) of the team's tags"
+          + " of kind 'type', comma-separated or repeated. Honoured with a 'type' only: the mixed"
+          + " feed has no tag filter and ignores it. Unknown ids are ignored; a filter left with no"
+          + " known id filters nothing.";
 
   @GET
   @PermitAll
@@ -68,6 +75,8 @@ public class TeamPublicationResource {
           @QueryParam("participating")
           @DefaultValue("false")
           boolean participating,
+      @Parameter(description = TAGS_PARAM_DESCRIPTION) @QueryParam("tags")
+          @Nullable List<String> tags,
       @Parameter(description = PublicationResource.VIEW_PARAM_DESCRIPTION) @QueryParam("view")
           @Nullable ListViewMode view,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
@@ -78,7 +87,7 @@ public class TeamPublicationResource {
 
     PublicationListResponse publications =
         publicationService.listTeam(
-            teamSlug, type, search, from, to, status, participating, view, page, size);
+            teamSlug, type, search, from, to, status, participating, tags, view, page, size);
 
     // Rows carry per-user fields (registered, registeredGroupId): not shareable between users.
     return Response.ok(publications)
@@ -127,13 +136,15 @@ public class TeamPublicationResource {
                       + " zero for an anonymous visitor.")
           @QueryParam("participating")
           @DefaultValue("false")
-          boolean participating) {
+          boolean participating,
+      @Parameter(description = TAGS_PARAM_DESCRIPTION) @QueryParam("tags")
+          @Nullable List<String> tags) {
 
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     CountResponse count =
-        publicationService.countTeam(teamSlug, type, search, from, to, status, participating);
+        publicationService.countTeam(teamSlug, type, search, from, to, status, participating, tags);
 
     // The figure depends on who is asking — both through the visibility rules and through
     // 'participating': not shareable between users.

@@ -6,6 +6,7 @@ import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.repository.query.PedalonsQuery;
+import fr.pedalons.repository.tag.TagFilter;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Instant;
 import java.util.List;
@@ -93,6 +94,10 @@ public class AllPublicationRepository
         pedalonsQuery =
             pedalonsQuery.and(PARTICIPATING_CLAUSE, Map.of("participatingUserId", userId));
       }
+    }
+    Set<Long> tagIds = query.tagIds();
+    if (tagIds != null) {
+      pedalonsQuery = TagFilter.andTaggedWithAny(pedalonsQuery, "te", tagIds);
     }
     if (query.ascending()) {
       // getPedalonsQuery set the default ordering before calling us; order() replaces it.

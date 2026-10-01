@@ -11,6 +11,7 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
+import '../../../tags/presentation/content_tags.dart';
 import 'route_card.dart';
 
 /// La densité « compact » de la parcothèque — une ligne de 100 px : vignette
@@ -68,6 +69,16 @@ class CompactRouteRow extends ConsumerWidget {
                   runSpacing: PdlSpacing.badgeGap,
                   children: routeBadges(context, route),
                 ),
+                // Deux et non trois : la ligne compacte est faite pour
+                // retrouver un nom, pas pour lire le contenu.
+                if (route.tags.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 6),
+                  ContentTagRow(
+                    key: keys.routes.cardTags(route.slug),
+                    tags: route.tags,
+                    maxVisible: 2,
+                  ),
+                ],
               ],
             ),
           ),

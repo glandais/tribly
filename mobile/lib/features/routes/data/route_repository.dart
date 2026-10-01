@@ -52,6 +52,7 @@ class RouteRepository {
           )
         : await _routesClient.listRoutes(
             teamSlug: teamSlug,
+            tags: _tags(filters),
             page: page,
             size: size,
             hilliness: filters.hilliness,
@@ -104,6 +105,7 @@ class RouteRepository {
           )
         : await _routesClient.countRoutes(
             teamSlug: teamSlug,
+            tags: _tags(filters),
             hilliness: filters.hilliness,
             maxDistance: filters.maxDistance,
             maxElevationGain: filters.maxElevationGain,
@@ -147,6 +149,7 @@ class RouteRepository {
           )
         : await _routesClient.getRoutesBounds(
             teamSlug: teamSlug,
+            tags: _tags(filters),
             hilliness: filters.hilliness,
             maxDistance: filters.maxDistance,
             maxElevationGain: filters.maxElevationGain,
@@ -217,6 +220,11 @@ class RouteRepository {
       geometry: geometry,
     );
   }
+
+  /// Les tags ne partent qu'aux endpoints d'équipe : les listes
+  /// inter-équipes n'en ont pas (plan des tags, D7).
+  static List<String>? _tags(RouteFilters filters) =>
+      filters.tagIds.isEmpty ? null : filters.tagIds;
 
   static String? _search(RouteFilters filters) {
     final String? search = filters.search?.trim();

@@ -267,6 +267,12 @@ export const CreateRideBody = zod
           .describe('Ride group creation request')
       )
       .describe('Ride groups to create'),
+    tagIds: zod
+      .array(zod.string())
+      .optional()
+      .describe(
+        "IDs (TSID) of the team's RIDE tags the ride carries, replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
+      ),
   })
   .describe('Ride request')
 
@@ -729,6 +735,21 @@ export const CreateRideResponse = zod
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
       ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
+      ),
   })
   .describe('Ride summary data')
 
@@ -1000,6 +1021,12 @@ export const UpdateRideBody = zod
           .describe('Ride group creation request')
       )
       .describe('Ride groups to create'),
+    tagIds: zod
+      .array(zod.string())
+      .optional()
+      .describe(
+        "IDs (TSID) of the team's RIDE tags the ride carries, replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
+      ),
   })
   .describe('Ride request')
 
@@ -1461,6 +1488,21 @@ export const UpdateRideResponse = zod
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
       ),
   })
   .describe('Ride summary data')
@@ -1932,6 +1974,21 @@ export const GetRideResponse = zod
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
       ),
   })
   .describe('Ride summary data')
@@ -2515,6 +2572,21 @@ export const ChangeRideSlugResponse = zod
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
       ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
+      ),
   })
   .describe('Ride summary data')
 
@@ -2992,6 +3064,21 @@ export const ChangeRideStatusResponse = zod
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
       ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
+      ),
   })
   .describe('Ride summary data')
 
@@ -3462,6 +3549,21 @@ export const UndeleteRideResponse = zod
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
       ),
   })
   .describe('Ride summary data')

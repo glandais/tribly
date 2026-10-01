@@ -5,8 +5,11 @@ import '../../../../api/generated/export.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/pdl_icons.dart';
+import '../../../../keys.dart';
+import '../../../tags/presentation/tag_filter.dart';
 import '../../domain/route_filters.dart';
 import '../../domain/route_filter_labels.dart';
+import '../../providers/route_tags_provider.dart';
 import 'route_filter_sheet.dart';
 
 /// The filter state made visible above the list, one chip per constraint.
@@ -30,6 +33,7 @@ class RouteFilterChipsBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final UnitSystem units = ref.watch(unitSystemProvider);
+    final List<TagWithUsageDto> tags = routeTagVocabulary(ref, filters);
     final List<RouteFilterField> active = filters.activeFields;
     final List<RouteFilterField> inactive = RouteFilterField.values
         .where(
@@ -39,6 +43,9 @@ class RouteFilterChipsBar extends ConsumerWidget {
               // depuis « Autour de moi » : proposer une chip inerte ici serait
               // une icône-action sans effet.
               f != RouteFilterField.proximity &&
+              // Pas de chip « Tags » sans tag de parcours dans l'équipe — ni
+              // hors d'une équipe, où le serveur ne filtre pas par tag.
+              (f != RouteFilterField.tags || tags.isNotEmpty) &&
               !active.contains(f),
         )
         .toList();
@@ -59,17 +66,36 @@ class RouteFilterChipsBar extends ConsumerWidget {
           onTap: () => _pickSort(context),
         ),
         for (final RouteFilterField field in active)
-          PdlChip(
-            label: RouteFilterLabels.filterChip(filters, field, units) ?? '',
-            selected: true,
-            onTap: () => _openFilters(context),
-            onRemoved: () => onChanged(filters.without(field)),
-          ),
+          if (field == RouteFilterField.tags)
+            PdlChip(
+              key: keys.tags.filterChip,
+              icon: PdlIcons.tag,
+              label: tagFilterLabel(tags, filters.tagIds),
+              selected: true,
+              onRemoved: () => onChanged(filters.without(field)),
+            )
+          else
+            PdlChip(
+              label: RouteFilterLabels.filterChip(filters, field, units) ?? '',
+              selected: true,
+              onTap: () => _openFilters(context),
+              onRemoved: () => onChanged(filters.without(field)),
+            ),
         for (final RouteFilterField field in inactive)
-          PdlChip(
-            label: RouteFilterLabels.filterFieldName(field),
-            onTap: () => _openFilters(context),
-          ),
+          if (field == RouteFilterField.tags)
+            // La chip ouvre directement le choix des tags, sans passer par la
+            // feuille de filtres : c'est une liste, pas un réglage.
+            TagFilterChip(
+              vocabulary: tags,
+              selected: filters.tagIds,
+              onChanged: (List<String> ids) =>
+                  onChanged(filters.copyWith(tagIds: ids)),
+            )
+          else
+            PdlChip(
+              label: RouteFilterLabels.filterFieldName(field),
+              onTap: () => _openFilters(context),
+            ),
       ],
     );
   }

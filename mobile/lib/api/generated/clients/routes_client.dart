@@ -279,6 +279,8 @@ abstract class RoutesClient {
   ///
   /// [surfaceType] - Filter by surface type.
   ///
+  /// [tags] - Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing.
+  ///
   /// [view] - How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets trimmed to the logo, the first image and the themed thumbnails — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. The markdown body, the attachments, the GPX and FIT files and every image past the first are dropped. Omitted, or FULL, is the previous behaviour, byte for byte.
   ///
   /// [windDirection] - Filter by wind direction.
@@ -300,6 +302,7 @@ abstract class RoutesClient {
     @Query('sortBy') RouteSortBy? sortBy,
     @Query('sortDir') SortDirection? sortDir,
     @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('tags') List<String>? tags,
     @Query('view') ListViewMode? view,
     @Query('windDirection') WindDirection? windDirection,
   });
@@ -349,6 +352,8 @@ abstract class RoutesClient {
   ///
   /// [surfaceType] - Filter by surface type.
   ///
+  /// [tags] - Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing.
+  ///
   /// [windDirection] - Filter by wind direction.
   @GET('/api/teams/{teamSlug}/routes/bounds')
   Future<RouteBoundsResponse> getRoutesBounds({
@@ -364,6 +369,7 @@ abstract class RoutesClient {
     @Query('nearType') NearType? nearType,
     @Query('search') String? search,
     @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('tags') List<String>? tags,
     @Query('windDirection') WindDirection? windDirection,
   });
 
@@ -411,6 +417,8 @@ abstract class RoutesClient {
   ///
   /// [surfaceType] - Filter by surface type.
   ///
+  /// [tags] - Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing.
+  ///
   /// [windDirection] - Filter by wind direction.
   @GET('/api/teams/{teamSlug}/routes/count')
   Future<CountResponse> countRoutes({
@@ -426,6 +434,7 @@ abstract class RoutesClient {
     @Query('nearType') NearType? nearType,
     @Query('search') String? search,
     @Query('surfaceType') SurfaceType? surfaceType,
+    @Query('tags') List<String>? tags,
     @Query('windDirection') WindDirection? windDirection,
   });
 
@@ -465,6 +474,8 @@ abstract class RoutesClient {
   ///
   /// [t] - Tile token from POST /api/tiles/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.
   ///
+  /// [tags] - Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing.
+  ///
   /// [windDirection] - Filter by wind direction.
   @GET('/api/teams/{teamSlug}/routes/tiles/{z}/{x}/{y}.mvt')
   Future<void> routesTile({
@@ -484,6 +495,7 @@ abstract class RoutesClient {
     @Query('search') String? search,
     @Query('surfaceType') SurfaceType? surfaceType,
     @Query('t') String? t,
+    @Query('tags') List<String>? tags,
     @Query('windDirection') WindDirection? windDirection,
   });
 

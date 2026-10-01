@@ -53,6 +53,10 @@ export type RoutesTileParams = {
    */
   t?: string
   /**
+   * Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing.
+   */
+  tags?: string[]
+  /**
    * Filter by wind direction
    */
   windDirection?: WindDirection

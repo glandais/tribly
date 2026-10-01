@@ -43,13 +43,14 @@ import 'clients/ride_templates_client.dart';
 import 'clients/rides_client.dart';
 import 'clients/ride_comments_client.dart';
 import 'clients/route_comments_client.dart';
+import 'clients/tags_client.dart';
 import 'clients/trips_client.dart';
 import 'clients/trip_comments_client.dart';
 import 'clients/team_webhook_client.dart';
 import 'clients/tiles_client.dart';
 import 'clients/server_version_client.dart';
 
-/// Pedalons API `v10.0.0`.
+/// Pedalons API `v10.1.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
 class PedalonsApiClient {
@@ -62,7 +63,7 @@ class PedalonsApiClient {
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '10.0.0';
+  static String get version => '10.1.0';
 
   AdminBetaSignupsClient? _adminBetaSignups;
   AdminDomainsClient? _adminDomains;
@@ -103,6 +104,7 @@ class PedalonsApiClient {
   RidesClient? _rides;
   RideCommentsClient? _rideComments;
   RouteCommentsClient? _routeComments;
+  TagsClient? _tags;
   TripsClient? _trips;
   TripCommentsClient? _tripComments;
   TeamWebhookClient? _teamWebhook;
@@ -216,6 +218,8 @@ class PedalonsApiClient {
 
   RouteCommentsClient get routeComments =>
       _routeComments ??= RouteCommentsClient(_dio, baseUrl: _baseUrl);
+
+  TagsClient get tags => _tags ??= TagsClient(_dio, baseUrl: _baseUrl);
 
   TripsClient get trips => _trips ??= TripsClient(_dio, baseUrl: _baseUrl);
 

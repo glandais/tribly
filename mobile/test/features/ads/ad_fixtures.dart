@@ -31,6 +31,7 @@ AdDto fixtureAd({
   String createdByDisplayName = 'Jeanne Martin',
   MediaDto media = kEmptyMedia,
 }) => AdDto(
+  tags: const [],
   team: kAdTeam,
   id: 'ad-$slug',
   slug: slug,

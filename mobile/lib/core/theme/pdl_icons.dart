@@ -64,6 +64,7 @@ abstract final class PdlIcons {
   static const IconData team = Icons.group_outlined;
   static const IconData route = Icons.route_outlined;
   static const IconData page = Icons.description_outlined;
+  static const IconData tag = Icons.label_outline;
   static const IconData feed = Icons.dynamic_feed_outlined;
   static const IconData comment = Icons.mode_comment_outlined;
   static const IconData attachment = Icons.attach_file;

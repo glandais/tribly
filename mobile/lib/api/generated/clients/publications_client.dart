@@ -106,6 +106,8 @@ abstract class PublicationsClient {
   ///
   /// [status] - Only publications with this status. Narrows the visibility rules, never widens them.
   ///
+  /// [tags] - Only the publications carrying at least one of these tags — ids (TSID) of the team's tags of kind 'type', comma-separated or repeated. Honoured with a 'type' only: the mixed feed has no tag filter and ignores it. Unknown ids are ignored; a filter left with no known id filters nothing.
+  ///
   /// [to] - End date filter (ISO format).
   ///
   /// [type] - Type.
@@ -120,6 +122,7 @@ abstract class PublicationsClient {
     @Query('from') String? from,
     @Query('search') String? search,
     @Query('status') Status? status,
+    @Query('tags') List<String>? tags,
     @Query('to') String? to,
     @Query('type') PublicationType? type,
     @Query('view') ListViewMode? view,
@@ -139,6 +142,8 @@ abstract class PublicationsClient {
   ///
   /// [status] - Only publications with this status. Narrows the visibility rules, never widens them.
   ///
+  /// [tags] - Only the publications carrying at least one of these tags — ids (TSID) of the team's tags of kind 'type', comma-separated or repeated. Honoured with a 'type' only: the mixed feed has no tag filter and ignores it. Unknown ids are ignored; a filter left with no known id filters nothing.
+  ///
   /// [to] - End date filter (ISO format).
   ///
   /// [type] - Type.
@@ -149,6 +154,7 @@ abstract class PublicationsClient {
     @Query('from') String? from,
     @Query('search') String? search,
     @Query('status') Status? status,
+    @Query('tags') List<String>? tags,
     @Query('to') String? to,
     @Query('type') PublicationType? type,
   });

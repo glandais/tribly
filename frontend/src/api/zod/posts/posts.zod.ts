@@ -229,6 +229,12 @@ export const CreatePostBody = zod
       .describe(
         "Sign the post as the team rather than as its author. Omitted: on creation, the team's postsAsTeamByDefault; on an update, left as it is."
       ),
+    tagIds: zod
+      .array(zod.string())
+      .optional()
+      .describe(
+        "IDs (TSID) of the team's POST tags the post carries, replacing the whole set — at most 10, each a tag of this team and of kind POST, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
+      ),
   })
   .describe('Post request')
 
@@ -490,6 +496,21 @@ export const CreatePostResponse = zod
       .describe(
         'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
       ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's POST tags the post carries, sorted by label. Empty when it carries none."
+      ),
   })
   .describe('Post summary data')
 
@@ -722,6 +743,12 @@ export const UpdatePostBody = zod
       .optional()
       .describe(
         "Sign the post as the team rather than as its author. Omitted: on creation, the team's postsAsTeamByDefault; on an update, left as it is."
+      ),
+    tagIds: zod
+      .array(zod.string())
+      .optional()
+      .describe(
+        "IDs (TSID) of the team's POST tags the post carries, replacing the whole set — at most 10, each a tag of this team and of kind POST, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
       ),
   })
   .describe('Post request')
@@ -983,6 +1010,21 @@ export const UpdatePostResponse = zod
       .optional()
       .describe(
         'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+      ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's POST tags the post carries, sorted by label. Empty when it carries none."
       ),
   })
   .describe('Post summary data')
@@ -1253,6 +1295,21 @@ export const GetPostResponse = zod
       .optional()
       .describe(
         'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+      ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's POST tags the post carries, sorted by label. Empty when it carries none."
       ),
   })
   .describe('Post summary data')
@@ -1549,6 +1606,21 @@ export const ChangePostSlugResponse = zod
       .describe(
         'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
       ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's POST tags the post carries, sorted by label. Empty when it carries none."
+      ),
   })
   .describe('Post summary data')
 
@@ -1825,6 +1897,21 @@ export const ChangePostStatusResponse = zod
       .describe(
         'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
       ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's POST tags the post carries, sorted by label. Empty when it carries none."
+      ),
   })
   .describe('Post summary data')
 
@@ -2094,6 +2181,21 @@ export const UndeletePostResponse = zod
       .optional()
       .describe(
         'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+      ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's POST tags the post carries, sorted by label. Empty when it carries none."
       ),
   })
   .describe('Post summary data')

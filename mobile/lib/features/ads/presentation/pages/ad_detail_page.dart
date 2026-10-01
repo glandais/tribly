@@ -17,6 +17,7 @@ import '../../../../core/widgets/team_banner.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../moderation/presentation/moderation_menu.dart';
+import '../../../tags/presentation/content_tags.dart';
 import '../../data/ad_repository.dart';
 import '../widgets/ad_contact_sheet.dart';
 import '../widgets/ad_location_map.dart';
@@ -196,6 +197,10 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
                 if (at != null) ...<Widget>[
                   const SizedBox(height: 4),
                   Text(AppFormatters.formatFullDate(at), style: t.sub),
+                ],
+                if (ad.tags.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: PdlSpacing.chipGap),
+                  ContentTagRow(tags: ad.tags),
                 ],
                 const SizedBox(height: PdlSpacing.section),
                 // `note` porte la période d'une location et rien d'autre : le

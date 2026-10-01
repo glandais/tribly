@@ -13,8 +13,10 @@ export function useRouteFilters<S extends z.ZodObject<z.ZodRawShape>>(
   const [filtersOpen, setFiltersOpen] = useState(false)
   const { filters, setFilters, replaceFilters } = useUrlFilters(options)
   // The generic schema hides the route shape from the type system, but every caller passes one.
-  const routeFilters = filters as RouteFilters
-  const patchRouteFilters = setFilters as unknown as (patch: Partial<RouteFilters>) => void
+  const routeFilters = filters as RouteFilters & { tags?: string[] }
+  const patchRouteFilters = setFilters as unknown as (
+    patch: Partial<RouteFilters & { tags?: string[] }>
+  ) => void
 
   const hasFiltersOrSearch: boolean =
     (routeFilters.search ? true : false) ||
@@ -24,7 +26,8 @@ export function useRouteFilters<S extends z.ZodObject<z.ZodRawShape>>(
     routeFilters.maxElevationGain !== undefined ||
     routeFilters.hilliness !== undefined ||
     routeFilters.surfaceType !== undefined ||
-    routeFilters.windDirection !== undefined
+    routeFilters.windDirection !== undefined ||
+    !!routeFilters.tags?.length
 
   // Resets every key `hasFiltersOrSearch` looks at, by name rather than by omission, so the
   // filters this hook does not own — membership, sort, density — survive the reset.
@@ -38,6 +41,8 @@ export function useRouteFilters<S extends z.ZodObject<z.ZodRawShape>>(
       hilliness: undefined,
       surfaceType: undefined,
       windDirection: undefined,
+      // Only a team's own list has tags; elsewhere the key is outside the schema and ignored.
+      tags: undefined,
       page: 0,
     })
 

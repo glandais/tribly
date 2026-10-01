@@ -7,6 +7,7 @@ import { TypeBadge, StatusBadge, VisibilityBadge, Stat, StatGroup, CardSkeleton 
 import { EntityLogo } from '../common/EntityLogo'
 import { FormattedDateTime } from '../common/FormattedDate'
 import { paths } from '@/config/paths'
+import { TagList } from '../tag/TagList'
 import { AdDto, AdType, RentalPeriod } from '@/api/dto'
 
 interface AdCardProps {
@@ -80,6 +81,8 @@ export function AdCard({ ad, actions }: AdCardProps) {
             <Stat icon={<IconMapPin size={16} />}>{ad.locationDescription}</Stat>
           )}
         </StatGroup>
+
+        <TagList tags={ad.tags} max={3} mt="xs" />
       </CardContent>
     </Card>
   )

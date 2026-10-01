@@ -55,6 +55,7 @@ import { AdType, RentalPeriod, ReportTargetType, Status } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useAdDetailData } from './adDetailData'
 import { AD_TYPE_COLORS, STATUS_COLORS } from '@/lib/badgeColors.generated'
+import { TagList } from '@/components/tag'
 
 export function AdDetailPage() {
   const { t } = useTranslation()
@@ -227,6 +228,7 @@ export function AdDetailPage() {
                   {t(`status.${ad.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
                 </Badge>
               </Group>
+              <TagList tags={ad.tags} />
             </Stack>
           </Group>
 

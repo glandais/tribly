@@ -36,6 +36,7 @@ import { prefetchEditRouteForm } from '@/pages/route/routeFormData'
 import { prefetchAdDetail } from '@/pages/ad/adDetailData'
 import { prefetchEditAdForm } from '@/pages/ad/adFormData'
 import { prefetchTeamPlaces } from '@/pages/team/teamPlacesData'
+import { prefetchTeamTagsAdmin } from '@/pages/team/teamTagsData'
 import { prefetchTeamDirectory, prefetchTeamMembers } from '@/pages/team/teamMembersData'
 import { prefetchTeamReports } from '@/pages/team/teamReportsData'
 import { prefetchRideTemplateList } from '@/pages/ridetemplate/rideTemplateListData'
@@ -448,6 +449,16 @@ export const routesConfig: RoutesConfig = [
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.places') },
     prefetch: teamScopedPrefetch((qc, p, url) => prefetchTeamPlaces(qc, p.teamSlug!, url)),
+  },
+  {
+    // The tag vocabulary (docs/LEDGER_*.md WEB-40) — team admins only, the page redirects others.
+    id: 'team-admin-tags',
+    paths: pathVariants.teamAdminTags(':teamSlug'),
+    component: pages.TeamTagsPage,
+    auth: 'authenticated',
+    parentId: 'team-admin',
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.tags') },
+    prefetch: teamScopedPrefetch((qc, p) => prefetchTeamTagsAdmin(qc, p.teamSlug!)),
   },
   {
     id: 'team-admin-pages',

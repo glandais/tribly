@@ -11,7 +11,14 @@ import {
   DEFAULT_ROUTE_SORT_BY,
   DEFAULT_ROUTE_SORT_DIR,
 } from '@/components/route/routeFilterDefaults'
-import { COMMON_ALIAS, optionalNumberField, pageField, searchField, sizeField } from './common'
+import {
+  COMMON_ALIAS,
+  optionalNumberField,
+  pageField,
+  searchField,
+  sizeField,
+  tagIdsField,
+} from './common'
 import {
   MEMBERSHIP_ALIAS,
   MEMBERSHIP_ALWAYS_SERIALIZE,
@@ -74,6 +81,16 @@ export const routeFiltersAlias = {
   density: 'd',
 } as const
 
+/**
+ * A team's own route list and map add the tag filter (`?tags=<id>,<id>`, plan D18). Not the
+ * cross-team list, which has none (D7) — hence an extension of the shared shape, like membership.
+ */
+export const teamRouteFiltersSchema = routeFiltersSchema.extend({ tags: tagIdsField })
+
+export type TeamRouteFilters = z.infer<typeof teamRouteFiltersSchema>
+
+export const teamRouteFiltersAlias = routeFiltersAlias
+
 /** The cross-team route list adds a membership filter; a team's own list has no use for one. */
 export const makeAllRouteFiltersSchema = (defaultMembership: MembershipFilterValue) =>
   routeFiltersSchema.extend({ membership: membershipField(defaultMembership) })
@@ -90,7 +107,7 @@ export const allRouteFiltersAlwaysSerialize = MEMBERSHIP_ALWAYS_SERIALIZE
  * Shared with the `routes` route's `prefetch`, which resolves the same filters out of the request's
  * query string — a link carrying `?q=col` has to prefetch *that* list, not the default one.
  */
-export function routeApiParams(filters: RouteFilters) {
+export function routeApiParams(filters: RouteFilters | TeamRouteFilters) {
   const rest = { ...filters, view: ListViewMode.COMPACT }
   delete rest.density
   return rest

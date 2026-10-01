@@ -10,13 +10,15 @@ import {
   IconUsers,
   IconSettings,
   IconFlag,
+  IconTags,
 } from '@tabler/icons-react'
 import type { TeamDetailDto } from '@/api/dto'
 import { paths } from '@/config/paths'
 import { NavButtons, type NavButtonItem } from '../common/NavButtons'
 import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
 
-export type AdminTab = 'ride-templates' | 'places' | 'pages' | 'members' | 'reports' | 'settings'
+export type AdminTab =
+  'ride-templates' | 'places' | 'tags' | 'pages' | 'members' | 'reports' | 'settings'
 
 interface TeamAdminLayoutProps {
   team: TeamDetailDto
@@ -51,6 +53,14 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
       path: paths.teamAdminPlaces(team.slug),
       label: t('places.title'),
       icon: IconMapPin,
+    },
+    {
+      // The vocabulary is the admins' alone (plan D4); organizers only pick from it.
+      id: 'tags',
+      path: paths.teamAdminTags(team.slug),
+      label: t('teams.admin.tabs.tags'),
+      icon: IconTags,
+      adminOnly: true,
     },
     {
       id: 'pages',

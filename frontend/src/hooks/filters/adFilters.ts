@@ -1,7 +1,14 @@
 import { z } from 'zod'
 import { AdSortBy, AdType, ListViewMode, SortDirection } from '@/api/dto'
 import { DEFAULT_AD_SORT_BY, DEFAULT_AD_SORT_DIR } from '@/components/ad/adSortOptions'
-import { COMMON_ALIAS, optionalNumberField, pageField, searchField, sizeField } from './common'
+import {
+  COMMON_ALIAS,
+  optionalNumberField,
+  pageField,
+  searchField,
+  sizeField,
+  tagIdsField,
+} from './common'
 
 export const AD_PAGE_SIZE = 12
 
@@ -11,6 +18,8 @@ export const adFiltersSchema = z.object({
   /** Either bound excludes the ads with no price ("à négocier") — see `ListAdsParams`. */
   minPrice: optionalNumberField,
   maxPrice: optionalNumberField,
+  /** `?tags=<id>,<id>`, in OR (plan D6, D18). */
+  tags: tagIdsField,
   sortBy: z.enum(AdSortBy).default(DEFAULT_AD_SORT_BY).catch(DEFAULT_AD_SORT_BY),
   sortDir: z.enum(SortDirection).default(DEFAULT_AD_SORT_DIR).catch(DEFAULT_AD_SORT_DIR),
   page: pageField,
@@ -37,7 +46,8 @@ export function isAdFiltered(filters: AdFilters): boolean {
     !!filters.search?.trim() ||
     !!filters.adType ||
     filters.minPrice !== undefined ||
-    filters.maxPrice !== undefined
+    filters.maxPrice !== undefined ||
+    !!filters.tags?.length
   )
 }
 

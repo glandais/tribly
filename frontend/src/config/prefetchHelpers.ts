@@ -5,12 +5,19 @@ import {
   prefetchListTeamsQuery,
 } from '@/api/endpoints/teams/teams'
 import { prefetchGetRoutesBulkQuery } from '@/api/endpoints/routes/routes'
+import { prefetchListTeamTagsQuery } from '@/api/endpoints/tags/tags'
 import { ROUTES_BULK_MAX_SLUGS } from '@/hooks/useRoutesBulk'
 import { COMMENT_LIST_OPTIONS } from '@/hooks/useComments'
 import type { MembershipFilterValue } from '@/hooks/filters/membership'
 import { useAuthStore } from '@/store/authStore'
 import { MinRole } from '@/api/dto'
-import type { SortDirection, TeamDetailDto, TeamListResponse, GetRoutesBulkParams } from '@/api/dto'
+import type {
+  SortDirection,
+  TagTarget,
+  TeamDetailDto,
+  TeamListResponse,
+  GetRoutesBulkParams,
+} from '@/api/dto'
 
 /**
  * The prefetch primitives shared by `routes.config.ts` and the pages' own data companions (e.g.
@@ -94,4 +101,16 @@ export async function prefetchRoutesBulkChunked(
       prefetchGetRoutesBulkQuery(queryClient, teamSlug, { ...params, slug: slugChunk })
     )
   )
+}
+
+/**
+ * A team's tags of one kind, on the key `TagFilter` reads (`useListTeamTags(teamSlug, { type })`),
+ * so a dedicated list's tag filter is in the server render rather than popping in after hydration.
+ */
+export async function prefetchTeamTags(
+  queryClient: QueryClient,
+  teamSlug: string,
+  type: TagTarget
+): Promise<void> {
+  await prefetchListTeamTagsQuery(queryClient, teamSlug, { type })
 }

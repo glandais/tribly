@@ -30,6 +30,8 @@ public record AdQuery(
     @Nullable Double nearLat,
     @Nullable Double nearLon,
     @Nullable Double nearRadius,
+    // Tagged with any of these (plan D6); null or empty for no filter
+    @Nullable Set<Long> tagIds,
     // Sorting
     @Nullable AdSortBy sortBy,
     @Nullable SortDirection sortDir,

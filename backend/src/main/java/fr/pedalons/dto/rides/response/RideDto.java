@@ -12,6 +12,8 @@ import fr.pedalons.dto.publications.response.PublicationDto;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.dto.publications.response.TeamPublicationDto;
 import fr.pedalons.dto.publications.response.UserParticipations;
+import fr.pedalons.dto.tags.response.ContentTags;
+import fr.pedalons.dto.tags.response.TagDto;
 import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.ListViewMode;
@@ -177,6 +179,12 @@ public class RideDto implements PublicationDto {
               + " even zero.")
   final Integer commentCount;
 
+  @Schema(
+      description =
+          "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none.",
+      required = true)
+  final List<TagDto> tags;
+
   public RideDto(
       TeamPublicationDto team,
       String id,
@@ -205,7 +213,8 @@ public class RideDto implements PublicationDto {
       @Nullable RideGroupDto registeredGroup,
       boolean full,
       @Nullable Integer maxParticipants,
-      @Nullable Integer commentCount) {
+      @Nullable Integer commentCount,
+      List<TagDto> tags) {
     super();
     this.team = team;
     this.id = id;
@@ -237,36 +246,22 @@ public class RideDto implements PublicationDto {
     this.full = full;
     this.maxParticipants = maxParticipants;
     this.commentCount = commentCount;
+    this.tags = tags;
   }
 
   /**
    * Builds a list row without touching {@code ride.getGroups()}.
    *
    * <p>The group/participant numbers come from {@link RideListSummary}, which the caller loaded in
-   * bulk for the whole page. Going through {@link #from(Ride, boolean, AssetService)} here would
-   * hydrate every participation and every participant of every ride on the page just to count them
-   * and keep five.
-   */
-  public static RideDto fromListItem(
-      Ride ride, RideListSummary summary, AssetService assetService) {
-    return fromListItem(ride, summary, assetService, UserParticipations.NONE, CommentCounts.NONE);
-  }
-
-  /**
+   * bulk for the whole page. Going through {@link #from} here would hydrate every participation and
+   * every participant of every ride on the page just to count them and keep five.
+   *
+   * <p>No overload defaults the page lookups: a list caller that forgot one would render the row
+   * silently without it (no tags, no « me » fields) instead of failing to compile.
+   *
    * @param participations the current user's registrations for this whole page, resolved in one
    *     query by {@code ParticipationLookup} — never one lookup per row
-   */
-  public static RideDto fromListItem(
-      Ride ride,
-      RideListSummary summary,
-      AssetService assetService,
-      UserParticipations participations,
-      CommentCounts commentCounts) {
-    return fromListItem(
-        ride, summary, assetService, participations, commentCounts, ListViewMode.FULL);
-  }
-
-  /**
+   * @param tags the tags of this whole page, resolved in one query by {@code TagLookup}
    * @param view {@link ListViewMode#COMPACT} leaves the markdown body and the asset inventory out of the
    *     row; {@code excerpt} and {@code thumbnailUrl} carry what it renders instead
    */
@@ -276,6 +271,7 @@ public class RideDto implements PublicationDto {
       AssetService assetService,
       UserParticipations participations,
       CommentCounts commentCounts,
+      ContentTags tags,
       @Nullable ListViewMode view) {
     return build(
         ride,
@@ -289,6 +285,7 @@ public class RideDto implements PublicationDto {
         summary.full(),
         summary.maxParticipants(),
         commentCounts.forEntity(ride.getId()),
+        tags.forContent(ride.getId()),
         view);
   }
 
@@ -299,6 +296,7 @@ public class RideDto implements PublicationDto {
    *     ride, resolved by {@code ParticipantPreviewLookup} in two queries. Counts, capacity and the
    *     avatars all come from it: walking {@code group.getParticipations()} here would hydrate every
    *     registration of the ride (docs/LEDGER_*.md API-12).
+   * @param tags the ride's tags, from {@code TagLookup}
    */
   public static RideDto from(
       Ride ride,
@@ -306,7 +304,8 @@ public class RideDto implements PublicationDto {
       UserParticipations participations,
       CommentCounts commentCounts,
       Map<Long, ThemedThumbnail> routeThumbnails,
-      Map<Long, ParticipantPreview> groupParticipants) {
+      Map<Long, ParticipantPreview> groupParticipants,
+      List<TagDto> tags) {
     Long registeredGroupId = participations.registeredGroupId(ride.getId());
     List<RideGroup> groups =
         ride.getGroups().stream().sorted(Comparator.comparing(RideGroup::getSortOrder)).toList();
@@ -370,6 +369,7 @@ public class RideDto implements PublicationDto {
         full,
         maxParticipants,
         commentCounts.forEntity(ride.getId()),
+        tags,
         ListViewMode.FULL);
   }
 
@@ -385,6 +385,7 @@ public class RideDto implements PublicationDto {
       boolean full,
       @Nullable Integer maxParticipants,
       @Nullable Integer commentCount,
+      List<TagDto> tags,
       @Nullable ListViewMode view) {
     Place startPlace = ride.getStart();
     Place endPlace = ride.getEnd();
@@ -438,6 +439,7 @@ public class RideDto implements PublicationDto {
         registeredGroup,
         full,
         maxParticipants,
-        commentCount);
+        commentCount,
+        tags);
   }
 }

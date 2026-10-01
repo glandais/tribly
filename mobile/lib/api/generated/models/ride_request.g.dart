@@ -19,6 +19,7 @@ _RideRequest _$RideRequestFromJson(Map<String, dynamic> json) => _RideRequest(
   startPlaceId: json['startPlaceId'] as String?,
   endPlaceId: json['endPlaceId'] as String?,
   publishAt: json['publishAt'] as String?,
+  tagIds: (json['tagIds'] as List<dynamic>?)?.map((e) => e as String).toList(),
 );
 
 Map<String, dynamic> _$RideRequestToJson(_RideRequest instance) =>
@@ -33,4 +34,5 @@ Map<String, dynamic> _$RideRequestToJson(_RideRequest instance) =>
       'startPlaceId': instance.startPlaceId,
       'endPlaceId': instance.endPlaceId,
       'publishAt': instance.publishAt,
+      'tagIds': instance.tagIds,
     };

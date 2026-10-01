@@ -27,7 +27,8 @@ mixin _$RideTemplateDto {
  String get createdAt;/// Last update timestamp
  String get updatedAt;/// Number of groups
  int get groupCount;/// Template groups
- List<RideTemplateGroupDto> get groups;
+ List<RideTemplateGroupDto> get groups;/// The team's RIDE tags of the template, sorted by label. Copied onto a ride created from it: a client prefills the ride's tagIds with them, editable before and after.
+ List<TagDto> get tags;
 /// Create a copy of RideTemplateDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -41,20 +42,20 @@ $RideTemplateDtoCopyWith<RideTemplateDto> get copyWith => _$RideTemplateDtoCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as RideTemplateDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideTemplateDto&&(identical(other.team, _this.team) || other.team == _this.team)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.markdown, _this.markdown) || other.markdown == _this.markdown)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.groupCount, _this.groupCount) || other.groupCount == _this.groupCount)&&const DeepCollectionEquality().equals(other.groups, _this.groups));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideTemplateDto&&(identical(other.team, _this.team) || other.team == _this.team)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.markdown, _this.markdown) || other.markdown == _this.markdown)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.groupCount, _this.groupCount) || other.groupCount == _this.groupCount)&&const DeepCollectionEquality().equals(other.groups, _this.groups)&&const DeepCollectionEquality().equals(other.tags, _this.tags));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as RideTemplateDto;
-  return Object.hash(runtimeType,_this.team,_this.id,_this.slug,_this.name,_this.markdown,_this.visibility,_this.status,_this.createdAt,_this.updatedAt,_this.groupCount,const DeepCollectionEquality().hash(_this.groups));
+  return Object.hash(runtimeType,_this.team,_this.id,_this.slug,_this.name,_this.markdown,_this.visibility,_this.status,_this.createdAt,_this.updatedAt,_this.groupCount,const DeepCollectionEquality().hash(_this.groups),const DeepCollectionEquality().hash(_this.tags));
 }
 
 @override
 String toString() {
   final _this = this as RideTemplateDto;
-  return 'RideTemplateDto(team: ${_this.team}, id: ${_this.id}, slug: ${_this.slug}, name: ${_this.name}, markdown: ${_this.markdown}, visibility: ${_this.visibility}, status: ${_this.status}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, groupCount: ${_this.groupCount}, groups: ${_this.groups})';
+  return 'RideTemplateDto(team: ${_this.team}, id: ${_this.id}, slug: ${_this.slug}, name: ${_this.name}, markdown: ${_this.markdown}, visibility: ${_this.visibility}, status: ${_this.status}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, groupCount: ${_this.groupCount}, groups: ${_this.groups}, tags: ${_this.tags})';
 }
 
 
@@ -65,7 +66,7 @@ abstract mixin class $RideTemplateDtoCopyWith<$Res>  {
   factory $RideTemplateDtoCopyWith(RideTemplateDto value, $Res Function(RideTemplateDto) _then) = _$RideTemplateDtoCopyWithImpl;
 @useResult
 $Res call({
- TeamPublicationDto team, String id, String slug, String name, String markdown, String visibility, String status, String createdAt, String updatedAt, int groupCount, List<RideTemplateGroupDto> groups
+ TeamPublicationDto team, String id, String slug, String name, String markdown, String visibility, String status, String createdAt, String updatedAt, int groupCount, List<RideTemplateGroupDto> groups, List<TagDto> tags
 });
 
 
@@ -82,7 +83,7 @@ class _$RideTemplateDtoCopyWithImpl<$Res>
 
 /// Create a copy of RideTemplateDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? markdown = null,Object? visibility = null,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? groupCount = null,Object? groups = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? markdown = null,Object? visibility = null,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? groupCount = null,Object? groups = null,Object? tags = null,}) {
   return _then(RideTemplateDto(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -95,7 +96,8 @@ as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: 
 as String,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as String,groupCount: null == groupCount ? _self.groupCount : groupCount // ignore: cast_nullable_to_non_nullable
 as int,groups: null == groups ? _self.groups : groups // ignore: cast_nullable_to_non_nullable
-as List<RideTemplateGroupDto>,
+as List<RideTemplateGroupDto>,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
+as List<TagDto>,
   ));
 }
 /// Create a copy of RideTemplateDto
@@ -189,10 +191,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  String markdown,  String visibility,  String status,  String createdAt,  String updatedAt,  int groupCount,  List<RideTemplateGroupDto> groups)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  String markdown,  String visibility,  String status,  String createdAt,  String updatedAt,  int groupCount,  List<RideTemplateGroupDto> groups,  List<TagDto> tags)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RideTemplateDto() when $default != null:
-return $default(_that.team,_that.id,_that.slug,_that.name,_that.markdown,_that.visibility,_that.status,_that.createdAt,_that.updatedAt,_that.groupCount,_that.groups);case _:
+return $default(_that.team,_that.id,_that.slug,_that.name,_that.markdown,_that.visibility,_that.status,_that.createdAt,_that.updatedAt,_that.groupCount,_that.groups,_that.tags);case _:
   return orElse();
 
 }
@@ -210,10 +212,10 @@ return $default(_that.team,_that.id,_that.slug,_that.name,_that.markdown,_that.v
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  String markdown,  String visibility,  String status,  String createdAt,  String updatedAt,  int groupCount,  List<RideTemplateGroupDto> groups)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  String markdown,  String visibility,  String status,  String createdAt,  String updatedAt,  int groupCount,  List<RideTemplateGroupDto> groups,  List<TagDto> tags)  $default,) {final _that = this;
 switch (_that) {
 case _RideTemplateDto():
-return $default(_that.team,_that.id,_that.slug,_that.name,_that.markdown,_that.visibility,_that.status,_that.createdAt,_that.updatedAt,_that.groupCount,_that.groups);case _:
+return $default(_that.team,_that.id,_that.slug,_that.name,_that.markdown,_that.visibility,_that.status,_that.createdAt,_that.updatedAt,_that.groupCount,_that.groups,_that.tags);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -230,10 +232,10 @@ return $default(_that.team,_that.id,_that.slug,_that.name,_that.markdown,_that.v
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TeamPublicationDto team,  String id,  String slug,  String name,  String markdown,  String visibility,  String status,  String createdAt,  String updatedAt,  int groupCount,  List<RideTemplateGroupDto> groups)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TeamPublicationDto team,  String id,  String slug,  String name,  String markdown,  String visibility,  String status,  String createdAt,  String updatedAt,  int groupCount,  List<RideTemplateGroupDto> groups,  List<TagDto> tags)?  $default,) {final _that = this;
 switch (_that) {
 case _RideTemplateDto() when $default != null:
-return $default(_that.team,_that.id,_that.slug,_that.name,_that.markdown,_that.visibility,_that.status,_that.createdAt,_that.updatedAt,_that.groupCount,_that.groups);case _:
+return $default(_that.team,_that.id,_that.slug,_that.name,_that.markdown,_that.visibility,_that.status,_that.createdAt,_that.updatedAt,_that.groupCount,_that.groups,_that.tags);case _:
   return null;
 
 }
@@ -245,7 +247,7 @@ return $default(_that.team,_that.id,_that.slug,_that.name,_that.markdown,_that.v
 @JsonSerializable()
 
 class _RideTemplateDto implements RideTemplateDto {
-  const _RideTemplateDto({required this.team, required this.id, required this.slug, required this.name, required this.markdown, required this.visibility, required this.status, required this.createdAt, required this.updatedAt, required this.groupCount, required  List<RideTemplateGroupDto> groups}): _groups = groups;
+  const _RideTemplateDto({required this.team, required this.id, required this.slug, required this.name, required this.markdown, required this.visibility, required this.status, required this.createdAt, required this.updatedAt, required this.groupCount, required  List<RideTemplateGroupDto> groups, required  List<TagDto> tags}): _groups = groups,_tags = tags;
   factory _RideTemplateDto.fromJson(Map<String, dynamic> json) => _$RideTemplateDtoFromJson(json);
 
 /// Team
@@ -277,6 +279,15 @@ class _RideTemplateDto implements RideTemplateDto {
   return EqualUnmodifiableListView(_groups);
 }
 
+/// The team's RIDE tags of the template, sorted by label. Copied onto a ride created from it: a client prefills the ride's tagIds with them, editable before and after.
+ final  List<TagDto> _tags;
+/// The team's RIDE tags of the template, sorted by label. Copied onto a ride created from it: a client prefills the ride's tagIds with them, editable before and after.
+@override List<TagDto> get tags {
+  if (_tags is EqualUnmodifiableListView) return _tags;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_tags);
+}
+
 
 /// Create a copy of RideTemplateDto
 /// with the given fields replaced by the non-null parameter values.
@@ -291,18 +302,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideTemplateDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.groupCount, groupCount) || other.groupCount == groupCount)&&const DeepCollectionEquality().equals(other.groups, _groups));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideTemplateDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.markdown, markdown) || other.markdown == markdown)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.groupCount, groupCount) || other.groupCount == groupCount)&&const DeepCollectionEquality().equals(other.groups, _groups)&&const DeepCollectionEquality().equals(other.tags, _tags));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,team,id,slug,name,markdown,visibility,status,createdAt,updatedAt,groupCount,const DeepCollectionEquality().hash(_groups));
+    return Object.hash(runtimeType,team,id,slug,name,markdown,visibility,status,createdAt,updatedAt,groupCount,const DeepCollectionEquality().hash(_groups),const DeepCollectionEquality().hash(_tags));
 }
 
 @override
 String toString() {
-    return 'RideTemplateDto(team: $team, id: $id, slug: $slug, name: $name, markdown: $markdown, visibility: $visibility, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, groupCount: $groupCount, groups: $groups)';
+    return 'RideTemplateDto(team: $team, id: $id, slug: $slug, name: $name, markdown: $markdown, visibility: $visibility, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, groupCount: $groupCount, groups: $groups, tags: $tags)';
 }
 
 
@@ -313,7 +324,7 @@ abstract mixin class _$RideTemplateDtoCopyWith<$Res> implements $RideTemplateDto
   factory _$RideTemplateDtoCopyWith(_RideTemplateDto value, $Res Function(_RideTemplateDto) _then) = __$RideTemplateDtoCopyWithImpl;
 @override @useResult
 $Res call({
- TeamPublicationDto team, String id, String slug, String name, String markdown, String visibility, String status, String createdAt, String updatedAt, int groupCount, List<RideTemplateGroupDto> groups
+ TeamPublicationDto team, String id, String slug, String name, String markdown, String visibility, String status, String createdAt, String updatedAt, int groupCount, List<RideTemplateGroupDto> groups, List<TagDto> tags
 });
 
 
@@ -330,7 +341,7 @@ class __$RideTemplateDtoCopyWithImpl<$Res>
 
 /// Create a copy of RideTemplateDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? markdown = null,Object? visibility = null,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? groupCount = null,Object? groups = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? markdown = null,Object? visibility = null,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? groupCount = null,Object? groups = null,Object? tags = null,}) {
   return _then(_RideTemplateDto(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -343,7 +354,8 @@ as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: 
 as String,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as String,groupCount: null == groupCount ? _self.groupCount : groupCount // ignore: cast_nullable_to_non_nullable
 as int,groups: null == groups ? _self._groups : groups // ignore: cast_nullable_to_non_nullable
-as List<RideTemplateGroupDto>,
+as List<RideTemplateGroupDto>,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
+as List<TagDto>,
   ));
 }
 

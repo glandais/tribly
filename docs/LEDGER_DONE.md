@@ -130,6 +130,22 @@ couvert » ; les tests ne tournent qu'en local (`MOB-37`).
   Android (Pixel 7, API 36), dans les passes Patrol complètes, 57 / 57 sur chacune. *Non couvert : un jeton réellement expiré (signé, `exp` passé) plutôt que
   refusé, et plusieurs appels en file pendant un même rafraîchissement.*
 
+### Tags d'équipe
+
+- [x] `MOB-39` **Tags d'équipe dans l'application** (1er octobre 2026, API 10.1.0, plan archivé
+  [`2026-10-01-tags.md`](plans/archive/2026-10-01-tags.md) §6) — affichage et filtre, ni
+  étiquetage ni admin (D20). Les tags d'un contenu sont rendus par `PdlTagRow` (`core/pdl/pdl_tag.dart`)
+  via `ContentTagRow` (`features/tags/presentation/content_tags.dart`) : en carte (sortie, post,
+  voyage du fil d'équipe, parcours, annonce) les `kCardTagLimit` = 3 premiers puis « +n », en fiche
+  tous. Filtre par tag (`tag_filter.dart`, feuille multi-sélection, OU) sur les listes d'équipe
+  dédiées : sorties, posts et voyages (le fil restreint à un type), parcours (`route_filter_chips_bar`),
+  annonces (`ads_toolbar`) ; pas de chip quand l'équipe n'a aucun tag du type, ni sur le fil mixte
+  (D13). Tests : `pdl_tag_test.dart`, `tag_filter_test.dart`, `team_list_tag_filter_test.dart` —
+  `flutter test` vert (724 tests). **À ne pas défaire** : un tag est une **pastille** de la famille
+  et un libellé neutre, jamais un `PdlBadge` (D10, un tag vert ne doit pas se lire « Publié ») ; la
+  troncature est la même que sur le web — « +n » seulement quand au moins **deux** tags seraient
+  cachés (4 tags pour une limite de 3 : les 4 montrés), pour qu'un contenu ait la même carte partout.
+
 ---
 
 ## WEB — Site web
@@ -531,6 +547,37 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   statut et jamais `updateRide`, qui voit quoi, confirmation). **Ne pas** publier depuis une liste
   par la mise à jour complète, ni faire passer le `.ics` unitaire par le jeton d'abonnement.
 
+### Tags d'équipe
+
+- `WEB-40` **Tags d'équipe côté site** (1er octobre 2026, API 10.1.0, plan archivé
+  [`2026-10-01-tags.md`](plans/archive/2026-10-01-tags.md) §5) — affichage, filtre, étiquetage et
+  admin du vocabulaire (D20).
+  - **Affichage** : `components/tag/TagList` (`TagChip` : pastille `TagDot` de la famille et libellé
+    neutre, D10), en carte (3 tags, puis « +n » seulement si au moins deux seraient cachés — même
+    règle que `PdlTagRow`) et en fiche (tous) ; rendu en SSR, visible des anonymes (D19).
+  - **Filtre** : `TagFilter`, synchronisé avec `?tags=<id>,<id>` (`tagIdsField`, D18), sur les
+    listes d'équipe dédiées — publications restreintes à un type, parcours, annonces ; masqué quand
+    l'équipe n'a aucun tag du type et sur le fil mixte (D13), où un `?tags=` d'URL n'est ni envoyé
+    ni compté comme filtre actif (`PublicationListPage.hasNonSearchFilters`).
+  - **Étiquetage** : `TagPicker` dans les formulaires des cinq types et du modèle de sortie, parmi
+    les tags existants seulement (D4) ; sans tag du type, un renvoi vers l'admin pour un admin. Un
+    id que le vocabulaire chargé n'a plus est **retiré de la valeur du formulaire**, pas seulement
+    masqué. La création d'une sortie depuis un modèle pré-remplit `tagIds` depuis
+    `RideTemplateDto.tags` : c'est **la** copie D14, l'API n'en a pas d'autre. Les boutons de statut
+    des fiches sortie et voyage passent par `rideStatusRequest`/`tripStatusRequest`, qui
+    n'envoient pas `tagIds` (« inchangé » côté API).
+  - **Admin** : `pages/team/TeamTagsPage` (`/equipes/{slug}/admin/tags`, route `teamAdminTags`), un
+    onglet par type, `TagFormModal` (libellé ≤ 32 après trim, 9 couleurs), suppression avec
+    confirmation qui annonce le nombre de contenus détachés (D11) ; renommer, recolorer ou
+    supprimer invalide aussi les contenus en cache (`lib/tagCacheInvalidation.ts`).
+
+  Tests : `TagList.test.tsx`, `TagPicker.test.tsx`, `hooks/filters/tagFilters.test.ts` (vitest
+  vert, 182 tests) ; e2e `tags.e2e.ts` « an admin creates a tag, a member puts it on an ad, the
+  list filtered by URL finds it » (plan §8). **À ne pas défaire** : aucun formulaire de contenu ne
+  crée de tag ; ne pas renvoyer depuis le cache des tags que le vocabulaire n'a plus (l'API refuse
+  la requête entière en `TAG_INVALID`) ; pas de filtre par tag hors d'une liste d'équipe d'un seul
+  type (D7, D13).
+
 ---
 
 ## API — Contrat d'API et backend
@@ -801,6 +848,51 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   généré depuis les entités) : la migration a été vérifiée sur la base locale, dans une
   transaction annulée. **À ne pas défaire** : ne pas réintroduire de mot de passe stocké avant la
   vérification de l'e-mail (`SEC-24`).
+
+- `API-59` **Tags d'équipe sur les cinq types de contenu** (2026-10-01, **API 10.1.0**, mineure,
+  migration `V55__tags.sql`, tables nouvelles seulement ; plan archivé
+  [`2026-10-01-tags.md`](plans/archive/2026-10-01-tags.md), décisions D1 à D23) —
+  - **Modèle** : `Tag` (`BaseEntity`, pas `TeamEntity` : pas de corbeille, D11) — équipe, `type`
+    (`TagTarget` : `RIDE`, `POST`, `TRIP`, `ROUTE`, `AD`, D3), libellé, `color` (`TagColor`, les 9
+    familles de `brand-colors.yaml`, D10) ; index unique `uk_tags_team_type_label` sur
+    `(team_id, type, lower(label))` (D17). Liaisons `team_entity_tags` (les cinq types, tous dans
+    `team_entities`) et `ride_template_tags` (D14), en cascade des deux côtés.
+  - **Vocabulaire** : `GET /api/teams/{teamSlug}/tags?type=` (qui voit l'équipe ; trié par libellé,
+    `usageCount` par tag en une requête), `POST`, `PATCH /{tagId}` (libellé, couleur ; jamais le
+    type), `DELETE /{tagId}` → `TagDeletedDto.detachedCount` — admins seulement (`TagAccessChecker`,
+    D4, D12). Bornes vérifiées par `TagService` (D16) : libellé non vide et ≤ 32 caractères
+    **après trim**, comptés en points de code comme le `varchar(32)` (`TAG_LABEL_INVALID` ; le
+    `@Size(max = 255)` des requêtes n'est qu'un plafond brut), ≤ 100 tags par équipe et type
+    (`TAG_LIMIT_REACHED`), unicité insensible à la casse (409 `TAG_LABEL_TAKEN`, y compris quand
+    deux admins écrivent le même libellé au même instant : le `flush` dans `createTag`/`updateTag`
+    fait remonter l'index en 409 et non en 500 à la validation).
+  - **Étiquetage** : `tagIds` sur les requêtes des cinq types et de `RideTemplateRequest` —
+    `null`/absent laisse les tags tels quels (un client plus ancien ne les efface pas), `[]` les
+    retire ; ≤ 10 (`TOO_MANY_TAGS`), tous de l'équipe et du type du contenu (`TAG_INVALID`). Droits
+    = ceux d'édition du contenu, sans cas particulier (D5). `tags: TagDto[]` (`id`, `label`,
+    `color`, triés par libellé) sur la liste et le détail de chaque type, et sur `RideTemplateDto`.
+  - **Filtre** : `?tags=<id>,<id>` (ou répété) en OU par `EXISTS` (`TagFilter.andTaggedWithAny`,
+    pas de doublon, compte cohérent) sur `/api/teams/{t}/publications` **avec un `type`**, `/routes`
+    (+ `count`, `bounds`, tuiles) et `/classifieds` (+ `count`) ; les ids inconnus, d'une autre équipe ou d'un autre
+    type sont ignorés et un filtre sans id connu ne filtre rien (D18). Absent des listes
+    multi-équipes et ignoré par le fil mixte (D7, D13).
+  - **Par page** : `TagLookup` résout les tags d'une page de liste (et d'un voyage avec les parcours
+    de ses étapes) en une requête ; les constructeurs de lignes (`RideDto`/`TripDto.fromListItem`,
+    `PublicationDto.from`, `TripStageDto.from`) n'ont plus de surcharge sans `ContentTags`, pour
+    qu'un appelant de liste ne puisse pas rendre `tags: []` par oubli.
+  - **Migration biketeam** : voir `MIG-14`.
+
+  Tests (verts le 1er octobre 2026, suite backend complète comprise) :
+  `TagResourceTest` (droits admin, bornes après trim, unicité par casse, détachement à la
+  suppression), `ContentTaggingTest` (droits d'édition, type et équipe du tag, > 10, `tagIds`
+  absent vs `[]`, `aTemplatesTags_areAnswered_andARideCreatedWithThem_carriesThem` pour D14),
+  `TagFilterTest` (OU sans doublon, ids inconnus, fil mixte, listes multi-équipes),
+  `TagLookupQueryCountTest`. La course de deux créations simultanées n'est pas testable : les tests
+  construisent le schéma depuis les entités, sans l'index sur `lower(label)`. **À ne pas défaire** :
+  la copie modèle → sortie (D14) est celle du client — pas de « création depuis un modèle » côté
+  API ; le fil mixte ignore `?tags=` ; un id inconnu ne filtre rien plutôt que de vider la liste ;
+  un changement de tags ne notifie pas (D23 : ne pas l'ajouter à `RIDE_UPDATED`) ; les tags d'une
+  page se résolvent par page, jamais par ligne.
 
 ### `API-39` T5.4 — Trombinoscope : débloqué par un réglage d'équipe (contrat `3.0.0`)
 
@@ -1204,6 +1296,22 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
 ---
 
 ## MIG — Migration biketeam
+
+- `MIG-14` **Les tags de parcours biketeam sont importés** (2026-10-01, API 10.1.0 ; détaché de
+  `MIG-6`, qui garde la ville et le pays ; plan archivé
+  [`2026-10-01-tags.md`](plans/archive/2026-10-01-tags.md) §7, D21) — à l'import d'un parcours,
+  `TagService.importTags` retrouve chaque libellé de `BtMap.tags` (trim, vides écartés) dans le
+  vocabulaire `ROUTE` de l'équipe, sans tenir compte de la casse, ou le crée en `GRAY` avec la
+  première graphie rencontrée, puis **remplace** les tags du parcours : un rejeu ne double ni tag ni
+  liaison, et un tag retiré sur biketeam quitte le parcours (il reste au vocabulaire). Au-delà des
+  bornes (D16) la migration n'échoue pas : un libellé de plus de 32 caractères est coupé (sur les
+  points de code — jamais au milieu d'une paire de substitution), au-delà de 10 tags sur le
+  parcours ou de 100 dans l'équipe les premiers sont gardés dans l'ordre de l'instantané, et
+  l'avertissement `TAGS_TRUNCATED` le dit. `defaultSearchTags` n'est ni exporté ni importé (D8).
+  Tests (verts le 1er octobre 2026) : `BiketeamLiveMigrationTest.routeTags_*` (fusion de casse,
+  rejeu, coupe et troncature avec un libellé non BMP, équipe à 100 tags). **À ne pas défaire** :
+  livré avant les bascules de production (D22) — aucun rattrapage n'est prévu pour une équipe
+  basculée avant.
 
 - `MIG-5` **Une équipe migrée ne se supprime plus** (2026-09-30, API `7.1.0`) — `DELETE
   /api/teams/{slug}` mettait à la corbeille une équipe basculée depuis biketeam, qui aurait alors

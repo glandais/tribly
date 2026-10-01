@@ -11,17 +11,46 @@ import '../../../core/pagination/pagination.dart';
 /// compte : changer un filtre construit un notifier neuf plutôt que de muter
 /// l'actuel, ce qui interdit à deux jeux de résultats de se mélanger dans la
 /// même liste.
+///
+/// `tags` est la sélection de tags **jointe par des virgules** (`a,b`), et non
+/// une liste : un record compare ses champs par `==`, et deux `List` égales
+/// n'y sont pas égales — chaque reconstruction aurait créé un notifier neuf.
+/// Le serveur accepte d'ailleurs `?tags=a,b` tel quel.
 typedef PublicationFeedKey = ({
   String? teamSlug,
   PublicationType? type,
   String? search,
   MinRole? minRole,
+  String? tags,
 });
 
 /// Filtre de type courant, par portée. Le fil d'accueil et un fil d'équipe
 /// gardent chacun leur sélection.
 final publicationFeedTypeProvider = StateProvider.autoDispose
     .family<PublicationType?, String?>((ref, teamSlug) => null);
+
+/// Tags choisis sur un fil d'équipe, par portée (ledger `MOB-39`).
+///
+/// N'a d'effet qu'avec un type choisi : un fil d'équipe filtré par type *est*
+/// la liste dédiée de ce type, la seule où le serveur filtre par tag (plan des
+/// tags, D13) — le fil mixte ne l'est pas. Les tags étant un jeu par type,
+/// changer de type les lève (`PublicationFeedView`).
+final publicationFeedTagsProvider = StateProvider.autoDispose
+    .family<List<String>, String?>((ref, teamSlug) => const <String>[]);
+
+/// La valeur `tags` d'une [PublicationFeedKey] : nulle hors d'une liste
+/// dédiée d'équipe, ou sans sélection.
+String? feedTagsKey({
+  required String? teamSlug,
+  required PublicationType? type,
+  required List<String> tagIds,
+}) {
+  if (teamSlug == null || type == null || tagIds.isEmpty) return null;
+  return tagIds.join(',');
+}
+
+List<String>? _tagList(String? tags) =>
+    tags == null || tags.isEmpty ? null : tags.split(',');
 
 /// Recherche plein texte du fil, par portée.
 ///
@@ -71,6 +100,7 @@ final publicationFeedCountProvider = FutureProvider.autoDispose
               teamSlug: key.teamSlug!,
               type: key.type,
               search: search,
+              tags: _tagList(key.tags),
             );
       return response.total;
     });
@@ -108,6 +138,7 @@ class PublicationFeedNotifier extends PagedListNotifier<PublicationDto> {
             size: pageSize,
             type: _key.type,
             search: _trimmed(_key.search),
+            tags: _tagList(_key.tags),
             view: ListViewMode.compact,
           );
     return PageResult<PublicationDto>(

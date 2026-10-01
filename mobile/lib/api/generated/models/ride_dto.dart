@@ -12,6 +12,7 @@ import 'publication_dto.dart';
 import 'publication_type.dart';
 import 'ride_group_dto.dart';
 import 'status.dart';
+import 'tag_dto.dart';
 import 'team_publication_dto.dart';
 import 'visibility.dart';
 
@@ -72,6 +73,9 @@ abstract class RideDto with _$RideDto {
 
     /// Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.
     required bool full,
+
+    /// The team's RIDE tags the ride carries, sorted by label. Empty when it carries none.
+    required List<TagDto> tags,
 
     /// Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter.
     String? excerpt,

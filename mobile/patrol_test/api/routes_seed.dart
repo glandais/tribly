@@ -11,19 +11,22 @@ import 'backend_client.dart';
 extension RoutesSeed on BackendClient {
   /// A route created from a GPX upload, as the « Nouveau parcours » form does: a multipart of the
   /// `RouteRequest` (`route`, JSON) and the track (`gpxFile`). [visibility] `TEAM` keeps it to the
-  /// team's members, `PUBLIC` opens it to anyone (in a public team).
+  /// team's members, `PUBLIC` opens it to anyone (in a public team). [tagIds] are the team's
+  /// `ROUTE` tags the route carries.
   Future<Json> newRoute(
     TestUser by,
     String teamSlug,
     String name, {
     String visibility = 'TEAM',
     String surfaceType = 'ROAD',
+    List<String>? tagIds,
   }) async {
     final request = {
       'name': name,
       'media': markdownMedia(),
       'surfaceType': surfaceType,
       'visibility': visibility,
+      'tagIds': ?tagIds,
     };
     final form = FormData.fromMap({
       'route': MultipartFile.fromString(

@@ -14,6 +14,7 @@ import { useGpsConnections } from '@/hooks/useGpsConnections'
 import { useAuth } from '@/hooks/useAuth'
 import { FormattedDate } from '@/components/common/FormattedDate'
 import { BADGE_VARIANTS, CLIMB_CATEGORY_COLORS } from '@/lib/badgeColors.generated'
+import { TagList } from '@/components/tag'
 
 interface RouteDetailViewProps {
   route: RouteDetailDto
@@ -170,6 +171,9 @@ export function RouteDetailView({
           </Text>
         </Group>
       )}
+
+      {/* The route's team tags. Not on a stage (`showInfo` off): tags stay on the route (plan D15). */}
+      {showInfo && <TagList tags={route.tags} />}
 
       {/* Climbs Section - compact list */}
       {(() => {

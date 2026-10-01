@@ -1273,6 +1273,33 @@ class _GalleryBodyState extends State<_GalleryBody> {
           ],
         ),
 
+        // ── Tags d'équipe (MOB-39) ────────────────────────────────────────
+        _Block(
+          title: 'PdlTag · PdlTagRow — pastille, pas badge',
+          children: <Widget>[
+            const _Caption('carte : 3 puis « +n »'),
+            PdlTagRow(
+              maxVisible: 3,
+              tags: <PdlTagEntry>[
+                PdlTagEntry(label: 'Café', color: c.success),
+                PdlTagEntry(label: 'Gravel', color: c.accentOrange),
+                PdlTagEntry(label: 'Montagne', color: c.accentGrape),
+                PdlTagEntry(label: 'Nocturne', color: c.primary),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const _Caption('fiche : tous'),
+            PdlTagRow(
+              tags: <PdlTagEntry>[
+                PdlTagEntry(label: 'Café', color: c.success),
+                PdlTagEntry(label: 'Gravel', color: c.accentOrange),
+                PdlTagEntry(label: 'Montagne', color: c.accentGrape),
+                PdlTagEntry(label: 'Nocturne', color: c.primary),
+              ],
+            ),
+          ],
+        ),
+
         // ── B21 ───────────────────────────────────────────────────────────
         _Block(
           title: 'B21 · PdlSkeletonCard — 5 squelettes, pas 2',

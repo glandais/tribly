@@ -4,7 +4,7 @@ import { useGetRide, prefetchGetRideQuery, getGetRideQueryKey } from '@/api/endp
 import { prefetchListPlacesQuery, prefetchGetPlaceQuery } from '@/api/endpoints/places/places'
 import { placeAutocompleteParams } from '@/components/common/placeAutocompleteParams'
 import { prefetchRoutesBulkChunked } from '@/config/prefetchHelpers'
-import type { RideDto, RideRequest } from '@/api/dto'
+import type { RideDto, RideRequest, Status } from '@/api/dto'
 
 /**
  * The one description of what `CreateRidePage` and `EditRidePage` read, consumed two ways: the
@@ -150,5 +150,16 @@ export function rideToRequest(ride: RideDto): RideRequest {
       routeSlug: group.routeSlug,
       leaderId: group.leader?.id,
     })),
+    tagIds: ride.tags.map((tag) => tag.id),
   }
+}
+
+/**
+ * The `RideRequest` of the detail page's publish/unpublish/cancel menu: `ride` as it stands with only
+ * its status changed — and no `tagIds`, which the API reads as « unchanged ». Copying the cached
+ * tags instead would send back a tag deleted since the page was loaded, and the API refuses an
+ * unknown tag (`TAG_INVALID`) where it only meant to change the status.
+ */
+export function rideStatusRequest(ride: RideDto, status: Status): RideRequest {
+  return { ...rideToRequest(ride), status, tagIds: undefined }
 }

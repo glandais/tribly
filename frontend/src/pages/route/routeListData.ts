@@ -11,8 +11,12 @@ import {
 import { useRouteFilters } from '@/hooks/useRouteFilters'
 import { usePaginatedQuery } from '@/hooks/usePaginatedQuery'
 import { readUrlFilters } from '@/hooks/useUrlFilters'
-import { routeFiltersSchema, routeFiltersAlias, routeApiParams } from '@/hooks/filters/routeFilters'
-import { prefetchPageWindow } from '@/config/prefetchHelpers'
+import {
+  teamRouteFiltersSchema,
+  teamRouteFiltersAlias,
+  routeApiParams,
+} from '@/hooks/filters/routeFilters'
+import { prefetchPageWindow, prefetchTeamTags } from '@/config/prefetchHelpers'
 
 /**
  * The one description of what the team route list reads, consumed two ways: `RouteListPage` calls
@@ -29,8 +33,8 @@ import { prefetchPageWindow } from '@/config/prefetchHelpers'
 
 /** The schema/alias pair both readers must use — the page through the URL, the prefetch through `url.searchParams`. */
 export const routeListFilterOptions = {
-  schema: routeFiltersSchema,
-  alias: routeFiltersAlias,
+  schema: teamRouteFiltersSchema,
+  alias: teamRouteFiltersAlias,
 } as const
 
 /**
@@ -86,5 +90,6 @@ export async function prefetchRouteList(
     prefetchPageWindow(routeApiParams(filters), (p) =>
       prefetchListRoutesQuery(queryClient, teamSlug, p)
     ),
+    prefetchTeamTags(queryClient, teamSlug, 'ROUTE'),
   ])
 }

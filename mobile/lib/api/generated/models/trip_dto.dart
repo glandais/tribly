@@ -10,6 +10,7 @@ import 'public_user_dto.dart';
 import 'publication_dto.dart';
 import 'publication_type.dart';
 import 'status.dart';
+import 'tag_dto.dart';
 import 'team_publication_dto.dart';
 import 'trip_stage_dto.dart';
 import 'visibility.dart';
@@ -68,6 +69,9 @@ abstract class TripDto with _$TripDto {
 
     /// Whether the current user is registered for this trip. False if anonymous.
     required bool registered,
+
+    /// The team's TRIP tags the trip carries, sorted by label. Empty when it carries none.
+    required List<TagDto> tags,
 
     /// Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter.
     String? excerpt,

@@ -21,6 +21,7 @@ import { SlugEditor } from '../common/SlugEditor'
 import { paths } from '@/config/paths'
 import { RoutePlanner } from '../planner/RoutePlanner'
 import { CreateRouteBody } from '@/api/zod/routes/routes.zod'
+import { TagPicker } from '@/components/tag'
 
 export type RouteSourceMode = 'gpx' | 'planner'
 
@@ -274,6 +275,14 @@ export function RouteEditor({
         />
 
         {/* Visibility */}
+        <TagPicker
+          teamSlug={teamSlug}
+          type="ROUTE"
+          value={form.values.tagIds}
+          onChange={(ids) => form.setFieldValue('tagIds', ids)}
+          disabled={isPending}
+        />
+
         {team.visibility !== 'TEAM' && (
           <Radio.Group label={t('visibility.label')} {...form.getInputProps('visibility')}>
             <Stack gap="xs" mt="xs">

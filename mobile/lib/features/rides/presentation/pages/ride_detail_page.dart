@@ -22,6 +22,7 @@ import '../../../comments/presentation/widgets/comment_thread.dart';
 import '../../../moderation/presentation/moderation_menu.dart';
 import '../../../participants/presentation/widgets/participants_sheet.dart';
 import '../../../teams/providers/team_providers.dart';
+import '../../../tags/presentation/content_tags.dart';
 import '../../providers/ride_detail_provider.dart';
 import '../../providers/ride_group_selection_provider.dart';
 import '../../providers/ride_registration_controller.dart';
@@ -293,6 +294,12 @@ class _RideDetailContent extends ConsumerWidget {
                 ),
             ],
           ),
+          // Tous les tags sur la fiche, sous les badges : ceux-ci disent où en
+          // est la sortie, les tags de quoi elle parle (ledger `MOB-39`).
+          if (ride.tags.isNotEmpty) ...<Widget>[
+            const SizedBox(height: PdlSpacing.chipGap),
+            ContentTagRow(tags: ride.tags),
+          ],
         ],
       ),
     );

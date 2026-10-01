@@ -19,6 +19,9 @@ _RouteDto _$RouteDtoFromJson(Map<String, dynamic> json) => _RouteDto(
   visibility: json['visibility'] as String,
   createdAt: json['createdAt'] as String,
   deleted: json['deleted'] as bool,
+  tags: (json['tags'] as List<dynamic>)
+      .map((e) => TagDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
   excerpt: json['excerpt'] as String?,
   thumbnailUrl: json['thumbnailUrl'] as String?,
   commentCount: (json['commentCount'] as num?)?.toInt(),
@@ -37,6 +40,7 @@ Map<String, dynamic> _$RouteDtoToJson(_RouteDto instance) => <String, dynamic>{
   'visibility': instance.visibility,
   'createdAt': instance.createdAt,
   'deleted': instance.deleted,
+  'tags': instance.tags.map((e) => e.toJson()).toList(),
   'excerpt': instance.excerpt,
   'thumbnailUrl': instance.thumbnailUrl,
   'commentCount': instance.commentCount,

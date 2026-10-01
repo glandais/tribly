@@ -30,6 +30,9 @@ abstract class RouteRequest with _$RouteRequest {
 
     /// Points from frontend routing
     List<GeoPoint>? points,
+
+    /// IDs (TSID) of the team's ROUTE tags the route carries, replacing the whole set — at most 10, each a tag of this team and of kind ROUTE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
+    List<String>? tagIds,
   }) = _RouteRequest;
 
   factory RouteRequest.fromJson(Map<String, Object?> json) =>

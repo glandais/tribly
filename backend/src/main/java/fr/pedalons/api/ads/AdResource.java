@@ -23,6 +23,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.headers.Header;
@@ -42,6 +43,11 @@ import org.jspecify.annotations.Nullable;
 public class AdResource {
 
   @Inject AdService adService;
+
+  static final String TAGS_PARAM_DESCRIPTION =
+      "Only the ads carrying at least one of these tags — ids (TSID) of the team's AD tags,"
+          + " comma-separated or repeated. Unknown ids are ignored; a filter left with no known id"
+          + " filters nothing.";
 
   @GET
   @Operation(
@@ -98,6 +104,8 @@ public class AdResource {
                       + " Omitted, or FULL, is the previous behaviour, byte for byte.")
           @QueryParam("view")
           @Nullable ListViewMode view,
+      @Parameter(description = TAGS_PARAM_DESCRIPTION) @QueryParam("tags")
+          @Nullable List<String> tags,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
@@ -117,6 +125,7 @@ public class AdResource {
             .nearRadius(nearRadius)
             .sortBy(sortBy)
             .sortDir(sortDir)
+            .tags(tags)
             .build();
     AdListResponse ads = adService.listAds(teamSlug, params, view, page, size);
 
@@ -169,7 +178,9 @@ public class AdResource {
                   "Search radius in metres around nearLat/nearLon (default 25000, capped at"
                       + " 500000). Ads with no location are excluded when a centre is given.")
           @QueryParam("nearRadius")
-          @Nullable Double nearRadius) {
+          @Nullable Double nearRadius,
+      @Parameter(description = TAGS_PARAM_DESCRIPTION) @QueryParam("tags")
+          @Nullable List<String> tags) {
 
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
@@ -185,6 +196,7 @@ public class AdResource {
             .nearLat(nearLat)
             .nearLon(nearLon)
             .nearRadius(nearRadius)
+            .tags(tags)
             .build();
 
     return Response.ok(adService.countAds(teamSlug, params)).build();

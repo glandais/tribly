@@ -5,6 +5,7 @@ import fr.pedalons.enums.AdType;
 import fr.pedalons.enums.SortDirection;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 
@@ -27,4 +28,7 @@ public record AdSearchParams(
     @Nullable Double nearLon,
     @Nullable Double nearRadius,
     @Nullable AdSortBy sortBy,
-    @Nullable SortDirection sortDir) {}
+    @Nullable SortDirection sortDir,
+    // The ?tags= filter, raw: ids of the team's AD tags (docs/plans/archive/2026-10-01-tags.md D6,
+    // D18).
+    @Nullable List<String> tags) {}

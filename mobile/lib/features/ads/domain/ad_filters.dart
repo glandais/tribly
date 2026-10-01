@@ -21,6 +21,7 @@ class AdFilters {
     this.adType,
     this.sortBy = AdSortBy.dateTime,
     this.sortDir = SortDirection.desc,
+    this.tagIds = const <String>[],
   });
 
   /// Portée **imposée** par l'écran : la rubrique Annonces appartient à une
@@ -35,10 +36,17 @@ class AdFilters {
   final AdSortBy sortBy;
   final SortDirection sortDir;
 
+  /// Tags `AD` choisis, triés (`normalizeTagSelection`) ; une annonce sort si
+  /// elle en porte **au moins un** (plan des tags, D6). Vide : pas de filtre.
+  final List<String> tagIds;
+
   /// Vrai dès qu'un critère **restreint** le jeu de résultats. Le tri n'en est
   /// pas : il ne peut pas rendre une liste vide, donc il n'a rien à faire dans
   /// le diagnostic d'un cul-de-sac.
-  bool get isFiltered => (search?.trim().isNotEmpty ?? false) || adType != null;
+  bool get isFiltered =>
+      (search?.trim().isNotEmpty ?? false) ||
+      adType != null ||
+      tagIds.isNotEmpty;
 
   /// Les filtres levés, le tri conservé — « Tout réinitialiser » remet la
   /// liste en vue, il ne réordonne pas ce que l'utilisateur a choisi de lire.
@@ -52,6 +60,7 @@ class AdFilters {
     bool clearAdType = false,
     AdSortBy? sortBy,
     SortDirection? sortDir,
+    List<String>? tagIds,
   }) {
     return AdFilters(
       teamSlug: teamSlug,
@@ -59,6 +68,7 @@ class AdFilters {
       adType: clearAdType ? null : (adType ?? this.adType),
       sortBy: sortBy ?? this.sortBy,
       sortDir: sortDir ?? this.sortDir,
+      tagIds: tagIds ?? this.tagIds,
     );
   }
 
@@ -70,13 +80,21 @@ class AdFilters {
           other.search == search &&
           other.adType == adType &&
           other.sortBy == sortBy &&
-          other.sortDir == sortDir;
+          other.sortDir == sortDir &&
+          listEquals(other.tagIds, tagIds);
 
   @override
-  int get hashCode => Object.hash(teamSlug, search, adType, sortBy, sortDir);
+  int get hashCode => Object.hash(
+    teamSlug,
+    search,
+    adType,
+    sortBy,
+    sortDir,
+    Object.hashAll(tagIds),
+  );
 
   @override
   String toString() =>
       'AdFilters($teamSlug, search: $search, type: $adType, '
-      'sort: ${sortBy.json} ${sortDir.json})';
+      'sort: ${sortBy.json} ${sortDir.json}, tags: $tagIds)';
 }

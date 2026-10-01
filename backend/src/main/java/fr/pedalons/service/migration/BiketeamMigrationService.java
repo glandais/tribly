@@ -85,6 +85,7 @@ import fr.pedalons.service.ride.RideService;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
+import fr.pedalons.service.tag.TagService;
 import fr.pedalons.service.trip.TripService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -202,6 +203,7 @@ public class BiketeamMigrationService {
   @Inject TripService tripService;
   @Inject PostService postService;
   @Inject AssetService assetService;
+  @Inject TagService tagService;
 
   /**
    * Everything one team's run carries, so the per-kind methods below need no ten-argument lists.
@@ -853,6 +855,13 @@ public class BiketeamMigrationService {
       route.setDateTime(bt.postedAt().atStartOfDay(r.zone()).toInstant());
     }
     routeRepository.persist(route);
+    // Replaced as a whole, found or created by label: a replay leaves tags and links as they are.
+    List<String> tagNotes = tagService.importTags(route, r.actor(), bt.tags());
+    if (!tagNotes.isEmpty()) {
+      String message = String.join("; ", tagNotes);
+      LOG.warnf("Route biketeam.id=%s: %s", bt.id(), message);
+      r.progress().warning("ROUTE", bt.id(), Codes.TAGS_TRUNCATED, message);
+    }
     // Recorded only here, once the pipeline above has run to completion: a run that dies mid-upload
     // leaves no fingerprint, so the next one redoes the work rather than trusting a half-built row.
     mapRepo.upsert(T_ROUTE, bt.id(), route.getId(), fingerprint, r.liveTeamId());

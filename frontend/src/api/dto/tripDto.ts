@@ -2,6 +2,7 @@ import type { Instant } from './instant.ts'
 import type { MediaDto } from './mediaDto.ts'
 import type { PublicUserDto } from './publicUserDto.ts'
 import type { Status } from './status.ts'
+import type { TagDto } from './tagDto.ts'
 import type { TeamPublicationDto } from './teamPublicationDto.ts'
 import type { TripDtoType } from './tripDtoType.ts'
 import type { TripStageDto } from './tripStageDto.ts'
@@ -64,4 +65,6 @@ export interface TripDto {
   registered: boolean
   /** Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero. */
   commentCount?: number
+  /** The team's TRIP tags the trip carries, sorted by label. Empty when it carries none. */
+  tags: TagDto[]
 }

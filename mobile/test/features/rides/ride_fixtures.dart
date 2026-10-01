@@ -45,6 +45,7 @@ RideDto fixtureRide({
 }) {
   final List<RideGroupDto> gs = groups ?? <RideGroupDto>[fixtureGroup()];
   return RideDto(
+    tags: const [],
     type: 'RIDE',
     team: const TeamPublicationDto(
       id: 't1',

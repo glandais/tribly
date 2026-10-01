@@ -26,4 +26,6 @@ export interface PostRequest {
   publishAt?: Instant
   /** Sign the post as the team rather than as its author. Omitted: on creation, the team's postsAsTeamByDefault; on an update, left as it is. */
   signedAsTeam?: boolean
+  /** IDs (TSID) of the team's POST tags the post carries, replacing the whole set — at most 10, each a tag of this team and of kind POST, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update. */
+  tagIds?: string[]
 }

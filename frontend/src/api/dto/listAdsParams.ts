@@ -53,6 +53,10 @@ export type ListAdsParams = {
    */
   sortDir?: SortDirection
   /**
+   * Only the ads carrying at least one of these tags — ids (TSID) of the team's AD tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing.
+   */
+  tags?: string[]
+  /**
    * End date filter (ISO format)
    */
   to?: string

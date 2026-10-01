@@ -67,6 +67,11 @@ abstract final class RouteTileUrls {
       _put(params, 'surfaceType', filters.surfaceType?.json);
       _put(params, 'windDirection', filters.windDirection?.json);
       _put(params, 'minRole', filters.minRole?.json);
+      // Joints par des virgules, que le serveur accepte comme des `tags=`
+      // répétés : une seule clé garde la `Map` simple. Vide sur la carte de
+      // toutes les équipes, où la portée n'est pas une équipe (ledger
+      // `MOB-39`). Le web devra sérialiser de même (ledger `WEB-40`).
+      _put(params, 'tags', filters.tagIds.join(','));
     }
 
     // Le jeton en dernier : il change à chaque renouvellement, et le garder au

@@ -28,6 +28,9 @@ PublicationDtoRide _$PublicationDtoRideFromJson(Map<String, dynamic> json) =>
       deleted: json['deleted'] as bool,
       registered: json['registered'] as bool,
       full: json['full'] as bool,
+      tags: (json['tags'] as List<dynamic>)
+          .map((e) => TagDto.fromJson(e as Map<String, dynamic>))
+          .toList(),
       excerpt: json['excerpt'] as String?,
       publishAt: json['publishAt'] as String?,
       createdAt: json['createdAt'] as String?,
@@ -71,6 +74,7 @@ Map<String, dynamic> _$PublicationDtoRideToJson(
   'deleted': instance.deleted,
   'registered': instance.registered,
   'full': instance.full,
+  'tags': instance.tags.map((e) => e.toJson()).toList(),
   'excerpt': instance.excerpt,
   'publishAt': instance.publishAt,
   'createdAt': instance.createdAt,
@@ -99,6 +103,9 @@ PublicationDtoPost _$PublicationDtoPostFromJson(Map<String, dynamic> json) =>
       visibility: json['visibility'] as String,
       deleted: json['deleted'] as bool,
       signedAsTeam: json['signedAsTeam'] as bool,
+      tags: (json['tags'] as List<dynamic>)
+          .map((e) => TagDto.fromJson(e as Map<String, dynamic>))
+          .toList(),
       excerpt: json['excerpt'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
       publishAt: json['publishAt'] as String?,
@@ -122,6 +129,7 @@ Map<String, dynamic> _$PublicationDtoPostToJson(PublicationDtoPost instance) =>
       'visibility': instance.visibility,
       'deleted': instance.deleted,
       'signedAsTeam': instance.signedAsTeam,
+      'tags': instance.tags.map((e) => e.toJson()).toList(),
       'excerpt': instance.excerpt,
       'thumbnailUrl': instance.thumbnailUrl,
       'publishAt': instance.publishAt,
@@ -152,6 +160,9 @@ PublicationDtoTrip _$PublicationDtoTripFromJson(Map<String, dynamic> json) =>
           .toList(),
       deleted: json['deleted'] as bool,
       registered: json['registered'] as bool,
+      tags: (json['tags'] as List<dynamic>)
+          .map((e) => TagDto.fromJson(e as Map<String, dynamic>))
+          .toList(),
       excerpt: json['excerpt'] as String?,
       endDate: json['endDate'] as String?,
       publishAt: json['publishAt'] as String?,
@@ -183,6 +194,7 @@ Map<String, dynamic> _$PublicationDtoTripToJson(PublicationDtoTrip instance) =>
       'participants': instance.participants.map((e) => e.toJson()).toList(),
       'deleted': instance.deleted,
       'registered': instance.registered,
+      'tags': instance.tags.map((e) => e.toJson()).toList(),
       'excerpt': instance.excerpt,
       'endDate': instance.endDate,
       'publishAt': instance.publishAt,

@@ -10,6 +10,8 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../keys.dart';
 import '../../../posts/domain/post_neighbours.dart';
+import '../../../tags/presentation/tag_filter.dart';
+import '../../../tags/providers/team_tags_provider.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/publication_feed_provider.dart';
 
@@ -66,6 +68,14 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
   void _setType(PublicationType? value) {
     ref.read(publicationFeedTypeProvider(widget.teamSlug).notifier).state =
         value;
+    // Un jeu de tags par type (plan des tags, D3) : des tags de sortie n'ont
+    // aucun sens sur la liste des publications.
+    _setTags(const <String>[]);
+  }
+
+  void _setTags(List<String> value) {
+    ref.read(publicationFeedTagsProvider(widget.teamSlug).notifier).state =
+        value;
   }
 
   void _setSearch(String? value) {
@@ -93,6 +103,9 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
     ref.listen(publicationFeedScopeProvider(widget.teamSlug), (previous, next) {
       if (previous != next) _scrollToTop();
     });
+    ref.listen(publicationFeedTagsProvider(widget.teamSlug), (previous, next) {
+      if (previous != next) _scrollToTop();
+    });
 
     final type = ref.watch(publicationFeedTypeProvider(widget.teamSlug));
     final search = ref.watch(publicationFeedSearchProvider(widget.teamSlug));
@@ -101,11 +114,23 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
     final minRole = widget.teamSlug == null
         ? ref.watch(publicationFeedScopeProvider(widget.teamSlug))
         : null;
+    // Le filtre par tag n'existe que sur un fil d'équipe filtré par type —
+    // la liste dédiée de ce type (D13) — et que si l'équipe a des tags pour
+    // ce type : sans eux, pas de chip.
+    final String? teamSlug = widget.teamSlug;
+    final TagTarget? tagTarget = teamSlug == null ? null : _tagTarget(type);
+    final List<TagWithUsageDto> tagVocabulary = tagTarget == null
+        ? const <TagWithUsageDto>[]
+        : teamTagsOrEmpty(ref, (teamSlug: teamSlug!, type: tagTarget));
+    final List<String> tagIds = tagVocabulary.isEmpty
+        ? const <String>[]
+        : ref.watch(publicationFeedTagsProvider(widget.teamSlug));
     final key = (
       teamSlug: widget.teamSlug,
       type: type,
       search: search,
       minRole: minRole,
+      tags: feedTagsKey(teamSlug: teamSlug, type: type, tagIds: tagIds),
     );
     final state = ref.watch(publicationFeedProvider(key));
     final notifier = ref.read(publicationFeedProvider(key).notifier);
@@ -140,6 +165,9 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
               onSearchChanged: _setSearch,
               onTypeSelected: _setType,
               onScopeSelected: _setScope,
+              tagVocabulary: tagVocabulary,
+              selectedTags: tagIds,
+              onTagsChanged: _setTags,
             ),
           ),
           if (widget.showSectionHeader)
@@ -159,18 +187,27 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
                 ),
               ),
             ),
-          ..._buildContentSlivers(context, state, notifier, search),
+          ..._buildContentSlivers(context, state, notifier, search, tagIds),
           const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
         ],
       ),
     );
   }
 
+  /// Le jeu de tags d'un type de publication ; `null` pour « Tout ».
+  static TagTarget? _tagTarget(PublicationType? type) => switch (type) {
+    PublicationType.ride => TagTarget.ride,
+    PublicationType.post => TagTarget.post,
+    PublicationType.trip => TagTarget.trip,
+    _ => null,
+  };
+
   List<Widget> _buildContentSlivers(
     BuildContext context,
     PagedListState<PublicationDto> state,
     PublicationFeedNotifier notifier,
     String? search,
+    List<String> tagIds,
   ) {
     if (state.showsSkeletons) {
       return [
@@ -220,7 +257,23 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
         SliverFillRemaining(
           hasScrollBody: false,
           child: Center(
-            child: filtered
+            child: !filtered && tagIds.isNotEmpty
+                // Seuls les tags filtrent : la sortie est de les lever.
+                ? PdlEmptyState(
+                    variant: PdlEmptyVariant.filtered,
+                    icon: Icons.dynamic_feed,
+                    title: 'home.feed.emptyFiltered.title'.tr(),
+                    message: 'tags.emptyFiltered'.tr(),
+                    actions: [
+                      PdlButton(
+                        label: 'tags.clearFilter'.tr(),
+                        variant: PdlButtonVariant.outline,
+                        size: PdlButtonSize.sm,
+                        onPressed: () => _setTags(const <String>[]),
+                      ),
+                    ],
+                  )
+                : filtered
                 ? PdlEmptyState(
                     key: keys.feed.filteredEmptyState,
                     variant: PdlEmptyVariant.filtered,
@@ -309,7 +362,16 @@ class FeedToolbar extends StatelessWidget {
     required this.onScopeSelected,
     this.selectedScope,
     this.showScope = false,
+    this.tagVocabulary = const <TagWithUsageDto>[],
+    this.selectedTags = const <String>[],
+    this.onTagsChanged,
   });
+
+  /// Tags du type choisi, sur un fil d'équipe ; vide ailleurs, et la chip
+  /// « Tags » n'est alors pas rendue.
+  final List<TagWithUsageDto> tagVocabulary;
+  final List<String> selectedTags;
+  final ValueChanged<List<String>>? onTagsChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -332,6 +394,9 @@ class FeedToolbar extends StatelessWidget {
           showScope: showScope,
           onTypeSelected: onTypeSelected,
           onScopeSelected: onScopeSelected,
+          tagVocabulary: tagVocabulary,
+          selectedTags: selectedTags,
+          onTagsChanged: onTagsChanged,
         ),
         const SizedBox(height: 10),
       ],
@@ -352,7 +417,14 @@ class _FilterChips extends StatelessWidget {
     required this.showScope,
     required this.onTypeSelected,
     required this.onScopeSelected,
+    required this.tagVocabulary,
+    required this.selectedTags,
+    required this.onTagsChanged,
   });
+
+  final List<TagWithUsageDto> tagVocabulary;
+  final List<String> selectedTags;
+  final ValueChanged<List<String>>? onTagsChanged;
 
   PublicationType? get selected => selectedType;
   ValueChanged<PublicationType?> get onSelected => onTypeSelected;
@@ -391,6 +463,13 @@ class _FilterChips extends StatelessWidget {
           icon: Icons.hiking,
           value: PublicationType.trip,
         ),
+        // Après les types : elle affine celui qui est choisi.
+        if (tagVocabulary.isNotEmpty && onTagsChanged != null)
+          TagFilterChip(
+            vocabulary: tagVocabulary,
+            selected: selectedTags,
+            onChanged: onTagsChanged!,
+          ),
       ],
     );
   }

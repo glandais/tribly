@@ -21,6 +21,9 @@ _AdDto _$AdDtoFromJson(Map<String, dynamic> json) => _AdDto(
   createdById: json['createdById'] as String,
   createdByDisplayName: json['createdByDisplayName'] as String,
   deleted: json['deleted'] as bool,
+  tags: (json['tags'] as List<dynamic>)
+      .map((e) => TagDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
   excerpt: json['excerpt'] as String?,
   thumbnailUrl: json['thumbnailUrl'] as String?,
   price: json['price'] as num?,
@@ -48,6 +51,7 @@ Map<String, dynamic> _$AdDtoToJson(_AdDto instance) => <String, dynamic>{
   'createdById': instance.createdById,
   'createdByDisplayName': instance.createdByDisplayName,
   'deleted': instance.deleted,
+  'tags': instance.tags.map((e) => e.toJson()).toList(),
   'excerpt': instance.excerpt,
   'thumbnailUrl': instance.thumbnailUrl,
   'price': instance.price,

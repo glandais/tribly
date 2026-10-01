@@ -37,6 +37,12 @@ export const ListAdsQueryParams = zod.object({
     .optional()
     .describe('Sort column (default: publication date)'),
   sortDir: zod.enum(['ASC', 'DESC']).optional().describe('Sort direction (default: DESC)'),
+  tags: zod
+    .array(zod.string())
+    .optional()
+    .describe(
+      "Only the ads carrying at least one of these tags — ids (TSID) of the team's AD tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing."
+    ),
   to: zod.string().optional().describe('End date filter (ISO format)'),
   view: zod
     .enum(['FULL', 'COMPACT'])
@@ -319,6 +325,31 @@ export const ListAdsResponse = zod
                 'Display name of the member who posted the ad. The only thing about them this DTO carries: there is no contact channel on an Ad, and inventing one (an email, a phone number) is a product decision, not a serialisation one.'
               ),
             deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
+            tags: zod
+              .array(
+                zod
+                  .object({
+                    id: zod.string().describe('Tag ID (TSID)'),
+                    label: zod.string().describe('Label, at most 32 characters'),
+                    color: zod
+                      .enum([
+                        'INDIGO',
+                        'BLUE',
+                        'GREEN',
+                        'RED',
+                        'YELLOW',
+                        'ORANGE',
+                        'GRAPE',
+                        'TEAL',
+                        'GRAY',
+                      ])
+                      .describe('Colour family'),
+                  })
+                  .describe('A team tag on a content')
+              )
+              .describe(
+                "The team's AD tags the ad carries, sorted by label. Empty when it carries none."
+              ),
           })
           .describe('Ad data')
       )
@@ -566,6 +597,12 @@ export const CreateAdBody = zod
       })
       .optional()
       .describe('Location coordinates [longitude, latitude]'),
+    tagIds: zod
+      .array(zod.string())
+      .optional()
+      .describe(
+        "IDs (TSID) of the team's AD tags the ad carries, replacing the whole set — at most 10, each a tag of this team and of kind AD, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
+      ),
   })
   .describe('Ad request')
 
@@ -833,6 +870,19 @@ export const CreateAdResponse = zod
         'Display name of the member who posted the ad. The only thing about them this DTO carries: there is no contact channel on an Ad, and inventing one (an email, a phone number) is a product decision, not a serialisation one.'
       ),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe("The team's AD tags the ad carries, sorted by label. Empty when it carries none."),
   })
   .describe('Ad data')
 
@@ -863,6 +913,12 @@ export const CountAdsQueryParams = zod.object({
       'Search radius in metres around nearLat/nearLon (default 25000, capped at 500000). Ads with no location are excluded when a centre is given.'
     ),
   search: zod.string().optional().describe('Search by name/description'),
+  tags: zod
+    .array(zod.string())
+    .optional()
+    .describe(
+      "Only the ads carrying at least one of these tags — ids (TSID) of the team's AD tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing."
+    ),
   to: zod.string().optional().describe('End date filter (ISO format)'),
 })
 
@@ -1110,6 +1166,12 @@ export const UpdateAdBody = zod
       })
       .optional()
       .describe('Location coordinates [longitude, latitude]'),
+    tagIds: zod
+      .array(zod.string())
+      .optional()
+      .describe(
+        "IDs (TSID) of the team's AD tags the ad carries, replacing the whole set — at most 10, each a tag of this team and of kind AD, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
+      ),
   })
   .describe('Ad request')
 
@@ -1377,6 +1439,19 @@ export const UpdateAdResponse = zod
         'Display name of the member who posted the ad. The only thing about them this DTO carries: there is no contact channel on an Ad, and inventing one (an email, a phone number) is a product decision, not a serialisation one.'
       ),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe("The team's AD tags the ad carries, sorted by label. Empty when it carries none."),
   })
   .describe('Ad data')
 
@@ -1653,6 +1728,19 @@ export const GetAdResponse = zod
         'Display name of the member who posted the ad. The only thing about them this DTO carries: there is no contact channel on an Ad, and inventing one (an email, a phone number) is a product decision, not a serialisation one.'
       ),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe("The team's AD tags the ad carries, sorted by label. Empty when it carries none."),
   })
   .describe('Ad data')
 
@@ -1942,6 +2030,21 @@ export const GetAdEditResponse = zod
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's AD tags the ad carries, sorted by label — what the edit form's tagIds starts from."
+      ),
   })
   .describe('Ad data')
 
@@ -2232,6 +2335,19 @@ export const ChangeAdSlugResponse = zod
         'Display name of the member who posted the ad. The only thing about them this DTO carries: there is no contact channel on an Ad, and inventing one (an email, a phone number) is a product decision, not a serialisation one.'
       ),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe("The team's AD tags the ad carries, sorted by label. Empty when it carries none."),
   })
   .describe('Ad data')
 
@@ -2514,6 +2630,19 @@ export const ChangeAdStatusResponse = zod
         'Display name of the member who posted the ad. The only thing about them this DTO carries: there is no contact channel on an Ad, and inventing one (an email, a phone number) is a product decision, not a serialisation one.'
       ),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe("The team's AD tags the ad carries, sorted by label. Empty when it carries none."),
   })
   .describe('Ad data')
 
@@ -2763,5 +2892,20 @@ export const UndeleteAdResponse = zod
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     createdById: zod.string().describe('Creator ID (TSID)'),
     deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's AD tags the ad carries, sorted by label — what the edit form's tagIds starts from."
+      ),
   })
   .describe('Ad data')

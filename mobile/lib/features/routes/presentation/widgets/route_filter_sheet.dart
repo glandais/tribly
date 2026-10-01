@@ -10,6 +10,8 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../domain/route_filters.dart';
 import '../../providers/route_count_provider.dart';
+import '../../providers/route_tags_provider.dart';
+import '../../../tags/presentation/tag_filter.dart';
 import '../../domain/route_filter_labels.dart';
 
 /// Opens the filter sheet and returns the filters to apply, or null if the
@@ -73,6 +75,7 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
     });
     final count = ref.watch(countProvider).value ?? _lastCount;
     final units = ref.watch(unitSystemProvider);
+    final List<TagWithUsageDto> tags = routeTagVocabulary(ref, _draft);
 
     // F-DE-5 : le corps était un `Column` dans un `SingleChildScrollView`
     // dans un `Flexible`, sous un parent `MainAxisSize.min`, avec le CTA hors
@@ -186,6 +189,16 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
                       ),
                 onTap: _pickWindDirection,
               ),
+              // Les tags de parcours de l'équipe, en OU (ledger `MOB-39`). La
+              // ligne n'existe que si l'équipe en a.
+              if (tags.isNotEmpty)
+                _NavigationRow(
+                  label: 'tags.filter'.tr(),
+                  value: _draft.tagIds.isEmpty
+                      ? 'routes.filters.any'.tr()
+                      : tagFilterLabel(tags, _draft.tagIds),
+                  onTap: () => _pickTags(tags),
+                ),
             ],
           ),
         ],
@@ -210,6 +223,15 @@ class _RouteFilterSheetState extends ConsumerState<_RouteFilterSheet> {
       ),
     );
     if (result != null) _update(_draft.copyWith(windDirection: result.value));
+  }
+
+  Future<void> _pickTags(List<TagWithUsageDto> tags) async {
+    final List<String>? result = await showTagPickerSheet(
+      context,
+      vocabulary: tags,
+      selected: _draft.tagIds,
+    );
+    if (result != null) _update(_draft.copyWith(tagIds: result));
   }
 
   Future<void> _pickSort() async {

@@ -269,6 +269,7 @@ class _RoutesClient implements RoutesClient {
     RouteSortBy? sortBy,
     SortDirection? sortDir,
     SurfaceType? surfaceType,
+    List<String>? tags,
     ListViewMode? view,
     WindDirection? windDirection,
   }) async {
@@ -289,6 +290,7 @@ class _RoutesClient implements RoutesClient {
       r'sortBy': sortBy?.toJson(),
       r'sortDir': sortDir?.toJson(),
       r'surfaceType': surfaceType?.toJson(),
+      r'tags': tags,
       r'view': view?.toJson(),
       r'windDirection': windDirection?.toJson(),
     };
@@ -373,6 +375,7 @@ class _RoutesClient implements RoutesClient {
     NearType? nearType,
     String? search,
     SurfaceType? surfaceType,
+    List<String>? tags,
     WindDirection? windDirection,
   }) async {
     final _extra = <String, dynamic>{};
@@ -388,6 +391,7 @@ class _RoutesClient implements RoutesClient {
       r'nearType': nearType?.toJson(),
       r'search': search,
       r'surfaceType': surfaceType?.toJson(),
+      r'tags': tags,
       r'windDirection': windDirection?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
@@ -463,6 +467,7 @@ class _RoutesClient implements RoutesClient {
     NearType? nearType,
     String? search,
     SurfaceType? surfaceType,
+    List<String>? tags,
     WindDirection? windDirection,
   }) async {
     final _extra = <String, dynamic>{};
@@ -478,6 +483,7 @@ class _RoutesClient implements RoutesClient {
       r'nearType': nearType?.toJson(),
       r'search': search,
       r'surfaceType': surfaceType?.toJson(),
+      r'tags': tags,
       r'windDirection': windDirection?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
@@ -522,6 +528,7 @@ class _RoutesClient implements RoutesClient {
     String? search,
     SurfaceType? surfaceType,
     String? t,
+    List<String>? tags,
     WindDirection? windDirection,
   }) async {
     final _extra = <String, dynamic>{};
@@ -538,6 +545,7 @@ class _RoutesClient implements RoutesClient {
       r'search': search,
       r'surfaceType': surfaceType?.toJson(),
       r't': t,
+      r'tags': tags,
       r'windDirection': windDirection?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);

@@ -766,6 +766,12 @@ export const CreateRouteFromPreviewBody = zod
       .max(createRouteFromPreviewBodyPointsMax)
       .optional()
       .describe('Points from frontend routing'),
+    tagIds: zod
+      .array(zod.string())
+      .optional()
+      .describe(
+        "IDs (TSID) of the team's ROUTE tags the route carries, replacing the whole set — at most 10, each a tag of this team and of kind ROUTE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
+      ),
   })
   .describe('Route update request')
 
@@ -1016,6 +1022,21 @@ export const CreateRouteFromPreviewResponse = zod
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
       ),
   })
   .describe('Route summary data')

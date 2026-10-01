@@ -11,7 +11,7 @@ import {
 import { usePaginatedQuery } from '@/hooks/usePaginatedQuery'
 import { useUrlFilters, readUrlFilters } from '@/hooks/useUrlFilters'
 import { adFiltersSchema, adFiltersAlias, adApiParams } from '@/hooks/filters/adFilters'
-import { prefetchPageWindow } from '@/config/prefetchHelpers'
+import { prefetchPageWindow, prefetchTeamTags } from '@/config/prefetchHelpers'
 
 /**
  * The one description of what the team ad list reads, consumed two ways: `AdListPage` calls
@@ -83,5 +83,6 @@ export async function prefetchAdList(
   await Promise.all([
     prefetchGetTeamQuery(queryClient, teamSlug),
     prefetchPageWindow(adApiParams(filters), (p) => prefetchListAdsQuery(queryClient, teamSlug, p)),
+    prefetchTeamTags(queryClient, teamSlug, 'AD'),
   ])
 }

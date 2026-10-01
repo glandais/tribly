@@ -16,6 +16,7 @@ void main() {
     int groupCount = 1,
     int? maxParticipants,
   }) => PublicationDtoRide(
+    tags: const [],
     team: const TeamPublicationDto(
       id: 't1',
       slug: 'n-peloton',

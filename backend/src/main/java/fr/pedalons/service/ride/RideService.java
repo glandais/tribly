@@ -43,6 +43,8 @@ import fr.pedalons.service.notification.event.RideJoined;
 import fr.pedalons.service.notification.event.RideUpdated;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.annotation.CheckAccess;
+import fr.pedalons.service.tag.TagLookup;
+import fr.pedalons.service.tag.TagService;
 import fr.pedalons.service.thumbnail.ThumbnailService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -82,6 +84,10 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
   @Inject NotificationPublisher notificationPublisher;
 
+  @Inject TagService tagService;
+
+  @Inject TagLookup tagLookup;
+
   /** How long a ride edit waits before notifying — the window in which further edits fold in. */
   @ConfigProperty(name = "pedalons.notifications.update-delay-seconds", defaultValue = "300")
   int updateDelaySeconds;
@@ -108,7 +114,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
         commentCountLookup.forEntity(entity),
         thumbnailLookup.forTeamEntities(groupRouteIds),
         participantPreviewLookup.forRideGroups(
-            entity.getGroups().stream().map(RideGroup::getId).toList()));
+            entity.getGroups().stream().map(RideGroup::getId).toList()),
+        tagLookup.forContent(entity.getId()));
   }
 
   /**
@@ -186,6 +193,9 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
       createRideGroup(teamSlug, creator, ride, groupRequest, sortOrder);
       sortOrder++;
     }
+    // A ride created from a template arrives with the template's tags in tagIds: the client
+    // prefilled the form from RideTemplateDto.tags (docs/plans/archive/2026-10-01-tags.md D14).
+    tagService.replaceTags(ride, request.tagIds());
 
     thumbnailService.generateRideThumbnails(ride);
     notificationPublisher.publicationStatusChanged(ride, null, creator);
@@ -337,6 +347,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
       }
     }
     ride.getGroups().removeAll(orphanedGroups.values());
+    // Tags notify nobody (plan D23): RideUpdated below only looks at the date and the start place.
+    tagService.replaceTags(ride, request.tagIds());
 
     rideRepository.persist(ride);
 

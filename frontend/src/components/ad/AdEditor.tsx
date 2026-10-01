@@ -9,6 +9,7 @@ import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
 import { paths } from '@/config/paths'
 import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
+import { TagPicker } from '@/components/tag'
 
 interface AdEditorProps {
   teamSlug: string
@@ -170,6 +171,14 @@ export function AdEditor({
           value={form.values.locationGeometry as GeoJsonPoint | null | undefined}
           onChange={(point) => form.setFieldValue('locationGeometry', point ?? undefined)}
           label={t('geocoder.label')}
+          disabled={isPending}
+        />
+
+        <TagPicker
+          teamSlug={teamSlug}
+          type="AD"
+          value={form.values.tagIds}
+          onChange={(ids) => form.setFieldValue('tagIds', ids)}
           disabled={isPending}
         />
 

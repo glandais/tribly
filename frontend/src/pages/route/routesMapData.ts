@@ -4,7 +4,8 @@ import { useGetTeam, prefetchGetTeamQuery } from '@/api/endpoints/teams/teams'
 import { useGetRoutesBounds, prefetchGetRoutesBoundsQuery } from '@/api/endpoints/routes/routes'
 import { useRouteFilters } from '@/hooks/useRouteFilters'
 import { readUrlFilters } from '@/hooks/useUrlFilters'
-import { routeFiltersSchema, routeFiltersAlias } from '@/hooks/filters/routeFilters'
+import { teamRouteFiltersSchema, teamRouteFiltersAlias } from '@/hooks/filters/routeFilters'
+import { prefetchTeamTags } from '@/config/prefetchHelpers'
 import { teamRoutesTilesUrl, toRouteTileFilters } from '@/components/map/mapConstants'
 
 /**
@@ -27,8 +28,8 @@ import { teamRoutesTilesUrl, toRouteTileFilters } from '@/components/map/mapCons
 
 /** The schema/alias pair both readers must use — the page through the URL, the prefetch through `url.searchParams`. */
 export const routesMapFilterOptions = {
-  schema: routeFiltersSchema,
-  alias: routeFiltersAlias,
+  schema: teamRouteFiltersSchema,
+  alias: teamRouteFiltersAlias,
 } as const
 
 /**
@@ -71,5 +72,6 @@ export async function prefetchRoutesMap(
   await Promise.all([
     prefetchGetTeamQuery(queryClient, teamSlug),
     prefetchGetRoutesBoundsQuery(queryClient, teamSlug, toRouteTileFilters(filters)),
+    prefetchTeamTags(queryClient, teamSlug, 'ROUTE'),
   ])
 }

@@ -9,6 +9,10 @@ class RoutesKeys {
   /// La carte (ou la ligne compacte) d'un parcours de la liste.
   ValueKey<String> card(String routeSlug) => _RoutesKey('card_$routeSlug');
 
+  /// Les tags d'une carte (ou d'une ligne compacte) de la liste.
+  ValueKey<String> cardTags(String routeSlug) =>
+      _RoutesKey('cardTags_$routeSlug');
+
   /// L'état vide filtré, « cul-de-sac ».
   final emptyState = const _RoutesKey('emptyState');
 

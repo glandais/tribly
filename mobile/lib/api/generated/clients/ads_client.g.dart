@@ -35,6 +35,7 @@ class _AdsClient implements AdsClient {
     String? search,
     AdSortBy? sortBy,
     SortDirection? sortDir,
+    List<String>? tags,
     String? to,
     ListViewMode? view,
   }) async {
@@ -52,6 +53,7 @@ class _AdsClient implements AdsClient {
       r'search': search,
       r'sortBy': sortBy?.toJson(),
       r'sortDir': sortDir?.toJson(),
+      r'tags': tags,
       r'to': to,
       r'view': view?.toJson(),
     };
@@ -121,6 +123,7 @@ class _AdsClient implements AdsClient {
     double? nearLon,
     double? nearRadius,
     String? search,
+    List<String>? tags,
     String? to,
   }) async {
     final _extra = <String, dynamic>{};
@@ -133,6 +136,7 @@ class _AdsClient implements AdsClient {
       r'nearLon': nearLon,
       r'nearRadius': nearRadius,
       r'search': search,
+      r'tags': tags,
       r'to': to,
     };
     queryParameters.removeWhere((k, v) => v == null);

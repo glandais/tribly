@@ -31,5 +31,24 @@ public record RouteRequest(
         @Schema(description = "Points from frontend routing")
         @Size(max = GpxLimits.MAX_PLANNER_POINTS)
         @Valid
-        List<GeoPoint> points)
-    implements WithVisibility {}
+        List<GeoPoint> points,
+    @Nullable
+        @Schema(
+            description =
+                "IDs (TSID) of the team's ROUTE tags the route carries, replacing the whole set —"
+                    + " at most 10, each a tag of this team and of kind ROUTE, else 400"
+                    + " (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none"
+                    + " on a creation, left as they are on an update.")
+        List<String> tagIds)
+    implements WithVisibility {
+
+  /** Without tags: the shape this record had before API-59 — leaves the tags as they are. */
+  public RouteRequest(
+      String name,
+      MediaDto media,
+      SurfaceType surfaceType,
+      Visibility visibility,
+      @Nullable List<GeoPoint> points) {
+    this(name, media, surfaceType, visibility, points, null);
+  }
+}

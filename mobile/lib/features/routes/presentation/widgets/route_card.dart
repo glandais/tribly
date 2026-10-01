@@ -15,6 +15,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/deleted_badge.dart';
+import '../../../tags/presentation/content_tags.dart';
 
 /// La densité « vignettes » de la parcothèque — un bandeau média de 208 px,
 /// l'équipe, le nom, deux chiffres, deux badges.
@@ -91,6 +92,14 @@ class RouteCard extends ConsumerWidget {
                   runSpacing: PdlSpacing.badgeGap,
                   children: routeBadges(context, route),
                 ),
+                if (route.tags.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 8),
+                  ContentTagRow(
+                    key: keys.routes.cardTags(route.slug),
+                    tags: route.tags,
+                    maxVisible: kCardTagLimit,
+                  ),
+                ],
               ],
             ),
           ),

@@ -7,6 +7,7 @@ import { SurfaceBadge, VisibilityBadge } from '../card/common'
 import { RouteThumbnail } from './RouteThumbnail'
 import { paths } from '@/config/paths'
 import { useUnits } from '@/hooks/useUnits'
+import { TagList } from '../tag/TagList'
 
 interface RouteRowProps {
   route: RouteDto
@@ -75,6 +76,9 @@ export function RouteRow({ route, compact = false }: RouteRowProps) {
               <VisibilityBadge visibility={route.visibility} />
             </Group>
           )}
+
+          {/* The dense line keeps to two tags: it is read a screenful of routes at a time. */}
+          {!compact && <TagList tags={route.tags} max={2} size="xs" />}
         </Stack>
 
         {compact

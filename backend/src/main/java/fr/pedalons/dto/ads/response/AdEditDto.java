@@ -6,6 +6,7 @@ import fr.pedalons.domain.ad.Ad;
 import fr.pedalons.dto.common.GeoJsonPoint;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.publications.response.TeamPublicationDto;
+import fr.pedalons.dto.tags.response.TagDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.AdType;
 import fr.pedalons.enums.RentalPeriod;
@@ -14,6 +15,7 @@ import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Point;
@@ -46,13 +48,20 @@ public record AdEditDto(
     @Schema(description = "Creation timestamp", required = true) Instant createdAt,
     @Schema(description = "Creation timestamp", required = true) Instant updatedAt,
     @Schema(description = "Creator ID (TSID)", required = true) String createdById,
-    @Schema(description = "Whether the ad is soft-deleted", required = true) boolean deleted) {
+    @Schema(description = "Whether the ad is soft-deleted", required = true) boolean deleted,
+    @Schema(
+            description =
+                "The team's AD tags the ad carries, sorted by label — what the edit form's tagIds"
+                    + " starts from.",
+            required = true)
+        List<TagDto> tags) {
 
   /**
    * @param exactLocation whether the caller is the ad's author: only the seller sees the exact
    *     point, anyone else editing the ad gets the blurred one (docs/LEDGER_*.md SEC-26)
    */
-  public static AdEditDto from(Ad ad, AssetService assetService, boolean exactLocation) {
+  public static AdEditDto from(
+      Ad ad, AssetService assetService, boolean exactLocation, List<TagDto> tags) {
     return new AdEditDto(
         TeamPublicationDto.from(ad.getTeam()),
         TsidUtils.toString(ad.getId()),
@@ -69,6 +78,7 @@ public record AdEditDto(
         ad.getCreatedAt(),
         ad.getUpdatedAt(),
         TsidUtils.toString(ad.getCreatedBy().getId()),
-        ad.isDeleted());
+        ad.isDeleted(),
+        tags);
   }
 }

@@ -30,6 +30,7 @@ import type { RouteDto, RouteDetailDto, TeamDetailDto, TripRequest } from '@/api
 import { Status } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
 import { CreateTripBody } from '@/api/zod/trips/trips.zod'
+import { TagPicker } from '@/components/tag'
 
 interface TripEditorProps {
   team: TeamDetailDto
@@ -268,6 +269,14 @@ export function TripEditor({
                   if (iso) form.setFieldValue('dateTime', iso)
                 }}
                 error={form.errors.dateTime}
+              />
+
+              <TagPicker
+                teamSlug={teamSlug}
+                type="TRIP"
+                value={form.values.tagIds}
+                onChange={(ids) => form.setFieldValue('tagIds', ids)}
+                disabled={isPending}
               />
 
               {team.visibility !== 'TEAM' && (

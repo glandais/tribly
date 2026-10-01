@@ -34,6 +34,8 @@ public record RouteQuery(
     @Nullable Double nearLon,
     @Nullable Double nearRadius,
     @Nullable NearType nearType,
+    // Tagged with any of these (plan D6); team lists only, null or empty for no filter
+    @Nullable Set<Long> tagIds,
     // Sorting
     @Nullable RouteSortBy sortBy,
     @Nullable SortDirection sortDir,

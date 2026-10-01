@@ -17,6 +17,7 @@ _TripRequest _$TripRequestFromJson(Map<String, dynamic> json) => _TripRequest(
       .toList(),
   routeSlug: json['routeSlug'] as String?,
   publishAt: json['publishAt'] as String?,
+  tagIds: (json['tagIds'] as List<dynamic>?)?.map((e) => e as String).toList(),
 );
 
 Map<String, dynamic> _$TripRequestToJson(_TripRequest instance) =>
@@ -29,4 +30,5 @@ Map<String, dynamic> _$TripRequestToJson(_TripRequest instance) =>
       'stages': instance.stages.map((e) => e.toJson()).toList(),
       'routeSlug': instance.routeSlug,
       'publishAt': instance.publishAt,
+      'tagIds': instance.tagIds,
     };

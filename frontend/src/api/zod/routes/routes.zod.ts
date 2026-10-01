@@ -314,6 +314,31 @@ export const ListAllRoutesResponse = zod
               .describe(
                 'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
               ),
+            tags: zod
+              .array(
+                zod
+                  .object({
+                    id: zod.string().describe('Tag ID (TSID)'),
+                    label: zod.string().describe('Label, at most 32 characters'),
+                    color: zod
+                      .enum([
+                        'INDIGO',
+                        'BLUE',
+                        'GREEN',
+                        'RED',
+                        'YELLOW',
+                        'ORANGE',
+                        'GRAPE',
+                        'TEAL',
+                        'GRAY',
+                      ])
+                      .describe('Colour family'),
+                  })
+                  .describe('A team tag on a content')
+              )
+              .describe(
+                "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+              ),
           })
           .describe('Route summary data')
       )
@@ -535,6 +560,12 @@ export const ListRoutesQueryParams = zod.object({
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
     .describe('Filter by surface type'),
+  tags: zod
+    .array(zod.string())
+    .optional()
+    .describe(
+      "Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing."
+    ),
   view: zod
     .enum(['FULL', 'COMPACT'])
     .optional()
@@ -808,6 +839,31 @@ export const ListRoutesResponse = zod
               .describe(
                 'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
               ),
+            tags: zod
+              .array(
+                zod
+                  .object({
+                    id: zod.string().describe('Tag ID (TSID)'),
+                    label: zod.string().describe('Label, at most 32 characters'),
+                    color: zod
+                      .enum([
+                        'INDIGO',
+                        'BLUE',
+                        'GREEN',
+                        'RED',
+                        'YELLOW',
+                        'ORANGE',
+                        'GRAPE',
+                        'TEAL',
+                        'GRAY',
+                      ])
+                      .describe('Colour family'),
+                  })
+                  .describe('A team tag on a content')
+              )
+              .describe(
+                "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+              ),
           })
           .describe('Route summary data')
       )
@@ -1064,6 +1120,12 @@ export const CreateRouteBody = zod.object({
         .max(createRouteBodyRoutePointsMax)
         .optional()
         .describe('Points from frontend routing'),
+      tagIds: zod
+        .array(zod.string())
+        .optional()
+        .describe(
+          "IDs (TSID) of the team's ROUTE tags the route carries, replacing the whole set — at most 10, each a tag of this team and of kind ROUTE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
+        ),
     })
     .optional()
     .describe('Route update request'),
@@ -1315,6 +1377,21 @@ export const CreateRouteResponse = zod
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
       ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+      ),
   })
   .describe('Route summary data')
 
@@ -1347,6 +1424,12 @@ export const GetRoutesBoundsQueryParams = zod.object({
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
     .describe('Filter by surface type'),
+  tags: zod
+    .array(zod.string())
+    .optional()
+    .describe(
+      "Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing."
+    ),
   windDirection: zod
     .enum([
       'NORTH',
@@ -1737,6 +1820,31 @@ export const GetRoutesBulkResponse = zod
               .describe(
                 'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
               ),
+            tags: zod
+              .array(
+                zod
+                  .object({
+                    id: zod.string().describe('Tag ID (TSID)'),
+                    label: zod.string().describe('Label, at most 32 characters'),
+                    color: zod
+                      .enum([
+                        'INDIGO',
+                        'BLUE',
+                        'GREEN',
+                        'RED',
+                        'YELLOW',
+                        'ORANGE',
+                        'GRAPE',
+                        'TEAL',
+                        'GRAY',
+                      ])
+                      .describe('Colour family'),
+                  })
+                  .describe('A team tag on a content')
+              )
+              .describe(
+                "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+              ),
           })
           .describe('Detailed route information')
       )
@@ -1782,6 +1890,12 @@ export const CountRoutesQueryParams = zod.object({
     .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
     .describe('Filter by surface type'),
+  tags: zod
+    .array(zod.string())
+    .optional()
+    .describe(
+      "Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing."
+    ),
   windDirection: zod
     .enum([
       'NORTH',
@@ -1840,6 +1954,12 @@ export const RoutesTileQueryParams = zod.object({
     .optional()
     .describe(
       'Tile token from POST /api/tiles/token, for clients whose map renderer cannot carry an Authorization header. Omitted, the request falls back to the session cookie and then to the anonymous visitor.'
+    ),
+  tags: zod
+    .array(zod.string())
+    .optional()
+    .describe(
+      "Only the routes carrying at least one of these tags — ids (TSID) of the team's ROUTE tags, comma-separated or repeated. Unknown ids are ignored; a filter left with no known id filters nothing."
     ),
   windDirection: zod
     .enum([
@@ -2105,6 +2225,12 @@ export const UpdateRouteBody = zod.object({
         .max(updateRouteBodyRoutePointsMax)
         .optional()
         .describe('Points from frontend routing'),
+      tagIds: zod
+        .array(zod.string())
+        .optional()
+        .describe(
+          "IDs (TSID) of the team's ROUTE tags the route carries, replacing the whole set — at most 10, each a tag of this team and of kind ROUTE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
+        ),
     })
     .optional()
     .describe('Route update request'),
@@ -2355,6 +2481,21 @@ export const UpdateRouteResponse = zod
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
       ),
   })
   .describe('Route summary data')
@@ -2690,6 +2831,21 @@ export const GetRouteResponse = zod
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
       ),
   })
   .describe('Detailed route information')
@@ -3051,6 +3207,21 @@ export const ChangeRouteSlugResponse = zod
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
       ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+      ),
   })
   .describe('Detailed route information')
 
@@ -3385,6 +3556,21 @@ export const UndeleteRouteResponse = zod
       .optional()
       .describe(
         'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+      ),
+    tags: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Tag ID (TSID)'),
+            label: zod.string().describe('Label, at most 32 characters'),
+            color: zod
+              .enum(['INDIGO', 'BLUE', 'GREEN', 'RED', 'YELLOW', 'ORANGE', 'GRAPE', 'TEAL', 'GRAY'])
+              .describe('Colour family'),
+          })
+          .describe('A team tag on a content')
+      )
+      .describe(
+        "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
       ),
   })
   .describe('Detailed route information')

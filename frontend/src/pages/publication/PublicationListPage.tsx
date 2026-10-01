@@ -28,7 +28,11 @@ import { ResultCount } from '../../components/common/ResultCount'
 import { PublicationScopeControl } from '../../components/home/PublicationScopeControl'
 import { useDebouncedSearch } from '../../hooks/useDebouncedSearch'
 import { useScrollToListTop } from '../../hooks/useScrollToListTop'
-import { type PublicationFilterValue } from '../../hooks/filters/publicationFilters'
+import {
+  type PublicationFilterValue,
+  publicationFilterToType,
+} from '../../hooks/filters/publicationFilters'
+import { TagFilter } from '../../components/tag'
 import { SearchInput } from '../../components/common/SearchInput'
 import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
@@ -97,13 +101,18 @@ export function PublicationListPage() {
 
   const primaryCreate = createMenuItems[0]
 
+  // Tags belong to one kind of content (plan D3): the mixed feed has no tag filter (D13), a feed
+  // narrowed to rides, posts or trips — the team's dedicated list of that kind — has one.
+  const tagTarget = publicationFilterToType[filters.filter]
   // The type and scope selects narrow the feed just as much as the search box does, so an empty
-  // result under either of them is a filtered state — and must offer a way out.
-  const hasNonSearchFilters = filters.filter !== 'all' || filters.scope !== 'all'
+  // result under either of them is a filtered state — and must offer a way out. A `?tags=` on the
+  // mixed feed is neither sent nor shown, so it filters nothing and does not count.
+  const hasNonSearchFilters =
+    filters.filter !== 'all' || filters.scope !== 'all' || (!!tagTarget && !!filters.tags?.length)
   const hasFiltersOrSearch = !!search || hasNonSearchFilters
   const clearFilters = () => {
     setSearch('')
-    setFilters({ search: undefined, filter: 'all', scope: 'all', page: 0 })
+    setFilters({ search: undefined, filter: 'all', scope: 'all', tags: undefined, page: 0 })
   }
 
   return (
@@ -161,7 +170,8 @@ export function PublicationListPage() {
               value={filters.filter}
               onChange={(value) => {
                 if (value) {
-                  setFilters({ filter: value as PublicationFilterValue })
+                  // A ride tag means nothing to a post: switching kind drops the selection.
+                  setFilters({ filter: value as PublicationFilterValue, tags: undefined })
                 }
               }}
               data={[
@@ -182,6 +192,15 @@ export function PublicationListPage() {
             />
           </Group>
         </Group>
+
+        {tagTarget && (
+          <TagFilter
+            teamSlug={teamData.slug}
+            type={tagTarget}
+            value={filters.tags}
+            onChange={(tags) => setFilters({ tags })}
+          />
+        )}
 
         <ResultCount total={publicationsData?.total} resource="publications" />
 

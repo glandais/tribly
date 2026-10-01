@@ -92,6 +92,7 @@ export function EditAdPage() {
   // Prepare initial values from fetched ad data
   const initialValues = {
     ...ad,
+    tagIds: ad.tags.map((tag) => tag.id),
   }
 
   return (

@@ -28,7 +28,8 @@ mixin _$AdEditDto {
  String get createdAt;/// Creation timestamp
  String get updatedAt;/// Creator ID (TSID)
  String get createdById;/// Whether the ad is soft-deleted
- bool get deleted;/// Price
+ bool get deleted;/// The team's AD tags the ad carries, sorted by label — what the edit form's tagIds starts from.
+ List<TagDto> get tags;/// Price
  num? get price;/// Rental period
  String? get rentalPeriod;/// Location coordinates [longitude, latitude]. Exact for the ad's author only; any other editor (a team admin, a platform admin) gets the same blurred point as AdDto, the centre of a cell about 1 km across. Sending that blurred point back unchanged in an update by a non-author keeps the stored exact point; any other value replaces it.
  AdEditDtoLocationGeometry? get locationGeometry;/// Location description
@@ -46,20 +47,20 @@ $AdEditDtoCopyWith<AdEditDto> get copyWith => _$AdEditDtoCopyWithImpl<AdEditDto>
 @override
 bool operator ==(Object other) {
   final _this = this as AdEditDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdEditDto&&(identical(other.team, _this.team) || other.team == _this.team)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.adType, _this.adType) || other.adType == _this.adType)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.createdById, _this.createdById) || other.createdById == _this.createdById)&&(identical(other.deleted, _this.deleted) || other.deleted == _this.deleted)&&(identical(other.price, _this.price) || other.price == _this.price)&&(identical(other.rentalPeriod, _this.rentalPeriod) || other.rentalPeriod == _this.rentalPeriod)&&(identical(other.locationGeometry, _this.locationGeometry) || other.locationGeometry == _this.locationGeometry)&&(identical(other.locationDescription, _this.locationDescription) || other.locationDescription == _this.locationDescription));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdEditDto&&(identical(other.team, _this.team) || other.team == _this.team)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.visibility, _this.visibility) || other.visibility == _this.visibility)&&(identical(other.adType, _this.adType) || other.adType == _this.adType)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.createdById, _this.createdById) || other.createdById == _this.createdById)&&(identical(other.deleted, _this.deleted) || other.deleted == _this.deleted)&&const DeepCollectionEquality().equals(other.tags, _this.tags)&&(identical(other.price, _this.price) || other.price == _this.price)&&(identical(other.rentalPeriod, _this.rentalPeriod) || other.rentalPeriod == _this.rentalPeriod)&&(identical(other.locationGeometry, _this.locationGeometry) || other.locationGeometry == _this.locationGeometry)&&(identical(other.locationDescription, _this.locationDescription) || other.locationDescription == _this.locationDescription));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as AdEditDto;
-  return Object.hash(runtimeType,_this.team,_this.id,_this.slug,_this.name,_this.media,_this.status,_this.visibility,_this.adType,_this.createdAt,_this.updatedAt,_this.createdById,_this.deleted,_this.price,_this.rentalPeriod,_this.locationGeometry,_this.locationDescription);
+  return Object.hash(runtimeType,_this.team,_this.id,_this.slug,_this.name,_this.media,_this.status,_this.visibility,_this.adType,_this.createdAt,_this.updatedAt,_this.createdById,_this.deleted,const DeepCollectionEquality().hash(_this.tags),_this.price,_this.rentalPeriod,_this.locationGeometry,_this.locationDescription);
 }
 
 @override
 String toString() {
   final _this = this as AdEditDto;
-  return 'AdEditDto(team: ${_this.team}, id: ${_this.id}, slug: ${_this.slug}, name: ${_this.name}, media: ${_this.media}, status: ${_this.status}, visibility: ${_this.visibility}, adType: ${_this.adType}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, createdById: ${_this.createdById}, deleted: ${_this.deleted}, price: ${_this.price}, rentalPeriod: ${_this.rentalPeriod}, locationGeometry: ${_this.locationGeometry}, locationDescription: ${_this.locationDescription})';
+  return 'AdEditDto(team: ${_this.team}, id: ${_this.id}, slug: ${_this.slug}, name: ${_this.name}, media: ${_this.media}, status: ${_this.status}, visibility: ${_this.visibility}, adType: ${_this.adType}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, createdById: ${_this.createdById}, deleted: ${_this.deleted}, tags: ${_this.tags}, price: ${_this.price}, rentalPeriod: ${_this.rentalPeriod}, locationGeometry: ${_this.locationGeometry}, locationDescription: ${_this.locationDescription})';
 }
 
 
@@ -70,7 +71,7 @@ abstract mixin class $AdEditDtoCopyWith<$Res>  {
   factory $AdEditDtoCopyWith(AdEditDto value, $Res Function(AdEditDto) _then) = _$AdEditDtoCopyWithImpl;
 @useResult
 $Res call({
- TeamPublicationDto team, String id, String slug, String name, MediaDto media, String status, String visibility, String adType, String createdAt, String updatedAt, String createdById, bool deleted, num? price, String? rentalPeriod, AdEditDtoLocationGeometry? locationGeometry, String? locationDescription
+ TeamPublicationDto team, String id, String slug, String name, MediaDto media, String status, String visibility, String adType, String createdAt, String updatedAt, String createdById, bool deleted, List<TagDto> tags, num? price, String? rentalPeriod, AdEditDtoLocationGeometry? locationGeometry, String? locationDescription
 });
 
 
@@ -87,7 +88,7 @@ class _$AdEditDtoCopyWithImpl<$Res>
 
 /// Create a copy of AdEditDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? status = null,Object? visibility = null,Object? adType = null,Object? createdAt = null,Object? updatedAt = null,Object? createdById = null,Object? deleted = null,Object? price = freezed,Object? rentalPeriod = freezed,Object? locationGeometry = freezed,Object? locationDescription = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? status = null,Object? visibility = null,Object? adType = null,Object? createdAt = null,Object? updatedAt = null,Object? createdById = null,Object? deleted = null,Object? tags = null,Object? price = freezed,Object? rentalPeriod = freezed,Object? locationGeometry = freezed,Object? locationDescription = freezed,}) {
   return _then(AdEditDto(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -101,7 +102,8 @@ as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: 
 as String,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as String,createdById: null == createdById ? _self.createdById : createdById // ignore: cast_nullable_to_non_nullable
 as String,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
-as bool,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
+as bool,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
+as List<TagDto>,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as num?,rentalPeriod: freezed == rentalPeriod ? _self.rentalPeriod : rentalPeriod // ignore: cast_nullable_to_non_nullable
 as String?,locationGeometry: freezed == locationGeometry ? _self.locationGeometry : locationGeometry // ignore: cast_nullable_to_non_nullable
 as AdEditDtoLocationGeometry?,locationDescription: freezed == locationDescription ? _self.locationDescription : locationDescription // ignore: cast_nullable_to_non_nullable
@@ -220,10 +222,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String status,  String visibility,  String adType,  String createdAt,  String updatedAt,  String createdById,  bool deleted,  num? price,  String? rentalPeriod,  AdEditDtoLocationGeometry? locationGeometry,  String? locationDescription)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String status,  String visibility,  String adType,  String createdAt,  String updatedAt,  String createdById,  bool deleted,  List<TagDto> tags,  num? price,  String? rentalPeriod,  AdEditDtoLocationGeometry? locationGeometry,  String? locationDescription)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdEditDto() when $default != null:
-return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.status,_that.visibility,_that.adType,_that.createdAt,_that.updatedAt,_that.createdById,_that.deleted,_that.price,_that.rentalPeriod,_that.locationGeometry,_that.locationDescription);case _:
+return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.status,_that.visibility,_that.adType,_that.createdAt,_that.updatedAt,_that.createdById,_that.deleted,_that.tags,_that.price,_that.rentalPeriod,_that.locationGeometry,_that.locationDescription);case _:
   return orElse();
 
 }
@@ -241,10 +243,10 @@ return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.stat
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String status,  String visibility,  String adType,  String createdAt,  String updatedAt,  String createdById,  bool deleted,  num? price,  String? rentalPeriod,  AdEditDtoLocationGeometry? locationGeometry,  String? locationDescription)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String status,  String visibility,  String adType,  String createdAt,  String updatedAt,  String createdById,  bool deleted,  List<TagDto> tags,  num? price,  String? rentalPeriod,  AdEditDtoLocationGeometry? locationGeometry,  String? locationDescription)  $default,) {final _that = this;
 switch (_that) {
 case _AdEditDto():
-return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.status,_that.visibility,_that.adType,_that.createdAt,_that.updatedAt,_that.createdById,_that.deleted,_that.price,_that.rentalPeriod,_that.locationGeometry,_that.locationDescription);case _:
+return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.status,_that.visibility,_that.adType,_that.createdAt,_that.updatedAt,_that.createdById,_that.deleted,_that.tags,_that.price,_that.rentalPeriod,_that.locationGeometry,_that.locationDescription);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -261,10 +263,10 @@ return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.stat
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String status,  String visibility,  String adType,  String createdAt,  String updatedAt,  String createdById,  bool deleted,  num? price,  String? rentalPeriod,  AdEditDtoLocationGeometry? locationGeometry,  String? locationDescription)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String status,  String visibility,  String adType,  String createdAt,  String updatedAt,  String createdById,  bool deleted,  List<TagDto> tags,  num? price,  String? rentalPeriod,  AdEditDtoLocationGeometry? locationGeometry,  String? locationDescription)?  $default,) {final _that = this;
 switch (_that) {
 case _AdEditDto() when $default != null:
-return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.status,_that.visibility,_that.adType,_that.createdAt,_that.updatedAt,_that.createdById,_that.deleted,_that.price,_that.rentalPeriod,_that.locationGeometry,_that.locationDescription);case _:
+return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.status,_that.visibility,_that.adType,_that.createdAt,_that.updatedAt,_that.createdById,_that.deleted,_that.tags,_that.price,_that.rentalPeriod,_that.locationGeometry,_that.locationDescription);case _:
   return null;
 
 }
@@ -276,7 +278,7 @@ return $default(_that.team,_that.id,_that.slug,_that.name,_that.media,_that.stat
 @JsonSerializable()
 
 class _AdEditDto implements AdEditDto {
-  const _AdEditDto({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.status, required this.visibility, required this.adType, required this.createdAt, required this.updatedAt, required this.createdById, required this.deleted, this.price, this.rentalPeriod, this.locationGeometry, this.locationDescription});
+  const _AdEditDto({required this.team, required this.id, required this.slug, required this.name, required this.media, required this.status, required this.visibility, required this.adType, required this.createdAt, required this.updatedAt, required this.createdById, required this.deleted, required  List<TagDto> tags, this.price, this.rentalPeriod, this.locationGeometry, this.locationDescription}): _tags = tags;
   factory _AdEditDto.fromJson(Map<String, dynamic> json) => _$AdEditDtoFromJson(json);
 
 /// Team
@@ -303,6 +305,15 @@ class _AdEditDto implements AdEditDto {
 @override final  String createdById;
 /// Whether the ad is soft-deleted
 @override final  bool deleted;
+/// The team's AD tags the ad carries, sorted by label — what the edit form's tagIds starts from.
+ final  List<TagDto> _tags;
+/// The team's AD tags the ad carries, sorted by label — what the edit form's tagIds starts from.
+@override List<TagDto> get tags {
+  if (_tags is EqualUnmodifiableListView) return _tags;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_tags);
+}
+
 /// Price
 @override final  num? price;
 /// Rental period
@@ -325,18 +336,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdEditDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.createdById, createdById) || other.createdById == createdById)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationGeometry, locationGeometry) || other.locationGeometry == locationGeometry)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdEditDto&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.adType, adType) || other.adType == adType)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.createdById, createdById) || other.createdById == createdById)&&(identical(other.deleted, deleted) || other.deleted == deleted)&&const DeepCollectionEquality().equals(other.tags, _tags)&&(identical(other.price, price) || other.price == price)&&(identical(other.rentalPeriod, rentalPeriod) || other.rentalPeriod == rentalPeriod)&&(identical(other.locationGeometry, locationGeometry) || other.locationGeometry == locationGeometry)&&(identical(other.locationDescription, locationDescription) || other.locationDescription == locationDescription));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,team,id,slug,name,media,status,visibility,adType,createdAt,updatedAt,createdById,deleted,price,rentalPeriod,locationGeometry,locationDescription);
+    return Object.hash(runtimeType,team,id,slug,name,media,status,visibility,adType,createdAt,updatedAt,createdById,deleted,const DeepCollectionEquality().hash(_tags),price,rentalPeriod,locationGeometry,locationDescription);
 }
 
 @override
 String toString() {
-    return 'AdEditDto(team: $team, id: $id, slug: $slug, name: $name, media: $media, status: $status, visibility: $visibility, adType: $adType, createdAt: $createdAt, updatedAt: $updatedAt, createdById: $createdById, deleted: $deleted, price: $price, rentalPeriod: $rentalPeriod, locationGeometry: $locationGeometry, locationDescription: $locationDescription)';
+    return 'AdEditDto(team: $team, id: $id, slug: $slug, name: $name, media: $media, status: $status, visibility: $visibility, adType: $adType, createdAt: $createdAt, updatedAt: $updatedAt, createdById: $createdById, deleted: $deleted, tags: $tags, price: $price, rentalPeriod: $rentalPeriod, locationGeometry: $locationGeometry, locationDescription: $locationDescription)';
 }
 
 
@@ -347,7 +358,7 @@ abstract mixin class _$AdEditDtoCopyWith<$Res> implements $AdEditDtoCopyWith<$Re
   factory _$AdEditDtoCopyWith(_AdEditDto value, $Res Function(_AdEditDto) _then) = __$AdEditDtoCopyWithImpl;
 @override @useResult
 $Res call({
- TeamPublicationDto team, String id, String slug, String name, MediaDto media, String status, String visibility, String adType, String createdAt, String updatedAt, String createdById, bool deleted, num? price, String? rentalPeriod, AdEditDtoLocationGeometry? locationGeometry, String? locationDescription
+ TeamPublicationDto team, String id, String slug, String name, MediaDto media, String status, String visibility, String adType, String createdAt, String updatedAt, String createdById, bool deleted, List<TagDto> tags, num? price, String? rentalPeriod, AdEditDtoLocationGeometry? locationGeometry, String? locationDescription
 });
 
 
@@ -364,7 +375,7 @@ class __$AdEditDtoCopyWithImpl<$Res>
 
 /// Create a copy of AdEditDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? status = null,Object? visibility = null,Object? adType = null,Object? createdAt = null,Object? updatedAt = null,Object? createdById = null,Object? deleted = null,Object? price = freezed,Object? rentalPeriod = freezed,Object? locationGeometry = freezed,Object? locationDescription = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? status = null,Object? visibility = null,Object? adType = null,Object? createdAt = null,Object? updatedAt = null,Object? createdById = null,Object? deleted = null,Object? tags = null,Object? price = freezed,Object? rentalPeriod = freezed,Object? locationGeometry = freezed,Object? locationDescription = freezed,}) {
   return _then(_AdEditDto(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as TeamPublicationDto,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -378,7 +389,8 @@ as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: 
 as String,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as String,createdById: null == createdById ? _self.createdById : createdById // ignore: cast_nullable_to_non_nullable
 as String,deleted: null == deleted ? _self.deleted : deleted // ignore: cast_nullable_to_non_nullable
-as bool,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
+as bool,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
+as List<TagDto>,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as num?,rentalPeriod: freezed == rentalPeriod ? _self.rentalPeriod : rentalPeriod // ignore: cast_nullable_to_non_nullable
 as String?,locationGeometry: freezed == locationGeometry ? _self.locationGeometry : locationGeometry // ignore: cast_nullable_to_non_nullable
 as AdEditDtoLocationGeometry?,locationDescription: freezed == locationDescription ? _self.locationDescription : locationDescription // ignore: cast_nullable_to_non_nullable

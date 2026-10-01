@@ -184,6 +184,16 @@ enum ErrorCode {
   blockSelf('BLOCK_SELF'),
   @JsonValue('CONTENT_REJECTED')
   contentRejected('CONTENT_REJECTED'),
+  @JsonValue('TAG_LABEL_INVALID')
+  tagLabelInvalid('TAG_LABEL_INVALID'),
+  @JsonValue('TAG_LABEL_TAKEN')
+  tagLabelTaken('TAG_LABEL_TAKEN'),
+  @JsonValue('TAG_LIMIT_REACHED')
+  tagLimitReached('TAG_LIMIT_REACHED'),
+  @JsonValue('TAG_INVALID')
+  tagInvalid('TAG_INVALID'),
+  @JsonValue('TOO_MANY_TAGS')
+  tooManyTags('TOO_MANY_TAGS'),
   @JsonValue('BIKETEAM_REQUEST_INVALID')
   biketeamRequestInvalid('BIKETEAM_REQUEST_INVALID'),
   @JsonValue('BIKETEAM_REQUEST_EXPIRED')

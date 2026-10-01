@@ -12,6 +12,7 @@ import fr.pedalons.dto.ridetemplates.request.RideTemplateGroupRequest;
 import fr.pedalons.dto.ridetemplates.request.RideTemplateRequest;
 import fr.pedalons.dto.ridetemplates.response.RideTemplateDto;
 import fr.pedalons.dto.ridetemplates.response.RideTemplateListResponse;
+import fr.pedalons.dto.tags.response.ContentTags;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.Visibility;
@@ -21,10 +22,13 @@ import fr.pedalons.repository.ridetemplate.RideTemplateRepository;
 import fr.pedalons.service.common.SlugService;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.CheckAccess;
+import fr.pedalons.service.tag.TagLookup;
+import fr.pedalons.service.tag.TagService;
 import fr.pedalons.service.team.TeamService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -43,13 +47,20 @@ public class RideTemplateService {
 
   @Inject TeamService teamService;
 
+  @Inject TagService tagService;
+
+  @Inject TagLookup tagLookup;
+
   @CheckAccess(entityType = EntityType.RIDE_TEMPLATE, action = ActionType.LIST)
   public RideTemplateListResponse listTemplates(
       String teamSlug, @Nullable String search, int page, int size) {
     Team team = teamService.getTeam(teamSlug);
     PedalonsPage<RideTemplate> templates =
         templateRepository.findByTeam(team.getId(), search, page, size);
-    var dtos = templates.items().stream().map(RideTemplateDto::from).toList();
+    // One query for the tags of the whole page, none for an empty one.
+    ContentTags tags =
+        tagLookup.forTemplates(templates.items().stream().map(RideTemplate::getId).toList());
+    var dtos = templates.items().stream().map(t -> RideTemplateDto.from(t, tags)).toList();
     return new RideTemplateListResponse(dtos, templates.total(), page, size);
   }
 
@@ -61,7 +72,7 @@ public class RideTemplateService {
             .findByTeamAndSlug(team.getId(), templateSlug)
             .orElseThrow(() -> new NotFoundException(EntityType.RIDE_TEMPLATE, templateSlug));
 
-    return RideTemplateDto.from(template);
+    return toDto(template);
   }
 
   @Transactional
@@ -94,8 +105,9 @@ public class RideTemplateService {
       createTemplateGroup(creator, template, groupRequest, sortOrder);
       sortOrder++;
     }
+    tagService.replaceTemplateTags(template, request.tagIds());
 
-    return RideTemplateDto.from(template);
+    return toDto(template);
   }
 
   private void createTemplateGroup(
@@ -158,9 +170,14 @@ public class RideTemplateService {
       sortOrder++;
     }
 
+    tagService.replaceTemplateTags(template, request.tagIds());
     templateRepository.persist(template);
 
-    return RideTemplateDto.from(template);
+    return toDto(template);
+  }
+
+  private RideTemplateDto toDto(RideTemplate template) {
+    return RideTemplateDto.from(template, tagLookup.forTemplates(List.of(template.getId())));
   }
 
   @Transactional

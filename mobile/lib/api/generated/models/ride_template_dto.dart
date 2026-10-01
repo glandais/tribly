@@ -7,6 +7,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'instant.dart';
 import 'ride_template_group_dto.dart';
 import 'status.dart';
+import 'tag_dto.dart';
 import 'team_publication_dto.dart';
 import 'visibility.dart';
 
@@ -49,6 +50,9 @@ abstract class RideTemplateDto with _$RideTemplateDto {
 
     /// Template groups
     required List<RideTemplateGroupDto> groups,
+
+    /// The team's RIDE tags of the template, sorted by label. Copied onto a ride created from it: a client prefills the ride's tagIds with them, editable before and after.
+    required List<TagDto> tags,
   }) = _RideTemplateDto;
 
   factory RideTemplateDto.fromJson(Map<String, Object?> json) =>

@@ -35,6 +35,7 @@ class _RecordingAdsClient implements AdsClient {
     String? search,
     AdSortBy? sortBy,
     SortDirection? sortDir,
+    List<String>? tags,
     String? to,
     ListViewMode? view,
   }) async {

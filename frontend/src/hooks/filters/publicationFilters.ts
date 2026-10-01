@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ListViewMode, PublicationType } from '@/api/dto'
-import { COMMON_ALIAS, pageField, searchField, sizeField } from './common'
+import { COMMON_ALIAS, pageField, searchField, sizeField, tagIdsField } from './common'
 
 export const PUBLICATION_PAGE_SIZE = 12
 
@@ -71,6 +71,26 @@ export function publicationApiParams(
     ...publicationScopeToParams(filters.scope, nowIso),
     view: ListViewMode.COMPACT,
   }
+}
+
+/**
+ * A team's own feed adds the tag filter. Not the home feed, which spans teams (plan D7), hence an
+ * extension rather than a field of the shared schema.
+ *
+ * The filter only exists once the feed is narrowed to one kind (`?type=ride&tags=…`): tags belong
+ * to one kind of content (D3), and the mixed feed has no tag filter (D13) — the API ignores `tags`
+ * without `type`, and {@link teamPublicationApiParams} does not even send it.
+ */
+export const teamPublicationFiltersSchema = publicationFiltersSchema.extend({ tags: tagIdsField })
+
+export type TeamPublicationFilters = z.infer<typeof teamPublicationFiltersSchema>
+
+export const teamPublicationFiltersAlias = publicationFiltersAlias
+
+/** Same projection as {@link publicationApiParams}, plus the tags when the feed is one kind. */
+export function teamPublicationApiParams(filters: TeamPublicationFilters, nowIso: string) {
+  const params = publicationApiParams(filters, nowIso)
+  return params.type && filters.tags ? { ...params, tags: filters.tags } : params
 }
 
 /** The params a bare URL produces — what a route `prefetch` must fill the cache with. */

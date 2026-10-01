@@ -1,5 +1,5 @@
 import type { MinRole } from '@/api/dto'
-import type { RouteFilters } from '@/hooks/filters/routeFilters'
+import type { RouteFilters, TeamRouteFilters } from '@/hooks/filters/routeFilters'
 
 /** Layer name given to ST_AsMVT by the backend; MapLibre needs it as `source-layer`. */
 export const ROUTES_SOURCE_LAYER = 'routes'
@@ -19,10 +19,10 @@ export type RouteTileFilters = Pick<
   | 'hilliness'
   | 'surfaceType'
   | 'windDirection'
-> & { minRole?: MinRole }
+> & { minRole?: MinRole; tags?: string[] }
 
 /** Drops the sort and the page, which the tile endpoints reject. */
-export const toRouteTileFilters = (filters: RouteFilters): RouteTileFilters => ({
+export const toRouteTileFilters = (filters: RouteFilters | TeamRouteFilters): RouteTileFilters => ({
   search: filters.search,
   minDistance: filters.minDistance,
   maxDistance: filters.maxDistance,
@@ -31,6 +31,9 @@ export const toRouteTileFilters = (filters: RouteFilters): RouteTileFilters => (
   hilliness: filters.hilliness,
   surfaceType: filters.surfaceType,
   windDirection: filters.windDirection,
+  // A team's map only: the cross-team schema has no `tags`. A tile URL writes them `a,b`, which
+  // the API reads like repeated params.
+  tags: 'tags' in filters ? filters.tags : undefined,
 })
 
 /**

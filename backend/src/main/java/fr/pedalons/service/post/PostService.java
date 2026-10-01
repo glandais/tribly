@@ -13,9 +13,12 @@ import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.notification.NotificationPublisher;
 import fr.pedalons.service.security.annotation.CheckAccess;
+import fr.pedalons.service.tag.TagLookup;
+import fr.pedalons.service.tag.TagService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.util.List;
 
 @ApplicationScoped
 public class PostService extends TeamEntityService<Post, PostRepository, PostDto> {
@@ -28,6 +31,10 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
 
   @Inject PostAuthorLookup postAuthorLookup;
 
+  @Inject TagService tagService;
+
+  @Inject TagLookup tagLookup;
+
   @Override
   protected PostRepository getRepository() {
     return postRepository;
@@ -39,7 +46,8 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
         entity,
         assetService,
         commentCountLookup.forEntity(entity),
-        postAuthorLookup.forPost(entity));
+        postAuthorLookup.forPost(entity),
+        tagLookup.forContents(List.of(entity.getId())));
   }
 
   @Override
@@ -82,6 +90,7 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
     postRepository.persistAndFlush(post);
 
     updateMedia(post, request.media());
+    tagService.replaceTags(post, request.tagIds());
 
     postRepository.persist(post);
     notificationPublisher.publicationStatusChanged(post, null, post.getCreatedBy());
@@ -113,6 +122,7 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
     }
 
     updateMedia(post, request.media());
+    tagService.replaceTags(post, request.tagIds());
 
     postRepository.persist(post);
     notificationPublisher.publicationStatusChanged(post, previousStatus, pedalonsContext.getUser());
@@ -166,6 +176,11 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
 
   /** What a write answers: the post as its writer sees it, without a comment count as before. */
   private PostDto written(Post post) {
-    return PostDto.from(post, assetService, CommentCounts.NONE, postAuthorLookup.forPost(post));
+    return PostDto.from(
+        post,
+        assetService,
+        CommentCounts.NONE,
+        postAuthorLookup.forPost(post),
+        tagLookup.forContents(List.of(post.getId())));
   }
 }

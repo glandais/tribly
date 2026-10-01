@@ -37,6 +37,58 @@ void main() {
     });
   });
 
+  group('tags (MOB-39)', () {
+    test('un tag choisi est un filtre actif, qui se retire seul', () {
+      const RouteFilters filters = RouteFilters(
+        teamSlug: 'n-peloton',
+        tagIds: <String>['a1', 'b2'],
+      );
+      expect(filters.activeFields, contains(RouteFilterField.tags));
+      // Portée + tags.
+      expect(filters.activeCount, 2);
+      final RouteFilters without = filters.without(RouteFilterField.tags);
+      expect(without.tagIds, isEmpty);
+      expect(without.teamSlug, 'n-peloton');
+    });
+
+    test('changer d\'équipe lève les tags, pas le reste', () {
+      final RouteFilters filters = const RouteFilters(
+        teamSlug: 'n-peloton',
+        tagIds: <String>['a1'],
+      ).copyWith(surfaceType: SurfaceType.gravel);
+      expect(filters.tagIds, <String>['a1']);
+
+      final RouteFilters moved = filters.copyWith(teamSlug: 'autre-equipe');
+      expect(moved.tagIds, isEmpty);
+      expect(moved.surfaceType, SurfaceType.gravel);
+    });
+
+    test('deux sélections égales désignent le même jeu de résultats', () {
+      // Deux listes distinctes mais égales : la clé de famille ne doit pas
+      // construire deux notifiers.
+      final RouteFilters a = RouteFilters(
+        teamSlug: 'n-peloton',
+        tagIds: List<String>.of(<String>['a1', 'b2']),
+      );
+      final RouteFilters b = RouteFilters(
+        teamSlug: 'n-peloton',
+        tagIds: List<String>.of(<String>['a1', 'b2']),
+      );
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+      expect(a == const RouteFilters(teamSlug: 'n-peloton'), isFalse);
+    });
+
+    test('« tout réinitialiser » lève les tags', () {
+      const RouteFilters filters = RouteFilters(
+        teamSlug: 'n-peloton',
+        tagIds: <String>['a1'],
+      );
+      expect(filters.cleared.tagIds, isEmpty);
+      expect(filters.filtersCleared.tagIds, isEmpty);
+    });
+  });
+
   group('proximité', () {
     test('une latitude seule n\'est pas une position', () {
       expect(const RouteFilters(nearLat: 47.2).hasProximity, isFalse);
