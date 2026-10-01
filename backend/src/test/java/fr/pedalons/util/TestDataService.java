@@ -1071,8 +1071,10 @@ public class TestDataService {
 
   @Transactional
   public void deleteAd(Ad ad) {
+    // Flag the managed row, never merge the caller's detached copy: it may predate a
+    // setAdDetails call and would write its stale state (a null location) back over the row.
     ad.setDeleted(true);
-    adRepository.getEntityManager().merge(ad);
+    adRepository.findById(ad.getId()).setDeleted(true);
   }
 
   /** Price, rental period and exact location — what the classifieds filters and the map read. */
