@@ -28,6 +28,7 @@ import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.util.TestDataCleaner;
 import fr.pedalons.util.TestDataService;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.math.BigDecimal;
@@ -443,8 +444,11 @@ class AdServiceTest extends AbstractBaseTest {
       AdEditDto served = adService.getDtoEdit(team.getSlug(), ad.getSlug());
       adService.updateAd(team.getSlug(), ad.getSlug(), locatedRequest(served.locationGeometry()));
 
+      // A new transaction: the first read left a stale copy in the request-scoped session.
       userService.setUserForTest(member);
-      AdEditDto afterwards = adService.getDtoEdit(team.getSlug(), ad.getSlug());
+      AdEditDto afterwards =
+          QuarkusTransaction.requiringNew()
+              .call(() -> adService.getDtoEdit(team.getSlug(), ad.getSlug()));
       assertEquals(EXACT_LAT, afterwards.locationGeometry().getPosition().getLat(), 1e-9);
       assertEquals(EXACT_LON, afterwards.locationGeometry().getPosition().getLon(), 1e-9);
       assertEquals("Admin renamed", afterwards.name());
