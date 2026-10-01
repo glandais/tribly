@@ -7,6 +7,7 @@ import fr.pedalons.dto.validation.AcceptableText;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.SurfaceType;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.service.route.GpxLimits;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -26,5 +27,9 @@ public record RouteRequest(
     @Schema(description = "Surface type", required = true) SurfaceType surfaceType,
     @Schema(description = "Whether the route is publicly visible", required = true)
         Visibility visibility,
-    @Nullable @Schema(description = "Points from frontend routing") List<GeoPoint> points)
+    @Nullable
+        @Schema(description = "Points from frontend routing")
+        @Size(max = GpxLimits.MAX_PLANNER_POINTS)
+        @Valid
+        List<GeoPoint> points)
     implements WithVisibility {}

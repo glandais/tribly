@@ -12,6 +12,7 @@ import fr.pedalons.dto.routes.request.RouteRequest;
 import fr.pedalons.dto.routes.response.RouteDto;
 import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.service.gpx.GpxPreviewService;
+import fr.pedalons.service.route.GpxLimits;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -41,12 +42,6 @@ import org.jspecify.annotations.Nullable;
 @Tag(name = "GPX previews", description = "Analyse a GPX file outside of any team")
 public class GpxPreviewResource {
 
-  /**
-   * Well under {@code quarkus.http.limits.max-body-size}, which is a global ceiling rather than a
-   * per-upload guard. A 10 MB GPX is already several hundred thousand points.
-   */
-  private static final long MAX_GPX_SIZE_BYTES = 10L * 1024 * 1024;
-
   @Inject GpxPreviewService gpxPreviewService;
 
   @POST
@@ -63,7 +58,8 @@ public class GpxPreviewResource {
         content = @Content(schema = @Schema(implementation = GpxPreviewDto.class))),
     @APIResponse(
         responseCode = "400",
-        description = "Missing, oversized or unparseable GPX file",
+        description =
+            "Missing, oversized (FILE_TOO_LARGE), too long (GPX_TOO_LONG) or unparseable GPX file",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "401",
@@ -75,10 +71,8 @@ public class GpxPreviewResource {
     if (gpxFile == null) {
       throw new BusinessException(ErrorCode.FILE_REQUIRED);
     }
-    if (gpxFile.size() > MAX_GPX_SIZE_BYTES) {
-      throw new BusinessException(ErrorCode.FILE_TOO_LARGE);
-    }
-    GpxPreviewDto preview = gpxPreviewService.createPreview(gpxFile.filePath(), gpxFile.fileName());
+    GpxPreviewDto preview =
+        gpxPreviewService.createPreview(GpxLimits.uploadedGpx(gpxFile), gpxFile.fileName());
     return Response.status(Response.Status.CREATED).entity(preview).build();
   }
 
@@ -251,8 +245,8 @@ public class GpxPreviewResource {
       @RestForm("preview") @PartType(MediaType.APPLICATION_JSON) @Valid @NotNull
           GpxPreviewUpdateRequest request,
       @RestForm("gpxFile") @Nullable FileUpload gpxFile) {
-    java.nio.file.Path gpxPath = gpxFile != null ? gpxFile.filePath() : null;
-    return gpxPreviewService.updatePreview(previewId, request.name(), gpxPath, request.points());
+    return gpxPreviewService.updatePreview(
+        previewId, request.name(), GpxLimits.uploadedGpx(gpxFile), request.points());
   }
 
   @DELETE

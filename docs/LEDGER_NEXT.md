@@ -611,7 +611,6 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 
 | ID | Priorité (audit) | Audit | Sévérité | Constat |
 |---|---|---|---|---|
-| `SEC-6` | 4 | M3 | Moyenne | Traitement GPX non borné en mémoire |
 | `SEC-12` | — | L3, L10 | Faible | Voir la table des constats faibles de l'audit ; L1 et L5 à L9 sont livrés sous `SEC-20`, L12 et L13 sous `SEC-22`, L14 sous `SEC-23`, L4 sous `SEC-24` |
 | `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
 | `SEC-14` | — | Info | — | Images externes dans le markdown ; le parseur XML et le paramètre non encodé sont livrés sous `SEC-21` |

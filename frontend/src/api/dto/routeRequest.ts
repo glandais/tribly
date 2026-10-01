@@ -20,6 +20,9 @@ export interface RouteRequest {
   surfaceType: SurfaceType
   /** Whether the route is publicly visible */
   visibility: Visibility
-  /** Points from frontend routing */
+  /**
+   * Points from frontend routing
+   * @maxItems 100000
+   */
   points?: GeoPoint[]
 }

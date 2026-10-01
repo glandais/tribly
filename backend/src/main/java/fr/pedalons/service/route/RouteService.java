@@ -349,17 +349,19 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
     route.setVisibility(request.visibility());
     route.setDateTime(Instant.now());
 
-    try {
-      GPX gpx = null;
-      if (gpxPath != null) {
-        gpx = gpxProcessingService.parseGpx(gpxPath);
-      } else {
-        List<GeoPoint> points = request.points();
-        if (points != null && !points.isEmpty()) {
-          gpx = gpxProcessingService.fromPoints(route.getName(), points);
-        }
+    // Read before the try below: a file refused here (unparseable, or too long — SEC-6) keeps its
+    // own error code and leaves the route's current files alone, which the catch would delete.
+    GPX gpx = null;
+    if (gpxPath != null) {
+      gpx = gpxProcessingService.parseGpx(gpxPath);
+    } else {
+      List<GeoPoint> points = request.points();
+      if (points != null && !points.isEmpty()) {
+        gpx = gpxProcessingService.fromPoints(route.getName(), points);
       }
+    }
 
+    try {
       // If GPX file provided, update track and climbs
       if (gpx != null) {
         // Delete old GPX files

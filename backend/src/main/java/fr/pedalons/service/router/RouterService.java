@@ -14,6 +14,7 @@ import fr.pedalons.infrastructure.valhalla.ValhallaClient;
 import fr.pedalons.infrastructure.valhalla.ValhallaLocation;
 import fr.pedalons.infrastructure.valhalla.ValhallaRequest;
 import fr.pedalons.infrastructure.valhalla.ValhallaResponse;
+import fr.pedalons.service.route.GpxLimits;
 import fr.pedalons.service.security.annotation.Logged;
 import io.github.glandais.gpx.data.GPXPath;
 import io.github.glandais.gpx.data.GPXPathType;
@@ -80,8 +81,10 @@ public class RouterService {
     // Convert to GPXPath for processing
     GPXPath path = toGpxPath(rawRoute);
 
-    // Step 1: Resample to 10m intervals
-    gpxPerDistance.computeOnePointPerDistance(path, 10.0);
+    // Step 1: Resample to 10m intervals — Valhalla bounds the length of a route, the check
+    // repeats it before the resampling allocates (SEC-6).
+    GpxLimits.checkTracks(List.of(path));
+    gpxPerDistance.computeOnePointPerDistance(path, GpxLimits.RESAMPLING_STEP_METERS);
     LOG.debugv("Resampled to {0} points (10m intervals)", path.getPoints().size());
 
     // Step 2: Fix elevation with SRTM (with graceful degradation)

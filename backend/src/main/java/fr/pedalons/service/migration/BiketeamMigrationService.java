@@ -1589,7 +1589,9 @@ public class BiketeamMigrationService {
         if (pe.getErrorCode() == ErrorCode.GPX_EMPTY) {
           return Codes.GPX_EMPTY;
         }
-        if (pe.getErrorCode() == ErrorCode.GPX_FAILURE) {
+        // A track over GpxLimits.MAX_TRACK_DISTANCE_METERS (SEC-6) is a GPX the import refuses.
+        if (pe.getErrorCode() == ErrorCode.GPX_FAILURE
+            || pe.getErrorCode() == ErrorCode.GPX_TOO_LONG) {
           return Codes.GPX_FAILURE;
         }
       }

@@ -132,6 +132,13 @@ export const createPreviewFromPointsBodyNameMin = 3
 export const createPreviewFromPointsBodyNameMax = 250
 
 export const createPreviewFromPointsBodyNameRegExp = new RegExp('\\S')
+export const createPreviewFromPointsBodyPointsItemLngMin = -180
+export const createPreviewFromPointsBodyPointsItemLngMax = 180
+
+export const createPreviewFromPointsBodyPointsItemLatMin = -90
+export const createPreviewFromPointsBodyPointsItemLatMax = 90
+
+export const createPreviewFromPointsBodyPointsMax = 100000
 
 export const CreatePreviewFromPointsBody = zod
   .object({
@@ -144,11 +151,18 @@ export const CreatePreviewFromPointsBody = zod
     points: zod
       .array(
         zod.object({
-          lng: zod.number(),
-          lat: zod.number(),
+          lng: zod
+            .number()
+            .min(createPreviewFromPointsBodyPointsItemLngMin)
+            .max(createPreviewFromPointsBodyPointsItemLngMax),
+          lat: zod
+            .number()
+            .min(createPreviewFromPointsBodyPointsItemLatMin)
+            .max(createPreviewFromPointsBodyPointsItemLatMax),
         })
       )
       .min(1)
+      .max(createPreviewFromPointsBodyPointsMax)
       .describe('Points from frontend routing'),
   })
   .describe('GPX preview creation request from planner points')
@@ -246,6 +260,13 @@ export const updatePreviewBodyPreviewNameMin = 3
 export const updatePreviewBodyPreviewNameMax = 250
 
 export const updatePreviewBodyPreviewNameRegExp = new RegExp('\\S')
+export const updatePreviewBodyPreviewPointsItemLngMin = -180
+export const updatePreviewBodyPreviewPointsItemLngMax = 180
+
+export const updatePreviewBodyPreviewPointsItemLatMin = -90
+export const updatePreviewBodyPreviewPointsItemLatMax = 90
+
+export const updatePreviewBodyPreviewPointsMax = 100000
 
 export const UpdatePreviewBody = zod.object({
   preview: zod
@@ -259,10 +280,17 @@ export const UpdatePreviewBody = zod.object({
       points: zod
         .array(
           zod.object({
-            lng: zod.number(),
-            lat: zod.number(),
+            lng: zod
+              .number()
+              .min(updatePreviewBodyPreviewPointsItemLngMin)
+              .max(updatePreviewBodyPreviewPointsItemLngMax),
+            lat: zod
+              .number()
+              .min(updatePreviewBodyPreviewPointsItemLatMin)
+              .max(updatePreviewBodyPreviewPointsItemLatMax),
           })
         )
+        .max(updatePreviewBodyPreviewPointsMax)
         .optional()
         .describe('Points from frontend routing'),
     })
@@ -483,6 +511,14 @@ export const createRouteFromPreviewBodyNameMax = 200
 export const createRouteFromPreviewBodyNameRegExp = new RegExp('\\S')
 export const createRouteFromPreviewBodyMediaMarkdownMax = 100000
 
+export const createRouteFromPreviewBodyPointsItemLngMin = -180
+export const createRouteFromPreviewBodyPointsItemLngMax = 180
+
+export const createRouteFromPreviewBodyPointsItemLatMin = -90
+export const createRouteFromPreviewBodyPointsItemLatMax = 90
+
+export const createRouteFromPreviewBodyPointsMax = 100000
+
 export const CreateRouteFromPreviewBody = zod
   .object({
     name: zod
@@ -693,10 +729,17 @@ export const CreateRouteFromPreviewBody = zod
     points: zod
       .array(
         zod.object({
-          lng: zod.number(),
-          lat: zod.number(),
+          lng: zod
+            .number()
+            .min(createRouteFromPreviewBodyPointsItemLngMin)
+            .max(createRouteFromPreviewBodyPointsItemLngMax),
+          lat: zod
+            .number()
+            .min(createRouteFromPreviewBodyPointsItemLatMin)
+            .max(createRouteFromPreviewBodyPointsItemLatMax),
         })
       )
+      .max(createRouteFromPreviewBodyPointsMax)
       .optional()
       .describe('Points from frontend routing'),
   })

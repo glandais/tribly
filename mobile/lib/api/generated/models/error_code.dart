@@ -62,6 +62,8 @@ enum ErrorCode {
   tooManyTeamPages('TOO_MANY_TEAM_PAGES'),
   @JsonValue('GPX_EMPTY')
   gpxEmpty('GPX_EMPTY'),
+  @JsonValue('GPX_TOO_LONG')
+  gpxTooLong('GPX_TOO_LONG'),
   @JsonValue('ROUTE_PLANNER_DISABLED')
   routePlannerDisabled('ROUTE_PLANNER_DISABLED'),
   @JsonValue('INVALID_FORMAT')

@@ -11,6 +11,9 @@ export interface GpxPreviewUpdateRequest {
    * @pattern \S
    */
   name: string
-  /** Points from frontend routing */
+  /**
+   * Points from frontend routing
+   * @maxItems 100000
+   */
   points?: GeoPoint[]
 }

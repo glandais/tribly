@@ -1887,6 +1887,7 @@ components:
       - FILE_TOO_LARGE
       - TOO_MANY_TEAM_PAGES
       - GPX_EMPTY
+      - GPX_TOO_LONG
       - ROUTE_PLANNER_DISABLED
       - INVALID_FORMAT
       - INVALID_TIMEZONE
@@ -2135,9 +2136,13 @@ components:
         lng:
           type: number
           format: double
+          maximum: 180
+          minimum: -180
         lat:
           type: number
           format: double
+          maximum: 90
+          minimum: -90
     GeocodeResultDto:
       description: A place matching a geocoding query
       type: object
@@ -2280,6 +2285,7 @@ components:
           items:
             $ref: "#/components/schemas/GeoPoint"
           description: Points from frontend routing
+          maxItems: 100000
           minItems: 1
     GpxPreviewListResponse:
       description: Paginated GPX preview list response
@@ -2362,6 +2368,7 @@ components:
           items:
             $ref: "#/components/schemas/GeoPoint"
           description: Points from frontend routing
+          maxItems: 100000
     GroupRequest:
       description: Ride group creation request
       type: object
@@ -4459,6 +4466,7 @@ components:
           items:
             $ref: "#/components/schemas/GeoPoint"
           description: Points from frontend routing
+          maxItems: 100000
     RouteSortBy:
       type: string
       enum:
@@ -8852,7 +8860,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/GpxPreviewDto"
         "400":
-          description: "Missing, oversized or unparseable GPX file"
+          description: "Missing, oversized (FILE_TOO_LARGE), too long (GPX_TOO_LONG)\
+            \ or unparseable GPX file"
           content:
             application/json:
               schema:
@@ -16700,7 +16709,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 9.1.2
+  version: 9.2.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

@@ -8,6 +8,7 @@ import fr.pedalons.dto.routes.request.RouteListParams;
 import fr.pedalons.dto.routes.request.RouteRequest;
 import fr.pedalons.dto.routes.response.*;
 import fr.pedalons.infrastructure.jaxrs.PedalonsMediaType;
+import fr.pedalons.service.route.GpxLimits;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.annotation.TileTokenAuth;
 import jakarta.annotation.security.PermitAll;
@@ -219,12 +220,8 @@ public class RouteResource {
       @RestForm("gpxFile") @Nullable FileUpload gpxFile)
       throws Exception {
 
-    java.nio.file.Path gpxPath = null;
-    if (gpxFile != null) {
-      gpxPath = gpxFile.filePath();
-    }
-
-    RouteDto route = routeService.createRoute(teamSlug, routeRequest, gpxPath);
+    RouteDto route =
+        routeService.createRoute(teamSlug, routeRequest, GpxLimits.uploadedGpx(gpxFile));
 
     return Response.status(Response.Status.CREATED).entity(route).build();
   }
@@ -404,12 +401,8 @@ public class RouteResource {
       @RestForm("route") @PartType(MediaType.APPLICATION_JSON) @Valid @NotNull RouteRequest request,
       @RestForm("gpxFile") @Nullable FileUpload gpxFile) {
 
-    java.nio.file.Path gpxPath = null;
-    if (gpxFile != null) {
-      gpxPath = gpxFile.filePath();
-    }
-
-    RouteDto route = routeService.updateRoute(teamSlug, routeSlug, request, gpxPath);
+    RouteDto route =
+        routeService.updateRoute(teamSlug, routeSlug, request, GpxLimits.uploadedGpx(gpxFile));
     return Response.ok(route).build();
   }
 

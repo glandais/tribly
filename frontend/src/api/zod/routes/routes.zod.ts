@@ -832,6 +832,14 @@ export const createRouteBodyRouteNameMax = 200
 export const createRouteBodyRouteNameRegExp = new RegExp('\\S')
 export const createRouteBodyRouteMediaMarkdownMax = 100000
 
+export const createRouteBodyRoutePointsItemLngMin = -180
+export const createRouteBodyRoutePointsItemLngMax = 180
+
+export const createRouteBodyRoutePointsItemLatMin = -90
+export const createRouteBodyRoutePointsItemLatMax = 90
+
+export const createRouteBodyRoutePointsMax = 100000
+
 export const CreateRouteBody = zod.object({
   route: zod
     .object({
@@ -1043,10 +1051,17 @@ export const CreateRouteBody = zod.object({
       points: zod
         .array(
           zod.object({
-            lng: zod.number(),
-            lat: zod.number(),
+            lng: zod
+              .number()
+              .min(createRouteBodyRoutePointsItemLngMin)
+              .max(createRouteBodyRoutePointsItemLngMax),
+            lat: zod
+              .number()
+              .min(createRouteBodyRoutePointsItemLatMin)
+              .max(createRouteBodyRoutePointsItemLatMax),
           })
         )
+        .max(createRouteBodyRoutePointsMax)
         .optional()
         .describe('Points from frontend routing'),
     })
@@ -1852,6 +1867,14 @@ export const updateRouteBodyRouteNameMax = 200
 export const updateRouteBodyRouteNameRegExp = new RegExp('\\S')
 export const updateRouteBodyRouteMediaMarkdownMax = 100000
 
+export const updateRouteBodyRoutePointsItemLngMin = -180
+export const updateRouteBodyRoutePointsItemLngMax = 180
+
+export const updateRouteBodyRoutePointsItemLatMin = -90
+export const updateRouteBodyRoutePointsItemLatMax = 90
+
+export const updateRouteBodyRoutePointsMax = 100000
+
 export const UpdateRouteBody = zod.object({
   route: zod
     .object({
@@ -2063,10 +2086,17 @@ export const UpdateRouteBody = zod.object({
       points: zod
         .array(
           zod.object({
-            lng: zod.number(),
-            lat: zod.number(),
+            lng: zod
+              .number()
+              .min(updateRouteBodyRoutePointsItemLngMin)
+              .max(updateRouteBodyRoutePointsItemLngMax),
+            lat: zod
+              .number()
+              .min(updateRouteBodyRoutePointsItemLatMin)
+              .max(updateRouteBodyRoutePointsItemLatMax),
           })
         )
+        .max(updateRouteBodyRoutePointsMax)
         .optional()
         .describe('Points from frontend routing'),
     })

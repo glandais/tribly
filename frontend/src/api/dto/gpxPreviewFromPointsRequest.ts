@@ -14,6 +14,7 @@ export interface GpxPreviewFromPointsRequest {
   /**
    * Points from frontend routing
    * @minItems 1
+   * @maxItems 100000
    */
   points: GeoPoint[]
 }

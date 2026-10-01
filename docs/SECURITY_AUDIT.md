@@ -31,7 +31,7 @@
 | H5 | **Élevée** | Un point du flux d'autorisation des appareils n'a aucune limitation de débit | Corrigé (ledger `SEC-4`) |
 | M1 | Moyenne (élevée en chaîne) | L'access token n'est pas lié à son domaine : l'utilisateur est résolu par e-mail sur le Host de la requête | Corrigé (commit `6a791794`) |
 | M2 | Moyenne | Le flou d'~1 km de la position des annonces peut être affiné par des requêtes répétées | Corrigé (ledger `SEC-8`) ; point annexe ouvert sous `SEC-26` |
-| M3 | Moyenne | Un traitement de tracé GPX n'est pas borné en mémoire (déni de service) | Ouvert |
+| M3 | Moyenne | Un traitement de tracé GPX n'est pas borné en mémoire (déni de service) | Corrigé (ledger `SEC-6`) |
 | M4 | Moyenne | La connexion par mot de passe n'a ni limitation de débit ni verrouillage | Corrigé (ledger `SEC-7`) |
 | M5 | Moyenne | Un lien de vérification d'e-mail peut connecter la victime à un compte qui n'est pas le sien (login CSRF) | Corrigé (ledger `SEC-9`) |
 | M6 | Moyenne | Une expression régulière appliquée au markdown est exposée au ReDoS | Corrigé : l'expression est linéaire (ledger `SEC-10`), le markdown borné à 100 000 caractères (ledger `SEC-19`) |
@@ -55,7 +55,7 @@ changement de statut ici se reporte là-bas.
 1. ~~H1~~, ~~H2~~, ~~H3~~ et ~~H4~~ (corrigés).
 2. ~~Vérifier V1~~ (vérifié, non confirmé).
 3. ~~M1~~ (corrigé).
-4. M3 et ~~M4~~ (corrigé).
+4. ~~M3~~ et ~~M4~~ (corrigés).
 
 ---
 
@@ -94,7 +94,7 @@ changement de statut ici se reporte là-bas.
 
 ### M2 — Le filtre de proximité des annonces contourne le flou d'~1 km — **Corrigé** (ledger `SEC-8` ; point annexe : `SEC-26`)
 
-### M3 — DoS mémoire sur le traitement GPX — **Ouvert**
+### M3 — DoS mémoire sur le traitement GPX — **Corrigé** (ledger `SEC-6`)
 
 ### M4 — Pas de throttling sur la connexion par mot de passe — **Corrigé** (ledger `SEC-7`)
 

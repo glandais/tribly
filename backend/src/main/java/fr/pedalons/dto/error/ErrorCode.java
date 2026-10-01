@@ -39,6 +39,8 @@ public enum ErrorCode {
   FILE_TOO_LARGE,
   TOO_MANY_TEAM_PAGES,
   GPX_EMPTY,
+  /** The tracks of a GPX add up to more than GpxLimits.MAX_TRACK_DISTANCE_METERS (SEC-6). */
+  GPX_TOO_LONG,
   ROUTE_PLANNER_DISABLED,
   INVALID_FORMAT,
   INVALID_TIMEZONE,

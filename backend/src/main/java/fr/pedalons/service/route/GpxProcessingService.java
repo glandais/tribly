@@ -89,20 +89,34 @@ public class GpxProcessingService {
 
   @Inject PedalonsQueryContext pedalonsContext;
 
+  /**
+   * Parses a GPX file, refused with {@code GPX_TOO_LONG} when its tracks are longer than {@link
+   * GpxLimits#MAX_TRACK_DISTANCE_METERS} (SEC-6). The size of an uploaded file is bounded before
+   * this, by the resource ({@link GpxLimits#uploadedGpx}).
+   */
   public GPX parseGpx(Path path) {
     // Step 1: Parse GPX
     LOG.infov("Processing GPX file");
+    GPX gpx;
     try (FileInputStream fis = new FileInputStream(path.toFile())) {
-      return gpxFileReader.parseGPX(fis);
+      gpx = gpxFileReader.parseGPX(fis);
     } catch (Exception e) {
       LOG.errorv("Failed to parse GPX file", e);
       throw new BusinessException(ErrorCode.GPX_FAILURE, e);
     }
+    GpxLimits.checkTracks(gpx);
+    return gpx;
   }
 
+  /**
+   * A one-track GPX from planner points, refused like {@link #parseGpx} when too long. The request
+   * DTOs bound the number of points and their coordinates; the check here repeats the latter for
+   * any other caller.
+   */
   public GPX fromPoints(String name, List<GeoPoint> points) {
     GPXPath gpxPath = new GPXPath(name, GPXPathType.TRACK);
     points.stream().map(this::createGpxPoint).forEach(gpxPath::addPoint);
+    GpxLimits.checkTracks(List.of(gpxPath));
     gpxPath.computeArrays();
     return new GPX(name, List.of(gpxPath), List.of());
   }
@@ -177,6 +191,9 @@ public class GpxProcessingService {
     if (gpx.paths().isEmpty()) {
       throw new BusinessException(ErrorCode.GPX_EMPTY);
     }
+    // Before the resampling below allocates one point per 10 m of track (SEC-6): parseGpx and
+    // fromPoints already checked, but this is the funnel every GPX goes through.
+    GpxLimits.checkTracks(gpx);
     File original = null;
     File filtered = null;
     try {
@@ -194,7 +211,7 @@ public class GpxProcessingService {
       List<ComputedTrack> tracks = new ArrayList<>();
       List<TrackMetadata> tracksMetadata = new ArrayList<>();
       for (GPXPath path : gpx.paths()) {
-        gpxPerDistance.computeOnePointPerDistance(path, 10.0);
+        gpxPerDistance.computeOnePointPerDistance(path, GpxLimits.RESAMPLING_STEP_METERS);
         LOG.infov("Resampled to {0} points (10m intervals)", path.getPoints().size());
 
         try {
