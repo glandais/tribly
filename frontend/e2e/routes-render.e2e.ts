@@ -316,6 +316,18 @@ const screens: Record<string, Screen> = {
     denied: denies(BELOW_ORGANIZER, teamHome(NOT_ORGANIZER)),
     guards: teamAdminNav,
   },
+  teamAdminTags: {
+    roles: ADMINS,
+    sees: async (main, _d, page) => {
+      await currentTab(page, "Navigation de la gestion de l'équipe", 'Tags')
+      await expect(
+        main.getByText('Chaque type de contenu a ses propres tags.', { exact: false })
+      ).toBeVisible()
+    },
+    // TeamTagsPage's own redirect (WEB-40): the vocabulary is the admins' alone.
+    denied: denies(BELOW_ADMIN, teamHome(NOT_ADMIN)),
+    guards: teamAdminNav,
+  },
   teamAdminPages: {
     roles: ADMINS,
     sees: async (main, d, page) => {
