@@ -100,6 +100,12 @@ export const CreatePreviewResponse = zod
                           .describe('Climb part information')
                       )
                       .describe('Gradient segments making up the climb'),
+                    name: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'Name of the climb: the route waypoint lying near its top (within 300 m), as the route\'s author named it in the GPX. Null when no waypoint marks the summit — clients then number the climb ("Climb N"). Never a geocoded guess.'
+                      ),
                   })
                   .describe('Climb segment information')
               )
@@ -224,6 +230,12 @@ export const CreatePreviewFromPointsResponse = zod
                           .describe('Climb part information')
                       )
                       .describe('Gradient segments making up the climb'),
+                    name: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'Name of the climb: the route waypoint lying near its top (within 300 m), as the route\'s author named it in the GPX. Null when no waypoint marks the summit — clients then number the climb ("Climb N"). Never a geocoded guess.'
+                      ),
                   })
                   .describe('Climb segment information')
               )
@@ -356,6 +368,12 @@ export const UpdatePreviewResponse = zod
                           .describe('Climb part information')
                       )
                       .describe('Gradient segments making up the climb'),
+                    name: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'Name of the climb: the route waypoint lying near its top (within 300 m), as the route\'s author named it in the GPX. Null when no waypoint marks the summit — clients then number the climb ("Climb N"). Never a geocoded guess.'
+                      ),
                   })
                   .describe('Climb segment information')
               )
@@ -445,6 +463,12 @@ export const GetPreviewResponse = zod
                           .describe('Climb part information')
                       )
                       .describe('Gradient segments making up the climb'),
+                    name: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'Name of the climb: the route waypoint lying near its top (within 300 m), as the route\'s author named it in the GPX. Null when no waypoint marks the summit — clients then number the climb ("Climb N"). Never a geocoded guess.'
+                      ),
                   })
                   .describe('Climb segment information')
               )

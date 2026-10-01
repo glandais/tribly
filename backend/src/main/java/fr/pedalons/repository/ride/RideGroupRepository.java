@@ -3,11 +3,13 @@ package fr.pedalons.repository.ride;
 import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.repository.common.BaseRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class RideGroupRepository implements BaseRepository<RideGroup> {
@@ -45,6 +47,70 @@ public class RideGroupRepository implements BaseRepository<RideGroup> {
     }
     return names;
   }
+
+  /**
+   * The scalars a {@code RideGroupDto} needs, for a set of groups, in one query.
+   *
+   * <p>Used for the group the caller joined on each row of a publication list (docs/LEDGER_*.md
+   * API-4). Loading the {@code RideGroup} entities instead would hydrate one group per row plus its
+   * (eager) route — the entity budget of the {@code …QueryCountTest} classes would see it. This
+   * projects the group, its route's figures and its leader through left joins and hydrates nothing.
+   *
+   * <p>The ids come from the caller's own participations among rides a {@code PedalonsQuery}
+   * already returned: this widens nothing.
+   */
+  public List<GroupRow> findGroupRows(Collection<Long> groupIds) {
+    if (groupIds.isEmpty()) {
+      return List.of();
+    }
+    List<Object[]> rows =
+        getEntityManager()
+            .createQuery(
+                "select g.id, g.ride.id, g.name, g.time, g.averageSpeed, g.maxParticipants,"
+                    + " g.sortOrder, r.id, r.slug, r.distance, r.elevationGain,"
+                    + " l.id, l.displayName, l.avatarUrl"
+                    + " from RideGroup g left join g.route r left join g.leader l"
+                    + " where g.id in (:ids)",
+                Object[].class)
+            .setParameter("ids", groupIds)
+            .getResultList();
+    return rows.stream()
+        .map(
+            row ->
+                new GroupRow(
+                    (Long) row[0],
+                    (Long) row[1],
+                    (String) row[2],
+                    (LocalTime) row[3],
+                    (Float) row[4],
+                    (Integer) row[5],
+                    (Integer) row[6],
+                    (Long) row[7],
+                    (String) row[8],
+                    (Float) row[9],
+                    (Float) row[10],
+                    (Long) row[11],
+                    (String) row[12],
+                    (String) row[13]))
+        .toList();
+  }
+
+  /** One group as {@link #findGroupRows} projects it; the route and leader parts may be null. */
+  public record GroupRow(
+      Long id,
+      Long rideId,
+      String name,
+      @Nullable LocalTime time,
+      @Nullable Float averageSpeed,
+      @Nullable Integer maxParticipants,
+      int sortOrder,
+      @Nullable Long routeId,
+      @Nullable String routeSlug,
+      @Nullable Float distance,
+      @Nullable Float elevationGain,
+      @Nullable Long leaderId,
+      @Nullable String leaderDisplayName,
+      @Nullable String leaderAvatarUrl) {}
 
   /** Ride groups a user created, for the GDPR data export. */
   public List<RideGroup> findByCreator(Long domainId, Long userId) {

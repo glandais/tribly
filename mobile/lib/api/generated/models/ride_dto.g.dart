@@ -42,6 +42,9 @@ _RideDto _$RideDtoFromJson(Map<String, dynamic> json) => _RideDto(
   thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
   thumbnailUrl: json['thumbnailUrl'] as String?,
   registeredGroupId: json['registeredGroupId'] as String?,
+  registeredGroup: json['registeredGroup'] == null
+      ? null
+      : RideGroupDto.fromJson(json['registeredGroup'] as Map<String, dynamic>),
   maxParticipants: (json['maxParticipants'] as num?)?.toInt(),
   commentCount: (json['commentCount'] as num?)?.toInt(),
 );
@@ -74,6 +77,7 @@ Map<String, dynamic> _$RideDtoToJson(_RideDto instance) => <String, dynamic>{
   'thumbnailDarkUrl': instance.thumbnailDarkUrl,
   'thumbnailUrl': instance.thumbnailUrl,
   'registeredGroupId': instance.registeredGroupId,
+  'registeredGroup': instance.registeredGroup?.toJson(),
   'maxParticipants': instance.maxParticipants,
   'commentCount': instance.commentCount,
 };

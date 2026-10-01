@@ -104,6 +104,9 @@ sealed class PublicationDto with _$PublicationDto {
     /// ID (TSID) of the group the current user joined, null if not registered
     String? registeredGroupId,
 
+    /// The group the current user joined, in full — the same object as the matching entry of groups. Null if not registered or anonymous. Set on list rows too, where groups is empty: a client rendering "my next ride" needs no second request for its group. Its leader is the group's own, null when none was designated.
+    RideGroupDto? registeredGroup,
+
     /// Capacity of the whole ride: the sum of its groups' maxParticipants, to render participantCount against it ("12/40"). Null when the ride has no group, or when at least one group has no maxParticipants — the ride then has no overall limit, and is never full. Set on list rows too, where groups is empty.
     int? maxParticipants,
 

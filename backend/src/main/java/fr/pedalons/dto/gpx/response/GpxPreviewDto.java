@@ -8,6 +8,7 @@ import fr.pedalons.domain.gpx.GpxPreview;
 import fr.pedalons.dto.routes.response.TrackDto;
 import fr.pedalons.dto.routes.response.WaypointDto;
 import fr.pedalons.dto.validation.ValidateSchema;
+import fr.pedalons.service.route.ClimbNaming.NamedPoint;
 import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -54,7 +55,16 @@ public record GpxPreviewDto(
         preview.isHasThumbnail() ? "/api/gpx-previews/" + publicId + "/thumbnail/{size}" : null,
         "/api/gpx-previews/" + publicId + "/gpx",
         "/api/gpx-previews/" + publicId + "/fit",
-        preview.getTracks().stream().map(t -> TrackDto.of(t.trackPoints(), t.climbs())).toList(),
+        preview.getTracks().stream()
+            .map(
+                t ->
+                    TrackDto.of(
+                        t.trackPoints(),
+                        t.climbs(),
+                        preview.getWaypoints().stream()
+                            .map(w -> new NamedPoint(w.name(), w.lat(), w.lng()))
+                            .toList()))
+            .toList(),
         preview.getWaypoints().stream()
             .map(w -> new WaypointDto(point(WGS84, g(w.lng(), w.lat())), w.name()))
             .toList());

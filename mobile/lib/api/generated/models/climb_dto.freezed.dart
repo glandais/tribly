@@ -23,7 +23,8 @@ mixin _$ClimbDto {
  num get averageGradient;/// Maximum gradient percentage
  num get maxGradient;/// Gradient segments making up the climb
  List<ClimbPartDto> get parts;/// Climb category (HC, 1, 2, 3, 4)
- String? get category;
+ String? get category;/// Name of the climb: the route waypoint lying near its top (within 300 m), as the route's author named it in the GPX. Null when no waypoint marks the summit — clients then number the climb ("Climb N"). Never a geocoded guess.
+ String? get name;
 /// Create a copy of ClimbDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -37,20 +38,20 @@ $ClimbDtoCopyWith<ClimbDto> get copyWith => _$ClimbDtoCopyWithImpl<ClimbDto>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as ClimbDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClimbDto&&(identical(other.startDistance, _this.startDistance) || other.startDistance == _this.startDistance)&&(identical(other.endDistance, _this.endDistance) || other.endDistance == _this.endDistance)&&(identical(other.elevationGain, _this.elevationGain) || other.elevationGain == _this.elevationGain)&&(identical(other.averageGradient, _this.averageGradient) || other.averageGradient == _this.averageGradient)&&(identical(other.maxGradient, _this.maxGradient) || other.maxGradient == _this.maxGradient)&&const DeepCollectionEquality().equals(other.parts, _this.parts)&&(identical(other.category, _this.category) || other.category == _this.category));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClimbDto&&(identical(other.startDistance, _this.startDistance) || other.startDistance == _this.startDistance)&&(identical(other.endDistance, _this.endDistance) || other.endDistance == _this.endDistance)&&(identical(other.elevationGain, _this.elevationGain) || other.elevationGain == _this.elevationGain)&&(identical(other.averageGradient, _this.averageGradient) || other.averageGradient == _this.averageGradient)&&(identical(other.maxGradient, _this.maxGradient) || other.maxGradient == _this.maxGradient)&&const DeepCollectionEquality().equals(other.parts, _this.parts)&&(identical(other.category, _this.category) || other.category == _this.category)&&(identical(other.name, _this.name) || other.name == _this.name));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ClimbDto;
-  return Object.hash(runtimeType,_this.startDistance,_this.endDistance,_this.elevationGain,_this.averageGradient,_this.maxGradient,const DeepCollectionEquality().hash(_this.parts),_this.category);
+  return Object.hash(runtimeType,_this.startDistance,_this.endDistance,_this.elevationGain,_this.averageGradient,_this.maxGradient,const DeepCollectionEquality().hash(_this.parts),_this.category,_this.name);
 }
 
 @override
 String toString() {
   final _this = this as ClimbDto;
-  return 'ClimbDto(startDistance: ${_this.startDistance}, endDistance: ${_this.endDistance}, elevationGain: ${_this.elevationGain}, averageGradient: ${_this.averageGradient}, maxGradient: ${_this.maxGradient}, parts: ${_this.parts}, category: ${_this.category})';
+  return 'ClimbDto(startDistance: ${_this.startDistance}, endDistance: ${_this.endDistance}, elevationGain: ${_this.elevationGain}, averageGradient: ${_this.averageGradient}, maxGradient: ${_this.maxGradient}, parts: ${_this.parts}, category: ${_this.category}, name: ${_this.name})';
 }
 
 
@@ -61,7 +62,7 @@ abstract mixin class $ClimbDtoCopyWith<$Res>  {
   factory $ClimbDtoCopyWith(ClimbDto value, $Res Function(ClimbDto) _then) = _$ClimbDtoCopyWithImpl;
 @useResult
 $Res call({
- int startDistance, int endDistance, int elevationGain, num averageGradient, num maxGradient, List<ClimbPartDto> parts, String? category
+ int startDistance, int endDistance, int elevationGain, num averageGradient, num maxGradient, List<ClimbPartDto> parts, String? category, String? name
 });
 
 
@@ -78,7 +79,7 @@ class _$ClimbDtoCopyWithImpl<$Res>
 
 /// Create a copy of ClimbDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? startDistance = null,Object? endDistance = null,Object? elevationGain = null,Object? averageGradient = null,Object? maxGradient = null,Object? parts = null,Object? category = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? startDistance = null,Object? endDistance = null,Object? elevationGain = null,Object? averageGradient = null,Object? maxGradient = null,Object? parts = null,Object? category = freezed,Object? name = freezed,}) {
   return _then(ClimbDto(
 startDistance: null == startDistance ? _self.startDistance : startDistance // ignore: cast_nullable_to_non_nullable
 as int,endDistance: null == endDistance ? _self.endDistance : endDistance // ignore: cast_nullable_to_non_nullable
@@ -87,6 +88,7 @@ as int,averageGradient: null == averageGradient ? _self.averageGradient : averag
 as num,maxGradient: null == maxGradient ? _self.maxGradient : maxGradient // ignore: cast_nullable_to_non_nullable
 as num,parts: null == parts ? _self.parts : parts // ignore: cast_nullable_to_non_nullable
 as List<ClimbPartDto>,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -172,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int startDistance,  int endDistance,  int elevationGain,  num averageGradient,  num maxGradient,  List<ClimbPartDto> parts,  String? category)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int startDistance,  int endDistance,  int elevationGain,  num averageGradient,  num maxGradient,  List<ClimbPartDto> parts,  String? category,  String? name)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ClimbDto() when $default != null:
-return $default(_that.startDistance,_that.endDistance,_that.elevationGain,_that.averageGradient,_that.maxGradient,_that.parts,_that.category);case _:
+return $default(_that.startDistance,_that.endDistance,_that.elevationGain,_that.averageGradient,_that.maxGradient,_that.parts,_that.category,_that.name);case _:
   return orElse();
 
 }
@@ -193,10 +195,10 @@ return $default(_that.startDistance,_that.endDistance,_that.elevationGain,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int startDistance,  int endDistance,  int elevationGain,  num averageGradient,  num maxGradient,  List<ClimbPartDto> parts,  String? category)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int startDistance,  int endDistance,  int elevationGain,  num averageGradient,  num maxGradient,  List<ClimbPartDto> parts,  String? category,  String? name)  $default,) {final _that = this;
 switch (_that) {
 case _ClimbDto():
-return $default(_that.startDistance,_that.endDistance,_that.elevationGain,_that.averageGradient,_that.maxGradient,_that.parts,_that.category);case _:
+return $default(_that.startDistance,_that.endDistance,_that.elevationGain,_that.averageGradient,_that.maxGradient,_that.parts,_that.category,_that.name);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -213,10 +215,10 @@ return $default(_that.startDistance,_that.endDistance,_that.elevationGain,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int startDistance,  int endDistance,  int elevationGain,  num averageGradient,  num maxGradient,  List<ClimbPartDto> parts,  String? category)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int startDistance,  int endDistance,  int elevationGain,  num averageGradient,  num maxGradient,  List<ClimbPartDto> parts,  String? category,  String? name)?  $default,) {final _that = this;
 switch (_that) {
 case _ClimbDto() when $default != null:
-return $default(_that.startDistance,_that.endDistance,_that.elevationGain,_that.averageGradient,_that.maxGradient,_that.parts,_that.category);case _:
+return $default(_that.startDistance,_that.endDistance,_that.elevationGain,_that.averageGradient,_that.maxGradient,_that.parts,_that.category,_that.name);case _:
   return null;
 
 }
@@ -228,7 +230,7 @@ return $default(_that.startDistance,_that.endDistance,_that.elevationGain,_that.
 @JsonSerializable()
 
 class _ClimbDto implements ClimbDto {
-  const _ClimbDto({required this.startDistance, required this.endDistance, required this.elevationGain, required this.averageGradient, required this.maxGradient, required  List<ClimbPartDto> parts, this.category}): _parts = parts;
+  const _ClimbDto({required this.startDistance, required this.endDistance, required this.elevationGain, required this.averageGradient, required this.maxGradient, required  List<ClimbPartDto> parts, this.category, this.name}): _parts = parts;
   factory _ClimbDto.fromJson(Map<String, dynamic> json) => _$ClimbDtoFromJson(json);
 
 /// Start distance from route start in meters
@@ -252,6 +254,8 @@ class _ClimbDto implements ClimbDto {
 
 /// Climb category (HC, 1, 2, 3, 4)
 @override final  String? category;
+/// Name of the climb: the route waypoint lying near its top (within 300 m), as the route's author named it in the GPX. Null when no waypoint marks the summit — clients then number the climb ("Climb N"). Never a geocoded guess.
+@override final  String? name;
 
 /// Create a copy of ClimbDto
 /// with the given fields replaced by the non-null parameter values.
@@ -266,18 +270,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClimbDto&&(identical(other.startDistance, startDistance) || other.startDistance == startDistance)&&(identical(other.endDistance, endDistance) || other.endDistance == endDistance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.averageGradient, averageGradient) || other.averageGradient == averageGradient)&&(identical(other.maxGradient, maxGradient) || other.maxGradient == maxGradient)&&const DeepCollectionEquality().equals(other.parts, _parts)&&(identical(other.category, category) || other.category == category));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClimbDto&&(identical(other.startDistance, startDistance) || other.startDistance == startDistance)&&(identical(other.endDistance, endDistance) || other.endDistance == endDistance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.averageGradient, averageGradient) || other.averageGradient == averageGradient)&&(identical(other.maxGradient, maxGradient) || other.maxGradient == maxGradient)&&const DeepCollectionEquality().equals(other.parts, _parts)&&(identical(other.category, category) || other.category == category)&&(identical(other.name, name) || other.name == name));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,startDistance,endDistance,elevationGain,averageGradient,maxGradient,const DeepCollectionEquality().hash(_parts),category);
+    return Object.hash(runtimeType,startDistance,endDistance,elevationGain,averageGradient,maxGradient,const DeepCollectionEquality().hash(_parts),category,name);
 }
 
 @override
 String toString() {
-    return 'ClimbDto(startDistance: $startDistance, endDistance: $endDistance, elevationGain: $elevationGain, averageGradient: $averageGradient, maxGradient: $maxGradient, parts: $parts, category: $category)';
+    return 'ClimbDto(startDistance: $startDistance, endDistance: $endDistance, elevationGain: $elevationGain, averageGradient: $averageGradient, maxGradient: $maxGradient, parts: $parts, category: $category, name: $name)';
 }
 
 
@@ -288,7 +292,7 @@ abstract mixin class _$ClimbDtoCopyWith<$Res> implements $ClimbDtoCopyWith<$Res>
   factory _$ClimbDtoCopyWith(_ClimbDto value, $Res Function(_ClimbDto) _then) = __$ClimbDtoCopyWithImpl;
 @override @useResult
 $Res call({
- int startDistance, int endDistance, int elevationGain, num averageGradient, num maxGradient, List<ClimbPartDto> parts, String? category
+ int startDistance, int endDistance, int elevationGain, num averageGradient, num maxGradient, List<ClimbPartDto> parts, String? category, String? name
 });
 
 
@@ -305,7 +309,7 @@ class __$ClimbDtoCopyWithImpl<$Res>
 
 /// Create a copy of ClimbDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? startDistance = null,Object? endDistance = null,Object? elevationGain = null,Object? averageGradient = null,Object? maxGradient = null,Object? parts = null,Object? category = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? startDistance = null,Object? endDistance = null,Object? elevationGain = null,Object? averageGradient = null,Object? maxGradient = null,Object? parts = null,Object? category = freezed,Object? name = freezed,}) {
   return _then(_ClimbDto(
 startDistance: null == startDistance ? _self.startDistance : startDistance // ignore: cast_nullable_to_non_nullable
 as int,endDistance: null == endDistance ? _self.endDistance : endDistance // ignore: cast_nullable_to_non_nullable
@@ -314,6 +318,7 @@ as int,averageGradient: null == averageGradient ? _self.averageGradient : averag
 as num,maxGradient: null == maxGradient ? _self.maxGradient : maxGradient // ignore: cast_nullable_to_non_nullable
 as num,parts: null == parts ? _self._parts : parts // ignore: cast_nullable_to_non_nullable
 as List<ClimbPartDto>,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

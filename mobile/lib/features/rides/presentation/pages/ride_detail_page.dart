@@ -246,7 +246,7 @@ class _RideDetailContent extends ConsumerWidget {
   Widget _identity(BuildContext context) {
     final PdlColors c = context.pdl;
     final PdlTypography t = context.pdlText;
-    final RideGroupDto? mine = ride.registeredGroup;
+    final RideGroupDto? mine = ride.joinedGroup;
 
     return Padding(
       padding: const EdgeInsets.all(PdlSpacing.section),

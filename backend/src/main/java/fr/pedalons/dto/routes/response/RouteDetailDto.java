@@ -11,6 +11,7 @@ import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.SurfaceType;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
+import fr.pedalons.service.route.ClimbNaming.NamedPoint;
 import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -86,9 +87,23 @@ public record RouteDetailDto(
         PublicUserDto.from(route.getCreatedBy()),
         route.getCreatedAt(),
         route.getUpdatedAt(),
-        withGeometry ? route.getTracks().stream().map(TrackDto::from).toList() : List.of(),
+        withGeometry
+            ? route.getTracks().stream().map(t -> TrackDto.from(t, namedPoints(route))).toList()
+            : List.of(),
         route.getWaypoints().stream().map(WaypointDto::from).toList(),
         route.isDeleted(),
         commentCounts.forEntity(route.getId()));
+  }
+
+  /** The route's waypoints, to name the climbs they mark (docs/LEDGER_*.md API-10). */
+  private static List<NamedPoint> namedPoints(Route route) {
+    return route.getWaypoints().stream()
+        .map(
+            w ->
+                new NamedPoint(
+                    w.getName(),
+                    w.getGeometry().getPosition().getLat(),
+                    w.getGeometry().getPosition().getLon()))
+        .toList();
   }
 }

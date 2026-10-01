@@ -180,7 +180,7 @@ class RideRegistrationController extends StateNotifier<RideRegistrationState> {
 
     // (1) L'exclusivité se vérifie **avant** l'appel. `registeredGroupId` la
     // rend lisible sans parcourir `participants[]`.
-    final RideGroupDto? blocking = ride.registeredGroup;
+    final RideGroupDto? blocking = ride.joinedGroup;
     if (blocking != null && blocking.id != groupId) {
       state = state.copyWith(
         failure: RegistrationFailure(
@@ -288,7 +288,7 @@ class RideRegistrationController extends StateNotifier<RideRegistrationState> {
     required StackTrace stackTrace,
   }) {
     final ApiError resolved = resolveApiError(error, stackTrace);
-    final RideGroupDto? blocking = previous.registeredGroup;
+    final RideGroupDto? blocking = previous.joinedGroup;
     state = RideRegistrationState(
       ride: AsyncValue<RideDto>.data(previous),
       failure: RegistrationFailure(
@@ -338,10 +338,15 @@ class RideRegistrationController extends StateNotifier<RideRegistrationState> {
     ];
     final bool wasRegistered = ride.registeredGroupId != null;
     final bool isRegistered = groupId != null;
+    RideGroupDto? joined;
+    for (final RideGroupDto g in groups) {
+      if (g.id == groupId) joined = g;
+    }
     return ride.copyWith(
       groups: groups,
       registered: isRegistered,
       registeredGroupId: groupId,
+      registeredGroup: joined,
       participantCount:
           ride.participantCount +
           (isRegistered ? (wasRegistered ? 0 : 1) : (wasRegistered ? -1 : 0)),

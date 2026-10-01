@@ -16,6 +16,7 @@ _ClimbDto _$ClimbDtoFromJson(Map<String, dynamic> json) => _ClimbDto(
       .map((e) => ClimbPartDto.fromJson(e as Map<String, dynamic>))
       .toList(),
   category: json['category'] as String?,
+  name: json['name'] as String?,
 );
 
 Map<String, dynamic> _$ClimbDtoToJson(_ClimbDto instance) => <String, dynamic>{
@@ -26,4 +27,5 @@ Map<String, dynamic> _$ClimbDtoToJson(_ClimbDto instance) => <String, dynamic>{
   'maxGradient': instance.maxGradient,
   'parts': instance.parts.map((e) => e.toJson()).toList(),
   'category': instance.category,
+  'name': instance.name,
 };

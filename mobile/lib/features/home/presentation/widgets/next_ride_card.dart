@@ -14,7 +14,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../rides/providers/ride_detail_provider.dart';
-import '../../../rides/providers/ride_registration_controller.dart';
+import '../../providers/next_ride_leave_controller.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/next_ride_provider.dart';
 import '../../../../keys.dart';
@@ -62,8 +62,10 @@ class NextRideCard extends ConsumerWidget {
     final DateTime? at = ride.startsAt;
 
     final RideKey key = RideKey(teamSlug: ride.team.slug, rideSlug: ride.slug);
-    final RideRegistrationState registration = ref.watch(
-      rideRegistrationProvider(key),
+    // Pas `rideRegistrationProvider` : il chargerait le détail de la sortie,
+    // que la ligne de liste rend inutile (`docs/LEDGER_*.md API-4`).
+    final NextRideLeaveState registration = ref.watch(
+      nextRideLeaveProvider(key),
     );
 
     return Column(
@@ -82,8 +84,7 @@ class NextRideCard extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: PdlSpacing.cardTight),
-        // Le bandeau d'échec de désinscription vit ici : le contrôleur est
-        // partagé avec l'écran 12, donc l'erreur suit l'utilisateur.
+        // Le bandeau d'échec de désinscription vit ici, au-dessus de la carte.
         if (registration.failure != null) ...<Widget>[
           PdlBanner(
             tone: PdlBannerTone.danger,
@@ -94,7 +95,7 @@ class NextRideCard extends ConsumerWidget {
             ),
             message: registration.failure!.message,
             onDismiss: ref
-                .read(rideRegistrationProvider(key).notifier)
+                .read(nextRideLeaveProvider(key).notifier)
                 .dismissFailure,
             dismissSemanticLabel: 'common.close'.tr(),
           ),
@@ -296,9 +297,9 @@ class NextRideCard extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     RideKey key,
-    RideRegistrationState registration,
+    NextRideLeaveState registration,
   ) {
-    final String? groupId = ride.registeredGroupId;
+    final RideGroupDto? joined = group;
     return Row(
       children: <Widget>[
         Expanded(
@@ -309,17 +310,19 @@ class NextRideCard extends ConsumerWidget {
           ),
         ),
         // Aucune désinscription sur une sortie annulée : elle n'a plus lieu.
-        if (groupId != null && !ride.isCancelled && !ride.isPast) ...<Widget>[
+        if (joined != null && !ride.isCancelled && !ride.isPast) ...<Widget>[
           const SizedBox(width: PdlSpacing.chipGap),
           PdlButton(
             key: keys.home.nextRideLeaveButton,
             label: 'rides.leave'.tr(),
             loadingLabel: 'rides.leaving'.tr(),
             variant: PdlButtonVariant.outline,
-            loading: registration.pendingGroupId == groupId,
-            // **`registeredGroupId`, jamais une boucle** sur les groupes.
-            onPressed: () =>
-                ref.read(rideRegistrationProvider(key).notifier).leave(groupId),
+            loading: registration.pendingGroupId == joined.id,
+            // Le groupe rejoint, porté par la ligne : **jamais une boucle**
+            // sur les groupes.
+            onPressed: () => ref
+                .read(nextRideLeaveProvider(key).notifier)
+                .leave(ride, joined),
           ),
         ],
       ],

@@ -56,13 +56,17 @@ extension RideTiming on RideDto {
   /// Le groupe rejoint par l'utilisateur, ou `null`.
   ///
   /// Lu sur `registeredGroupId` : **jamais** en parcourant `participants[]`,
-  /// qui est vide sans droit de lecture et donnait de faux négatifs.
-  RideGroupDto? get registeredGroup {
+  /// qui est vide sans droit de lecture et donnait de faux négatifs. Cherché
+  /// d'abord dans `groups` — que la bascule optimiste tient à jour —, puis
+  /// dans `registeredGroup`, seul porteur du groupe sur une ligne de liste
+  /// (`docs/LEDGER_*.md API-4`, `groups` y est vide).
+  RideGroupDto? get joinedGroup {
     final String? id = registeredGroupId;
     if (id == null) return null;
     for (final RideGroupDto group in groups) {
       if (group.id == id) return group;
     }
-    return null;
+    final RideGroupDto? carried = registeredGroup;
+    return carried != null && carried.id == id ? carried : null;
   }
 }

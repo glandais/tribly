@@ -8,6 +8,8 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.addVerticalSystem
 import fr.pedalons.domain.route.GpxTrack;
 import fr.pedalons.dto.common.GeoJsonLineString;
 import fr.pedalons.dto.validation.ValidateSchema;
+import fr.pedalons.service.route.ClimbNaming;
+import fr.pedalons.service.route.ClimbNaming.NamedPoint;
 import io.github.glandais.gpx.climb.Climb;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -41,14 +43,27 @@ public record TrackDto(
    * same coordinates carry in their Z and M ordinates.
    */
   public static TrackDto from(GpxTrack track) {
-    return of(track.getTrackPoints(), track.getClimbs());
+    return from(track, List.of());
+  }
+
+  /**
+   * @param waypoints the route's waypoints, which name the climbs whose top they mark ({@link
+   *     ClimbNaming}, docs/LEDGER_*.md API-10)
+   */
+  public static TrackDto from(GpxTrack track, List<NamedPoint> waypoints) {
+    return of(track.getTrackPoints(), track.getClimbs(), waypoints);
   }
 
   /** Builds a track DTO straight from computed points and climbs, with no entity involved. */
-  public static TrackDto of(List<GpxTrack.TrackPoint> trackPoints, List<Climb> climbs) {
+  public static TrackDto of(
+      List<GpxTrack.TrackPoint> trackPoints, List<Climb> climbs, List<NamedPoint> waypoints) {
     G3DM[] geomPoints =
         trackPoints.stream().map(p -> g(p.lng(), p.lat(), p.ele(), p.dist())).toArray(G3DM[]::new);
     LineString<G3DM> line = linestring(WGS84_3DM, geomPoints);
-    return new TrackDto(line, climbs.stream().map(ClimbDto::from).toList());
+    return new TrackDto(
+        line,
+        climbs.stream()
+            .map(climb -> ClimbDto.from(climb, ClimbNaming.nameOf(climb, trackPoints, waypoints)))
+            .toList());
   }
 }

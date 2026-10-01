@@ -19,4 +19,6 @@ export interface ClimbDto {
   category?: ClimbCategory
   /** Gradient segments making up the climb */
   parts: ClimbPartDto[]
+  /** Name of the climb: the route waypoint lying near its top (within 300 m), as the route's author named it in the GPX. Null when no waypoint marks the summit — clients then number the climb ("Climb N"). Never a geocoded guess. */
+  name?: string
 }

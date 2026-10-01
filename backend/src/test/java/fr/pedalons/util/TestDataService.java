@@ -447,6 +447,16 @@ public class TestDataService {
     rideGroupRepository.getEntityManager().merge(group);
   }
 
+  /**
+   * Designates a group's leader on the managed instance: the caller's copy may be stale after an
+   * earlier merge, and merging it again would trip the version check (or orphan participations).
+   */
+  @Transactional
+  public void setRideGroupLeader(RideGroup group, @Nullable User leader) {
+    RideGroup managed = rideGroupRepository.findById(group.getId());
+    managed.setLeader(leader != null ? userRepository.findById(leader.getId()) : null);
+  }
+
   @Transactional
   public void setTripRoute(Trip trip, Route route) {
     trip.setRoute(route);
@@ -522,6 +532,36 @@ public class TestDataService {
       route.addTrack(track);
       i++;
     }
+    routeRepository.persistAndFlush(route);
+    return route;
+  }
+
+  /** A route with one track carrying the given climbs, as the import would have detected them. */
+  @Transactional
+  public Route createRouteWithClimbs(
+      Team team,
+      User createdBy,
+      String name,
+      List<GpxTrack.TrackPoint> trackPoints,
+      List<io.github.glandais.gpx.climb.Climb> climbs) {
+    Route route =
+        new Route(
+            createdBy, team, name, SlugService.slugify(name), Visibility.PUBLIC, SurfaceType.ROAD);
+    GpxTrack.TrackPoint first = trackPoints.getFirst();
+    GpxTrack.TrackPoint last = trackPoints.getLast();
+    LineString<G2D> lineString =
+        (LineString<G2D>)
+            Wkt.fromWkt(
+                String.format(
+                    java.util.Locale.ROOT,
+                    "LINESTRING(%f %f,%f %f)",
+                    first.lng(),
+                    first.lat(),
+                    last.lng(),
+                    last.lat()),
+                WGS84);
+    route.addTrack(
+        new GpxTrack(createdBy, name, lineString, trackPoints, new Climbs(climbs), 10, 10, 10));
     routeRepository.persistAndFlush(route);
     return route;
   }

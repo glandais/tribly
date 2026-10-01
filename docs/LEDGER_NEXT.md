@@ -349,9 +349,7 @@ ceux du plan (`API-1`, l'URL de tuile authentifiable, est livré).
 
 | ID | Manque | Écrans | Dégradation actuelle |
 |---|---|---|---|
-| `API-4` | `groups[]` ou un `registeredGroup` compact sur les lignes de liste | 11 | Un `getRide` supplémentaire pour la seule prochaine sortie |
 | `API-8` | Voisins de publication (`prev`/`next`) *(absence à reconfirmer — recherche ciblée seulement, pas de grep exhaustif sur toutes les resources de publication)* | 31 | Navigation rendue seulement depuis un fil déjà chargé |
-| `API-10` | `ClimbDto.name` | 13, 25 | « Montée N » |
 | `API-11` | Commentaires d'étape | 25 | Section absente, renvoi vers le voyage |
 | `API-14` | `logoUrl` de service GPS (`GpsServiceConnectionDto`) — `SocialIdentityDto.externalUsername` n'a plus d'objet : la connexion Strava a été retirée (API `5.0.0`) | 33 | Nom du service et « Connecté le *date* », sans logo |
 | `API-15` | `Team.timezone` ou dates zonées au contrat | 22, 24, 25 | Fuseau de l'appareil ; le web applique en plus la préférence `UserDto.timezone`, que le mobile ignore |

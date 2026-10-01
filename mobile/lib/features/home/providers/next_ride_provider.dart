@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../api/generated/export.dart';
 import '../../../api/pedalons_api_client.dart';
-import '../../rides/providers/ride_detail_provider.dart';
+import '../../rides/providers/ride_detail_provider.dart' show RideTiming;
 
 /// Ma prochaine participation, avec le groupe que j'ai rejoint.
 @immutable
@@ -12,29 +12,28 @@ class NextRide {
 
   final RideDto ride;
 
-  /// Le groupe rejoint. `null` si l'API ne le rend pas — la carte se replie
-  /// alors sur les informations de la sortie plutôt que d'inventer un horaire.
+  /// Le groupe rejoint, tel que la ligne de liste le porte
+  /// (`registeredGroup`). `null` s'il manque — la carte se replie alors sur
+  /// les informations de la sortie plutôt que d'inventer un horaire.
   final RideGroupDto? group;
 }
 
 /// « Ma prochaine sortie », détail du groupe compris.
 ///
-/// Deux appels, **dans un seul provider** :
+/// **Un seul appel** : `GET /api/users/me/participations` — l'endpoint qui rend
+/// ce bloc possible (sans lui, il faudrait parcourir toutes les équipes et
+/// toutes leurs sorties pour retrouver celle où l'on est inscrit). `size: 1` :
+/// on ne veut que la plus proche ; `view: COMPACT` : la ligne compacte porte
+/// tout ce que la carte rend.
 ///
-/// 1. `GET /api/users/me/participations` — **l'endpoint qui rend ce bloc
-///    possible** : sans lui, il faudrait parcourir toutes les équipes et toutes
-///    leurs sorties pour retrouver celle où l'on est inscrit. `size: 1` : on ne
-///    veut que la plus proche ; `view: COMPACT` : la ligne suffit pour
-///    identifier la sortie, le détail suit.
-/// 2. **Un seul `getRide`**, qui passe par [rideDetailProvider] : taper « Voir
-///    la sortie » n'entraîne donc aucun rechargement, l'écran 12 lit la même
-///    entrée de cache.
+/// La ligne de liste n'a pas de `groups[]`, mais elle porte le **groupe
+/// rejoint en entier**, `registeredGroup` (`docs/LEDGER_*.md API-4`) : nom,
+/// horaire, parcours et vignette, places, aperçu des inscrits. Le `getRide`
+/// qui ne servait qu'à le retrouver a disparu ; ne pas le réintroduire. Taper
+/// « Voir la sortie » charge le détail, comme depuis n'importe quelle carte.
 ///
-/// L'identité de la sortie n'est **pas** mise en cache à part : elle l'a été,
-/// dans un provider privé que rien ne pouvait invalider — ni le pull-to-refresh
-/// de l'accueil (qui reconstruisait ce provider-ci en relisant l'ancienne
-/// identité), ni une inscription. Invalider [nextRideProvider] suffit
-/// désormais à tout reprendre ; c'est ce que fait
+/// L'identité de la sortie n'est **pas** mise en cache à part : invalider
+/// [nextRideProvider] suffit à tout reprendre ; c'est ce que fait
 /// `notifyParticipationChanged`.
 ///
 /// Un échec **masque le bloc** sans propager d'erreur : l'accueil est
@@ -50,34 +49,23 @@ final nextRideProvider = FutureProvider<NextRide?>((Ref ref) async {
         view: ListViewMode.compact,
       );
 
-  RideDto? summary;
   for (final PublicationDto publication in response.publications) {
     // Les voyages remontent aussi dans les participations ; ce bloc-ci parle
     // de sorties. Le carrousel « À venir » montre les deux.
     if (publication is PublicationDtoRide) {
-      summary = _asRide(publication);
-      break;
+      final RideDto ride = rideFromListRow(publication);
+      return NextRide(ride: ride, group: ride.joinedGroup);
     }
   }
-  if (summary == null) return null;
-
-  final RideDto detail = await ref.watch(
-    rideDetailProvider(
-      RideKey(teamSlug: summary.team.slug, rideSlug: summary.slug),
-    ).future,
-  );
-
-  // `groups[]` est vide sur une ligne de liste (`RideDto.fromListItem` passe
-  // `List.of()` côté serveur) : c'est le détail qui porte le groupe, et
-  // `registeredGroupId` qui dit lequel.
-  return NextRide(ride: detail, group: detail.registeredGroup);
+  return null;
 });
 
-/// Reconstruit un `RideDto` depuis une ligne de fil.
+/// Reconstruit un `RideDto` depuis une ligne de fil, champ pour champ.
 ///
-/// Volontairement minimal : cette valeur ne sert qu'à connaître `(teamSlug,
-/// slug)`. Tout le reste vient du détail, une ligne de tête.
-RideDto _asRide(PublicationDtoRide p) => RideDto(
+/// `groups` reste vide (une ligne de liste n'en porte pas) : le groupe rejoint
+/// est dans `registeredGroup`.
+@visibleForTesting
+RideDto rideFromListRow(PublicationDtoRide p) => RideDto(
   type: 'RIDE',
   team: p.team,
   id: p.id,
@@ -86,6 +74,7 @@ RideDto _asRide(PublicationDtoRide p) => RideDto(
   media: p.media,
   dateTime: p.dateTime,
   status: p.status,
+  finished: p.finished,
   visibility: p.visibility,
   participantCount: p.participantCount,
   groupCount: p.groupCount,
@@ -93,7 +82,18 @@ RideDto _asRide(PublicationDtoRide p) => RideDto(
   topParticipants: p.topParticipants,
   deleted: p.deleted,
   registered: p.registered,
-  registeredGroupId: p.registeredGroupId,
   full: p.full,
-  finished: p.finished,
+  excerpt: p.excerpt,
+  publishAt: p.publishAt,
+  createdAt: p.createdAt,
+  routeSlug: p.routeSlug,
+  startPlace: p.startPlace,
+  endPlace: p.endPlace,
+  thumbnailLightUrl: p.thumbnailLightUrl,
+  thumbnailDarkUrl: p.thumbnailDarkUrl,
+  thumbnailUrl: p.thumbnailUrl,
+  registeredGroupId: p.registeredGroupId,
+  registeredGroup: p.registeredGroup,
+  maxParticipants: p.maxParticipants,
+  commentCount: p.commentCount,
 );

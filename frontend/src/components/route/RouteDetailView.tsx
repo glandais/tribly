@@ -201,7 +201,8 @@ export function RouteDetailView({
                           </Badge>
                         )}
                         <Text size="sm" fw={500}>
-                          {t('routes.detail.climbs.unnamed', { number: index + 1 })}
+                          {/* docs/LEDGER_*.md API-10: the waypoint at the top, else « Montée N ». */}
+                          {climb.name ?? t('routes.detail.climbs.unnamed', { number: index + 1 })}
                         </Text>
                         <Text size="sm" c="dimmed">
                           {t('routes.detail.climbs.distance', {

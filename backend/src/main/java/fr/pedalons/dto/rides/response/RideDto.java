@@ -144,6 +144,15 @@ public class RideDto implements PublicationDto {
   @Schema(description = "ID (TSID) of the group the current user joined, null if not registered")
   final String registeredGroupId;
 
+  @Nullable
+  @Schema(
+      description =
+          "The group the current user joined, in full — the same object as the matching entry of"
+              + " groups. Null if not registered or anonymous. Set on list rows too, where groups"
+              + " is empty: a client rendering \"my next ride\" needs no second request for its"
+              + " group. Its leader is the group's own, null when none was designated.")
+  final RideGroupDto registeredGroup;
+
   @Schema(
       description =
           "Whether every group of the ride has reached its capacity. False when the ride has no"
@@ -193,6 +202,7 @@ public class RideDto implements PublicationDto {
       boolean deleted,
       boolean registered,
       @Nullable String registeredGroupId,
+      @Nullable RideGroupDto registeredGroup,
       boolean full,
       @Nullable Integer maxParticipants,
       @Nullable Integer commentCount) {
@@ -223,6 +233,7 @@ public class RideDto implements PublicationDto {
     this.deleted = deleted;
     this.registered = registered;
     this.registeredGroupId = registeredGroupId;
+    this.registeredGroup = registeredGroup;
     this.full = full;
     this.maxParticipants = maxParticipants;
     this.commentCount = commentCount;
@@ -274,6 +285,7 @@ public class RideDto implements PublicationDto {
         summary.topParticipants(),
         assetService,
         participations.registeredGroupId(ride.getId()),
+        participations.registeredGroup(ride.getId()),
         summary.full(),
         summary.maxParticipants(),
         commentCounts.forEntity(ride.getId()),
@@ -343,6 +355,9 @@ public class RideDto implements PublicationDto {
             ? null
             : groups.stream().mapToInt(RideGroup::getMaxParticipants).sum();
 
+    RideGroupDto registeredGroup =
+        groupDtos.stream().filter(RideGroupDto::registered).findFirst().orElse(null);
+
     return build(
         ride,
         groupDtos,
@@ -351,6 +366,7 @@ public class RideDto implements PublicationDto {
         topParticipants,
         assetService,
         registeredGroupId,
+        registeredGroup,
         full,
         maxParticipants,
         commentCounts.forEntity(ride.getId()),
@@ -365,6 +381,7 @@ public class RideDto implements PublicationDto {
       List<PublicUserDto> topParticipants,
       AssetService assetService,
       @Nullable Long registeredGroupId,
+      @Nullable RideGroupDto registeredGroup,
       boolean full,
       @Nullable Integer maxParticipants,
       @Nullable Integer commentCount,
@@ -418,6 +435,7 @@ public class RideDto implements PublicationDto {
         ride.isDeleted(),
         registeredGroupId != null,
         registeredGroupId != null ? TsidUtils.toString(registeredGroupId) : null,
+        registeredGroup,
         full,
         maxParticipants,
         commentCount);

@@ -213,4 +213,92 @@ class RideMeFieldsTest extends AbstractResourceTest {
         .body("registered", equalTo(true))
         .body("registeredGroupId", equalTo(TsidUtils.toString(fast.getId())));
   }
+
+  /**
+   * A list row has no {@code groups}, but carries the group the caller joined in full — what "my
+   * next ride" renders without fetching the ride (docs/LEDGER_*.md API-4). Same object as on the
+   * detail; the leader is the group's own, never the ride's creator.
+   */
+  @Test
+  void registeredGroup_onListRowsAndDetail_isTheJoinedGroupInFull() {
+    dataService.setRideGroupLeader(fast, user2);
+    dataService.createParticipation(fast, user3);
+    String fastId = TsidUtils.toString(fast.getId());
+    String user3Id = TsidUtils.toString(user3.getId());
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .when()
+        .get("/api/users/me/participations?view=COMPACT")
+        .then()
+        .statusCode(200)
+        .body("publications.find { it.slug == 'sunday-ride' }.groups", empty())
+        .body("publications.find { it.slug == 'sunday-ride' }.registeredGroupId", equalTo(fastId))
+        .body("publications.find { it.slug == 'sunday-ride' }.registeredGroup.id", equalTo(fastId))
+        .body(
+            "publications.find { it.slug == 'sunday-ride' }.registeredGroup.name", equalTo("Fast"))
+        .body(
+            "publications.find { it.slug == 'sunday-ride' }.registeredGroup.registered",
+            equalTo(true))
+        .body("publications.find { it.slug == 'sunday-ride' }.registeredGroup.full", equalTo(true))
+        .body(
+            "publications.find { it.slug == 'sunday-ride' }.registeredGroup.countParticipants",
+            equalTo(1))
+        .body(
+            "publications.find { it.slug == 'sunday-ride' }.registeredGroup.participants.id",
+            contains(user3Id))
+        .body(
+            "publications.find { it.slug == 'sunday-ride' }.registeredGroup.routeSlug",
+            notNullValue())
+        .body(
+            "publications.find { it.slug == 'sunday-ride' }.registeredGroup.distance",
+            equalTo(42000.0f))
+        .body(
+            "publications.find { it.slug == 'sunday-ride' }.registeredGroup.leader.id",
+            equalTo(TsidUtils.toString(user2.getId())));
+
+    getRide(USER3)
+        .body("registeredGroup.id", equalTo(fastId))
+        .body("registeredGroup.leader.id", equalTo(TsidUtils.toString(user2.getId())))
+        .body("registeredGroup.countParticipants", equalTo(1));
+
+    // The same list, read by a member who joined nothing, or by a visitor: no group.
+    for (String reader : new String[] {USER1, null}) {
+      var request = given();
+      if (reader != null) {
+        request = request.auth().oauth2(getAccessToken(reader));
+      }
+      request
+          .when()
+          .get("/api/teams/" + team1Slug + "/publications?type=RIDE")
+          .then()
+          .statusCode(200)
+          .body("publications.find { it.slug == 'sunday-ride' }", not(hasKey("registeredGroup")));
+    }
+  }
+
+  /** A joined group with no leader and no route renders neither — no fallback on the creator. */
+  @Test
+  void registeredGroup_onAListRow_withoutLeaderNorRoute_carriesNeither() {
+    dataService.createParticipation(social, user3);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .when()
+        .get("/api/users/me/participations")
+        .then()
+        .statusCode(200)
+        .body(
+            "publications.find { it.slug == 'sunday-ride' }.registeredGroup.name",
+            equalTo("Social"))
+        .body(
+            "publications.find { it.slug == 'sunday-ride' }.registeredGroup", not(hasKey("leader")))
+        .body(
+            "publications.find { it.slug == 'sunday-ride' }.registeredGroup",
+            not(hasKey("distance")))
+        .body(
+            "publications.find { it.slug == 'sunday-ride' }.registeredGroup.full", equalTo(false));
+  }
 }

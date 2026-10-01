@@ -25,8 +25,24 @@ public record ClimbDto(
     @Schema(description = "Maximum gradient percentage", required = true) BigDecimal maxGradient,
     @Nullable @Schema(description = "Climb category (HC, 1, 2, 3, 4)") ClimbCategory category,
     @Schema(description = "Gradient segments making up the climb", required = true)
-        List<ClimbPartDto> parts) {
+        List<ClimbPartDto> parts,
+    @Nullable
+        @Schema(
+            description =
+                "Name of the climb: the route waypoint lying near its top (within 300 m), as the"
+                    + " route's author named it in the GPX. Null when no waypoint marks the summit"
+                    + " — clients then number the climb (\"Climb N\"). Never a geocoded guess.")
+        String name) {
+  /** A climb with no name — what a track without waypoints yields. */
   public static ClimbDto from(Climb climb) {
+    return from(climb, null);
+  }
+
+  /**
+   * @param name the climb's name, from {@code ClimbNaming} (docs/LEDGER_*.md API-10), or {@code
+   *     null}
+   */
+  public static ClimbDto from(Climb climb, @Nullable String name) {
 
     return new ClimbDto(
         (int) Math.round(climb.startDist()),
@@ -35,7 +51,8 @@ public record ClimbDto(
         BigDecimal.valueOf(climb.grade()),
         BigDecimal.valueOf(getMaxGrade(climb)),
         categorizeClimb(climb),
-        climb.parts().stream().map(part -> ClimbPartDto.from(part, climb.startDist())).toList());
+        climb.parts().stream().map(part -> ClimbPartDto.from(part, climb.startDist())).toList(),
+        name);
   }
 
   /**

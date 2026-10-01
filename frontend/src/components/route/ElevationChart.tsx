@@ -224,8 +224,10 @@ export const ElevationChart = forwardRef<ElevationChartHandle, ElevationChartPro
                   const climb = climbs[ci]
                   if (dist < climb.startDistance || dist > climb.endDistance) continue
 
+                  // docs/LEDGER_*.md API-10: a climb named by the waypoint at its top says so.
                   lines.push(
-                    t('map.tooltip.climb', {
+                    t(climb.name ? 'map.tooltip.climbNamed' : 'map.tooltip.climb', {
+                      name: climb.name,
                       index: ci + 1,
                       total: climbs.length,
                       gain: elevation(climb.elevationGain),

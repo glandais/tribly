@@ -14,9 +14,10 @@ import '../../../../core/utils/formatters.dart';
 /// `TrackDto.climbs` **existe au contrat et n'avait jamais été lu** par le
 /// mobile : cette section l'active.
 ///
-/// Les montées **ne sont pas nommées** — `ClimbDto` n'a pas de champ `name`
-/// (§5.2-10). « Montée N » est dérivé de l'index, et c'est tout : inventer un
-/// toponyme à partir de la position serait une donnée fausse.
+/// Une montée porte le nom du waypoint que l'auteur du parcours a posé à son
+/// sommet (`ClimbDto.name`, `docs/LEDGER_*.md API-10`) ; sans lui, « Montée N »,
+/// dérivé de l'index. Le serveur ne devine rien d'autre : inventer un toponyme
+/// à partir de la position serait une donnée fausse.
 class RouteClimbsSection extends ConsumerWidget {
   const RouteClimbsSection({super.key, required this.climbs, this.onTapClimb});
 
@@ -50,9 +51,11 @@ class RouteClimbsSection extends ConsumerWidget {
             categoryTone: ClimbCategory.fromJson(
               climbs[i].category ?? '',
             ).tone(c),
-            name: 'routes.climbNumber'.tr(
-              namedArgs: <String, String>{'index': '${i + 1}'},
-            ),
+            name:
+                climbs[i].name ??
+                'routes.climbNumber'.tr(
+                  namedArgs: <String, String>{'index': '${i + 1}'},
+                ),
             range: 'routes.climbRange'.tr(
               namedArgs: <String, String>{
                 'from': AppFormatters.formatDistance(

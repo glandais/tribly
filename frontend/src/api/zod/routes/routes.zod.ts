@@ -1699,6 +1699,12 @@ export const GetRoutesBulkResponse = zod
                                   .describe('Climb part information')
                               )
                               .describe('Gradient segments making up the climb'),
+                            name: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                'Name of the climb: the route waypoint lying near its top (within 300 m), as the route\'s author named it in the GPX. Null when no waypoint marks the summit — clients then number the climb ("Climb N"). Never a geocoded guess.'
+                              ),
                           })
                           .describe('Climb segment information')
                       )
@@ -2649,6 +2655,12 @@ export const GetRouteResponse = zod
                           .describe('Climb part information')
                       )
                       .describe('Gradient segments making up the climb'),
+                    name: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'Name of the climb: the route waypoint lying near its top (within 300 m), as the route\'s author named it in the GPX. Null when no waypoint marks the summit — clients then number the climb ("Climb N"). Never a geocoded guess.'
+                      ),
                   })
                   .describe('Climb segment information')
               )
@@ -3003,6 +3015,12 @@ export const ChangeRouteSlugResponse = zod
                           .describe('Climb part information')
                       )
                       .describe('Gradient segments making up the climb'),
+                    name: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'Name of the climb: the route waypoint lying near its top (within 300 m), as the route\'s author named it in the GPX. Null when no waypoint marks the summit — clients then number the climb ("Climb N"). Never a geocoded guess.'
+                      ),
                   })
                   .describe('Climb segment information')
               )
@@ -3332,6 +3350,12 @@ export const UndeleteRouteResponse = zod
                           .describe('Climb part information')
                       )
                       .describe('Gradient segments making up the climb'),
+                    name: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'Name of the climb: the route waypoint lying near its top (within 300 m), as the route\'s author named it in the GPX. Null when no waypoint marks the summit — clients then number the climb ("Climb N"). Never a geocoded guess.'
+                      ),
                   })
                   .describe('Climb segment information')
               )

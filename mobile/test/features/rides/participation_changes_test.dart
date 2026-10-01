@@ -11,6 +11,7 @@ import 'package:pedalons/features/home/providers/next_ride_provider.dart';
 import 'package:pedalons/features/home/providers/upcoming_provider.dart';
 import 'package:pedalons/features/profile/data/profile_repository.dart';
 import 'package:pedalons/features/profile/providers/participations_provider.dart';
+import 'package:pedalons/features/home/providers/next_ride_leave_controller.dart';
 import 'package:pedalons/features/rides/data/ride_repository.dart';
 import 'package:pedalons/features/rides/providers/participation_changes.dart';
 import 'package:pedalons/features/rides/providers/ride_detail_provider.dart';
@@ -50,9 +51,15 @@ class _FakeRideRepository implements RideRepository {
   /// L'erreur que `joinGroup` rend au lieu d'inscrire.
   Object? joinError;
 
+  /// `getRide` appelés : « Ma prochaine sortie » n'en fait aucun
+  /// (`docs/LEDGER_*.md API-4`).
+  int getRideCalls = 0;
+
   @override
-  Future<RideDto> getRide(String teamSlug, String rideSlug) async =>
-      _server.ride;
+  Future<RideDto> getRide(String teamSlug, String rideSlug) async {
+    getRideCalls++;
+    return _server.ride;
+  }
 
   @override
   Future<RideParticipationDto> joinGroup(
@@ -176,7 +183,7 @@ RideDto _twoGroups({String? registeredIn}) => fixtureRide(
 );
 
 /// Une ligne de `listMyParticipations` : pas de `groups[]`, comme côté
-/// serveur.
+/// serveur, mais le groupe rejoint en entier (`registeredGroup`).
 PublicationDtoRide _asListRow(RideDto r) => PublicationDtoRide(
   team: r.team,
   id: r.id,
@@ -193,6 +200,9 @@ PublicationDtoRide _asListRow(RideDto r) => PublicationDtoRide(
   deleted: false,
   registered: r.registered,
   registeredGroupId: r.registeredGroupId,
+  registeredGroup: r.groups
+      .where((RideGroupDto g) => g.id == r.registeredGroupId)
+      .firstOrNull,
   full: r.full,
   finished: r.finished,
 );
@@ -316,6 +326,17 @@ void main() {
     expect(await container.read(participationCountProvider(true).future), 1);
   });
 
+  test('« Ma prochaine sortie » se dessine depuis la ligne de liste, sans '
+      'getRide', () async {
+    server.ride = _twoGroups(registeredIn: 'g2');
+    await mountDerivedViews();
+
+    final NextRide? next = await container.read(nextRideProvider.future);
+    expect(next?.group?.name, 'Groupe B');
+    expect(next?.ride.joinedGroup?.id, 'g2');
+    expect(rides.getRideCalls, 0);
+  });
+
   test(
     'quitter depuis la carte fait disparaître « Ma prochaine sortie »',
     () async {
@@ -324,9 +345,19 @@ void main() {
       expect(container.read(nextRideProvider).value?.group?.id, 'g1');
       expect(container.read(participationCountProvider(true)).value, 1);
 
-      // La carte de l'accueil passe par le même contrôleur que la page.
-      await (await openRide()).leave('g1');
+      // La carte de l'accueil quitte sans charger la sortie : la ligne de
+      // liste porte le groupe (`docs/LEDGER_*.md API-4`).
+      final NextRide next = (await container.read(nextRideProvider.future))!;
+      container.listen(
+        nextRideLeaveProvider(rideKey),
+        (_, _) {},
+        fireImmediately: true,
+      );
+      await container
+          .read(nextRideLeaveProvider(rideKey).notifier)
+          .leave(next.ride, next.group!);
 
+      expect(rides.getRideCalls, 0);
       expect(await container.read(nextRideProvider.future), isNull);
       expect(await container.read(participationCountProvider(true).future), 0);
     },

@@ -1272,6 +1272,12 @@ components:
           items:
             $ref: "#/components/schemas/ClimbPartDto"
           description: Gradient segments making up the climb
+        name:
+          type: string
+          description: "Name of the climb: the route waypoint lying near its top (within\
+            \ 300 m), as the route's author named it in the GPX. Null when no waypoint\
+            \ marks the summit — clients then number the climb (\"Climb N\"). Never\
+            \ a geocoded guess."
     ClimbPartDto:
       type: object
       description: Climb part information
@@ -3859,6 +3865,14 @@ components:
           type: string
           description: "ID (TSID) of the group the current user joined, null if not\
             \ registered"
+        registeredGroup:
+          description: "The group the current user joined, in full — the same object\
+            \ as the matching entry of groups. Null if not registered or anonymous.\
+            \ Set on list rows too, where groups is empty: a client rendering \"my\
+            \ next ride\" needs no second request for its group. Its leader is the\
+            \ group's own, null when none was designated."
+          type: object
+          $ref: "#/components/schemas/RideGroupDto"
         full:
           type: boolean
           description: "Whether every group of the ride has reached its capacity.\
@@ -16713,7 +16727,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 9.2.1
+  version: 9.3.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

@@ -1,14 +1,22 @@
 package fr.pedalons.service.common;
 
 import fr.pedalons.dto.publications.response.UserParticipations;
+import fr.pedalons.dto.rides.response.RideGroupDto;
+import fr.pedalons.repository.ride.RideGroupRepository;
+import fr.pedalons.repository.ride.RideGroupRepository.GroupRow;
 import fr.pedalons.repository.ride.RideParticipationRepository;
 import fr.pedalons.repository.trip.TripParticipationRepository;
+import fr.pedalons.service.asset.ThumbnailLookup;
+import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
+import fr.pedalons.service.common.ParticipantPreviewLookup.ParticipantPreview;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
@@ -35,6 +43,47 @@ public class ParticipationLookup {
   @Inject TripParticipationRepository tripParticipationRepository;
 
   @Inject PedalonsQueryContext pedalonsContext;
+
+  @Inject RideGroupRepository rideGroupRepository;
+
+  @Inject ParticipantPreviewLookup participantPreviewLookup;
+
+  @Inject ThumbnailLookup thumbnailLookup;
+
+  /**
+   * The participations of a page of a publication list, <b>with the joined groups rendered</b>
+   * (docs/LEDGER_*.md API-4).
+   *
+   * <p>A list row carries no {@code groups}: without the joined group on the row, a client showing
+   * "my next ride" had to fetch the whole ride for that one group. Its rendering costs a fixed
+   * number of queries for the whole page, never one per row: the group scalars in one projection
+   * (no entity hydrated), the participant previews in two, the route thumbnails in one — and
+   * nothing at all when the caller joined none of the page's rides.
+   */
+  public UserParticipations forListPage(Collection<Long> rideIds, Collection<Long> tripIds) {
+    UserParticipations participations = forPublications(rideIds, tripIds);
+    Map<Long, Long> groupIdByRide = participations.registeredGroupIdByRideId();
+    if (groupIdByRide.isEmpty()) {
+      return participations;
+    }
+    List<GroupRow> rows = rideGroupRepository.findGroupRows(groupIdByRide.values());
+    Map<Long, ParticipantPreview> previews =
+        participantPreviewLookup.forRideGroups(rows.stream().map(GroupRow::id).toList());
+    Map<Long, ThemedThumbnail> thumbnails =
+        thumbnailLookup.forTeamEntities(
+            rows.stream().map(GroupRow::routeId).filter(Objects::nonNull).distinct().toList());
+    Map<Long, RideGroupDto> groupByRide = new HashMap<>();
+    for (GroupRow row : rows) {
+      groupByRide.put(
+          row.rideId(),
+          RideGroupDto.fromRow(
+              row,
+              row.routeId() != null ? thumbnails.get(row.routeId()) : null,
+              previews.getOrDefault(row.id(), ParticipantPreview.EMPTY)));
+    }
+    return new UserParticipations(
+        groupIdByRide, participations.registeredTripIds(), Map.copyOf(groupByRide));
+  }
 
   /** Participations of the current user among these rides and trips. Two queries at most. */
   public UserParticipations forPublications(Collection<Long> rideIds, Collection<Long> tripIds) {

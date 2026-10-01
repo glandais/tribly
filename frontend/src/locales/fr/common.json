@@ -660,6 +660,7 @@
   "map.terrain3d.label": "Terrain 3D",
   "map.hillshade.label": "Ombrage",
   "map.tooltip.climb": "Montée ({{index}}/{{total}}) : {{gain}} / {{distance}} ({{gradient}}%)",
+  "map.tooltip.climbNamed": "{{name}} ({{index}}/{{total}}) : {{gain}} / {{distance}} ({{gradient}}%)",
   "map.tooltip.part": "Partie ({{index}}/{{total}}) : {{distance}} ({{gradient}}%)",
   "memberCount_one": "{{count}} membre",
   "memberCount_many": "{{count}} membres",

@@ -5,6 +5,7 @@ import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.validation.ValidateSchema;
+import fr.pedalons.repository.ride.RideGroupRepository.GroupRow;
 import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import fr.pedalons.service.common.ParticipantPreviewLookup.ParticipantPreview;
 import java.time.LocalTime;
@@ -98,6 +99,42 @@ public record RideGroupDto(
         route != null ? route.getDistance() : null,
         route != null ? route.getElevationGain() : null,
         group.getLeader() != null ? PublicUserDto.from(group.getLeader()) : null,
+        routeThumbnail != null ? routeThumbnail.light() : null,
+        routeThumbnail != null ? routeThumbnail.dark() : null,
+        routeThumbnail != null ? routeThumbnail.collapsed() : null);
+  }
+
+  /**
+   * The group the current user joined, on a row of a publication list (docs/LEDGER_*.md API-4).
+   *
+   * <p>Same payload as on the detail, built from a projection rather than the entity: {@code
+   * registered} is true by construction. The leader is the group's own, null when none was
+   * designated — never the ride's creator.
+   *
+   * @param row the group's scalars, projected for the whole page in one query
+   * @param routeThumbnail resolved for every such group of the page in one query
+   * @param participants resolved for every such group of the page in two queries
+   */
+  public static RideGroupDto fromRow(
+      GroupRow row, @Nullable ThemedThumbnail routeThumbnail, ParticipantPreview participants) {
+    return new RideGroupDto(
+        TsidUtils.toString(row.id()),
+        row.name(),
+        row.time(),
+        row.routeSlug(),
+        row.averageSpeed(),
+        row.maxParticipants(),
+        participants.count(),
+        participants.users(),
+        row.sortOrder(),
+        true,
+        row.maxParticipants() != null && participants.count() >= row.maxParticipants(),
+        row.routeId() != null ? row.distance() : null,
+        row.routeId() != null ? row.elevationGain() : null,
+        row.leaderId() != null
+            ? new PublicUserDto(
+                TsidUtils.toString(row.leaderId()), row.leaderDisplayName(), row.leaderAvatarUrl())
+            : null,
         routeThumbnail != null ? routeThumbnail.light() : null,
         routeThumbnail != null ? routeThumbnail.dark() : null,
         routeThumbnail != null ? routeThumbnail.collapsed() : null);

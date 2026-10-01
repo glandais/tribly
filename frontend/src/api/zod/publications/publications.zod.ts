@@ -456,6 +456,76 @@ export const ListAllPublicationsResponse = zod
                   .describe(
                     'ID (TSID) of the group the current user joined, null if not registered'
                   ),
+                registeredGroup: zod
+                  .object({
+                    id: zod.string().describe('Group ID (TSID)'),
+                    name: zod.string().describe('Group name'),
+                    time: zod.string().optional(),
+                    routeSlug: zod.string().optional().describe('Route slug'),
+                    averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                    maxParticipants: zod.int().optional().describe('Maximum participants'),
+                    countParticipants: zod.int().describe('Current number of participants'),
+                    participants: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .describe('Public user information (limited fields)')
+                      )
+                      .describe(
+                        'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                      ),
+                    sortOrder: zod.int().describe('Sort order'),
+                    registered: zod
+                      .boolean()
+                      .describe(
+                        'Whether the current user is registered in THIS group. False if anonymous.'
+                      ),
+                    full: zod
+                      .boolean()
+                      .describe(
+                        'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                      ),
+                    distance: zod
+                      .number()
+                      .optional()
+                      .describe('Distance in meters of the group route, if it has one'),
+                    elevationGain: zod
+                      .number()
+                      .optional()
+                      .describe('Total elevation gain in meters of the group route, if it has one'),
+                    leader: zod
+                      .object({
+                        id: zod.string().describe('User ID (TSID)'),
+                        displayName: zod.string().describe('User display name'),
+                        avatarUrl: zod.string().optional().describe('User avatar URL'),
+                      })
+                      .optional()
+                      .describe(
+                        "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                      ),
+                    thumbnailLightUrl: zod
+                      .string()
+                      .optional()
+                      .describe('Thumbnail URL (light) of the group route, if it has one'),
+                    thumbnailDarkUrl: zod
+                      .string()
+                      .optional()
+                      .describe('Thumbnail URL (dark) of the group route, if it has one'),
+                    thumbnailUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                      ),
+                  })
+                  .optional()
+                  .describe(
+                    'The group the current user joined, in full — the same object as the matching entry of groups. Null if not registered or anonymous. Set on list rows too, where groups is empty: a client rendering "my next ride" needs no second request for its group. Its leader is the group\'s own, null when none was designated.'
+                  ),
                 full: zod
                   .boolean()
                   .describe(
@@ -2115,6 +2185,76 @@ export const ListPublicationsResponse = zod
                   .optional()
                   .describe(
                     'ID (TSID) of the group the current user joined, null if not registered'
+                  ),
+                registeredGroup: zod
+                  .object({
+                    id: zod.string().describe('Group ID (TSID)'),
+                    name: zod.string().describe('Group name'),
+                    time: zod.string().optional(),
+                    routeSlug: zod.string().optional().describe('Route slug'),
+                    averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                    maxParticipants: zod.int().optional().describe('Maximum participants'),
+                    countParticipants: zod.int().describe('Current number of participants'),
+                    participants: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .describe('Public user information (limited fields)')
+                      )
+                      .describe(
+                        'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                      ),
+                    sortOrder: zod.int().describe('Sort order'),
+                    registered: zod
+                      .boolean()
+                      .describe(
+                        'Whether the current user is registered in THIS group. False if anonymous.'
+                      ),
+                    full: zod
+                      .boolean()
+                      .describe(
+                        'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                      ),
+                    distance: zod
+                      .number()
+                      .optional()
+                      .describe('Distance in meters of the group route, if it has one'),
+                    elevationGain: zod
+                      .number()
+                      .optional()
+                      .describe('Total elevation gain in meters of the group route, if it has one'),
+                    leader: zod
+                      .object({
+                        id: zod.string().describe('User ID (TSID)'),
+                        displayName: zod.string().describe('User display name'),
+                        avatarUrl: zod.string().optional().describe('User avatar URL'),
+                      })
+                      .optional()
+                      .describe(
+                        "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                      ),
+                    thumbnailLightUrl: zod
+                      .string()
+                      .optional()
+                      .describe('Thumbnail URL (light) of the group route, if it has one'),
+                    thumbnailDarkUrl: zod
+                      .string()
+                      .optional()
+                      .describe('Thumbnail URL (dark) of the group route, if it has one'),
+                    thumbnailUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                      ),
+                  })
+                  .optional()
+                  .describe(
+                    'The group the current user joined, in full — the same object as the matching entry of groups. Null if not registered or anonymous. Set on list rows too, where groups is empty: a client rendering "my next ride" needs no second request for its group. Its leader is the group\'s own, null when none was designated.'
                   ),
                 full: zod
                   .boolean()

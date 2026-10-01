@@ -1,5 +1,10 @@
 package fr.pedalons.api.users;
 
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.notNullValue;
+
 import fr.pedalons.api.AbstractQueryCountTest;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
@@ -32,6 +37,14 @@ class ParticipationQueryCountTest extends AbstractQueryCountTest {
   }
 
   private void seedJoinedRides(int count) {
+    seedJoinedRides(count, false);
+  }
+
+  /**
+   * @param joinedGroupHasRouteAndLeader give the group user1 joins its own route and a leader, so
+   *     that rendering it on the row (docs/LEDGER_*.md API-4) has everything to resolve
+   */
+  private void seedJoinedRides(int count, boolean joinedGroupHasRouteAndLeader) {
     Instant base = Instant.now().plus(7, ChronoUnit.DAYS);
     List<User> participants = List.of(user1, user2, user3, user4, user5);
     for (int i = 0; i < count; i++) {
@@ -46,6 +59,12 @@ class ParticipationQueryCountTest extends AbstractQueryCountTest {
               Status.PUBLISHED);
       for (int g = 0; g < 2; g++) {
         RideGroup group = dataService.createRideGroup(user1, ride, "Group " + g, g);
+        if (g == 0 && joinedGroupHasRouteAndLeader) {
+          // Before any participation: merging the detached group would orphan them.
+          group.setRoute(dataService.createRoute(team1, user1, "Joined Route " + i));
+          group.setLeader(user2);
+          dataService.updateRideGroup(group);
+        }
         // user1 only joins one of the two groups: joining both is forbidden by joinGroup.
         for (User participant :
             g == 0 ? participants : participants.subList(1, participants.size())) {
@@ -87,6 +106,32 @@ class ParticipationQueryCountTest extends AbstractQueryCountTest {
     seedJoinedRides(LARGE_PAGE);
     assertFlatQueryCount(
         "GET /api/users/me/participations", asUser1(), "/api/users/me/participations");
+  }
+
+  /**
+   * The joined group rendered on every row (docs/LEDGER_*.md API-4): each joined group has its own
+   * route and a leader, so the projection, the participant previews and the route thumbnails all
+   * run — and must cost the same for 3 rows as for 30.
+   */
+  @Test
+  void listMyParticipations_registeredGroups_costAPageNotARow() {
+    seedJoinedRides(LARGE_PAGE, true);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/users/me/participations?size=" + SMALL_PAGE)
+        .then()
+        .statusCode(200)
+        .body("publications.registeredGroup.name", everyItem(equalTo("Group 0")))
+        .body("publications.registeredGroup.leader.id", everyItem(notNullValue()))
+        .body("publications.registeredGroup.routeSlug", everyItem(notNullValue()));
+
+    assertFlatQueryCount(
+        "GET /api/users/me/participations (registered groups)",
+        asUser1(),
+        "/api/users/me/participations");
   }
 
   @Test

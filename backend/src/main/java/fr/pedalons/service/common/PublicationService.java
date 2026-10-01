@@ -365,11 +365,12 @@ public class PublicationService {
   }
 
   /**
-   * Resolves the "me" fields ({@code registered}, {@code registeredGroupId}) for the whole page at
-   * once — two queries, whatever the page size. Anonymous callers cost nothing.
+   * Resolves the "me" fields ({@code registered}, {@code registeredGroupId}, {@code
+   * registeredGroup}) for the whole page at once — a fixed number of queries, whatever the page
+   * size. Anonymous callers cost nothing.
    */
   private UserParticipations loadParticipations(List<Publication> items) {
-    return participationLookup.forPublications(
+    return participationLookup.forListPage(
         idsOfType(items, Ride.class), idsOfType(items, Trip.class));
   }
 
