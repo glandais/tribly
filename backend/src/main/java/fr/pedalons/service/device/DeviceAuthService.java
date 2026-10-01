@@ -156,6 +156,17 @@ public class DeviceAuthService {
             .findActiveByIdAndDomain(domainId, userId)
             .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
+    // The first approval stands until the device collects its tokens (docs/LEDGER_*.md AUD-16):
+    // a second account confirming the same code would otherwise swap itself in, and the device
+    // would open on someone else's account. The same user confirming twice changes nothing.
+    if (deviceCode.isAuthorized()) {
+      User approver = deviceCode.getUser();
+      if (approver != null && approver.getId().equals(userId)) {
+        return;
+      }
+      throw new BadRequestException(ErrorCode.TOKEN_INVALID);
+    }
+
     deviceCode.authorize(user);
 
     LOG.infov(

@@ -82,7 +82,7 @@ En février 2026 : backend Quarkus 3.31.2, Java 21 (compile en Java 25), ~90 fic
 | B9 | Requetes N+1 sur les listings (pas de JOIN FETCH) | Important | L | `TeamEntityRepository.java` | ⚠️ (lookups résolus par page — `ParticipationLookup`, `CommentCountLookup`, `ThumbnailLookup` — et tests `…QueryCountTest` depuis 3bb01f32, juillet 2026 ; `FetchType.EAGER` toujours présent, voir B11) |
 | B10 | `PedalonsQueryContext.getUserNullable()` re-requete la DB a chaque appel | Important | S | `PedalonsQueryContext.java:92-95` | ✅ (mémorisé pour la requête, 3bb01f32, juillet 2026) |
 | B11 | `FetchType.EAGER` sur plusieurs `@ManyToOne` (Ride.route, Ride.start, etc.) | Important | M | `Ride.java`, `RideGroup.java`, `Team.java` | |
-| B12 | Pas de test pour `DeviceAuthService` (device code flow) | Important | M | Nouveau fichier test | ⚠️ (`DeviceAuthServiceTest` ne couvre que l'URL de vérification ; émission, complete et polling non testés) |
+| B12 | Pas de test pour `DeviceAuthService` (device code flow) | Important | M | Nouveau fichier test | ✅ (1er oct. 2026, `DeviceOAuthFlowTest`) |
 | B13 | Code commente dans `PedalonsException` (~40 lignes) | Mineur | S | `PedalonsException.java:23-65` | ✅ |
 | B14 | Logique cle S3 dupliquee (`AssetService` vs `AssetRemoveListener`) | Mineur | S | `AssetService.java`, `AssetRemoveListener.java` | ✅ |
 | B15 | Indexes redondants avec contraintes UNIQUE sur `device_codes` | Mineur | S | `V5__device_codes.sql` | ✅ (30 sept. 2026, `V46`) |
