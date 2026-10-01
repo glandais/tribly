@@ -30,7 +30,7 @@ mixin _$AdEditDto {
  String get createdById;/// Whether the ad is soft-deleted
  bool get deleted;/// Price
  num? get price;/// Rental period
- String? get rentalPeriod;/// Location coordinates [longitude, latitude]
+ String? get rentalPeriod;/// Location coordinates [longitude, latitude]. Exact for the ad's author only; any other editor (a team admin, a platform admin) gets the same blurred point as AdDto, the centre of a cell about 1 km across. Sending that blurred point back unchanged in an update by a non-author keeps the stored exact point; any other value replaces it.
  AdEditDtoLocationGeometry? get locationGeometry;/// Location description
  String? get locationDescription;
 /// Create a copy of AdEditDto
@@ -307,7 +307,7 @@ class _AdEditDto implements AdEditDto {
 @override final  num? price;
 /// Rental period
 @override final  String? rentalPeriod;
-/// Location coordinates [longitude, latitude]
+/// Location coordinates [longitude, latitude]. Exact for the ad's author only; any other editor (a team admin, a platform admin) gets the same blurred point as AdDto, the centre of a cell about 1 km across. Sending that blurred point back unchanged in an update by a non-author keeps the stored exact point; any other value replaces it.
 @override final  AdEditDtoLocationGeometry? locationGeometry;
 /// Location description
 @override final  String? locationDescription;

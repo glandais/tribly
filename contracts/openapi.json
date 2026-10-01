@@ -153,7 +153,7 @@
             "description" : "Location description"
           },
           "locationGeometry" : {
-            "description" : "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the seller and the team's admins can read. Proximity filters measure from this blurred point too, never from the exact one.",
+            "description" : "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, and only for the seller: the team's admins get this blurred point there too. Proximity filters measure from this blurred point too, never from the exact one.",
             "type" : "object",
             "required" : [ "type", "coordinates" ],
             "properties" : {
@@ -249,7 +249,7 @@
             "$ref" : "#/components/schemas/RentalPeriod"
           },
           "locationGeometry" : {
-            "description" : "Location coordinates [longitude, latitude]",
+            "description" : "Location coordinates [longitude, latitude]. Exact for the ad's author only; any other editor (a team admin, a platform admin) gets the same blurred point as AdDto, the centre of a cell about 1 km across. Sending that blurred point back unchanged in an update by a non-author keeps the stored exact point; any other value replaces it.",
             "type" : "object",
             "required" : [ "type", "coordinates" ],
             "properties" : {
@@ -21130,7 +21130,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "9.2.0",
+    "version" : "9.2.1",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

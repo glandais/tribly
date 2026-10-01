@@ -1260,6 +1260,29 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
 
 Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md).
 
+- `SEC-26` **L'édition d'une annonce ne donne la position exacte qu'au vendeur : M2 (annexe)**
+  (2026-10-01, **API 9.2.1**, patch : descriptions de `AdEditDto.locationGeometry` et
+  `AdDto.locationGeometry` ; pas de migration) — `GET …/classifieds/{slug}/edit` servait le point
+  exact à quiconque pouvait modifier l'annonce, admins d'équipe et de plateforme compris. `AdEditDto`
+  porte désormais le point exact pour l'**auteur** seul ; tout autre éditeur reçoit
+  `CoarseLocation.blur`, le même centre de cellule que `AdDto` (`AdService.toEditDto`, aussi pour la
+  réponse de `undeleteAd`). Pour qu'un enregistrement par un non-auteur n'écrase pas le point exact
+  par le centre flouté reçu, `AdService.updateAd` compare la position soumise au flou du point
+  stocké (tolérance 1e-7°) : identique, le point exact est conservé ; différente ou nulle, elle est
+  appliquée telle quelle (un admin peut toujours déplacer ou effacer la position). Choix : la
+  comparaison côté serveur plutôt qu'un indicateur dans `AdRequest` — le serveur seul sait ce qu'il a
+  servi, et l'éditeur web, qui renvoie le formulaire tel quel, n'a pas eu à changer ; le mobile
+  n'édite pas d'annonce. Limite assumée : un non-auteur qui choisirait exactement le centre de la
+  cellule du vendeur garde le point exact — même cellule, rien de publié ne change. **À ne pas
+  défaire** : ne servir le point exact qu'à `ad.createdBy`, jamais sur le rôle ; garder la
+  comparaison sur `CoarseLocation.blur` (si le flou change, elle suit). Tests (**écrits, non
+  lancés**) : `AdServiceTest` (`GetAdEditDto.shouldReturnExactLocationToAuthor`,
+  `…shouldReturnBlurredLocationToNonAuthorAdmin`, `…shouldReturnBlurredLocationOnUndeleteByNonAuthorAdmin`,
+  `UpdateAd.adminSaveWithoutMovingKeepsExactLocation`, `…adminMovingLocationReplacesIt`,
+  `…adminClearingLocationRemovesIt`, `…authorSavingCellCentreReplacesExactLocation`) et
+  `AdDetailsAndFiltersTest.getAdEdit_asNonAuthorAdmin_givesTheBlurredPointAndARoundTripKeepsTheExactOne`
+  (aller-retour JSON par HTTP, comme l'éditeur web).
+
 - `SEC-6` **Le traitement GPX est borné avant d'allouer : M3** (2026-10-01, **API 9.2.0**, mineur :
   code d'erreur `GPX_TOO_LONG`, `minimum`/`maximum` sur `GeoPoint`, `maxItems` sur les points du
   planificateur) — la chaîne GPX rééchantillonne chaque tracé à un point tous les 10 m : ce qu'elle
@@ -1406,7 +1429,7 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   ou calcul ne lit la position exacte d'une annonce hors de son édition ; toute modification de
   `blur` se reporte dans `SQL_PATTERN`. Tests : `CoarseLocationSqlTest` (parité Java/SQL, pôles,
   hémisphères, bords de cellule), `AdDetailsAndFiltersTest.list_withProximity_neverTellsApartTwoAdsOfTheSameCell`.
-  Le point annexe de l'audit, la position exacte servie aux admins par l'édition, est `SEC-26`.
+  Le point annexe de l'audit, la position exacte servie aux admins par l'édition, est `SEC-26` (corrigé).
 
 - `SEC-11` **Le jeton d'accès des appareils vit 15 minutes, et leur refresh token tourne : M9**
   (2026-09-30, **API 9.1.2**, patch : description de `DeviceTokenResponse.refreshToken` ; pas de migration — celle de `SEC-27` suffit) — le JWT d'un Karoo ou d'une montre

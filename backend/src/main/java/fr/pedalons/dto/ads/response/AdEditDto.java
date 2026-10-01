@@ -1,5 +1,6 @@
 package fr.pedalons.dto.ads.response;
 
+import fr.pedalons.common.CoarseLocation;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.ad.Ad;
 import fr.pedalons.dto.common.GeoJsonPoint;
@@ -33,7 +34,12 @@ public record AdEditDto(
     @Schema(description = "Rental period") @Nullable RentalPeriod rentalPeriod,
     @Nullable
         @Schema(
-            description = "Location coordinates [longitude, latitude]",
+            description =
+                "Location coordinates [longitude, latitude]. Exact for the ad's author only; any"
+                    + " other editor (a team admin, a platform admin) gets the same blurred point"
+                    + " as AdDto, the centre of a cell about 1 km across. Sending that blurred"
+                    + " point back unchanged in an update by a non-author keeps the stored exact"
+                    + " point; any other value replaces it.",
             implementation = GeoJsonPoint.class)
         Point<G2D> locationGeometry,
     @Schema(description = "Location description") @Nullable String locationDescription,
@@ -42,7 +48,11 @@ public record AdEditDto(
     @Schema(description = "Creator ID (TSID)", required = true) String createdById,
     @Schema(description = "Whether the ad is soft-deleted", required = true) boolean deleted) {
 
-  public static AdEditDto from(Ad ad, AssetService assetService) {
+  /**
+   * @param exactLocation whether the caller is the ad's author: only the seller sees the exact
+   *     point, anyone else editing the ad gets the blurred one (docs/LEDGER_*.md SEC-26)
+   */
+  public static AdEditDto from(Ad ad, AssetService assetService, boolean exactLocation) {
     return new AdEditDto(
         TeamPublicationDto.from(ad.getTeam()),
         TsidUtils.toString(ad.getId()),
@@ -54,7 +64,7 @@ public record AdEditDto(
         ad.getAdType(),
         ad.getPrice(),
         ad.getRentalPeriod(),
-        ad.getLocationGeometry(),
+        exactLocation ? ad.getLocationGeometry() : CoarseLocation.blur(ad.getLocationGeometry()),
         ad.getLocationDescription(),
         ad.getCreatedAt(),
         ad.getUpdatedAt(),

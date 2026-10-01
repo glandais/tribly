@@ -1,5 +1,6 @@
 package fr.pedalons.service.ad;
 
+import fr.pedalons.common.CoarseLocation;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.InternalException;
 import fr.pedalons.common.exception.TooManyRequestsException;
@@ -32,6 +33,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
@@ -42,6 +45,12 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
   @Inject AdContactRepository adContactRepository;
 
   @Inject AdContactEmailService adContactEmailService;
+
+  /**
+   * Tolerance when matching a submitted point against the blurred one served: ~1 cm, below the six
+   * decimals {@link CoarseLocation} rounds to, so a JSON round trip never reads as a move.
+   */
+  private static final double SAME_POINT_DEGREES = 1e-7;
 
   @ConfigProperty(name = "pedalons.ads.contact.max-per-window", defaultValue = "10")
   int contactMaxPerWindow;
@@ -74,7 +83,7 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
   public AdEditDto getDtoEdit(String teamSlug, String entitySlug) {
     Team team = teamService.getTeam(teamSlug);
     Ad entity = findBySlug(team, entitySlug);
-    return AdEditDto.from(entity, assetService);
+    return toEditDto(entity);
   }
 
   @CheckAccess(entityType = EntityType.AD, action = ActionType.LIST)
@@ -207,7 +216,14 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
     // Validate visibility: private teams can only have team-only ads
     verifyAd(team, request);
 
+    // Read before setProperties overwrites it: a non-author was served the blurred point, and
+    // saving the form unchanged must not swap the seller's exact point for the cell centre.
+    Point<G2D> keptLocation = locationKeptOnUpdate(ad, request.locationGeometry());
+
     setProperties(request, ad);
+    if (keptLocation != null) {
+      ad.setLocationGeometry(keptLocation);
+    }
 
     updateMedia(ad, request.media());
 
@@ -254,7 +270,7 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
     requireNotRemovedByModeration(ad);
     ad.setDeleted(false);
     adRepository.persist(ad);
-    return AdEditDto.from(ad, assetService);
+    return toEditDto(ad);
   }
 
   /**
@@ -311,6 +327,50 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
       Log.errorf(e, "Ad contact delivery failed for ad=%d sender=%d", ad.getId(), sender.getId());
       throw new InternalException(ErrorCode.AD_CONTACT_DELIVERY_FAILED, e);
     }
+  }
+
+  /**
+   * The edit view of an ad, with the exact location for its author only.
+   *
+   * <p>The exact point is, in practice, the seller's home. Being able to moderate an ad — fix a
+   * title, unpublish it — does not need it, so a team admin (or a platform admin) editing someone
+   * else's ad gets the same ~1 km cell centre as every other reader (docs/LEDGER_*.md SEC-26).
+   */
+  private AdEditDto toEditDto(Ad ad) {
+    return AdEditDto.from(ad, assetService, isAuthor(ad));
+  }
+
+  private boolean isAuthor(Ad ad) {
+    Long userId = pedalonsContext.getUserIdNullable();
+    return userId != null && userId.equals(ad.getCreatedBy().getId());
+  }
+
+  /**
+   * The stored exact point when an update by a non-author sends back the blurred point it was
+   * served, {@code null} when the submitted location should be applied as is.
+   *
+   * <p>Compared with the blur of the stored point rather than signalled by a flag on the request:
+   * the server alone knows what it served, and a client that simply round-trips the edit form —
+   * the web editor does — keeps the seller's point without knowing the rule exists. A non-author
+   * who picks another place, or clears the location, still gets what they asked for; picking the
+   * exact centre of the seller's cell is indistinguishable from not moving, and lands in the same
+   * cell anyway.
+   */
+  private @Nullable Point<G2D> locationKeptOnUpdate(Ad ad, @Nullable Point<G2D> submitted) {
+    Point<G2D> stored = ad.getLocationGeometry();
+    if (isAuthor(ad) || stored == null || stored.isEmpty()) {
+      return null;
+    }
+    Point<G2D> served = CoarseLocation.blur(stored);
+    if (submitted == null || submitted.isEmpty() || served == null) {
+      return null;
+    }
+    G2D a = submitted.getPosition();
+    G2D b = served.getPosition();
+    boolean unchanged =
+        Math.abs(a.getLat() - b.getLat()) < SAME_POINT_DEGREES
+            && Math.abs(a.getLon() - b.getLon()) < SAME_POINT_DEGREES;
+    return unchanged ? stored : null;
   }
 
   private void verifyAd(Team team, AdRequest request) {

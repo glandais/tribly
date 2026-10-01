@@ -8,6 +8,8 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.common.CoarseLocation;
 import fr.pedalons.domain.ad.Ad;
@@ -198,6 +200,58 @@ class AdDetailsAndFiltersTest extends AbstractResourceTest {
         .get(list() + "/" + bike.getSlug() + "/edit")
         .then()
         .statusCode(200)
+        .body("locationGeometry.coordinates[1]", equalTo((float) EXACT_LAT))
+        .body("locationGeometry.coordinates[0]", equalTo((float) EXACT_LON));
+  }
+
+  /**
+   * docs/LEDGER_*.md SEC-26: a team admin editing a member's ad gets the blurred point, and saving
+   * the form as served — what the web editor does — leaves the seller's exact point in place.
+   */
+  @Test
+  void getAdEdit_asNonAuthorAdmin_givesTheBlurredPointAndARoundTripKeepsTheExactOne()
+      throws Exception {
+    Ad memberAd = dataService.createAd(team1, user3, "Cadre acier", AdType.SALE);
+    dataService.setAdDetails(memberAd, null, null, EXACT_LAT, EXACT_LON);
+    G2D blurred = CoarseLocation.blur(point(WGS84, g(EXACT_LON, EXACT_LAT))).getPosition();
+    String edit = list() + "/" + memberAd.getSlug() + "/edit";
+
+    String servedJson =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .when()
+            .get(edit)
+            .then()
+            .statusCode(200)
+            .body("locationGeometry.coordinates[1]", equalTo((float) blurred.getLat()))
+            .body("locationGeometry.coordinates[0]", equalTo((float) blurred.getLon()))
+            .extract()
+            .asString();
+    // Jackson rather than RestAssured's JsonPath, which reads numbers as floats and would move the
+    // point by a few decimetres on the way back — a move the server would rightly take literally.
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode served = (ObjectNode) mapper.readTree(servedJson);
+    served.put("name", "Cadre acier (relu)");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(mapper.writeValueAsString(served))
+        .when()
+        .put(list() + "/" + memberAd.getSlug())
+        .then()
+        .statusCode(200);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .when()
+        .get(edit)
+        .then()
+        .statusCode(200)
+        .body("name", equalTo("Cadre acier (relu)"))
         .body("locationGeometry.coordinates[1]", equalTo((float) EXACT_LAT))
         .body("locationGeometry.coordinates[0]", equalTo((float) EXACT_LON));
   }

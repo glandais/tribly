@@ -308,7 +308,7 @@ export const ListAdsResponse = zod
               })
               .optional()
               .describe(
-                "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the seller and the team's admins can read. Proximity filters measure from this blurred point too, never from the exact one."
+                "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, and only for the seller: the team's admins get this blurred point there too. Proximity filters measure from this blurred point too, never from the exact one."
               ),
             createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
             updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
@@ -822,7 +822,7 @@ export const CreateAdResponse = zod
       })
       .optional()
       .describe(
-        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the seller and the team's admins can read. Proximity filters measure from this blurred point too, never from the exact one."
+        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, and only for the seller: the team's admins get this blurred point there too. Proximity filters measure from this blurred point too, never from the exact one."
       ),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
@@ -1366,7 +1366,7 @@ export const UpdateAdResponse = zod
       })
       .optional()
       .describe(
-        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the seller and the team's admins can read. Proximity filters measure from this blurred point too, never from the exact one."
+        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, and only for the seller: the team's admins get this blurred point there too. Proximity filters measure from this blurred point too, never from the exact one."
       ),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
@@ -1642,7 +1642,7 @@ export const GetAdResponse = zod
       })
       .optional()
       .describe(
-        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the seller and the team's admins can read. Proximity filters measure from this blurred point too, never from the exact one."
+        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, and only for the seller: the team's admins get this blurred point there too. Proximity filters measure from this blurred point too, never from the exact one."
       ),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
@@ -1934,7 +1934,9 @@ export const GetAdEditResponse = zod
         coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
       })
       .optional()
-      .describe('Location coordinates [longitude, latitude]'),
+      .describe(
+        "Location coordinates [longitude, latitude]. Exact for the ad's author only; any other editor (a team admin, a platform admin) gets the same blurred point as AdDto, the centre of a cell about 1 km across. Sending that blurred point back unchanged in an update by a non-author keeps the stored exact point; any other value replaces it."
+      ),
     locationDescription: zod.string().optional().describe('Location description'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
@@ -2219,7 +2221,7 @@ export const ChangeAdSlugResponse = zod
       })
       .optional()
       .describe(
-        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the seller and the team's admins can read. Proximity filters measure from this blurred point too, never from the exact one."
+        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, and only for the seller: the team's admins get this blurred point there too. Proximity filters measure from this blurred point too, never from the exact one."
       ),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
@@ -2501,7 +2503,7 @@ export const ChangeAdStatusResponse = zod
       })
       .optional()
       .describe(
-        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, which only the seller and the team's admins can read. Proximity filters measure from this blurred point too, never from the exact one."
+        "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, and only for the seller: the team's admins get this blurred point there too. Proximity filters measure from this blurred point too, never from the exact one."
       ),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
@@ -2753,7 +2755,9 @@ export const UndeleteAdResponse = zod
         coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
       })
       .optional()
-      .describe('Location coordinates [longitude, latitude]'),
+      .describe(
+        "Location coordinates [longitude, latitude]. Exact for the ad's author only; any other editor (a team admin, a platform admin) gets the same blurred point as AdDto, the centre of a cell about 1 km across. Sending that blurred point back unchanged in an update by a non-author keeps the stored exact point; any other value replaces it."
+      ),
     locationDescription: zod.string().optional().describe('Location description'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
     updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),

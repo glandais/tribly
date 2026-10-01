@@ -1,8 +1,12 @@
 package fr.pedalons.service.ad;
 
+import static org.geolatte.geom.builder.DSL.g;
+import static org.geolatte.geom.builder.DSL.point;
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.AbstractBaseTest;
+import fr.pedalons.common.CoarseLocation;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.ConflictException;
 import fr.pedalons.common.exception.PedalonsException;
@@ -27,6 +31,9 @@ import fr.pedalons.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.math.BigDecimal;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -46,6 +53,31 @@ class AdServiceTest extends AbstractBaseTest {
   private User organizer;
   private User member;
   private User nonMember;
+
+  private static final double EXACT_LAT = 45.764043;
+  private static final double EXACT_LON = 4.835659;
+
+  private static Point<G2D> exactPoint() {
+    return point(WGS84, g(EXACT_LON, EXACT_LAT));
+  }
+
+  private static void assertSamePoint(Point<G2D> expected, @Nullable Point<G2D> actual) {
+    assertNotNull(actual);
+    assertEquals(expected.getPosition().getLat(), actual.getPosition().getLat(), 1e-9);
+    assertEquals(expected.getPosition().getLon(), actual.getPosition().getLon(), 1e-9);
+  }
+
+  private static AdRequest locatedRequest(@Nullable Point<G2D> location) {
+    return new AdRequest(
+        "Admin renamed",
+        MediaDto.builder().build(),
+        Status.PUBLISHED,
+        AdType.SALE,
+        null,
+        null,
+        "Lyon",
+        location);
+  }
 
   @BeforeEach
   void setUp() {
@@ -140,6 +172,46 @@ class AdServiceTest extends AbstractBaseTest {
       userService.setUserForTest(member);
       assertThrows(
           PedalonsException.class, () -> adService.getDtoEdit(team.getSlug(), ad.getSlug()));
+    }
+
+    // docs/LEDGER_*.md SEC-26: the exact point is the seller's, not the team's.
+    @Test
+    void shouldReturnExactLocationToAuthor() {
+      Ad ad = dataService.createAd(team, member, "Located Ad", AdType.SALE);
+      dataService.setAdDetails(ad, null, null, EXACT_LAT, EXACT_LON);
+
+      userService.setUserForTest(member);
+      AdEditDto result = adService.getDtoEdit(team.getSlug(), ad.getSlug());
+
+      assertNotNull(result.locationGeometry());
+      assertEquals(EXACT_LAT, result.locationGeometry().getPosition().getLat(), 1e-9);
+      assertEquals(EXACT_LON, result.locationGeometry().getPosition().getLon(), 1e-9);
+    }
+
+    @Test
+    void shouldReturnBlurredLocationToNonAuthorAdmin() {
+      Ad ad = dataService.createAd(team, member, "Located Ad", AdType.SALE);
+      dataService.setAdDetails(ad, null, null, EXACT_LAT, EXACT_LON);
+
+      userService.setUserForTest(admin);
+      AdEditDto result = adService.getDtoEdit(team.getSlug(), ad.getSlug());
+
+      Point<G2D> blurred = CoarseLocation.blur(exactPoint());
+      assertNotNull(result.locationGeometry());
+      assertSamePoint(blurred, result.locationGeometry());
+      assertNotEquals(EXACT_LAT, result.locationGeometry().getPosition().getLat(), 1e-6);
+    }
+
+    @Test
+    void shouldReturnBlurredLocationOnUndeleteByNonAuthorAdmin() {
+      Ad ad = dataService.createAd(team, member, "Located Ad", AdType.SALE);
+      dataService.setAdDetails(ad, null, null, EXACT_LAT, EXACT_LON);
+      dataService.deleteAd(ad);
+
+      userService.setUserForTest(admin);
+      AdEditDto result = adService.undeleteAd(team.getSlug(), ad.getSlug());
+
+      assertSamePoint(CoarseLocation.blur(exactPoint()), result.locationGeometry());
     }
   }
 
@@ -359,6 +431,63 @@ class AdServiceTest extends AbstractBaseTest {
       AdDto result = adService.updateAd(team.getSlug(), ad.getSlug(), request);
 
       assertEquals("Admin Updated", result.name());
+    }
+
+    // docs/LEDGER_*.md SEC-26: an admin saving the form sends back the blurred point it was served.
+    @Test
+    void adminSaveWithoutMovingKeepsExactLocation() {
+      Ad ad = dataService.createAd(team, member, "Located Ad", AdType.SALE);
+      dataService.setAdDetails(ad, null, null, EXACT_LAT, EXACT_LON);
+
+      userService.setUserForTest(admin);
+      AdEditDto served = adService.getDtoEdit(team.getSlug(), ad.getSlug());
+      adService.updateAd(team.getSlug(), ad.getSlug(), locatedRequest(served.locationGeometry()));
+
+      userService.setUserForTest(member);
+      AdEditDto afterwards = adService.getDtoEdit(team.getSlug(), ad.getSlug());
+      assertEquals(EXACT_LAT, afterwards.locationGeometry().getPosition().getLat(), 1e-9);
+      assertEquals(EXACT_LON, afterwards.locationGeometry().getPosition().getLon(), 1e-9);
+      assertEquals("Admin renamed", afterwards.name());
+    }
+
+    @Test
+    void adminMovingLocationReplacesIt() {
+      Ad ad = dataService.createAd(team, member, "Located Ad", AdType.SALE);
+      dataService.setAdDetails(ad, null, null, EXACT_LAT, EXACT_LON);
+
+      userService.setUserForTest(admin);
+      adService.updateAd(
+          team.getSlug(), ad.getSlug(), locatedRequest(point(WGS84, g(2.3522, 48.8566))));
+
+      userService.setUserForTest(member);
+      AdEditDto afterwards = adService.getDtoEdit(team.getSlug(), ad.getSlug());
+      assertEquals(48.8566, afterwards.locationGeometry().getPosition().getLat(), 1e-9);
+      assertEquals(2.3522, afterwards.locationGeometry().getPosition().getLon(), 1e-9);
+    }
+
+    @Test
+    void adminClearingLocationRemovesIt() {
+      Ad ad = dataService.createAd(team, member, "Located Ad", AdType.SALE);
+      dataService.setAdDetails(ad, null, null, EXACT_LAT, EXACT_LON);
+
+      userService.setUserForTest(admin);
+      adService.updateAd(team.getSlug(), ad.getSlug(), locatedRequest(null));
+
+      userService.setUserForTest(member);
+      assertNull(adService.getDtoEdit(team.getSlug(), ad.getSlug()).locationGeometry());
+    }
+
+    @Test
+    void authorSavingCellCentreReplacesExactLocation() {
+      Ad ad = dataService.createAd(team, member, "Located Ad", AdType.SALE);
+      dataService.setAdDetails(ad, null, null, EXACT_LAT, EXACT_LON);
+      Point<G2D> centre = CoarseLocation.blur(exactPoint());
+
+      userService.setUserForTest(member);
+      adService.updateAd(team.getSlug(), ad.getSlug(), locatedRequest(centre));
+
+      AdEditDto afterwards = adService.getDtoEdit(team.getSlug(), ad.getSlug());
+      assertSamePoint(centre, afterwards.locationGeometry());
     }
 
     @Test
