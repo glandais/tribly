@@ -48,9 +48,6 @@ public class AuthToken {
   @Column(name = "pending_domain_id")
   private @Nullable Long pendingDomainId;
 
-  @Column(name = "pending_password_hash", length = 255)
-  private @Nullable String pendingPasswordHash;
-
   /**
    * When the sign-up form's terms checkbox was accepted — set by register, copied to the account by
    * verifyEmail. Null on a verification token issued before the form asked: the account it creates

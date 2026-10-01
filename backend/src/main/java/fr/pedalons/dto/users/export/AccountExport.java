@@ -180,8 +180,7 @@ public final class AccountExport {
   }
 
   /**
-   * {@code account/auth-tokens.json} — one-time email/OTP/reset tokens. Omits {@code tokenHash} and
-   * {@code pendingPasswordHash}.
+   * {@code account/auth-tokens.json} — one-time email/OTP/reset tokens. Omits {@code tokenHash}.
    */
   public record AuthTokenEntry(
       String id,

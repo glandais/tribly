@@ -781,6 +781,20 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   défaire** : ne pas rétablir de jeton dans un chemin, même « déprécié » — le masquage du journal
   d'accès ne porte que sur les paramètres de requête.
 
+- `API-57` **`AuthToken` ne mappe plus `pending_password_hash`** (2026-10-01, livré avec l'API
+  10.0.0, contrat inchangé, pas de migration) — le champ, inutilisé depuis `SEC-24` (le mot de
+  passe se choisit à l'activation), est retiré d'`AuthToken`, et `AccountExport.AuthTokenEntry`
+  ne le mentionne plus (il ne l'exportait déjà pas : la forme de `auth-tokens.json` ne change pas).
+  La colonne reste, nullable depuis `V15` (aucune contrainte `NOT NULL` ajoutée ensuite) : la
+  nouvelle release peut insérer sans elle. Sa suppression est `API-58`. Tests :
+  `AuthResourceTest.register_storesNoPassword` et `verifyEmail_setsThePasswordChosenOnActivation`
+  (le jeton d'avant `SEC-24` portant un hachage n'est plus représentable : l'aide de test
+  `createVerificationTokenWithPassword` devient `createSignUpVerificationToken`),
+  `UserExportServiceTest`, `UserExportResourceTest` — 81 tests verts le 1er octobre. **À ne pas
+  défaire** : ne pas supprimer la colonne dans la même release que le champ — la 9.3.0, encore en
+  service pendant le recouvrement start-first, l'écrit à chaque `INSERT` ; et ne pas la rendre
+  `NOT NULL`.
+
 ### `API-39` T5.4 — Trombinoscope : débloqué par un réglage d'équipe (contrat `3.0.0`)
 
 **Livré** — la page web des membres est venue ensuite, `WEB-1`. L'oracle
@@ -1680,11 +1694,13 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   aux lettres. Web (`LoginPage`, `VerifyEmailPage`) et mobile (`login_page.dart`,
   `verify_email_page.dart`) déplacent les deux champs. La colonne `pending_password_hash` n'est plus
   écrite mais reste, pour le déploiement progressif et les liens émis avant — `activateAccount`
-  ignore leur hachage ; son retrait est `API-57`. La politique de confidentialité (§1, liens envoyés
+  ignore leur hachage ; le champ a été retiré en 10.0.0 (`API-57`), la colonne le sera par `API-58`. La politique de confidentialité (§1, liens envoyés
   par e-mail) ne dit plus qu'un mot de passe haché est gardé en attente, en parité FR/EN.
   **Décision** : ne jamais recréer un compte avec un mot de passe venu de l'inscription. Tests :
   `AuthResourceTest.verifyEmail_setsThePasswordChosenOnActivation_neverTheOneFromSignUp` (un jeton
-  d'avant portant un hachage : l'ancien mot de passe est refusé, le nouveau ouvre la session),
+  d'avant portant un hachage : l'ancien mot de passe est refusé, le nouveau ouvre la session ;
+  devenu `verifyEmail_setsThePasswordChosenOnActivation` sous `API-57`, le hachage n'étant plus
+  mappé),
   `register_storesNoPassword`, `verifyEmail_withoutAPassword_isRefusedAndSpendsNothing`.
   Trois scénarios e2e restés sur l'ancien parcours (texte « activer votre compte », champs de mot
   de passe à l'inscription) ont été remis au nouveau le 2026-09-30 : `flow-account.e2e.ts`

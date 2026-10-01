@@ -653,18 +653,19 @@ class AuthResourceTest extends AbstractResourceTest {
             .findValidByEmailAndType(
                 "pwdregister@example.com", AuthTokenType.EMAIL_VERIFICATION, domain.getId())
             .orElseThrow();
-    assertThat(token.getPendingPasswordHash(), is(nullValue()));
+    // No password travels with the link: AuthToken has no column for one any more
+    // (docs/LEDGER_*.md API-57).
     assertThat(token.getPendingTermsAcceptedAt(), is(notNullValue()));
   }
 
   /**
    * Audit L4: whoever typed the address at sign-up chose the password, and it survived the owner's
-   * click. A token issued before the fix still carries one — the account must not get it.
+   * click. The password is now chosen on activation only — the token carries none
+   * (docs/LEDGER_*.md API-57).
    */
   @Test
-  void verifyEmail_setsThePasswordChosenOnActivation_neverTheOneFromSignUp() {
-    createVerificationTokenWithPassword(
-        "pwdverify@example.com", "Pwd Verify", "verify-pwd-token", "registrantpass");
+  void verifyEmail_setsThePasswordChosenOnActivation() {
+    createSignUpVerificationToken("pwdverify@example.com", "Pwd Verify", "verify-pwd-token");
 
     given()
         .contentType(ContentType.JSON)
@@ -677,7 +678,6 @@ class AuthResourceTest extends AbstractResourceTest {
 
     User user = dataService.findUserByEmail("pwdverify@example.com");
     assertThat(user.getTermsAcceptedAt(), is(notNullValue()));
-    login("pwdverify@example.com", "registrantpass").statusCode(400);
     login("pwdverify@example.com", "ownerpass123").statusCode(200);
   }
 
@@ -1066,8 +1066,7 @@ class AuthResourceTest extends AbstractResourceTest {
   }
 
   @Transactional
-  void createVerificationTokenWithPassword(
-      String email, String displayName, String token, String password) {
+  void createSignUpVerificationToken(String email, String displayName, String token) {
     String tokenHash = hashToken(token);
     AuthToken authToken =
         new AuthToken(
@@ -1078,8 +1077,6 @@ class AuthResourceTest extends AbstractResourceTest {
             domain.getId());
     authToken.setPendingDisplayName(displayName);
     authToken.setPendingDomainId(domain.getId());
-    authToken.setPendingPasswordHash(
-        io.quarkus.elytron.security.common.BcryptUtil.bcryptHash(password));
     // As register does: the sign-up form's terms checkbox was ticked.
     authToken.setPendingTermsAcceptedAt(authToken.getCreatedAt());
     authTokenRepository.persist(authToken);

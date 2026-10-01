@@ -165,7 +165,8 @@ public class AuthService {
    * Creates the account a sign-up link verifies, with the password chosen now, by whoever holds the
    * mailbox. Chosen at sign-up, it belonged to whoever typed the address — someone else's, possibly
    * — and survived its owner's click (docs/LEDGER_*.md SEC-24, audit L4). A token issued before this
-   * change still carries a pending hash: it is ignored.
+   * change still carries a pending hash in a column the entity no longer maps (docs/LEDGER_*.md
+   * API-57): it is never read.
    */
   @Transactional
   @Public

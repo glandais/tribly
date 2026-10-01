@@ -377,13 +377,14 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       émettre `<time>` quand l'instant est `EPOCH` donnerait des fichiers plus propres. Changement de
       bibliothèque, pas de Pédalons ; `GpxSanitizationBackfill.isDirty` accepte déjà l'absence de
       `<time>`. Taille : S.
-- [ ] `API-57` **La colonne `auth_tokens.pending_password_hash` n'est plus écrite** — depuis
-      `SEC-24` (API 7.0.0), l'inscription ne prend plus de mot de passe : le lien le demande. La
-      colonne est gardée pour le déploiement progressif (l'ancienne version l'écrit encore pendant
-      la minute de recouvrement) et pour les liens émis avant, dont `activateAccount` ignore le
-      hachage. À retirer par une migration Flyway une fois 7.0.0 déployée **et** les liens
-      d'avant expirés (24 h), avec le champ d'`AuthToken` et la mention dans `AccountExport`.
-      Taille : S.
+- [ ] `API-58` **Supprimer la colonne `auth_tokens.pending_password_hash`** — plus mappée depuis
+      `API-57` (API 10.0.0), elle reste en base, nullable et toujours `NULL` pour les jetons
+      créés par 10.0.0. Ne pas la supprimer dans la release qui retire le champ : pendant la minute
+      de recouvrement du déploiement start-first, la 9.3.0 la mappe encore et Hibernate écrit toutes
+      les colonnes mappées à l'`INSERT` — ses créations de jetons échoueraient. À livrer dans une
+      release **ultérieure**, une fois 10.0.0 déployée partout (prod et staging) : une migration
+      Flyway `ALTER TABLE auth_tokens DROP COLUMN IF EXISTS pending_password_hash`. Rien d'autre à
+      retoucher (`AuthToken`, `AccountExport` et les tests n'en parlent plus). Taille : XS.
 
 ---
 
