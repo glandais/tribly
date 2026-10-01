@@ -30,6 +30,12 @@ only run through Patrol.
 E2E_PLATFORM=android bash e2e.sh -t patrol_test/logout_test.dart
 ```
 
+Give the AVD **4 cores** and turn Digital Wellbeing off. With 2 cores and 2 GB, a whole-suite run
+saturates the emulator: a system ANR (« Digital Wellbeing », « System UI ») covers the app,
+`ride_participants_map_test` fails on `no share sheet`, the chooser opens late and stays in front,
+and the instrumentation never resumes — Back and « Wait » do not unblock it; kill the run. Seen
+twice (2026-10-01 and 2026-10-02); the same tests pass alone and on 4 cores.
+
 `<sdk>` is `$ANDROID_HOME`; without it, `e2e.sh` looks for adb where Android Studio installs the SDK:
 `~/Library/Android/sdk` on macOS, `~/Android/Sdk` on Linux.
 
