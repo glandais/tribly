@@ -5,10 +5,7 @@ import fr.pedalons.dto.error.ErrorCode;
 import io.github.glandais.gpx.data.GPX;
 import io.github.glandais.gpx.data.GPXPath;
 import io.github.glandais.gpx.data.Point;
-import java.nio.file.Path;
 import java.util.List;
-import org.jboss.resteasy.reactive.multipart.FileUpload;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Bounds on what the GPX pipeline accepts, so that a request cannot make it allocate without limit
@@ -22,7 +19,7 @@ import org.jspecify.annotations.Nullable;
  *
  * <ul>
  *   <li>{@link #MAX_GPX_SIZE_BYTES}: an uploaded file, on every HTTP route that takes one (GPX
- *       tools create and update, team route create and update), through {@link #uploadedGpx}. The
+ *       tools create and update, team route create and update), through {@code api.gpx.GpxUploads}. The
  *       biketeam migration reads its files server to server and is not bound by it — the distance
  *       bound below still applies to it;
  *   <li>{@link #MAX_PLANNER_POINTS}: the planner points of a JSON request ({@code @Size} on the DTO
@@ -58,20 +55,6 @@ public final class GpxLimits {
   public static final int MAX_PLANNER_POINTS = 100_000;
 
   private GpxLimits() {}
-
-  /**
-   * The path of an uploaded GPX, or null when none came with the request. Refuses a file over
-   * {@link #MAX_GPX_SIZE_BYTES} with {@code FILE_TOO_LARGE}, before anything reads it.
-   */
-  public static @Nullable Path uploadedGpx(@Nullable FileUpload upload) {
-    if (upload == null) {
-      return null;
-    }
-    if (upload.size() > MAX_GPX_SIZE_BYTES) {
-      throw new BusinessException(ErrorCode.FILE_TOO_LARGE);
-    }
-    return upload.filePath();
-  }
 
   /** {@link #checkTracks(List)} on every track of the GPX. */
   public static void checkTracks(GPX gpx) {

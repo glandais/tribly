@@ -12,7 +12,6 @@ import fr.pedalons.dto.routes.request.RouteRequest;
 import fr.pedalons.dto.routes.response.RouteDto;
 import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.service.gpx.GpxPreviewService;
-import fr.pedalons.service.route.GpxLimits;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -72,7 +71,7 @@ public class GpxPreviewResource {
       throw new BusinessException(ErrorCode.FILE_REQUIRED);
     }
     GpxPreviewDto preview =
-        gpxPreviewService.createPreview(GpxLimits.uploadedGpx(gpxFile), gpxFile.fileName());
+        gpxPreviewService.createPreview(GpxUploads.uploadedGpx(gpxFile), gpxFile.fileName());
     return Response.status(Response.Status.CREATED).entity(preview).build();
   }
 
@@ -246,7 +245,7 @@ public class GpxPreviewResource {
           GpxPreviewUpdateRequest request,
       @RestForm("gpxFile") @Nullable FileUpload gpxFile) {
     return gpxPreviewService.updatePreview(
-        previewId, request.name(), GpxLimits.uploadedGpx(gpxFile), request.points());
+        previewId, request.name(), GpxUploads.uploadedGpx(gpxFile), request.points());
   }
 
   @DELETE

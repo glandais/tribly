@@ -92,7 +92,7 @@ public class GpxProcessingService {
   /**
    * Parses a GPX file, refused with {@code GPX_TOO_LONG} when its tracks are longer than {@link
    * GpxLimits#MAX_TRACK_DISTANCE_METERS} (SEC-6). The size of an uploaded file is bounded before
-   * this, by the resource ({@link GpxLimits#uploadedGpx}).
+   * this, by the resource ({@code api.gpx.GpxUploads}).
    */
   public GPX parseGpx(Path path) {
     // Step 1: Parse GPX
