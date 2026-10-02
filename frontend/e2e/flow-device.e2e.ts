@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test'
+import { ApiError, apiDelete } from './support/api'
 import { newUser, signIn } from './support/data'
 import {
   countCompletions,
@@ -9,6 +10,8 @@ import {
   ensureHammerheadOffered,
   jwtClaims,
   NEVER_ISSUED_CODE,
+  pairDevice,
+  pairedDevices,
   pollError,
   pollToken,
   refreshDeviceToken,
@@ -318,4 +321,64 @@ test('each device is sent to the verification page of its own app', async () => 
       `${flow.verificationUri}?code=${flow.userCode}`
     )
   }
+})
+
+/**
+ * The profile lists each paired device and unpairs one at a time (docs/LEDGER_*.md API-64): until
+ * then only « Déconnecter tous les appareils » could, closing the browser and the app with it.
+ * Unpairing revokes the session that device's pairing opened — its refresh fails — and nothing
+ * else: the other device and this browser stay signed in.
+ */
+test('the profile lists each paired device, and unpairing one ends its session only', async ({
+  page,
+  context,
+}) => {
+  const rider = await newUser('device list rider')
+  await signIn(context, rider)
+  const karoo = await pairDevice(rider, 'karoo')
+  const garmin = await pairDevice(rider, 'garmin')
+
+  // The two devices, newest first — not the browser's session nor the rider's own sign-in.
+  const listed = await pairedDevices(rider)
+  expect(listed.map((d) => d.type)).toEqual(['GARMIN', 'KAROO'])
+  expect(listed.every((d) => d.pairedAt)).toBe(true)
+
+  await page.goto('/profil')
+  const main = page.getByRole('main')
+  await expect(main.getByRole('heading', { name: 'Appareils appairés', exact: true })).toBeVisible()
+  await expect(main.getByText('Karoo', { exact: true })).toBeVisible()
+  await expect(main.getByText('Montre Garmin', { exact: true })).toBeVisible()
+
+  const unpair = main.getByRole('button', { name: 'Délier Montre Garmin', exact: true })
+  await hydrated(unpair)
+  await unpair.click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByText("Délier l'appareil", { exact: true })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Délier', exact: true }).click()
+
+  await expect(main.getByText('Montre Garmin', { exact: true })).toHaveCount(0)
+  await expect(main.getByText('Karoo', { exact: true })).toBeVisible()
+  expect((await pairedDevices(rider)).map((d) => d.type)).toEqual(['KAROO'])
+
+  // The watch can no longer renew its access; the Karoo still does, and this page stays signed in.
+  await expect(refreshDeviceToken(garmin.refreshToken!)).rejects.toMatchObject({
+    code: 'TOKEN_INVALID',
+  })
+  expect((await refreshDeviceToken(karoo.refreshToken!)).accessToken).toBeTruthy()
+  await page.reload()
+  await expect(main.getByText('Karoo', { exact: true })).toBeVisible()
+})
+
+test("a device of someone else cannot be unpaired, nor a session that is not a device's", async () => {
+  const rider = await newUser('device owner rider')
+  const stranger = await newUser('device stranger rider')
+  await pairDevice(rider, 'karoo')
+  const [karoo] = await pairedDevices(rider)
+
+  // Someone else's pairing answers 404, like an unknown one: nothing tells it exists.
+  const strangerUnpair = apiDelete(stranger, `/api/users/me/devices/${karoo.id}`)
+  await expect(strangerUnpair).rejects.toBeInstanceOf(ApiError)
+  await expect(strangerUnpair).rejects.toMatchObject({ status: 404 })
+  expect(await pairedDevices(rider)).toHaveLength(1)
+  expect(await pairedDevices(stranger)).toEqual([])
 })

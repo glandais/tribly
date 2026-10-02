@@ -19,6 +19,7 @@ import '../../../notifications/presentation/widgets/notification_preferences_sec
 import '../../providers/participations_provider.dart';
 import '../widgets/connected_services_section.dart';
 import '../widgets/data_and_account_section.dart';
+import '../widgets/paired_devices_section.dart';
 import '../widgets/passkeys_section.dart';
 import '../widgets/preferences_section.dart';
 import '../widgets/profile_identity_section.dart';
@@ -78,6 +79,10 @@ class ProfilePage extends ConsumerWidget {
           _section(
             title: 'profile.gps.title'.tr(),
             child: const GpsServicesCard(),
+          ),
+          _section(
+            title: 'profile.devices.title'.tr(),
+            child: const PairedDevicesCard(),
           ),
           _section(
             title: 'profile.data.title'.tr(),

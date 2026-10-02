@@ -1,16 +1,18 @@
 import type { Page } from '@playwright/test'
 import type {
   AdminGpsCredentialDto,
+  CompleteRequest,
   CreateGpsCredentialRequest,
   DeviceCodeResponse,
   DeviceRequest,
   DeviceTokenRequest,
   DeviceTokenResponse,
   DeviceUserStatusResponse,
+  PairedDeviceDto,
   UserDto,
   VerifyResponse,
 } from '../../src/api/dto'
-import { ApiError, apiGet, apiGetOrNull, apiPost } from './api'
+import { ApiError, apiGet, apiGetOrNull, apiPost, type Caller } from './api'
 import { roleSession } from './data'
 import { adminDomain } from './platform-admin'
 
@@ -56,6 +58,23 @@ export async function pollError(deviceCode: string): Promise<string | null> {
     throw error
   }
 }
+
+/**
+ * A device paired with `rider` without the page: the code asked for, authorized as the rider (the
+ * « Autoriser » the page sends), and exchanged for the device's tokens.
+ */
+export async function pairDevice(rider: Caller, clientId: string): Promise<DeviceTokenResponse> {
+  const flow = await startDeviceFlow(clientId)
+  await apiPost(rider, '/api/device/oauth/complete', {
+    userCode: flow.userCode,
+    confirmed: true,
+  } satisfies CompleteRequest)
+  return pollToken(flow.deviceCode)
+}
+
+/** The devices paired with the caller's account, as the profile lists them (docs/LEDGER_*.md API-64). */
+export const pairedDevices = (who: Caller) =>
+  apiGet<PairedDeviceDto[]>(who, '/api/users/me/devices')
 
 /** What the verification page asks the backend about a user code: null when unknown or expired. */
 export const verifyUserCode = (userCode: string) =>

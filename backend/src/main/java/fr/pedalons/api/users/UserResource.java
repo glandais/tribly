@@ -1,5 +1,6 @@
 package fr.pedalons.api.users;
 
+import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.error.ErrorResponse;
@@ -7,11 +8,13 @@ import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.users.request.UpdateUserRequest;
 import fr.pedalons.dto.users.request.UserPreferencesRequest;
 import fr.pedalons.dto.users.response.AccountDeletionImpactDto;
+import fr.pedalons.dto.users.response.PairedDeviceDto;
 import fr.pedalons.dto.users.response.UserDto;
 import fr.pedalons.dto.users.response.UserExportDto;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.Status;
 import fr.pedalons.service.common.PublicationService;
+import fr.pedalons.service.device.PairedDeviceService;
 import fr.pedalons.service.user.UserAvatarService;
 import fr.pedalons.service.user.UserExportService;
 import fr.pedalons.service.user.UserService;
@@ -51,6 +54,8 @@ public class UserResource {
   @Inject UserExportService userExportService;
 
   @Inject PublicationService publicationService;
+
+  @Inject PairedDeviceService pairedDeviceService;
 
   @GET
   @Path("/me")
@@ -174,6 +179,55 @@ public class UserResource {
     userAvatarService.deleteAvatar();
     UserDto userDto = userService.getUserDto();
     return Response.ok(userDto).build();
+  }
+
+  @GET
+  @Path("/me/devices")
+  @Operation(
+      operationId = "listPairedDevices",
+      summary = "List paired devices",
+      description =
+          "The devices (Karoo, Garmin watch) paired with the current account by code and still"
+              + " able to renew their access, newest first. The GPS services the account is"
+              + " connected to are on the profile (connectedServices), not here.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Paired devices",
+        content = @Content(schema = @Schema(implementation = PairedDeviceDto[].class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response listPairedDevices() {
+    return Response.ok(pairedDeviceService.listPairedDevices()).build();
+  }
+
+  @DELETE
+  @Path("/me/devices/{deviceId}")
+  @Operation(
+      operationId = "unpairDevice",
+      summary = "Unpair a device",
+      description =
+          "Revoke the pairing of one device: its next renewal fails and it must be paired again."
+              + " The access token it holds stays valid until it expires (15 minutes).")
+  @APIResponses({
+    @APIResponse(responseCode = "204", description = "Device unpaired"),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "No such paired device on this account",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response unpairDevice(
+      @Parameter(description = "Pairing ID (TSID)", required = true) @PathParam("deviceId")
+          String deviceId) {
+    pairedDeviceService.unpairDevice(TsidUtils.toLong(deviceId));
+    return Response.noContent().build();
   }
 
   @GET

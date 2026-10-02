@@ -318,6 +318,7 @@ public class DeviceAuthService {
             Instant.now().plus(Duration.ofDays(deviceJwtService.getRefreshTokenExpiryDays())));
     session.setUserAgent(clientId + " Device");
     session.setIpAddress("device");
+    session.setDeviceClient(clientId);
     authSessionRepository.persist(session);
 
     userRepository.recordLogin(user.getId());

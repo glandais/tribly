@@ -10,6 +10,7 @@ import 'package:retrofit/error_logger.dart';
 
 import '../models/account_deletion_impact_dto.dart';
 import '../models/list_view_mode.dart';
+import '../models/paired_device_dto.dart';
 import '../models/publication_list_response.dart';
 import '../models/status.dart';
 import '../models/update_user_request.dart';
@@ -29,9 +30,7 @@ abstract class UsersClient {
   ///
   /// [token] - Download token from the notification email.
   @GET('/api/export/download')
-  Future<void> downloadDataExport({
-    @Query('token') required String token,
-  });
+  Future<void> downloadDataExport({@Query('token') required String token});
 
   /// Update current user.
   ///
@@ -39,9 +38,7 @@ abstract class UsersClient {
   ///
   /// [body] - Name not received - field will be skipped.
   @PUT('/api/users/me')
-  Future<UserDto> updateMe({
-    @Body() required UpdateUserRequest body,
-  });
+  Future<UserDto> updateMe({@Body() required UpdateUserRequest body});
 
   /// Get current user.
   ///
@@ -62,9 +59,7 @@ abstract class UsersClient {
   /// [file] - Name not received - field will be skipped.
   @MultiPart()
   @POST('/api/users/me/avatar')
-  Future<UserDto> uploadAvatar({
-    @Part(name: 'file') MultipartFile? file,
-  });
+  Future<UserDto> uploadAvatar({@Part(name: 'file') MultipartFile? file});
 
   /// Delete user avatar.
   ///
@@ -77,6 +72,20 @@ abstract class UsersClient {
   /// What deleting the current user's account would do to their teams: the teams deleted with it (they administer them alone), and the teams that refuse the deletion (SOLE_TEAM_ADMIN, or SOLE_MIGRATED_TEAM_ADMIN for a team migrated from biketeam). Read-only.
   @GET('/api/users/me/deletion-impact')
   Future<AccountDeletionImpactDto> getMyDeletionImpact();
+
+  /// List paired devices.
+  ///
+  /// The devices (Karoo, Garmin watch) paired with the current account by code and still able to renew their access, newest first. The GPS services the account is connected to are on the profile (connectedServices), not here.
+  @GET('/api/users/me/devices')
+  Future<List<PairedDeviceDto>> listPairedDevices();
+
+  /// Unpair a device.
+  ///
+  /// Revoke the pairing of one device: its next renewal fails and it must be paired again. The access token it holds stays valid until it expires (15 minutes).
+  ///
+  /// [deviceId] - Pairing ID (TSID).
+  @DELETE('/api/users/me/devices/{deviceId}')
+  Future<void> unpairDevice({@Path('deviceId') required String deviceId});
 
   /// Request a personal data export.
   ///
@@ -96,9 +105,7 @@ abstract class UsersClient {
   ///
   /// [exportId] - Export job identifier.
   @GET('/api/users/me/export/{exportId}')
-  Future<UserExportDto> getExport({
-    @Path('exportId') required String exportId,
-  });
+  Future<UserExportDto> getExport({@Path('exportId') required String exportId});
 
   /// List my participations.
   ///

@@ -45,6 +45,23 @@ public class AuthSessionRepository implements PanacheRepository<AuthSession> {
     return find("user.id = ?1 and revoked = false", userId).list();
   }
 
+  /** The live sessions opened by a device pairing (docs/LEDGER_*.md API-64), newest first. */
+  public List<AuthSession> findActiveDevicesByUserId(Long userId) {
+    return list(
+        "user.id = ?1 and deviceClient is not null and revoked = false"
+            + " and expiresAt > CURRENT_TIMESTAMP order by createdAt desc",
+        userId);
+  }
+
+  /** Revokes a device session of this user; 0 when it is not one (or no longer live). */
+  public int revokeDevice(Long sessionId, Long userId) {
+    return update(
+        "revoked = true, revokedAt = CURRENT_TIMESTAMP where id = ?1 and user.id = ?2"
+            + " and deviceClient is not null and revoked = false",
+        sessionId,
+        userId);
+  }
+
   /**
    * Records a use of the session with a bulk update of {@code lastUsedAt} alone, so concurrent
    * refreshes never conflict and never overwrite a concurrent revocation.

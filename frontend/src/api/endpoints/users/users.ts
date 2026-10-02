@@ -19,6 +19,7 @@ import type {
   DownloadDataExportParams,
   ErrorResponse,
   ListMyParticipationsParams,
+  PairedDeviceDto,
   PublicationListResponse,
   UpdateUserRequest,
   UploadAvatarBody,
@@ -742,6 +743,219 @@ export const prefetchGetMyDeletionImpactQuery = async <
   return queryClient
 }
 
+/**
+ * The devices (Karoo, Garmin watch) paired with the current account by code and still able to renew their access, newest first. The GPS services the account is connected to are on the profile (connectedServices), not here.
+ * @summary List paired devices
+ */
+export const listPairedDevices = (
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<PairedDeviceDto[]>(
+    { url: `/api/users/me/devices`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getListPairedDevicesQueryKey = () => {
+  return [`/api/users/me/devices`] as const
+}
+
+export const getListPairedDevicesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPairedDevices>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPairedDevices>>, TError, TData>>
+  request?: SecondParameter<typeof axiosMutator>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getListPairedDevicesQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listPairedDevices>>> = ({ signal }) =>
+    listPairedDevices(requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listPairedDevices>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPairedDevicesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listPairedDevices>>
+>
+export type ListPairedDevicesQueryError = ErrorType<ErrorResponse | void>
+
+export function useListPairedDevices<
+  TData = Awaited<ReturnType<typeof listPairedDevices>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPairedDevices>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPairedDevices>>,
+          TError,
+          Awaited<ReturnType<typeof listPairedDevices>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPairedDevices<
+  TData = Awaited<ReturnType<typeof listPairedDevices>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPairedDevices>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPairedDevices>>,
+          TError,
+          Awaited<ReturnType<typeof listPairedDevices>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPairedDevices<
+  TData = Awaited<ReturnType<typeof listPairedDevices>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPairedDevices>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List paired devices
+ */
+
+export function useListPairedDevices<
+  TData = Awaited<ReturnType<typeof listPairedDevices>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPairedDevices>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getListPairedDevicesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary List paired devices
+ */
+export const prefetchListPairedDevicesQuery = async <
+  TData = Awaited<ReturnType<typeof listPairedDevices>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPairedDevices>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getListPairedDevicesQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
+ * Revoke the pairing of one device: its next renewal fails and it must be paired again. The access token it holds stays valid until it expires (15 minutes).
+ * @summary Unpair a device
+ */
+export const unpairDevice = (
+  deviceId: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<void>(
+    { url: `/api/users/me/devices/${deviceId}`, method: 'DELETE', signal },
+    options
+  )
+}
+
+export const getUnpairDeviceMutationKey = () => ['unpairDevice'] as const
+
+export const getUnpairDeviceMutationOptions = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof unpairDevice>>,
+    TError,
+    UnpairDeviceMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof unpairDevice>>,
+  TError,
+  UnpairDeviceMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUnpairDeviceMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof unpairDevice>>,
+    UnpairDeviceMutationVariables
+  > = (props) => {
+    const { deviceId } = props ?? {}
+
+    return unpairDevice(deviceId, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UnpairDeviceMutationResult = NonNullable<Awaited<ReturnType<typeof unpairDevice>>>
+
+export type UnpairDeviceMutationError = ErrorType<ErrorResponse | void>
+export type UnpairDeviceMutationVariables = { deviceId: string }
+
+/**
+ * @summary Unpair a device
+ */
+export const useUnpairDevice = <TError = ErrorType<ErrorResponse | void>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof unpairDevice>>,
+      TError,
+      UnpairDeviceMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof unpairDevice>>,
+  TError,
+  UnpairDeviceMutationVariables,
+  TContext
+> => {
+  return useMutation(getUnpairDeviceMutationOptions(options), queryClient)
+}
 /**
  * Queue a GDPR export of the current user's data. The archive is built in the background and a download link is emailed when it is ready. Limited to one export per hour.
  * @summary Request a personal data export

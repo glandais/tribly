@@ -104,4 +104,10 @@ class ProfileRepository {
 
   Future<void> disconnectGps(GpsServiceType service) =>
       _gps.disconnect(serviceType: service);
+
+  /// Les Karoo et montres Garmin appairés au compte (docs/LEDGER_*.md API-64).
+  Future<List<PairedDeviceDto>> pairedDevices() => _users.listPairedDevices();
+
+  Future<void> unpairDevice(String deviceId) =>
+      _users.unpairDevice(deviceId: deviceId);
 }

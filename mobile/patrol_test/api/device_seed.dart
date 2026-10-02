@@ -40,4 +40,36 @@ extension DeviceSeed on BackendClient {
       if (!await offered()) rethrow;
     }
   }
+
+  /// A device paired with [rider] without the page: the code asked for, authorized as the rider
+  /// (the « Autoriser » the page sends) and exchanged for the device's tokens.
+  Future<Json> pairDevice(TestUser rider, String clientId) async {
+    final flow = await startDeviceFlow(clientId);
+    await post(rider, '/api/device/oauth/complete', {
+      'userCode': flow['userCode'],
+      'confirmed': true,
+    });
+    final tokens = await pollDeviceToken(flow['deviceCode'] as String);
+    if (tokens['refreshToken'] == null) {
+      throw StateError('pairing of $clientId refused: $tokens');
+    }
+    return tokens;
+  }
+
+  /// The devices paired with [who]'s account, as the profile lists them (docs/LEDGER_*.md API-64).
+  Future<List<Json>> pairedDevices(TestUser who) async =>
+      (await http.get<List<dynamic>>(
+        '/api/users/me/devices',
+        options: Options(
+          headers: {'Authorization': 'Bearer ${who.accessToken}'},
+        ),
+      )).data!.cast<Json>();
+
+  /// The status of a device's refresh: 200 while its pairing lives.
+  Future<int> deviceRefreshStatus(String refreshToken) async =>
+      (await http.post<Json>(
+        '/api/device/oauth/token',
+        data: {'grantType': 'refresh_token', 'refreshToken': refreshToken},
+        options: Options(validateStatus: (_) => true),
+      )).statusCode!;
 }

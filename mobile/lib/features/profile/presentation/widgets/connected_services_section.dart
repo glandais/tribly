@@ -36,11 +36,9 @@ final availableGpsProvider = FutureProvider<List<GpsServiceType>>((ref) async {
   return ref.watch(profileRepositoryProvider).availableGpsServices();
 });
 
-/// Appareils GPS : Garmin, Karoo, et ce que le serveur ajoutera.
-///
-/// **Pas de logo officiel** : aucun `logoUrl` n'est servi pour ces services, et
-/// embarquer les marques dans les assets poserait une question de droits pour
-/// un gain nul. Un avatar-lettre teinté, comme la maquette.
+/// Services GPS : Hammerhead, Garmin Connect, Wahoo, et ce que le serveur
+/// ajoutera — chacun avec son logo embarqué ([gpsServiceLogoAsset]). Les
+/// appareils appairés par code sont dans `PairedDevicesCard`.
 class GpsServicesCard extends ConsumerStatefulWidget {
   const GpsServicesCard({super.key});
 

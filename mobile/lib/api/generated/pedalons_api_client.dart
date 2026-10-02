@@ -51,20 +51,18 @@ import 'clients/team_webhook_client.dart';
 import 'clients/tiles_client.dart';
 import 'clients/server_version_client.dart';
 
-/// Pedalons API `v10.4.0`.
+/// Pedalons API `v10.5.0`.
 ///
 /// API for Pedalons Cycling Team Management Platform.
 class PedalonsApiClient {
-  PedalonsApiClient(
-    Dio dio, {
-    String? baseUrl,
-  }) : _dio = dio,
-       _baseUrl = baseUrl;
+  PedalonsApiClient(Dio dio, {String? baseUrl})
+    : _dio = dio,
+      _baseUrl = baseUrl;
 
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '10.4.0';
+  static String get version => '10.5.0';
 
   AdminBetaSignupsClient? _adminBetaSignups;
   AdminDomainsClient? _adminDomains;

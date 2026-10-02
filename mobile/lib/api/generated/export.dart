@@ -179,6 +179,8 @@ export 'models/notification_team_preference_dto.dart';
 export 'models/notification_team_preference_update.dart';
 export 'models/notification_type.dart';
 export 'models/otp_request.dart';
+export 'models/paired_device_dto.dart';
+export 'models/paired_device_type.dart';
 export 'models/participant_list_response.dart';
 export 'models/passkey_authentication_request.dart';
 export 'models/passkey_dto.dart';

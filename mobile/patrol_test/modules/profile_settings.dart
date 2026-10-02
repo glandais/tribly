@@ -94,6 +94,23 @@ final class ProfileSettings extends Module {
     await $(keys.profile.confirmDestructiveButton).tap();
   }
 
+  // ── Paired devices ──────────────────────────────────────────────────────
+
+  Future<void> waitUntilDeviceIsListed(String id) async {
+    await scrolledTo(keys.profile.pairedDevice(id));
+  }
+
+  /// The cross of the device [id], then the confirmation.
+  Future<void> unpairDevice(String id) async {
+    await (await scrolledTo(keys.profile.unpairDevice(id))).tap();
+    await $(keys.profile.confirmDestructiveButton).tap();
+  }
+
+  Future<void> waitUntilDeviceIsGone(String id) => _waitUntil(
+    () => !$(keys.profile.pairedDevice(id)).exists,
+    'device $id unlisted',
+  );
+
   Future<void> _waitUntil(
     bool Function() condition,
     String what, {

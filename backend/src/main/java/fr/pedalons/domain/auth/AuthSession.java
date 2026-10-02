@@ -53,6 +53,14 @@ public class AuthSession {
   @Column(name = "ip_address", length = 45)
   private @Nullable String ipAddress;
 
+  /**
+   * The {@code clientId} of the device whose pairing opened this session ({@code karoo},
+   * {@code garmin}…), null for the site and the app. What lists paired devices (docs/LEDGER_*.md
+   * API-64) — never parse {@link #userAgent} for it.
+   */
+  @Column(name = "device_client", length = 50)
+  private @Nullable String deviceClient;
+
   @Column(name = "revoked", nullable = false)
   private boolean revoked = false;
 

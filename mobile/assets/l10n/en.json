@@ -806,6 +806,20 @@
       "disconnectTitle": "Disconnect {service}?",
       "disconnectMessage": "You will no longer be able to send routes to this device until it is reconnected."
     },
+    "devices": {
+      "title": "Paired devices",
+      "karoo": "Karoo",
+      "garmin": "Garmin watch",
+      "other": "Device",
+      "pairedOn": "Paired on {date}",
+      "lastUsed": "used {when}",
+      "none": "No Karoo or Garmin watch is paired",
+      "howToPair": "How to pair a device",
+      "unpair": "Unpair",
+      "unpairTitle": "Unpair {device}?",
+      "unpairSemantic": "Unpair {device}",
+      "unpairMessage": "The device will lose access to your account and will have to be paired again. Your other devices and sessions stay signed in."
+    },
     "data": {
       "title": "Your data",
       "export": "Export of my data",

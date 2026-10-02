@@ -806,6 +806,20 @@
       "disconnectTitle": "Déconnecter {service} ?",
       "disconnectMessage": "Vous ne pourrez plus envoyer de parcours vers cet appareil tant qu'il n'est pas reconnecté."
     },
+    "devices": {
+      "title": "Appareils appairés",
+      "karoo": "Karoo",
+      "garmin": "Montre Garmin",
+      "other": "Appareil",
+      "pairedOn": "Appairé le {date}",
+      "lastUsed": "utilisé {when}",
+      "none": "Aucun Karoo ni montre Garmin n'est appairé",
+      "howToPair": "Comment appairer un appareil",
+      "unpair": "Délier",
+      "unpairTitle": "Délier {device} ?",
+      "unpairSemantic": "Délier {device}",
+      "unpairMessage": "L'appareil n'aura plus accès à votre compte et devra être appairé de nouveau. Vos autres appareils et sessions restent ouverts."
+    },
     "data": {
       "title": "Vos données",
       "export": "Export de mes données",

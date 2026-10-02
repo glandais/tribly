@@ -363,6 +363,33 @@ export const GetMyDeletionImpactResponse = zod
   .describe("What deleting the current user's account would do to their teams")
 
 /**
+ * The devices (Karoo, Garmin watch) paired with the current account by code and still able to renew their access, newest first. The GPS services the account is connected to are on the profile (connectedServices), not here.
+ * @summary List paired devices
+ */
+export const ListPairedDevicesResponseItem = zod
+  .object({
+    id: zod.string().describe('Pairing ID, to unpair the device'),
+    type: zod.enum(['KAROO', 'GARMIN', 'OTHER']).describe('Kind of device'),
+    pairedAt: zod.iso.datetime({ offset: true }).describe('When the device was paired'),
+    lastUsedAt: zod.iso
+      .datetime({ offset: true })
+      .optional()
+      .describe('When the device last renewed its access'),
+  })
+  .describe('A device (Karoo, Garmin watch) paired with the account by code')
+export const ListPairedDevicesResponse = zod.array(ListPairedDevicesResponseItem)
+
+/**
+ * Revoke the pairing of one device: its next renewal fails and it must be paired again. The access token it holds stays valid until it expires (15 minutes).
+ * @summary Unpair a device
+ */
+export const UnpairDeviceParams = zod.object({
+  deviceId: zod.string().describe('Pairing ID (TSID)'),
+})
+
+export const UnpairDeviceResponse = zod.void()
+
+/**
  * Queue a GDPR export of the current user's data. The archive is built in the background and a download link is emailed when it is ready. Limited to one export per hour.
  * @summary Request a personal data export
  */

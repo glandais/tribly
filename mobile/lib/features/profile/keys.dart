@@ -57,6 +57,12 @@ class ProfilePageKeys {
   final languageRow = const _ProfilePageKey('languageRow');
   Key languageOption(String code) => _ProfilePageKey('languageOption_$code');
 
+  /// Un appareil appairé, par l'id de son appairage, et sa croix « Délier »
+  /// (docs/LEDGER_*.md API-64) ; la ligne affichée quand il n'y en a aucun.
+  Key pairedDevice(String id) => _ProfilePageKey('pairedDevice_$id');
+  Key unpairDevice(String id) => _ProfilePageKey('unpairDevice_$id');
+  final noPairedDevice = const _ProfilePageKey('noPairedDevice');
+
   /// « Déconnecter tous les appareils ».
   final logoutAllButton = const _ProfilePageKey('logoutAllButton');
 

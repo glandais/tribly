@@ -29,6 +29,7 @@ import { ContactPreference } from '../../components/profile/ContactPreference'
 import { NotificationPreferences } from '@/components/profile/NotificationPreferences'
 import { TimezonePreference } from '../../components/profile/TimezonePreference'
 import { PasskeyManager } from '../../components/auth/PasskeyManager'
+import { PairedDevicesManager } from '../../components/profile/PairedDevicesManager'
 import { GpsConnectionsManager } from '../../components/profile/GpsConnectionsManager'
 import { DataExportManager } from '../../components/profile/DataExportManager'
 import { BlockedUsers } from '../../components/profile/BlockedUsers'
@@ -272,6 +273,7 @@ export function UserProfilePage() {
           <Divider />
 
           <GpsConnectionsManager />
+          <PairedDevicesManager />
 
           <Divider />
 

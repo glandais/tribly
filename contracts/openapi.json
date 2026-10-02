@@ -3209,6 +3209,36 @@
           }
         }
       },
+      "PairedDeviceDto" : {
+        "description" : "A device (Karoo, Garmin watch) paired with the account by code",
+        "type" : "object",
+        "required" : [ "id", "type", "pairedAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Pairing ID, to unpair the device"
+          },
+          "type" : {
+            "description" : "Kind of device",
+            "type" : "string",
+            "$ref" : "#/components/schemas/PairedDeviceType"
+          },
+          "pairedAt" : {
+            "description" : "When the device was paired",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "lastUsedAt" : {
+            "description" : "When the device last renewed its access",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "PairedDeviceType" : {
+        "type" : "string",
+        "enum" : [ "KAROO", "GARMIN", "OTHER" ]
+      },
       "ParticipantListResponse" : {
         "description" : "Paginated list of the people registered to a ride, a ride group or a trip",
         "type" : "object",
@@ -21504,6 +21534,93 @@
         } ]
       }
     },
+    "/api/users/me/devices" : {
+      "get" : {
+        "summary" : "List paired devices",
+        "description" : "The devices (Karoo, Garmin watch) paired with the current account by code and still able to renew their access, newest first. The GPS services the account is connected to are on the profile (connectedServices), not here.",
+        "operationId" : "listPairedDevices",
+        "tags" : [ "Users" ],
+        "responses" : {
+          "200" : {
+            "description" : "Paired devices",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PairedDeviceDto"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/users/me/devices/{deviceId}" : {
+      "delete" : {
+        "summary" : "Unpair a device",
+        "description" : "Revoke the pairing of one device: its next renewal fails and it must be paired again. The access token it holds stays valid until it expires (15 minutes).",
+        "operationId" : "unpairDevice",
+        "tags" : [ "Users" ],
+        "parameters" : [ {
+          "description" : "Pairing ID (TSID)",
+          "required" : true,
+          "name" : "deviceId",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Device unpaired"
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "No such paired device on this account",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/users/me/export" : {
       "post" : {
         "summary" : "Request a personal data export",
@@ -21920,7 +22037,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.4.0",
+    "version" : "10.5.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {
