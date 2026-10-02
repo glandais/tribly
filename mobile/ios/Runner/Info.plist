@@ -10,6 +10,12 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Pédalons</string>
+	<!-- Links are handled by app_links (_DeepLinkHandler in main.dart) only. Flutter's own
+	     handling pushed the route a second time, crashed while the pre-auth MaterialApp was
+	     showing (no onGenerateRoute), and the engine then relayed the unhandled universal link
+	     back to iOS, which opened it in Safari as well. -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

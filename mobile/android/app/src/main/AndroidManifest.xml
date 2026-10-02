@@ -52,6 +52,10 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- Links are handled by app_links (_DeepLinkHandler in main.dart) only; Flutter's
+                 own handling would push every link a second time (see FlutterDeepLinkingEnabled
+                 in ios/Runner/Info.plist). -->
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
