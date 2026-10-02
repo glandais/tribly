@@ -206,7 +206,7 @@ class ModerationResourceTest extends AbstractResourceTest {
   void reportedCommentOnAStage_opensItsTrip() {
     Trip trip = dataService.createTrip(team1, user1, "Voyage signale", Instant.now());
     TripStage stage = dataService.createTripStage(user1, trip, "Etape signalee");
-    Comment comment = dataService.createComment(user2, stage, "Hors sujet");
+    Comment comment = dataService.createComment(user6, stage, "Hors sujet");
     report(USER3, ReportTargetType.COMMENT, comment.getId());
 
     get(USER2, teamReports())
