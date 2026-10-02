@@ -101,7 +101,8 @@ button inside it.
 The platform admin (the stack's `PEDALONS_BOOTSTRAP_ADMIN_EMAIL`) seeds what only it may do: add
 members, open a team to the public, make it joinable. It logs in by OTP, rate-limited to 3 per
 5 minutes, so `BackendClient.admin()` keeps its refresh token in the app's temporary directory for
-the rest of the run.
+the rest of the run — writing back the rotated one after each refresh: the old one, presented once
+its grace is over, revokes the session and costs an OTP.
 
 ## Coverage
 

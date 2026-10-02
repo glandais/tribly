@@ -85,14 +85,18 @@ final class BackendClient {
   /// Its login is an OTP, rate-limited to 3 per 5 minutes per address — and each test is a fresh
   /// launch of the app. So its refresh token is kept in the app's temporary directory, which lives
   /// as long as the app stays installed (one `patrol test` run), and refreshed rather than
-  /// replaced.
+  /// replaced. A refresh rotates it (SEC-27): the one written back is the one the refresh returned,
+  /// as the old one revokes the session once its grace is over.
   Future<TestUser> admin() async => _admin ??= await _adminSession();
 
   Future<TestUser> _adminSession() async {
     final saved = File('${Directory.systemTemp.path}/e2e-admin-refresh-token');
     if (saved.existsSync()) {
       final refreshed = await _refresh(saved.readAsStringSync().trim());
-      if (refreshed != null) return refreshed;
+      if (refreshed != null) {
+        saved.writeAsStringSync(refreshed.refreshToken);
+        return refreshed;
+      }
     }
     final email = E2eConfig.adminEmail;
     final seen = await _mailpit.mailbox(email);
@@ -116,9 +120,11 @@ final class BackendClient {
       ),
     );
     if (response.statusCode != 200) return null;
+    // The rotated token; absent when [refreshToken] was presented again within its grace, which
+    // then stays the one to use.
     return TestUser._fromAuth({
       ...response.data!,
-      'refreshToken': refreshToken,
+      'refreshToken': response.data!['refreshToken'] ?? refreshToken,
     }, '');
   }
 
