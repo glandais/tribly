@@ -104,6 +104,13 @@ export const rowWithCell = (scope: Locator, cell: string): Locator =>
     // `has` resolves from the row: a page-rooted locator, not one under `scope`.
     .filter({ has: scope.page().getByRole('cell', { name: cell, exact: true }) })
 
+/**
+ * A GPS credential's row in the domain form, by its client id. Not {@link rowWithCell}: a Garmin
+ * cell also names its protocol under the client id (docs/LEDGER_*.md API-62).
+ */
+export const credentialRow = (scope: Locator, clientId: string): Locator =>
+  scope.getByRole('row').filter({ has: scope.page().getByText(clientId, { exact: true }) })
+
 /** A hostname under `.localhost` nobody else uses — Chromium resolves it to the loopback. */
 export const uniqueLocalHost = (label: string) =>
   `${label}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}.localhost`

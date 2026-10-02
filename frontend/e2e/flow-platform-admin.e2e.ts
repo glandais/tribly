@@ -20,6 +20,7 @@ import {
   betaSignups,
   deleteAlias,
   gpsCredentialsOf,
+  credentialRow,
   rowWithCell,
   scratchDomain,
   setPlatformRole,
@@ -430,7 +431,10 @@ test.describe('domains', () => {
     )
     await expect(dialog.getByRole('textbox', { name: 'Domaine', exact: true })).toBeDisabled()
     for (const credential of credentials)
-      await expect(rowWithCell(dialog, credential.clientId)).toBeVisible()
+      await expect(credentialRow(dialog, credential.clientId)).toBeVisible()
+    // The Garmin one, created without a protocol: OAuth 2.0, said beside its client id.
+    const garmin = credentials.find((c) => c.serviceType === 'GARMIN')!
+    await expect(credentialRow(dialog, garmin.clientId)).toContainText('OAuth 2.0')
     const name = dialog.getByRole('textbox', { name: 'Nom', exact: true })
     await expect(name).toHaveValue(domain.name)
     await name.fill(renamed)
@@ -471,7 +475,7 @@ test.describe('domains', () => {
     await edit.click()
     await expect(dialog.getByRole('textbox', { name: 'Nom', exact: true })).toHaveValue(renamed)
     for (const credential of credentials)
-      await expect(rowWithCell(dialog, credential.clientId)).toBeVisible()
+      await expect(credentialRow(dialog, credential.clientId)).toBeVisible()
   })
 
   test('the platform admin adds a dedicated site pinned to a team; it serves the team until disabled, then is removed', async ({

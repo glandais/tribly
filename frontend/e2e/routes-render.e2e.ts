@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { signIn } from './support/data'
+import { DEVICE_PAGE, ensureHammerheadOffered } from './support/device'
 import { stack } from './support/stack'
 import { expect, test } from './support/fixtures'
 import { configuredAuth, contractWebRoutes, fillPath, type ContractRoute } from './support/contract'
@@ -183,6 +184,9 @@ const screens: Record<string, Screen> = {
   resetPassword: { roles: EVERYONE, sees: heading('Lien invalide') },
   deviceVerifyGarmin: { roles: SIGNED_IN, sees: heading('Entrez le code') },
   deviceVerifyKaroo: { roles: SIGNED_IN, sees: heading('Entrez le code') },
+  // The Karoo's fallback QR: the Hammerhead step alone. Offered on localhost by the beforeAll, else
+  // the page says the Karoo is ready instead (docs/LEDGER_*.md API-63).
+  deviceHammerhead: { roles: SIGNED_IN, sees: heading(DEVICE_PAGE.hammerhead) },
   apps: { roles: EVERYONE, sees: heading('Applications') },
   // The legal pages repeat their title in their own markdown: two level-1 headings.
   privacy: {
@@ -602,7 +606,7 @@ function data(): Promise<Dataset> {
 
 test.beforeAll(async () => {
   test.setTimeout(120_000)
-  await data()
+  await Promise.all([data(), ensureHammerheadOffered()])
 })
 
 // A worker may come back to this file after its afterAll (fully parallel): the next beforeAll then
