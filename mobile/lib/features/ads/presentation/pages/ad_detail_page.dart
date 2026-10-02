@@ -121,7 +121,7 @@ class _AdDetailContentState extends ConsumerState<_AdDetailContent> {
     final PdlColors c = context.pdl;
     final PdlTypography t = context.pdlText;
     final AdType type = AdType.fromJson(ad.adType);
-    final DateTime? at = DateTime.tryParse(ad.createdAt)?.toLocal();
+    final DateTime? at = AppFormatters.tryParseDisplayTime(ad.createdAt);
     final FormattedPrice price = AppFormatters.formatPrice(
       ad.price,
       rentalPeriod: ad.rentalPeriod,

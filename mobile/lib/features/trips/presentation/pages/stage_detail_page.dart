@@ -16,7 +16,10 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/share_link.dart';
 import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
+import '../../../comments/data/comment_repository.dart';
+import '../../../comments/presentation/widgets/comment_thread.dart';
 import '../../../routes/presentation/widgets/embedded_route_sheet.dart';
+import '../../../teams/providers/team_providers.dart';
 import '../../../routes/providers/route_detail_provider.dart';
 import '../../providers/trip_detail_provider.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
@@ -82,6 +85,7 @@ class _StageDetailContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final String? routeSlug = stage.route?.slug;
+    final bool? isMember = ref.watch(teamMembershipProvider(trip.team.slug));
 
     return PdlScreenScaffold(
       appBar: PdlAppBar(
@@ -145,20 +149,24 @@ class _StageDetailContent extends ConsumerWidget {
               ),
             ),
           ),
-        // **Pas de commentaires d'étape** : le contrat n'en expose que sur les
-        // publications, sorties, parcours et voyages (§4.2). Plutôt qu'un fil
-        // vide ou un composeur qui échouerait, un renvoi vers celui du voyage.
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: PdlButton(
-              label: 'trips.stage.commentOnTrip'.tr(),
-              variant: PdlButtonVariant.text,
-              icon: PdlIcons.comment,
-              onPressed: () => _openTrip(context),
+        // Le fil **propre à l'étape**, distinct de celui du voyage
+        // (docs/LEDGER_*.md API-11). Même règle que sur le voyage :
+        // `commentCount` absent signifie « vous n'avez pas le droit de lire
+        // les commentaires », et le fil n'est pas monté du tout.
+        if (stage.commentCount != null)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(PdlSpacing.section),
+              child: CommentThread(
+                target: CommentTarget(
+                  entity: CommentEntity.stage,
+                  teamSlug: trip.team.slug,
+                  slug: stage.slug,
+                ),
+                canComment: isMember ?? false,
+              ),
             ),
           ),
-        ),
         const SliverToBoxAdapter(child: SizedBox(height: PdlSpacing.section)),
       ],
     );

@@ -35,18 +35,27 @@ public record TripStageDto(
     @Schema(
             description = "How many live stages the trip has — the '/ 5' of 'Day 2 / 5'.",
             required = true)
-        int stageCount) {
+        int stageCount,
+    @Nullable
+        @Schema(
+            description =
+                "Number of comments on the stage's own thread. Absent when the caller cannot read"
+                    + " comments (not a member of the team), like TripDto.commentCount.")
+        Integer commentCount) {
 
   /**
    * @param routeTags the tags of the stage's route, resolved with the trip's own by {@code
    *     TagLookup} — never one lookup per stage
    * @param stageIndex 1-based position among the trip's live stages
    * @param stageCount how many live stages the trip has
+   * @param commentCounts the stages' comment counts, resolved with the trip's own by {@code
+   *     CommentCountLookup}
    */
   public static TripStageDto from(
       TripStage stage,
       AssetService assetService,
       ContentTags routeTags,
+      CommentCounts commentCounts,
       int stageIndex,
       int stageCount) {
     return new TripStageDto(
@@ -62,6 +71,7 @@ public record TripStageDto(
         MediaDto.from(stage, assetService),
         stage.getSortOrder(),
         stageIndex,
-        stageCount);
+        stageCount,
+        commentCounts.forEntity(stage.getId()));
   }
 }

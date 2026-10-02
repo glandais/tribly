@@ -113,7 +113,7 @@ class _UpcomingCard extends ConsumerWidget {
 
   Widget _rideCard(BuildContext context, WidgetRef ref, PublicationDtoRide r) {
     final PdlColors c = context.pdl;
-    final DateTime? at = DateTime.tryParse(r.dateTime)?.toLocal();
+    final DateTime? at = AppFormatters.tryParseDisplayTime(r.dateTime);
     final UpcomingAction action = upcomingAction(r);
 
     return _shell(
@@ -190,10 +190,10 @@ class _UpcomingCard extends ConsumerWidget {
 
   Widget _tripCard(BuildContext context, WidgetRef ref, PublicationDtoTrip t) {
     final UnitSystem units = ref.watch(unitSystemProvider);
-    final DateTime? start = DateTime.tryParse(t.dateTime)?.toLocal();
+    final DateTime? start = AppFormatters.tryParseDisplayTime(t.dateTime);
     final DateTime? end = t.endDate == null
         ? null
-        : DateTime.tryParse(t.endDate!)?.toLocal();
+        : AppFormatters.tryParseDisplayTime(t.endDate!);
 
     return _shell(
       context,

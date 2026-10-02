@@ -6,11 +6,14 @@ import '../../../api/pedalons_api_client.dart';
 
 /// Ce sur quoi on commente.
 ///
-/// Les quatre clients générés ont la même forme mais aucune interface commune :
+/// Les cinq clients générés ont la même forme mais aucune interface commune :
 /// `listRideComments`, `listPostComments`, `listRouteComments`,
-/// `listTripComments`. L'aiguillage tient dans ce `switch`, une fois, plutôt
-/// que dans chaque écran qui affiche un fil.
-enum CommentEntity { ride, post, route, trip }
+/// `listTripComments`, `listTripStageComments`. L'aiguillage tient dans ce
+/// `switch`, une fois, plutôt que dans chaque écran qui affiche un fil.
+///
+/// Une étape (`stage`) a son propre fil, distinct de celui du voyage ; son slug
+/// est unique dans l'équipe, le voyage n'entre donc pas dans la cible.
+enum CommentEntity { ride, post, route, trip, stage }
 
 /// L'objet commenté : son type, son équipe, son slug.
 @immutable
@@ -45,6 +48,7 @@ final commentRepositoryProvider = Provider<CommentRepository>((Ref ref) {
     posts: ref.watch(postCommentsClientProvider),
     routes: ref.watch(routeCommentsClientProvider),
     trips: ref.watch(tripCommentsClientProvider),
+    stages: ref.watch(tripStageCommentsClientProvider),
   );
 });
 
@@ -55,15 +59,18 @@ class CommentRepository {
     required PostCommentsClient posts,
     required RouteCommentsClient routes,
     required TripCommentsClient trips,
+    required TripStageCommentsClient stages,
   }) : _rides = rides,
        _posts = posts,
        _routes = routes,
-       _trips = trips;
+       _trips = trips,
+       _stages = stages;
 
   final RideCommentsClient _rides;
   final PostCommentsClient _posts;
   final RouteCommentsClient _routes;
   final TripCommentsClient _trips;
+  final TripStageCommentsClient _stages;
 
   /// Une page de commentaires.
   ///
@@ -109,6 +116,14 @@ class CommentRepository {
       parentId: parentId,
       sort: sort,
     ),
+    CommentEntity.stage => _stages.listTripStageComments(
+      teamSlug: target.teamSlug,
+      entitySlug: target.slug,
+      page: page,
+      size: size,
+      parentId: parentId,
+      sort: sort,
+    ),
   };
 
   Future<CommentDto> create(
@@ -141,6 +156,11 @@ class CommentRepository {
         entitySlug: target.slug,
         body: body,
       ),
+      CommentEntity.stage => _stages.createTripStageComment(
+        teamSlug: target.teamSlug,
+        entitySlug: target.slug,
+        body: body,
+      ),
     };
   }
 
@@ -162,6 +182,11 @@ class CommentRepository {
           commentId: commentId,
         ),
         CommentEntity.trip => _trips.deleteTripComment(
+          teamSlug: target.teamSlug,
+          entitySlug: target.slug,
+          commentId: commentId,
+        ),
+        CommentEntity.stage => _stages.deleteTripStageComment(
           teamSlug: target.teamSlug,
           entitySlug: target.slug,
           commentId: commentId,

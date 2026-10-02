@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../api/generated/export.dart';
 import '../data/ride_repository.dart';
+import '../../../core/utils/formatters.dart';
 
 /// Ce qui identifie une sortie : son équipe et son slug.
 @immutable
@@ -47,7 +48,7 @@ final rideDetailProvider = FutureProvider.family<RideDto, RideKey>(
 /// sortie annulée et passée est les deux. Les écrans 11, 12 et 13 lisent tous
 /// [isPast].
 extension RideTiming on RideDto {
-  DateTime? get startsAt => DateTime.tryParse(dateTime)?.toLocal();
+  DateTime? get startsAt => AppFormatters.tryParseDisplayTime(dateTime);
 
   bool get isPast => finished;
 

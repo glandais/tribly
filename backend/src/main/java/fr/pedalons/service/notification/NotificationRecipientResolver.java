@@ -28,6 +28,7 @@ import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.repository.trip.TripParticipationRepository;
 import fr.pedalons.repository.trip.TripRepository;
 import fr.pedalons.repository.user.UserRepository;
+import fr.pedalons.service.comment.CommentThreads;
 import fr.pedalons.service.notification.event.CommentOnPublication;
 import fr.pedalons.service.notification.event.CommentReplied;
 import fr.pedalons.service.notification.event.ContentReported;
@@ -52,7 +53,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hibernate.Hibernate;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -262,7 +262,8 @@ public class NotificationRecipientResolver {
     if (comment == null || comment.getParent() != null) {
       return Optional.empty();
     }
-    TeamEntity subject = Hibernate.unproxy(comment.getTeamEntity(), TeamEntity.class);
+    // A stage's thread is its trip's: the trip's author is told (docs/LEDGER_*.md API-11).
+    TeamEntity subject = CommentThreads.publicationOf(comment);
     NotificationSubjectType type = subjectType(subject);
     if (type == null || subject.isDeleted() || subject.getStatus() == Status.DRAFT) {
       return Optional.empty();
@@ -393,8 +394,8 @@ public class NotificationRecipientResolver {
     if (reply == null || reply.getParent() == null) {
       return Optional.empty();
     }
-    // Unproxied: a lazy TeamEntity proxy matches none of the subtypes subjectType switches on.
-    TeamEntity subject = Hibernate.unproxy(reply.getTeamEntity(), TeamEntity.class);
+    // Unproxied, and a stage's thread resolved to its trip: see CommentThreads.
+    TeamEntity subject = CommentThreads.publicationOf(reply);
     NotificationSubjectType type = subjectType(subject);
     if (type == null || subject.isDeleted() || subject.getStatus() == Status.DRAFT) {
       return Optional.empty();

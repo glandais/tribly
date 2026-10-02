@@ -10,18 +10,25 @@ import {
   ActionIcon,
   Badge,
   Skeleton,
+  Image,
 } from '@mantine/core'
-import { IconLink, IconUnlink, IconDevices } from '@tabler/icons-react'
+import { IconLink, IconUnlink } from '@tabler/icons-react'
 import { useGpsConnections } from '@/hooks/useGpsConnections'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import type { GpsServiceType } from '@/api/dto'
 import { useFormattedDate } from '@/utils/dateFormat'
 
-// All known GPS services with their icons
-const GPS_SERVICE_ICONS: Record<GpsServiceType, React.ReactNode> = {
-  HAMMERHEAD: <IconDevices size={20} />,
-  GARMIN: <IconDevices size={20} />,
-  WAHOO: <IconDevices size={20} />,
+import garminLogo from '@/assets/gps/garmin.svg'
+import hammerheadLogo from '@/assets/gps/hammerhead.svg'
+import wahooLogo from '@/assets/gps/wahoo.svg'
+
+// The logo of each service, shipped with the client: `GpsServiceType` is a closed enum, so the
+// contract carries no logo URL (docs/LEDGER_*.md API-14). Each is a square tile with its own dark
+// background, readable in both colour schemes; the mobile app ships the same tiles as PNGs.
+const GPS_SERVICE_LOGOS: Record<GpsServiceType, string> = {
+  HAMMERHEAD: hammerheadLogo,
+  GARMIN: garminLogo,
+  WAHOO: wahooLogo,
 }
 
 export function GpsConnectionsManager() {
@@ -75,7 +82,6 @@ export function GpsConnectionsManager() {
           </Text>
         ) : (
           availableServices.map((type) => {
-            const icon = GPS_SERVICE_ICONS[type]
             const connected = isConnected(type)
             const connection = getConnection(type)
 
@@ -83,7 +89,8 @@ export function GpsConnectionsManager() {
               <Paper key={type} withBorder p="sm">
                 <Group justify="space-between">
                   <Group>
-                    {icon}
+                    {/* Decorative: the service's name is the text right beside it */}
+                    <Image src={GPS_SERVICE_LOGOS[type]} alt="" w={32} h={32} radius="sm" />
                     <div>
                       <Text size="sm" fw={500}>
                         {t(`gps.services.${type.toLowerCase() as Lowercase<GpsServiceType>}`)}

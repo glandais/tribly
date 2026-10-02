@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../api/generated/export.dart';
 import '../data/trip_repository.dart';
+import '../../../core/utils/formatters.dart';
 
 /// Ce qui identifie un voyage : son équipe et son slug.
 @immutable
@@ -51,13 +52,14 @@ final tripDetailProvider = FutureProvider.autoDispose.family<TripDto, TripKey>(
 /// en a une : une traversée de sept jours n'est pas « passée » le lendemain de
 /// son départ.
 ///
-/// Fuseau de l'appareil, jamais d'UTC affiché (§1.0.3-11).
+/// Fuseau d'affichage (`AppFormatters.toDisplayTime`), jamais d'UTC affiché
+/// (§1.0.3-11).
 extension TripTiming on TripDto {
-  DateTime? get startsAt => DateTime.tryParse(dateTime)?.toLocal();
+  DateTime? get startsAt => AppFormatters.tryParseDisplayTime(dateTime);
 
   DateTime? get endsAt {
     final String? raw = endDate;
-    return raw == null ? null : DateTime.tryParse(raw)?.toLocal();
+    return raw == null ? null : AppFormatters.tryParseDisplayTime(raw);
   }
 
   bool get isPast => finished;
@@ -81,7 +83,7 @@ extension TripTiming on TripDto {
 }
 
 extension TripStageTiming on TripStageDto {
-  DateTime? get startsAt => DateTime.tryParse(dateTime)?.toLocal();
+  DateTime? get startsAt => AppFormatters.tryParseDisplayTime(dateTime);
 
   /// Le rang à partir de zéro — l'index de palette de l'étape.
   int get paletteIndex => stageIndex - 1;

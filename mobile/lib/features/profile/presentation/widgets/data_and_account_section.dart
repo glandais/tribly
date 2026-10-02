@@ -75,7 +75,7 @@ class _DataExportCardState extends ConsumerState<DataExportCard> {
         status == UserExportStatus.ready || status == UserExportStatus.expired;
     final DateTime? expires = export?.expiresAt == null
         ? null
-        : DateTime.tryParse(export!.expiresAt!)?.toLocal();
+        : AppFormatters.tryParseDisplayTime(export!.expiresAt!);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

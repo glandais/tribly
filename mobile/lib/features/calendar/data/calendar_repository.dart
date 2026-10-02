@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../api/generated/export.dart';
 import '../../../api/pedalons_api_client.dart';
+import '../../../core/utils/formatters.dart';
 
 final calendarRepositoryProvider = Provider<CalendarRepository>((ref) {
   return CalendarRepository(ref.watch(calendarClientProvider));
@@ -27,8 +28,12 @@ class CalendarRepository {
     required DateTime end,
     String? teamSlug,
   }) async {
-    final String from = start.toUtc().toIso8601String();
-    final String to = end.toUtc().toIso8601String();
+    final String from = AppFormatters.displayWallClockToUtc(
+      start,
+    ).toIso8601String();
+    final String to = AppFormatters.displayWallClockToUtc(
+      end,
+    ).toIso8601String();
     final CalendarEventsResponse response = teamSlug == null
         ? await _calendarClient.getEvents(from: from, to: to)
         : await _calendarClient.getTeamEvents(

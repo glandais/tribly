@@ -26,6 +26,7 @@ import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.route.RouteRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.repository.trip.TripRepository;
+import fr.pedalons.service.comment.CommentThreads;
 import fr.pedalons.service.notification.NotificationPublisher;
 import fr.pedalons.service.notification.event.ContentReported;
 import fr.pedalons.service.security.PedalonsQueryContext;
@@ -37,7 +38,6 @@ import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
-import org.hibernate.Hibernate;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -143,7 +143,8 @@ public class ReportService {
         if (comment.getCreatedBy().isDeleted()) {
           throw notFound(type, targetId);
         }
-        TeamEntity parent = Hibernate.unproxy(comment.getTeamEntity(), TeamEntity.class);
+        // A stage's thread is read like its trip: see CommentThreads.
+        TeamEntity parent = CommentThreads.publicationOf(comment);
         TeamEntityRepository<? extends TeamEntity, ?> repository = repositoryOf(parent);
         if (repository == null
             || repository

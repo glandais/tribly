@@ -42,6 +42,7 @@ export 'clients/ride_templates_client.dart';
 export 'clients/rides_client.dart';
 export 'clients/ride_comments_client.dart';
 export 'clients/route_comments_client.dart';
+export 'clients/trip_stage_comments_client.dart';
 export 'clients/tags_client.dart';
 export 'clients/trips_client.dart';
 export 'clients/trip_comments_client.dart';

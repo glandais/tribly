@@ -27,6 +27,7 @@ import fr.pedalons.repository.comment.CommentRepository;
 import fr.pedalons.repository.moderation.ContentReportRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.comment.CommentService;
+import fr.pedalons.service.comment.CommentThreads;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Admin;
 import fr.pedalons.service.security.annotation.Logged;
@@ -242,7 +243,8 @@ public class ModerationService {
   /**
    * One item per target and team, in the order of the reports (most recent first). Four queries whatever the
    * size of the queue: the reports with their teams and users, the publications and the comments
-   * they are about — plus the list of targets for the resolved half.
+   * they are about — plus the list of targets for the resolved half, and the trips of the stages
+   * commented on when there are any.
    */
   private ModerationQueueResponse queue(
       @Nullable Long teamId,
@@ -307,7 +309,8 @@ public class ModerationService {
         Comment comment = comments.get(key.id());
         if (comment != null) {
           hidden = comment.getModerationHiddenAt() != null;
-          content = Hibernate.unproxy(comment.getTeamEntity(), TeamEntity.class);
+          // A comment on a stage opens its trip: see CommentThreads.
+          content = CommentThreads.publicationOf(comment);
         }
       }
       case MEMBER -> {

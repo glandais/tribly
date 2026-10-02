@@ -3,6 +3,11 @@ import { useGetTeam, prefetchGetTeamQuery } from '@/api/endpoints/teams/teams'
 import { useGetTrip, prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
 import { useGetRoute, prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
 import { prefetchGetAvailableServicesQuery } from '@/api/endpoints/gps-services/gps-services'
+import {
+  listTripStageComments,
+  getListTripStageCommentsQueryKey,
+} from '@/api/endpoints/trip-stage-comments/trip-stage-comments'
+import { prefetchMemberComments } from '@/config/prefetchHelpers'
 import { useAuthStore } from '@/store/authStore'
 import type { TripDto } from '@/api/dto'
 
@@ -60,7 +65,8 @@ export function useStageDetailData(teamSlug?: string, tripSlug?: string, stageSl
  *
  * It covers more than the hook does, on purpose: GPS export options are fetched by a child the
  * page mounts (the route's export menu), authenticated-only, resolved the same way as
- * route-detail's own prefetch.
+ * route-detail's own prefetch; the stage's comments by `CommentSection`, members only, as on the
+ * trip.
  */
 export async function prefetchStageDetail(
   queryClient: QueryClient,
@@ -81,5 +87,12 @@ export async function prefetchStageDetail(
     useAuthStore.getState().isAuthenticated
       ? prefetchGetAvailableServicesQuery(queryClient)
       : Promise.resolve(queryClient),
+    prefetchMemberComments(
+      queryClient,
+      teamSlug,
+      stageSlug,
+      listTripStageComments,
+      getListTripStageCommentsQueryKey
+    ),
   ])
 }

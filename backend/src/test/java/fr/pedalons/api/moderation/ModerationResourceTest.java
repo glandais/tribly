@@ -16,6 +16,8 @@ import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.comment.Comment;
 import fr.pedalons.domain.post.Post;
+import fr.pedalons.domain.trip.Trip;
+import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.moderation.request.ModerationDecisionRequest;
 import fr.pedalons.dto.moderation.request.ReportRequest;
@@ -197,6 +199,23 @@ class ModerationResourceTest extends AbstractResourceTest {
         .statusCode(200)
         .body("publications.slug", hasItem(post.getSlug()));
     get(USER2, teamReports()).statusCode(200).body("items[0].hidden", equalTo(true));
+  }
+
+  /** A stage's thread is its trip's: the moderator opens the trip (docs/LEDGER_*.md API-11). */
+  @Test
+  void reportedCommentOnAStage_opensItsTrip() {
+    Trip trip = dataService.createTrip(team1, user1, "Voyage signale", Instant.now());
+    TripStage stage = dataService.createTripStage(user1, trip, "Etape signalee");
+    Comment comment = dataService.createComment(user2, stage, "Hors sujet");
+    report(USER3, ReportTargetType.COMMENT, comment.getId());
+
+    get(USER2, teamReports())
+        .statusCode(200)
+        .body("items", hasSize(1))
+        .body("items[0].targetType", equalTo("COMMENT"))
+        .body("items[0].contentType", equalTo("TRIP"))
+        .body("items[0].contentSlug", equalTo(trip.getSlug()))
+        .body("items[0].contentName", equalTo("Voyage signale"));
   }
 
   @Test

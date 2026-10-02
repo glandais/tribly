@@ -165,10 +165,20 @@ class _GpsServicesCardState extends ConsumerState<GpsServicesCard> {
     final String label = connection?.displayName ?? 'gps.${service.json}'.tr();
     final DateTime? since = connection == null
         ? null
-        : DateTime.tryParse(connection.connectedAt)?.toLocal();
+        : AppFormatters.tryParseDisplayTime(connection.connectedAt);
 
+    final String? logo = gpsServiceLogoAsset(service);
     return PdlSettingRow(
       showDivider: showDivider,
+      // Décoratif : le nom du service est juste à côté.
+      leading: logo == null
+          ? null
+          : ExcludeSemantics(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.all(PdlRadii.sm),
+                child: Image.asset(logo, width: _logoSize, height: _logoSize),
+              ),
+            ),
       title: label,
       subtitle: since == null
           ? 'profile.gps.notConnected'.tr()
@@ -191,4 +201,17 @@ class _GpsServicesCardState extends ConsumerState<GpsServicesCard> {
       ),
     );
   }
+
+  static const double _logoSize = 32;
 }
+
+/// Le logo d'un service, embarqué : `GpsServiceType` est un enum fermé, le
+/// contrat ne porte pas d'URL de logo (docs/LEDGER_*.md API-14). Chaque logo est
+/// une tuile carrée à fond sombre, lisible dans les deux thèmes — les mêmes que
+/// le web. Un service inconnu de ce build n'en a pas.
+String? gpsServiceLogoAsset(GpsServiceType service) => switch (service) {
+  GpsServiceType.garmin => 'assets/gps/garmin.png',
+  GpsServiceType.wahoo => 'assets/gps/wahoo.png',
+  GpsServiceType.hammerhead => 'assets/gps/hammerhead.png',
+  GpsServiceType.$unknown => null,
+};

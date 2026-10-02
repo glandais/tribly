@@ -63,10 +63,10 @@ class _UsageCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
     final PdlTypography t = context.pdlText;
-    final DateTime? at = DateTime.tryParse(usage.dateTime)?.toLocal();
+    final DateTime? at = AppFormatters.tryParseDisplayTime(usage.dateTime);
     final DateTime? end = usage.endDate == null
         ? null
-        : DateTime.tryParse(usage.endDate!)?.toLocal();
+        : AppFormatters.tryParseDisplayTime(usage.endDate!);
 
     return PdlCard(
       key: keys.routeDetail.usage(usage.slug),

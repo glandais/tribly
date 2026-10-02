@@ -6,6 +6,7 @@ import 'config/locale_context.dart';
 import 'config/router.dart';
 import 'core/config/config_provider.dart';
 import 'core/preferences/user_preferences_provider.dart';
+import 'core/utils/formatters.dart';
 import 'core/theme/theme.dart';
 import 'features/auth/providers/auth_provider.dart';
 
@@ -58,6 +59,10 @@ class _PedalonsAppState extends ConsumerState<PedalonsApp> {
     final router = ref.watch(routerProvider);
     final preferences = ref.watch(userPreferencesProvider);
     _syncLocale(preferences.language);
+    // Le fuseau de `UserDto.timezone`, sinon celui de l'appareil — comme le web
+    // (docs/LEDGER_*.md API-15). Posé avant que le moindre écran ne formate une
+    // date ; déconnecté, on revient à l'appareil.
+    AppFormatters.setDisplayTimezone(authState.user?.timezone);
 
     final lightTheme = PedalonsTheme.build(Brightness.light);
     final darkTheme = PedalonsTheme.build(Brightness.dark);

@@ -195,7 +195,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   Widget _grid(CalendarMonthKey monthKey, CalendarMonth month) {
     final PdlColors c = context.pdl;
     final DateTime? selected = ref.watch(calendarSelectedDayProvider);
-    final DateTime today = DateTime.now();
+    final DateTime today = AppFormatters.displayNow();
 
     _schedulePositioning(monthKey, month, today);
 
@@ -377,7 +377,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   // ── Composition de l'agenda ───────────────────────────────────────────────
 
   List<_AgendaEntry> _compose(CalendarMonth month) {
-    final DateTime now = DateTime.now();
+    final DateTime now = AppFormatters.displayNow();
     final DateTime todayStart = DateTime(now.year, now.month, now.day);
     final List<_AgendaEntry> entries = <_AgendaEntry>[];
     bool separatorPlaced = false;
@@ -449,7 +449,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   }
 
   void _goToToday() {
-    final DateTime now = DateTime.now();
+    final DateTime now = AppFormatters.displayNow();
     _setMonth(
       CalendarMonthKey(
         year: now.year,
@@ -500,7 +500,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
       AppFormatters.dayAbbrev(weekday, context: context),
   ];
 
-  String _dayLabel(DateTime day) => _sameDay(day, DateTime.now())
+  String _dayLabel(DateTime day) => _sameDay(day, AppFormatters.displayNow())
       ? AppFormatters.today
       : AppFormatters.formatDayMonth(day);
 

@@ -343,7 +343,7 @@ class _MemberRow extends StatelessWidget {
     final PdlColors c = context.pdl;
     final DateTime? joined = member.joinedAt == null
         ? null
-        : DateTime.tryParse(member.joinedAt!)?.toLocal();
+        : AppFormatters.tryParseDisplayTime(member.joinedAt!);
 
     // `role` est nul quand l'appelant n'y a pas droit : un organisateur qui lit
     // une équipe dont le trombinoscope n'est pas ouvert obtient les noms, et

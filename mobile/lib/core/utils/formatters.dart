@@ -1,6 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
+
 import '../../api/generated/export.dart';
 import '../units/unit_system.dart';
 
@@ -253,18 +256,111 @@ class AppFormatters {
   // ─────────────────────────────────────────────────────────────────────────
   // Dates et heures
   //
-  // Fuseau de **l'appareil**, toujours : un instant venu du serveur en UTC est
-  // ramené à l'heure locale avant d'être rendu. Le « fuseau d'équipe » a été
-  // abandonné (§1.0.3-11), et `package:timezone` avec lui.
+  // Un instant venu du serveur en UTC est ramené au **fuseau d'affichage**
+  // avant d'être rendu : la préférence `UserDto.timezone` quand l'utilisateur
+  // en a choisi une, le fuseau de l'appareil sinon — la règle du web
+  // (`useEffectiveTimezone`), docs/LEDGER_*.md API-15. Le « fuseau d'équipe »
+  // reste abandonné (§1.0.3-11).
+  //
+  // Le fuseau est un réglage **global**, comme la locale d'`Intl` : `app.dart`
+  // le pose à chaque reconstruction depuis l'utilisateur connecté. Le passer
+  // en argument, comme les unités, obligerait chaque écran à le relire alors
+  // qu'il ne varie qu'avec la session.
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Ramène un instant au fuseau de l'appareil. Sans effet sur une date déjà
-  /// locale.
-  static DateTime toDeviceTime(DateTime date) => date.toLocal();
+  static tz.Location? _displayZone;
+  static String? _displayZoneName;
+  static bool _zonesLoaded = false;
+
+  /// Pose le fuseau d'affichage : un nom IANA (« Europe/Paris »), ou `null`
+  /// pour le fuseau de l'appareil. Un nom que la base embarquée ne connaît pas
+  /// retombe sur l'appareil plutôt que d'échouer : le serveur valide contre la
+  /// base du JDK, qui peut avoir une version d'avance.
+  ///
+  /// La base n'est chargée qu'au premier nom posé : un utilisateur sans
+  /// préférence ne paie rien.
+  static void setDisplayTimezone(String? name) {
+    if (name == _displayZoneName) return;
+    _displayZoneName = name;
+    if (name == null) {
+      _displayZone = null;
+      return;
+    }
+    if (!_zonesLoaded) {
+      tz_data.initializeTimeZones();
+      _zonesLoaded = true;
+    }
+    try {
+      _displayZone = tz.getLocation(name);
+    } on tz.LocationNotFoundException {
+      _displayZone = null;
+    }
+  }
+
+  /// Ramène un instant UTC — ce que rend le contrat — à l'**heure murale** du
+  /// fuseau d'affichage : un `DateTime` local dont les champs (jour, heure…)
+  /// sont ceux qu'on lirait sur une horloge de ce fuseau. Tout le code qui
+  /// travaille sur les champs (`DateTime(y, m, d)`, regroupement par jour,
+  /// `DateFormat`) reste donc juste sans connaître `package:timezone`.
+  ///
+  /// Une date non UTC est rendue telle quelle : c'est déjà une heure murale,
+  /// et la reconvertir serait la double conversion que le cas de test §5.3-3
+  /// traque. « Maintenant » se prend donc par [displayNow], jamais par
+  /// `DateTime.now()`.
+  ///
+  /// Une heure murale ne sert qu'à l'affichage : comparer deux instants se
+  /// fait sur les valeurs du contrat (et « passé » vient du serveur, `finished`).
+  static DateTime toDisplayTime(DateTime date) {
+    if (!date.isUtc) return date;
+    final tz.Location? zone = _displayZone;
+    if (zone == null) return date.toLocal();
+    final tz.TZDateTime wall = tz.TZDateTime.from(date, zone);
+    // Seule approximation : une heure murale qui tombe dans le saut d'heure
+    // d'été de l'*appareil* est décalée d'une heure par le constructeur local.
+    return DateTime(
+      wall.year,
+      wall.month,
+      wall.day,
+      wall.hour,
+      wall.minute,
+      wall.second,
+      wall.millisecond,
+      wall.microsecond,
+    );
+  }
+
+  /// L'heure murale courante du fuseau d'affichage.
+  static DateTime displayNow() => toDisplayTime(DateTime.now().toUtc());
+
+  /// L'inverse de [toDisplayTime] : l'instant UTC qu'une heure murale du
+  /// fuseau d'affichage désigne — les bornes d'un mois envoyées à l'API.
+  static DateTime displayWallClockToUtc(DateTime wall) {
+    final tz.Location? zone = _displayZone;
+    if (wall.isUtc || zone == null) return wall.toUtc();
+    return tz.TZDateTime(
+      zone,
+      wall.year,
+      wall.month,
+      wall.day,
+      wall.hour,
+      wall.minute,
+      wall.second,
+      wall.millisecond,
+      wall.microsecond,
+    ).toUtc();
+  }
+
+  /// Lit un instant ISO 8601 du contrat et le ramène au fuseau d'affichage ;
+  /// `null` pour une valeur absente ou illisible.
+  static DateTime? tryParseDisplayTime(String? iso) {
+    if (iso == null) return null;
+    final DateTime? parsed = DateTime.tryParse(iso);
+    return parsed == null ? null : toDisplayTime(parsed);
+  }
 
   /// Heure au format HH:mm de la locale courante.
   static String formatTime(DateTime date) =>
-      DateFormat.Hm().format(toDeviceTime(date));
+      DateFormat.Hm().format(toDisplayTime(date));
 
   /// Formate une `LocalTime` (« 08:30:00 ») en HH:mm, secondes ôtées.
   ///
@@ -278,25 +374,25 @@ class AppFormatters {
 
   /// « 15 janvier ».
   static String formatDayMonth(DateTime date) {
-    final DateTime local = toDeviceTime(date);
+    final DateTime local = toDisplayTime(date);
     return '${local.day} ${monthLower(local.month)}';
   }
 
   /// « lundi 15 janvier ».
   static String formatFullDate(DateTime date) {
-    final DateTime local = toDeviceTime(date);
+    final DateTime local = toDisplayTime(date);
     return '${dayFull(local.weekday)} ${local.day} ${monthLower(local.month)}';
   }
 
   /// « Janvier 2026 ».
   static String formatMonthYear(DateTime date) {
-    final DateTime local = toDeviceTime(date);
+    final DateTime local = toDisplayTime(date);
     return '${monthCapitalized(local.month)} ${local.year}';
   }
 
   /// « lundi 15 janvier 2026 ».
   static String formatLongDate(DateTime date) =>
-      '${formatFullDate(date)} ${toDeviceTime(date).year}';
+      '${formatFullDate(date)} ${toDisplayTime(date).year}';
 
   /// « lundi 15 janvier 2026 à 08:30 ».
   static String formatLongDateTime(DateTime date) => 'dates.at'.tr(
@@ -312,8 +408,8 @@ class AppFormatters {
 
   /// Date d'une sortie, relative au jour courant, avec l'heure.
   static String formatRideDate(DateTime date, {DateTime? now}) {
-    final DateTime local = toDeviceTime(date);
-    final DateTime reference = toDeviceTime(now ?? DateTime.now());
+    final DateTime local = toDisplayTime(date);
+    final DateTime reference = toDisplayTime(now ?? displayNow());
     final int dayDiff = DateTime(local.year, local.month, local.day)
         .difference(DateTime(reference.year, reference.month, reference.day))
         .inDays;
@@ -329,8 +425,8 @@ class AppFormatters {
   /// plus personne : on rend la date longue.
   static String formatRelative(DateTime date, {DateTime? now}) {
     final RelativeTime relative = RelativeTime.between(
-      toDeviceTime(date),
-      toDeviceTime(now ?? DateTime.now()),
+      toDisplayTime(date),
+      toDisplayTime(now ?? displayNow()),
     );
     return switch (relative.unit) {
       RelativeUnit.now => 'dates.relative.now'.tr(),

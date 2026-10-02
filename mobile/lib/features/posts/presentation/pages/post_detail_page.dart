@@ -238,7 +238,7 @@ class _PostDetailContent extends ConsumerWidget {
   Widget _identity(BuildContext context) {
     final PdlColors c = context.pdl;
     final PdlTypography t = context.pdlText;
-    final DateTime? at = DateTime.tryParse(post.dateTime)?.toLocal();
+    final DateTime? at = AppFormatters.tryParseDisplayTime(post.dateTime);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

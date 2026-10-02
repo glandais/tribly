@@ -8,6 +8,7 @@ import 'package:pedalons/api/generated/export.dart';
 import 'package:pedalons/core/pdl/pdl.dart';
 import 'package:pedalons/core/preferences/user_preferences_provider.dart';
 import 'package:pedalons/core/theme/pedalons_theme.dart';
+import 'package:pedalons/features/comments/data/comment_repository.dart';
 import 'package:pedalons/features/comments/presentation/widgets/comment_thread.dart';
 import 'package:pedalons/features/teams/data/team_repository.dart';
 import 'package:pedalons/features/trips/data/trip_repository.dart';
@@ -24,8 +25,8 @@ import 'trip_fixtures.dart';
 /// La carte se réduit à un squelette sans style servi ; ce qui se vérifie ici
 /// est le reste, et surtout **ce qui n'est pas rendu** : pas de bouton
 /// « Participer » sur un voyage passé ou annulé, pas de fil de commentaires sur
-/// une étape — le contrat n'en expose pas — et pas de ligne d'adresse vide
-/// quand `PlaceDetailDto.address` manque.
+/// une étape dont le lecteur ne peut pas lire les commentaires, et pas de ligne
+/// d'adresse vide quand `PlaceDetailDto.address` manque.
 class _StubTripRepository implements TripRepository {
   _StubTripRepository(this.trip, {this.neverCompletes = false});
 
@@ -48,6 +49,32 @@ class _StubTripRepository implements TripRepository {
 
   @override
   Future<void> leaveTrip(String t, String s) async {}
+}
+
+/// Un fil vide : seul compte ici la cible qu'on lui demande.
+class _StubCommentRepository implements CommentRepository {
+  final List<CommentTarget> targets = <CommentTarget>[];
+
+  @override
+  Future<CommentListResponse> list(
+    CommentTarget target, {
+    int page = 0,
+    int size = 20,
+    String? parentId,
+    SortDirection? sort,
+  }) async {
+    targets.add(target);
+    return CommentListResponse(
+      items: const <CommentDto>[],
+      total: 0,
+      itemTotal: 0,
+      page: page,
+      size: size,
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _StubTeamRepository implements TeamRepository {
@@ -106,9 +133,13 @@ void main() {
     bool loading = false,
     Brightness brightness = Brightness.light,
     _StubTripRepository? repository,
+    _StubCommentRepository? comments,
   }) {
     return ProviderScope(
       overrides: [
+        commentRepositoryProvider.overrideWithValue(
+          comments ?? _StubCommentRepository(),
+        ),
         sharedPreferencesProvider.overrideWithValue(prefs),
         tripRepositoryProvider.overrideWithValue(
           repository ?? _StubTripRepository(trip, neverCompletes: loading),
@@ -143,11 +174,13 @@ void main() {
   Future<void> openStage(
     WidgetTester tester,
     TripDto trip,
-    String stageSlug,
-  ) async {
+    String stageSlug, {
+    _StubCommentRepository? comments,
+  }) async {
     await tester.pumpWidget(
       app(
         trip,
+        comments: comments,
         home: StageDetailPage(
           teamSlug: trip.team.slug,
           tripSlug: trip.slug,
@@ -375,16 +408,49 @@ void main() {
       expect(find.text('Place de Jaude, 63000'), findsNothing);
     });
 
-    testWidgets('aucun fil de commentaires : le contrat n\'en expose pas', (
+    testWidgets(
+      'sans `commentCount`, aucun fil : le lecteur ne peut pas lire',
+      (WidgetTester tester) async {
+        await openStage(tester, tripWithPlaces(), 'j1');
+        await tester.drag(
+          find.byType(CustomScrollView),
+          const Offset(0, -1400),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.byType(CommentThread), findsNothing);
+      },
+    );
+
+    testWidgets('le fil est celui de l\'étape, pas celui du voyage', (
       WidgetTester tester,
     ) async {
-      await openStage(tester, tripWithPlaces(), 'j1');
+      final _StubCommentRepository comments = _StubCommentRepository();
+      await openStage(
+        tester,
+        fixtureTrip(
+          stages: <TripStageDto>[
+            fixtureStage(index: 1, stageCount: 2, commentCount: 0),
+            fixtureStage(index: 2, stageCount: 2),
+          ],
+        ),
+        'j1',
+        comments: comments,
+      );
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -1400));
       await tester.pump();
       await tester.pump();
 
-      expect(find.byType(CommentThread), findsNothing);
-      expect(find.text('Commenter ce voyage'), findsOneWidget);
+      expect(find.byType(CommentThread), findsOneWidget);
+      expect(
+        comments.targets.first,
+        const CommentTarget(
+          entity: CommentEntity.stage,
+          teamSlug: 'n-peloton',
+          slug: 'j1',
+        ),
+      );
     });
 
     testWidgets('une étape inconnue rend un état introuvable, pas un vide', (

@@ -44,7 +44,8 @@ class AgendaCard extends ConsumerWidget {
 
   final CalendarEventDto event;
 
-  DateTime get _start => DateTime.parse(event.start).toLocal();
+  DateTime get _start =>
+      AppFormatters.toDisplayTime(DateTime.parse(event.start));
 
   /// Dit par le serveur (`docs/LEDGER_*.md API-16`) : fin de l'événement, ou
   /// son début quand il n'a pas de fin.

@@ -1244,6 +1244,12 @@ export const CreateTripResponse = zod
             stageCount: zod
               .int()
               .describe("How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."),
+            commentCount: zod
+              .int()
+              .optional()
+              .describe(
+                "Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount."
+              ),
           })
           .describe('Trip stage information')
       )
@@ -2542,6 +2548,12 @@ export const UpdateTripResponse = zod
             stageCount: zod
               .int()
               .describe("How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."),
+            commentCount: zod
+              .int()
+              .optional()
+              .describe(
+                "Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount."
+              ),
           })
           .describe('Trip stage information')
       )
@@ -3393,6 +3405,12 @@ export const GetTripResponse = zod
             stageCount: zod
               .int()
               .describe("How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."),
+            commentCount: zod
+              .int()
+              .optional()
+              .describe(
+                "Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount."
+              ),
           })
           .describe('Trip stage information')
       )
@@ -4349,6 +4367,12 @@ export const ChangeTripSlugResponse = zod
             stageCount: zod
               .int()
               .describe("How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."),
+            commentCount: zod
+              .int()
+              .optional()
+              .describe(
+                "Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount."
+              ),
           })
           .describe('Trip stage information')
       )
@@ -5206,6 +5230,12 @@ export const ChangeTripStatusResponse = zod
             stageCount: zod
               .int()
               .describe("How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."),
+            commentCount: zod
+              .int()
+              .optional()
+              .describe(
+                "Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount."
+              ),
           })
           .describe('Trip stage information')
       )
@@ -6057,6 +6087,12 @@ export const UndeleteTripResponse = zod
             stageCount: zod
               .int()
               .describe("How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."),
+            commentCount: zod
+              .int()
+              .optional()
+              .describe(
+                "Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount."
+              ),
           })
           .describe('Trip stage information')
       )

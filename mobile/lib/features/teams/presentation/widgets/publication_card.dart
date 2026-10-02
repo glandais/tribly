@@ -272,7 +272,7 @@ class _RideBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final PdlColors c = context.pdl;
-    final DateTime? at = DateTime.tryParse(ride.dateTime)?.toLocal();
+    final DateTime? at = AppFormatters.tryParseDisplayTime(ride.dateTime);
     final bool isPast = ride.finished;
     // Une inscription faite dans l'app depuis le chargement du fil l'emporte
     // sur la page chargée avant elle.
@@ -366,7 +366,7 @@ class _PostBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
-    final DateTime? at = DateTime.tryParse(post.dateTime)?.toLocal();
+    final DateTime? at = AppFormatters.tryParseDisplayTime(post.dateTime);
 
     return _CardShell(
       onTap: () => context.push(
@@ -425,10 +425,10 @@ class _TripBody extends ConsumerWidget {
           ),
         ) ??
         trip.registered;
-    final DateTime? start = DateTime.tryParse(trip.dateTime)?.toLocal();
+    final DateTime? start = AppFormatters.tryParseDisplayTime(trip.dateTime);
     final DateTime? end = trip.endDate == null
         ? null
-        : DateTime.tryParse(trip.endDate!)?.toLocal();
+        : AppFormatters.tryParseDisplayTime(trip.endDate!);
 
     return _CardShell(
       onTap: () => context.push(Paths.trip(trip.team.slug, trip.slug)),

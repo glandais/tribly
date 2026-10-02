@@ -49,6 +49,7 @@ TripStageDto fixtureStage({
   String? startPlaceName,
   String? startAddress,
   String? endPlaceName,
+  int? commentCount,
 }) => TripStageDto(
   id: 's$index',
   slug: slug ?? 'j$index',
@@ -58,6 +59,7 @@ TripStageDto fixtureStage({
   sortOrder: index * 10,
   stageIndex: index,
   stageCount: stageCount,
+  commentCount: commentCount,
   route: route,
   startPlace: startPlaceName == null
       ? null

@@ -48,6 +48,9 @@ abstract class TripStageDto with _$TripStageDto {
 
     /// End place
     PlaceDetailDto? endPlace,
+
+    /// Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount.
+    int? commentCount,
   }) = _TripStageDto;
 
   factory TripStageDto.fromJson(Map<String, Object?> json) =>

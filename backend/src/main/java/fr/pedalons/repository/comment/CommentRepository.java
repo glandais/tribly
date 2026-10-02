@@ -1,6 +1,7 @@
 package fr.pedalons.repository.comment;
 
 import fr.pedalons.domain.comment.Comment;
+import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.enums.SortDirection;
 import fr.pedalons.repository.common.BaseRepository;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
@@ -8,9 +9,12 @@ import io.quarkus.panache.common.Parameters;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import org.hibernate.Hibernate;
 
 /**
  * Comments are reached through their owning {@code TeamEntity}, never on their own.
@@ -54,19 +58,37 @@ public class CommentRepository implements BaseRepository<Comment> {
   /**
    * Comments by id with the entity they are on, in one query — the comments a moderation queue is
    * about. Re-states the domain, the ids coming as a set.
+   *
+   * <p>A comment on a stage is shown as one on its trip ({@code CommentThreads}): the trips of those
+   * stages are loaded by a second query, only when there are any, rather than one lazy load per row.
    */
   public List<Comment> findByIdsWithEntity(Long domainId, Collection<Long> ids) {
     if (ids.isEmpty()) {
       return List.of();
     }
-    return getEntityManager()
-        .createQuery(
-            "select c from Comment c join fetch c.teamEntity te"
-                + " where c.id in (:ids) and te.team.domain.id = :domainId",
-            Comment.class)
-        .setParameter("ids", ids)
-        .setParameter("domainId", domainId)
-        .getResultList();
+    List<Comment> comments =
+        getEntityManager()
+            .createQuery(
+                "select c from Comment c join fetch c.teamEntity te"
+                    + " where c.id in (:ids) and te.team.domain.id = :domainId",
+                Comment.class)
+            .setParameter("ids", ids)
+            .setParameter("domainId", domainId)
+            .getResultList();
+    Set<Long> stageIds = new HashSet<>();
+    for (Comment comment : comments) {
+      if (Hibernate.unproxy(comment.getTeamEntity()) instanceof TripStage stage) {
+        stageIds.add(stage.getId());
+      }
+    }
+    if (!stageIds.isEmpty()) {
+      getEntityManager()
+          .createQuery(
+              "select s from TripStage s join fetch s.trip where s.id in (:ids)", TripStage.class)
+          .setParameter("ids", stageIds)
+          .getResultList();
+    }
+    return comments;
   }
 
   /** Comments a user wrote, for the GDPR data export. */

@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
-import type { TripDto, TripRequest } from '../src/api/dto'
-import { ApiError, apiDelete, apiPost, apiPut } from './support/api'
+import type { CommentListResponse, TripDto, TripRequest } from '../src/api/dto'
+import { ApiError, apiDelete, apiGet, apiPost, apiPut } from './support/api'
 import { calendarEvent, openCalendar, teamEvents } from './support/calendar'
 import { addMember, markdownMedia, newTeam, newUser, roleSession, signIn } from './support/data'
 import {
@@ -717,6 +717,58 @@ test.describe('regressions', () => {
  * « regressions » above) — so each restoration is checked to bring back the text and the routes
  * too, not only the status.
  */
+/**
+ * A stage carries its own thread, apart from the trip's (docs/LEDGER_*.md API-11). It is addressed by
+ * the stage's slug alone, and a stage is no publication: the trip's author is told, and the
+ * notification opens the trip.
+ */
+test('a member comments on a stage: its own thread, the trip author is told and sent to the trip', async ({
+  page,
+}) => {
+  const { teamAdmin, team, member } = await tripTeamWithMember('fil d’étape')
+  const trip = await newTrip(teamAdmin, team.slug, unique('Voyage commenté'), [
+    { name: unique('Étape commentée') },
+    { name: unique('Étape muette') },
+  ])
+  const [stage, quiet] = trip.stages
+  const comment = `On dort au gîte ${unique('msg')}`
+
+  await signIn(page.context(), member)
+  await page.goto(stagePath(team.slug, trip.slug, stage.slug))
+  const main = page.getByRole('main')
+  await expect(main.getByRole('heading', { level: 2, name: stage.name }).first()).toBeVisible()
+  await expect(main.getByRole('heading', { name: 'Commentaires (0)' })).toBeVisible()
+  const commentBox = main.getByRole('textbox', { name: /Écrivez un commentaire/ })
+  await hydrated(commentBox)
+  await commentBox.fill(comment)
+  await main.getByRole('button', { name: 'Envoyer le commentaire' }).click()
+  await expect(main.getByText(comment, { exact: true })).toBeVisible()
+  await expect(main.getByRole('heading', { name: 'Commentaires (1)' })).toBeVisible()
+
+  // The stage's thread only: neither the trip's nor the other stage's.
+  const thread = (path: string) =>
+    apiGet<CommentListResponse>(teamAdmin, `/api/teams/${team.slug}/${path}/comments`)
+  expect((await thread(`stages/${stage.slug}`)).items.map((c) => c.content)).toEqual([comment])
+  expect((await thread(`trips/${trip.slug}`)).items).toEqual([])
+  expect((await thread(`stages/${quiet.slug}`)).items).toEqual([])
+  const saved = await fetchTrip(member, team.slug, trip.slug)
+  expect(saved!.commentCount).toBe(0)
+  expect(saved!.stages.map((s) => s.commentCount)).toEqual([1, 0])
+
+  await page.goto(stagePath(team.slug, trip.slug, quiet.slug))
+  await expect(main.getByRole('heading', { name: 'Commentaires (0)' })).toBeVisible()
+  await expect(main.getByText(comment, { exact: true })).toHaveCount(0)
+
+  const notification = await waitForNotification(
+    teamAdmin,
+    about('COMMENT_ON_MY_PUBLICATION', trip.slug),
+    'the comment on the stage'
+  )
+  expect(notification.subjectType).toBe('TRIP')
+  expect(notification.excerpt).toBe(comment)
+  await expectNoNotification(member, about('COMMENT_ON_MY_PUBLICATION', trip.slug), 'the commenter')
+})
+
 test.describe('restoring', () => {
   const MARKDOWN = '## Programme\n\nDépart **à 8 h** devant le club.'
 

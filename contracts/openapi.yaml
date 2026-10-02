@@ -6001,6 +6001,11 @@ components:
           type: integer
           format: int32
           description: How many live stages the trip has — the '/ 5' of 'Day 2 / 5'.
+        commentCount:
+          type: integer
+          format: int32
+          description: "Number of comments on the stage's own thread. Absent when\
+            \ the caller cannot read comments (not a member of the team), like TripDto.commentCount."
     UnitSystem:
       type: string
       enum:
@@ -6477,6 +6482,10 @@ tags:
   description: Vector tile access
 - name: Trip Comments
   description: Comment operations for trips
+- name: Trip Stage Comments
+  description: "Comment operations for trip stages. A stage slug is unique within\
+    \ its team, like a trip's, so the trip is not part of the path; a stage of a trip\
+    \ the caller cannot read is not found."
 - name: Trips
   description: Trip management and participation operations
 - name: Users
@@ -15519,6 +15528,154 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{teamSlug}/stages/{entitySlug}/comments:
+    get:
+      summary: List trip stage comments
+      description: "Top-level comments with their replies. Passing neither page nor\
+        \ size returns the whole tree, as before this endpoint took parameters; passing\
+        \ either paginates the top-level comments. parentId switches to listing the\
+        \ replies of a single comment."
+      operationId: listTripStageComments
+      tags:
+      - Trip Stage Comments
+      parameters:
+      - description: Trip stage URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: "Page number (0-indexed). Omit both page and size to get the\
+          \ whole comment tree, as before this endpoint took parameters."
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Load only the replies of this comment (TSID) instead of the top-level
+          comments. Use it to expand one thread without re-reading the others.
+        name: parentId
+        in: query
+        schema:
+          type: string
+      - description: "Page size, capped at 100 (default 20)"
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: "Sort by creation date: ASC (oldest first, default) or DESC"
+        name: sort
+        in: query
+        schema:
+          $ref: "#/components/schemas/SortDirection"
+      responses:
+        "200":
+          description: Comments retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentListResponse"
+        "403":
+          description: Not a team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+    post:
+      summary: Create trip stage comment
+      operationId: createTripStageComment
+      tags:
+      - Trip Stage Comments
+      parameters:
+      - description: Trip stage URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentRequest"
+        required: true
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/stages/{entitySlug}/comments/{commentId}:
+    delete:
+      summary: Delete trip stage comment
+      operationId: deleteTripStageComment
+      tags:
+      - Trip Stage Comments
+      parameters:
+      - description: Comment ID
+        name: commentId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Trip stage URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Comment deleted
+        "403":
+          description: Cannot delete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
   /api/teams/{teamSlug}/tags:
     get:
       summary: List team tags
@@ -17191,7 +17348,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 10.1.0
+  version: 10.2.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

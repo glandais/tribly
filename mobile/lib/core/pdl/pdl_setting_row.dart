@@ -22,6 +22,7 @@ class PdlSettingRow extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.icon,
+    this.leading,
     this.trailing,
     this.onTap,
     this.destructive = false,
@@ -32,6 +33,10 @@ class PdlSettingRow extends StatelessWidget {
   final String title;
   final String? subtitle;
   final IconData? icon;
+
+  /// Une image en tête de ligne — le logo d'un service connecté. Elle remplace
+  /// [icon] quand les deux sont fournis ; sa taille est celle de l'appelant.
+  final Widget? leading;
   final Widget? trailing;
   final VoidCallback? onTap;
 
@@ -60,7 +65,10 @@ class PdlSettingRow extends StatelessWidget {
       padding: padding,
       child: Row(
         children: <Widget>[
-          if (icon != null) ...<Widget>[
+          if (leading != null) ...<Widget>[
+            leading!,
+            const SizedBox(width: 12),
+          ] else if (icon != null) ...<Widget>[
             Icon(icon, size: 20, color: foreground),
             const SizedBox(width: 12),
           ],

@@ -3,6 +3,7 @@ package fr.pedalons.service.trip;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.ConflictException;
+import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
@@ -91,12 +92,17 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     entity.getStages().stream()
         .filter(stage -> !stage.isDeleted() && stage.getRoute() != null)
         .forEach(stage -> taggedIds.add(stage.getRoute().getId()));
+    List<TeamEntity> commented = new ArrayList<>();
+    commented.add(entity);
+    entity.getStages().stream().filter(stage -> !stage.isDeleted()).forEach(commented::add);
     // One indexed lookup resolves the "registered" flag; anonymous callers cost nothing.
     return TripDto.from(
         entity,
         assetService,
         participationLookup.forTrip(entity.getId()),
-        commentCountLookup.forEntity(entity),
+        // The trip's count and each live stage's, in the same two queries (docs/LEDGER_*.md
+        // API-11).
+        commentCountLookup.forEntities(commented),
         participantPreviewLookup.forTrip(entity.getId()),
         tagLookup.forContents(taggedIds));
   }
@@ -122,6 +128,32 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
   @Override
   public Trip findBySlug(Team team, String entitySlug) {
     return super.findBySlug(team, entitySlug);
+  }
+
+  /**
+   * A live stage, by its slug — unique within the team, like the trip's — read like its trip: a
+   * stage of a draft, deleted or hidden trip is not found. What its comment thread hangs off
+   * (docs/LEDGER_*.md API-11).
+   */
+  public TripStage findStageBySlug(Team team, String stageSlug) {
+    TripStage stage =
+        tripStageRepository
+            .findBySlugAndTeam(stageSlug, team.getId())
+            .orElseThrow(() -> new NotFoundException(EntityType.TRIP_STAGE, stageSlug));
+    boolean readable =
+        tripRepository
+            .findByTeamAndId(
+                pedalonsContext.getDomainId(),
+                team.getId(),
+                pedalonsContext.getUserIdNullable(),
+                stage.getTrip().getId(),
+                isIncludeDeleted(team),
+                isPlatformAdmin())
+            .isPresent();
+    if (!readable) {
+      throw new NotFoundException(EntityType.TRIP_STAGE, stageSlug);
+    }
+    return stage;
   }
 
   @CheckAccess(entityType = EntityType.TRIP, action = ActionType.READ)

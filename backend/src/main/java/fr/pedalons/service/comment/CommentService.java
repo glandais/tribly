@@ -65,6 +65,8 @@ public class CommentService {
       return routeService.findBySlug(team, slug);
     } else if (entityType == EntityType.TRIP) {
       return tripService.findBySlug(team, slug);
+    } else if (entityType == EntityType.TRIP_STAGE) {
+      return tripService.findStageBySlug(team, slug);
     }
     throw new NotFoundException(entityType, slug);
   }

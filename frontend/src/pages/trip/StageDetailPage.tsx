@@ -26,6 +26,7 @@ import { EntityLogo } from '../../components/common/EntityLogo'
 import { FormattedDateTime } from '../../components/common/FormattedDate'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { ShareButton } from '../../components/common/ShareButton'
+import { CommentSection } from '../../components/comment'
 import { STATUS_COLORS } from '@/lib/badgeColors.generated'
 
 export function StageDetailPage() {
@@ -107,6 +108,7 @@ export function StageDetailPage() {
   const isAdmin = team?.role === 'ADMIN'
   const isOrganizer = team?.role === 'ORGANIZER'
   const canEdit = isAdmin || isOrganizer
+  const isMember = !!team?.role
 
   return (
     <Container size="xl" py="xl">
@@ -229,6 +231,19 @@ export function StageDetailPage() {
                 teamSlug={teamSlug}
                 showInfo={false}
                 fullscreenPath={paths.stageMap(teamSlug!, tripSlug!, stageSlug!)}
+              />
+            </Box>
+          )}
+
+          {/* The stage's own thread, apart from the trip's — members only, like every thread */}
+          {isMember && team && (
+            <Box>
+              <CommentSection
+                teamSlug={teamSlug!}
+                teamName={team.name}
+                entityType="stages"
+                entitySlug={stageSlug!}
+                isOrganizer={canEdit}
               />
             </Box>
           )}

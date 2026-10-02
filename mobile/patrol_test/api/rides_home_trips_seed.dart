@@ -63,6 +63,33 @@ extension RidesHomeTripsSeed on BackendClient {
     ],
   });
 
+  /// The top-level comments of the stage of [stageSlug] — its own thread, addressed by the stage's
+  /// slug alone (docs/LEDGER_*.md API-11).
+  Future<List<Json>> stageComments(
+    TestUser who,
+    String teamSlug,
+    String stageSlug,
+  ) async =>
+      ((await get(
+                who,
+                '/api/teams/$teamSlug/stages/$stageSlug/comments',
+              ))['items']
+              as List)
+          .cast<Json>();
+
+  /// The top-level comments of the trip itself.
+  Future<List<Json>> tripComments(
+    TestUser who,
+    String teamSlug,
+    String tripSlug,
+  ) async =>
+      ((await get(
+                who,
+                '/api/teams/$teamSlug/trips/$tripSlug/comments',
+              ))['items']
+              as List)
+          .cast<Json>();
+
   /// The trip as [who] reads it — `registered` is the caller's own participation.
   Future<Json> trip(TestUser who, String teamSlug, String tripSlug) =>
       get(who, '/api/teams/$teamSlug/trips/$tripSlug');

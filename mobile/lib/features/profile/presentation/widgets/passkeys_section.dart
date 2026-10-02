@@ -104,7 +104,7 @@ class _PasskeysSectionState extends ConsumerState<PasskeysSection> {
   String _subtitle(PasskeyDto passkey) {
     final DateTime? last = passkey.lastUsedAt == null
         ? null
-        : DateTime.tryParse(passkey.lastUsedAt!)?.toLocal();
+        : AppFormatters.tryParseDisplayTime(passkey.lastUsedAt!);
     if (last != null) {
       return 'profile.passkeys.lastUsed'.tr(
         namedArgs: <String, String>{'date': AppFormatters.formatLongDate(last)},

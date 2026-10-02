@@ -191,6 +191,12 @@ final tripCommentsClientProvider = Provider<TripCommentsClient>((ref) {
   return ref.watch(apiClientProvider).tripComments;
 });
 
+final tripStageCommentsClientProvider = Provider<TripStageCommentsClient>((
+  ref,
+) {
+  return ref.watch(apiClientProvider).tripStageComments;
+});
+
 final notificationsClientProvider = Provider<NotificationsClient>((ref) {
   return ref.watch(apiClientProvider).notifications;
 });

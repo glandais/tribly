@@ -25,13 +25,20 @@ import {
   deleteRouteComment,
   getListRouteCommentsQueryKey,
 } from '../api/endpoints/route-comments/route-comments'
+import {
+  listTripStageComments,
+  createTripStageComment,
+  deleteTripStageComment,
+  getListTripStageCommentsQueryKey,
+} from '../api/endpoints/trip-stage-comments/trip-stage-comments'
 import { SortDirection } from '@/api/dto'
 import type { CommentDto, CommentListResponse, CommentRequest } from '@/api/dto'
 
 // Re-export types for convenience
 export type { CommentDto, CommentListResponse, CommentRequest }
 
-export type EntityType = 'rides' | 'posts' | 'trips' | 'routes'
+/** `stages` is a trip stage, addressed by its slug alone: it is unique within the team. */
+export type EntityType = 'rides' | 'posts' | 'trips' | 'routes' | 'stages'
 
 /** Top-level comments per request. The contract caps `size` at 100. */
 export const COMMENT_PAGE_SIZE = 20
@@ -72,6 +79,8 @@ function listComments(
       return listTripComments(teamSlug, entitySlug, params)
     case 'routes':
       return listRouteComments(teamSlug, entitySlug, params)
+    case 'stages':
+      return listTripStageComments(teamSlug, entitySlug, params)
   }
 }
 
@@ -85,6 +94,8 @@ function getQueryKey(teamSlug: string, entityType: EntityType, entitySlug: strin
       return getListTripCommentsQueryKey(teamSlug, entitySlug)
     case 'routes':
       return getListRouteCommentsQueryKey(teamSlug, entitySlug)
+    case 'stages':
+      return getListTripStageCommentsQueryKey(teamSlug, entitySlug)
   }
 }
 
@@ -155,6 +166,8 @@ export function useCreateComment(
           return await createTripComment(teamSlug, entitySlug, data)
         case 'routes':
           return await createRouteComment(teamSlug, entitySlug, data)
+        case 'stages':
+          return await createTripStageComment(teamSlug, entitySlug, data)
       }
     },
     onSuccess: () => {
@@ -183,6 +196,8 @@ export function useDeleteComment(
           return await deleteTripComment(teamSlug, entitySlug, commentId)
         case 'routes':
           return await deleteRouteComment(teamSlug, entitySlug, commentId)
+        case 'stages':
+          return await deleteTripStageComment(teamSlug, entitySlug, commentId)
       }
     },
     onSuccess: () => {

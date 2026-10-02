@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../api/generated/export.dart';
 import '../data/calendar_repository.dart';
+import '../../../core/utils/formatters.dart';
 
 /// Les trois valeurs de la chip de type, **exclusives entre elles**.
 ///
@@ -93,12 +94,14 @@ class CalendarMonth {
         CalendarTypeFilter.trips => event.type == 'TRIP_STAGE',
       };
 
-  /// Le jour local d'un événement — **fuseau de l'appareil**, parité web
-  /// (§1.0.3-11). `CalendarEventDto.start` est un instant UTC ; le convertir
+  /// Le jour local d'un événement — **fuseau d'affichage**, parité web
+  /// (§1.0.3-11, docs/LEDGER_*.md API-15). `CalendarEventDto.start` est un instant UTC ; le convertir
   /// une fois ici est la seule conversion, et c'est ce qui interdit la double
   /// conversion que le cas de test §5.3-3 traque.
   static DateTime dayOf(CalendarEventDto event) {
-    final DateTime local = DateTime.parse(event.start).toLocal();
+    final DateTime local = AppFormatters.toDisplayTime(
+      DateTime.parse(event.start),
+    );
     return DateTime(local.year, local.month, local.day);
   }
 
@@ -132,7 +135,7 @@ final calendarMonthProvider = FutureProvider.autoDispose
 /// Le mois affiché, et le jour sélectionné dans l'agenda.
 final calendarMonthKeyProvider = StateProvider.autoDispose
     .family<CalendarMonthKey, String?>((ref, teamSlug) {
-      final DateTime now = DateTime.now();
+      final DateTime now = AppFormatters.displayNow();
       return CalendarMonthKey(
         year: now.year,
         month: now.month,

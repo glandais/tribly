@@ -338,7 +338,9 @@ class _RouteDetailPageState extends ConsumerState<RouteDetailPage> {
 
   Widget _information(RouteDetailDto route) {
     final PdlColors c = context.pdl;
-    final DateTime? createdAt = DateTime.tryParse(route.createdAt)?.toLocal();
+    final DateTime? createdAt = AppFormatters.tryParseDisplayTime(
+      route.createdAt,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

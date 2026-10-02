@@ -19,6 +19,8 @@ import fr.pedalons.domain.notification.NotificationDelivery;
 import fr.pedalons.domain.notification.NotificationEventEntry;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
+import fr.pedalons.domain.trip.Trip;
+import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.dto.comments.request.CommentRequest;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.notifications.request.NotificationPreferenceUpdate;
@@ -372,6 +374,35 @@ class NotificationPhase5Test extends AbstractResourceTest {
         notifications.notificationTypesFor(user1));
     assertEquals(
         List.of(NotificationType.COMMENT_REPLY), notifications.notificationTypesFor(user3));
+  }
+
+  /**
+   * A stage's thread is its trip's (docs/LEDGER_*.md API-11): the trip's author is told, and the
+   * notification opens the trip — a stage has no single-slug page.
+   */
+  @Test
+  void topLevelCommentOnAStage_notifiesTheTripAuthor_andOpensTheTrip() {
+    Trip trip = dataService.createTrip(team1, user1, "Voyage commente", nextWeek);
+    TripStage stage = dataService.createTripStage(user2, trip, "Etape commentee");
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .contentType("application/json")
+        .body(new CommentRequest("On dort où ?", null))
+        .when()
+        .post("/api/teams/" + team1Slug + "/stages/" + stage.getSlug() + "/comments")
+        .then()
+        .statusCode(201);
+    drain();
+
+    assertEquals(
+        List.of(NotificationType.COMMENT_ON_MY_PUBLICATION),
+        notifications.notificationTypesFor(user1));
+    assertTrue(notifications.notificationTypesFor(user2).isEmpty(), "the stage's creator");
+    NotificationEventEntry event = notifications.eventEntries().getFirst();
+    assertEquals(NotificationSubjectType.TRIP, event.getSubjectType());
+    assertEquals(trip.getSlug(), event.getSubjectSlug());
+    assertEquals("On dort où ?", event.getExcerpt());
   }
 
   // ------------------------------------------------------------------ TEAM_INVITATION

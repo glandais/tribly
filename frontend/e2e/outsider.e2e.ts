@@ -22,7 +22,7 @@ import {
 import { expect, test, unique } from './support/fixtures'
 import { commentOnPost, newPost, postPath } from './support/posts'
 import { newRide, postComments, ridePath } from './support/rides'
-import { newTrip, tripPath } from './support/routes'
+import { newTrip, stagePath, tripPath } from './support/routes'
 import {
   authState,
   rawDocument,
@@ -57,8 +57,14 @@ const secretText = (label: string) => `${label}${randomBytes(8).toString('hex')}
 
 type Kind = 'ride' | 'trip' | 'post'
 
+/**
+ * What carries a thread: the three kinds, and a trip's stage (docs/LEDGER_*.md API-11), whose own
+ * thread is the members' just the same.
+ */
+type Commented = Kind | 'stage'
+
 interface Entity {
-  kind: Kind
+  kind: Commented
   name: string
   path: string
   /** The comments endpoint of the entity. */
@@ -71,9 +77,9 @@ interface Scene {
   member: AuthResponse
   outsider: AuthResponse
   /** PUBLIC entities, each with a member's comment on it. */
-  open: Record<Kind, Entity>
+  open: Record<Commented, Entity>
   /** The text of the member's comment on each open entity. */
-  comments: Record<Kind, string>
+  comments: Record<Commented, string>
   /** The same kinds left at TEAM visibility, and their texts. */
   closed: Record<Kind, Entity & { text: string }>
   ad: AdDto
@@ -104,17 +110,22 @@ test.beforeAll(async () => {
     }),
     newPost(owner, slug, unique('Article ouvert'), { visibility: 'PUBLIC' }),
   ])
-  const comments: Record<Kind, string> = {
+  const comments: Record<Commented, string> = {
     ride: secretText('CommentaireSortie'),
     trip: secretText('CommentaireVoyage'),
     post: secretText('CommentaireArticle'),
+    stage: secretText('CommentaireEtape'),
   }
+  const stage = trip.stages[0]
   await Promise.all([
     postComments(member, slug, ride.slug, [comments.ride]),
     apiPost<CommentDto>(member, `/api/teams/${slug}/trips/${trip.slug}/comments`, {
       content: comments.trip,
     } satisfies CommentRequest),
     commentOnPost(member, slug, post.slug, comments.post),
+    apiPost<CommentDto>(member, `/api/teams/${slug}/stages/${stage.slug}/comments`, {
+      content: comments.stage,
+    } satisfies CommentRequest),
   ])
 
   const closedText = {
@@ -164,7 +175,17 @@ test.beforeAll(async () => {
     teamName,
     member,
     outsider,
-    open: { ride: entity('ride', ride), trip: entity('trip', trip), post: entity('post', post) },
+    open: {
+      ride: entity('ride', ride),
+      trip: entity('trip', trip),
+      post: entity('post', post),
+      stage: {
+        kind: 'stage',
+        name: stage.name,
+        path: stagePath(slug, trip.slug, stage.slug),
+        commentsApi: `/api/teams/${slug}/stages/${stage.slug}/comments`,
+      },
+    },
     comments,
     closed: {
       ride: { ...entity('ride', closedRide), text: closedText.ride },
@@ -184,6 +205,8 @@ const VISITORS = [
 ] as const
 
 const KINDS: readonly Kind[] = ['ride', 'trip', 'post']
+
+const COMMENTED: readonly Commented[] = [...KINDS, 'stage']
 
 /** The server document of `path`, as `auth` (or nobody) gets it, checked to be a real render. */
 async function documentAs(path: string, auth: AuthResponse | undefined): Promise<RawDocument> {
@@ -234,7 +257,7 @@ async function statusOf(call: Promise<unknown>): Promise<number | 'ok'> {
 
 test.describe('public content, seen from outside the team', () => {
   test('a member gets each entity with its comments, server document included (positive control)', async () => {
-    for (const kind of KINDS) {
+    for (const kind of COMMENTED) {
       const { path, name } = scene.open[kind]
       const document = await documentAs(path, scene.member)
       const markup = ssrOutlet(document.html)
@@ -247,7 +270,7 @@ test.describe('public content, seen from outside the team', () => {
   })
 
   for (const { visitor, session } of VISITORS) {
-    for (const kind of KINDS) {
+    for (const kind of COMMENTED) {
       test(`${visitor} on a public ${kind}: no comment in the server document, nor through the API`, async () => {
         const auth = session()
         const { path, name, commentsApi } = scene.open[kind]

@@ -29,4 +29,6 @@ export interface TripStageDto {
   stageIndex: number
   /** How many live stages the trip has — the '/ 5' of 'Day 2 / 5'. */
   stageCount: number
+  /** Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount. */
+  commentCount?: number
 }

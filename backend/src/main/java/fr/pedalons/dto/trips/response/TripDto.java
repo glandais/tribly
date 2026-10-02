@@ -267,6 +267,7 @@ public class TripDto implements PublicationDto {
    * @param participants the count and first participants of the trip, resolved by {@code
    *     ParticipantPreviewLookup} — never by walking {@code trip.getParticipations()}, which
    *     hydrates every registration (docs/LEDGER_*.md API-12)
+   * @param commentCounts the comment counts of the trip and of its live stages, resolved together
    * @param tags the tags of the trip and of its stages' routes, resolved together in one query by
    *     {@code TagLookup}
    */
@@ -288,7 +289,12 @@ public class TripDto implements PublicationDto {
             .mapToObj(
                 i ->
                     TripStageDto.from(
-                        liveStages.get(i), assetService, tags, i + 1, liveStages.size()))
+                        liveStages.get(i),
+                        assetService,
+                        tags,
+                        commentCounts,
+                        i + 1,
+                        liveStages.size()))
             .toList();
     List<PublicUserDto> participantDtos = participants.users();
 
