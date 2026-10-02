@@ -13,6 +13,12 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove"/>
 
+    <!-- geolocator_android (≥ 5.1) declares FOREGROUND_SERVICE_LOCATION and its
+         GeolocatorLocationService for background tracking. The app only reads a one-shot coarse
+         position, never starts that service, and Play refuses an upload carrying a foreground
+         service permission without a matching declaration — so both are stripped. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" tools:node="remove"/>
+
     <!-- Push notifications (Android 13+). Asked for from the notifications screen, never at
          launch: the system dialog is shown once and for all, and a member who has not yet seen
          what the app notifies about has no reason to say yes. -->
@@ -25,6 +31,10 @@
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules">
+        <!-- See FOREGROUND_SERVICE_LOCATION above. -->
+        <service
+            android:name="com.baseflow.geolocator.GeolocatorLocationService"
+            tools:node="remove"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
