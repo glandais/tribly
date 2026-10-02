@@ -21,9 +21,11 @@ void main() {
       expect(modules.device.showsHammerheadError, isFalse);
 
       // What the OAuth callback sends back after a refusal at Hammerhead: the same step, saying so.
+      // The step is already on screen: wait for the error, not the step, or the page underneath
+      // answers before the link has opened.
       await openLink($, '${Paths.deviceVerifyKaroo()}?gps_error=access_denied');
+      await modules.device.waitUntilHammerheadError();
       await modules.device.waitUntilHammerheadStep();
-      expect(modules.device.showsHammerheadError, isTrue);
       expect(modules.device.showsPaired, isFalse);
     },
   );

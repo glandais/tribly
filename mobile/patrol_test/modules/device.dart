@@ -28,6 +28,15 @@ final class Device extends Module {
   /// Whether the Hammerhead step says why the last attempt failed.
   bool get showsHammerheadError => $(keys.device.hammerheadError).exists;
 
+  /// Waits for the Hammerhead step to say why the last attempt failed. A link opened onto a page
+  /// already at that step lands a frame or more later: [waitUntilHammerheadStep] would return on
+  /// the page underneath.
+  Future<void> waitUntilHammerheadError() async {
+    await $(
+      keys.device.hammerheadError,
+    ).waitUntilExists(timeout: const Duration(seconds: 10));
+  }
+
   /// Existence too: the error state is the same kind of spaced column.
   Future<void> waitUntilCodeIsRefused() async {
     await $(
