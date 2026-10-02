@@ -13,6 +13,7 @@ import fr.pedalons.dto.gps.response.GpsOAuthUrlResponse;
 import fr.pedalons.dto.gps.response.GpsServiceConnectionDto;
 import fr.pedalons.dto.gps.response.RouteUploadResponse;
 import fr.pedalons.enums.AssetType;
+import fr.pedalons.enums.GpsConnectReturn;
 import fr.pedalons.enums.GpsOAuthVersion;
 import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.infrastructure.gps.GarminClient;
@@ -108,6 +109,16 @@ public class GpsService {
   @Logged
   @Transactional
   public GpsOAuthUrlResponse initiateOAuth(GpsServiceType serviceType) {
+    return initiateOAuth(serviceType, GpsConnectReturn.PROFILE);
+  }
+
+  /**
+   * Initiate OAuth flow for connecting a GPS service, the callback then sending the browser back to
+   * {@code returnTo}.
+   */
+  @Logged
+  @Transactional
+  public GpsOAuthUrlResponse initiateOAuth(GpsServiceType serviceType, GpsConnectReturn returnTo) {
     // Check if GPS service is configured for this domain
     if (!credentialService.isServiceAvailable(serviceType)) {
       throw new BusinessException(ErrorCode.GPS_SERVICE_NOT_CONFIGURED);
@@ -139,7 +150,7 @@ public class GpsService {
             + serviceType.name().toLowerCase();
 
     if (oauthVersion == GpsOAuthVersion.OAUTH1) {
-      return initiateOAuth1(user, serviceType, redirectUri, domainId);
+      return initiateOAuth1(user, serviceType, redirectUri, domainId, returnTo);
     }
 
     // Generate state for CSRF protection
@@ -168,7 +179,8 @@ public class GpsService {
             Instant.now().plusSeconds(600),
             codeVerifier,
             redirectUri,
-            domainId));
+            domainId,
+            returnTo));
 
     return new GpsOAuthUrlResponse(authUrl);
   }
@@ -178,7 +190,11 @@ public class GpsService {
    * the request token is what the state row is found by — as unguessable, and as single-use.
    */
   private GpsOAuthUrlResponse initiateOAuth1(
-      User user, GpsServiceType serviceType, String redirectUri, Long domainId) {
+      User user,
+      GpsServiceType serviceType,
+      String redirectUri,
+      Long domainId,
+      GpsConnectReturn returnTo) {
     requireGarmin(serviceType);
     GarminOAuth1Client.Token requestToken = garminOAuth1Client.requestToken(redirectUri);
 
@@ -190,11 +206,29 @@ public class GpsService {
             Instant.now().plusSeconds(600),
             null,
             redirectUri,
-            domainId);
+            domainId,
+            returnTo);
     oauthState.setRequestTokenSecretEncrypted(encryptionService.encrypt(requestToken.secret()));
     oauthStateRepository.persist(oauthState);
 
     return new GpsOAuthUrlResponse(garminOAuth1Client.authorizationUrl(requestToken.token()));
+  }
+
+  /**
+   * Where the callback carrying {@code state} sends the browser back to — read before
+   * {@link #handleCallback} consumes the state, and for a refusal, which never reaches it. An
+   * OAuth 1.0a callback passes its request token, which is what its state row is keyed by. An
+   * unknown, expired or foreign state, or one written before API-63, gives the profile.
+   */
+  @Transactional
+  @Public
+  public GpsConnectReturn findReturnTarget(String state) {
+    Long domainId = pedalonsContext.getDomainId();
+    return oauthStateRepository
+        .findValidByState(state)
+        .filter(s -> s.getDomainId().equals(domainId))
+        .map(GpsOAuthState::getReturnTo)
+        .orElse(GpsConnectReturn.PROFILE);
   }
 
   /**

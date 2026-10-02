@@ -1,6 +1,7 @@
 package fr.pedalons.domain.gps;
 
 import fr.pedalons.domain.user.User;
+import fr.pedalons.enums.GpsConnectReturn;
 import fr.pedalons.enums.GpsServiceType;
 import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.*;
@@ -49,6 +50,11 @@ public class GpsOAuthState {
   @Column(name = "domain_id", nullable = false)
   private Long domainId;
 
+  /** {@code null} on rows written before API-63: read as {@link GpsConnectReturn#PROFILE}. */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "return_to", length = 20)
+  private @Nullable GpsConnectReturn returnTo;
+
   @Column(name = "created_at", nullable = false)
   private Instant createdAt = Instant.now();
 
@@ -59,7 +65,8 @@ public class GpsOAuthState {
       Instant expiresAt,
       @Nullable String codeVerifier,
       String redirectUri,
-      Long domainId) {
+      Long domainId,
+      GpsConnectReturn returnTo) {
     this.user = user;
     this.state = state;
     this.serviceType = serviceType;
@@ -67,6 +74,7 @@ public class GpsOAuthState {
     this.codeVerifier = codeVerifier;
     this.redirectUri = redirectUri;
     this.domainId = domainId;
+    this.returnTo = returnTo;
   }
 
   public boolean isValid() {

@@ -85,9 +85,11 @@ class _GpsServicesClient implements GpsServicesClient {
   @override
   Future<GpsOAuthUrlResponse> getConnectUrl({
     required GpsServiceType serviceType,
+    GpsConnectReturn? returnTo,
   }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'returnTo': returnTo?.toJson()};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<GpsOAuthUrlResponse>(

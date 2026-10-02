@@ -212,12 +212,21 @@ private fun CodeContent(deviceCode: DeviceCodeResponse) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly,
     ) {
-        Text(
-            text = stringResource(R.string.auth_connect_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = stringResource(R.string.auth_connect_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+            // Both steps announced up front: the phone chains them (docs/LEDGER_*.md API-63).
+            Text(
+                text = stringResource(R.string.auth_steps),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
 
         // QR Code
         qrBitmap?.let { bitmap ->

@@ -259,6 +259,16 @@ export const routesConfig: RoutesConfig = [
     prefetch: (queryClient) => prefetchDeviceVerify(queryClient),
   },
   {
+    // The Hammerhead step of a Karoo pairing alone (docs/LEDGER_*.md API-63).
+    id: 'device-hammerhead',
+    paths: pathVariants.deviceHammerhead(),
+    component: pages.DeviceVerifyPage,
+    auth: 'authenticated',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('device.title') },
+    prefetch: (queryClient) => prefetchDeviceVerify(queryClient),
+  },
+  {
     id: 'verify-email',
     paths: pathVariants.verifyEmail(),
     component: pages.VerifyEmailPage,

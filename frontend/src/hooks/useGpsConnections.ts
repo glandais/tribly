@@ -7,7 +7,7 @@ import { AXIOS_INSTANCE } from '@/lib/axiosInstance'
 import { getGetMeQueryKey } from '@/api/endpoints/users/users'
 import { useGetAvailableServices } from '@/api/endpoints/gps-services/gps-services'
 import { uploadToGpsService } from '@/api/endpoints/gpx-previews/gpx-previews'
-import type { GpsServiceType, GpsServiceConnectionDto } from '@/api/dto'
+import type { GpsConnectReturn, GpsServiceType, GpsServiceConnectionDto } from '@/api/dto'
 
 interface GpsOAuthUrlResponse {
   authorizationUrl: string
@@ -55,23 +55,28 @@ export function useGpsConnections() {
   )
 
   /**
-   * Initiate OAuth flow for connecting a GPS service.
-   * Opens the authorization URL in a new window/tab.
+   * Initiate OAuth flow for connecting a GPS service: the page leaves for the provider, whose
+   * callback brings the browser back to `returnTo` — the profile unless said otherwise
+   * (docs/LEDGER_*.md API-63).
    */
-  const initiateConnect = useCallback(async (serviceType: GpsServiceType) => {
-    try {
-      const response = await AXIOS_INSTANCE.get<GpsOAuthUrlResponse>(
-        `/api/gps/connect/${serviceType}`
-      )
-      // Redirect to the authorization URL
-      window.location.href = response.data.authorizationUrl
-    } catch {
-      notifications.show({
-        message: i18next.t('gps.notifications.connectFailed'),
-        color: 'red',
-      })
-    }
-  }, [])
+  const initiateConnect = useCallback(
+    async (serviceType: GpsServiceType, returnTo?: GpsConnectReturn) => {
+      try {
+        const response = await AXIOS_INSTANCE.get<GpsOAuthUrlResponse>(
+          `/api/gps/connect/${serviceType}`,
+          { params: returnTo ? { returnTo } : undefined }
+        )
+        // Redirect to the authorization URL
+        window.location.href = response.data.authorizationUrl
+      } catch {
+        notifications.show({
+          message: i18next.t('gps.notifications.connectFailed'),
+          color: 'red',
+        })
+      }
+    },
+    []
+  )
 
   /**
    * Disconnect a GPS service.

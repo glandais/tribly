@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test'
 import type {
+  AdminGpsCredentialDto,
+  CreateGpsCredentialRequest,
   DeviceCodeResponse,
   DeviceRequest,
   DeviceTokenRequest,
@@ -9,6 +11,8 @@ import type {
   VerifyResponse,
 } from '../../src/api/dto'
 import { ApiError, apiGet, apiGetOrNull, apiPost } from './api'
+import { roleSession } from './data'
+import { adminDomain } from './platform-admin'
 
 /**
  * The device side of the GPS pairing (RFC 8628, DeviceOAuthResource): what the Garmin and Karoo
@@ -92,11 +96,63 @@ function countPosts(page: Page, path: string): () => number {
   return () => count
 }
 
+/**
+ * Hammerhead offered on `localhost`, as the platform admin configures it: what makes the Karoo page
+ * chain its Hammerhead step (docs/LEDGER_*.md API-63). Get-or-create — it outlives a run like the
+ * seed, and the desktop and mobile projects may race to add it. The client id is a dummy: no test
+ * reaches Hammerhead, the browser's trip there is intercepted (see {@link HAMMERHEAD_AUTHORIZE}).
+ */
+export async function ensureHammerheadOffered(): Promise<void> {
+  const admin = await roleSession('admin')
+  const domain = await adminDomain('localhost')
+  const path = `/api/admin/domains/${domain.id}/gps-credentials`
+  const has = async () =>
+    (await apiGet<AdminGpsCredentialDto[]>(admin, path)).some(
+      (c) => c.serviceType === 'HAMMERHEAD' && c.active
+    )
+  if (await has()) return
+  try {
+    await apiPost<AdminGpsCredentialDto>(admin, path, {
+      serviceType: 'HAMMERHEAD',
+      clientId: 'e2e-hammerhead',
+      clientSecret: 'e2e-hammerhead-secret',
+      active: true,
+    } satisfies CreateGpsCredentialRequest)
+  } catch (error) {
+    // The other project created it in between.
+    if (!(await has())) throw error
+  }
+}
+
+/** Hammerhead's authorization page (HammerheadClient.AUTH_URL), where « Associer » sends the rider. */
+export const HAMMERHEAD_AUTHORIZE = 'https://api.hammerhead.io/v1/auth/oauth/authorize**'
+
+/**
+ * Plays Hammerhead for `page`: its authorization page answers at once by sending the browser back
+ * to the `redirect_uri` it was given, with the `state` and `error=access_denied` — a rider who
+ * refused. A successful exchange cannot be played (the backend would call Hammerhead itself).
+ * Returns the authorization URLs the page was sent to.
+ */
+export async function refuseAtHammerhead(page: Page): Promise<URL[]> {
+  const visits: URL[] = []
+  await page.route(HAMMERHEAD_AUTHORIZE, async (route) => {
+    const url = new URL(route.request().url())
+    visits.push(url)
+    const back = new URL(url.searchParams.get('redirect_uri')!)
+    back.searchParams.set('state', url.searchParams.get('state')!)
+    back.searchParams.set('error', 'access_denied')
+    await route.fulfill({ status: 302, headers: { location: back.toString() } })
+  })
+  return visits
+}
+
 /** The verification page's card headings, as the rider reads them. */
 export const DEVICE_PAGE = {
   confirm: 'Autoriser cet appareil ?',
   denied: 'Demande refusée',
   success: 'Connexion réussie !',
+  hammerhead: 'Dernière étape : associer Hammerhead',
+  ready: 'Votre Karoo est prêt',
   error: 'Erreur',
   manualEntry: 'Entrez le code',
 } as const

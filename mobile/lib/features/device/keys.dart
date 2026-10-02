@@ -14,4 +14,9 @@ class DeviceVerifyKeys {
   final authorizeButton = const _DeviceVerifyKey('authorizeButton');
   final denyButton = const _DeviceVerifyKey('denyButton');
   final denied = const _DeviceVerifyKey('denied');
+  final hammerhead = const _DeviceVerifyKey('hammerhead');
+  final connectHammerheadButton = const _DeviceVerifyKey(
+    'connectHammerheadButton',
+  );
+  final hammerheadError = const _DeviceVerifyKey('hammerheadError');
 }

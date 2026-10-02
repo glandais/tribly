@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { notifications } from '@mantine/notifications'
 import { useTranslation } from 'react-i18next'
 import {
   Stack,
@@ -45,6 +47,32 @@ export function GpsConnectionsManager() {
   } = useGpsConnections()
 
   const [disconnectServiceType, setDisconnectServiceType] = useState<GpsServiceType | null>(null)
+
+  // The OAuth callback lands here with its outcome in the query (docs/LEDGER_*.md API-63): say it
+  // once, then drop it so a reload does not say it again.
+  const [searchParams, setSearchParams] = useSearchParams()
+  useEffect(() => {
+    const connected = searchParams.get('gps_connected')
+    const error = searchParams.get('gps_error')
+    if (connected === null && error === null) return
+    const service = connected ? t(`gps.services.${connected}`, { defaultValue: connected }) : ''
+    notifications.show(
+      connected
+        ? { message: t('gps.notifications.connected', { service }), color: 'green' }
+        : {
+            message: t(
+              error === 'access_denied'
+                ? 'gps.notifications.returnDenied'
+                : 'gps.notifications.returnFailed'
+            ),
+            color: 'red',
+          }
+    )
+    const next = new URLSearchParams(searchParams)
+    next.delete('gps_connected')
+    next.delete('gps_error')
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams, t])
 
   const handleConnect = (serviceType: GpsServiceType) => {
     initiateConnect(serviceType)

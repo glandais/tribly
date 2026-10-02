@@ -49,6 +49,9 @@ final List<_LinkCase> _cases = [
   _LinkCase('deviceVerifyKaroo', PathVariants.deviceVerifyKaroo(), [
     PathVariants.home(),
   ]),
+  _LinkCase('deviceHammerhead', PathVariants.deviceHammerhead(), [
+    PathVariants.home(),
+  ]),
 
   // La boîte de réception vit sous l'accueil, d'où sa cloche l'ouvre.
   _LinkCase('notifications', PathVariants.notifications(), [

@@ -55,6 +55,7 @@ class Paths {
 
   static String deviceVerifyGarmin() => '/garmin';
   static String deviceVerifyKaroo() => '/karoo';
+  static String deviceHammerhead() => '/karoo/hammerhead';
   static String apps() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -302,6 +303,10 @@ class PathVariants {
   static Map<String, String> deviceVerifyKaroo() => {
     'en': '/karoo',
     'fr': '/karoo',
+  };
+  static Map<String, String> deviceHammerhead() => {
+    'en': '/karoo/hammerhead',
+    'fr': '/karoo/hammerhead',
   };
   static Map<String, String> apps() => {'en': '/apps', 'fr': '/applications'};
   static Map<String, String> privacy() => {

@@ -117,7 +117,7 @@ to what the app does — it reads and takes part, it doesn't edit, and it has no
 | #5 — notifications | `notification_post_test` (bell badge, entry in the team's name, opens the post, reads it), `notification_mute_test` |
 | #6 — moderation | `report_post_test` (report from the post, three reports hide it), `block_user_test` (block a comment's author, unblock from the profile) |
 | #7 — slug change | `slug_change_test` — links under the old team and ride slugs; a member opening the team by its old slug is offered « Quitter » (the page moves onto the current slug, one membership state) |
-| #8 — device pairing | `device_link_test` (`/karoo?code=`), `device_manual_code_test` (unknown code, « Réessayer », lowercase), `device_link_signed_out_test` (a link opened signed out survives the login: the device is paired once signed in) |
+| #8 — device pairing | `device_link_test` (`/karoo?code=`, then the Hammerhead step — ledger `API-63`), `device_hammerhead_test` (the Karoo's fallback `/karoo/hammerhead`, a refused OAuth back on `/karoo?gps_error=`), `device_manual_code_test` (unknown code, « Réessayer », lowercase), `device_link_signed_out_test` (a link opened signed out survives the login: the device is paired once signed in) |
 
 Beyond the P0 — the P1/P2 of the audit and the app's own screens. A **[known defect]** test would
 be a `testAppKnownDefect`, pinning a defect of the app with the evidence in its doc comment; none is

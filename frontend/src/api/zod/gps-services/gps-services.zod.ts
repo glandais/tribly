@@ -8,7 +8,7 @@ export const GetAvailableServicesResponseItem = zod.enum(['HAMMERHEAD', 'GARMIN'
 export const GetAvailableServicesResponse = zod.array(GetAvailableServicesResponseItem)
 
 /**
- * Handles OAuth callback from GPS service and redirects to frontend. OAuth 2.0 brings code and state; OAuth 1.0a (Garmin, when the domain's credential says so) brings oauth_token and oauth_verifier.
+ * Handles OAuth callback from GPS service and redirects to the frontend page chosen by the returnTo of the connect call (the profile by default). OAuth 2.0 brings code and state; OAuth 1.0a (Garmin, when the domain's credential says so) brings oauth_token and oauth_verifier.
  * @summary OAuth callback
  */
 export const HandleCallbackParams = zod.object({
@@ -31,6 +31,13 @@ export const HandleCallbackResponse = zod.void()
  */
 export const GetConnectUrlParams = zod.object({
   serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
+})
+
+export const GetConnectUrlQueryParams = zod.object({
+  returnTo: zod
+    .enum(['PROFILE', 'DEVICE_KAROO'])
+    .optional()
+    .describe('Where the OAuth callback sends the browser back to. PROFILE when absent.'),
 })
 
 export const GetConnectUrlResponse = zod

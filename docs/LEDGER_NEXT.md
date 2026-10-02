@@ -266,6 +266,20 @@ notifications n'a pas de test e2e : c'est `NOTIF-4`.
 
 ## API — Contrat d'API et backend
 
+### `API-63` Onboarding d'un Karoo refait de bout en bout (M, backend + web + mobile + Karoo)
+
+Associer un Karoo laisse l'utilisateur sans Hammerhead sans qu'il le sache : l'app mobile ne le
+propose jamais, le web le propose trop tard (le Karoo a déjà affiché son second QR), et ce QR mène
+au profil sans rien expliquer. Le plan [`2026-10-02-karoo-onboarding.md`](plans/2026-10-02-karoo-onboarding.md)
+refait le parcours : un seul QR, l'étape Hammerhead enchaînée sur le téléphone après l'autorisation,
+un retour d'OAuth paramétré (`returnTo`, contrat `10.4.0`) et un Karoo qui suit `/api/device/me`
+au lieu de redemander. Hammerhead y est **obligatoire** (décision du 2 octobre 2026).
+
+**État au 2 octobre 2026 : code écrit sur les quatre modules, pas encore recetté.** Restent : les
+tests backend (`GpsResourceTest`), les e2e web (`flow-device.e2e.ts`) et Patrol
+(`device_link_test`, `device_hammerhead_test`) à lancer sur la pile e2e, et la recette manuelle
+sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` une fois tout cela vert.
+
 ### Les chantiers d'infrastructure d'API
 
 Quatre chantiers ont été chiffrés au §4 du

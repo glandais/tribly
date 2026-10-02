@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,10 +17,10 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../data/profile_repository.dart';
 import 'confirm_sheet.dart';
 
-/// Relit l'utilisateur pour que la carte reflète la connexion qui vient de
+/// Relit l'utilisateur pour que l'écran reflète la connexion qui vient de
 /// changer : `UserDto.connectedServices` en est la seule
 /// source, et rien ne la pousse.
-Future<void> _refreshUser(WidgetRef ref) async {
+Future<void> refreshCurrentUser(WidgetRef ref) async {
   if (ref.read(accessTokenHolderProvider) == null) return;
   // Le client authentifié : un jeton expiré y est rafraîchi, pas refusé.
   final UserDto user = await ref.read(usersClientProvider).getMe();
@@ -49,6 +51,25 @@ class GpsServicesCard extends ConsumerStatefulWidget {
 class _GpsServicesCardState extends ConsumerState<GpsServicesCard> {
   GpsServiceType? _busy;
   String? _error;
+
+  /// L'OAuth se termine dans le navigateur, et son retour n'y ramène pas
+  /// l'app (sur iOS, une redirection sur le même domaine reste dans Safari) :
+  /// c'est le retour au premier plan qui relit les connexions.
+  late final AppLifecycleListener _resumeListener = AppLifecycleListener(
+    onResume: () => unawaited(refreshCurrentUser(ref).catchError((_) {})),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _resumeListener;
+  }
+
+  @override
+  void dispose() {
+    _resumeListener.dispose();
+    super.dispose();
+  }
 
   Future<void> _connect(GpsServiceType service) async {
     setState(() {
@@ -91,7 +112,7 @@ class _GpsServicesCardState extends ConsumerState<GpsServicesCard> {
     });
     try {
       await ref.read(profileRepositoryProvider).disconnectGps(service);
-      await _refreshUser(ref);
+      await refreshCurrentUser(ref);
       if (mounted) setState(() => _busy = null);
     } catch (error, stackTrace) {
       if (!mounted) return;

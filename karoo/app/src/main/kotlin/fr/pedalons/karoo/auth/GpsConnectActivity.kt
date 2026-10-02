@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +27,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,19 +42,25 @@ import fr.pedalons.karoo.api.UnauthorizedException
 import fr.pedalons.karoo.ui.theme.PedalonsKarooTheme
 import io.hammerhead.karooext.KarooSystemService
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 /**
- * Activity for connecting Hammerhead GPS service. Displays QR code to profile page where user can
- * connect Hammerhead OAuth.
+ * The mandatory last step of the onboarding (docs/LEDGER_*.md API-63, plan
+ * docs/plans/2026-10-02-karoo-onboarding.md): the account has no Hammerhead, through which routes
+ * reach the Karoo. The rider finishes on the phone, already on that step after authorizing the
+ * Karoo; this screen follows `/api/device/me` and moves on by itself. Its QR is only a fallback,
+ * for a phone whose page was closed: it opens the Hammerhead step alone, never the profile. The
+ * only way out without Hammerhead is signing the Karoo out.
  */
 class GpsConnectActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_BASE_URL = "base_url"
         const val RESULT_SUCCESS = 1
-        const val RESULT_SKIPPED = 0
+        const val RESULT_LOGOUT = 2
         const val RESULT_ERROR = -1
+
+        /** How often the account is re-read — the device code's own polling interval. */
+        const val POLL_INTERVAL_MS = 5_000L
     }
 
     private var apiClient: PedalonsApiClient? = null
@@ -96,13 +100,13 @@ class GpsConnectActivity : ComponentActivity() {
                     GpsConnectScreen(
                         apiClient = apiClient!!,
                         authManager = authManager,
-                        profileUrl = "$baseUrl/profile",
+                        resumeUrl = "$baseUrl/karoo/hammerhead",
                         onSuccess = {
                             setResult(RESULT_SUCCESS)
                             finish()
                         },
-                        onSkip = {
-                            setResult(RESULT_SKIPPED)
+                        onLogout = {
+                            setResult(RESULT_LOGOUT)
                             finish()
                         },
                     )
@@ -141,18 +145,34 @@ class GpsConnectActivity : ComponentActivity() {
 private fun GpsConnectScreen(
     apiClient: PedalonsApiClient,
     authManager: AuthManager,
-    profileUrl: String,
+    resumeUrl: String,
     onSuccess: () -> Unit,
-    onSkip: () -> Unit,
+    onLogout: () -> Unit,
 ) {
-    var isChecking by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val qrBitmap =
-        remember(profileUrl) {
-            generateQrCode(profileUrl)
+    val qrBitmap = remember(resumeUrl) { generateQrCode(resumeUrl) }
+
+    // Follows the account until Hammerhead shows up; a failed read (network, token) just waits for
+    // the next round.
+    LaunchedEffect(Unit) {
+        while (true) {
+            var connected = false
+            checkHammerheadConnection(
+                apiClient = apiClient,
+                authManager = authManager,
+                onSuccess = { connected = true },
+                onNotConnected = {},
+                onError = {},
+            )
+            if (connected) {
+                Toast.makeText(context, R.string.gps_connect_success, Toast.LENGTH_SHORT).show()
+                onSuccess()
+                return@LaunchedEffect
+            }
+            delay(GpsConnectActivity.POLL_INTERVAL_MS)
         }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -163,7 +183,6 @@ private fun GpsConnectScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly,
         ) {
-            // Title section
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = stringResource(R.string.gps_connect_title),
@@ -180,99 +199,45 @@ private fun GpsConnectScreen(
                 )
             }
 
-            // QR Code section
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.gps_connect_waiting),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            // Fallback for a phone whose page was closed.
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 qrBitmap?.let { bitmap ->
                     Image(
                         bitmap = bitmap.asImageBitmap(),
                         contentDescription = "QR Code",
-                        modifier = Modifier.size(140.dp),
+                        modifier = Modifier.size(110.dp),
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.gps_connect_scan),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
                 )
             }
 
-            // Buttons section
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth(),
+            OutlinedButton(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth(0.8f),
+                colors =
+                    ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
             ) {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            isChecking = true
-                            checkHammerheadConnection(
-                                apiClient = apiClient,
-                                authManager = authManager,
-                                onSuccess = {
-                                    Toast.makeText(
-                                            context,
-                                            R.string.gps_connect_success,
-                                            Toast.LENGTH_SHORT,
-                                        )
-                                        .show()
-                                    onSuccess()
-                                },
-                                onNotConnected = {
-                                    Toast.makeText(
-                                            context,
-                                            R.string.gps_connect_not_detected,
-                                            Toast.LENGTH_SHORT,
-                                        )
-                                        .show()
-                                    isChecking = false
-                                },
-                                onError = {
-                                    Toast.makeText(
-                                            context,
-                                            R.string.error_unknown,
-                                            Toast.LENGTH_SHORT,
-                                        )
-                                        .show()
-                                    isChecking = false
-                                },
-                            )
-                        }
-                    },
-                    enabled = !isChecking,
-                    modifier = Modifier.fillMaxWidth(0.8f),
-                ) {
-                    if (isChecking) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.gps_connect_checking))
-                        }
-                    } else {
-                        Text(stringResource(R.string.gps_connect_done))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                OutlinedButton(
-                    onClick = onSkip,
-                    enabled = !isChecking,
-                    modifier = Modifier.fillMaxWidth(0.8f),
-                    colors =
-                        ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        ),
-                ) {
-                    Text(stringResource(R.string.gps_connect_skip))
-                }
+                Text(stringResource(R.string.disconnect))
             }
         }
     }

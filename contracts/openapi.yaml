@@ -2219,6 +2219,11 @@ components:
           type: number
           format: double
           description: Longitude in degrees (WGS 84)
+    GpsConnectReturn:
+      type: string
+      enum:
+      - PROFILE
+      - DEVICE_KAROO
     GpsOAuthUrlResponse:
       description: OAuth authorization URL response
       type: object
@@ -8888,7 +8893,8 @@ paths:
   /api/gps/callback/{serviceType}:
     get:
       summary: OAuth callback
-      description: "Handles OAuth callback from GPS service and redirects to frontend.\
+      description: "Handles OAuth callback from GPS service and redirects to the frontend\
+        \ page chosen by the returnTo of the connect call (the profile by default).\
         \ OAuth 2.0 brings code and state; OAuth 1.0a (Garmin, when the domain's credential\
         \ says so) brings oauth_token and oauth_verifier."
       operationId: handleCallback
@@ -8946,6 +8952,12 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/GpsServiceType"
+      - description: Where the OAuth callback sends the browser back to. PROFILE when
+          absent.
+        name: returnTo
+        in: query
+        schema:
+          $ref: "#/components/schemas/GpsConnectReturn"
       responses:
         "200":
           description: Authorization URL
@@ -17385,7 +17397,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 10.3.0
+  version: 10.4.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

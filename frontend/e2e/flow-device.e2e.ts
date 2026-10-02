@@ -6,11 +6,13 @@ import {
   DEVICE_PAGE,
   deviceMe,
   deviceOwner,
+  ensureHammerheadOffered,
   jwtClaims,
   NEVER_ISSUED_CODE,
   pollError,
   pollToken,
   refreshDeviceToken,
+  refuseAtHammerhead,
   startDeviceFlow,
   verifyUserCode,
 } from './support/device'
@@ -24,7 +26,14 @@ import { escapeRegExp, hydrated } from './support/ui'
  * the code and presses « Autoriser » — never less: opening a link that carries a code must not be
  * enough to pair a stranger's device (docs/LEDGER_*.md SEC-2, audit H3). Every test pairs a fresh
  * account: `/token` opens a session on it and records a login.
+ *
+ * A Karoo then needs Hammerhead, which carries the routes to it: once authorized, the Karoo page
+ * goes straight on to that step, and the OAuth brings the browser back to it (docs/LEDGER_*.md
+ * API-63). `localhost` offers Hammerhead for that ({@link ensureHammerheadOffered}); a Garmin never
+ * sees the step.
  */
+
+test.beforeAll(ensureHammerheadOffered)
 
 const heading = (page: Page, name: string) =>
   page.getByRole('main').getByRole('heading', { name, exact: true })
@@ -119,7 +128,7 @@ test('an anonymous rider scanning the Garmin code signs in, comes back to the sa
   expect(await deviceOwner(refreshed.accessToken)).toMatchObject({ id: rider.user.id })
 })
 
-test('a signed-in rider opening the Karoo link is asked first, authorizes it with one click, and a reload does not authorize it again', async ({
+test('a signed-in rider opening the Karoo link is asked first, authorizes it with one click, goes on to Hammerhead, and a reload does not authorize it again', async ({
   page,
   context,
 }) => {
@@ -143,7 +152,15 @@ test('a signed-in rider opening the Karoo link is asked first, authorizes it wit
   expect(await pollError(flow.deviceCode)).toBe('AUTHORIZATION_PENDING')
 
   await authorize(page)
-  await expect(heading(page, DEVICE_PAGE.success)).toBeVisible()
+  // Straight on to Hammerhead: the account has none, and without it the Karoo gets no routes.
+  await expect(heading(page, DEVICE_PAGE.hammerhead)).toBeVisible()
+  await expect(
+    page.getByRole('main').getByText('Karoo autorisé sur votre compte.', { exact: true })
+  ).toBeVisible()
+  await expect(
+    page.getByRole('main').getByRole('button', { name: 'Associer Hammerhead', exact: true })
+  ).toBeVisible()
+  await expect(heading(page, DEVICE_PAGE.success)).toHaveCount(0)
   await expect(page).toHaveURL(verificationUrl('/karoo', flow.userCode))
   expect(completions()).toBe(1)
   expect(await verifyUserCode(flow.userCode)).toMatchObject({
@@ -151,14 +168,70 @@ test('a signed-in rider opening the Karoo link is asked first, authorizes it wit
     authorized: true,
   })
 
-  // Opening the link again, before the device polled: already authorized, nothing re-sent.
+  // Opening the link again, before the device polled: already authorized, nothing re-sent, and
+  // still at the Hammerhead step.
   await page.reload()
-  await expect(heading(page, DEVICE_PAGE.success)).toBeVisible()
+  await expect(heading(page, DEVICE_PAGE.hammerhead)).toBeVisible()
   expect(completions()).toBe(1)
 
+  // The Karoo gets its tokens all the same, and reads that Hammerhead is missing: it stays on its
+  // own Hammerhead screen, following /api/device/me.
   const tokens = await pollToken(flow.deviceCode)
   expect(jwtClaims(tokens.accessToken)).toMatchObject({ userId: rider.user.id, client: 'karoo' })
   expect(await deviceOwner(tokens.accessToken)).toMatchObject({ id: rider.user.id })
+  expect(await deviceMe(tokens.accessToken)).toEqual({ connectedGpsServices: [] })
+})
+
+test('« Associer Hammerhead » leaves for Hammerhead with the Karoo page as the way back, and a refusal there lands back on that step with the reason', async ({
+  page,
+  context,
+}) => {
+  const rider = await newUser('device hammerhead rider')
+  await signIn(context, rider)
+  const flow = await startDeviceFlow('karoo')
+  const visits = await refuseAtHammerhead(page)
+
+  await page.goto(`/karoo?code=${flow.userCode}`)
+  await authorize(page)
+  const main = page.getByRole('main')
+  const connect = main.getByRole('button', { name: 'Associer Hammerhead', exact: true })
+  await hydrated(connect)
+  await connect.click()
+
+  // Back from Hammerhead on the Karoo page — not the profile — with the refusal said, and the step
+  // offered again.
+  await expect(page).toHaveURL(/\/karoo\?gps_error=access_denied$/)
+  await expect(heading(page, DEVICE_PAGE.hammerhead)).toBeVisible()
+  await expect(
+    main.getByText("Vous avez refusé l'accès chez Hammerhead.", { exact: false })
+  ).toBeVisible()
+  await expect(connect).toBeVisible()
+
+  // One trip to Hammerhead, its callback on this site, and a state the callback consumed.
+  expect(visits).toHaveLength(1)
+  const callback = new URL(visits[0].searchParams.get('redirect_uri')!)
+  expect(callback.pathname).toBe('/api/gps/callback/hammerhead')
+  expect(visits[0].searchParams.get('state')).toBeTruthy()
+})
+
+test("the Karoo's fallback QR opens the Hammerhead step alone, and a Garmin never sees it", async ({
+  page,
+  context,
+}) => {
+  const rider = await newUser('device fallback rider')
+  await signIn(context, rider)
+
+  // What the Karoo's second QR holds: the step, without a code to authorize.
+  await page.goto('/karoo/hammerhead')
+  await expect(heading(page, DEVICE_PAGE.hammerhead)).toBeVisible()
+  await expect(heading(page, DEVICE_PAGE.confirm)).toHaveCount(0)
+
+  // A Garmin pairs and stops there: Hammerhead is the Karoo's.
+  const flow = await startDeviceFlow('garmin')
+  await page.goto(`/garmin?code=${flow.userCode}`)
+  await authorize(page)
+  await expect(heading(page, DEVICE_PAGE.success)).toBeVisible()
+  await expect(heading(page, DEVICE_PAGE.hammerhead)).toHaveCount(0)
 })
 
 test('an unknown code shows the error, « Réessayer » opens the manual entry, and a code typed in lowercase is authorized', async ({

@@ -16,6 +16,7 @@ import type {
 
 import type {
   ErrorResponse,
+  GetConnectUrlParams,
   GpsOAuthUrlResponse,
   GpsServiceType,
   HandleCallbackParams,
@@ -186,7 +187,7 @@ export const prefetchGetAvailableServicesQuery = async <
 }
 
 /**
- * Handles OAuth callback from GPS service and redirects to frontend. OAuth 2.0 brings code and state; OAuth 1.0a (Garmin, when the domain's credential says so) brings oauth_token and oauth_verifier.
+ * Handles OAuth callback from GPS service and redirects to the frontend page chosen by the returnTo of the connect call (the profile by default). OAuth 2.0 brings code and state; OAuth 1.0a (Garmin, when the domain's credential says so) brings oauth_token and oauth_verifier.
  * @summary OAuth callback
  */
 export const handleCallback = (
@@ -344,17 +345,21 @@ export const prefetchHandleCallbackQuery = async <
  */
 export const getConnectUrl = (
   serviceType: GpsServiceType,
+  params?: GetConnectUrlParams,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<GpsOAuthUrlResponse>(
-    { url: `/api/gps/connect/${serviceType}`, method: 'GET', signal },
+    { url: `/api/gps/connect/${serviceType}`, method: 'GET', params, signal },
     options
   )
 }
 
-export const getGetConnectUrlQueryKey = (serviceType: GpsServiceType) => {
-  return [`/api/gps/connect/${serviceType}`] as const
+export const getGetConnectUrlQueryKey = (
+  serviceType: GpsServiceType,
+  params?: GetConnectUrlParams
+) => {
+  return [`/api/gps/connect/${serviceType}`, ...(params ? [params] : [])] as const
 }
 
 export const getGetConnectUrlQueryOptions = <
@@ -362,6 +367,7 @@ export const getGetConnectUrlQueryOptions = <
   TError = ErrorType<ErrorResponse | void>,
 >(
   serviceType: GpsServiceType,
+  params?: GetConnectUrlParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getConnectUrl>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -369,10 +375,10 @@ export const getGetConnectUrlQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getGetConnectUrlQueryKey(serviceType)
+  const queryKey = queryOptions?.queryKey ?? getGetConnectUrlQueryKey(serviceType, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getConnectUrl>>> = ({ signal }) =>
-    getConnectUrl(serviceType, requestOptions, signal)
+    getConnectUrl(serviceType, params, requestOptions, signal)
 
   return {
     queryKey,
@@ -392,6 +398,7 @@ export function useGetConnectUrl<
   TError = ErrorType<ErrorResponse | void>,
 >(
   serviceType: GpsServiceType,
+  params: undefined | GetConnectUrlParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getConnectUrl>>, TError, TData>> &
       Pick<
@@ -411,6 +418,7 @@ export function useGetConnectUrl<
   TError = ErrorType<ErrorResponse | void>,
 >(
   serviceType: GpsServiceType,
+  params?: GetConnectUrlParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getConnectUrl>>, TError, TData>> &
       Pick<
@@ -430,6 +438,7 @@ export function useGetConnectUrl<
   TError = ErrorType<ErrorResponse | void>,
 >(
   serviceType: GpsServiceType,
+  params?: GetConnectUrlParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getConnectUrl>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -445,13 +454,14 @@ export function useGetConnectUrl<
   TError = ErrorType<ErrorResponse | void>,
 >(
   serviceType: GpsServiceType,
+  params?: GetConnectUrlParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getConnectUrl>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetConnectUrlQueryOptions(serviceType, options)
+  const queryOptions = getGetConnectUrlQueryOptions(serviceType, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -469,12 +479,13 @@ export const prefetchGetConnectUrlQuery = async <
 >(
   queryClient: QueryClient,
   serviceType: GpsServiceType,
+  params?: GetConnectUrlParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getConnectUrl>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   }
 ): Promise<QueryClient> => {
-  const queryOptions = getGetConnectUrlQueryOptions(serviceType, options)
+  const queryOptions = getGetConnectUrlQueryOptions(serviceType, params, options)
 
   await queryClient.prefetchQuery(queryOptions)
 

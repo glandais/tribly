@@ -1012,6 +1012,19 @@
     "denied": {
       "title": "Request denied",
       "message": "This code is no longer valid: the device cannot use it. To connect your own device, start the connection again from it."
+    },
+    "hammerhead": {
+      "authorized": "Karoo authorized on your account.",
+      "title": "Last step: link Hammerhead",
+      "message": "Your routes reach the Karoo through Hammerhead. Link your Hammerhead account to Pédalons: without it, the Karoo receives no routes.",
+      "connect": "Link Hammerhead",
+      "hint": "You will sign in at Hammerhead, then come back here. The Karoo updates on its own.",
+      "denied": "You denied access at Hammerhead. Without it, the Karoo cannot receive any routes.",
+      "failed": "Linking Hammerhead did not succeed. Please try again."
+    },
+    "ready": {
+      "title": "Your Karoo is ready",
+      "message": "Your Karoo and your Hammerhead account are linked to Pédalons. The Karoo updates on its own."
     }
   },
   "errors": {

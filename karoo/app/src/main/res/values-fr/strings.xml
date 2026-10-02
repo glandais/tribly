@@ -8,6 +8,7 @@
     <string name="auth_connect_button">Connexion</string>
     <string name="auth_url_label">Allez sur pedalons.fr/karoo</string>
     <string name="auth_code_label">Ou entrez ce code :</string>
+    <string name="auth_steps">Sur le téléphone : autorisez ce Karoo, puis associez Hammerhead</string>
     <string name="auth_waiting">En attente d\'authentification…</string>
     <string name="auth_success">Connecté !</string>
     <string name="auth_error">Échec de l\'authentification</string>
@@ -24,14 +25,11 @@
     <string name="route_sync_error">Échec de la synchronisation</string>
 
     <!-- GPS Connect -->
-    <string name="gps_connect_title">Connecter Hammerhead</string>
-    <string name="gps_connect_subtitle">Pour synchroniser les parcours vers votre Karoo</string>
-    <string name="gps_connect_scan">Scannez pour connecter</string>
-    <string name="gps_connect_done">J\'ai connecté</string>
-    <string name="gps_connect_skip">Ignorer</string>
-    <string name="gps_connect_success">Hammerhead connecté !</string>
-    <string name="gps_connect_not_detected">Hammerhead non détecté, veuillez réessayer</string>
-    <string name="gps_connect_checking">Vérification de la connexion…</string>
+    <string name="gps_connect_title">Dernière étape : associer Hammerhead</string>
+    <string name="gps_connect_subtitle">Vos parcours arrivent sur le Karoo par Hammerhead. Terminez l\'association sur votre téléphone.</string>
+    <string name="gps_connect_scan">Page fermée sur le téléphone ? Scannez pour reprendre</string>
+    <string name="gps_connect_success">Hammerhead associé !</string>
+    <string name="gps_connect_waiting">En attente de Hammerhead…</string>
 
     <!-- General -->
     <string name="connecting">Connexion au Karoo…</string>

@@ -10,6 +10,8 @@ import fr.pedalons.service.security.DomainResolver;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
+import java.net.URI;
+import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -143,6 +145,89 @@ class GpsResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(307)
         .header("Location", containsString("gps_error=connection_failed"));
+  }
+
+  // ==================== Return target (docs/LEDGER_*.md API-63) ====================
+
+  /** Starts a connection and returns the OAuth state the provider would send back. */
+  private String startConnection(String returnTo) {
+    var request = given().auth().oauth2(getAccessToken(USER1));
+    if (returnTo != null) request = request.queryParam("returnTo", returnTo);
+    String url =
+        request
+            .when()
+            .get("/api/gps/connect/HAMMERHEAD")
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("authorizationUrl");
+    return Arrays.stream(URI.create(url).getRawQuery().split("&"))
+        .filter(p -> p.startsWith("state="))
+        .map(p -> p.substring("state=".length()))
+        .findFirst()
+        .orElseThrow();
+  }
+
+  @Test
+  void handleCallback_refusalAfterKarooConnect_shouldRedirectToKarooPage() {
+    String state = startConnection("DEVICE_KAROO");
+
+    given()
+        .queryParam("error", "access_denied")
+        .queryParam("state", state)
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/api/gps/callback/HAMMERHEAD")
+        .then()
+        .statusCode(307)
+        .header("Location", endsWith("/karoo?gps_error=access_denied"));
+  }
+
+  @Test
+  void handleCallback_failureAfterKarooConnect_shouldRedirectToKarooPage() {
+    String state = startConnection("DEVICE_KAROO");
+
+    // A Hammerhead state replayed on the Garmin callback: rejected before any exchange with a
+    // provider, yet the browser still goes back to the page that started the connection.
+    given()
+        .queryParam("code", "test-code")
+        .queryParam("state", state)
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/api/gps/callback/GARMIN")
+        .then()
+        .statusCode(307)
+        .header("Location", endsWith("/karoo?gps_error=connection_failed"));
+  }
+
+  @Test
+  void handleCallback_withoutReturnTo_shouldRedirectToProfile() {
+    String state = startConnection(null);
+
+    given()
+        .queryParam("error", "access_denied")
+        .queryParam("state", state)
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/api/gps/callback/HAMMERHEAD")
+        .then()
+        .statusCode(307)
+        .header("Location", endsWith("/profile?gps_error=access_denied"));
+  }
+
+  @Test
+  void getConnectUrl_unknownReturnTo_shouldBeRejected() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .queryParam("returnTo", "https://evil.example")
+        .when()
+        .get("/api/gps/connect/HAMMERHEAD")
+        .then()
+        .statusCode(404);
   }
 
   // ==================== Disconnect ====================

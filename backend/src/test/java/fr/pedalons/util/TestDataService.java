@@ -1401,7 +1401,8 @@ public class TestDataService {
             expiresAt,
             null,
             "http://localhost/callback",
-            getOrCreateDefaultDomain().getId());
+            getOrCreateDefaultDomain().getId(),
+            fr.pedalons.enums.GpsConnectReturn.PROFILE);
     gpsOAuthStateRepository.persistAndFlush(oauthState);
     return oauthState;
   }
@@ -1417,7 +1418,8 @@ public class TestDataService {
             java.time.Instant.now().minusSeconds(3600),
             null,
             "http://localhost/callback",
-            getOrCreateDefaultDomain().getId());
+            getOrCreateDefaultDomain().getId(),
+            fr.pedalons.enums.GpsConnectReturn.PROFILE);
     gpsOAuthStateRepository.persistAndFlush(oauthState);
     return oauthState;
   }

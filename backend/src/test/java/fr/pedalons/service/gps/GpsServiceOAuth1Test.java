@@ -16,6 +16,7 @@ import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.gps.response.GpsOAuthUrlResponse;
 import fr.pedalons.dto.gps.response.RouteUploadResponse;
+import fr.pedalons.enums.GpsConnectReturn;
 import fr.pedalons.enums.GpsOAuthVersion;
 import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.infrastructure.gps.GarminOAuth1Client;
@@ -117,6 +118,24 @@ class GpsServiceOAuth1Test extends AbstractBaseTest {
     assertThrows(
         BusinessException.class,
         () -> gpsService.handleOAuth1Callback(GpsServiceType.GARMIN, REQUEST_TOKEN, "verifier"));
+  }
+
+  @Test
+  void returnTarget_isFoundByTheRequestToken() {
+    // Garmin sends back no state: the callback looks the return target up by the request token
+    // (docs/LEDGER_*.md API-63).
+    pedalonsContext.setUserForTest(user);
+    gpsService.initiateOAuth(GpsServiceType.GARMIN, GpsConnectReturn.DEVICE_KAROO);
+
+    assertEquals(GpsConnectReturn.DEVICE_KAROO, gpsService.findReturnTarget(REQUEST_TOKEN));
+  }
+
+  @Test
+  void returnTarget_defaultsToTheProfile() {
+    pedalonsContext.setUserForTest(user);
+    gpsService.initiateOAuth(GpsServiceType.GARMIN);
+
+    assertEquals(GpsConnectReturn.PROFILE, gpsService.findReturnTarget(REQUEST_TOKEN));
   }
 
   @Test

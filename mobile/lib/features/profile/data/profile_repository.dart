@@ -88,9 +88,16 @@ class ProfileRepository {
   Future<List<GpsServiceType>> availableGpsServices() =>
       _gps.getAvailableServices();
 
-  Future<String> gpsConnectUrl(GpsServiceType service) async {
+  /// L'adresse d'autorisation du fournisseur. [returnTo] dit où son retour
+  /// ramène le navigateur : le profil, ou la page d'appairage d'un Karoo
+  /// (docs/LEDGER_*.md API-63).
+  Future<String> gpsConnectUrl(
+    GpsServiceType service, {
+    GpsConnectReturn returnTo = GpsConnectReturn.profile,
+  }) async {
     final GpsOAuthUrlResponse response = await _gps.getConnectUrl(
       serviceType: service,
+      returnTo: returnTo,
     );
     return response.authorizationUrl;
   }

@@ -13,6 +13,21 @@ final class Device extends Module {
     ).waitUntilExists(timeout: const Duration(seconds: 10));
   }
 
+  /// The Hammerhead step a Karoo goes on to once authorized (docs/LEDGER_*.md API-63) —
+  /// existence, for the same reason as [waitUntilPaired].
+  Future<void> waitUntilHammerheadStep() async {
+    await $(
+      keys.device.hammerhead,
+    ).waitUntilExists(timeout: const Duration(seconds: 10));
+    await $(keys.device.connectHammerheadButton).waitUntilExists();
+  }
+
+  /// Whether the page shows the bare « paired » state — never, for a Karoo without Hammerhead.
+  bool get showsPaired => $(keys.device.success).exists;
+
+  /// Whether the Hammerhead step says why the last attempt failed.
+  bool get showsHammerheadError => $(keys.device.hammerheadError).exists;
+
   /// Existence too: the error state is the same kind of spaced column.
   Future<void> waitUntilCodeIsRefused() async {
     await $(

@@ -99,6 +99,10 @@ final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
     patterns: PathVariants.deviceVerifyKaroo(),
     ancestors: [_homeAncestor],
   ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.deviceHammerhead(),
+    ancestors: [_homeAncestor],
+  ),
 
   // La boîte de réception vit sous l'accueil, d'où sa cloche l'ouvre : un lien
   // froid doit retrouver l'accueil dessous plutôt que la seule boîte.
@@ -569,7 +573,21 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       ..._perLocale(
         PathVariants.deviceVerifyKaroo(),
-        (ctx, st) => DeviceVerifyPage(code: st.uri.queryParameters['code']),
+        (ctx, st) => DeviceVerifyPage(
+          code: st.uri.queryParameters['code'],
+          // The return of the Hammerhead OAuth (docs/LEDGER_*.md API-63).
+          hammerheadStep:
+              st.uri.queryParameters.containsKey('gps_connected') ||
+              st.uri.queryParameters.containsKey('gps_error'),
+          gpsError: st.uri.queryParameters['gps_error'],
+        ),
+      ),
+      ..._perLocale(
+        PathVariants.deviceHammerhead(),
+        (ctx, st) => DeviceVerifyPage(
+          hammerheadStep: true,
+          gpsError: st.uri.queryParameters['gps_error'],
+        ),
       ),
 
       // The single navigation shell: five fixed tabs, one branch each, one

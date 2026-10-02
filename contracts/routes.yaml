@@ -108,6 +108,14 @@ routes:
     web: true
     mobile: true
     deeplink: true
+  # The Hammerhead step of a Karoo pairing alone — the fallback QR on the Karoo (ledger API-63).
+  - id: deviceHammerhead
+    path:
+      en: /karoo/hammerhead
+      fr: /karoo/hammerhead
+    web: true
+    mobile: true
+    deeplink: true
 
   # --- Apps ---
   - id: apps

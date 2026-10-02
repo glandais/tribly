@@ -3,6 +3,7 @@ package fr.pedalons.api.gps;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.gps.response.GpsOAuthUrlResponse;
 import fr.pedalons.dto.gps.response.RouteUploadResponse;
+import fr.pedalons.enums.GpsConnectReturn;
 import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.service.gps.GpsService;
 import jakarta.annotation.security.PermitAll;
@@ -69,8 +70,15 @@ public class GpsResource {
   })
   public Response getConnectUrl(
       @Parameter(description = "GPS service type") @PathParam("serviceType")
-          GpsServiceType serviceType) {
-    GpsOAuthUrlResponse response = gpsService.initiateOAuth(serviceType);
+          GpsServiceType serviceType,
+      @Parameter(
+              description =
+                  "Where the OAuth callback sends the browser back to. PROFILE when absent.")
+          @QueryParam("returnTo")
+          @Nullable GpsConnectReturn returnTo) {
+    GpsOAuthUrlResponse response =
+        gpsService.initiateOAuth(
+            serviceType, returnTo != null ? returnTo : GpsConnectReturn.PROFILE);
     return Response.ok(response).build();
   }
 
@@ -80,7 +88,8 @@ public class GpsResource {
   @Operation(
       summary = "OAuth callback",
       description =
-          "Handles OAuth callback from GPS service and redirects to frontend. OAuth 2.0 brings"
+          "Handles OAuth callback from GPS service and redirects to the frontend page chosen by"
+              + " the returnTo of the connect call (the profile by default). OAuth 2.0 brings"
               + " code and state; OAuth 1.0a (Garmin, when the domain's credential says so)"
               + " brings oauth_token and oauth_verifier.")
   @APIResponses({
@@ -101,43 +110,50 @@ public class GpsResource {
       @Parameter(description = "OAuth 1.0a verifier") @QueryParam("oauth_verifier")
           @Nullable String oauthVerifier) {
 
+    // Read before the callback consumes the state; a refusal carries the state too, so it lands
+    // on the page that started the connection (docs/LEDGER_*.md API-63). Under OAuth 1.0a the
+    // request token is what the state row is keyed by (API-62).
+    String stateKey = state != null ? state : oauthToken;
+    GpsConnectReturn returnTo =
+        stateKey != null ? gpsService.findReturnTarget(stateKey) : GpsConnectReturn.PROFILE;
+
     // Handle OAuth error. The provider's value is never copied into the redirect: it arrives from
     // whoever built the link, and would add parameters to it — or make URI.create throw
     // (docs/LEDGER_*.md SEC-12, audit L8). A fixed key per case, the standard refusal kept apart.
     if (error != null) {
       String key = "access_denied".equals(error) ? "access_denied" : "provider_error";
-      return redirectToProfile("gps_error=" + key);
+      return redirect(returnTo, "gps_error=" + key);
     }
 
     // OAuth 1.0a (docs/LEDGER_*.md API-62). A request token back without a verifier is a refusal:
     // the protocol defines no error parameter.
     if (oauthToken != null) {
       if (oauthVerifier == null) {
-        return redirectToProfile("gps_error=access_denied");
+        return redirect(returnTo, "gps_error=access_denied");
       }
       try {
         gpsService.handleOAuth1Callback(serviceType, oauthToken, oauthVerifier);
-        return redirectToProfile("gps_connected=" + serviceType.name().toLowerCase());
+        return redirect(returnTo, "gps_connected=" + serviceType.name().toLowerCase());
       } catch (Exception e) {
-        return redirectToProfile("gps_error=connection_failed");
+        return redirect(returnTo, "gps_error=connection_failed");
       }
     }
 
     if (code == null || state == null) {
-      return redirectToProfile("gps_error=missing_params");
+      return redirect(returnTo, "gps_error=missing_params");
     }
 
     try {
       gpsService.handleCallback(serviceType, code, state);
-      return redirectToProfile("gps_connected=" + serviceType.name().toLowerCase());
+      return redirect(returnTo, "gps_connected=" + serviceType.name().toLowerCase());
     } catch (Exception e) {
-      return redirectToProfile("gps_error=connection_failed");
+      return redirect(returnTo, "gps_error=connection_failed");
     }
   }
 
-  private Response redirectToProfile(String query) {
+  private Response redirect(GpsConnectReturn returnTo, String query) {
     return Response.temporaryRedirect(
-            URI.create(gpsService.getFrontendBaseUrl() + "/profile?" + query))
+            URI.create(gpsService.getFrontendBaseUrl() + returnTo.getPath() + "?" + query))
         .build();
   }
 

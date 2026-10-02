@@ -138,7 +138,10 @@ helper — reuse before writing a new one, and keep journey-only helpers in thei
   `unreadCount`, `waitForNotification` (the dispatcher's wait), `expectNoNotification`,
   `notificationPreferences`, `isMuted`.
 - `device.ts` — the Karoo/Garmin device code flow: `startDeviceFlow`, `verifyUserCode`,
-  `pollToken` / `pollError`, `refreshDeviceToken`, `deviceMe`, `jwtClaims`.
+  `pollToken` / `pollError`, `refreshDeviceToken`, `deviceMe`, `jwtClaims`; Hammerhead offered on
+  `localhost` (`ensureHammerheadOffered`, get-or-create) and played by `refuseAtHammerhead`, which
+  intercepts the browser's trip to Hammerhead and sends it back to the callback refused (ledger
+  `API-63`).
 - `ad-contact.ts` — the classified-ad e-mail relay: `setContactable`, `contactAuthor`, `rawAd`.
 - `scheduled-publication.ts` — scheduled posts and trips: `pickIntoEmptyPicker`, `pastPublishAt`,
   `waitForAutoPublish`.

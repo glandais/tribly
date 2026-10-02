@@ -1012,6 +1012,19 @@
     "denied": {
       "title": "Demande refusée",
       "message": "Ce code n'est plus valable : l'appareil ne pourra pas s'en servir. Pour connecter votre propre appareil, relancez la connexion depuis celui-ci."
+    },
+    "hammerhead": {
+      "authorized": "Karoo autorisé sur votre compte.",
+      "title": "Dernière étape : associer Hammerhead",
+      "message": "Vos parcours arrivent sur le Karoo par Hammerhead. Associez votre compte Hammerhead à Pédalons : sans cela, le Karoo ne recevra aucun parcours.",
+      "connect": "Associer Hammerhead",
+      "hint": "Vous allez vous connecter chez Hammerhead puis revenir ici. Le Karoo se met à jour tout seul.",
+      "denied": "Vous avez refusé l'accès chez Hammerhead. Sans lui, le Karoo ne peut recevoir aucun parcours.",
+      "failed": "L'association avec Hammerhead n'a pas abouti. Réessayez."
+    },
+    "ready": {
+      "title": "Votre Karoo est prêt",
+      "message": "Votre Karoo et votre compte Hammerhead sont associés à Pédalons. Le Karoo se met à jour tout seul."
     }
   },
   "errors": {

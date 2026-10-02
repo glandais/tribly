@@ -131,6 +131,7 @@ export 'models/geo_json_line_string.dart';
 export 'models/geo_json_point.dart';
 export 'models/geo_point.dart';
 export 'models/geocode_result_dto.dart';
+export 'models/gps_connect_return.dart';
 export 'models/gps_o_auth_url_response.dart';
 export 'models/gps_o_auth_version.dart';
 export 'models/gps_service_connection_dto.dart';

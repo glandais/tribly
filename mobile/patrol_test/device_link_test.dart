@@ -1,13 +1,16 @@
+import 'api/device_seed.dart';
 import 'common.dart';
 
 /// Web counterpart: `flow-device.e2e.ts` › « a signed-in rider opening the Karoo link is asked
 /// first… » (audit P0 #8). The device shows a QR code of `/karoo?code=…`; the phone opens it in the
-/// app, and the rider's « Autoriser » pairs the device (SEC-2: the link alone pairs nothing).
+/// app, and the rider's « Autoriser » pairs the device (SEC-2: the link alone pairs nothing); the
+/// page then goes straight on to Hammerhead, which the account lacks (docs/LEDGER_*.md API-63).
 void main() {
   testApp(
-    'A signed-in rider opening the Karoo link pairs the device with their account',
+    'A signed-in rider opening the Karoo link pairs the device, then is asked for Hammerhead',
     ($, modules, apiClients) async {
       final backend = apiClients.backend;
+      await backend.ensureHammerheadOffered();
       final rider = await backend.newUser('Device rider');
       final flow = await backend.startDeviceFlow('karoo');
       expect(
@@ -21,7 +24,8 @@ void main() {
         '${Paths.deviceVerifyKaroo()}?code=${flow['userCode']}',
       );
       await modules.device.authorize();
-      await modules.device.waitUntilPaired();
+      await modules.device.waitUntilHammerheadStep();
+      expect(modules.device.showsPaired, isFalse);
 
       final tokens = await backend.pollDeviceToken(
         flow['deviceCode'] as String,

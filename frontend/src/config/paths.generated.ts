@@ -42,6 +42,7 @@ export const paths = {
   },
   deviceVerifyGarmin: () => '/garmin',
   deviceVerifyKaroo: () => '/karoo',
+  deviceHammerhead: () => '/karoo/hammerhead',
   apps: () => {
     switch (getCurrentLocale()) {
       case 'fr': return '/applications'
@@ -411,6 +412,7 @@ export const pathVariants = {
   resetPassword: (): Record<Locale, string> => ({ en: '/reset-password', fr: '/nouveau-mot-de-passe' }),
   deviceVerifyGarmin: (): Record<Locale, string> => ({ en: '/garmin', fr: '/garmin' }),
   deviceVerifyKaroo: (): Record<Locale, string> => ({ en: '/karoo', fr: '/karoo' }),
+  deviceHammerhead: (): Record<Locale, string> => ({ en: '/karoo/hammerhead', fr: '/karoo/hammerhead' }),
   apps: (): Record<Locale, string> => ({ en: '/apps', fr: '/applications' }),
   privacy: (): Record<Locale, string> => ({ en: '/privacy', fr: '/confidentialite' }),
   terms: (): Record<Locale, string> => ({ en: '/terms', fr: '/cgu' }),

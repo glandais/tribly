@@ -132,9 +132,15 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+    // Hammerhead is mandatory (docs/LEDGER_*.md API-63): only a connected account goes on to the
+    // routes. Leaving the step without one either signs the Karoo out or closes the app.
     private val gpsConnectLauncher: ActivityResultLauncher<Intent> =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            onGpsConnectComplete?.invoke()
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            when (result.resultCode) {
+                GpsConnectActivity.RESULT_SUCCESS -> onGpsConnectComplete?.invoke()
+                GpsConnectActivity.RESULT_LOGOUT -> onGpsConnectLogout?.invoke()
+                else -> finish()
+            }
         }
 
     // Navigation state accessible from key events
@@ -214,6 +220,7 @@ class MainActivity : ComponentActivity() {
     // Callbacks for activity results
     internal var onAuthSuccess: (() -> Unit)? = null
     internal var onGpsConnectComplete: (() -> Unit)? = null
+    internal var onGpsConnectLogout: (() -> Unit)? = null
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
@@ -371,7 +378,9 @@ private fun MainScreen(
                         scope.launch {
                             syncState = SyncState.SYNCING
                             syncState =
-                                syncRoute(apiClient, authManager, state.teamSlug, state.routeSlug)
+                                syncRoute(apiClient, authManager, state.teamSlug, state.routeSlug) {
+                                    activity.startGpsConnectFlow()
+                                }
                         }
                     }
                 }
@@ -386,6 +395,16 @@ private fun MainScreen(
         activity.onGpsConnectComplete = {
             gpsCheckDone = true
             gpsCheckPending = false
+        }
+        activity.onGpsConnectLogout = {
+            gpsCheckDone = false
+            gpsCheckPending = false
+            scope.launch {
+                authManager.clearTokens()
+                routesResponse = null
+                navState = NavState.Home
+                navStack.clear()
+            }
         }
     }
 
@@ -526,7 +545,9 @@ private fun MainScreen(
                                 scope.launch {
                                     syncState = SyncState.SYNCING
                                     syncState =
-                                        syncRoute(apiClient, authManager, teamSlug, routeSlug)
+                                        syncRoute(apiClient, authManager, teamSlug, routeSlug) {
+                                            activity.startGpsConnectFlow()
+                                        }
                                 }
                             }
                         },
@@ -1565,6 +1586,7 @@ private suspend fun syncRoute(
     authManager: AuthManager,
     teamSlug: String,
     routeSlug: String,
+    onHammerheadMissing: () -> Unit,
 ): SyncState {
     val accessToken = authManager.getValidAccessToken() ?: return SyncState.ERROR
 
@@ -1572,7 +1594,14 @@ private suspend fun syncRoute(
         .syncRoute(accessToken, teamSlug, routeSlug)
         .fold(
             onSuccess = { SyncState.SUCCESS },
-            onFailure = { SyncState.ERROR },
+            onFailure = { error ->
+                // Hammerhead was unlinked since launch (from the profile): back to the
+                // mandatory step rather than a bare « sync failed » (docs/LEDGER_*.md API-63).
+                if (error.message?.contains("GPS_SERVICE_NOT_CONNECTED") == true) {
+                    onHammerheadMissing()
+                }
+                SyncState.ERROR
+            },
         )
 }
 

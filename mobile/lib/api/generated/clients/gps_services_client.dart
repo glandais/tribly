@@ -6,6 +6,7 @@ import 'package:dio/dio.dart' hide Headers;
 import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
+import '../models/gps_connect_return.dart';
 import '../models/gps_o_auth_url_response.dart';
 import '../models/gps_service_type.dart';
 import '../models/route_upload_response.dart';
@@ -24,7 +25,7 @@ abstract class GpsServicesClient {
 
   /// OAuth callback.
   ///
-  /// Handles OAuth callback from GPS service and redirects to frontend. OAuth 2.0 brings code and state; OAuth 1.0a (Garmin, when the domain's credential says so) brings oauth_token and oauth_verifier.
+  /// Handles OAuth callback from GPS service and redirects to the frontend page chosen by the returnTo of the connect call (the profile by default). OAuth 2.0 brings code and state; OAuth 1.0a (Garmin, when the domain's credential says so) brings oauth_token and oauth_verifier.
   ///
   /// [serviceType] - GPS service type.
   ///
@@ -46,9 +47,12 @@ abstract class GpsServicesClient {
   /// Get the OAuth authorization URL to connect a GPS service.
   ///
   /// [serviceType] - GPS service type.
+  ///
+  /// [returnTo] - Where the OAuth callback sends the browser back to. PROFILE when absent.
   @GET('/api/gps/connect/{serviceType}')
   Future<GpsOAuthUrlResponse> getConnectUrl({
     @Path('serviceType') required GpsServiceType serviceType,
+    @Query('returnTo') GpsConnectReturn? returnTo,
   });
 
   /// Disconnect GPS service.
