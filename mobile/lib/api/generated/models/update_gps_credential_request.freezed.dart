@@ -19,7 +19,8 @@ mixin _$UpdateGpsCredentialRequest {
 /// OAuth client ID
  String get clientId;/// OAuth client secret (null = keep current)
  String? get clientSecret;/// Whether credential is active
- bool? get active;
+ bool? get active;/// OAuth protocol of the client ID and secret (null = keep current). OAUTH1 is accepted for GARMIN only. Switching it leaves existing connections unusable: each is dropped at its next upload and must be reconnected
+ String? get oauthVersion;
 /// Create a copy of UpdateGpsCredentialRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -33,20 +34,20 @@ $UpdateGpsCredentialRequestCopyWith<UpdateGpsCredentialRequest> get copyWith => 
 @override
 bool operator ==(Object other) {
   final _this = this as UpdateGpsCredentialRequest;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateGpsCredentialRequest&&(identical(other.clientId, _this.clientId) || other.clientId == _this.clientId)&&(identical(other.clientSecret, _this.clientSecret) || other.clientSecret == _this.clientSecret)&&(identical(other.active, _this.active) || other.active == _this.active));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateGpsCredentialRequest&&(identical(other.clientId, _this.clientId) || other.clientId == _this.clientId)&&(identical(other.clientSecret, _this.clientSecret) || other.clientSecret == _this.clientSecret)&&(identical(other.active, _this.active) || other.active == _this.active)&&(identical(other.oauthVersion, _this.oauthVersion) || other.oauthVersion == _this.oauthVersion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as UpdateGpsCredentialRequest;
-  return Object.hash(runtimeType,_this.clientId,_this.clientSecret,_this.active);
+  return Object.hash(runtimeType,_this.clientId,_this.clientSecret,_this.active,_this.oauthVersion);
 }
 
 @override
 String toString() {
   final _this = this as UpdateGpsCredentialRequest;
-  return 'UpdateGpsCredentialRequest(clientId: ${_this.clientId}, clientSecret: ${_this.clientSecret}, active: ${_this.active})';
+  return 'UpdateGpsCredentialRequest(clientId: ${_this.clientId}, clientSecret: ${_this.clientSecret}, active: ${_this.active}, oauthVersion: ${_this.oauthVersion})';
 }
 
 
@@ -57,7 +58,7 @@ abstract mixin class $UpdateGpsCredentialRequestCopyWith<$Res>  {
   factory $UpdateGpsCredentialRequestCopyWith(UpdateGpsCredentialRequest value, $Res Function(UpdateGpsCredentialRequest) _then) = _$UpdateGpsCredentialRequestCopyWithImpl;
 @useResult
 $Res call({
- String clientId, String? clientSecret, bool? active
+ String clientId, String? clientSecret, bool? active, String? oauthVersion
 });
 
 
@@ -74,12 +75,13 @@ class _$UpdateGpsCredentialRequestCopyWithImpl<$Res>
 
 /// Create a copy of UpdateGpsCredentialRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? clientId = null,Object? clientSecret = freezed,Object? active = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? clientId = null,Object? clientSecret = freezed,Object? active = freezed,Object? oauthVersion = freezed,}) {
   return _then(UpdateGpsCredentialRequest(
 clientId: null == clientId ? _self.clientId : clientId // ignore: cast_nullable_to_non_nullable
 as String,clientSecret: freezed == clientSecret ? _self.clientSecret : clientSecret // ignore: cast_nullable_to_non_nullable
 as String?,active: freezed == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
-as bool?,
+as bool?,oauthVersion: freezed == oauthVersion ? _self.oauthVersion : oauthVersion // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -164,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String clientId,  String? clientSecret,  bool? active)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String clientId,  String? clientSecret,  bool? active,  String? oauthVersion)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdateGpsCredentialRequest() when $default != null:
-return $default(_that.clientId,_that.clientSecret,_that.active);case _:
+return $default(_that.clientId,_that.clientSecret,_that.active,_that.oauthVersion);case _:
   return orElse();
 
 }
@@ -185,10 +187,10 @@ return $default(_that.clientId,_that.clientSecret,_that.active);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String clientId,  String? clientSecret,  bool? active)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String clientId,  String? clientSecret,  bool? active,  String? oauthVersion)  $default,) {final _that = this;
 switch (_that) {
 case _UpdateGpsCredentialRequest():
-return $default(_that.clientId,_that.clientSecret,_that.active);case _:
+return $default(_that.clientId,_that.clientSecret,_that.active,_that.oauthVersion);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +207,10 @@ return $default(_that.clientId,_that.clientSecret,_that.active);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String clientId,  String? clientSecret,  bool? active)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String clientId,  String? clientSecret,  bool? active,  String? oauthVersion)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdateGpsCredentialRequest() when $default != null:
-return $default(_that.clientId,_that.clientSecret,_that.active);case _:
+return $default(_that.clientId,_that.clientSecret,_that.active,_that.oauthVersion);case _:
   return null;
 
 }
@@ -220,7 +222,7 @@ return $default(_that.clientId,_that.clientSecret,_that.active);case _:
 @JsonSerializable()
 
 class _UpdateGpsCredentialRequest implements UpdateGpsCredentialRequest {
-  const _UpdateGpsCredentialRequest({required this.clientId, this.clientSecret, this.active});
+  const _UpdateGpsCredentialRequest({required this.clientId, this.clientSecret, this.active, this.oauthVersion});
   factory _UpdateGpsCredentialRequest.fromJson(Map<String, dynamic> json) => _$UpdateGpsCredentialRequestFromJson(json);
 
 /// OAuth client ID
@@ -229,6 +231,8 @@ class _UpdateGpsCredentialRequest implements UpdateGpsCredentialRequest {
 @override final  String? clientSecret;
 /// Whether credential is active
 @override final  bool? active;
+/// OAuth protocol of the client ID and secret (null = keep current). OAUTH1 is accepted for GARMIN only. Switching it leaves existing connections unusable: each is dropped at its next upload and must be reconnected
+@override final  String? oauthVersion;
 
 /// Create a copy of UpdateGpsCredentialRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -243,18 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateGpsCredentialRequest&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.clientSecret, clientSecret) || other.clientSecret == clientSecret)&&(identical(other.active, active) || other.active == active));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateGpsCredentialRequest&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.clientSecret, clientSecret) || other.clientSecret == clientSecret)&&(identical(other.active, active) || other.active == active)&&(identical(other.oauthVersion, oauthVersion) || other.oauthVersion == oauthVersion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,clientId,clientSecret,active);
+    return Object.hash(runtimeType,clientId,clientSecret,active,oauthVersion);
 }
 
 @override
 String toString() {
-    return 'UpdateGpsCredentialRequest(clientId: $clientId, clientSecret: $clientSecret, active: $active)';
+    return 'UpdateGpsCredentialRequest(clientId: $clientId, clientSecret: $clientSecret, active: $active, oauthVersion: $oauthVersion)';
 }
 
 
@@ -265,7 +269,7 @@ abstract mixin class _$UpdateGpsCredentialRequestCopyWith<$Res> implements $Upda
   factory _$UpdateGpsCredentialRequestCopyWith(_UpdateGpsCredentialRequest value, $Res Function(_UpdateGpsCredentialRequest) _then) = __$UpdateGpsCredentialRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String clientId, String? clientSecret, bool? active
+ String clientId, String? clientSecret, bool? active, String? oauthVersion
 });
 
 
@@ -282,12 +286,13 @@ class __$UpdateGpsCredentialRequestCopyWithImpl<$Res>
 
 /// Create a copy of UpdateGpsCredentialRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? clientId = null,Object? clientSecret = freezed,Object? active = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? clientId = null,Object? clientSecret = freezed,Object? active = freezed,Object? oauthVersion = freezed,}) {
   return _then(_UpdateGpsCredentialRequest(
 clientId: null == clientId ? _self.clientId : clientId // ignore: cast_nullable_to_non_nullable
 as String,clientSecret: freezed == clientSecret ? _self.clientSecret : clientSecret // ignore: cast_nullable_to_non_nullable
 as String?,active: freezed == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
-as bool?,
+as bool?,oauthVersion: freezed == oauthVersion ? _self.oauthVersion : oauthVersion // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

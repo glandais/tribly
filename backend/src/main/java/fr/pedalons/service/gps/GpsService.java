@@ -3,6 +3,7 @@ package fr.pedalons.service.gps;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.InternalException;
 import fr.pedalons.domain.asset.Asset;
+import fr.pedalons.domain.gps.DomainGpsCredential;
 import fr.pedalons.domain.gps.GpsOAuthState;
 import fr.pedalons.domain.gps.GpsServiceConnection;
 import fr.pedalons.domain.route.Route;
@@ -12,8 +13,10 @@ import fr.pedalons.dto.gps.response.GpsOAuthUrlResponse;
 import fr.pedalons.dto.gps.response.GpsServiceConnectionDto;
 import fr.pedalons.dto.gps.response.RouteUploadResponse;
 import fr.pedalons.enums.AssetType;
+import fr.pedalons.enums.GpsOAuthVersion;
 import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.infrastructure.gps.GarminClient;
+import fr.pedalons.infrastructure.gps.GarminOAuth1Client;
 import fr.pedalons.infrastructure.gps.GpsServiceClient;
 import fr.pedalons.infrastructure.gps.HammerheadClient;
 import fr.pedalons.infrastructure.gps.PkceUtils;
@@ -62,6 +65,8 @@ public class GpsService {
 
   @Inject GarminClient garminClient;
 
+  @Inject GarminOAuth1Client garminOAuth1Client;
+
   @Inject WahooClient wahooClient;
 
   @Inject PedalonsQueryContext pedalonsContext;
@@ -86,6 +91,17 @@ public class GpsService {
   }
 
   /**
+   * The protocol the domain's credential for this service uses. Without a credential, OAuth 2.0:
+   * the client then refuses with {@code GPS_SERVICE_NOT_CONFIGURED}, as before.
+   */
+  private GpsOAuthVersion oauthVersion(GpsServiceType serviceType) {
+    return credentialService
+        .getCredentials(serviceType)
+        .map(DomainGpsCredential::getOauthVersion)
+        .orElse(GpsOAuthVersion.OAUTH2);
+  }
+
+  /**
    * Initiate OAuth flow for connecting a GPS service.
    * Returns the authorization URL to redirect the user to.
    */
@@ -98,14 +114,33 @@ public class GpsService {
     }
 
     Long userId = pedalonsContext.getUserId();
+    GpsOAuthVersion oauthVersion = oauthVersion(serviceType);
 
-    // Check if already connected
+    // Check if already connected. A connection made under the other protocol is useless since the
+    // domain switched its credential: the new one replaces it (handleCallback reuses the row).
     connectionRepository
         .findByUserAndService(userId, serviceType)
+        .filter(existing -> existing.oauthVersion() == oauthVersion)
         .ifPresent(
             existing -> {
               throw new BusinessException(ErrorCode.GPS_SERVICE_ALREADY_CONNECTED);
             });
+
+    Long domainId = pedalonsContext.getDomainId();
+
+    User user =
+        userRepository
+            .findActiveByIdAndDomain(domainId, userId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+    String redirectUri =
+        domainResolver.getEffectiveBaseUrl()
+            + "/api/gps/callback/"
+            + serviceType.name().toLowerCase();
+
+    if (oauthVersion == GpsOAuthVersion.OAUTH1) {
+      return initiateOAuth1(user, serviceType, redirectUri, domainId);
+    }
 
     // Generate state for CSRF protection
     byte[] stateBytes = new byte[32];
@@ -113,10 +148,6 @@ public class GpsService {
     String state = Base64.getUrlEncoder().withoutPadding().encodeToString(stateBytes);
 
     GpsServiceClient client = getClient(serviceType);
-    String redirectUri =
-        domainResolver.getEffectiveBaseUrl()
-            + "/api/gps/callback/"
-            + serviceType.name().toLowerCase();
     String authUrl;
     String codeVerifier = null;
 
@@ -128,13 +159,6 @@ public class GpsService {
     } else {
       authUrl = client.getAuthorizationUrl(state, redirectUri);
     }
-
-    Long domainId = pedalonsContext.getDomainId();
-
-    User user =
-        userRepository
-            .findActiveByIdAndDomain(domainId, userId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
     oauthStateRepository.persist(
         new GpsOAuthState(
@@ -150,12 +174,107 @@ public class GpsService {
   }
 
   /**
+   * OAuth 1.0a (Garmin only): Garmin's callback names the request token, not a state of ours, so
+   * the request token is what the state row is found by — as unguessable, and as single-use.
+   */
+  private GpsOAuthUrlResponse initiateOAuth1(
+      User user, GpsServiceType serviceType, String redirectUri, Long domainId) {
+    requireGarmin(serviceType);
+    GarminOAuth1Client.Token requestToken = garminOAuth1Client.requestToken(redirectUri);
+
+    GpsOAuthState oauthState =
+        new GpsOAuthState(
+            user,
+            requestToken.token(),
+            serviceType,
+            Instant.now().plusSeconds(600),
+            null,
+            redirectUri,
+            domainId);
+    oauthState.setRequestTokenSecretEncrypted(encryptionService.encrypt(requestToken.secret()));
+    oauthStateRepository.persist(oauthState);
+
+    return new GpsOAuthUrlResponse(garminOAuth1Client.authorizationUrl(requestToken.token()));
+  }
+
+  /**
    * Handle OAuth callback after user authorizes.
    * Exchanges code for tokens and stores the connection.
    */
   @Transactional
   @Public
   public void handleCallback(GpsServiceType serviceType, String code, String state) {
+    GpsOAuthState oauthState = consumeState(serviceType, state);
+    // A request token is no OAuth 2.0 state, even though it sits in the same column.
+    if (oauthState.getRequestTokenSecretEncrypted() != null) {
+      throw new BusinessException(ErrorCode.GPS_INVALID_STATE);
+    }
+
+    String redirectUri = oauthState.getRedirectUri();
+
+    // Exchange code for tokens
+    GpsServiceClient client = getClient(serviceType);
+    TokenResponse tokens;
+    if (client.supportsPkce() && oauthState.getCodeVerifier() != null) {
+      tokens = client.exchangeCode(code, redirectUri, oauthState.getCodeVerifier());
+    } else {
+      tokens = client.exchangeCode(code, redirectUri);
+    }
+
+    GpsServiceConnection connection = connectionFor(oauthState);
+
+    // Store encrypted tokens
+    connection.setAccessTokenEncrypted(encryptionService.encrypt(tokens.accessToken()));
+    connection.setAccessTokenSecretEncrypted(null);
+    if (tokens.refreshToken() != null) {
+      connection.setRefreshTokenEncrypted(encryptionService.encrypt(tokens.refreshToken()));
+    }
+    if (tokens.expiresIn() != null) {
+      connection.setTokenExpiresAt(Instant.now().plusSeconds(tokens.expiresIn()));
+    }
+    connection.setExternalUserId(tokens.userId());
+    connection.setConnectedAt(Instant.now());
+
+    connectionRepository.persist(connection);
+    LOG.infof("User %d connected to %s", oauthState.getUser().getId(), serviceType);
+  }
+
+  /**
+   * Handle the OAuth 1.0a callback (Garmin only): exchanges the request token and its verifier for
+   * an access token, and stores the connection.
+   */
+  @Transactional
+  @Public
+  public void handleOAuth1Callback(GpsServiceType serviceType, String oauthToken, String verifier) {
+    requireGarmin(serviceType);
+    GpsOAuthState oauthState = consumeState(serviceType, oauthToken);
+    byte[] requestTokenSecret = oauthState.getRequestTokenSecretEncrypted();
+    if (requestTokenSecret == null) {
+      throw new BusinessException(ErrorCode.GPS_INVALID_STATE);
+    }
+
+    GarminOAuth1Client.Token accessToken =
+        garminOAuth1Client.accessToken(
+            oauthToken, encryptionService.decrypt(requestTokenSecret), verifier);
+
+    GpsServiceConnection connection = connectionFor(oauthState);
+    connection.setAccessTokenEncrypted(encryptionService.encrypt(accessToken.token()));
+    connection.setAccessTokenSecretEncrypted(encryptionService.encrypt(accessToken.secret()));
+    // An OAuth 1.0a token neither expires nor refreshes: nothing of an OAuth 2.0 one may linger.
+    connection.setRefreshTokenEncrypted(null);
+    connection.setTokenExpiresAt(null);
+    connection.setExternalUserId(null);
+    connection.setConnectedAt(Instant.now());
+
+    connectionRepository.persist(connection);
+    LOG.infof("User %d connected to %s over OAuth 1.0a", oauthState.getUser().getId(), serviceType);
+  }
+
+  /**
+   * Finds the pending authorization a callback refers to, checks it belongs to this service and
+   * domain, and deletes it: it is single-use.
+   */
+  private GpsOAuthState consumeState(GpsServiceType serviceType, String state) {
     // Validate state (findValidByState filters expired states)
     GpsOAuthState oauthState =
         oauthStateRepository
@@ -173,44 +292,27 @@ public class GpsService {
 
     // Delete state immediately after validation (single use)
     oauthStateRepository.delete(oauthState);
+    return oauthState;
+  }
 
+  /** The user's connection to the state's service, existing or new. */
+  private GpsServiceConnection connectionFor(GpsOAuthState oauthState) {
     Long userId = oauthState.getUser().getId();
-    String redirectUri = oauthState.getRedirectUri();
-
-    // Exchange code for tokens
-    GpsServiceClient client = getClient(serviceType);
-    TokenResponse tokens;
-    if (client.supportsPkce() && oauthState.getCodeVerifier() != null) {
-      tokens = client.exchangeCode(code, redirectUri, oauthState.getCodeVerifier());
-    } else {
-      tokens = client.exchangeCode(code, redirectUri);
-    }
-
     // Get user from stored userId (user is not authenticated during callback)
     User user =
         userRepository
-            .findActiveByIdAndDomain(currentDomainId, userId)
+            .findActiveByIdAndDomain(oauthState.getDomainId(), userId)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-    // Create or update connection
-    GpsServiceConnection connection =
-        connectionRepository
-            .findByUserAndService(userId, serviceType)
-            .orElseGet(() -> new GpsServiceConnection(user, serviceType));
+    return connectionRepository
+        .findByUserAndService(userId, oauthState.getServiceType())
+        .orElseGet(() -> new GpsServiceConnection(user, oauthState.getServiceType()));
+  }
 
-    // Store encrypted tokens
-    connection.setAccessTokenEncrypted(encryptionService.encrypt(tokens.accessToken()));
-    if (tokens.refreshToken() != null) {
-      connection.setRefreshTokenEncrypted(encryptionService.encrypt(tokens.refreshToken()));
+  private static void requireGarmin(GpsServiceType serviceType) {
+    if (serviceType != GpsServiceType.GARMIN) {
+      throw new BusinessException(ErrorCode.GPS_INVALID_STATE);
     }
-    if (tokens.expiresIn() != null) {
-      connection.setTokenExpiresAt(Instant.now().plusSeconds(tokens.expiresIn()));
-    }
-    connection.setExternalUserId(tokens.userId());
-    connection.setConnectedAt(Instant.now());
-
-    connectionRepository.persist(connection);
-    LOG.infof("User %d connected to %s", userId, serviceType);
   }
 
   /**
@@ -274,15 +376,33 @@ public class GpsService {
             .findByUserAndService(userId, serviceType)
             .orElseThrow(() -> new BusinessException(ErrorCode.GPS_SERVICE_NOT_CONNECTED));
 
-    // Refresh token if needed
-    if (connection.isTokenExpired() && connection.getRefreshTokenEncrypted() != null) {
-      refreshAccessToken(connection);
+    // The domain switched its credential to the other protocol since this connection was made:
+    // its tokens are worthless now. Dropped rather than kept — the user is asked to reconnect, and
+    // the failure is returned, not thrown, so that the deletion commits.
+    GpsOAuthVersion oauthVersion = oauthVersion(serviceType);
+    if (connection.oauthVersion() != oauthVersion) {
+      connectionRepository.delete(connection);
+      LOG.infof(
+          "Dropped user %d's %s connection made over another OAuth version", userId, serviceType);
+      return new RouteUploadResponse(false, "Reconnect " + serviceType.name(), null);
     }
 
-    // Upload to service
+    RouteUploadResult result;
     String accessToken = encryptionService.decrypt(connection.getAccessTokenEncrypted());
-    GpsServiceClient client = getClient(serviceType);
-    RouteUploadResult result = client.uploadRoute(accessToken, gpxContent, name);
+    byte[] accessTokenSecret = connection.getAccessTokenSecretEncrypted();
+    if (accessTokenSecret != null) {
+      requireGarmin(serviceType);
+      result =
+          garminOAuth1Client.uploadRoute(
+              accessToken, encryptionService.decrypt(accessTokenSecret), gpxContent, name);
+    } else {
+      // Refresh token if needed
+      if (connection.isTokenExpired() && connection.getRefreshTokenEncrypted() != null) {
+        refreshAccessToken(connection);
+        accessToken = encryptionService.decrypt(connection.getAccessTokenEncrypted());
+      }
+      result = getClient(serviceType).uploadRoute(accessToken, gpxContent, name);
+    }
 
     // Update last used
     connection.markUsed();

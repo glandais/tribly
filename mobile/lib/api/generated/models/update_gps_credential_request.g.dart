@@ -12,6 +12,7 @@ _UpdateGpsCredentialRequest _$UpdateGpsCredentialRequestFromJson(
   clientId: json['clientId'] as String,
   clientSecret: json['clientSecret'] as String?,
   active: json['active'] as bool?,
+  oauthVersion: json['oauthVersion'] as String?,
 );
 
 Map<String, dynamic> _$UpdateGpsCredentialRequestToJson(
@@ -20,4 +21,5 @@ Map<String, dynamic> _$UpdateGpsCredentialRequestToJson(
   'clientId': instance.clientId,
   'clientSecret': instance.clientSecret,
   'active': instance.active,
+  'oauthVersion': instance.oauthVersion,
 };

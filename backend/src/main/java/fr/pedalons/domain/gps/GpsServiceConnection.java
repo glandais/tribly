@@ -1,6 +1,7 @@
 package fr.pedalons.domain.gps;
 
 import fr.pedalons.domain.user.User;
+import fr.pedalons.enums.GpsOAuthVersion;
 import fr.pedalons.enums.GpsServiceType;
 import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.*;
@@ -31,6 +32,13 @@ public class GpsServiceConnection {
 
   @Column(name = "access_token_encrypted", nullable = false, columnDefinition = "bytea")
   private byte[] accessTokenEncrypted;
+
+  /**
+   * OAuth 1.0a only: the access token's secret, which signs every request. Its presence is what
+   * makes this an OAuth 1.0a connection; such a token neither expires nor refreshes.
+   */
+  @Column(name = "access_token_secret_encrypted", columnDefinition = "bytea")
+  private byte @Nullable [] accessTokenSecretEncrypted;
 
   @Column(name = "refresh_token_encrypted", columnDefinition = "bytea")
   private byte @Nullable [] refreshTokenEncrypted;
@@ -69,6 +77,11 @@ public class GpsServiceConnection {
     }
     // Consider expired if less than 5 minutes remaining
     return Instant.now().plusSeconds(300).isAfter(tokenExpiresAt);
+  }
+
+  /** The protocol this connection's tokens were obtained with. */
+  public GpsOAuthVersion oauthVersion() {
+    return accessTokenSecretEncrypted != null ? GpsOAuthVersion.OAUTH1 : GpsOAuthVersion.OAUTH2;
   }
 
   public void markUsed() {

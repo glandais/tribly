@@ -18,8 +18,9 @@ mixin _$AdminGpsCredentialDto {
 
 /// Credential ID (TSID)
  String get id;/// GPS service type
- String get serviceType;/// OAuth client ID
- String get clientId;/// Whether credential is active
+ String get serviceType;/// OAuth client ID (consumer key for OAuth 1.0a)
+ String get clientId;/// OAuth protocol of the client ID and secret
+ String get oauthVersion;/// Whether credential is active
  bool get active;/// Credential creation timestamp
  String get createdAt;
 /// Create a copy of AdminGpsCredentialDto
@@ -35,20 +36,20 @@ $AdminGpsCredentialDtoCopyWith<AdminGpsCredentialDto> get copyWith => _$AdminGps
 @override
 bool operator ==(Object other) {
   final _this = this as AdminGpsCredentialDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminGpsCredentialDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.serviceType, _this.serviceType) || other.serviceType == _this.serviceType)&&(identical(other.clientId, _this.clientId) || other.clientId == _this.clientId)&&(identical(other.active, _this.active) || other.active == _this.active)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminGpsCredentialDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.serviceType, _this.serviceType) || other.serviceType == _this.serviceType)&&(identical(other.clientId, _this.clientId) || other.clientId == _this.clientId)&&(identical(other.oauthVersion, _this.oauthVersion) || other.oauthVersion == _this.oauthVersion)&&(identical(other.active, _this.active) || other.active == _this.active)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as AdminGpsCredentialDto;
-  return Object.hash(runtimeType,_this.id,_this.serviceType,_this.clientId,_this.active,_this.createdAt);
+  return Object.hash(runtimeType,_this.id,_this.serviceType,_this.clientId,_this.oauthVersion,_this.active,_this.createdAt);
 }
 
 @override
 String toString() {
   final _this = this as AdminGpsCredentialDto;
-  return 'AdminGpsCredentialDto(id: ${_this.id}, serviceType: ${_this.serviceType}, clientId: ${_this.clientId}, active: ${_this.active}, createdAt: ${_this.createdAt})';
+  return 'AdminGpsCredentialDto(id: ${_this.id}, serviceType: ${_this.serviceType}, clientId: ${_this.clientId}, oauthVersion: ${_this.oauthVersion}, active: ${_this.active}, createdAt: ${_this.createdAt})';
 }
 
 
@@ -59,7 +60,7 @@ abstract mixin class $AdminGpsCredentialDtoCopyWith<$Res>  {
   factory $AdminGpsCredentialDtoCopyWith(AdminGpsCredentialDto value, $Res Function(AdminGpsCredentialDto) _then) = _$AdminGpsCredentialDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String serviceType, String clientId, bool active, String createdAt
+ String id, String serviceType, String clientId, String oauthVersion, bool active, String createdAt
 });
 
 
@@ -76,11 +77,12 @@ class _$AdminGpsCredentialDtoCopyWithImpl<$Res>
 
 /// Create a copy of AdminGpsCredentialDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? serviceType = null,Object? clientId = null,Object? active = null,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? serviceType = null,Object? clientId = null,Object? oauthVersion = null,Object? active = null,Object? createdAt = null,}) {
   return _then(AdminGpsCredentialDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,serviceType: null == serviceType ? _self.serviceType : serviceType // ignore: cast_nullable_to_non_nullable
 as String,clientId: null == clientId ? _self.clientId : clientId // ignore: cast_nullable_to_non_nullable
+as String,oauthVersion: null == oauthVersion ? _self.oauthVersion : oauthVersion // ignore: cast_nullable_to_non_nullable
 as String,active: null == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,
@@ -168,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String serviceType,  String clientId,  bool active,  String createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String serviceType,  String clientId,  String oauthVersion,  bool active,  String createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdminGpsCredentialDto() when $default != null:
-return $default(_that.id,_that.serviceType,_that.clientId,_that.active,_that.createdAt);case _:
+return $default(_that.id,_that.serviceType,_that.clientId,_that.oauthVersion,_that.active,_that.createdAt);case _:
   return orElse();
 
 }
@@ -189,10 +191,10 @@ return $default(_that.id,_that.serviceType,_that.clientId,_that.active,_that.cre
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String serviceType,  String clientId,  bool active,  String createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String serviceType,  String clientId,  String oauthVersion,  bool active,  String createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _AdminGpsCredentialDto():
-return $default(_that.id,_that.serviceType,_that.clientId,_that.active,_that.createdAt);case _:
+return $default(_that.id,_that.serviceType,_that.clientId,_that.oauthVersion,_that.active,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +211,10 @@ return $default(_that.id,_that.serviceType,_that.clientId,_that.active,_that.cre
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String serviceType,  String clientId,  bool active,  String createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String serviceType,  String clientId,  String oauthVersion,  bool active,  String createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _AdminGpsCredentialDto() when $default != null:
-return $default(_that.id,_that.serviceType,_that.clientId,_that.active,_that.createdAt);case _:
+return $default(_that.id,_that.serviceType,_that.clientId,_that.oauthVersion,_that.active,_that.createdAt);case _:
   return null;
 
 }
@@ -224,15 +226,17 @@ return $default(_that.id,_that.serviceType,_that.clientId,_that.active,_that.cre
 @JsonSerializable()
 
 class _AdminGpsCredentialDto implements AdminGpsCredentialDto {
-  const _AdminGpsCredentialDto({required this.id, required this.serviceType, required this.clientId, required this.active, required this.createdAt});
+  const _AdminGpsCredentialDto({required this.id, required this.serviceType, required this.clientId, required this.oauthVersion, required this.active, required this.createdAt});
   factory _AdminGpsCredentialDto.fromJson(Map<String, dynamic> json) => _$AdminGpsCredentialDtoFromJson(json);
 
 /// Credential ID (TSID)
 @override final  String id;
 /// GPS service type
 @override final  String serviceType;
-/// OAuth client ID
+/// OAuth client ID (consumer key for OAuth 1.0a)
 @override final  String clientId;
+/// OAuth protocol of the client ID and secret
+@override final  String oauthVersion;
 /// Whether credential is active
 @override final  bool active;
 /// Credential creation timestamp
@@ -251,18 +255,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminGpsCredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.active, active) || other.active == active)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminGpsCredentialDto&&(identical(other.id, id) || other.id == id)&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.oauthVersion, oauthVersion) || other.oauthVersion == oauthVersion)&&(identical(other.active, active) || other.active == active)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,serviceType,clientId,active,createdAt);
+    return Object.hash(runtimeType,id,serviceType,clientId,oauthVersion,active,createdAt);
 }
 
 @override
 String toString() {
-    return 'AdminGpsCredentialDto(id: $id, serviceType: $serviceType, clientId: $clientId, active: $active, createdAt: $createdAt)';
+    return 'AdminGpsCredentialDto(id: $id, serviceType: $serviceType, clientId: $clientId, oauthVersion: $oauthVersion, active: $active, createdAt: $createdAt)';
 }
 
 
@@ -273,7 +277,7 @@ abstract mixin class _$AdminGpsCredentialDtoCopyWith<$Res> implements $AdminGpsC
   factory _$AdminGpsCredentialDtoCopyWith(_AdminGpsCredentialDto value, $Res Function(_AdminGpsCredentialDto) _then) = __$AdminGpsCredentialDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String serviceType, String clientId, bool active, String createdAt
+ String id, String serviceType, String clientId, String oauthVersion, bool active, String createdAt
 });
 
 
@@ -290,11 +294,12 @@ class __$AdminGpsCredentialDtoCopyWithImpl<$Res>
 
 /// Create a copy of AdminGpsCredentialDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? serviceType = null,Object? clientId = null,Object? active = null,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? serviceType = null,Object? clientId = null,Object? oauthVersion = null,Object? active = null,Object? createdAt = null,}) {
   return _then(_AdminGpsCredentialDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,serviceType: null == serviceType ? _self.serviceType : serviceType // ignore: cast_nullable_to_non_nullable
 as String,clientId: null == clientId ? _self.clientId : clientId // ignore: cast_nullable_to_non_nullable
+as String,oauthVersion: null == oauthVersion ? _self.oauthVersion : oauthVersion // ignore: cast_nullable_to_non_nullable
 as String,active: null == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,

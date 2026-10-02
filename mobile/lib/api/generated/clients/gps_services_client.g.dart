@@ -54,12 +54,16 @@ class _GpsServicesClient implements GpsServicesClient {
     required GpsServiceType serviceType,
     String? code,
     String? error,
+    String? oauthToken,
+    String? oauthVerifier,
     String? state,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'code': code,
       r'error': error,
+      r'oauth_token': oauthToken,
+      r'oauth_verifier': oauthVerifier,
       r'state': state,
     };
     queryParameters.removeWhere((k, v) => v == null);

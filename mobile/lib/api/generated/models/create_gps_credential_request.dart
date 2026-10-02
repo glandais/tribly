@@ -4,6 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'gps_o_auth_version.dart';
 import 'gps_service_type.dart';
 
 part 'create_gps_credential_request.freezed.dart';
@@ -19,11 +20,14 @@ abstract class CreateGpsCredentialRequest with _$CreateGpsCredentialRequest {
     /// OAuth client ID
     required String clientId,
 
-    /// OAuth client secret (nullable for PKCE services)
+    /// OAuth client secret, or consumer secret for OAuth 1.0a (required then)
     String? clientSecret,
 
     /// Whether credential is active
     bool? active,
+
+    /// OAuth protocol of the client ID and secret (null = OAUTH2). OAUTH1 is accepted for GARMIN only; the client ID is then the consumer key
+    String? oauthVersion,
   }) = _CreateGpsCredentialRequest;
 
   factory CreateGpsCredentialRequest.fromJson(Map<String, Object?> json) =>

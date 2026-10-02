@@ -18,9 +18,10 @@ mixin _$CreateGpsCredentialRequest {
 
 /// GPS service type
  String get serviceType;/// OAuth client ID
- String get clientId;/// OAuth client secret (nullable for PKCE services)
+ String get clientId;/// OAuth client secret, or consumer secret for OAuth 1.0a (required then)
  String? get clientSecret;/// Whether credential is active
- bool? get active;
+ bool? get active;/// OAuth protocol of the client ID and secret (null = OAUTH2). OAUTH1 is accepted for GARMIN only; the client ID is then the consumer key
+ String? get oauthVersion;
 /// Create a copy of CreateGpsCredentialRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -34,20 +35,20 @@ $CreateGpsCredentialRequestCopyWith<CreateGpsCredentialRequest> get copyWith => 
 @override
 bool operator ==(Object other) {
   final _this = this as CreateGpsCredentialRequest;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateGpsCredentialRequest&&(identical(other.serviceType, _this.serviceType) || other.serviceType == _this.serviceType)&&(identical(other.clientId, _this.clientId) || other.clientId == _this.clientId)&&(identical(other.clientSecret, _this.clientSecret) || other.clientSecret == _this.clientSecret)&&(identical(other.active, _this.active) || other.active == _this.active));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateGpsCredentialRequest&&(identical(other.serviceType, _this.serviceType) || other.serviceType == _this.serviceType)&&(identical(other.clientId, _this.clientId) || other.clientId == _this.clientId)&&(identical(other.clientSecret, _this.clientSecret) || other.clientSecret == _this.clientSecret)&&(identical(other.active, _this.active) || other.active == _this.active)&&(identical(other.oauthVersion, _this.oauthVersion) || other.oauthVersion == _this.oauthVersion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as CreateGpsCredentialRequest;
-  return Object.hash(runtimeType,_this.serviceType,_this.clientId,_this.clientSecret,_this.active);
+  return Object.hash(runtimeType,_this.serviceType,_this.clientId,_this.clientSecret,_this.active,_this.oauthVersion);
 }
 
 @override
 String toString() {
   final _this = this as CreateGpsCredentialRequest;
-  return 'CreateGpsCredentialRequest(serviceType: ${_this.serviceType}, clientId: ${_this.clientId}, clientSecret: ${_this.clientSecret}, active: ${_this.active})';
+  return 'CreateGpsCredentialRequest(serviceType: ${_this.serviceType}, clientId: ${_this.clientId}, clientSecret: ${_this.clientSecret}, active: ${_this.active}, oauthVersion: ${_this.oauthVersion})';
 }
 
 
@@ -58,7 +59,7 @@ abstract mixin class $CreateGpsCredentialRequestCopyWith<$Res>  {
   factory $CreateGpsCredentialRequestCopyWith(CreateGpsCredentialRequest value, $Res Function(CreateGpsCredentialRequest) _then) = _$CreateGpsCredentialRequestCopyWithImpl;
 @useResult
 $Res call({
- String serviceType, String clientId, String? clientSecret, bool? active
+ String serviceType, String clientId, String? clientSecret, bool? active, String? oauthVersion
 });
 
 
@@ -75,13 +76,14 @@ class _$CreateGpsCredentialRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateGpsCredentialRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? serviceType = null,Object? clientId = null,Object? clientSecret = freezed,Object? active = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? serviceType = null,Object? clientId = null,Object? clientSecret = freezed,Object? active = freezed,Object? oauthVersion = freezed,}) {
   return _then(CreateGpsCredentialRequest(
 serviceType: null == serviceType ? _self.serviceType : serviceType // ignore: cast_nullable_to_non_nullable
 as String,clientId: null == clientId ? _self.clientId : clientId // ignore: cast_nullable_to_non_nullable
 as String,clientSecret: freezed == clientSecret ? _self.clientSecret : clientSecret // ignore: cast_nullable_to_non_nullable
 as String?,active: freezed == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
-as bool?,
+as bool?,oauthVersion: freezed == oauthVersion ? _self.oauthVersion : oauthVersion // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -166,10 +168,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String serviceType,  String clientId,  String? clientSecret,  bool? active)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String serviceType,  String clientId,  String? clientSecret,  bool? active,  String? oauthVersion)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateGpsCredentialRequest() when $default != null:
-return $default(_that.serviceType,_that.clientId,_that.clientSecret,_that.active);case _:
+return $default(_that.serviceType,_that.clientId,_that.clientSecret,_that.active,_that.oauthVersion);case _:
   return orElse();
 
 }
@@ -187,10 +189,10 @@ return $default(_that.serviceType,_that.clientId,_that.clientSecret,_that.active
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String serviceType,  String clientId,  String? clientSecret,  bool? active)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String serviceType,  String clientId,  String? clientSecret,  bool? active,  String? oauthVersion)  $default,) {final _that = this;
 switch (_that) {
 case _CreateGpsCredentialRequest():
-return $default(_that.serviceType,_that.clientId,_that.clientSecret,_that.active);case _:
+return $default(_that.serviceType,_that.clientId,_that.clientSecret,_that.active,_that.oauthVersion);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +209,10 @@ return $default(_that.serviceType,_that.clientId,_that.clientSecret,_that.active
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String serviceType,  String clientId,  String? clientSecret,  bool? active)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String serviceType,  String clientId,  String? clientSecret,  bool? active,  String? oauthVersion)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateGpsCredentialRequest() when $default != null:
-return $default(_that.serviceType,_that.clientId,_that.clientSecret,_that.active);case _:
+return $default(_that.serviceType,_that.clientId,_that.clientSecret,_that.active,_that.oauthVersion);case _:
   return null;
 
 }
@@ -222,17 +224,19 @@ return $default(_that.serviceType,_that.clientId,_that.clientSecret,_that.active
 @JsonSerializable()
 
 class _CreateGpsCredentialRequest implements CreateGpsCredentialRequest {
-  const _CreateGpsCredentialRequest({required this.serviceType, required this.clientId, this.clientSecret, this.active});
+  const _CreateGpsCredentialRequest({required this.serviceType, required this.clientId, this.clientSecret, this.active, this.oauthVersion});
   factory _CreateGpsCredentialRequest.fromJson(Map<String, dynamic> json) => _$CreateGpsCredentialRequestFromJson(json);
 
 /// GPS service type
 @override final  String serviceType;
 /// OAuth client ID
 @override final  String clientId;
-/// OAuth client secret (nullable for PKCE services)
+/// OAuth client secret, or consumer secret for OAuth 1.0a (required then)
 @override final  String? clientSecret;
 /// Whether credential is active
 @override final  bool? active;
+/// OAuth protocol of the client ID and secret (null = OAUTH2). OAUTH1 is accepted for GARMIN only; the client ID is then the consumer key
+@override final  String? oauthVersion;
 
 /// Create a copy of CreateGpsCredentialRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -247,18 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateGpsCredentialRequest&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.clientSecret, clientSecret) || other.clientSecret == clientSecret)&&(identical(other.active, active) || other.active == active));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateGpsCredentialRequest&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.clientId, clientId) || other.clientId == clientId)&&(identical(other.clientSecret, clientSecret) || other.clientSecret == clientSecret)&&(identical(other.active, active) || other.active == active)&&(identical(other.oauthVersion, oauthVersion) || other.oauthVersion == oauthVersion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,serviceType,clientId,clientSecret,active);
+    return Object.hash(runtimeType,serviceType,clientId,clientSecret,active,oauthVersion);
 }
 
 @override
 String toString() {
-    return 'CreateGpsCredentialRequest(serviceType: $serviceType, clientId: $clientId, clientSecret: $clientSecret, active: $active)';
+    return 'CreateGpsCredentialRequest(serviceType: $serviceType, clientId: $clientId, clientSecret: $clientSecret, active: $active, oauthVersion: $oauthVersion)';
 }
 
 
@@ -269,7 +273,7 @@ abstract mixin class _$CreateGpsCredentialRequestCopyWith<$Res> implements $Crea
   factory _$CreateGpsCredentialRequestCopyWith(_CreateGpsCredentialRequest value, $Res Function(_CreateGpsCredentialRequest) _then) = __$CreateGpsCredentialRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String serviceType, String clientId, String? clientSecret, bool? active
+ String serviceType, String clientId, String? clientSecret, bool? active, String? oauthVersion
 });
 
 
@@ -286,13 +290,14 @@ class __$CreateGpsCredentialRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateGpsCredentialRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? serviceType = null,Object? clientId = null,Object? clientSecret = freezed,Object? active = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? serviceType = null,Object? clientId = null,Object? clientSecret = freezed,Object? active = freezed,Object? oauthVersion = freezed,}) {
   return _then(_CreateGpsCredentialRequest(
 serviceType: null == serviceType ? _self.serviceType : serviceType // ignore: cast_nullable_to_non_nullable
 as String,clientId: null == clientId ? _self.clientId : clientId // ignore: cast_nullable_to_non_nullable
 as String,clientSecret: freezed == clientSecret ? _self.clientSecret : clientSecret // ignore: cast_nullable_to_non_nullable
 as String?,active: freezed == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
-as bool?,
+as bool?,oauthVersion: freezed == oauthVersion ? _self.oauthVersion : oauthVersion // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

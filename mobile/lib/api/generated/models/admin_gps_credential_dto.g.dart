@@ -12,6 +12,7 @@ _AdminGpsCredentialDto _$AdminGpsCredentialDtoFromJson(
   id: json['id'] as String,
   serviceType: json['serviceType'] as String,
   clientId: json['clientId'] as String,
+  oauthVersion: json['oauthVersion'] as String,
   active: json['active'] as bool,
   createdAt: json['createdAt'] as String,
 );
@@ -22,6 +23,7 @@ Map<String, dynamic> _$AdminGpsCredentialDtoToJson(
   'id': instance.id,
   'serviceType': instance.serviceType,
   'clientId': instance.clientId,
+  'oauthVersion': instance.oauthVersion,
   'active': instance.active,
   'createdAt': instance.createdAt,
 };

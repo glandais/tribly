@@ -126,6 +126,10 @@ enum ErrorCode {
   deviceCodeRateLimited('DEVICE_CODE_RATE_LIMITED'),
   @JsonValue('GPS_CREDENTIAL_ALREADY_EXISTS')
   gpsCredentialAlreadyExists('GPS_CREDENTIAL_ALREADY_EXISTS'),
+  @JsonValue('GPS_OAUTH_VERSION_NOT_SUPPORTED')
+  gpsOauthVersionNotSupported('GPS_OAUTH_VERSION_NOT_SUPPORTED'),
+  @JsonValue('GPS_CLIENT_SECRET_REQUIRED')
+  gpsClientSecretRequired('GPS_CLIENT_SECRET_REQUIRED'),
   @JsonValue('GPS_TOKEN_EXCHANGE_FAILED')
   gpsTokenExchangeFailed('GPS_TOKEN_EXCHANGE_FAILED'),
   @JsonValue('ENCRYPTION_FAILED')

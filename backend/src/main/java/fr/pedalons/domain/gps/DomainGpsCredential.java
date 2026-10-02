@@ -1,6 +1,7 @@
 package fr.pedalons.domain.gps;
 
 import fr.pedalons.domain.platform.Domain;
+import fr.pedalons.enums.GpsOAuthVersion;
 import fr.pedalons.enums.GpsServiceType;
 import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.*;
@@ -38,9 +39,20 @@ public class DomainGpsCredential {
   @Column(name = "client_id", nullable = false, length = 255)
   private String clientId;
 
-  /** Encrypted client secret. Nullable for services using PKCE (e.g., Garmin). */
+  /**
+   * Encrypted client secret (the consumer secret for OAuth 1.0a). Every client this backend talks
+   * to requires one, Garmin's PKCE flow included.
+   */
   @Column(name = "client_secret_encrypted", columnDefinition = "bytea")
   private byte @Nullable [] clientSecretEncrypted;
+
+  /**
+   * Which OAuth protocol {@link #clientId} and the secret belong to — for OAuth 1.0a they are the
+   * consumer key and secret. Only Garmin may be {@link GpsOAuthVersion#OAUTH1}.
+   */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "oauth_version", nullable = false, length = 10)
+  private GpsOAuthVersion oauthVersion = GpsOAuthVersion.OAUTH2;
 
   @Column(name = "active", nullable = false)
   private boolean active = true;

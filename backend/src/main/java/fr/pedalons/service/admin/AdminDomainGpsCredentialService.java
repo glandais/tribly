@@ -1,6 +1,7 @@
 package fr.pedalons.service.admin;
 
 import fr.pedalons.common.TsidUtils;
+import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.ConflictException;
 import fr.pedalons.common.exception.NotFoundException;
 import fr.pedalons.domain.gps.DomainGpsCredential;
@@ -9,6 +10,8 @@ import fr.pedalons.dto.admin.AdminGpsCredentialDto;
 import fr.pedalons.dto.admin.CreateGpsCredentialRequest;
 import fr.pedalons.dto.admin.UpdateGpsCredentialRequest;
 import fr.pedalons.dto.error.ErrorCode;
+import fr.pedalons.enums.GpsOAuthVersion;
+import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.infrastructure.security.TokenEncryptionService;
 import fr.pedalons.repository.gps.DomainGpsCredentialRepository;
 import fr.pedalons.repository.platform.DomainRepository;
@@ -53,10 +56,14 @@ public class AdminDomainGpsCredentialService {
     DomainGpsCredential credential =
         new DomainGpsCredential(domain, request.serviceType(), request.clientId());
     credential.setActive(request.active());
+    if (request.oauthVersion() != null) {
+      credential.setOauthVersion(request.oauthVersion());
+    }
 
     if (request.clientSecret() != null && !request.clientSecret().isBlank()) {
       credential.setClientSecretEncrypted(tokenEncryptionService.encrypt(request.clientSecret()));
     }
+    checkOAuthVersion(credential);
 
     credentialRepository.persist(credential);
     return AdminGpsCredentialDto.from(credential);
@@ -73,11 +80,15 @@ public class AdminDomainGpsCredentialService {
 
     credential.setClientId(request.clientId());
     credential.setActive(request.active());
+    if (request.oauthVersion() != null) {
+      credential.setOauthVersion(request.oauthVersion());
+    }
 
     // Only update secret if provided (non-null and non-empty)
     if (request.clientSecret() != null && !request.clientSecret().isBlank()) {
       credential.setClientSecretEncrypted(tokenEncryptionService.encrypt(request.clientSecret()));
     }
+    checkOAuthVersion(credential);
 
     credentialRepository.persist(credential);
     return AdminGpsCredentialDto.from(credential);
@@ -91,6 +102,22 @@ public class AdminDomainGpsCredentialService {
 
     DomainGpsCredential credential = findCredential(domId, credId);
     credentialRepository.delete(credential);
+  }
+
+  /**
+   * OAuth 1.0a is Garmin's legacy protocol, the only one its programme still accepts for our
+   * applications (docs/LEDGER_*.md API-62); its consumer secret signs every request.
+   */
+  private static void checkOAuthVersion(DomainGpsCredential credential) {
+    if (credential.getOauthVersion() != GpsOAuthVersion.OAUTH1) {
+      return;
+    }
+    if (credential.getServiceType() != GpsServiceType.GARMIN) {
+      throw new BusinessException(ErrorCode.GPS_OAUTH_VERSION_NOT_SUPPORTED);
+    }
+    if (credential.getClientSecretEncrypted() == null) {
+      throw new BusinessException(ErrorCode.GPS_CLIENT_SECRET_REQUIRED);
+    }
   }
 
   private Domain findDomain(Long domainId) {

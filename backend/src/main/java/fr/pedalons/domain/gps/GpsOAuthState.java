@@ -36,6 +36,13 @@ public class GpsOAuthState {
   @Column(name = "code_verifier", length = 200)
   private @Nullable String codeVerifier;
 
+  /**
+   * OAuth 1.0a only: the secret of the request token, which is then held in {@link #state} — the
+   * callback names the request token, not a state of ours.
+   */
+  @Column(name = "request_token_secret_encrypted", columnDefinition = "bytea")
+  private byte @Nullable [] requestTokenSecretEncrypted;
+
   @Column(name = "redirect_uri", nullable = false, length = 500)
   private String redirectUri;
 

@@ -40,7 +40,7 @@ import type {
   CreateGpsCredentialRequest,
   UpdateGpsCredentialRequest,
 } from '@/api/dto'
-import { GpsServiceType } from '@/api/dto'
+import { GpsOAuthVersion, GpsServiceType } from '@/api/dto'
 import {
   useCreateDomain,
   useUpdateDomain,
@@ -79,6 +79,7 @@ interface CredentialFormValues {
   clientId: string
   clientSecret: string
   active: boolean
+  oauthVersion: GpsOAuthVersion
 }
 
 export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProps) {
@@ -262,6 +263,7 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
       clientId: '',
       clientSecret: '',
       active: true,
+      oauthVersion: GpsOAuthVersion.OAUTH2,
     },
   })
 
@@ -272,6 +274,7 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
       clientId: '',
       clientSecret: '',
       active: true,
+      oauthVersion: GpsOAuthVersion.OAUTH2,
     },
   })
 
@@ -281,6 +284,9 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
       clientId: values.clientId,
       clientSecret: values.clientSecret || undefined,
       active: values.active,
+      // OAuth 1.0a is Garmin's only (docs/LEDGER_*.md API-62)
+      oauthVersion:
+        values.serviceType === GpsServiceType.GARMIN ? values.oauthVersion : GpsOAuthVersion.OAUTH2,
     }
 
     await createMutation.mutateAsync(
@@ -306,6 +312,7 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
       clientId: values.clientId,
       clientSecret: values.clientSecret || undefined,
       active: values.active,
+      oauthVersion: values.serviceType === GpsServiceType.GARMIN ? values.oauthVersion : undefined,
     }
 
     await updateMutation.mutateAsync(
@@ -351,6 +358,7 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
       clientId: credential.clientId,
       clientSecret: '',
       active: credential.active,
+      oauthVersion: credential.oauthVersion,
     })
     setEditingCredentialId(credential.id)
   }
@@ -360,6 +368,19 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
     { value: GpsServiceType.GARMIN, label: t('gps.services.garmin') },
     { value: GpsServiceType.WAHOO, label: t('gps.services.wahoo') },
   ]
+
+  const oauthVersionOptions = [
+    {
+      value: GpsOAuthVersion.OAUTH2,
+      label: t('admin.domains.gpsCredentials.oauthVersionOAuth2'),
+    },
+    {
+      value: GpsOAuthVersion.OAUTH1,
+      label: t('admin.domains.gpsCredentials.oauthVersionOAuth1'),
+    },
+  ]
+  const oauthVersionLabel = (version: GpsOAuthVersion) =>
+    oauthVersionOptions.find((o) => o.value === version)?.label
 
   // Get already used service types
   const usedServiceTypes = credentials?.map((c) => c.serviceType) ?? []
@@ -403,6 +424,14 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
               required
               {...addForm.getInputProps('serviceType')}
             />
+            {addForm.values.serviceType === GpsServiceType.GARMIN && (
+              <Select
+                label={t('admin.domains.gpsCredentials.oauthVersionLabel')}
+                data={oauthVersionOptions}
+                allowDeselect={false}
+                {...addForm.getInputProps('oauthVersion')}
+              />
+            )}
             <TextInput
               label={t('admin.domains.gpsCredentials.clientId')}
               required
@@ -472,6 +501,20 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
                             {...editForm.getInputProps('clientSecret')}
                           />
                         </Group>
+                        {credential.serviceType === GpsServiceType.GARMIN && (
+                          <Select
+                            label={t('admin.domains.gpsCredentials.oauthVersionLabel')}
+                            size="xs"
+                            data={oauthVersionOptions}
+                            allowDeselect={false}
+                            description={
+                              editForm.values.oauthVersion !== credential.oauthVersion
+                                ? t('admin.domains.gpsCredentials.oauthVersionSwitchWarning')
+                                : undefined
+                            }
+                            {...editForm.getInputProps('oauthVersion')}
+                          />
+                        )}
                         <Group justify="space-between">
                           <Switch
                             label={t('admin.status.active')}
@@ -516,6 +559,11 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
                       <Text size="sm" c="dimmed">
                         {credential.clientId}
                       </Text>
+                      {credential.serviceType === GpsServiceType.GARMIN && (
+                        <Text size="xs" c="dimmed">
+                          {oauthVersionLabel(credential.oauthVersion)}
+                        </Text>
+                      )}
                     </Table.Td>
                     <Table.Td ta="center">
                       <Badge color={credential.active ? 'green' : 'gray'} size="sm">

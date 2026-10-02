@@ -79,7 +79,10 @@ public class GpsResource {
   @PermitAll
   @Operation(
       summary = "OAuth callback",
-      description = "Handles OAuth callback from GPS service and redirects to frontend")
+      description =
+          "Handles OAuth callback from GPS service and redirects to frontend. OAuth 2.0 brings"
+              + " code and state; OAuth 1.0a (Garmin, when the domain's credential says so)"
+              + " brings oauth_token and oauth_verifier.")
   @APIResponses({
     @APIResponse(responseCode = "302", description = "Redirects to frontend"),
     @APIResponse(
@@ -92,37 +95,50 @@ public class GpsResource {
           GpsServiceType serviceType,
       @QueryParam("code") @Nullable String code,
       @QueryParam("state") @Nullable String state,
-      @QueryParam("error") @Nullable String error) {
+      @QueryParam("error") @Nullable String error,
+      @Parameter(description = "OAuth 1.0a request token") @QueryParam("oauth_token")
+          @Nullable String oauthToken,
+      @Parameter(description = "OAuth 1.0a verifier") @QueryParam("oauth_verifier")
+          @Nullable String oauthVerifier) {
 
     // Handle OAuth error. The provider's value is never copied into the redirect: it arrives from
     // whoever built the link, and would add parameters to it — or make URI.create throw
     // (docs/LEDGER_*.md SEC-12, audit L8). A fixed key per case, the standard refusal kept apart.
     if (error != null) {
       String key = "access_denied".equals(error) ? "access_denied" : "provider_error";
-      return Response.temporaryRedirect(
-              URI.create(gpsService.getFrontendBaseUrl() + "/profile?gps_error=" + key))
-          .build();
+      return redirectToProfile("gps_error=" + key);
+    }
+
+    // OAuth 1.0a (docs/LEDGER_*.md API-62). A request token back without a verifier is a refusal:
+    // the protocol defines no error parameter.
+    if (oauthToken != null) {
+      if (oauthVerifier == null) {
+        return redirectToProfile("gps_error=access_denied");
+      }
+      try {
+        gpsService.handleOAuth1Callback(serviceType, oauthToken, oauthVerifier);
+        return redirectToProfile("gps_connected=" + serviceType.name().toLowerCase());
+      } catch (Exception e) {
+        return redirectToProfile("gps_error=connection_failed");
+      }
     }
 
     if (code == null || state == null) {
-      return Response.temporaryRedirect(
-              URI.create(gpsService.getFrontendBaseUrl() + "/profile?gps_error=missing_params"))
-          .build();
+      return redirectToProfile("gps_error=missing_params");
     }
 
     try {
       gpsService.handleCallback(serviceType, code, state);
-      return Response.temporaryRedirect(
-              URI.create(
-                  gpsService.getFrontendBaseUrl()
-                      + "/profile?gps_connected="
-                      + serviceType.name().toLowerCase()))
-          .build();
+      return redirectToProfile("gps_connected=" + serviceType.name().toLowerCase());
     } catch (Exception e) {
-      return Response.temporaryRedirect(
-              URI.create(gpsService.getFrontendBaseUrl() + "/profile?gps_error=connection_failed"))
-          .build();
+      return redirectToProfile("gps_error=connection_failed");
     }
+  }
+
+  private Response redirectToProfile(String query) {
+    return Response.temporaryRedirect(
+            URI.create(gpsService.getFrontendBaseUrl() + "/profile?" + query))
+        .build();
   }
 
   @DELETE

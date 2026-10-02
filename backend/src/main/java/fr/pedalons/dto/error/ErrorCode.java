@@ -78,6 +78,10 @@ public enum ErrorCode {
   DEVICE_CODE_RATE_LIMITED,
   // Admin errors
   GPS_CREDENTIAL_ALREADY_EXISTS,
+  /** OAuth 1.0a asked for a service other than Garmin (docs/LEDGER_*.md API-62). */
+  GPS_OAUTH_VERSION_NOT_SUPPORTED,
+  /** An OAuth 1.0a credential without its consumer secret, which signs every request. */
+  GPS_CLIENT_SECRET_REQUIRED,
   GPS_TOKEN_EXCHANGE_FAILED,
   ENCRYPTION_FAILED,
   DECRYPTION_FAILED,

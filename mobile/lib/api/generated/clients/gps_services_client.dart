@@ -24,14 +24,20 @@ abstract class GpsServicesClient {
 
   /// OAuth callback.
   ///
-  /// Handles OAuth callback from GPS service and redirects to frontend.
+  /// Handles OAuth callback from GPS service and redirects to frontend. OAuth 2.0 brings code and state; OAuth 1.0a (Garmin, when the domain's credential says so) brings oauth_token and oauth_verifier.
   ///
   /// [serviceType] - GPS service type.
+  ///
+  /// [oauthToken] - OAuth 1.0a request token.
+  ///
+  /// [oauthVerifier] - OAuth 1.0a verifier.
   @GET('/api/gps/callback/{serviceType}')
   Future<void> handleCallback({
     @Path('serviceType') required GpsServiceType serviceType,
     @Query('code') String? code,
     @Query('error') String? error,
+    @Query('oauth_token') String? oauthToken,
+    @Query('oauth_verifier') String? oauthVerifier,
     @Query('state') String? state,
   });
 

@@ -22,7 +22,8 @@ import org.jboss.logging.Logger;
 
 /**
  * Garmin Connect GPS device integration client.
- * Implements OAuth 2.0 with PKCE and course upload via Garmin Training API.
+ * Implements OAuth 2.0 with PKCE and course upload via Garmin Training API. A domain whose Garmin
+ * credential is OAuth 1.0a goes through {@link GarminOAuth1Client} instead, which reuses the upload.
  */
 @ApplicationScoped
 public class GarminClient implements GpsServiceClient {
@@ -31,8 +32,7 @@ public class GarminClient implements GpsServiceClient {
 
   private static final String AUTH_URL = "https://connect.garmin.com/oauth2Confirm";
   private static final String TOKEN_URL = "https://diauth.garmin.com/di-oauth2-service/oauth/token";
-  private static final String COURSE_UPLOAD_URL =
-      "https://apis.garmin.com/training-api/courses/v1/course";
+  static final String COURSE_UPLOAD_URL = "https://apis.garmin.com/training-api/courses/v1/course";
 
   @Inject DomainGpsCredentialService credentialService;
 
@@ -172,6 +172,14 @@ public class GarminClient implements GpsServiceClient {
 
   @Override
   public RouteUploadResult uploadRoute(String accessToken, byte[] gpxContent, String routeName) {
+    return uploadCourse(gpxContent, routeName, "Bearer " + accessToken);
+  }
+
+  /**
+   * Creates a course on Garmin Connect. The authorization header is all that differs between OAuth
+   * 2.0 (a bearer token) and OAuth 1.0a (a signature, see {@link GarminOAuth1Client}).
+   */
+  RouteUploadResult uploadCourse(byte[] gpxContent, String routeName, String authorization) {
     try {
       // Convert GPX to Garmin course JSON format
       String courseJson = courseConverter.convertToGarminCourse(gpxContent, routeName);
@@ -179,7 +187,7 @@ public class GarminClient implements GpsServiceClient {
       HttpRequest request =
           HttpRequest.newBuilder()
               .uri(URI.create(COURSE_UPLOAD_URL))
-              .header("Authorization", "Bearer " + accessToken)
+              .header("Authorization", authorization)
               .header("Content-Type", "application/json")
               .POST(HttpRequest.BodyPublishers.ofString(courseJson, StandardCharsets.UTF_8))
               .build();

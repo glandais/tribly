@@ -441,7 +441,10 @@ export const ListDomainGpsCredentialsResponseItem = zod
   .object({
     id: zod.string().describe('Credential ID (TSID)'),
     serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
-    clientId: zod.string().describe('OAuth client ID'),
+    clientId: zod.string().describe('OAuth client ID (consumer key for OAuth 1.0a)'),
+    oauthVersion: zod
+      .enum(['OAUTH1', 'OAUTH2'])
+      .describe('OAuth protocol of the client ID and secret'),
     active: zod.boolean().describe('Whether credential is active'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Credential creation timestamp'),
   })
@@ -473,8 +476,14 @@ export const CreateDomainGpsCredentialBody = zod
       .string()
       .max(createDomainGpsCredentialBodyClientSecretMax)
       .optional()
-      .describe('OAuth client secret (nullable for PKCE services)'),
+      .describe('OAuth client secret, or consumer secret for OAuth 1.0a (required then)'),
     active: zod.boolean().optional().describe('Whether credential is active'),
+    oauthVersion: zod
+      .enum(['OAUTH1', 'OAUTH2'])
+      .optional()
+      .describe(
+        'OAuth protocol of the client ID and secret (null = OAUTH2). OAUTH1 is accepted for GARMIN only; the client ID is then the consumer key'
+      ),
   })
   .describe('Request to create a new GPS credential')
 
@@ -482,7 +491,10 @@ export const CreateDomainGpsCredentialResponse = zod
   .object({
     id: zod.string().describe('Credential ID (TSID)'),
     serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
-    clientId: zod.string().describe('OAuth client ID'),
+    clientId: zod.string().describe('OAuth client ID (consumer key for OAuth 1.0a)'),
+    oauthVersion: zod
+      .enum(['OAUTH1', 'OAUTH2'])
+      .describe('OAuth protocol of the client ID and secret'),
     active: zod.boolean().describe('Whether credential is active'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Credential creation timestamp'),
   })
@@ -515,6 +527,12 @@ export const UpdateDomainGpsCredentialBody = zod
       .optional()
       .describe('OAuth client secret (null = keep current)'),
     active: zod.boolean().optional().describe('Whether credential is active'),
+    oauthVersion: zod
+      .enum(['OAUTH1', 'OAUTH2'])
+      .optional()
+      .describe(
+        'OAuth protocol of the client ID and secret (null = keep current). OAUTH1 is accepted for GARMIN only. Switching it leaves existing connections unusable: each is dropped at its next upload and must be reconnected'
+      ),
   })
   .describe('Request to update a GPS credential')
 
@@ -522,7 +540,10 @@ export const UpdateDomainGpsCredentialResponse = zod
   .object({
     id: zod.string().describe('Credential ID (TSID)'),
     serviceType: zod.enum(['HAMMERHEAD', 'GARMIN', 'WAHOO']).describe('GPS service type'),
-    clientId: zod.string().describe('OAuth client ID'),
+    clientId: zod.string().describe('OAuth client ID (consumer key for OAuth 1.0a)'),
+    oauthVersion: zod
+      .enum(['OAUTH1', 'OAUTH2'])
+      .describe('OAuth protocol of the client ID and secret'),
     active: zod.boolean().describe('Whether credential is active'),
     createdAt: zod.iso.datetime({ offset: true }).describe('Credential creation timestamp'),
   })

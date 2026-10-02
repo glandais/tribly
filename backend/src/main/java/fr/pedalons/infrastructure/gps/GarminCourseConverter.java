@@ -13,7 +13,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 /**
- * Converts GPX files to Garmin Connect course JSON format.
+ * Converts GPX files to Garmin Connect course JSON format — the Courses API's {@code GeoPoint} is
+ * {@code latitude}/{@code longitude}/{@code elevation}, the same over OAuth 1.0a and 2.0.
  */
 @ApplicationScoped
 public class GarminCourseConverter {
@@ -102,14 +103,15 @@ public class GarminCourseConverter {
     json.append("\"elevationGain\":").append(Math.round(elevationGain)).append(",");
     json.append("\"elevationLoss\":").append(Math.round(elevationLoss)).append(",");
     json.append("\"activityType\":\"ROAD_CYCLING\",");
+    json.append("\"coordinateSystem\":\"WGS84\",");
     json.append("\"geoPoints\":[");
 
     for (int i = 0; i < geoPoints.size(); i++) {
       if (i > 0) json.append(",");
       GeoPoint p = geoPoints.get(i);
-      json.append("{\"lat\":").append(p.lat).append(",\"lon\":").append(p.lon);
+      json.append("{\"latitude\":").append(p.lat).append(",\"longitude\":").append(p.lon);
       if (p.altitude != null) {
-        json.append(",\"altitude\":").append(p.altitude);
+        json.append(",\"elevation\":").append(p.altitude);
       }
       json.append("}");
     }

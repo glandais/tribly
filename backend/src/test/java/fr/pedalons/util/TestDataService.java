@@ -1375,6 +1375,14 @@ public class TestDataService {
   }
 
   @Transactional
+  public void setDomainGpsCredentialOAuthVersion(
+      fr.pedalons.domain.gps.DomainGpsCredential credential,
+      fr.pedalons.enums.GpsOAuthVersion oauthVersion) {
+    credential.setOauthVersion(oauthVersion);
+    domainGpsCredentialRepository.getEntityManager().merge(credential);
+  }
+
+  @Transactional
   public void deactivateDomainGpsCredential(fr.pedalons.domain.gps.DomainGpsCredential credential) {
     credential.setActive(false);
     domainGpsCredentialRepository.getEntityManager().merge(credential);

@@ -13,6 +13,7 @@ _CreateGpsCredentialRequest _$CreateGpsCredentialRequestFromJson(
   clientId: json['clientId'] as String,
   clientSecret: json['clientSecret'] as String?,
   active: json['active'] as bool?,
+  oauthVersion: json['oauthVersion'] as String?,
 );
 
 Map<String, dynamic> _$CreateGpsCredentialRequestToJson(
@@ -22,4 +23,5 @@ Map<String, dynamic> _$CreateGpsCredentialRequestToJson(
   'clientId': instance.clientId,
   'clientSecret': instance.clientSecret,
   'active': instance.active,
+  'oauthVersion': instance.oauthVersion,
 };

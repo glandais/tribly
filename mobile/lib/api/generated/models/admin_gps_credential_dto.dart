@@ -4,6 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'gps_o_auth_version.dart';
 import 'gps_service_type.dart';
 import 'instant.dart';
 
@@ -20,8 +21,11 @@ abstract class AdminGpsCredentialDto with _$AdminGpsCredentialDto {
     /// GPS service type
     required String serviceType,
 
-    /// OAuth client ID
+    /// OAuth client ID (consumer key for OAuth 1.0a)
     required String clientId,
+
+    /// OAuth protocol of the client ID and secret
+    required String oauthVersion,
 
     /// Whether credential is active
     required bool active,

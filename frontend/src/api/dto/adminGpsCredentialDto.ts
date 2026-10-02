@@ -1,3 +1,4 @@
+import type { GpsOAuthVersion } from './gpsOAuthVersion.ts'
 import type { GpsServiceType } from './gpsServiceType.ts'
 import type { Instant } from './instant.ts'
 
@@ -9,8 +10,10 @@ export interface AdminGpsCredentialDto {
   id: string
   /** GPS service type */
   serviceType: GpsServiceType
-  /** OAuth client ID */
+  /** OAuth client ID (consumer key for OAuth 1.0a) */
   clientId: string
+  /** OAuth protocol of the client ID and secret */
+  oauthVersion: GpsOAuthVersion
   /** Whether credential is active */
   active: boolean
   /** Credential creation timestamp */

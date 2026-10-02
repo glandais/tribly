@@ -8,7 +8,7 @@ export const GetAvailableServicesResponseItem = zod.enum(['HAMMERHEAD', 'GARMIN'
 export const GetAvailableServicesResponse = zod.array(GetAvailableServicesResponseItem)
 
 /**
- * Handles OAuth callback from GPS service and redirects to frontend
+ * Handles OAuth callback from GPS service and redirects to frontend. OAuth 2.0 brings code and state; OAuth 1.0a (Garmin, when the domain's credential says so) brings oauth_token and oauth_verifier.
  * @summary OAuth callback
  */
 export const HandleCallbackParams = zod.object({
@@ -18,6 +18,8 @@ export const HandleCallbackParams = zod.object({
 export const HandleCallbackQueryParams = zod.object({
   code: zod.string().optional(),
   error: zod.string().optional(),
+  oauth_token: zod.string().optional().describe('OAuth 1.0a request token'),
+  oauth_verifier: zod.string().optional().describe('OAuth 1.0a verifier'),
   state: zod.string().optional(),
 })
 
