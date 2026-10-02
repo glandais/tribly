@@ -23,7 +23,8 @@ DOCKER_CIQ_HOME = /root/.Garmin/ConnectIQ/Sdks/$(notdir $(patsubst %/,%,$(CIQ_HO
 
 # Build tools
 MONKEYC = $(CIQ_HOME)bin/monkeybrains.jar
-SIMULATOR = $(CIQ_HOME)bin/simulator
+# connectiq opens ConnectIQ.app on macOS, where there is no bin/simulator
+SIMULATOR = $(CIQ_HOME)bin/connectiq
 MONKEYDO = $(CIQ_HOME)bin/monkeydo
 
 # Project configuration
@@ -46,7 +47,7 @@ DEVICE ?= edge1040
 SOURCES = $(wildcard $(SOURCE_DIR)/*.mc)
 RESOURCES = $(wildcard $(RESOURCE_DIR)/**/*.xml)
 
-.PHONY: all build build-all debug clean simulator run help check-sdk
+.PHONY: all build build-all debug test clean simulator run help check-sdk
 
 # Default target
 all: build
@@ -98,6 +99,20 @@ debug: check-sdk $(BIN_DIR)
 		-y "$(DEVELOPER_KEY)" \
 		-d "$(DEVICE)" \
 		-l 3
+
+# Build with the (:test) code and run the unit tests (native simulator started first)
+test: check-sdk $(BIN_DIR)
+	@echo "Running unit tests on $(DEVICE)..."
+	java -jar "$(MONKEYC)" \
+		-o "$(BIN_DIR)/$(PROJECT_NAME)-$(DEVICE)-test.prg" \
+		-f "$(JUNGLE)" \
+		-y "$(DEVELOPER_KEY)" \
+		-d "$(DEVICE)" \
+		--unit-test \
+		-w
+	@# monkeydo -t exits 1 even when every test passes: the verdict is its PASSED line
+	"$(MONKEYDO)" "$(BIN_DIR)/$(PROJECT_NAME)-$(DEVICE)-test.prg" $(DEVICE) -t | tee "$(BIN_DIR)/test.log"
+	@grep -q '^PASSED' "$(BIN_DIR)/test.log"
 
 # Create output directory
 $(BIN_DIR):
@@ -181,6 +196,7 @@ help:
 	@echo "  build            Build for single device (default: edge1040)"
 	@echo "  build-all        Build for all supported devices"
 	@echo "  debug            Build debug version with symbols"
+	@echo "  test             Run the unit tests (simulator started)"
 	@echo "  clean            Remove build artifacts"
 	@echo "  simulator        Start simulator (native)"
 	@echo "  simulator-docker Start simulator via Docker (Ubuntu 24.04+)"

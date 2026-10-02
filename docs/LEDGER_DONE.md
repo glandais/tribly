@@ -949,6 +949,22 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   garder le request token comme clé du state (Garmin ne renvoie pas de `state`) ; garder le code
   OAuth 2.0 jusqu'à `API-61`.
 
+- `API-64` **QR code d'appairage sur l'app Garmin** (2026-10-03, sans changement de contrat) —
+  l'écran de connexion (`garmin-app/source/LoginView.mc`) affiche, comme le Karoo, un QR de
+  `verificationUriComplete` au-dessus du code, sur tous les Edge du manifest. Il affichait une URL
+  écrite en dur (`pedalons.fr/garmin`), fausse sur tout autre domaine : c'est maintenant l'hôte de
+  `verificationUri`, celle que renvoie le backend. Toybox n'a pas d'API de code-barres :
+  `QrCode.mc` encode en Monkey C, réduit à l'utile — mode octet, niveau L, versions 3 et 4 (un
+  seul bloc Reed-Solomon, au-delà de 78 octets l'écran retombe sur l'URL et le code) et **masque 0
+  toujours**. Tests : `QrCodeTest.mc` (`make test`, simulateur lancé), comparé module par module à
+  `python-qrcode` sur quatre URL aux bornes des deux versions, vecteurs produits par
+  `garmin-app/scripts/qr-vectors.py`, qui vérifie aussi qu'ils se décodent (OpenCV). Le rendu et
+  le scan sur l'écran d'un Edge n'ont pas été vérifiés. **À ne pas défaire** : ne pas ajouter
+  l'évaluation des huit masques (n'importe quel masque se lit, et c'est le calcul qui exposerait au
+  watchdog Connect IQ) ; garder le code en clair sous le QR, la page web demande de le comparer
+  avant d'appairer (`SEC-2`) ; ne pas prendre segno comme référence, il bourre autrement et produit
+  un autre QR, valide lui aussi.
+
 ### `API-39` T5.4 — Trombinoscope : débloqué par un réglage d'équipe (contrat `3.0.0`)
 
 **Livré** — la page web des membres est venue ensuite, `WEB-1`. L'oracle

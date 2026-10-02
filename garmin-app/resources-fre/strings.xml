@@ -3,6 +3,7 @@
     <string id="AppName">Pédalons</string>
     <string id="LoginRequired">Connexion requise</string>
     <string id="GoTo">Allez sur</string>
+    <string id="ScanOrGoTo">Scannez ou allez sur</string>
     <string id="Waiting">En attente...</string>
     <string id="CodeExpired">Code expiré</string>
     <string id="AuthError">Erreur auth</string>
@@ -17,7 +18,6 @@
     <string id="Distance">Distance</string>
     <string id="Elevation">Dénivelé</string>
     <string id="RefreshRoutes">Actualiser</string>
-    <string id="VerificationUrl">pedalons.fr/garmin</string>
     <string id="PressSelectToLogin">Appuyez sur SELECT</string>
     <string id="PressSelect">Appuyez sur SELECT</string>
     <string id="Unknown">Inconnu</string>

@@ -87,7 +87,11 @@ class PedalonsApp extends Application.AppBase {
 
             // Update the login view to show the code
             if (_loginView != null) {
-                _loginView.setUserCode(userCode);
+                _loginView.setDeviceCode(
+                    userCode,
+                    result.get("verificationUri"),
+                    result.get("verificationUriComplete")
+                );
             }
 
             // Start polling timer

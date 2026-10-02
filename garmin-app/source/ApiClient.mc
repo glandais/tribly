@@ -68,6 +68,7 @@ class ApiClient {
             var deviceCode = dict.get("deviceCode");
             var userCode = dict.get("userCode");
             var verificationUri = dict.get("verificationUri");
+            var verificationUriComplete = dict.get("verificationUriComplete");
             var expiresIn = dict.get("expiresIn");
             var interval = dict.get("interval");
 
@@ -78,6 +79,7 @@ class ApiClient {
                         "deviceCode" => deviceCode,
                         "userCode" => userCode,
                         "verificationUri" => verificationUri,
+                        "verificationUriComplete" => verificationUriComplete,
                         "expiresIn" => expiresIn,
                         "interval" => interval,
                     });
