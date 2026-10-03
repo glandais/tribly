@@ -20,7 +20,6 @@ import fr.pedalons.dto.auth.response.AuthResult;
 import fr.pedalons.dto.auth.response.EmailLinkPreviewResponse;
 import fr.pedalons.dto.auth.response.RefreshResult;
 import fr.pedalons.dto.error.ErrorCode;
-import fr.pedalons.dto.users.response.UserDto;
 import fr.pedalons.enums.AuthTokenType;
 import fr.pedalons.enums.EmailLinkKind;
 import fr.pedalons.repository.auth.AuthSessionRepository;
@@ -30,6 +29,7 @@ import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
 import fr.pedalons.service.security.annotation.Public;
+import fr.pedalons.service.user.UserService;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import io.quarkus.logging.Log;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -59,6 +59,7 @@ public class AuthService {
   @Inject fr.pedalons.repository.platform.DomainRepository domainRepository;
   @Inject PedalonsQueryContext queryContext;
   @Inject AuthThrottle authThrottle;
+  @Inject UserService userService;
 
   @ConfigProperty(name = "pedalons.auth.refresh-token.expiry-days", defaultValue = "30")
   int refreshTokenExpiryDays;
@@ -591,7 +592,7 @@ public class AuthService {
     return AuthResponse.builder()
         .accessToken(jwtService.generateAccessToken(user))
         .expiresIn(jwtService.getAccessTokenExpirySeconds())
-        .user(UserDto.from(user))
+        .user(userService.toDto(user))
         .build();
   }
 
@@ -667,7 +668,7 @@ public class AuthService {
         AuthResponse.builder()
             .accessToken(accessToken)
             .expiresIn(jwtService.getAccessTokenExpirySeconds())
-            .user(UserDto.from(user))
+            .user(userService.toDto(user))
             .refreshToken(refreshToken)
             .build();
 

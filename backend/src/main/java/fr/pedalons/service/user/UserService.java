@@ -46,7 +46,16 @@ public class UserService {
 
   @Logged
   public UserDto getUserDto() {
-    User user = pedalonsContext.getUser();
+    return toDto(pedalonsContext.getUser());
+  }
+
+  /**
+   * The member's own profile, connected GPS services included. Every endpoint that answers with a
+   * {@link UserDto} goes through here: the clients replace their whole user with it (the SSR seeds
+   * {@code /me} with the refresh's answer), so a profile without its services would show them
+   * disconnected and send the member to connect them again.
+   */
+  public UserDto toDto(User user) {
     List<GpsServiceConnectionDto> connections =
         gpsConnectionRepository.findByUser(user.getId()).stream()
             .map(GpsServiceConnectionDto::from)
@@ -70,7 +79,7 @@ public class UserService {
     }
 
     userRepository.persist(user);
-    return UserDto.from(user);
+    return toDto(user);
   }
 
   /**
@@ -110,7 +119,7 @@ public class UserService {
     }
 
     userRepository.persist(user);
-    return UserDto.from(user);
+    return toDto(user);
   }
 
   /** What {@link #deleteUser} would do to the current user's teams, for the confirmation. */

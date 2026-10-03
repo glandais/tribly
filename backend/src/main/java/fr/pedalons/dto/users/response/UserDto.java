@@ -54,10 +54,6 @@ public record UserDto(
     @Schema(description = "Connected GPS services")
         List<GpsServiceConnectionDto> connectedServices) {
 
-  public static UserDto from(User user) {
-    return from(user, List.of());
-  }
-
   public static UserDto from(User user, List<GpsServiceConnectionDto> connectedServices) {
     return new UserDto(
         TsidUtils.toString(user.getId()),

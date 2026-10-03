@@ -9,6 +9,7 @@ import fr.pedalons.domain.auth.AuthToken;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.AuthTokenType;
+import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.repository.auth.AuthTokenRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.auth.JwtService;
@@ -294,6 +295,26 @@ class AuthResourceTest extends AbstractResourceTest {
         .statusCode(200)
         .body("accessToken", is(notNullValue()))
         .body("user.email", equalTo("refresh@example.com"));
+  }
+
+  /**
+   * The SSR seeds {@code /me} with the refresh's user: without its GPS services, a Karoo back from
+   * the Hammerhead authorization stayed on « Associer Hammerhead ».
+   */
+  @Test
+  void refresh_returnsTheConnectedServices() {
+    User user = dataService.createVerifiedUser("refresh-gps@example.com", "Refresh Gps");
+    dataService.createGpsServiceConnection(user, GpsServiceType.HAMMERHEAD);
+    String refreshToken = dataService.createRefreshTokenForUser(user);
+
+    given()
+        .contentType(ContentType.JSON)
+        .cookie("refresh_token", refreshToken)
+        .when()
+        .post("/api/auth/refresh")
+        .then()
+        .statusCode(200)
+        .body("user.connectedServices.serviceType", contains("HAMMERHEAD"));
   }
 
   @Test
