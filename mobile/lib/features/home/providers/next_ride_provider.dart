@@ -51,7 +51,7 @@ final nextRideProvider = FutureProvider<NextRide?>((Ref ref) async {
 
   for (final PublicationDto publication in response.publications) {
     // Les voyages remontent aussi dans les participations ; ce bloc-ci parle
-    // de sorties. Le carrousel « À venir » montre les deux.
+    // de sorties. « Cette semaine » montre les deux.
     if (publication is PublicationDtoRide) {
       final RideDto ride = rideFromListRow(publication);
       return NextRide(ride: ride, group: ride.joinedGroup);

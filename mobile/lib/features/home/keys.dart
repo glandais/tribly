@@ -16,22 +16,6 @@ class HomeKeys {
   /// La carte compacte qui remplace le bloc quand rien n'est à venir.
   final noNextRideCard = const _HomeKey('noNextRide');
 
-  /// Une carte du carrousel « À venir », sortie ou voyage.
-  ValueKey<String> upcomingCard(String slug) => _HomeKey('upcomingCard_$slug');
-
-  /// « Rejoindre » d'une sortie à groupe unique (ouvre le détail en
-  /// `autoJoin`).
-  ValueKey<String> upcomingJoinButton(String slug) =>
-      _HomeKey('upcomingJoin_$slug');
-
-  /// « Choisir un groupe » d'une sortie à plusieurs groupes.
-  ValueKey<String> upcomingChooseGroupButton(String slug) =>
-      _HomeKey('upcomingChooseGroup_$slug');
-
-  /// Le badge « Inscrit » d'une carte du carrousel.
-  ValueKey<String> upcomingRegisteredBadge(String slug) =>
-      _HomeKey('upcomingRegistered_$slug');
-
   /// « Envoyer vers le compteur » sur la carte « Ma prochaine sortie ».
   final nextRideSendToDevice = const _HomeKey('nextRideSendToDevice');
 

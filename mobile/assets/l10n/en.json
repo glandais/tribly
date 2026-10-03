@@ -211,13 +211,10 @@
     "viewRide": "View ride",
     "explore": "Explore",
     "groupDeparture": "{group} — departure {time}",
-    "upcoming": "Upcoming",
-    "upcomingScope": "next 30 days · all teams",
     "latestPublications": "Latest publications",
     "searchPlaceholder": "Search by title or description...",
     "scopeAllTeams": "All teams",
     "typeAll": "All",
-    "chooseGroup": "Choose a group",
     "scope": "Scope",
     "publicationCount": {
       "zero": "No publication",

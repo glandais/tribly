@@ -8,7 +8,7 @@ import 'package:pedalons/api/pedalons_api_client.dart';
 import 'package:pedalons/core/pagination/pagination.dart';
 import 'package:pedalons/features/calendar/providers/calendar_month_provider.dart';
 import 'package:pedalons/features/home/providers/next_ride_provider.dart';
-import 'package:pedalons/features/home/providers/upcoming_provider.dart';
+import 'package:pedalons/features/home/providers/week_events_provider.dart';
 import 'package:pedalons/features/profile/data/profile_repository.dart';
 import 'package:pedalons/features/profile/providers/participations_provider.dart';
 import 'package:pedalons/features/home/providers/next_ride_leave_controller.dart';
@@ -234,7 +234,7 @@ void main() {
   late _FakeProfileRepository profile;
   late _FakeRideRepository rides;
   late ProviderContainer container;
-  late int upcomingBuilds;
+  late int weekBuilds;
   late int calendarBuilds;
 
   setUp(() {
@@ -242,7 +242,7 @@ void main() {
     users = _FakeUsersClient(server);
     profile = _FakeProfileRepository(server);
     rides = _FakeRideRepository(server);
-    upcomingBuilds = 0;
+    weekBuilds = 0;
     calendarBuilds = 0;
     container = ProviderContainer(
       overrides: [
@@ -250,9 +250,9 @@ void main() {
         tripRepositoryProvider.overrideWithValue(_FakeTripRepository(server)),
         usersClientProvider.overrideWithValue(users),
         profileRepositoryProvider.overrideWithValue(profile),
-        upcomingProvider.overrideWith((Ref ref) async {
-          upcomingBuilds++;
-          return const <PublicationDto>[];
+        weekEventsProvider.overrideWith((Ref ref) async {
+          weekBuilds++;
+          return const <CalendarEventDto>[];
         }),
         calendarMonthProvider.overrideWith((
           Ref ref,
@@ -270,7 +270,7 @@ void main() {
   /// calendrier, restés ouverts sous l'écran de la sortie.
   Future<void> mountDerivedViews() async {
     container.listen(nextRideProvider, (_, _) {}, fireImmediately: true);
-    container.listen(upcomingProvider, (_, _) {}, fireImmediately: true);
+    container.listen(weekEventsProvider, (_, _) {}, fireImmediately: true);
     container.listen(
       participationCountProvider(true),
       (_, _) {},
@@ -287,7 +287,7 @@ void main() {
       fireImmediately: true,
     );
     await container.read(nextRideProvider.future);
-    await container.read(upcomingProvider.future);
+    await container.read(weekEventsProvider.future);
     await container.read(participationCountProvider(true).future);
     await container.read(calendarMonthProvider(monthKey).future);
   }
@@ -364,20 +364,20 @@ void main() {
     },
   );
 
-  test('une inscription recharge le carrousel, la liste du profil et le '
+  test('une inscription recharge « Cette semaine », la liste du profil et le '
       'calendrier', () async {
     await mountDerivedViews();
-    final int upcomingBefore = upcomingBuilds;
+    final int weekBefore = weekBuilds;
     final int calendarBefore = calendarBuilds;
     final ParticipationsNotifier listBefore = container.read(
       participationsProvider(true).notifier,
     );
 
     await (await openRide()).join('g1');
-    await container.read(upcomingProvider.future);
+    await container.read(weekEventsProvider.future);
     await container.read(calendarMonthProvider(monthKey).future);
 
-    expect(upcomingBuilds, upcomingBefore + 1);
+    expect(weekBuilds, weekBefore + 1);
     expect(calendarBuilds, calendarBefore + 1);
     expect(
       container.read(participationsProvider(true).notifier),
@@ -390,13 +390,13 @@ void main() {
     server.ride = _twoGroups(registeredIn: 'g1');
     await mountDerivedViews();
     final int calls = users.participationCalls;
-    final int upcomingBefore = upcomingBuilds;
+    final int weekBefore = weekBuilds;
 
     // Exclusivité : refusée sans appel, rien n'a changé côté serveur.
     await (await openRide()).join('g2');
     await container.read(nextRideProvider.future);
 
-    expect(upcomingBuilds, upcomingBefore);
+    expect(weekBuilds, weekBefore);
     expect(users.participationCalls, calls);
   });
 
@@ -404,15 +404,15 @@ void main() {
     'rejoindre un voyage met aussi à jour le profil et l\'accueil',
     () async {
       await mountDerivedViews();
-      final int upcomingBefore = upcomingBuilds;
+      final int weekBefore = weekBuilds;
       final int calendarBefore = calendarBuilds;
 
       await (await openTrip()).join();
 
       expect(await container.read(participationCountProvider(true).future), 1);
-      await container.read(upcomingProvider.future);
+      await container.read(weekEventsProvider.future);
       await container.read(calendarMonthProvider(monthKey).future);
-      expect(upcomingBuilds, upcomingBefore + 1);
+      expect(weekBuilds, weekBefore + 1);
       expect(calendarBuilds, calendarBefore + 1);
     },
   );
@@ -450,14 +450,14 @@ void main() {
     await controller.join('g1');
     await controller.leave('g1');
     expect(overrides(), isNotEmpty);
-    final int upcomingBefore = upcomingBuilds;
+    final int weekBefore = weekBuilds;
 
     // Inscrit entre-temps ailleurs (le web) : l'app ne le sait pas.
     rides.joinError = _apiError('ALREADY_REGISTERED');
     await controller.join('g2');
-    await container.read(upcomingProvider.future);
+    await container.read(weekEventsProvider.future);
 
-    expect(upcomingBuilds, upcomingBefore + 1);
+    expect(weekBuilds, weekBefore + 1);
     expect(overrides(), isEmpty);
   });
 

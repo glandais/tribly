@@ -15,19 +15,16 @@ import '../../../feed/presentation/widgets/publication_feed_view.dart';
 import '../../../notifications/presentation/widgets/notification_bell.dart';
 import '../../providers/next_ride_provider.dart';
 import '../../../teams/providers/team_providers.dart';
-import '../../providers/upcoming_provider.dart';
 import '../../providers/week_events_provider.dart';
 import '../widgets/my_teams_section.dart';
 import '../widgets/week_agenda_section.dart';
 import '../widgets/next_ride_card.dart';
-import '../widgets/upcoming_carousel.dart';
 import '../../../../keys.dart';
 
 /// L'accueil — « qu'est-ce que je fais à vélo cette semaine ? ».
 ///
-/// Huit slivers : barre supérieure rétractable, « Ma prochaine sortie »,
-/// « Cette semaine », « Mes équipes », rangée « À venir », barre d'outils
-/// épinglée, en-tête de fil et cartes, pied de pagination. Les trois derniers viennent de [PublicationFeedView], que la
+/// Sept slivers : barre supérieure rétractable, « Ma prochaine sortie »,
+/// « Cette semaine », « Mes équipes », barre d'outils épinglée, en-tête de fil et cartes, pied de pagination. Les trois derniers viennent de [PublicationFeedView], que la
 /// page d'équipe partage — le fil se comporte pareil des deux côtés.
 ///
 /// Ce qui disparaît de la v1 : le dégradé de 182 pt (« Bonjour Gaby »), qui
@@ -52,7 +49,6 @@ class HomePage extends ConsumerWidget {
           ref.invalidate(nextRideProvider);
           ref.invalidate(weekEventsProvider);
           ref.invalidate(myTeamsProvider);
-          ref.invalidate(upcomingProvider);
           // Chaque bloc masque son propre échec : un rafraîchissement raté
           // de l'un ne doit pas faire échouer le geste entier.
           Future<void> settle(Future<Object?> f) =>
@@ -61,7 +57,6 @@ class HomePage extends ConsumerWidget {
             settle(ref.read(nextRideProvider.future)),
             settle(ref.read(weekEventsProvider.future)),
             settle(ref.read(myTeamsProvider.future)),
-            settle(ref.read(upcomingProvider.future)),
           ]);
         },
         leadingSlivers: <Widget>[
@@ -69,7 +64,6 @@ class HomePage extends ConsumerWidget {
           const SliverToBoxAdapter(child: _NextRideSliver()),
           const SliverToBoxAdapter(child: WeekAgendaSection()),
           const SliverToBoxAdapter(child: MyTeamsSection()),
-          const SliverToBoxAdapter(child: _UpcomingSliver()),
         ],
       ),
     );
@@ -161,19 +155,5 @@ class _NextRideSliver extends ConsumerWidget {
               ),
       ),
     );
-  }
-}
-
-class _UpcomingSliver extends ConsumerWidget {
-  const _UpcomingSliver();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ref
-        .watch(upcomingProvider)
-        .maybeWhen(
-          data: (List<PublicationDto> items) => UpcomingCarousel(items: items),
-          orElse: () => const SizedBox.shrink(),
-        );
   }
 }

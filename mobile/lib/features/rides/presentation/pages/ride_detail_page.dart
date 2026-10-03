@@ -44,66 +44,29 @@ import '../../../../keys.dart';
 /// groupes, description, commentaires. **Pas de hero** : la vignette statique
 /// du tracé doublait la carte interactive qui la suit de deux blocs, et
 /// coûtait 210 px de haut avant la première information.
-class RideDetailPage extends ConsumerStatefulWidget {
+class RideDetailPage extends ConsumerWidget {
   const RideDetailPage({
     super.key,
     required this.teamSlug,
     required this.rideSlug,
-    this.autoJoin = false,
   });
 
   final String teamSlug;
   final String rideSlug;
 
-  /// Arrivée depuis le carrousel de l'accueil (S11-4) : l'écran tente
-  /// l'inscription dès le détail chargé, **si et seulement si** il y a bien un
-  /// seul groupe non plein. C'est un aller simple, pas une boîte de dialogue —
-  /// l'échec retombe dans le bandeau de la section Groupes.
-  final bool autoJoin;
-
   @override
-  ConsumerState<RideDetailPage> createState() => _RideDetailPageState();
-}
-
-class _RideDetailPageState extends ConsumerState<RideDetailPage> {
-  bool _autoJoinAttempted = false;
-
-  RideKey get _key =>
-      RideKey(teamSlug: widget.teamSlug, rideSlug: widget.rideSlug);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final RideKey key = RideKey(teamSlug: teamSlug, rideSlug: rideSlug);
     final RideRegistrationState registration = ref.watch(
-      rideRegistrationProvider(_key),
+      rideRegistrationProvider(key),
     );
 
     return registration.ride.when(
-      data: (RideDto ride) {
-        _maybeAutoJoin(ride);
-        return _RideDetailContent(rideKey: _key, ride: ride);
-      },
+      data: (RideDto ride) => _RideDetailContent(rideKey: key, ride: ride),
       loading: () => const _RideDetailSkeleton(),
       error: (Object error, StackTrace stack) =>
-          _RideDetailError(rideKey: _key, error: error),
+          _RideDetailError(rideKey: key, error: error),
     );
-  }
-
-  /// L'inscription automatique n'est tentée qu'une fois, et seulement quand la
-  /// condition est **vérifiable** : un groupe, non plein, sortie ouverte. Le
-  /// carrousel de l'accueil ne connaît pas l'identifiant du groupe (la ligne de
-  /// liste ne porte pas `groups[]`), c'est donc ici que la décision se prend.
-  void _maybeAutoJoin(RideDto ride) {
-    if (!widget.autoJoin || _autoJoinAttempted) return;
-    _autoJoinAttempted = true;
-    if (ride.registered || ride.isPast || ride.isCancelled) return;
-    if (ride.groups.length != 1) return;
-    final RideGroupDto only = ride.groups.first;
-    if (only.full) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ref.read(rideRegistrationProvider(_key).notifier).join(only.id);
-      }
-    });
   }
 }
 
@@ -581,15 +544,4 @@ class _RideDetailError extends ConsumerWidget {
       ),
     );
   }
-}
-
-/// Ce qu'un appelant interne passe à l'écran 12 hors de l'URL.
-///
-/// `autoJoin` ne doit **pas** être un paramètre de requête : un lien partagé
-/// inscrirait alors son destinataire à son insu. Il voyage dans `extra`, que
-/// seul un `context.push` du code peut renseigner.
-class RideDetailExtra {
-  const RideDetailExtra({this.autoJoin = false});
-
-  final bool autoJoin;
 }

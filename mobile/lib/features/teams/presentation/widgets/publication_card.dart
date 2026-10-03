@@ -18,10 +18,10 @@ import '../../../posts/domain/post_neighbours.dart';
 import '../../../rides/providers/participation_changes.dart';
 import '../../../tags/presentation/content_tags.dart';
 
-/// Les quatre hauteurs de bandeau média de la charte, **partagées**.
+/// Les trois hauteurs de bandeau média de la charte, **partagées**.
 ///
 /// Elles étaient recopiées à plusieurs endroits ; une carte de fil et une carte
-/// de carrousel finissaient par diverger de deux pixels sans que personne ne
+/// d'un autre écran finissaient par diverger de deux pixels sans que personne ne
 /// sache laquelle avait raison.
 abstract final class PdlMediaHeights {
   /// `.media--16x9` — carte hero de l'accueil.
@@ -29,9 +29,6 @@ abstract final class PdlMediaHeights {
 
   /// `.media` — carte de fil.
   static const double feed = PdlMetrics.media;
-
-  /// Carte de carrousel.
-  static const double carousel = 140;
 
   /// `.media--120` — carte compacte.
   static const double compact = PdlMetrics.media120;
@@ -241,7 +238,7 @@ class _SocialLine extends StatelessWidget {
     // statistiques ; la barre est sur la carte « Ma prochaine sortie », qui
     // connaît le groupe et donc sa capacité. La capacité de la sortie entière
     // existe sur la ligne de liste (`RideDto.maxParticipants`,
-    // `docs/LEDGER_*.md API-5`) : le carrousel de l'accueil la rend en « N/M ».
+    // `docs/LEDGER_*.md API-5`).
     if (people.isEmpty) return const SizedBox.shrink();
     return PdlAvatarStack(
       people: <PdlAvatarEntry>[

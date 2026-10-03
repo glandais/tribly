@@ -6,7 +6,6 @@ import '../../calendar/providers/calendar_month_provider.dart';
 import '../../comments/providers/comment_thread_provider.dart';
 import '../../feed/providers/publication_feed_provider.dart';
 import '../../home/providers/next_ride_provider.dart';
-import '../../home/providers/upcoming_provider.dart';
 import '../../home/providers/week_events_provider.dart';
 import '../../routes/providers/route_count_provider.dart';
 import '../../routes/providers/route_list_provider.dart';
@@ -31,7 +30,6 @@ void refreshAfterReport(ProviderContainer container, ReportTargetType type) {
     case ReportTargetType.trip:
       _invalidateFeed(container);
       container.invalidate(calendarMonthProvider);
-      container.invalidate(upcomingProvider);
       container.invalidate(weekEventsProvider);
       container.invalidate(nextRideProvider);
     case ReportTargetType.ad:

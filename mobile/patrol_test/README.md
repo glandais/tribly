@@ -91,8 +91,7 @@ Helpers of `common.dart` beyond mounting the app:
 
 A ride or a trip opened from the home or by `openLink` is pushed above the tab shell: there is no
 tab bar to tap until it is gone. `openLink($, Paths.home())` then `Home.waitUntilShown()` brings
-the tabs back. The « À venir » carousel is a lazy horizontal list that keeps its scroll position:
-only the cards near the screen are built, so `Home.rewindUpcoming()` goes back to the first ones.
+the tabs back.
 
 `Module.scrolledTo(key)` needs its widget hit-testable at its centre; a section whose middle is
 empty (a short comment's row, a wrap of badges) goes through `scrolledIntoView(key)`, or through a
@@ -128,7 +127,6 @@ left today.
 |---|---|
 | Rides — « Complet » (`rides.e2e.ts` › registration) | `ride_group_full_rollback_test` — a group that fills up while the page is open: the optimistic join is rolled back, the banner names that group and outlives the refetch, the card says « Complet », the other group still takes the rider |
 | Audit P2 — « Quitter » from « Ma prochaine sortie » | `next_ride_card_test` — the home card follows a leave from its own button and a join from the ride page |
-| Home — « À venir » (no web counterpart) | `upcoming_carousel_order_test` — the nearest outings come first (`/api/publications?sortDir=ASC`, ten slots for twelve outings); « Rejoindre » registers through `autoJoin`, « Choisir un groupe » registers nothing, and back on the home the joined card says « Inscrit » |
 | Trips — join, leave (`flow-trips.e2e.ts`) | `trip_join_leave_test` — a trip that started yesterday is still open: join (participants name the member), stage card, stages rail, « Aperçu », leave; cancelled behind the app, a pull-to-refresh shows « Voyage annulé » and no action bar |
 | Trips — a stage's thread (`flow-trips.e2e.ts` › a member comments on a stage; ledger `API-11`) | `stage_comments_test` — a comment sent from screen 25 lands in the stage's own thread, never the trip's nor the other stage's; `COMMENT_ON_MY_PUBLICATION` reaches the trip's author with the trip as its subject |
 | Dates — the user's timezone (`flow-account.e2e.ts` › timezone picker; ledger `API-15`) | `user_timezone_test` — a member whose preference is `Pacific/Auckland` reads a stage set at 08:00 Auckland as « 08:00 » on its Auckland day, though the device's own zone reads another hour |
