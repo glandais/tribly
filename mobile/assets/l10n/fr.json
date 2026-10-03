@@ -809,7 +809,7 @@
     "devices": {
       "title": "Appareils appairés",
       "karoo": "Karoo",
-      "garmin": "Montre Garmin",
+      "garmin": "Garmin",
       "other": "Appareil",
       "pairedOn": "Appairé le {date}",
       "lastUsed": "utilisé {when}",

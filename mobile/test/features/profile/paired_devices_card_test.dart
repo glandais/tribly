@@ -76,7 +76,7 @@ void main() {
     expect(find.byKey(keys.profile.pairedDevice('k1')), findsOneWidget);
     expect(find.byKey(keys.profile.pairedDevice('g1')), findsOneWidget);
     expect(find.text('Karoo'), findsOneWidget);
-    expect(find.text('Montre Garmin'), findsOneWidget);
+    expect(find.text('Garmin'), findsOneWidget);
     expect(find.byKey(keys.profile.noPairedDevice), findsNothing);
   });
 

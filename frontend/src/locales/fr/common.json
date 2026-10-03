@@ -614,7 +614,7 @@
   "gps.devices.empty": "Aucun Karoo ni montre Garmin n'est appairé à votre compte.",
   "gps.devices.howToPair": "Comment appairer un appareil",
   "gps.devices.types.karoo": "Karoo",
-  "gps.devices.types.garmin": "Montre Garmin",
+  "gps.devices.types.garmin": "Garmin",
   "gps.devices.types.other": "Appareil",
   "gps.devices.pairedOn": "Appairé le {{date}}",
   "gps.devices.lastUsed": "utilisé {{when}}",

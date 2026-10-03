@@ -347,16 +347,16 @@ test('the profile lists each paired device, and unpairing one ends its session o
   const main = page.getByRole('main')
   await expect(main.getByRole('heading', { name: 'Appareils appairés', exact: true })).toBeVisible()
   await expect(main.getByText('Karoo', { exact: true })).toBeVisible()
-  await expect(main.getByText('Montre Garmin', { exact: true })).toBeVisible()
+  await expect(main.getByText('Garmin', { exact: true })).toBeVisible()
 
-  const unpair = main.getByRole('button', { name: 'Délier Montre Garmin', exact: true })
+  const unpair = main.getByRole('button', { name: 'Délier Garmin', exact: true })
   await hydrated(unpair)
   await unpair.click()
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByText("Délier l'appareil", { exact: true })).toBeVisible()
   await dialog.getByRole('button', { name: 'Délier', exact: true }).click()
 
-  await expect(main.getByText('Montre Garmin', { exact: true })).toHaveCount(0)
+  await expect(main.getByText('Garmin', { exact: true })).toHaveCount(0)
   await expect(main.getByText('Karoo', { exact: true })).toBeVisible()
   expect((await pairedDevices(rider)).map((d) => d.type)).toEqual(['KAROO'])
 
