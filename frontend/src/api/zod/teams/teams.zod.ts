@@ -307,6 +307,16 @@ export const ListTeamsResponse = zod
               .describe(
                 'Routes of this team the caller may open, under the same visibility rules as the route listing.'
               ),
+            upcomingTripCount: zod
+              .int()
+              .describe(
+                'Trips of this team starting in the future that the caller may open, under the same visibility rules as the trip listing. 0 when trips are disabled.'
+              ),
+            recentPostCount: zod
+              .int()
+              .describe(
+                "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
+              ),
             role: zod
               .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
               .optional()
@@ -836,6 +846,16 @@ export const CreateTeamResponse = zod
       .describe(
         'Routes of this team the caller may open, under the same visibility rules as the route listing.'
       ),
+    upcomingTripCount: zod
+      .int()
+      .describe(
+        'Trips of this team starting in the future that the caller may open, under the same visibility rules as the trip listing. 0 when trips are disabled.'
+      ),
+    recentPostCount: zod
+      .int()
+      .describe(
+        "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
+      ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
       .optional()
@@ -1362,6 +1382,16 @@ export const UpdateTeamResponse = zod
       .describe(
         'Routes of this team the caller may open, under the same visibility rules as the route listing.'
       ),
+    upcomingTripCount: zod
+      .int()
+      .describe(
+        'Trips of this team starting in the future that the caller may open, under the same visibility rules as the trip listing. 0 when trips are disabled.'
+      ),
+    recentPostCount: zod
+      .int()
+      .describe(
+        "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
+      ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
       .optional()
@@ -1652,6 +1682,16 @@ export const GetTeamResponse = zod
       .int()
       .describe(
         'Routes of this team the caller may open, under the same visibility rules as the route listing.'
+      ),
+    upcomingTripCount: zod
+      .int()
+      .describe(
+        'Trips of this team starting in the future that the caller may open, under the same visibility rules as the trip listing. 0 when trips are disabled.'
+      ),
+    recentPostCount: zod
+      .int()
+      .describe(
+        "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
       ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
@@ -1967,6 +2007,16 @@ export const ChangeTeamSlugResponse = zod
       .int()
       .describe(
         'Routes of this team the caller may open, under the same visibility rules as the route listing.'
+      ),
+    upcomingTripCount: zod
+      .int()
+      .describe(
+        'Trips of this team starting in the future that the caller may open, under the same visibility rules as the trip listing. 0 when trips are disabled.'
+      ),
+    recentPostCount: zod
+      .int()
+      .describe(
+        "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
       ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])

@@ -293,6 +293,13 @@ public class TestDataService {
   }
 
   @Transactional
+  public void setTeamModules(Team team, boolean enableTrips, boolean enablePosts) {
+    Team managed = teamRepository.findById(team.getId());
+    managed.setEnableTrips(enableTrips);
+    managed.setEnablePosts(enablePosts);
+  }
+
+  @Transactional
   public void setTeamEnableRoutePlanner(Team team, boolean enabled) {
     Team managed = teamRepository.findById(team.getId());
     managed.setEnableRoutePlanner(enabled);

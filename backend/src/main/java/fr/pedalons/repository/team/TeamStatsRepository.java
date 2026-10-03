@@ -4,15 +4,18 @@ import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.repository.common.TeamEntityQueryBasic;
 import fr.pedalons.repository.common.TeamEntityQueryInterface;
 import fr.pedalons.repository.common.TeamEntityRepository;
+import fr.pedalons.repository.post.PostRepository;
 import fr.pedalons.repository.query.PedalonsQuery;
 import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.route.RouteQuery;
 import fr.pedalons.repository.route.RouteRepository;
+import fr.pedalons.repository.trip.TripRepository;
 import fr.pedalons.service.team.response.TeamStats;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,14 +25,15 @@ import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Bulk-loads the counters a team card shows — upcoming rides, routes.
+ * Bulk-loads the counters a team card shows — upcoming rides, routes, upcoming trips, recent posts.
  *
- * <p>The clickable statistics row of the team screen needs three numbers per team. Members already
- * come free with the team listing itself (a correlated sub-select in {@code TeamRepository.find}),
- * so this covers the other two: <b>two queries for a whole page of teams</b>, not two per team. A
- * directory of thirty teams costs the same as one team.
+ * <p>The clickable statistics row of the team screen needs three numbers per team, the member
+ * home's « Mes équipes » activity line two more. Members already come free with the team listing
+ * itself (a correlated sub-select in {@code TeamRepository.find}), so this covers the other four:
+ * <b>four queries for a whole page of teams</b>, not four per team. A directory of thirty teams
+ * costs the same as one team ({@code TeamListQueryCountTest}).
  *
- * <p>Both counts go through {@link TeamEntityRepository#getPedalonsQuery} with an aggregate {@code
+ * <p>Every count goes through {@link TeamEntityRepository#getPedalonsQuery} with an aggregate {@code
  * QueryShape}, so they inherit — unchanged and un-duplicated — the domain filter, the visibility
  * rules, the enabled-module filters and the deleted filter. A counter that announced rides the
  * caller cannot open would be worse than no counter, and hand-writing the HQL is precisely how that
@@ -43,6 +47,13 @@ public class TeamStatsRepository {
   @Inject RideRepository rideRepository;
 
   @Inject RouteRepository routeRepository;
+
+  @Inject TripRepository tripRepository;
+
+  @Inject PostRepository postRepository;
+
+  /** How far back a post still counts as recent for {@link TeamStats#recentPostCount()}. */
+  public static final Duration RECENT_POST_WINDOW = Duration.ofDays(7);
 
   /**
    * Counters per team id, for every team of the page at once.
@@ -60,6 +71,7 @@ public class TeamStatsRepository {
       return Map.of();
     }
     Set<Long> ids = Set.copyOf(teamIds);
+    Instant now = Instant.now();
 
     Map<Long, Long> upcomingRides =
         countByTeam(
@@ -71,9 +83,10 @@ public class TeamStatsRepository {
                 .teamIds(ids)
                 // "Upcoming" is a window, not a status: the visibility rules already decide which
                 // rides exist for this caller.
-                .from(Instant.now())
+                .from(now)
                 .platformAdmin(platformAdmin)
-                .build());
+                .build(),
+            false);
 
     Map<Long, Long> routes =
         countByTeam(
@@ -84,22 +97,60 @@ public class TeamStatsRepository {
                 .pinnedTeamId(pinnedTeamId)
                 .teamIds(ids)
                 .platformAdmin(platformAdmin)
-                .build());
+                .build(),
+            false);
+
+    // Same window as the rides: a trip whose start is ahead. Drafts count for the moderators who
+    // can open them, exactly as for rides — the visibility rules decide.
+    Map<Long, Long> upcomingTrips =
+        countByTeam(
+            tripRepository,
+            TeamEntityQueryBasic.builder()
+                .domainId(domainId)
+                .userId(userId)
+                .pinnedTeamId(pinnedTeamId)
+                .teamIds(ids)
+                .from(now)
+                .platformAdmin(platformAdmin)
+                .build(),
+            false);
+
+    // "Recent" is dated within the last RECENT_POST_WINDOW and not in the future; published only,
+    // so a moderator's draft is never announced as news.
+    Map<Long, Long> recentPosts =
+        countByTeam(
+            postRepository,
+            TeamEntityQueryBasic.builder()
+                .domainId(domainId)
+                .userId(userId)
+                .pinnedTeamId(pinnedTeamId)
+                .teamIds(ids)
+                .from(now.minus(RECENT_POST_WINDOW))
+                .to(now)
+                .platformAdmin(platformAdmin)
+                .build(),
+            true);
 
     Map<Long, TeamStats> stats = new HashMap<>();
     for (Long teamId : ids) {
       long rides = upcomingRides.getOrDefault(teamId, 0L);
       long routeCount = routes.getOrDefault(teamId, 0L);
-      if (rides != 0 || routeCount != 0) {
-        stats.put(teamId, new TeamStats(rides, routeCount));
+      long trips = upcomingTrips.getOrDefault(teamId, 0L);
+      long posts = recentPosts.getOrDefault(teamId, 0L);
+      if (rides != 0 || routeCount != 0 || trips != 0 || posts != 0) {
+        stats.put(teamId, new TeamStats(rides, routeCount, trips, posts));
       }
     }
     return stats;
   }
 
-  /** One row per team that has at least one match: {@code (teamId, count)}. */
+  /**
+   * One row per team that has at least one match: {@code (teamId, count)}.
+   *
+   * @param publishedOnly whether to keep only PUBLISHED rows on top of the visibility rules
+   */
   private <T extends TeamEntity, Q extends TeamEntityQueryInterface> Map<Long, Long> countByTeam(
-      TeamEntityRepository<T, Q> repository, Q query) {
+      TeamEntityRepository<T, Q> repository, Q query, boolean publishedOnly) {
     PedalonsQuery pedalonsQuery =
         repository.getPedalonsQuery(
             query,
@@ -110,6 +161,9 @@ public class TeamStatsRepository {
                 false));
     // andSpecific may have installed an ordering; an aggregate must not carry one on a column it
     // does not select.
+    if (publishedOnly) {
+      pedalonsQuery.and("te.status = 'PUBLISHED'", Map.of());
+    }
     pedalonsQuery.noOrder().groupBy("te.team.id");
 
     TypedQuery<Object[]> typedQuery =

@@ -41,6 +41,8 @@ TeamDetailDto fixtureTeam({
   memberCount: memberCount,
   upcomingRideCount: 3,
   routeCount: 12,
+  upcomingTripCount: 0,
+  recentPostCount: 0,
   createdAt: '2024-01-01T00:00:00Z',
   excerpt: excerpt,
   role: role,

@@ -92,6 +92,20 @@ public record TeamDetailDto(
                     + " route listing.",
             required = true)
         long routeCount,
+    @Schema(
+            description =
+                "Trips of this team starting in the future that the caller may open, under the"
+                    + " same visibility rules as the trip listing. 0 when trips are disabled.",
+            required = true)
+        long upcomingTripCount,
+    @Schema(
+            description =
+                "Published posts of this team dated within the last 7 days (and not in the"
+                    + " future) that the caller may open, under the same visibility rules as the"
+                    + " post listing. Feeds the activity line of a member's team card. 0 when"
+                    + " posts are disabled.",
+            required = true)
+        long recentPostCount,
     @Nullable @Schema(description = "Current user's role (null if not a member)") TeamRole role,
     @Schema(description = "Team creation timestamp", required = true) Instant createdAt,
     @Nullable
@@ -143,6 +157,8 @@ public record TeamDetailDto(
         teamAndRole.memberCount(),
         stats.upcomingRideCount(),
         stats.routeCount(),
+        stats.upcomingTripCount(),
+        stats.recentPostCount(),
         platformAdmin ? TeamRole.ADMIN : teamAndRole.teamRole(),
         team.getCreatedAt(),
         team.getGeometry());

@@ -68,6 +68,8 @@ const TeamDetailDto _team = TeamDetailDto(
   memberCount: 40,
   upcomingRideCount: 3,
   routeCount: 12,
+  upcomingTripCount: 0,
+  recentPostCount: 0,
   createdAt: '2024-01-01T00:00:00Z',
 );
 

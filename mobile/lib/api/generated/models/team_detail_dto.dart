@@ -75,6 +75,12 @@ abstract class TeamDetailDto with _$TeamDetailDto {
     /// Routes of this team the caller may open, under the same visibility rules as the route listing.
     required int routeCount,
 
+    /// Trips of this team starting in the future that the caller may open, under the same visibility rules as the trip listing. 0 when trips are disabled.
+    required int upcomingTripCount,
+
+    /// Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled.
+    required int recentPostCount,
+
     /// Team creation timestamp
     required String createdAt,
 

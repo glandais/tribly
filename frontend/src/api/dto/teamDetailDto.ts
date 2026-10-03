@@ -53,6 +53,10 @@ export interface TeamDetailDto {
   upcomingRideCount: number
   /** Routes of this team the caller may open, under the same visibility rules as the route listing. */
   routeCount: number
+  /** Trips of this team starting in the future that the caller may open, under the same visibility rules as the trip listing. 0 when trips are disabled. */
+  upcomingTripCount: number
+  /** Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled. */
+  recentPostCount: number
   /** Current user's role (null if not a member) */
   role?: TeamRole
   /** Team creation timestamp */

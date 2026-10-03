@@ -7,6 +7,7 @@ import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.domain.platform.Domain;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import io.quarkus.test.junit.QuarkusTest;
 import java.time.Instant;
@@ -41,6 +42,24 @@ class TeamStatsResourceTest extends AbstractResourceTest {
     dataService.createRoute(team1, user1, "Boucle du lac");
     dataService.createRoute(team1, user1, "Col de la Croix");
     dataService.createRoute(team1, user1, "Tour de la plaine");
+
+    // One trip ahead, one behind: only the one ahead is "upcoming".
+    dataService.createTrip(team1, user1, "Ardeche en quatre etapes", now.plus(30, ChronoUnit.DAYS));
+    dataService.createTrip(team1, user1, "Voyage passe", now.minus(30, ChronoUnit.DAYS));
+
+    // Two posts inside the 7-day window; one too old, one dated ahead, one still a draft — none
+    // of those three is "recent".
+    dataService.createPost(team1, user1, "Calendrier d'hiver", now.minus(2, ChronoUnit.DAYS));
+    dataService.createPost(team1, user1, "Compte rendu", now.minus(1, ChronoUnit.HOURS));
+    dataService.createPost(team1, user1, "Vieille nouvelle", now.minus(20, ChronoUnit.DAYS));
+    dataService.createPost(team1, user1, "Annonce a venir", now.plus(2, ChronoUnit.DAYS));
+    dataService.createPost(
+        team1,
+        user1,
+        "Brouillon recent",
+        now.minus(1, ChronoUnit.DAYS),
+        Visibility.PUBLIC,
+        Status.DRAFT);
   }
 
   @Test
@@ -67,6 +86,57 @@ class TeamStatsResourceTest extends AbstractResourceTest {
         .body("memberCount", greaterThanOrEqualTo(1))
         .body("upcomingRideCount", equalTo(2))
         .body("routeCount", equalTo(3));
+  }
+
+  @Test
+  void getTeam_shouldCountUpcomingTripsAndRecentPosts() {
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug)
+        .then()
+        .statusCode(200)
+        .body("upcomingTripCount", equalTo(1))
+        .body("recentPostCount", equalTo(2));
+  }
+
+  @Test
+  void getTeam_admin_shouldNotCountADraftPostAsRecent() {
+    // user1 administers team1 and may open the draft; it is still not news.
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/teams/" + team1Slug)
+        .then()
+        .statusCode(200)
+        .body("recentPostCount", equalTo(2));
+  }
+
+  @Test
+  void listMyTeams_shouldCarryTheActivityCounters() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .queryParam("minRole", "MEMBER")
+        .get("/api/teams")
+        .then()
+        .statusCode(200)
+        .body("teams.find { it.slug == '" + team1Slug + "' }.upcomingTripCount", equalTo(1))
+        .body("teams.find { it.slug == '" + team1Slug + "' }.recentPostCount", equalTo(2));
+  }
+
+  @Test
+  void getTeam_disabledModules_shouldCountNothing() {
+    dataService.setTeamModules(team1, false, false);
+
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug)
+        .then()
+        .statusCode(200)
+        .body("upcomingTripCount", equalTo(0))
+        .body("recentPostCount", equalTo(0));
   }
 
   @Test

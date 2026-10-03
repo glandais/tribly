@@ -5071,7 +5071,7 @@
       "TeamDetailDto" : {
         "description" : "Detailed team information",
         "type" : "object",
-        "required" : [ "id", "name", "slug", "about", "visibility", "enableTrips", "enableAds", "enablePosts", "enableRides", "enableRoutes", "enableMemberDirectory", "postsAsTeamByDefault", "visibilityEditable", "joinable", "addMemberAllowed", "enableRoutePlanner", "memberCount", "upcomingRideCount", "routeCount", "createdAt" ],
+        "required" : [ "id", "name", "slug", "about", "visibility", "enableTrips", "enableAds", "enablePosts", "enableRides", "enableRoutes", "enableMemberDirectory", "postsAsTeamByDefault", "visibilityEditable", "joinable", "addMemberAllowed", "enableRoutePlanner", "memberCount", "upcomingRideCount", "routeCount", "upcomingTripCount", "recentPostCount", "createdAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -5169,6 +5169,16 @@
             "type" : "integer",
             "format" : "int64",
             "description" : "Routes of this team the caller may open, under the same visibility rules as the route listing."
+          },
+          "upcomingTripCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Trips of this team starting in the future that the caller may open, under the same visibility rules as the trip listing. 0 when trips are disabled."
+          },
+          "recentPostCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
           },
           "role" : {
             "description" : "Current user's role (null if not a member)",
@@ -22037,7 +22047,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.5.2",
+    "version" : "10.6.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {
