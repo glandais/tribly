@@ -245,7 +245,11 @@ class UserExportResourceTest extends AbstractResourceTest {
             containsString("/login?next=%2Fapi%2Fexport%2Fdownload%3Ftoken%3D" + token));
   }
 
-  /** A forwarded or leaked link: the token alone opens nothing, even to a signed-in member. */
+  /**
+   * A forwarded or leaked link: the token alone opens nothing, even to a signed-in member. The 404
+   * is JSON, not the endpoint's {@code application/zip}: under that type the browser reported
+   * ERR_INVALID_RESPONSE.
+   */
   @Test
   void download_bySomeoneElse_shouldReturn404() {
     String token = readyExportWithToken(domain, user1, "zip-bytes");
@@ -257,7 +261,9 @@ class UserExportResourceTest extends AbstractResourceTest {
         .queryParam("token", token)
         .get("/api/export/download")
         .then()
-        .statusCode(404);
+        .statusCode(404)
+        .contentType(startsWith("application/json"))
+        .body("code", equalTo("NOT_FOUND"));
   }
 
   @Test

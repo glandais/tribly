@@ -17,6 +17,7 @@ import jakarta.ws.rs.NotAuthorizedException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.ExceptionMapper;
@@ -49,8 +50,18 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
     return toResponse(exception);
   }
 
+  /**
+   * Every error body is JSON, whatever the endpoint {@code @Produces}. Left to negotiation, an
+   * error on a {@code application/zip} or {@code text/calendar} endpoint went out under that type
+   * with the record's {@code toString()} as body — a browser following an export link then failed
+   * with ERR_INVALID_RESPONSE instead of showing the 404.
+   */
   @Override
   public Response toResponse(Throwable exception) {
+    return Response.fromResponse(map(exception)).type(MediaType.APPLICATION_JSON_TYPE).build();
+  }
+
+  private Response map(Throwable exception) {
     switch (exception) {
       case NotFoundException e -> {
         warn(e, "Not found: {0}", getPath());
