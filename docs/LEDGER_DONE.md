@@ -172,6 +172,24 @@ couvert » ; les tests ne tournent qu'en local (`MOB-37`).
   troncature est la même que sur le web — « +n » seulement quand au moins **deux** tags seraient
   cachés (4 tags pour une limite de 3 : les 4 montrés), pour qu'un contenu ait la même carte partout.
 
+### Accueil membre
+
+- `MOB-42` **Accueil membre : « Cette semaine », « Mes équipes », envoi vers l'appareil** (3 octobre
+  2026, **API 10.6.0**). « Cette semaine » (`weekEventsProvider` : un `GET /api/calendar/events`,
+  aujourd'hui 00:00 → +7 jours dans le fuseau d'affichage, événements finis retirés, prochaine
+  sortie exclue, 5 lignes au plus, « rien d'autre » quand elle est seule) ; « Mes équipes »
+  (`myTeamsProvider`, badge de rôle via `TeamRoleTone`, ligne d'activité depuis `upcomingRideCount`
+  / `upcomingTripCount` / `recentPostCount` sans les zéros, repli `teams.membersList.count`,
+  « Trouver une équipe » seulement si `ConfigDto.singleTeam == false`) ; action d'envoi sur « Ma
+  prochaine sortie » (parcours du groupe, sinon de la sortie ; `pickGpsService` /
+  `uploadRouteToService`). L'écran de connexion ouvre `/fonctionnalites` du site
+  (`openWebPage(Paths.features())`). Tests : `home_member_sections_test.dart`,
+  `login_discover_features_test.dart`, `link_launcher_test.dart`. **À ne pas défaire** : aucun appel
+  par équipe ni par événement, tout vient des listes ; `weekEventsProvider` est rechargé dans
+  `notifyParticipationChanged` et `refreshAfterReport` ; `features` est dans `webOnlyRouteIds`
+  (l'app n'a pas d'écran pour elle) ; `calendarEventTap` est partagé par `AgendaCard` et l'agenda
+  d'accueil.
+
 ---
 
 ## WEB — Site web
@@ -617,6 +635,49 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   `profile.devices.hint` dans `PairedDevicesCard`. Tests : `PairedDevicesManager.test.tsx` (titre et
   description) et `paired_devices_card_test.dart` (la phrase). **À ne pas défaire** : un service
   OAuth n'est jamais appelé « appareil » (titre, confirmation de déconnexion, aide).
+
+### Accueil et page Fonctionnalités
+
+- `WEB-42` **Accueil visiteur, accueil membre, formulaire de connexion partagé** (3 octobre 2026,
+  **API 10.6.0**, revue du 4 octobre intégrée). `HomePage` rend une version visiteur ou membre selon
+  l'authentification ; le SSR anonyme rend la version visiteur. Visiteur : héros (pitch et
+  formulaire, puis « Découvrir les fonctionnalités » sur téléphone), tuiles vers `/fonctionnalites`,
+  fil public, bandeau des compteurs (Karoo, Garmin, Wahoo, téléphone), bandeau « créer une équipe »
+  masqué en mono-équipe. Membre : salutation datée et résumé de la semaine, actions rapides pour
+  organisateurs et admins seulement (sélecteur d'équipe s'il y en a plusieurs), `NextRideCard`
+  refaite (section titrée, `registeredGroup`, menu « Envoyer vers l'appareil », états chargement,
+  erreur et vide sous le même h2), `WeekAgenda` (`GET /api/calendar/events`, maintenant aligné sur
+  l'heure → +7 jours, sans la prochaine sortie dans ses lignes), `MyTeamsCard`
+  (`GET /api/teams?minRole=MEMBER&size=20`, ligne d'activité depuis `upcomingRideCount`,
+  `upcomingTripCount`, `recentPostCount` — `API-66`), puis le fil (`HomeFeedSection`, région titrée,
+  filtre de type en puces `radiogroup` « Type ») et une carte promo des fonctionnalités. Le
+  formulaire est extrait dans `components/auth/LoginForm.tsx` (avec `OtpLogin`) : `afterSignIn`
+  `'redirect'` (LoginPage, `?next=` et `from`) ou `'stay'` (héros), étape pilotable par
+  `mode`/`onModeChange`, `initialMode` (LoginPage lit `mode: 'register'` ou `?mode=register`). Le
+  prefetch SSR de `homeFeedData.ts` ajoute événements, équipes et services GPS pour une requête
+  connectée. Tests : `LoginForm.test.tsx`, `HomePage.test.tsx`, `memberHome.test.tsx`, e2e
+  `rides.e2e.ts` (« Aucune sortie à venir »). **À ne pas défaire** : la logique de connexion est
+  partagée, jamais dupliquée ; le titre de `NextRideCard` reste enfant direct du corps de carte (les
+  e2e lisent la carte par son parent) ; le lien de l'agenda s'appelle « Voir le calendrier » (pas de
+  collision avec l'onglet « Calendrier ») ; les locators e2e du fil passent par `homeFeed(page)` ; la
+  fenêtre de semaine part de `hourAlignedNowIso` pour que les clés de requête SSR et client
+  coïncident ; les parcours prennent la couleur neutre `primary`, pas de couleur métier locale.
+- `WEB-43` **Page publique `/fonctionnalites` (`/features`) et sa navigation** (3 octobre 2026, sans
+  changement de contrat). Route `features` dans `contracts/routes.yaml` (web, builder Dart, pas de
+  deeplink), ajoutée à `scripts/routes-ssr.yml`, au `sitemap.xml` après `/` et à `llms.txt`.
+  Statique et sûre en SSR : ni prefetch ni appel d'API, méta SEO `featuresMeta`. Héros, puces de
+  section, 8 fonctionnalités (sorties, parcours, voyages, publications, annonces, calendrier,
+  compteurs, vie privée), rôles, appel final (variante mono-équipe), barre collante
+  inscription/connexion pour les visiteurs sur téléphone ; « Retour au fil » une fois connecté ;
+  « Parcourir les équipes » masqué en mono-équipe ; chaque « Créer un compte » ouvre l'étape
+  d'inscription. Liens dans l'en-tête, le tiroir mobile et le pied de page. Tests :
+  `FeaturesPage.test.tsx`, `sitemap.test.ts`, `llmsTxt.test.ts`. **À ne pas défaire** : les
+  illustrations sont décoratives (`aria-hidden`, rien de focalisable, boutons en `span` via
+  `DemoButton`) ; l'annonce montre un secteur flouté, jamais une épingle ni d'adresse de contact ;
+  Karoo, Garmin et Wahoo sont listés à l'identique, sans mention de disponibilité ni description de
+  l'envoi ; le CSS vit dans `index.css` (classes `features-*`), pas dans un module CSS qui
+  arriverait après le premier rendu SSR d'une page paresseuse ; les puces défilent par
+  `scrollIntoView` + `history.replaceState`, pas par une navigation de hash (lue comme un POP).
 
 ---
 
@@ -1125,6 +1186,21 @@ voyage plafonné à 12 étapes par `kTripTrackStageCap`) lisent la géométrie c
 Ce qui reste ouvert (`MAX_BULK_SLUGS` comme seul garde-fou) est `API-27`.
 
 ---
+
+### `API-66` Compteurs d'activité sur `TeamDetailDto` (contrat `10.6.0`)
+
+Livré le 3 octobre 2026 (10.5.2 → 10.6.0, mineur, rétrocompatible) : `upcomingTripCount` (voyages
+commençant à partir de maintenant) et `recentPostCount` (publications PUBLISHED datées dans
+[maintenant − 7 j, maintenant]), sous les règles de visibilité, à 0 quand le module est coupé. Ils
+nourrissent la ligne d'activité de « Mes équipes » (`WEB-42`, `MOB-42`). Tests (`TeamStatsResourceTest`) :
+`getTeam_shouldCountUpcomingTripsAndRecentPosts`, `getTeam_admin_shouldNotCountADraftPostAsRecent`,
+`listMyTeams_shouldCarryTheActivityCounters`, `getTeam_disabledModules_shouldCountNothing` ;
+`TeamListQueryCountTest` (requêtes constantes pour `GET /api/teams?minRole=MEMBER` et anonyme) ;
+aide `TestDataService.setTeamModules`. **À ne pas défaire** : les compteurs sont chargés par page
+dans `TeamStatsRepository.load` (4 requêtes d'agrégat, jamais par ligne), via
+`TeamEntityRepository.getPedalonsQuery` qui apporte les filtres domaine, visibilité, module et
+suppression ; `recentPostCount` ne compte jamais un brouillon, même pour un admin ;
+`RECENT_POST_WINDOW` = 7 jours.
 
 ## OPS — Exploitation, déploiement, recette du backend
 

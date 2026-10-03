@@ -186,6 +186,10 @@ navigateur), la connexion par code e-mailé et une préférence de fuseau.
       lance : `ci.yml` ne passe que les tests unitaires. Il faudrait un runner macOS (simulateur) ou un
       émulateur Android, plus la stack e2e (`scripts/e2e.sh up`) dans le job. Pendant web : `AUD-3`.
 
+- [ ] `MOB-43` **Le carrousel « À venir » de l'accueil Flutter** — laissé tel quel par l'accueil
+      membre (`MOB-42`) ; le garder, le fusionner avec « Cette semaine » ou le retirer reste à
+      trancher par le propriétaire.
+
 ---
 
 ## WEB — Site web
@@ -262,6 +266,9 @@ notifications n'a pas de test e2e : c'est `NOTIF-4`.
     défaut, Annuler) ; signalement puis redirection.
   - Transverse : navigation mobile (tiroir, entrée Admin selon le rôle, fil d'Ariane « Plus ») ;
     restauration du défilement au retour.
+
+- [ ] `WEB-44` **Ordre de `LoginForm` : passkey d'abord ?** — le formulaire partagé (`WEB-42`)
+      garde l'ordre actuel ; mettre la passkey en tête reste un choix produit à trancher.
 
 ---
 
@@ -422,6 +429,10 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       émettre `<time>` quand l'instant est `EPOCH` donnerait des fichiers plus propres. Changement de
       bibliothèque, pas de Pédalons ; `GpxSanitizationBackfill.isDirty` accepte déjà l'absence de
       `<time>`. Taille : S.
+
+- [ ] `API-67` **Portée de `minRole` pour un admin de plateforme dans `TeamRepository`** — relevée
+      en revue de `API-66` : faut-il qu'un admin de plateforme voie toutes les équipes avec
+      `?minRole=MEMBER` (« Mes équipes ») ou seulement les siennes ? À trancher, non modifié.
 
 ---
 
