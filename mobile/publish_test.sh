@@ -45,11 +45,11 @@ flutter build ios --release --no-codesign
 
 export JAVA_HOME="$(/usr/libexec/java_home -v 21)"
 export PATH="$JAVA_HOME/bin:$PATH"
+# Stop the Gradle daemon spawned for this build, even if the upload fails, so it doesn't
+# linger holding JDK 21.
+trap '(cd android && ./gradlew --quiet --stop)' EXIT
 flutter build appbundle --release
 (cd android && bundle exec fastlane internal --verbose)
-
-# Stop the Gradle daemon spawned for this build so it doesn't linger holding JDK 21.
-(cd android && ./gradlew --stop)
 
 # Both uploads are through: the build number is now real, so record it.
 git add pubspec.yaml

@@ -15,6 +15,11 @@ if ! curl -fsS -o /dev/null "$E2E_API_URL/api/config"; then
   exit 1
 fi
 e2e_prepare_device
+# On Android, patrol builds the app through Gradle: stop the daemon it spawned, even when a
+# test fails.
+if [[ "$E2E_PLATFORM" == android ]]; then
+  trap '(cd android && ./gradlew --quiet --stop)' EXIT
+fi
 
 # shellcheck disable=SC2086 # E2E_DART_DEFINES holds several flags, none with a space.
-exec patrol test --device "$E2E_DEVICE" $E2E_DART_DEFINES "$@"
+patrol test --device "$E2E_DEVICE" $E2E_DART_DEFINES "$@"

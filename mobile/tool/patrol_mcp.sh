@@ -10,4 +10,12 @@ if [[ "$E2E_PLATFORM" == android ]]; then e2e_prepare_device; fi
 export PROJECT_ROOT="$PWD"
 export PATROL_FLAGS="--device $E2E_DEVICE $E2E_DART_DEFINES"
 export SHOW_TERMINAL="${SHOW_TERMINAL:-false}"
-exec dart run patrol_mcp
+if [[ "$E2E_PLATFORM" != android ]]; then
+  exec dart run patrol_mcp
+fi
+# On Android, `patrol develop` builds the app through Gradle: once the server is gone, stop the
+# daemon it spawned. No exec, so this shell outlives the server; a signal waits for the server
+# to exit, then goes through the EXIT trap.
+trap '(cd android && ./gradlew --quiet --stop)' EXIT
+trap 'exit 143' TERM INT HUP
+dart run patrol_mcp

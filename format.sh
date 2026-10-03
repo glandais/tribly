@@ -69,6 +69,8 @@ format_karoo() (
   banner karoo
   need java karoo
   cd "$ROOT/karoo"
+  # Stop the Gradle daemon this run spawned, even on failure, so it doesn't linger.
+  trap './gradlew --quiet --stop' EXIT
   ./gradlew --quiet spotlessApply
 )
 
