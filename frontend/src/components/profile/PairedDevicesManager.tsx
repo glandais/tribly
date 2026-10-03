@@ -63,58 +63,64 @@ export function PairedDevicesManager() {
     t(`gps.devices.types.${type.toLowerCase() as Lowercase<PairedDeviceType>}`)
 
   return (
-    <Stack gap="xs">
-      <Title order={4} size="h6">
+    <Stack>
+      <Title order={3} size="h5">
         {t('gps.devices.title')}
       </Title>
 
-      {isLoading ? (
-        <Skeleton height={60} radius="sm" />
-      ) : devices.length === 0 ? (
-        <Text size="sm" c="dimmed">
-          {t('gps.devices.empty')}{' '}
-          <Anchor component={PrefetchLink} to={paths.apps()} size="sm">
-            {t('gps.devices.howToPair')}
-          </Anchor>
-        </Text>
-      ) : (
-        devices.map((device) => {
-          const logo = DEVICE_LOGOS[device.type]
-          return (
-            <Paper key={device.id} withBorder p="sm">
-              <Group justify="space-between" wrap="nowrap">
-                <Group wrap="nowrap">
-                  {/* Decorative: the device's name is the text right beside it */}
-                  {logo ? (
-                    <Image src={logo} alt="" w={32} h={32} radius="sm" />
-                  ) : (
-                    <IconDevices size={32} stroke={1.5} aria-hidden />
-                  )}
-                  <div>
-                    <Text size="sm" fw={500}>
-                      {deviceName(device.type)}
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      {t('gps.devices.pairedOn', { date: formatDate(device.pairedAt) })}
-                      {device.lastUsedAt &&
-                        ` · ${t('gps.devices.lastUsed', { when: formatRelative(device.lastUsedAt) })}`}
-                    </Text>
-                  </div>
+      <Text size="sm" c="dimmed">
+        {t('gps.devices.description')}
+      </Text>
+
+      <Stack gap="xs">
+        {isLoading ? (
+          <Skeleton height={60} radius="sm" />
+        ) : devices.length === 0 ? (
+          <Text size="sm" c="dimmed">
+            {t('gps.devices.empty')}{' '}
+            <Anchor component={PrefetchLink} to={paths.apps()} size="sm">
+              {t('gps.devices.howToPair')}
+            </Anchor>
+          </Text>
+        ) : (
+          devices.map((device) => {
+            const logo = DEVICE_LOGOS[device.type]
+            return (
+              <Paper key={device.id} withBorder p="sm">
+                <Group justify="space-between" wrap="nowrap">
+                  <Group wrap="nowrap">
+                    {/* Decorative: the device's name is the text right beside it */}
+                    {logo ? (
+                      <Image src={logo} alt="" w={32} h={32} radius="sm" />
+                    ) : (
+                      <IconDevices size={32} stroke={1.5} aria-hidden />
+                    )}
+                    <div>
+                      <Text size="sm" fw={500}>
+                        {deviceName(device.type)}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        {t('gps.devices.pairedOn', { date: formatDate(device.pairedAt) })}
+                        {device.lastUsedAt &&
+                          ` · ${t('gps.devices.lastUsed', { when: formatRelative(device.lastUsedAt) })}`}
+                      </Text>
+                    </div>
+                  </Group>
+                  <ActionIcon
+                    variant="subtle"
+                    color="red"
+                    onClick={() => setToUnpair(device)}
+                    title={t('gps.devices.unpair')}
+                    aria-label={t('gps.devices.unpairLabel', { device: deviceName(device.type) })}
+                  >
+                    <IconUnlink size={16} />
+                  </ActionIcon>
                 </Group>
-                <ActionIcon
-                  variant="subtle"
-                  color="red"
-                  onClick={() => setToUnpair(device)}
-                  title={t('gps.devices.unpair')}
-                  aria-label={t('gps.devices.unpairLabel', { device: deviceName(device.type) })}
-                >
-                  <IconUnlink size={16} />
-                </ActionIcon>
-              </Group>
-            </Paper>
-          )
-        })
-      )}
+              </Paper>
+            )
+          })
+        )}
+      </Stack>
 
       <ConfirmDialog
         isOpen={toUnpair !== null}

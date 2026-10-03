@@ -273,6 +273,9 @@ export function UserProfilePage() {
           <Divider />
 
           <GpsConnectionsManager />
+
+          <Divider />
+
           <PairedDevicesManager />
 
           <Divider />

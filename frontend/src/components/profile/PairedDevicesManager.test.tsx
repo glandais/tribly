@@ -45,6 +45,13 @@ describe('PairedDevicesManager', () => {
   })
   afterEach(cleanup)
 
+  it('says what a paired device is, apart from a connected service', () => {
+    renderManager()
+
+    expect(screen.getByRole('heading', { name: 'gps.devices.title' })).toBeTruthy()
+    expect(screen.getByText('gps.devices.description')).toBeTruthy()
+  })
+
   it('lists each paired device under its own name', () => {
     devices.list = [
       { id: 'k1', type: 'KAROO', pairedAt: '2026-09-01T08:00:00Z' },

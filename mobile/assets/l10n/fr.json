@@ -796,15 +796,15 @@
       "emptyPastHint": "Vos sorties et voyages passés s'afficheront ici."
     },
     "gps": {
-      "title": "Appareils GPS",
+      "title": "Services connectés",
       "connect": "Connecter",
       "disconnect": "Déconnecter",
       "connectedOn": "Connecté le {date}",
       "notConnected": "Non connecté",
       "none": "Aucun service GPS n'est proposé pour le moment.",
-      "hint": "Ces appareils alimentent l'action « Envoyer vers l'appareil » depuis un parcours ou un groupe de sortie.",
+      "hint": "Vos comptes Hammerhead, Garmin Connect ou Wahoo. « Envoyer vers l'appareil » y dépose le parcours, que votre compteur récupère à sa prochaine synchronisation.",
       "disconnectTitle": "Déconnecter {service} ?",
-      "disconnectMessage": "Vous ne pourrez plus envoyer de parcours vers cet appareil tant qu'il n'est pas reconnecté."
+      "disconnectMessage": "Vous ne pourrez plus envoyer de parcours vers ce service tant qu'il n'est pas reconnecté."
     },
     "devices": {
       "title": "Appareils appairés",
@@ -815,6 +815,7 @@
       "lastUsed": "utilisé {when}",
       "none": "Aucun Karoo ni Garmin n'est appairé",
       "howToPair": "Comment appairer un appareil",
+      "hint": "Les Karoo et Garmin sur lesquels l'application Pédalons est installée et liée à votre compte par un code.",
       "unpair": "Délier",
       "unpairTitle": "Délier {device} ?",
       "unpairSemantic": "Délier {device}",

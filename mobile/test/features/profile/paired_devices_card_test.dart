@@ -88,6 +88,15 @@ void main() {
     expect(find.byKey(keys.profile.noPairedDevice), findsOneWidget);
   });
 
+  testWidgets(
+    'la carte dit ce qu\'est un appareil appairé, à côté des services',
+    (WidgetTester tester) async {
+      await pumpCard(tester, const <PairedDeviceDto>[]);
+
+      expect(find.textContaining('par un code'), findsOneWidget);
+    },
+  );
+
   testWidgets('délier ne délie que l\'appareil confirmé', (
     WidgetTester tester,
   ) async {

@@ -10,6 +10,7 @@ import '../../../../config/paths.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
+import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../data/profile_repository.dart';
@@ -89,6 +90,7 @@ class _PairedDevicesCardState extends ConsumerState<PairedDevicesCard> {
   @override
   Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
+    final PdlTypography t = context.pdlText;
     final AsyncValue<List<PairedDeviceDto>> devices = ref.watch(
       pairedDevicesProvider,
     );
@@ -140,6 +142,17 @@ class _PairedDevicesCardState extends ConsumerState<PairedDevicesCard> {
                   subtitle: 'profile.devices.howToPair'.tr(),
                   onTap: () => context.push(Paths.apps()),
                 ),
+              // Ce qu'est un appareil appairé, à côté des services connectés
+              // juste au-dessus : les mêmes logos y figurent.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  PdlSpacing.section,
+                  0,
+                  PdlSpacing.section,
+                  PdlSpacing.cardTight,
+                ),
+                child: Text('profile.devices.hint'.tr(), style: t.xs),
+              ),
             ],
           ),
         ),

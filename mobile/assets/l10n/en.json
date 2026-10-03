@@ -796,15 +796,15 @@
       "emptyPastHint": "Your past rides and trips will show up here."
     },
     "gps": {
-      "title": "GPS devices",
+      "title": "Connected services",
       "connect": "Connect",
       "disconnect": "Disconnect",
       "connectedOn": "Connected on {date}",
       "notConnected": "Not connected",
       "none": "No GPS service is offered at the moment.",
-      "hint": "These devices power the “Send to device” action from a route or a ride group.",
+      "hint": "Your Hammerhead, Garmin Connect or Wahoo accounts. “Send to device” drops the route there, and your bike computer picks it up at its next sync.",
       "disconnectTitle": "Disconnect {service}?",
-      "disconnectMessage": "You will no longer be able to send routes to this device until it is reconnected."
+      "disconnectMessage": "You will no longer be able to send routes to this service until it is reconnected."
     },
     "devices": {
       "title": "Paired devices",
@@ -815,6 +815,7 @@
       "lastUsed": "used {when}",
       "none": "No Karoo or Garmin is paired",
       "howToPair": "How to pair a device",
+      "hint": "The Karoo and Garmin units running the Pédalons app, linked to your account with a code.",
       "unpair": "Unpair",
       "unpairTitle": "Unpair {device}?",
       "unpairSemantic": "Unpair {device}",
