@@ -186,10 +186,6 @@ navigateur), la connexion par code e-mailé et une préférence de fuseau.
       lance : `ci.yml` ne passe que les tests unitaires. Il faudrait un runner macOS (simulateur) ou un
       émulateur Android, plus la stack e2e (`scripts/e2e.sh up`) dans le job. Pendant web : `AUD-3`.
 
-- [ ] `MOB-43` **Le carrousel « À venir » de l'accueil Flutter** — laissé tel quel par l'accueil
-      membre (`MOB-42`) ; le garder, le fusionner avec « Cette semaine » ou le retirer reste à
-      trancher par le propriétaire.
-
 ---
 
 ## WEB — Site web
@@ -266,9 +262,6 @@ notifications n'a pas de test e2e : c'est `NOTIF-4`.
     défaut, Annuler) ; signalement puis redirection.
   - Transverse : navigation mobile (tiroir, entrée Admin selon le rôle, fil d'Ariane « Plus ») ;
     restauration du défilement au retour.
-
-- [ ] `WEB-44` **Ordre de `LoginForm` : passkey d'abord ?** — le formulaire partagé (`WEB-42`)
-      garde l'ordre actuel ; mettre la passkey en tête reste un choix produit à trancher.
 
 ---
 
@@ -429,10 +422,6 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       émettre `<time>` quand l'instant est `EPOCH` donnerait des fichiers plus propres. Changement de
       bibliothèque, pas de Pédalons ; `GpxSanitizationBackfill.isDirty` accepte déjà l'absence de
       `<time>`. Taille : S.
-
-- [ ] `API-67` **Portée de `minRole` pour un admin de plateforme dans `TeamRepository`** — relevée
-      en revue de `API-66` : faut-il qu'un admin de plateforme voie toutes les équipes avec
-      `?minRole=MEMBER` (« Mes équipes ») ou seulement les siennes ? À trancher, non modifié.
 
 ---
 
@@ -732,6 +721,8 @@ redevient une entrée de sa section sous le même identifiant.
 | `API-60` | **Fuseau d'équipe (`Team.timezone`) ou dates zonées au contrat** | Écarté le 2 octobre 2026, avec le propriétaire, au profit de la préférence `UserDto.timezone` appliquée par les deux clients (`API-15`) | Les dates restent des instants UTC au contrat, rendues dans le fuseau de l'utilisateur, sinon de l'appareil. Une équipe est presque toujours mono-fuseau, et un fuseau d'équipe aurait demandé un réglage d'administration, une colonne et une seconde règle de rendu dans chaque client. À rouvrir si des voyages à l'étranger rendent l'heure locale de l'étape nécessaire : c'est alors le fuseau du **lieu de départ** (`TimezoneService`, déjà utilisé pour les compteurs) qu'il faudrait exposer, pas celui de l'équipe |
 | `API-54` | **exiftool pour retirer les métadonnées des images** | Écarté le 29 septembre 2026, après mesure sur un corpus synthétique (métadonnées marquées, pixels comparés) | exiftool (micro-service ou WASM) retire ce qu'il connaît au lieu de ne garder que ce qui est autorisé : il a laissé passer un chunk PNG privé et les octets après le trailer GIF, et refusé un WebP valide. Il ne nettoie pas les PDF, il a des CVE répétées (dont CVE-2026-7580, qui touche la 13.50) et il ajoute un conteneur. En WASM (zeroperl sur Chicory), sa sortie est identique mais il prend 17 à 19 s par image. imgproxy, écarté le même jour parce qu'il n'a pas de mode sans perte, a finalement été retenu : la perte d'un réencodage a été acceptée pour un code plus simple, qui ne laisse rien passer par construction et lit aussi HEIC, AVIF, TIFF et JPEG XL (`API-43`) |
 | `API-52` | **Durcir `ImageMetadataStripper`** | Sans objet depuis le 29 septembre 2026 | Le nettoyeur maison sans perte a été supprimé : le stockage fait réencoder chaque image par imgproxy (`API-43`), qui n'écrit que les pixels. Ne pas le réintroduire pour gagner la qualité perdue : c'est lui dont les branches gardaient par défaut ce qu'elles ne connaissaient pas |
+| `API-67` | **« Mes équipes » d'un admin de plateforme** | Comportement actuel gardé (décidé le 4 octobre 2026 avec le propriétaire) | `GET /api/teams?minRole=MEMBER` renvoie à un admin de plateforme toutes les équipes du domaine, qu'il voit donc toutes dans « Mes équipes » à l'accueil (web et mobile, `WEB-42`, `MOB-42`). Ne pas restreindre la requête à ses adhésions réelles sans rouvrir ce point |
+| `WEB-44` | **Passkey en tête du formulaire de connexion** | Ordre actuel gardé (décidé le 4 octobre 2026 avec le propriétaire) | `LoginForm` (`WEB-42`) garde email et mot de passe en tête, puis « ou », puis la passkey et le code par e-mail. Le bouton passkey n'apparaît qu'après hydratation (`browserSupportsWebAuthn`) : en tête, il décalerait le haut de l'accueil rendu côté serveur |
 | `WEB-8` | **Scroll infini côté web** | Non porté | Incompatible avec la règle structurante du frontend (filtres et pagination dans la query string, donc toute vue partageable). `usePaginatedQuery` précharge déjà la page suivante **et** la précédente |
 | `WEB-9` | **Gabarits tactiles portés au web** | Non portés | Feuilles à crans, barre d'onglets basse, app bar interpolée, chips en remplacement des `Select` : ils résolvent une contrainte que le desktop n'a pas, et produiraient des composants hors Mantine |
 | `WEB-10` | **Minimum de 44 px sur les boutons web** | Règle **tactile** uniquement | Le web descend à 36 px au-dessus de 768 px. Ne pas prendre `pedalons.css` pour une spécification web |

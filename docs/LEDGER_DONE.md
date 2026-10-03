@@ -190,6 +190,15 @@ couvert » ; les tests ne tournent qu'en local (`MOB-37`).
   (l'app n'a pas d'écran pour elle) ; `calendarEventTap` est partagé par `AgendaCard` et l'agenda
   d'accueil.
 
+- `MOB-43` **Carrousel « À venir » retiré de l'accueil** (4 octobre 2026, décidé avec le
+  propriétaire). Il doublait « Cette semaine » (`MOB-42`). Supprimés avec lui : `upcomingProvider`,
+  le widget, ses clés, les libellés `home.upcoming`, `home.upcomingScope`, `home.chooseGroup`, et
+  l'inscription automatique qu'ouvrait son bouton « Rejoindre » sur `RideDetailPage` (seul
+  appelant). Tests : `participation_changes_test.dart` vérifie qu'une inscription recharge « Cette
+  semaine » ; `upcoming_action_test.dart` et le test Patrol `upcoming_carousel_order_test.dart` sont
+  supprimés. **À ne pas défaire** : plus aucun test de bout en bout ne couvre le tri « plus proches
+  d'abord » (`sortDir=ASC`) de `/api/publications`, dont l'app ne dépend plus.
+
 ---
 
 ## WEB — Site web
@@ -678,6 +687,16 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   l'envoi ; le CSS vit dans `index.css` (classes `features-*`), pas dans un module CSS qui
   arriverait après le premier rendu SSR d'une page paresseuse ; les puces défilent par
   `scrollIntoView` + `history.replaceState`, pas par une navigation de hash (lue comme un POP).
+
+- `WEB-45` **Navigation principale dans l'en-tête** (4 octobre 2026, décidé avec le propriétaire).
+  Fil · Équipes · Calendrier (connecté) · Parcours · Fonctionnalités passent de la rangée d'onglets
+  de l'accueil à l'en-tête (`MainNav`, libellés à partir de `lg`, icônes avec info-bulle entre `sm`
+  et `lg`) et au tiroir mobile ; `HomeLayout` est supprimé. `useHomeNavItems` reste la source unique
+  (fil d'Ariane compris), `useMainNavItems` y ajoute Fonctionnalités ; l'entrée active vient de
+  l'URL (`activeMainNavId`, remontée de `parentId` dans `routes.config.ts`), « Équipes » s'allume
+  sur les pages d'équipe. Tests : `MainNav.test.tsx` ; e2e via `mainNavLink` (`e2e/support/ui.ts`).
+  **À ne pas défaire** : un seul endroit définit les entrées de navigation ; le nom affiché près de
+  l'avatar reste visible à partir de `md` car l'e2e desktop trouve le menu du compte par ce nom.
 
 ---
 
