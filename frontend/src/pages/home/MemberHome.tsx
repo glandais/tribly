@@ -20,6 +20,8 @@ import { useAuth } from '../../hooks/useAuth'
 import { useEffectiveTimezone } from '../../utils/dateFormat'
 import { useHomeFeedData, useMemberHomeData } from './homeFeedData'
 
+const NEXT_RIDE_HEADING_ID = 'home-next-ride-title'
+
 /**
  * The home of a signed-in member: greeting, organizer shortcuts, « Ma prochaine sortie », the
  * week and their teams aside, then the feed.
@@ -42,10 +44,17 @@ export function MemberHome() {
     locale: i18n.language === 'fr' ? fr : enUS,
   })
 
+  // Outside the card (loading, error, nothing booked) the section keeps its heading all the same.
+  const nextRideHeading = (
+    <Title id={NEXT_RIDE_HEADING_ID} order={2} size="h5" c="dimmed" tt="uppercase">
+      {t('home.nextRide.title')}
+    </Title>
+  )
+
   const header = (
     <Group justify="space-between" align="flex-end" gap="md">
       <Box>
-        <Text c="dimmed" size="sm" tt="capitalize" suppressHydrationWarning>
+        <Text c="dimmed" size="sm" suppressHydrationWarning>
           {today}
         </Text>
         <Title order={1}>
@@ -68,33 +77,48 @@ export function MemberHome() {
       <Stack gap="xl">
         <Grid gap="lg">
           <Grid.Col span={{ base: 12, md: 7, lg: 8 }}>
-            {nextRide ? (
-              <NextRideCard ride={nextRide} />
-            ) : participations.isLoading ? (
-              <Paper withBorder radius="md" p="md">
-                <Stack>
-                  <Skeleton h={24} w="40%" />
-                  <Skeleton h={160} />
-                  <Skeleton h={36} w="60%" />
+            <Box component="section" aria-labelledby={NEXT_RIDE_HEADING_ID} h="100%">
+              {nextRide ? (
+                <NextRideCard ride={nextRide} headingId={NEXT_RIDE_HEADING_ID} />
+              ) : participations.isLoading ? (
+                <Paper withBorder radius="md" p="md">
+                  <Stack>
+                    {nextRideHeading}
+                    <Skeleton h={24} w="40%" />
+                    <Skeleton h={160} />
+                    <Skeleton h={36} w="60%" />
+                  </Stack>
+                </Paper>
+              ) : participations.isError ? (
+                <Paper withBorder radius="md" p="md">
+                  <Stack gap="xs">
+                    {nextRideHeading}
+                    <Text size="sm" c="dimmed">
+                      {t('error.loading')}
+                    </Text>
+                  </Stack>
+                </Paper>
+              ) : (
+                <Stack gap="xs">
+                  {nextRideHeading}
+                  <EmptyState
+                    icon={<IconBike size={48} />}
+                    title={t('home.nextRide.empty.title')}
+                    description={t('home.nextRide.empty.description')}
+                    actions={
+                      <Button
+                        component={PrefetchLink}
+                        to={paths.calendar()}
+                        variant="light"
+                        leftSection={<IconCalendar size={16} />}
+                      >
+                        {t('home.week.calendarLink')}
+                      </Button>
+                    }
+                  />
                 </Stack>
-              </Paper>
-            ) : (
-              <EmptyState
-                icon={<IconBike size={48} />}
-                title={t('home.nextRide.empty.title')}
-                description={t('home.nextRide.empty.description')}
-                actions={
-                  <Button
-                    component={PrefetchLink}
-                    to={paths.calendar()}
-                    variant="light"
-                    leftSection={<IconCalendar size={16} />}
-                  >
-                    {t('home.week.calendarLink')}
-                  </Button>
-                }
-              />
-            )}
+              )}
+            </Box>
           </Grid.Col>
           <Grid.Col span={{ base: 12, md: 5, lg: 4 }}>
             <Stack gap="lg">
@@ -103,11 +127,15 @@ export function MemberHome() {
                 events={week.data?.events}
                 isLoading={week.isLoading}
                 isError={week.isError}
+                nextRide={
+                  nextRide ? { teamSlug: nextRide.team.slug, slug: nextRide.slug } : undefined
+                }
               />
               <MyTeamsCard
                 teams={teams.data?.teams}
                 total={teams.data?.total}
                 isLoading={teams.isLoading}
+                isError={teams.isError}
               />
             </Stack>
           </Grid.Col>

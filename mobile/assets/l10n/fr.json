@@ -228,6 +228,7 @@
       "title": "Cette semaine",
       "calendar": "Calendrier",
       "empty": "Rien de prévu dans vos équipes ces sept prochains jours.",
+      "nothingElse": "Rien d'autre de prévu dans vos équipes ces sept prochains jours.",
       "more": {
         "one": "{} autre événement au calendrier",
         "other": "{} autres événements au calendrier"

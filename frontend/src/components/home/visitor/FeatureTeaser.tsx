@@ -17,7 +17,7 @@ type TileKey = 'rides' | 'routes' | 'trips' | 'posts'
 
 const TILES: { key: TileKey; icon: ComponentType<IconProps>; color: string }[] = [
   { key: 'rides', icon: IconBike, color: PUBLICATION_TYPE_COLORS.RIDE },
-  { key: 'routes', icon: IconRoute, color: 'orange' },
+  { key: 'routes', icon: IconRoute, color: 'primary' },
   { key: 'trips', icon: IconMap2, color: PUBLICATION_TYPE_COLORS.TRIP },
   { key: 'posts', icon: IconArticle, color: PUBLICATION_TYPE_COLORS.POST },
 ]

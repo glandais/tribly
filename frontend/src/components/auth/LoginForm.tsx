@@ -44,6 +44,8 @@ export interface LoginFormProps {
    * `stay` (the home hero): stay put — the page itself re-renders for the signed-in member.
    */
   afterSignIn?: 'redirect' | 'stay'
+  /** Step shown first when the form is uncontrolled — `register` for a « Créer un compte » link. */
+  initialMode?: LoginFormMode
   /** Controlled step, for a page that opens the register step from elsewhere (a CTA). */
   mode?: LoginFormMode
   onModeChange?: (mode: LoginFormMode) => void
@@ -59,6 +61,7 @@ export function LoginForm({
   subtitle,
   titleOrder = 1,
   afterSignIn = 'redirect',
+  initialMode = 'login',
   mode: controlledMode,
   onModeChange,
 }: LoginFormProps) {
@@ -87,7 +90,7 @@ export function LoginForm({
     }
   }, [navigate, next, redirectTo, redirects])
 
-  const [ownMode, setOwnMode] = useState<LoginFormMode>('login')
+  const [ownMode, setOwnMode] = useState<LoginFormMode>(initialMode)
   const mode = controlledMode ?? ownMode
   const setMode = (value: LoginFormMode) => {
     setOwnMode(value)

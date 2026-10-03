@@ -228,6 +228,7 @@
       "title": "This week",
       "calendar": "Calendar",
       "empty": "Nothing planned in your teams over the next seven days.",
+      "nothingElse": "Nothing else planned in your teams over the next seven days.",
       "more": {
         "one": "{} more event in the calendar",
         "other": "{} more events in the calendar"

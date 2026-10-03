@@ -46,7 +46,7 @@ describe('sitemapPath', () => {
 })
 
 describe('buildSitemapXml', () => {
-  it('lists the home page and each entry as an absolute URL with its date', () => {
+  it('lists the home page, the features page and each entry as an absolute URL with its date', () => {
     const xml = buildSitemapXml(
       [entry(SitemapEntryType.TEAM), entry(SitemapEntryType.RIDE, 'dimanche')],
       'https://www.pedalons.fr'
@@ -54,6 +54,7 @@ describe('buildSitemapXml', () => {
     expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true)
     expect(locs(xml)).toEqual([
       'https://www.pedalons.fr/',
+      'https://www.pedalons.fr/fonctionnalites',
       'https://www.pedalons.fr/equipes/np',
       'https://www.pedalons.fr/equipes/np/sorties/dimanche',
     ])
@@ -68,11 +69,18 @@ describe('buildSitemapXml', () => {
       'https://club.example',
       strip
     )
-    expect(locs(xml)).toEqual(['https://club.example/', 'https://club.example/articles/bilan'])
+    expect(locs(xml)).toEqual([
+      'https://club.example/',
+      'https://club.example/fonctionnalites',
+      'https://club.example/articles/bilan',
+    ])
   })
 
   it('escapes what XML reserves', () => {
     const xml = buildSitemapXml([], 'https://a.example/?x=1&y=2')
-    expect(locs(xml)).toEqual(['https://a.example/?x=1&amp;y=2/'])
+    expect(locs(xml)).toEqual([
+      'https://a.example/?x=1&amp;y=2/',
+      'https://a.example/?x=1&amp;y=2/fonctionnalites',
+    ])
   })
 })

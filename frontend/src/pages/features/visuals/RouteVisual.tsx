@@ -30,7 +30,7 @@ export function RouteVisual() {
   ]
 
   return (
-    <VisualFrame color="orange">
+    <VisualFrame color="primary">
       <Paper withBorder radius="lg" style={{ overflow: 'hidden' }}>
         <Box bg="var(--mantine-color-default-hover)" p="xs">
           <RouteTrace height={110} />

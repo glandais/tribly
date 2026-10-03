@@ -25,10 +25,12 @@ interface MyTeamsCardProps {
   /** `total` of the listing — more teams than the rows shown get a « see all » link. */
   total: number | undefined
   isLoading: boolean
+  /** The listing failed: say so rather than claim the member has no team. */
+  isError?: boolean
 }
 
 /** « Mes équipes » on the member home: each team, its activity, and the member's role in it. */
-export function MyTeamsCard({ teams, total, isLoading }: MyTeamsCardProps) {
+export function MyTeamsCard({ teams, total, isLoading, isError }: MyTeamsCardProps) {
   const { t } = useTranslation()
   const activity = useTeamActivity()
   const singleTeam = isSingleTeam()
@@ -52,6 +54,10 @@ export function MyTeamsCard({ teams, total, isLoading }: MyTeamsCardProps) {
             <Skeleton key={i} h={44} radius="md" />
           ))}
         </Stack>
+      ) : isError ? (
+        <Text size="sm" c="dimmed">
+          {t('error.loading')}
+        </Text>
       ) : !teams || teams.length === 0 ? (
         <Stack gap="sm" align="flex-start">
           <Text size="sm" c="dimmed">

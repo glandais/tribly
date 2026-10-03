@@ -413,6 +413,9 @@ test.describe('leaving a ride, seen from the home page and the calendar', () => 
     page.getByRole('main').getByRole('heading', { name: 'Ma prochaine sortie' })
   /** « Ma prochaine sortie »: the heading's box, which holds the card (not a link). */
   const nextRideCard = (page: Page) => nextRideHeading(page).locator('xpath=..')
+  /** The section keeps its heading once nothing is booked: its empty state says so. */
+  const nextRideEmpty = (page: Page) =>
+    page.getByRole('main').getByRole('heading', { name: 'Aucune sortie à venir' })
   /**
    * The ride's card in the home feed: NextRideCard is no link, and the « Cette semaine » rows,
    * which are, sit outside the feed's region.
@@ -505,7 +508,7 @@ test.describe('leaving a ride, seen from the home page and the calendar', () => 
     await expect(
       toasts(page).filter({ hasText: 'Désinscription de la sortie confirmée' })
     ).toBeVisible()
-    await expect(nextRideHeading(page)).toHaveCount(0)
+    await expect(nextRideEmpty(page)).toBeVisible()
     expect((await readRide(member, team.slug, ride.slug)).registered).toBe(false)
 
     // « Je participe » no longer lists it...
@@ -558,7 +561,7 @@ test.describe('leaving a ride, seen from the home page and the calendar', () => 
     await expect(page).toHaveURL(/\/\?q=/)
     await expect(feedCard(page, ride.name)).toBeVisible()
     await expect(feedCard(page, ride.name)).not.toContainText('Inscrit')
-    await expect(nextRideHeading(page)).toHaveCount(0)
+    await expect(nextRideEmpty(page)).toBeVisible()
     await scope(page, 'Je participe')
     await expect(
       page.getByRole('main').getByRole('heading', { name: 'Aucune publication trouvée' })

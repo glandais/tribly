@@ -36,7 +36,9 @@ export function VisitorHome() {
         <HomeFeedSection
           feed={feed}
           title={t('home.visitor.feed.title')}
-          subtitle={t('home.visitor.feed.subtitle')}
+          subtitle={t(
+            singleTeam ? 'home.visitor.feed.subtitleSingleTeam' : 'home.visitor.feed.subtitle'
+          )}
         />
         <DevicesStrip />
         {!singleTeam && <TeamCtaBand onCreateAccount={openRegister} />}

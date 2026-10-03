@@ -37,9 +37,7 @@ String teamActivityLine(TeamDetailDto team) {
       'home.teams.recentPosts'.plural(team.recentPostCount),
   ];
   if (parts.isEmpty) {
-    return 'teams.members'.tr(
-      namedArgs: <String, String>{'count': '${team.memberCount}'},
-    );
+    return 'teams.membersList.count'.plural(team.memberCount);
   }
   return parts.join(' · ');
 }

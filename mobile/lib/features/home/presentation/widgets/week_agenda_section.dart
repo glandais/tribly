@@ -50,7 +50,10 @@ class WeekAgendaSection extends ConsumerWidget {
           for (final CalendarEventDto e in all)
             if (!_isNextRide(e, nextRide)) e,
         ];
-        if (events.isEmpty) return _frame(context, const _WeekEmpty());
+        if (events.isEmpty) {
+          // Only the next ride this week: it sits right above, so « nothing else ».
+          return _frame(context, _WeekEmpty(nothingElse: all.isNotEmpty));
+        }
 
         final List<CalendarEventDto> shown = events
             .take(kWeekAgendaLimit)
@@ -115,7 +118,9 @@ class WeekAgendaSection extends ConsumerWidget {
 }
 
 class _WeekEmpty extends StatelessWidget {
-  const _WeekEmpty();
+  const _WeekEmpty({required this.nothingElse});
+
+  final bool nothingElse;
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +132,10 @@ class _WeekEmpty extends StatelessWidget {
           Icon(PdlIcons.date, size: 24, color: context.pdl.textDimmed),
           const SizedBox(width: PdlSpacing.cardTight),
           Expanded(
-            child: Text('home.week.empty'.tr(), style: context.pdlText.body),
+            child: Text(
+              (nothingElse ? 'home.week.nothingElse' : 'home.week.empty').tr(),
+              style: context.pdlText.body,
+            ),
           ),
         ],
       ),

@@ -36,6 +36,11 @@ interface WeekAgendaProps {
   events: CalendarEventDto[] | undefined
   isLoading: boolean
   isError?: boolean
+  /**
+   * The ride « Ma prochaine sortie » already shows beside the agenda: left out of the rows (as
+   * the app does), still counted in the strip's dots.
+   */
+  nextRide?: { teamSlug: string; slug: string }
 }
 
 /**
@@ -43,7 +48,7 @@ interface WeekAgendaProps {
  * event, then the next events of all the member's teams — from one `GET /api/calendar/events`
  * call. Days are read in the effective timezone (the member's preference, else the browser's).
  */
-export function WeekAgenda({ nowIso, events, isLoading, isError }: WeekAgendaProps) {
+export function WeekAgenda({ nowIso, events, isLoading, isError, nextRide }: WeekAgendaProps) {
   const { t, i18n } = useTranslation()
   const { timezone } = useEffectiveTimezone()
   const locale = i18n.language === 'fr' ? fr : enUS
@@ -60,6 +65,15 @@ export function WeekAgenda({ nowIso, events, isLoading, isError }: WeekAgendaPro
     .sort((a, b) => a.start.localeCompare(b.start))
   const busyDays = new Set(inWeek.map((e) => dayKey(e.start)))
   const todayKey = dayKey(days[0])
+  const rows = inWeek.filter(
+    (e) =>
+      !(
+        nextRide &&
+        e.type === 'RIDE' &&
+        e.teamSlug === nextRide.teamSlug &&
+        e.entitySlug === nextRide.slug
+      )
+  )
 
   return (
     <Paper withBorder radius="md" p="md" component="section" aria-labelledby="home-week-title">
@@ -119,13 +133,13 @@ export function WeekAgenda({ nowIso, events, isLoading, isError }: WeekAgendaPro
         <Text size="sm" c="dimmed">
           {t('error.loading')}
         </Text>
-      ) : inWeek.length === 0 ? (
+      ) : rows.length === 0 ? (
         <Text size="sm" c="dimmed">
-          {t('home.week.empty')}
+          {inWeek.length > 0 ? t('home.week.nothingElse') : t('home.week.empty')}
         </Text>
       ) : (
         <Stack gap={4}>
-          {inWeek.slice(0, MAX_ROWS).map((event) => (
+          {rows.slice(0, MAX_ROWS).map((event) => (
             <UnstyledButton
               key={`${event.type}-${event.id}`}
               component={PrefetchLink}

@@ -74,6 +74,7 @@ export function buildLlmsTxt({
     '',
     '## Plan du site',
     '',
+    `- [Fonctionnalités](${url(pathVariants.features().fr)}): ce que le site propose aux équipes et à leurs membres`,
     `- [sitemap.xml](${origin}/sitemap.xml): toutes les pages publiques indexables (équipes, pages, sorties, articles, voyages, étapes), avec leur date de mise à jour`
   )
 

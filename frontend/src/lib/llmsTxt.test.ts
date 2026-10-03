@@ -33,6 +33,7 @@ describe('buildLlmsTxt', () => {
     const txt = buildLlmsTxt({ appName: 'P', origin, teams: [team('a', 'A')], totalTeams: 3 })
     expect(txt).toContain('2 autres équipes publiques : voir le plan du site.')
     expect(txt).toContain('- [sitemap.xml](https://www.pedalons.fr/sitemap.xml)')
+    expect(txt).toContain('- [Fonctionnalités](https://www.pedalons.fr/fonctionnalites)')
   })
 
   it('gives a pinned host one link to its root', () => {

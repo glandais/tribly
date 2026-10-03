@@ -155,6 +155,28 @@ void main() {
       expect(find.byKey(keys.home.weekEvent('autre')), findsOneWidget);
     });
 
+    testWidgets('la prochaine sortie seule : « rien d\'autre », pas « rien »', (
+      WidgetTester tester,
+    ) async {
+      final RideDto ride = fixtureRide();
+      await _pump(
+        tester,
+        const WeekAgendaSection(),
+        next: NextRide(ride: ride, group: null),
+        events: <CalendarEventDto>[
+          _event(ride.slug, teamSlug: ride.team.slug, registered: true),
+        ],
+      );
+
+      expect(find.byKey(keys.home.weekEmpty), findsOneWidget);
+      expect(
+        find.text(
+          "Rien d'autre de prévu dans vos équipes ces sept prochains jours.",
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('au-delà de la limite, renvoie le reste au calendrier', (
       WidgetTester tester,
     ) async {
@@ -226,6 +248,11 @@ void main() {
       expect(
         teamActivityLine(fixtureTeam(upcomingRideCount: 0, memberCount: 12)),
         contains('12'),
+      );
+      // Accordé : « 1 membre », jamais « 1 membres » (BRANDING §8.3).
+      expect(
+        teamActivityLine(fixtureTeam(upcomingRideCount: 0, memberCount: 1)),
+        '1 membre',
       );
     });
 

@@ -91,7 +91,7 @@ export function VisitorHero({ loginMode, onLoginModeChange }: VisitorHeroProps) 
             </List.Item>
             <List.Item
               icon={
-                <ThemeIcon variant="light" color="orange" radius="md" size={28}>
+                <ThemeIcon variant="light" color="primary" radius="md" size={28}>
                   <IconRoute size={16} />
                 </ThemeIcon>
               }

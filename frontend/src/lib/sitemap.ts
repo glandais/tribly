@@ -64,6 +64,7 @@ export function buildSitemapXml(
   }
 
   add('/')
+  add(pathVariants.features().fr)
   for (const entry of entries) {
     const path = sitemapPath(entry)
     if (path) add(path, entry.lastModified)

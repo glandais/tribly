@@ -91,7 +91,8 @@ export function FeaturesPage() {
     },
     {
       id: 'routes',
-      color: 'orange',
+      // Routes have no business colour of their own (contracts/brand-colors.yaml): the brand's.
+      color: 'primary',
       icon: IconRoute,
       chip: t('features.routes.eyebrow'),
       eyebrow: t('features.routes.eyebrow'),
@@ -217,8 +218,13 @@ export function FeaturesPage() {
     },
   ]
 
-  // Sign-up and sign-in both go through the login page, which holds the « Créer un compte » form.
+  // Sign-up and sign-in both go through the login page; sign-up opens it on its register step.
   const signInLink = { component: PrefetchLink, to: paths.login(), state: { from: location } }
+  const signUpLink = {
+    component: PrefetchLink,
+    to: paths.login(),
+    state: { from: location, mode: 'register' },
+  }
 
   return (
     <Stack gap={0} pb={{ base: 0, sm: 'xl' }}>
@@ -251,7 +257,7 @@ export function FeaturesPage() {
             </Button>
           ) : (
             <Group justify="center" gap="sm" visibleFrom="sm">
-              <Button size="md" {...signInLink}>
+              <Button size="md" {...signUpLink}>
                 {t('features.cta.signUp')}
               </Button>
               <Button
@@ -340,10 +346,12 @@ export function FeaturesPage() {
               <Title order={2} id="features-final-title" c="white">
                 {t('features.final.title')}
               </Title>
-              <Text size="lg" c="var(--mantine-color-indigo-1)">
+              <Text size="lg" c="white" opacity={0.85}>
                 {isAuthenticated
                   ? t('features.final.subtitleMember')
-                  : t('features.final.subtitle')}
+                  : singleTeam
+                    ? t('features.final.subtitleSingleTeam')
+                    : t('features.final.subtitle')}
               </Text>
             </Stack>
             <Group gap="sm">
@@ -352,7 +360,7 @@ export function FeaturesPage() {
                   {t('features.cta.backToFeed')}
                 </Button>
               ) : (
-                <Button size="md" variant="white" {...signInLink}>
+                <Button size="md" variant="white" {...signUpLink}>
                   {t('features.cta.signUp')}
                 </Button>
               )}
@@ -376,7 +384,7 @@ export function FeaturesPage() {
       {!isAuthenticated && (
         <Box hiddenFrom="sm" className="features-sticky-bar">
           <SimpleGrid cols={2} spacing="sm">
-            <Button {...signInLink}>{t('features.cta.signUp')}</Button>
+            <Button {...signUpLink}>{t('features.cta.signUp')}</Button>
             <Button variant="default" {...signInLink}>
               {t('features.cta.signIn')}
             </Button>
