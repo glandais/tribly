@@ -29,6 +29,9 @@ export function HeaderMainNav() {
                   component={PrefetchLink}
                   to={item.path}
                   className={classes.item}
+                  // A style prop, not the CSS module: UnstyledButton's own `padding: 0` reset can
+                  // land after the module in the production bundle and win.
+                  px="sm"
                   aria-current={isActive ? 'page' : undefined}
                   aria-label={item.label}
                 >
