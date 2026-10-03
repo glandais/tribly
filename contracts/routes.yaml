@@ -126,6 +126,16 @@ routes:
     mobile: true
     deeplink: true
 
+  # --- Features ---
+  # Marketing page, web only. `mobile: true` only emits the Dart path builder: the app's sign-in
+  # screen opens this page in a browser. No deeplink — the app has no such screen.
+  - id: features
+    path:
+      en: /features
+      fr: /fonctionnalites
+    web: true
+    mobile: true
+
   # --- Legal ---
   - id: privacy
     path:

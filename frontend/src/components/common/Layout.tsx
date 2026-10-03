@@ -28,6 +28,7 @@ import {
   IconBell,
   IconMessageReport,
   IconDownload,
+  IconSparkles,
 } from '@tabler/icons-react'
 import { InstallBanner } from '@/components/install/InstallBanner'
 import { InstallInstructionsModal } from '@/components/install/InstallInstructionsModal'
@@ -134,6 +135,15 @@ export function Layout() {
 
             {/* Desktop Navigation */}
             <Group gap="sm" visibleFrom="sm">
+              <Button
+                variant="subtle"
+                color="gray"
+                component={PrefetchLink}
+                to={paths.features()}
+                leftSection={<IconSparkles size={16} />}
+              >
+                {t('nav.features')}
+              </Button>
               <ColorSchemeSwitcher />
               <LanguageSwitcher />
               {isAuthenticated && <NotificationBell />}
@@ -238,6 +248,15 @@ export function Layout() {
       {/* Mobile Navigation */}
       <AppShell.Navbar p="md">
         <Stack>
+          <Button
+            variant="subtle"
+            leftSection={<IconSparkles size={16} />}
+            component={PrefetchLink}
+            to={paths.features()}
+            onClick={close}
+          >
+            {t('nav.features')}
+          </Button>
           <ColorSchemeSwitcher />
           <LanguageSwitcher />
           {installOffer && (
@@ -353,6 +372,12 @@ export function Layout() {
             <Text c="dimmed" size="sm">
               {t('footer.copyright', { year: new Date().getFullYear(), appName })}
             </Text>
+            <Text c="dimmed" size="sm">
+              ·
+            </Text>
+            <Anchor component={PrefetchLink} to={paths.features()} c="dimmed" size="sm">
+              {t('footer.features')}
+            </Anchor>
             <Text c="dimmed" size="sm">
               ·
             </Text>

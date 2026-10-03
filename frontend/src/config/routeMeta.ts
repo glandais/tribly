@@ -117,6 +117,17 @@ export const appsMeta: RouteMetaFn = (ctx) => {
   }
 }
 
+// === features ================================================================================
+export const featuresMeta: RouteMetaFn = (ctx) => {
+  const appName = appNameOf(ctx)
+  return {
+    type: 'website',
+    title: truncate(`${ctx.t('features.meta.title')} · ${appName}`, 65),
+    description: ctx.t('features.meta.description'),
+    image: defaultImage(ctx.origin, appName),
+  }
+}
+
 // === teams (list) ===========================================================================
 export const teamsMeta: RouteMetaFn = (ctx) => {
   const appName = appNameOf(ctx)

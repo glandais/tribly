@@ -166,6 +166,7 @@ export const pages = {
   ),
   SupportPage: lazyPage('SupportPage', () => import('../pages/legal/SupportPage')),
   AppsPage: lazyPage('AppsPage', () => import('../pages/apps/AppsPage')),
+  FeaturesPage: lazyPage('FeaturesPage', () => import('../pages/features/FeaturesPage')),
 } as const
 
 export type PageKey = keyof typeof pages

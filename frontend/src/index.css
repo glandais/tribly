@@ -174,3 +174,100 @@ body {
     max-width: 130px;
   }
 }
+
+/* Features page (pages/features). Global rather than a CSS module: a lazy page's module stylesheet
+   only arrives with its chunk, after the server-rendered HTML has painted unstyled. */
+.features-hero {
+  border-radius: var(--mantine-radius-xl);
+  background-color: var(--mantine-primary-color-light);
+  padding: var(--mantine-spacing-xl) var(--mantine-spacing-md);
+
+  @media (min-width: 48em) {
+    padding: 64px var(--mantine-spacing-xl) 72px;
+  }
+}
+
+/* Section chips: one scrolling row on a phone, centred and wrapping from `sm` up. */
+.features-chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--mantine-spacing-xs);
+  align-self: stretch;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* Bleed to the hero's edges so the row scrolls under them rather than stopping short. */
+  margin: 0 calc(-1 * var(--mantine-spacing-md));
+  padding: 2px var(--mantine-spacing-md);
+  max-width: calc(100% + 2 * var(--mantine-spacing-md));
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (min-width: 48em) {
+    flex-wrap: wrap;
+    justify-content: center;
+    align-self: auto;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+  }
+}
+
+.features-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 1000px;
+  border: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-body);
+  color: var(--mantine-color-text);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    background-color: var(--mantine-color-default-hover);
+  }
+}
+
+.features-section {
+  padding: 48px 0;
+  /* The header (56–60 px) may be pinned when a chip scrolls here. */
+  scroll-margin-top: 72px;
+
+  @media (min-width: 48em) {
+    padding: 64px 0;
+  }
+
+  & + .features-section {
+    border-top: 1px solid var(--mantine-color-default-border);
+  }
+}
+
+.features-final-cta {
+  border-radius: var(--mantine-radius-xl);
+  background-color: var(--mantine-primary-color-filled);
+  color: var(--mantine-color-white);
+  padding: var(--mantine-spacing-xl);
+
+  @media (min-width: 48em) {
+    padding: 40px;
+  }
+}
+
+/* Visitors on a phone: sign-up and sign-in stay at hand while scrolling the page. */
+.features-sticky-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: var(--mantine-spacing-md) calc(-1 * var(--mantine-spacing-xs)) 0;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md)
+    calc(var(--mantine-spacing-sm) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-body);
+}

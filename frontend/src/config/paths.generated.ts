@@ -49,6 +49,12 @@ export const paths = {
       default: return '/apps'
     }
   },
+  features: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/fonctionnalites'
+      default: return '/features'
+    }
+  },
   privacy: () => {
     switch (getCurrentLocale()) {
       case 'fr': return '/confidentialite'
@@ -414,6 +420,7 @@ export const pathVariants = {
   deviceVerifyKaroo: (): Record<Locale, string> => ({ en: '/karoo', fr: '/karoo' }),
   deviceHammerhead: (): Record<Locale, string> => ({ en: '/karoo/hammerhead', fr: '/karoo/hammerhead' }),
   apps: (): Record<Locale, string> => ({ en: '/apps', fr: '/applications' }),
+  features: (): Record<Locale, string> => ({ en: '/features', fr: '/fonctionnalites' }),
   privacy: (): Record<Locale, string> => ({ en: '/privacy', fr: '/confidentialite' }),
   terms: (): Record<Locale, string> => ({ en: '/terms', fr: '/cgu' }),
   support: (): Record<Locale, string> => ({ en: '/support', fr: '/support' }),

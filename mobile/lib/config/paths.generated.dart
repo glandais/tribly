@@ -65,6 +65,15 @@ class Paths {
     }
   }
 
+  static String features() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/fonctionnalites';
+      default:
+        return '/features';
+    }
+  }
+
   static String privacy() {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -309,6 +318,10 @@ class PathVariants {
     'fr': '/karoo/hammerhead',
   };
   static Map<String, String> apps() => {'en': '/apps', 'fr': '/applications'};
+  static Map<String, String> features() => {
+    'en': '/features',
+    'fr': '/fonctionnalites',
+  };
   static Map<String, String> privacy() => {
     'en': '/privacy',
     'fr': '/confidentialite',

@@ -59,6 +59,7 @@ import {
   routeMeta,
   gpxPreviewMeta,
   appsMeta,
+  featuresMeta,
 } from './routeMeta'
 import { useAuthStore } from '@/store/authStore'
 import type { QueryClient } from '@tanstack/react-query'
@@ -203,6 +204,17 @@ export const routesConfig: RoutesConfig = [
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('apps.title') },
     meta: appsMeta,
+  },
+
+  // === Features (static presentation of the product, no prefetch: no API call) ===
+  {
+    id: 'features',
+    paths: pathVariants.features(),
+    component: pages.FeaturesPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('nav.features') },
+    meta: featuresMeta,
   },
 
   // === Legal Routes ===
