@@ -7,7 +7,6 @@ import { IconBike, IconCalendar } from '@tabler/icons-react'
 import type { RideDto } from '../../api/dto'
 import { EmptyState } from '../../components/common/EmptyState'
 import { PrefetchLink } from '../../components/common/PrefetchLink'
-import { HomeLayout } from '../../components/home/HomeLayout'
 import { HomeFeedSection } from '../../components/home/HomeFeedSection'
 import { NextRideCard } from '../../components/home/NextRideCard'
 import { WeekAgenda } from '../../components/home/WeekAgenda'
@@ -73,7 +72,8 @@ export function MemberHome() {
   )
 
   return (
-    <HomeLayout currentTab="feed" header={header}>
+    <Stack>
+      {header}
       <Stack gap="xl">
         <Grid gap="lg">
           <Grid.Col span={{ base: 12, md: 7, lg: 8 }}>
@@ -145,6 +145,6 @@ export function MemberHome() {
 
         <FeaturesPromoCard />
       </Stack>
-    </HomeLayout>
+    </Stack>
   )
 }

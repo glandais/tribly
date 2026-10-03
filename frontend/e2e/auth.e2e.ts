@@ -5,7 +5,7 @@ import { newUser, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
 import { meFromSession, sessionCookie } from './support/flow-account'
 import { stack } from './support/stack'
-import { hydrated, watchToasts } from './support/ui'
+import { hydrated, mainNavLink, watchToasts } from './support/ui'
 
 /**
  * Session refresh, as two tabs — or the SSR server and the browser — do it: at the same moment, on
@@ -192,8 +192,7 @@ test.describe('an access token refused by the API', () => {
     const refreshes = watchRefreshes(page)
     const shown = await watchToasts(page)
 
-    const calendar = page.getByRole('link', { name: 'Calendrier', exact: true })
-    await hydrated(calendar)
+    const calendar = await mainNavLink(page, 'Calendrier')
     await calendar.click()
     await expect(page).toHaveURL(/\/calendrier$/)
     const field = main.getByRole('textbox', { name: 'URL du flux global' })

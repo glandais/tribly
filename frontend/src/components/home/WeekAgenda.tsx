@@ -81,7 +81,7 @@ export function WeekAgenda({ nowIso, events, isLoading, isError, nextRide }: Wee
         <Title id="home-week-title" order={2} size="h4">
           {t('home.week.title')}
         </Title>
-        {/* Not « Calendrier »: the home tabs already hold a link of that name. */}
+        {/* Not « Calendrier »: the main navigation already holds a link of that name. */}
         <Anchor component={PrefetchLink} to={paths.calendar()} size="sm">
           {t('home.week.calendarLink')}
         </Anchor>

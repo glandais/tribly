@@ -19,7 +19,7 @@ import {
   postComments,
   readRide,
 } from './support/rides'
-import { entityCard, homeFeed, hydrated, toasts } from './support/ui'
+import { entityCard, homeFeed, hydrated, mainNavLink, toasts } from './support/ui'
 
 /**
  * The ride detail page (`RideDetailPage` + `RideGroupCard` + `CommentSection`), against the real
@@ -457,12 +457,12 @@ test.describe('leaving a ride, seen from the home page and the calendar', () => 
     }
   }
 
-  /** From a home page, the « Calendrier » link of its navigation row, then `day`. */
+  /**
+   * From a home page, the « Calendrier » link of the main navigation — the header's on desktop, the
+   * burger's drawer on mobile — then `day`.
+   */
   async function toCalendar(page: Page, day: WallClock) {
-    const link = page
-      .getByRole('navigation', { name: 'Navigation principale' })
-      .getByRole('link', { name: 'Calendrier' })
-    await hydrated(link)
+    const link = await mainNavLink(page, 'Calendrier')
     await link.click()
     await showCalendarDay(page, day)
   }

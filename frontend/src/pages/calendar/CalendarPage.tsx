@@ -4,7 +4,6 @@ import { Title, Group } from '@mantine/core'
 import { useGetEvents } from '@/api/endpoints/calendar/calendar'
 import { CalendarView } from '@/components/calendar/CalendarView'
 import { IcsFeedSettings } from '@/components/calendar/IcsFeedSettings'
-import { HomeLayout } from '@/components/home/HomeLayout'
 import { useCalendarDateRange } from '@/hooks/useCalendarDateRange'
 
 export function CalendarPage(): React.ReactElement {
@@ -21,7 +20,7 @@ export function CalendarPage(): React.ReactElement {
   )
 
   return (
-    <HomeLayout currentTab="calendar">
+    <div>
       <Group justify="space-between" align="center">
         <Title order={2}>{t('calendar.title')}</Title>
       </Group>
@@ -33,6 +32,6 @@ export function CalendarPage(): React.ReactElement {
       />
 
       <IcsFeedSettings />
-    </HomeLayout>
+    </div>
   )
 }

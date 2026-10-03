@@ -72,7 +72,7 @@ export function AdminLayout({ currentTab, children }: AdminLayoutProps) {
 
   return (
     <Container size="xl" py="xl">
-      {/* Same vertical rhythm as HomeLayout/TeamLayout, which wrap their nav row in a Stack */}
+      {/* Same vertical rhythm as TeamLayout, which wraps its nav row in a Stack */}
       <Stack>
         {/* Header with back link */}
         <Box>

@@ -160,3 +160,28 @@ export async function pageAs(browser: Browser, auth: AuthResponse | undefined) {
   if (auth) await signIn(context, auth)
   return { context, page: await context.newPage() }
 }
+
+/**
+ * A link of the site's main navigation (Fil, Équipes, Calendrier, Parcours, Fonctionnalités —
+ * MainNav.tsx), hydrated and ready to click: the header's on desktop, the burger's drawer on mobile,
+ * which this opens. On desktop the collapsed drawer holds a second copy, hence the scoping.
+ */
+export async function mainNavLink(page: Page, name: string): Promise<Locator> {
+  if (!test.info().project.use.isMobile) {
+    const link = page
+      .getByRole('navigation', { name: 'Navigation principale' })
+      .getByRole('link', { name, exact: true })
+    await hydrated(link)
+    return link
+  }
+  const burger = page.getByRole('banner').getByRole('button', { name: 'Ouvrir le menu' })
+  await hydrated(burger)
+  await burger.click()
+  const link = page
+    .getByRole('navigation')
+    .filter({ has: page.getByRole('combobox') })
+    .getByRole('link', { name, exact: true })
+  await expect(link).toBeInViewport()
+  await hydrated(link)
+  return link
+}

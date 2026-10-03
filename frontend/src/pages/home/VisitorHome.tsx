@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { Stack } from '@mantine/core'
 import { isSingleTeam } from '../../config/appConfig'
 import type { LoginFormMode } from '../../components/auth/LoginForm'
-import { HomeLayout } from '../../components/home/HomeLayout'
 import { HomeFeedSection } from '../../components/home/HomeFeedSection'
 import { VisitorHero, LOGIN_ANCHOR } from '../../components/home/visitor/VisitorHero'
 import { FeatureTeaser } from '../../components/home/visitor/FeatureTeaser'
@@ -27,10 +26,8 @@ export function VisitorHome() {
   }, [])
 
   return (
-    <HomeLayout
-      currentTab="feed"
-      header={<VisitorHero loginMode={loginMode} onLoginModeChange={setLoginMode} />}
-    >
+    <Stack>
+      <VisitorHero loginMode={loginMode} onLoginModeChange={setLoginMode} />
       <Stack gap={48}>
         <FeatureTeaser />
         <HomeFeedSection
@@ -43,6 +40,6 @@ export function VisitorHome() {
         <DevicesStrip />
         {!singleTeam && <TeamCtaBand onCreateAccount={openRegister} />}
       </Stack>
-    </HomeLayout>
+    </Stack>
   )
 }

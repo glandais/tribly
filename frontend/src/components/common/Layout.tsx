@@ -28,7 +28,6 @@ import {
   IconBell,
   IconMessageReport,
   IconDownload,
-  IconSparkles,
 } from '@tabler/icons-react'
 import { InstallBanner } from '@/components/install/InstallBanner'
 import { InstallInstructionsModal } from '@/components/install/InstallInstructionsModal'
@@ -46,6 +45,7 @@ import { ColorSchemeSwitcher } from './ColorSchemeSwitcher'
 import { NotificationBell } from '@/components/notification/NotificationBell'
 import { useUnreadNotificationCount } from '@/hooks/useNotifications'
 import { LanguageSwitcher } from './LanguageSwitcher'
+import { DrawerMainNav, HeaderMainNav } from './MainNav'
 import { paths } from '@/config/paths'
 import classes from './Layout.module.css'
 
@@ -126,24 +126,17 @@ export function Layout() {
       </a>
       <AppShell.Header>
         <Container size="lg" h="100%">
-          <Group h="100%" justify="space-between">
+          <Group h="100%" justify="space-between" wrap="nowrap">
             <Anchor component={PrefetchLink} to="/" underline="never">
               <Text size="xl" fw={700} c="primary">
                 {appName}
               </Text>
             </Anchor>
 
-            {/* Desktop Navigation */}
-            <Group gap="sm" visibleFrom="sm">
-              <Button
-                variant="subtle"
-                color="gray"
-                component={PrefetchLink}
-                to={paths.features()}
-                leftSection={<IconSparkles size={16} />}
-              >
-                {t('nav.features')}
-              </Button>
+            <HeaderMainNav />
+
+            {/* Desktop controls */}
+            <Group gap="sm" visibleFrom="sm" wrap="nowrap">
               <ColorSchemeSwitcher />
               <LanguageSwitcher />
               {isAuthenticated && <NotificationBell />}
@@ -161,7 +154,8 @@ export function Layout() {
                         >
                           {user?.displayName?.charAt(0).toUpperCase()}
                         </Avatar>
-                        <Text size="sm" visibleFrom="md">
+                        {/* Capped so a long name cannot push the main navigation out. */}
+                        <Text size="sm" visibleFrom="md" maw={160} truncate>
                           {user?.displayName}
                         </Text>
                       </Group>
@@ -248,15 +242,8 @@ export function Layout() {
       {/* Mobile Navigation */}
       <AppShell.Navbar p="md">
         <Stack>
-          <Button
-            variant="subtle"
-            leftSection={<IconSparkles size={16} />}
-            component={PrefetchLink}
-            to={paths.features()}
-            onClick={close}
-          >
-            {t('nav.features')}
-          </Button>
+          <DrawerMainNav onNavigate={close} />
+          <Divider />
           <ColorSchemeSwitcher />
           <LanguageSwitcher />
           {installOffer && (

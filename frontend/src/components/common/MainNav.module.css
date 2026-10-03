@@ -1,0 +1,35 @@
+/*
+ * The header's main navigation: icon + label links, the current one on the primary light variant.
+ * Below `lg` the labels are hidden (Mantine `visibleFrom`) and each link keeps its name through
+ * aria-label: five labelled entries plus the account controls do not fit a 768–1200px header.
+ */
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  min-width: 36px;
+  justify-content: center;
+  padding: 0 var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-md);
+  color: var(--mantine-color-text);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  white-space: nowrap;
+
+  @mixin hover {
+    background-color: var(--mantine-color-default-hover);
+  }
+
+  &[aria-current='page'] {
+    background-color: var(--mantine-primary-color-light);
+    color: var(--mantine-primary-color-light-color);
+    font-weight: 600;
+  }
+}
