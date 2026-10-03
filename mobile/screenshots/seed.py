@@ -846,6 +846,10 @@ def refresh() -> None:
     ping("/start")
     try:
         tester = tester_account()
+        if os.environ.get("SEED_ACCOUNTS") and not ACCOUNTS.exists():
+            # On the production host: a missing file would mean resetting every
+            # password, over an SSH the host doesn't have.
+            raise RuntimeError(f"SEED_ACCOUNTS names {ACCOUNTS}, which doesn't exist")
         accounts = load_accounts()
         print(f"▸ accounts on {API}")
         # A password this file doesn't know is reset over SSH, as in a full run: the
