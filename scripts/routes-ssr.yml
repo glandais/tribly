@@ -79,6 +79,8 @@ routes:
     users: [anonymous]
   - id: resetPassword
   - id: apps
+  # Static marketing page, public to everyone (no API call).
+  - id: features
   - id: privacy
   - id: terms
   - id: support
