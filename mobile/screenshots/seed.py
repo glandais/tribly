@@ -199,7 +199,7 @@ def call(method: str, path: str, body=None, token: str | None = None):
 
 
 def sql(statement: str) -> str:
-    cmd = ["ssh", SSH, f'docker exec -i {DB_CONTAINER} sh -c '
+    cmd = ["ssh", "-o", "BatchMode=yes", SSH, f'docker exec -i {DB_CONTAINER} sh -c '
            f'\'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -v ON_ERROR_STOP=1\'']
     out = subprocess.run(cmd, input=statement, capture_output=True, text=True, check=True)
     return out.stdout.strip()
