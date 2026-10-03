@@ -13,7 +13,11 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/api_error_handler.dart';
+import '../../../auth/domain/auth_state.dart';
+import '../../../auth/providers/auth_provider.dart';
 import '../../../rides/providers/ride_detail_provider.dart';
+import '../../../routes/presentation/route_export.dart';
 import '../../providers/next_ride_leave_controller.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/next_ride_provider.dart';
@@ -144,7 +148,12 @@ class NextRideCard extends ConsumerWidget {
                       _seats(context, c, t, group!),
                     ],
                     const SizedBox(height: 14),
-                    _actions(context, ref, key, registration),
+                    _NextRideActions(
+                      ride: ride,
+                      group: group,
+                      rideKey: key,
+                      registration: registration,
+                    ),
                   ],
                 ),
               ),
@@ -292,41 +301,148 @@ class NextRideCard extends ConsumerWidget {
       ],
     );
   }
+}
 
-  Widget _actions(
-    BuildContext context,
-    WidgetRef ref,
-    RideKey key,
-    NextRideLeaveState registration,
-  ) {
-    final RideGroupDto? joined = group;
-    return Row(
+/// Les actions de la carte : « Voir la sortie », « Se désinscrire », et
+/// l'envoi du parcours du groupe vers un compteur connecté.
+///
+/// À état parce que l'envoi a une issue à dire — succès ou échec, en bandeau
+/// persistant sous les boutons, comme sur les cartes de groupe de la sortie.
+class _NextRideActions extends ConsumerStatefulWidget {
+  const _NextRideActions({
+    required this.ride,
+    required this.group,
+    required this.rideKey,
+    required this.registration,
+  });
+
+  final RideDto ride;
+  final RideGroupDto? group;
+  final RideKey rideKey;
+  final NextRideLeaveState registration;
+
+  @override
+  ConsumerState<_NextRideActions> createState() => _NextRideActionsState();
+}
+
+class _NextRideActionsState extends ConsumerState<_NextRideActions> {
+  bool _sending = false;
+  Object? _sendError;
+  bool _sent = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final RideDto ride = widget.ride;
+    final RideGroupDto? joined = widget.group;
+    // Le parcours du groupe, sinon celui de la sortie : le même repli que les
+    // cartes de groupe du détail.
+    final String? routeSlug = joined?.routeSlug ?? ride.routeSlug;
+    final List<GpsServiceConnectionDto> services = ref.watch(
+      authProvider.select(
+        (AuthState s) => s.user?.connectedServices ?? const [],
+      ),
+    );
+    final bool canSend =
+        routeSlug != null && services.isNotEmpty && !ride.isPast;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Expanded(
-          child: PdlButton(
-            label: 'home.viewRide'.tr(),
-            onPressed: () =>
-                context.push(Paths.ride(ride.team.slug, ride.slug)),
-          ),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: PdlButton(
+                label: 'home.viewRide'.tr(),
+                onPressed: () =>
+                    context.push(Paths.ride(ride.team.slug, ride.slug)),
+              ),
+            ),
+            // Aucune désinscription sur une sortie annulée : elle n'a plus
+            // lieu.
+            if (joined != null &&
+                !ride.isCancelled &&
+                !ride.isPast) ...<Widget>[
+              const SizedBox(width: PdlSpacing.chipGap),
+              PdlButton(
+                key: keys.home.nextRideLeaveButton,
+                label: 'rides.leave'.tr(),
+                loadingLabel: 'rides.leaving'.tr(),
+                variant: PdlButtonVariant.outline,
+                loading: widget.registration.pendingGroupId == joined.id,
+                // Le groupe rejoint, porté par la ligne : **jamais une
+                // boucle** sur les groupes.
+                onPressed: () => ref
+                    .read(nextRideLeaveProvider(widget.rideKey).notifier)
+                    .leave(ride, joined),
+              ),
+            ],
+            if (canSend) ...<Widget>[
+              const SizedBox(width: PdlSpacing.chipGap),
+              IconButton.outlined(
+                key: keys.home.nextRideSendToDevice,
+                tooltip: 'routes.sendToDevice'.tr(),
+                constraints: const BoxConstraints(
+                  minWidth: PdlMetrics.tapTarget,
+                  minHeight: PdlMetrics.tapTarget,
+                ),
+                icon: Icon(PdlIcons.device, color: context.pdl.primary),
+                onPressed: _sending
+                    ? null
+                    : () => _send(ride.team.slug, routeSlug, services),
+              ),
+            ],
+          ],
         ),
-        // Aucune désinscription sur une sortie annulée : elle n'a plus lieu.
-        if (joined != null && !ride.isCancelled && !ride.isPast) ...<Widget>[
-          const SizedBox(width: PdlSpacing.chipGap),
-          PdlButton(
-            key: keys.home.nextRideLeaveButton,
-            label: 'rides.leave'.tr(),
-            loadingLabel: 'rides.leaving'.tr(),
-            variant: PdlButtonVariant.outline,
-            loading: registration.pendingGroupId == joined.id,
-            // Le groupe rejoint, porté par la ligne : **jamais une boucle**
-            // sur les groupes.
-            onPressed: () => ref
-                .read(nextRideLeaveProvider(key).notifier)
-                .leave(ride, joined),
+        if (_sendError != null) ...<Widget>[
+          const SizedBox(height: PdlSpacing.chipGap),
+          PdlBanner(
+            tone: PdlBannerTone.danger,
+            message: getErrorMessage(_sendError!),
+            onDismiss: () => setState(() => _sendError = null),
+            dismissSemanticLabel: 'common.close'.tr(),
+          ),
+        ],
+        if (_sent) ...<Widget>[
+          const SizedBox(height: PdlSpacing.chipGap),
+          PdlBanner(
+            tone: PdlBannerTone.info,
+            message: 'routes.uploadSuccess'.tr(),
+            onDismiss: () => setState(() => _sent = false),
+            dismissSemanticLabel: 'common.close'.tr(),
           ),
         ],
       ],
     );
+  }
+
+  Future<void> _send(
+    String teamSlug,
+    String routeSlug,
+    List<GpsServiceConnectionDto> services,
+  ) async {
+    final GpsServiceConnectionDto? picked = await pickGpsService(
+      context,
+      services,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _sending = true;
+      _sendError = null;
+      _sent = false;
+    });
+    try {
+      await uploadRouteToService(
+        ref,
+        picked,
+        teamSlug: teamSlug,
+        routeSlug: routeSlug,
+      );
+      if (mounted) setState(() => _sent = true);
+    } catch (error) {
+      if (mounted) setState(() => _sendError = error);
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
   }
 }
 

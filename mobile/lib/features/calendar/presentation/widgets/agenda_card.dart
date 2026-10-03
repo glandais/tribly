@@ -33,6 +33,25 @@ IconData calendarEventIcon(String type) => switch (type) {
   _ => PdlIcons.date,
 };
 
+/// Où mène un événement de calendrier : la sortie, ou l'étape de son voyage.
+///
+/// `null` pour un type inconnu, ou une étape sans `tripSlug` — la ligne n'est
+/// alors pas tapable plutôt que de pousser une route qui n'existe pas. Partagé
+/// par l'agenda du calendrier et « Cette semaine » de l'accueil.
+VoidCallback? calendarEventTap(BuildContext context, CalendarEventDto event) {
+  switch (event.type) {
+    case 'RIDE':
+      return () => context.push(Paths.ride(event.teamSlug, event.entitySlug));
+    case 'TRIP_STAGE':
+      final String? tripSlug = event.tripSlug;
+      if (tripSlug == null) return null;
+      return () =>
+          context.push(Paths.stage(event.teamSlug, tripSlug, event.entitySlug));
+    default:
+      return null;
+  }
+}
+
 /// Une ligne d'agenda — la carte de ~92 px de l'écran 22.
 ///
 /// **Elle ne déclenche aucun appel.** Tout ce qu'elle rend — le lieu, la
@@ -83,7 +102,7 @@ class AgendaCard extends ConsumerWidget {
     final Widget card = PdlCard(
       key: keys.calendar.agendaCard(event.entitySlug),
       padding: PdlCardPadding.none,
-      onTap: _onTap(context),
+      onTap: calendarEventTap(context, event),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -178,19 +197,4 @@ class AgendaCard extends ConsumerWidget {
         tone: Status.cancelled.tone(c),
       ),
   ];
-
-  VoidCallback? _onTap(BuildContext context) {
-    switch (event.type) {
-      case 'RIDE':
-        return () => context.push(Paths.ride(event.teamSlug, event.entitySlug));
-      case 'TRIP_STAGE':
-        final String? tripSlug = event.tripSlug;
-        if (tripSlug == null) return null;
-        return () => context.push(
-          Paths.stage(event.teamSlug, tripSlug, event.entitySlug),
-        );
-      default:
-        return null;
-    }
-  }
 }

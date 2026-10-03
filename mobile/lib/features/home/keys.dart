@@ -31,4 +31,26 @@ class HomeKeys {
   /// Le badge « Inscrit » d'une carte du carrousel.
   ValueKey<String> upcomingRegisteredBadge(String slug) =>
       _HomeKey('upcomingRegistered_$slug');
+
+  /// « Envoyer vers le compteur » sur la carte « Ma prochaine sortie ».
+  final nextRideSendToDevice = const _HomeKey('nextRideSendToDevice');
+
+  /// Le bloc « Cette semaine ».
+  final weekSection = const _HomeKey('weekSection');
+
+  /// Une ligne de « Cette semaine », par le slug de la sortie ou de l'étape.
+  ValueKey<String> weekEvent(String entitySlug) =>
+      _HomeKey('weekEvent_$entitySlug');
+
+  /// La carte qui remplace l'agenda quand la semaine est vide.
+  final weekEmpty = const _HomeKey('weekEmpty');
+
+  /// Le bloc « Mes équipes ».
+  final teamsSection = const _HomeKey('teamsSection');
+
+  /// Une équipe de « Mes équipes », par son slug.
+  ValueKey<String> teamRow(String teamSlug) => _HomeKey('teamRow_$teamSlug');
+
+  /// « Trouver une équipe », quand l'utilisateur n'est membre d'aucune.
+  final findTeamButton = const _HomeKey('findTeam');
 }

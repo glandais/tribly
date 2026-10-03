@@ -6,12 +6,13 @@ import '../../auth/providers/auth_provider.dart';
 import '../../calendar/providers/calendar_month_provider.dart';
 import '../../home/providers/next_ride_provider.dart';
 import '../../home/providers/upcoming_provider.dart';
+import '../../home/providers/week_events_provider.dart';
 import '../../profile/providers/participations_provider.dart';
 
 /// **Le** point où l'app dit « une de mes participations vient de changer ».
 ///
 /// Une inscription ne modifie pas qu'un écran : l'accueil (« Ma prochaine
-/// sortie », carrousel « À venir »), le profil (compteur et liste « Mes sorties
+/// sortie », « Cette semaine », carrousel « À venir »), le profil (compteur et liste « Mes sorties
 /// à venir ») et le calendrier (badge « Inscrit ») en sont tous des vues
 /// dérivées, chacune dans son propre cache. Avant ce point, seul le détail de
 /// la sortie était invalidé et ces vues restaient périmées jusqu'à un
@@ -53,6 +54,7 @@ void notifyParticipationChanged(
   // Accueil.
   ref.invalidate(nextRideProvider);
   ref.invalidate(upcomingProvider);
+  ref.invalidate(weekEventsProvider);
 
   // Profil. La frontière « à venir / passées » est figée à la première
   // lecture ; une participation qui change est le bon moment pour l'avancer.

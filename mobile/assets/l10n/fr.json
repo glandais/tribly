@@ -103,7 +103,8 @@
       "required": "Confirmez votre âge et acceptez les conditions d'utilisation pour créer un compte.",
       "read": "Lire les conditions",
       "privacy": "Confidentialité"
-    }
+    },
+    "discoverFeatures": "Découvrir les fonctionnalités"
   },
   "common": {
     "continue": "Continuer",
@@ -222,6 +223,33 @@
       "zero": "Aucune publication",
       "one": "{} publication",
       "other": "{} publications"
+    },
+    "week": {
+      "title": "Cette semaine",
+      "calendar": "Calendrier",
+      "empty": "Rien de prévu dans vos équipes ces sept prochains jours.",
+      "more": {
+        "one": "{} autre événement au calendrier",
+        "other": "{} autres événements au calendrier"
+      }
+    },
+    "teams": {
+      "title": "Mes équipes",
+      "all": "Toutes",
+      "empty": "Vous n'êtes membre d'aucune équipe.",
+      "find": "Trouver une équipe",
+      "upcomingRides": {
+        "one": "{} sortie à venir",
+        "other": "{} sorties à venir"
+      },
+      "upcomingTrips": {
+        "one": "{} voyage à venir",
+        "other": "{} voyages à venir"
+      },
+      "recentPosts": {
+        "one": "{} nouvelle publication",
+        "other": "{} nouvelles publications"
+      }
     }
   },
   "teams": {

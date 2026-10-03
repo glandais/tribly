@@ -104,6 +104,16 @@ void main() {
       }
     });
 
+    test('une page du site sans écran dans l\'app part dans le navigateur', () {
+      for (final String path in PathVariants.features().values) {
+        expect(
+          internalLocationFor('https://www.pedalons.fr$path'),
+          isNull,
+          reason: path,
+        );
+      }
+    });
+
     test('une ancre seule ne renvoie pas à l\'accueil', () {
       // Sans garde-fou, `#section` se résout en chemin vide, donc en `/` : un
       // lien intra-page éjecterait le lecteur vers l'accueil.
@@ -127,7 +137,7 @@ void main() {
 
       expect(declared, isNotEmpty);
       expect(
-        internalRouteTemplates.keys.toSet(),
+        <String>{...internalRouteTemplates.keys, ...webOnlyRouteIds},
         declared,
         reason:
             'Toute entrée de PathVariants doit avoir son motif dans '

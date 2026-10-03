@@ -22,6 +22,10 @@ class LoginPageKeys {
   /// Le lien qui bascule le formulaire en inscription.
   final showRegisterButton = const _LoginPageKey('showRegisterButton');
 
+  /// « Découvrir les fonctionnalités » : la page de présentation du site,
+  /// ouverte dans le navigateur.
+  final discoverFeaturesButton = const _LoginPageKey('discoverFeaturesButton');
+
   // Inscription.
   final registerEmailField = const _LoginPageKey('registerEmailField');
   final registerDisplayNameField = const _LoginPageKey(

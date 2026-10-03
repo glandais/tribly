@@ -8,9 +8,11 @@ import '../../../../config/paths.dart';
 import '../../../../config/router.dart';
 import '../../../../keys.dart';
 import '../../../../core/theme/pdl_colors.dart';
+import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../core/utils/link_launcher.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/passkey_service.dart';
 
@@ -201,6 +203,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     _buildLoginForm(theme)
                   else
                     _buildRegisterForm(theme),
+
+                  // Une porte vers la présentation du produit, pour qui arrive
+                  // sans savoir à quoi sert l'app. La page n'existe que sur le
+                  // site : elle s'ouvre dans le navigateur, sur le domaine de
+                  // cette installation.
+                  const SizedBox(height: 16),
+                  TextButton.icon(
+                    key: keys.login.discoverFeaturesButton,
+                    onPressed: () => openWebPage(Paths.features()),
+                    icon: const Icon(PdlIcons.openExternal),
+                    label: Text('auth.discoverFeatures'.tr()),
+                  ),
                 ],
               ),
             ),
