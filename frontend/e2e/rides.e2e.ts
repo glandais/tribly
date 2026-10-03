@@ -19,7 +19,7 @@ import {
   postComments,
   readRide,
 } from './support/rides'
-import { entityCard, hydrated, toasts } from './support/ui'
+import { entityCard, homeFeed, hydrated, toasts } from './support/ui'
 
 /**
  * The ride detail page (`RideDetailPage` + `RideGroupCard` + `CommentSection`), against the real
@@ -413,8 +413,11 @@ test.describe('leaving a ride, seen from the home page and the calendar', () => 
     page.getByRole('main').getByRole('heading', { name: 'Ma prochaine sortie' })
   /** « Ma prochaine sortie »: the heading's box, which holds the card (not a link). */
   const nextRideCard = (page: Page) => nextRideHeading(page).locator('xpath=..')
-  /** The ride's card in the home feed (NextRideCard is no link, so it is not matched). */
-  const feedCard = (page: Page, rideName: string) => entityCard(page.getByRole('main'), rideName)
+  /**
+   * The ride's card in the home feed: NextRideCard is no link, and the « Cette semaine » rows,
+   * which are, sit outside the feed's region.
+   */
+  const feedCard = (page: Page, rideName: string) => entityCard(homeFeed(page), rideName)
 
   async function scope(page: Page, label: 'Tout' | 'Je participe') {
     const control = page.getByRole('radiogroup', { name: 'Portée du fil' })

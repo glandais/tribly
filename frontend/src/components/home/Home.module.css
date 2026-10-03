@@ -1,0 +1,11 @@
+/* A linked row of the member home's aside (« Cette semaine », « Mes équipes »). */
+.row {
+  display: block;
+  border-radius: var(--mantine-radius-md);
+  transition: background-color 120ms ease;
+}
+
+.row:hover,
+.row:focus-visible {
+  background-color: var(--mantine-color-default-hover);
+}

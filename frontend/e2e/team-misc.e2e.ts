@@ -132,7 +132,8 @@ test.describe('saved language preference', () => {
       await pageHydrated(page)
       await expect(page.locator('html')).toHaveAttribute('lang', 'en')
       await expect(languageSelect(page, 'Language')).toHaveValue('en')
-      await expect(page.getByRole('heading', { level: 2, name: /^Welcome to / })).toBeVisible()
+      // The member home's greeting.
+      await expect(page.getByRole('heading', { level: 1, name: /^Hello\b/ })).toBeVisible()
     })
   })
 
@@ -164,7 +165,8 @@ test.describe('saved language preference', () => {
     await pageHydrated(page)
     // The page is back, whatever its language…
     await expect(
-      page.getByRole('heading', { level: 2, name: /^(Bienvenue sur|Welcome to) / }),
+      // The visitor home's headline.
+      page.getByRole('heading', { level: 1, name: /^(Organisez vos sorties|Organize your rides)/ }),
       'precondition: the home page is back after the reload'
     ).toBeVisible()
     // …and it is still English, already in the server's HTML.

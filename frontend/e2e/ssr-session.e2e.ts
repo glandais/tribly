@@ -36,7 +36,7 @@ import {
   type RawDocument,
 } from './support/ssr'
 import { stack } from './support/stack'
-import { pageAs, pageHydrated, watchHydration } from './support/ui'
+import { entityCard, homeFeed, pageAs, pageHydrated, watchHydration } from './support/ui'
 
 /**
  * docs/LEDGER_*.md WEB-14 — authenticated SSR (frontend/docs/SSR.md, "Session-aware SSR"): for a document
@@ -74,9 +74,11 @@ test.beforeAll(async () => {
   setup = { rider, rideName, feedPath: `/?q=${encodeURIComponent(rideName)}` }
 })
 
-/** The feed card of the ride: a link whose content carries the ride name (NextRideCard is not a link). */
-const feedCard = (page: Page, rideName: string) =>
-  page.getByRole('link').filter({ hasText: rideName })
+/**
+ * The feed card of the ride: a link whose content carries the ride name, in the feed's region —
+ * NextRideCard is not a link, but the « Cette semaine » rows are.
+ */
+const feedCard = (page: Page, rideName: string) => entityCard(homeFeed(page), rideName)
 
 test.describe('server HTML, JavaScript disabled', () => {
   test.use({ javaScriptEnabled: false })

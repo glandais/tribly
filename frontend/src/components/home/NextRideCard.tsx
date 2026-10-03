@@ -3,48 +3,78 @@ import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
-import { Badge, Box, Button, Group, Paper, Stack, Title } from '@mantine/core'
 import {
-  IconArrowsMaximize,
-  IconArrowUp,
+  Badge,
+  Box,
+  Button,
+  Flex,
+  Group,
+  Menu,
+  Paper,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core'
+import {
   IconCalendar,
   IconCheck,
-  IconClock,
+  IconDeviceWatch,
+  IconMapPin,
   IconUsers,
 } from '@tabler/icons-react'
-import type { RideDto } from '@/api/dto'
+import type { GpsServiceType, RideDto } from '@/api/dto'
 import { useLeaveGroup } from '@/api/endpoints/rides/rides'
-import { CardImage, CardTeamLink, Stat, StatGroup } from '../card/common'
-import { UserAvatarGroup } from '../common/UserAvatar'
+import { CardImage, CardTeamLink, Stat } from '../card/common'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { paths } from '@/config/paths'
 import { invalidateRideRegistration } from '@/lib/rideRegistration'
 import { useUnits } from '@/hooks/useUnits'
+import { useGpsConnections } from '@/hooks/useGpsConnections'
+import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { useFormattedDate } from '@/utils/dateFormat'
 import { FormattedDateTime } from '../common/FormattedDate'
 
 interface NextRideCardProps {
   ride: RideDto
+  /** Id of the heading, for the section that wraps the card to be labelled by it. */
+  headingId?: string
 }
 
 /**
  * "Ma prochaine sortie" — the ride the user is registered for that comes next.
  *
- * Metrics come from the group the user actually joined (`registeredGroupId`)
- * and fall back on the ride when that group cannot be resolved.
+ * Its group is `registeredGroup`, which list rows carry even though `groups` is empty there
+ * (`view=COMPACT`); metrics and the route come from that group, then from the ride. No leader is
+ * shown: the leader belongs to the ride page, and is never the ride's creator.
+ *
+ * The heading and the ride's name share one parent (the e2e `ssr-session` spec reads the card
+ * through the heading), and the card itself is not a link: the feed's card is the ride's link.
  */
-export function NextRideCard({ ride }: NextRideCardProps) {
+export function NextRideCard({ ride, headingId }: NextRideCardProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
   const { formatRelative } = useFormattedDate()
+  const colorScheme = useResolvedColorScheme()
   const queryClient = useQueryClient()
   const leaveMutation = useLeaveGroup()
+  const { connectedServices, uploadRoute, isUploading } = useGpsConnections()
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
 
-  const group = ride.groups?.find((g) => g.id === ride.registeredGroupId)
+  const group =
+    ride.registeredGroup ?? ride.groups?.find((g) => g.id === ride.registeredGroupId) ?? undefined
   const rideDistance = group?.distance
   const rideElevation = group?.elevationGain
+  const routeSlug = group?.routeSlug ?? ride.routeSlug
   const ridePath = paths.ride(ride.team.slug, ride.slug)
+
+  // The map of the group's route first, then the ride's own picture; themed when possible.
+  const thumbnailUrl =
+    (colorScheme === 'dark'
+      ? (group?.thumbnailDarkUrl ?? ride.thumbnailDarkUrl)
+      : (group?.thumbnailLightUrl ?? ride.thumbnailLightUrl)) ??
+    group?.thumbnailUrl ??
+    ride.thumbnailUrl
 
   const handleLeave = () => {
     if (!ride.registeredGroupId) return
@@ -60,79 +90,134 @@ export function NextRideCard({ ride }: NextRideCardProps) {
     )
   }
 
+  const participants = group
+    ? group.maxParticipants
+      ? t('rides.detail.groups.participants', {
+          current: group.countParticipants,
+          max: group.maxParticipants,
+        })
+      : t('rides.detail.groups.participantsNoMax', { current: group.countParticipants })
+    : t('rides.detail.groups.participantsNoMax', { current: ride.participantCount })
+
   return (
-    <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
-      <CardImage media={ride.media} alt={ride.name} type="RIDE" height={200} />
+    <Paper withBorder radius="md" style={{ overflow: 'hidden' }} h="100%">
+      <Flex direction={{ base: 'column', sm: 'row' }} h="100%">
+        <Box
+          pos="relative"
+          w={{ base: '100%', sm: 260 }}
+          style={{ flexShrink: 0, alignSelf: 'stretch' }}
+        >
+          <CardImage
+            media={ride.media}
+            alt={ride.name}
+            type="RIDE"
+            height={220}
+            thumbnailUrl={thumbnailUrl}
+          />
+          <Group pos="absolute" top={12} left={12} gap={6}>
+            <Badge color="gray" variant="white" leftSection={<IconCalendar size={12} />}>
+              {/* Read off the clock: server and client may render it a few seconds apart. */}
+              <span suppressHydrationWarning>{formatRelative(ride.dateTime)}</span>
+            </Badge>
+            <Badge color="primary" variant="filled" leftSection={<IconCheck size={12} />}>
+              {t('publications.registered')}
+            </Badge>
+          </Group>
+        </Box>
 
-      <Stack gap="xs" p="md">
-        <Group gap={4}>
-          <Badge size="sm" color="primary" variant="light" leftSection={<IconCheck size={12} />}>
-            {t('publications.registered')}
-          </Badge>
-          <Badge size="sm" color="gray" variant="light">
-            {/* Read off the clock: server and client may render it a few seconds apart. */}
-            <span suppressHydrationWarning>{formatRelative(ride.dateTime)}</span>
-          </Badge>
-        </Group>
+        <Stack gap="sm" p="md" style={{ flex: 1, minWidth: 0 }}>
+          {/* The heading is a direct child of the box holding the whole card body: the e2e
+              specs (ssr-session, rides) read the card through the heading's parent. */}
+          <Title id={headingId} order={2} size="h5" c="dimmed" tt="uppercase">
+            {t('home.nextRide.title')}
+          </Title>
+          <Title order={3} lineClamp={2} mt={-8}>
+            {ride.name}
+          </Title>
 
-        <CardTeamLink teamSlug={ride.team.slug} teamName={ride.team.name} />
+          <CardTeamLink teamSlug={ride.team.slug} teamName={ride.team.name} />
 
-        <Title order={4} lineClamp={1}>
-          {ride.name}
-        </Title>
-
-        <Stack gap={6} mt={4}>
-          <Stat icon={<IconCalendar size={16} />}>
-            <FormattedDateTime date={ride.dateTime} />
-          </Stat>
-          {group && (
-            <Stat icon={<IconClock size={16} />}>
-              {group.time
-                ? t('home.nextRide.groupAndTime', { group: group.name, time: group.time })
-                : group.name}
+          <Stack gap={6}>
+            <Stat icon={<IconCalendar size={16} />}>
+              <FormattedDateTime date={ride.dateTime} />
             </Stat>
-          )}
-          {ride.startPlace && (
-            <Stat icon={<Box w={10} h={10} bg="var(--mantine-color-green-6)" style={dotStyle} />}>
-              {ride.startPlace.name}
+            {ride.startPlace && <Stat icon={<IconMapPin size={16} />}>{ride.startPlace.name}</Stat>}
+            <Stat icon={<IconUsers size={16} />}>
+              {group
+                ? t('home.nextRide.groupParticipants', {
+                    group: group.time
+                      ? t('home.nextRide.groupAndTime', { group: group.name, time: group.time })
+                      : group.name,
+                    participants,
+                  })
+                : participants}
             </Stat>
-          )}
-        </Stack>
+          </Stack>
 
-        <StatGroup>
-          {rideDistance !== undefined && (
-            <Stat icon={<IconArrowsMaximize size={16} />}>{distance(rideDistance)}</Stat>
+          {(rideDistance !== undefined || rideElevation !== undefined) && (
+            <SimpleGrid cols={2} spacing="sm" maw={360}>
+              {rideDistance !== undefined && (
+                <Paper bg="var(--mantine-color-default-hover)" radius="md" p="xs">
+                  <Text size="xs" c="dimmed">
+                    {t('home.nextRide.distance')}
+                  </Text>
+                  <Text fw={700}>{distance(rideDistance)}</Text>
+                </Paper>
+              )}
+              {rideElevation !== undefined && (
+                <Paper bg="var(--mantine-color-default-hover)" radius="md" p="xs">
+                  <Text size="xs" c="dimmed">
+                    {t('home.nextRide.elevation')}
+                  </Text>
+                  <Text fw={700}>{elevation(rideElevation)}</Text>
+                </Paper>
+              )}
+            </SimpleGrid>
           )}
-          {rideElevation !== undefined && (
-            <Stat icon={<IconArrowUp size={16} />}>{elevation(rideElevation)}</Stat>
-          )}
-          <Stat icon={<IconUsers size={16} />}>
-            {group?.maxParticipants
-              ? t('rides.detail.groups.participants', {
-                  current: group.countParticipants,
-                  max: group.maxParticipants,
-                })
-              : t('rides.detail.groups.participantsNoMax', {
-                  current: group?.countParticipants ?? ride.participantCount,
-                })}
-          </Stat>
-        </StatGroup>
 
-        {ride.topParticipants.length > 0 && (
-          <UserAvatarGroup users={ride.topParticipants} max={5} size="sm" />
-        )}
-
-        <Group gap="xs" mt="xs">
-          <Button component={PrefetchLink} to={ridePath} style={{ flex: 1 }}>
-            {t('home.nextRide.view')}
-          </Button>
-          {ride.registeredGroupId && (
-            <Button variant="outline" onClick={() => setShowLeaveConfirm(true)}>
-              {t('home.nextRide.leave')}
+          <Group gap="xs" mt="auto">
+            <Button component={PrefetchLink} to={ridePath}>
+              {t('home.nextRide.view')}
             </Button>
-          )}
-        </Group>
-      </Stack>
+            {routeSlug && connectedServices.length > 0 && (
+              <Menu shadow="md" width={200}>
+                <Menu.Target>
+                  <Button
+                    variant="default"
+                    loading={isUploading}
+                    leftSection={<IconDeviceWatch size={16} />}
+                  >
+                    {t('routes.detail.sendToDevice')}
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {connectedServices.map((service) => (
+                    <Menu.Item
+                      key={service.serviceType}
+                      onClick={() =>
+                        uploadRoute({
+                          serviceType: service.serviceType,
+                          teamSlug: ride.team.slug,
+                          routeSlug,
+                        })
+                      }
+                    >
+                      {t(
+                        `gps.services.${service.serviceType.toLowerCase() as Lowercase<GpsServiceType>}`
+                      )}
+                    </Menu.Item>
+                  ))}
+                </Menu.Dropdown>
+              </Menu>
+            )}
+            {ride.registeredGroupId && (
+              <Button variant="subtle" color="gray" onClick={() => setShowLeaveConfirm(true)}>
+                {t('home.nextRide.leave')}
+              </Button>
+            )}
+          </Group>
+        </Stack>
+      </Flex>
 
       <ConfirmDialog
         isOpen={showLeaveConfirm}
@@ -147,5 +232,3 @@ export function NextRideCard({ ride }: NextRideCardProps) {
     </Paper>
   )
 }
-
-const dotStyle = { borderRadius: '50%', flexShrink: 0 }

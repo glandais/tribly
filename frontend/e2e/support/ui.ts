@@ -116,6 +116,15 @@ export const entityCard = (scope: Locator, name: string) =>
   scope.getByRole('link').filter({ hasText: name })
 
 /**
+ * The publications feed of the home page — its own region, named by its heading (« Dernières
+ * publications », « Dernières publications publiques » for a visitor). The member home's « Cette
+ * semaine » rows link to the same rides, so a ride's feed card is looked for in here, not in the
+ * whole `main`.
+ */
+export const homeFeed = (page: Page) =>
+  page.getByRole('main').getByRole('region', { name: 'Dernières publications' })
+
+/**
  * The chevron that opens a detail page's other actions (publish, cancel, delete…), next to
  * « Modifier »: « Options de gestion ». Not to be confused with the moderation menu (report, block),
  * « Plus d'actions », shown when the page's or a comment's author is someone else.

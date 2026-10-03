@@ -1,0 +1,122 @@
+import { useTranslation } from 'react-i18next'
+import { formatInTimeZone } from 'date-fns-tz'
+import { fr } from 'date-fns/locale/fr'
+import { enUS } from 'date-fns/locale/en-US'
+import { Box, Button, Grid, Group, Paper, Skeleton, Stack, Text, Title } from '@mantine/core'
+import { IconBike, IconCalendar } from '@tabler/icons-react'
+import type { RideDto } from '../../api/dto'
+import { EmptyState } from '../../components/common/EmptyState'
+import { PrefetchLink } from '../../components/common/PrefetchLink'
+import { HomeLayout } from '../../components/home/HomeLayout'
+import { HomeFeedSection } from '../../components/home/HomeFeedSection'
+import { NextRideCard } from '../../components/home/NextRideCard'
+import { WeekAgenda } from '../../components/home/WeekAgenda'
+import { MyTeamsCard } from '../../components/home/MyTeamsCard'
+import { QuickActions } from '../../components/home/QuickActions'
+import { FeaturesPromoCard } from '../../components/home/FeaturesPromoCard'
+import { useWeekSummary } from '../../components/home/memberHomeHelpers'
+import { paths } from '../../config/paths'
+import { useAuth } from '../../hooks/useAuth'
+import { useEffectiveTimezone } from '../../utils/dateFormat'
+import { useHomeFeedData, useMemberHomeData } from './homeFeedData'
+
+/**
+ * The home of a signed-in member: greeting, organizer shortcuts, « Ma prochaine sortie », the
+ * week and their teams aside, then the feed.
+ */
+export function MemberHome() {
+  const { t, i18n } = useTranslation()
+  const { user } = useAuth()
+  const { timezone } = useEffectiveTimezone()
+  const feed = useHomeFeedData()
+  const { week, teams } = useMemberHomeData(feed.nowIso)
+  const summary = useWeekSummary(week.data?.events)
+
+  // Registered rides only: the participations window also holds trips and watched rides.
+  const participations = feed.participations
+  const nextRide = participations.data?.publications?.find(
+    (p): p is RideDto => p.type === 'RIDE' && (p as RideDto).registered
+  )
+
+  const today = formatInTimeZone(new Date(), timezone, t('home.member.dateFormat'), {
+    locale: i18n.language === 'fr' ? fr : enUS,
+  })
+
+  const header = (
+    <Group justify="space-between" align="flex-end" gap="md">
+      <Box>
+        <Text c="dimmed" size="sm" tt="capitalize" suppressHydrationWarning>
+          {today}
+        </Text>
+        <Title order={1}>
+          {user?.displayName
+            ? t('home.member.greeting', { name: user.displayName })
+            : t('home.member.greetingAnonymous')}
+        </Title>
+        {summary && (
+          <Text c="dimmed" mt={4}>
+            {summary}
+          </Text>
+        )}
+      </Box>
+      <QuickActions teams={teams.data?.teams} />
+    </Group>
+  )
+
+  return (
+    <HomeLayout currentTab="feed" header={header}>
+      <Stack gap="xl">
+        <Grid gap="lg">
+          <Grid.Col span={{ base: 12, md: 7, lg: 8 }}>
+            {nextRide ? (
+              <NextRideCard ride={nextRide} />
+            ) : participations.isLoading ? (
+              <Paper withBorder radius="md" p="md">
+                <Stack>
+                  <Skeleton h={24} w="40%" />
+                  <Skeleton h={160} />
+                  <Skeleton h={36} w="60%" />
+                </Stack>
+              </Paper>
+            ) : (
+              <EmptyState
+                icon={<IconBike size={48} />}
+                title={t('home.nextRide.empty.title')}
+                description={t('home.nextRide.empty.description')}
+                actions={
+                  <Button
+                    component={PrefetchLink}
+                    to={paths.calendar()}
+                    variant="light"
+                    leftSection={<IconCalendar size={16} />}
+                  >
+                    {t('home.week.calendarLink')}
+                  </Button>
+                }
+              />
+            )}
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 5, lg: 4 }}>
+            <Stack gap="lg">
+              <WeekAgenda
+                nowIso={feed.nowIso}
+                events={week.data?.events}
+                isLoading={week.isLoading}
+                isError={week.isError}
+              />
+              <MyTeamsCard
+                teams={teams.data?.teams}
+                total={teams.data?.total}
+                isLoading={teams.isLoading}
+              />
+            </Stack>
+          </Grid.Col>
+        </Grid>
+
+        <HomeFeedSection feed={feed} title={t('home.feed.title')} />
+
+        <FeaturesPromoCard />
+      </Stack>
+    </HomeLayout>
+  )
+}

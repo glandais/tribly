@@ -7,6 +7,11 @@ import {
   prefetchListAllPublicationsQuery,
 } from '@/api/endpoints/publications/publications'
 import { prefetchListMyParticipationsQuery } from '@/api/endpoints/users/users'
+import { useGetEvents, prefetchGetEventsQuery } from '@/api/endpoints/calendar/calendar'
+import { useListTeams, prefetchListTeamsQuery } from '@/api/endpoints/teams/teams'
+import { prefetchGetAvailableServicesQuery } from '@/api/endpoints/gps-services/gps-services'
+import { MinRole } from '@/api/dto'
+import { useAuth } from '@/hooks/useAuth'
 import { useUrlFilters, readUrlFilters } from '@/hooks/useUrlFilters'
 import { usePaginatedQuery } from '@/hooks/usePaginatedQuery'
 import { useMembershipDefault } from '@/hooks/useMembershipDefault'
@@ -40,6 +45,37 @@ import { NEXT_RIDE_PARAMS } from './nextRideParams'
  *   counterpart). Different mechanisms by construction, so this stays out of the shared hook,
  *   exactly as auth stays out of `rideDetailData.ts`.
  */
+
+/**
+ * « Mes équipes » on the member home: the teams the user belongs to, with their role and the
+ * per-team counters (`upcomingRideCount`, `upcomingTripCount`, `recentPostCount`) the activity
+ * line is built from — computed per page by the backend (`TeamStatsRepository`), never per row.
+ * The organizer quick actions are derived from the same rows.
+ */
+export const MY_TEAMS_PARAMS = { minRole: MinRole.MEMBER, page: 0, size: 20 } as const
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+
+/**
+ * « Cette semaine »: the user's calendar from the hour-aligned `now` to seven days later. Both
+ * bounds derive from `hourAlignedNowIso()`, so the SSR prefetch and the client compute the same
+ * key (see the note on `hourAlignedNowIso` above) — a local « today 00:00 » would differ between
+ * the server's zone and the visitor's.
+ */
+export function weekWindow(nowIso: string) {
+  return { from: nowIso, to: new Date(new Date(nowIso).getTime() + WEEK_MS).toISOString() }
+}
+
+/**
+ * The member home's own blocks, on top of {@link useHomeFeedData}: the week's events of all the
+ * user's teams (one call) and their teams. Signed-in only; disabled for a visitor.
+ */
+export function useMemberHomeData(nowIso: string) {
+  const { isAuthenticated } = useAuth()
+  const week = useGetEvents(weekWindow(nowIso), { query: { enabled: isAuthenticated } })
+  const teams = useListTeams(MY_TEAMS_PARAMS, { query: { enabled: isAuthenticated } })
+  return { week, teams }
+}
 
 /** The schema/alias pair both readers must use — the page through the URL, the prefetch through `url.searchParams`. */
 export function homeFeedFilterOptions(membershipDefault: MembershipFilterValue) {
@@ -118,6 +154,12 @@ export async function prefetchHomeFeed(queryClient: QueryClient, url: URL): Prom
       from: hourAlignedNowIso(),
       ...NEXT_RIDE_PARAMS,
     })
+    await Promise.all([
+      prefetchGetEventsQuery(queryClient, weekWindow(hourAlignedNowIso())),
+      prefetchListTeamsQuery(queryClient, MY_TEAMS_PARAMS),
+      // `NextRideCard`'s « Envoyer vers l'appareil » goes through `useGpsConnections()`.
+      prefetchGetAvailableServicesQuery(queryClient),
+    ])
   }
   const filters = readUrlFilters(url.searchParams, homeFeedFilterOptions(membershipDefault))
   const feedParams = {

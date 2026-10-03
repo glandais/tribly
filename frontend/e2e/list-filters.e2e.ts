@@ -7,7 +7,7 @@ import { expectInMarkup, expectQuery, openServerRendered, readsOf } from './supp
 import { newPost } from './support/posts'
 import { newRide } from './support/rides'
 import { newRoute, windingTrack } from './support/routes'
-import { entityCard, escapeRegExp, hydrated } from './support/ui'
+import { entityCard, escapeRegExp, homeFeed, hydrated } from './support/ui'
 
 /**
  * docs/plans/archive/2026-09-27-e2e-coverage-audit.md, P1 « Filtres portés par l'URL et cohérents avec le SSR » — a list's
@@ -105,6 +105,13 @@ test.describe('publication feeds', () => {
     const { owner, ride, post } = await teamWithFeed('filters-home')
     await signIn(context, owner)
     const main = page.getByRole('main')
+    // The member home's « Cette semaine » also links to the ride: its card is looked for in the feed.
+    const feed = homeFeed(page)
+    // The home feed's type filter is a row of chips (radios), not a Select.
+    const typeChip = (label: string) =>
+      main
+        .getByRole('radiogroup', { name: 'Type', exact: true })
+        .getByRole('radio', { name: label })
 
     const { markup, reads } = await openServerRendered(
       page,
@@ -113,9 +120,9 @@ test.describe('publication feeds', () => {
     )
     expectInMarkup(markup, [ride], [post])
     noReadsAfterHydration(reads)
-    await expect(entityCard(main, ride)).toBeVisible()
-    await expect(entityCard(main, post)).toHaveCount(0)
-    await expect(page.getByRole('combobox', { name: 'Type', exact: true })).toHaveValue('Sorties')
+    await expect(entityCard(feed, ride)).toBeVisible()
+    await expect(entityCard(feed, post)).toHaveCount(0)
+    await expect(typeChip('Sorties')).toBeChecked()
     await expect(page.getByRole('combobox', { name: 'Équipes', exact: true })).toHaveValue('Membre')
 
     // Nobody registered for the ride: « Je participe » empties the feed.
@@ -126,8 +133,8 @@ test.describe('publication feeds', () => {
     // Back to the defaults — the membership spelled out, as always on this list.
     await main.getByRole('button', { name: 'Effacer les filtres' }).click()
     await expectQuery(page, { role: 'member' })
-    await expect(entityCard(main, ride)).toBeVisible()
-    await expect(entityCard(main, post)).toBeVisible()
+    await expect(entityCard(feed, ride)).toBeVisible()
+    await expect(entityCard(feed, post)).toBeVisible()
   })
 })
 
