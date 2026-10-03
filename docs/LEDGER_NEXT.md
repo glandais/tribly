@@ -9,7 +9,7 @@ portage web livré à trois tâches près, et tenu à jour depuis (dernière rel
 Rien ici ne bloque quoi que ce soit. C'est la propriété qui compte : la v2 est livrable en l'état,
 et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de réparer une panne.
 
-**Contrat d'API au 30 septembre 2026 : `9.1.2`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au 3 octobre 2026 : `10.5.2`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
 
@@ -110,8 +110,9 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
 - [ ] `MOB-8` **Fuseaux horaires (22, 24, 25)** — régler l'appareil sur `Pacific/Auckland` puis
       `America/Los_Angeles`. Une étape du lundi 17 août 2026 à 08:00 ne doit pas glisser d'un jour :
       on cherche une **double conversion**, pas une localisation d'équipe (le contrat n'a aucun fuseau
-      d'équipe ; il porte une préférence de fuseau *utilisateur* que le web applique et que le
-      mobile ignore : le mobile suit l'appareil).
+      d'équipe, `API-60`). Depuis `API-15` le mobile applique, comme le web, la préférence
+      `UserDto.timezone` et ne suit l'appareil qu'à défaut : refaire l'essai une fois avec un fuseau
+      posé dans le profil, différent de celui de l'appareil — c'est lui qui doit l'emporter.
 - [ ] `MOB-9` **Voyage et étape (24, 25)** — tracé et profil ; au-delà de 12 étapes le tracé est
       volontairement partiel.
 - [ ] `MOB-10` **Publication (31)** — liens markdown : interne → route interne, externe →
@@ -432,7 +433,8 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
 
 - [ ] `OPS-1` **Démarrage réel du backend** — les tests utilisent `drop-and-create` et ne passent pas
       par Flyway : un test vert ne prouve **pas** que les migrations s'appliquent sur une base
-      existante. Attendre `Migrating schema … to version 45` au moins une fois, puis contrôler que
+      existante. Attendre `Migrating schema … to version N` au moins une fois, `N` étant la
+      dernière migration de `backend/src/main/resources/db/migration`, puis contrôler que
       `ad_contacts` existe, que `users.contactable_by_members` est nullable et que
       `ride_groups.leader_id` est nullable avec une FK en `ON DELETE SET NULL` (surtout pas
       `CASCADE`) et son index partiel. Les commandes exactes sont au §5.1 du
