@@ -187,7 +187,7 @@ public class UserResource {
       operationId = "listPairedDevices",
       summary = "List paired devices",
       description =
-          "The devices (Karoo, Garmin watch) paired with the current account by code and still"
+          "The devices (Karoo, Garmin) paired with the current account by code and still"
               + " able to renew their access, newest first. The GPS services the account is"
               + " connected to are on the profile (connectedServices), not here.")
   @APIResponses({

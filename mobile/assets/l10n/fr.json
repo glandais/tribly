@@ -813,7 +813,7 @@
       "other": "Appareil",
       "pairedOn": "Appairé le {date}",
       "lastUsed": "utilisé {when}",
-      "none": "Aucun Karoo ni montre Garmin n'est appairé",
+      "none": "Aucun Karoo ni Garmin n'est appairé",
       "howToPair": "Comment appairer un appareil",
       "unpair": "Délier",
       "unpairTitle": "Délier {device} ?",
@@ -942,7 +942,7 @@
   },
   "apps": {
     "title": "Applications",
-    "subtitle": "Suivez vos sorties partout : montre GPS, téléphone ou navigateur.",
+    "subtitle": "Suivez vos sorties partout : compteur GPS, téléphone ou navigateur.",
     "karoo": {
       "title": "Karoo",
       "description": "Suivez vos sorties directement sur votre Hammerhead Karoo.",

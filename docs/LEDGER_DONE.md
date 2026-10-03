@@ -949,8 +949,8 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   garder le request token comme clé du state (Garmin ne renvoie pas de `state`) ; garder le code
   OAuth 2.0 jusqu'à `API-61`.
 - `API-64` **Les appareils appairés, listés et déliés un par un** (2026-10-03, **API 10.5.0**,
-  mineure, migration `V58__auth_session_device_client.sql`, colonne nullable) — un Karoo ou une
-  montre Garmin appairé par code (RFC 8628) n'apparaissait nulle part : l'appairage ne laissait
+  mineure, migration `V58__auth_session_device_client.sql`, colonne nullable ; **10.5.1**, patch :
+  descriptions « Karoo, Garmin ») — un Karoo ou un Garmin appairé par code (RFC 8628) n'apparaissait nulle part : l'appairage ne laissait
   qu'une `AuthSession` anonyme (`userAgent = "karoo Device"`), et seul « Déconnecter tous les
   appareils » pouvait le délier, en fermant aussi le navigateur et l'app.
   - **Backend** : `AuthSession.deviceClient` (le `clientId` de l'appairage, null pour le site et
@@ -962,8 +962,10 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
     (`PairedDeviceService`). Le jeton d'accès de l'appareil, un JWT, reste valide jusqu'à son
     expiration (15 min), comme après un logout-all.
   - **Clients** : sous les services GPS du profil, « Appareils appairés » — logo (Hammerhead pour
-    un Karoo, Garmin pour une montre), « Appairé le … · utilisé il y a … », une croix « Délier »
+    un Karoo, Garmin pour un Garmin), « Appairé le … · utilisé il y a … », une croix « Délier »
     nommant l'appareil derrière une confirmation, et sans appareil un renvoi vers `/applications`.
+    Le type s'affiche « Garmin », jamais « montre Garmin » : l'appareil appairé est le plus souvent un
+    compteur Edge.
     Web `PairedDevicesManager`, mobile `PairedDevicesCard` (`paired_devices_section.dart`).
   - **Tests** : `PairedDevicesTest` (liste sans les sessions web ni celles d'un autre, ordre,
     `lastUsedAt` après un refresh, déliaison d'un seul appareil dont le refresh échoue en

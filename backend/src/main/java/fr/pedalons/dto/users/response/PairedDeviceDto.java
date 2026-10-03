@@ -8,7 +8,7 @@ import java.time.Instant;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
-@Schema(description = "A device (Karoo, Garmin watch) paired with the account by code")
+@Schema(description = "A device (Karoo, Garmin) paired with the account by code")
 @ValidateSchema
 public record PairedDeviceDto(
     @Schema(description = "Pairing ID, to unpair the device", required = true) String id,

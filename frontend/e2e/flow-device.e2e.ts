@@ -52,7 +52,7 @@ async function authorize(page: Page) {
 const verificationUrl = (path: string, userCode: string) =>
   new RegExp(`${escapeRegExp(`${path}?code=${userCode}`)}$`)
 
-test('an anonymous rider scanning the Garmin code signs in, comes back to the same code, and the watch gets its tokens', async ({
+test('an anonymous rider scanning the Garmin code signs in, comes back to the same code, and the device gets its tokens', async ({
   page,
   context,
 }) => {
@@ -305,7 +305,7 @@ test('a rider who did not ask for the code refuses it: the device is told the co
 
 /**
  * The verification page a device's QR code opens is the one of its own app (bug #7): a Garmin
- * watch used to hand out `/karoo`, the Hammerhead page, which means nothing to a Garmin user
+ * device used to hand out `/karoo`, the Hammerhead page, which means nothing to a Garmin user
  * (DeviceAuthService.verificationPath — `/garmin` for the Garmin client, `/karoo` otherwise).
  */
 test('each device is sent to the verification page of its own app', async () => {
@@ -360,7 +360,7 @@ test('the profile lists each paired device, and unpairing one ends its session o
   await expect(main.getByText('Karoo', { exact: true })).toBeVisible()
   expect((await pairedDevices(rider)).map((d) => d.type)).toEqual(['KAROO'])
 
-  // The watch can no longer renew its access; the Karoo still does, and this page stays signed in.
+  // The Garmin can no longer renew its access; the Karoo still does, and this page stays signed in.
   await expect(refreshDeviceToken(garmin.refreshToken!)).rejects.toMatchObject({
     code: 'TOKEN_INVALID',
   })

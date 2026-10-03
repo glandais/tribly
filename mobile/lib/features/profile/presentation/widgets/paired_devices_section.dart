@@ -16,7 +16,7 @@ import '../../data/profile_repository.dart';
 import 'confirm_sheet.dart';
 import '../../../../keys.dart';
 
-/// Les appareils appairés au compte par code : Karoo, montre Garmin
+/// Les appareils appairés au compte par code : Karoo, Garmin
 /// (docs/LEDGER_*.md API-64).
 final pairedDevicesProvider = FutureProvider<List<PairedDeviceDto>>((
   ref,
@@ -172,7 +172,7 @@ String pairedDeviceName(PairedDeviceDto device) =>
       PairedDeviceType.$unknown => 'profile.devices.other'.tr(),
     };
 
-/// Un Karoo est d'Hammerhead, une montre de Garmin : les mêmes tuiles que les
+/// Un Karoo est d'Hammerhead, une Edge de Garmin : les mêmes tuiles que les
 /// services GPS (docs/LEDGER_*.md API-14).
 String? pairedDeviceLogoAsset(PairedDeviceDto device) =>
     switch (PairedDeviceType.fromJson(device.type)) {

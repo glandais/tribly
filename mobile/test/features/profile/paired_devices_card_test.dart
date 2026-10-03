@@ -9,7 +9,7 @@ import 'package:pedalons/keys.dart';
 
 import '../../support/localization.dart';
 
-/// API-64 — la carte « Appareils appairés » liste chaque Karoo ou montre
+/// API-64 — la carte « Appareils appairés » liste chaque Karoo ou
 /// Garmin, et n'en délie que celui qu'on a confirmé.
 class _FakeRepository implements ProfileRepository {
   _FakeRepository(this.devices);

@@ -809,11 +809,11 @@
     "devices": {
       "title": "Paired devices",
       "karoo": "Karoo",
-      "garmin": "Garmin watch",
+      "garmin": "Garmin",
       "other": "Device",
       "pairedOn": "Paired on {date}",
       "lastUsed": "used {when}",
-      "none": "No Karoo or Garmin watch is paired",
+      "none": "No Karoo or Garmin is paired",
       "howToPair": "How to pair a device",
       "unpair": "Unpair",
       "unpairTitle": "Unpair {device}?",
@@ -942,7 +942,7 @@
   },
   "apps": {
     "title": "Apps",
-    "subtitle": "Track your rides anywhere: GPS watch, phone or browser.",
+    "subtitle": "Track your rides anywhere: bike computer, phone or browser.",
     "karoo": {
       "title": "Karoo",
       "description": "Track your rides directly on your Hammerhead Karoo.",

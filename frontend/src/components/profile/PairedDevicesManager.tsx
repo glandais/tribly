@@ -28,7 +28,7 @@ import { ConfirmDialog } from '../common/ConfirmDialog'
 import garminLogo from '@/assets/gps/garmin.svg'
 import hammerheadLogo from '@/assets/gps/hammerhead.svg'
 
-// A Karoo is Hammerhead's, a watch Garmin's: the same tiles as the services above. A client id
+// A Karoo is Hammerhead's, an Edge Garmin's: the same tiles as the services above. A client id
 // neither app sends has no logo.
 const DEVICE_LOGOS: Partial<Record<PairedDeviceType, string>> = {
   KAROO: hammerheadLogo,

@@ -3210,7 +3210,7 @@
         }
       },
       "PairedDeviceDto" : {
-        "description" : "A device (Karoo, Garmin watch) paired with the account by code",
+        "description" : "A device (Karoo, Garmin) paired with the account by code",
         "type" : "object",
         "required" : [ "id", "type", "pairedAt" ],
         "properties" : {
@@ -21537,7 +21537,7 @@
     "/api/users/me/devices" : {
       "get" : {
         "summary" : "List paired devices",
-        "description" : "The devices (Karoo, Garmin watch) paired with the current account by code and still able to renew their access, newest first. The GPS services the account is connected to are on the profile (connectedServices), not here.",
+        "description" : "The devices (Karoo, Garmin) paired with the current account by code and still able to renew their access, newest first. The GPS services the account is connected to are on the profile (connectedServices), not here.",
         "operationId" : "listPairedDevices",
         "tags" : [ "Users" ],
         "responses" : {
@@ -22037,7 +22037,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.5.0",
+    "version" : "10.5.1",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

@@ -363,7 +363,7 @@ export const GetMyDeletionImpactResponse = zod
   .describe("What deleting the current user's account would do to their teams")
 
 /**
- * The devices (Karoo, Garmin watch) paired with the current account by code and still able to renew their access, newest first. The GPS services the account is connected to are on the profile (connectedServices), not here.
+ * The devices (Karoo, Garmin) paired with the current account by code and still able to renew their access, newest first. The GPS services the account is connected to are on the profile (connectedServices), not here.
  * @summary List paired devices
  */
 export const ListPairedDevicesResponseItem = zod
@@ -376,7 +376,7 @@ export const ListPairedDevicesResponseItem = zod
       .optional()
       .describe('When the device last renewed its access'),
   })
-  .describe('A device (Karoo, Garmin watch) paired with the account by code')
+  .describe('A device (Karoo, Garmin) paired with the account by code')
 export const ListPairedDevicesResponse = zod.array(ListPairedDevicesResponseItem)
 
 /**

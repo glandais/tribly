@@ -10,7 +10,7 @@ import 'paired_device_type.dart';
 part 'paired_device_dto.freezed.dart';
 part 'paired_device_dto.g.dart';
 
-/// A device (Karoo, Garmin watch) paired with the account by code
+/// A device (Karoo, Garmin) paired with the account by code
 @Freezed()
 abstract class PairedDeviceDto with _$PairedDeviceDto {
   const factory PairedDeviceDto({

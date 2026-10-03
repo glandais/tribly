@@ -3217,7 +3217,7 @@ components:
           pattern: \S
           maxLength: 250
     PairedDeviceDto:
-      description: "A device (Karoo, Garmin watch) paired with the account by code"
+      description: "A device (Karoo, Garmin) paired with the account by code"
       type: object
       required:
       - id
@@ -17127,8 +17127,8 @@ paths:
   /api/users/me/devices:
     get:
       summary: List paired devices
-      description: "The devices (Karoo, Garmin watch) paired with the current account\
-        \ by code and still able to renew their access, newest first. The GPS services\
+      description: "The devices (Karoo, Garmin) paired with the current account by\
+        \ code and still able to renew their access, newest first. The GPS services\
         \ the account is connected to are on the profile (connectedServices), not\
         \ here."
       operationId: listPairedDevices
@@ -17492,7 +17492,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 10.5.0
+  version: 10.5.1
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

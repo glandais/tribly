@@ -2,7 +2,7 @@ import type { Instant } from './instant.ts'
 import type { PairedDeviceType } from './pairedDeviceType.ts'
 
 /**
- * A device (Karoo, Garmin watch) paired with the account by code
+ * A device (Karoo, Garmin) paired with the account by code
  */
 export interface PairedDeviceDto {
   /** Pairing ID, to unpair the device */

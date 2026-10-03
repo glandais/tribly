@@ -744,7 +744,7 @@ export const prefetchGetMyDeletionImpactQuery = async <
 }
 
 /**
- * The devices (Karoo, Garmin watch) paired with the current account by code and still able to renew their access, newest first. The GPS services the account is connected to are on the profile (connectedServices), not here.
+ * The devices (Karoo, Garmin) paired with the current account by code and still able to renew their access, newest first. The GPS services the account is connected to are on the profile (connectedServices), not here.
  * @summary List paired devices
  */
 export const listPairedDevices = (
