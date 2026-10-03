@@ -360,6 +360,39 @@ docker run --rm -v /home/pedalons:/h alpine \
   mv /h/staging/data/valhalla/elevation_data /h/shared/data/valhalla/
 ```
 
+### Store reviewers' demo data
+
+`marketplace-tester@pedalons.fr`, the account given to the Apple, Google and Garmin reviewers, is a
+member of two fictional clubs whose content is dated: its registrations pass, the commented ride the
+App Review notes point to goes by. `mobile/screenshots/seed.py --target prod --refresh` brings them
+back to date every day, without deleting anything (what it does, and why a full rebuild is the
+exception: [mobile/screenshots/README.md](../mobile/screenshots/README.md#--refresh--les-données-ne-se-périment-pas)).
+It only calls the public API, as the clubs' members, and needs nothing but `python3` (standard
+library) on the host.
+
+Its secrets stay outside the checkout, readable by `pedalons` only (`0600`), in
+`~/.config/pedalons/store-demo.env`:
+
+```bash
+MARKETPLACE_TESTER_PASSWORD=...
+SEED_ACCOUNTS=/home/pedalons/.config/pedalons/store-demo-accounts.json
+STORE_DEMO_PING_URL=https://hc-ping.com/<uuid>     # optional; a daily check
+```
+
+`store-demo-accounts.json` is the `accounts.prod.local.json` a first refresh from a workstation
+writes (it resets over SSH the passwords it doesn't know, which the host cannot do to itself):
+copy it over once. Then, in `pedalons`'s crontab:
+
+```
+0 5 * * * cd /home/pedalons/prod && set -a && . /home/pedalons/.config/pedalons/store-demo.env && set +a && python3 mobile/screenshots/seed.py --target prod --refresh >> /home/pedalons/logs/store-demo.log 2>&1
+```
+
+The ping gets `/start`, then success, or `/fail` with the error. A run fails for good — and keeps
+failing until someone acts — when the test account is no longer a member of a club (a reviewer left
+it; a club admin can neither add nor invite it back, only a platform admin can) or was deleted. Add
+it back by hand, or run the full rebuild from a workstation and copy the accounts file again if it
+changed.
+
 ### Changing an environment's network topology
 
 **On a host**, `docker stack deploy` never alters a network that already exists: change its driver,

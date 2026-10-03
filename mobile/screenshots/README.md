@@ -43,20 +43,55 @@ oublié », avec la même substitution de jeton.
 ### Le compte des relecteurs, en prod — `--target prod`
 
 ```bash
-MARKETPLACE_TESTER_PASSWORD=… python3 screenshots/seed.py --target prod
+MARKETPLACE_TESTER_PASSWORD=… python3 screenshots/seed.py --target prod             # reconstruction
+MARKETPLACE_TESTER_PASSWORD=… python3 screenshots/seed.py --target prod --refresh   # mise à jour, chaque jour
 python3 screenshots/seed.py --target prod --dry-run   # le calendrier, sans rien toucher
 ```
 
 Les mêmes deux clubs sur `www.pedalons.fr`, pour `marketplace-tester@pedalons.fr`, le compte
 fourni à Apple, Google et Garmin. Il doit exister : le script le connecte, sans jamais l'inscrire ni
-le renommer. Il est le spectateur **des deux** clubs. Le calendrier est dense, de six semaines en
-arrière au 31 décembre 2027 (~115 sorties par club) : chaque samedi (la montagne d'avril à octobre,
-le lac et les Bauges plus tard dans la matinée l'hiver), le tour du lac le mercredi soir d'avril à
-septembre, le gravel aux Glières le premier dimanche du mois de mai à octobre. Les inscriptions sont
-nombreuses sur les sorties passées et proches, rares sur les lointaines. Le compte de test a un
-historique (une sortie passée sur trois) et il est inscrit aux trois prochaines.
+le renommer. Il est le spectateur **des deux** clubs. Le calendrier est dense, de demain à quinze
+mois (~100 sorties par club) : chaque samedi (la montagne d'avril à octobre, le lac et les Bauges
+plus tard dans la matinée l'hiver), le tour du lac le mercredi soir d'avril à septembre, le gravel
+aux Glières le premier dimanche du mois de mai à octobre. Une sortie tire toujours les mêmes
+membres : quatre à huit à moins de trois semaines, les premiers d'entre eux seulement (zéro à trois)
+au-delà.
 
-Précautions propres à la prod :
+#### `--refresh` : les données ne se périment pas
+
+Une reconstruction ne vaut que pour le jour où elle est faite : trois semaines plus tard, le compte
+de test n'est plus inscrit à rien, la sortie commentée des notes App Review
+([`metadata/review-notes.md`](../metadata/review-notes.md)) est passée, et les sorties proches
+n'ont que leurs « lève-tôt ». `--refresh` remet les clubs à jour **sans rien supprimer**, et tourne
+chaque jour depuis la crontab de l'hôte de production
+([OPERATIONS.md](../../docs/OPERATIONS.md#store-reviewers-demo-data)) :
+
+- le compte de test est inscrit à **sa prochaine sortie** (l'accueil la montre toujours) et à deux
+  sur cinq des sorties des trois semaines suivantes, dans le groupe intermédiaire. Un relecteur qui
+  s'est désinscrit est réinscrit le lendemain ;
+- sa prochaine sortie porte un fil de commentaires d'autres membres, tel que **lui** le voit : un
+  commentaire qu'il a signalé ou dont il a bloqué l'auteur ne compte pas, et un nouveau fil est
+  écrit (le libellé tourne d'une semaine à l'autre) ;
+- ses blocages sont levés : le relecteur suivant retrouve tous les membres. S'il n'est plus membre
+  d'un club, le passage échoue en le disant : seul un admin de plateforme peut l'y remettre ;
+- les sorties qui approchent se remplissent avec les membres qu'elles ont toujours tirés ;
+- un voyage est toujours à venir, le mois a sa publication « Le programme de … » (lue sur le
+  calendrier), et la fin du calendrier avance d'un jour par jour.
+
+L'historique s'accumule tout seul : l'API refuse l'inscription à une sortie passée (`80670273`),
+donc une reconstruction ne crée plus de passé — elle part de demain, et le passé est ce que les
+rafraîchissements laissent derrière eux. Une reconstruction est donc à réserver au cas où les clubs
+sont perdus ; elle remet l'historique à zéro.
+
+Le rafraîchissement ne passe que par l'API, sous l'identité des membres du club : ni SQL, ni SSH,
+ni rôle de plateforme. Seule exception : un compte de démo dont le mot de passe n'est pas dans le
+fichier est réinitialisé comme dans une reconstruction, donc par SSH. Le **premier**
+rafraîchissement se lance depuis un poste qui a l'accès SSH ; il écrit
+`accounts.prod.local.json`, que l'hôte de production garde ensuite hors du checkout
+(`SEED_ACCOUNTS`). Il notifie le compte de test comme un vrai club le ferait : une ou deux
+annonces de sortie par semaine, les réponses à son commentaire, les rappels de ses sorties.
+
+Précautions propres à la prod, lors d'une reconstruction :
 
 - Julien n'est `PLATFORM_ADMIN` que le temps du passage : un `finally` lui retire le rôle, même en
   cas d'échec ;
@@ -64,12 +99,10 @@ Précautions propres à la prod :
   garde) ;
 - le compte de test rejoint chaque club **après** que les annonces des sorties ont été distribuées
   (le script attend que `notification_events` soit vide pour le club). Il ne reçoit donc pas
-  d'un coup une centaine d'e-mails « nouvelle sortie », mais les réponses à son commentaire et les
-  rappels de ses sorties lui parviennent normalement.
+  d'un coup une centaine d'e-mails « nouvelle sortie ».
 
-Relancer est sans risque : les clubs sont supprimés puis recréés, le compte de test en perd seulement
-ses propres inscriptions et commentaires. Pas de `plan.json` en prod ; les comptes de démo vont
-dans `accounts.prod.local.json` (ignoré par Git).
+Pas de `plan.json` en prod ; les comptes de démo vont dans `accounts.prod.local.json` (ignoré par
+Git, `0600`), ou dans le fichier que nomme `SEED_ACCOUNTS`.
 
 ## 2. Captures brutes — `capture.sh`
 

@@ -528,6 +528,15 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       sauvegarde, puis à chaque changement d'extrait OSM. Rien ne dit que c'est fait, et les données
       tileserver, nommées comme « à reconstruire à la main », ne sont couvertes par aucune
       procédure. Source : [`OPERATIONS.md`](OPERATIONS.md#cold-backup-of-the-shared-stack).
+- [ ] `OPS-28` **Installer le rafraîchissement quotidien des données des relecteurs des stores**
+      (scindé de `MOB-41`) — le script existe, rien ne le lance encore : tant que ce n'est pas fait,
+      le compte `marketplace-tester@pedalons.fr` perd ses inscriptions et sa sortie commentée trois
+      semaines après la dernière reconstruction. Lancer une fois
+      `seed.py --target prod --refresh` depuis un poste (il réinitialise par SSH les mots de passe
+      des comptes de démo que `accounts.prod.local.json` ne connaît pas — le fichier manque sur ce
+      poste), copier le fichier sur l'hôte, écrire `~/.config/pedalons/store-demo.env`, créer le
+      check Healthchecks et la ligne de crontab de `pedalons`
+      ([`OPERATIONS.md`](OPERATIONS.md#store-reviewers-demo-data)). Taille : XS.
 
 ---
 
