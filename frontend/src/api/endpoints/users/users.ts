@@ -877,7 +877,7 @@ export const prefetchListPairedDevicesQuery = async <
 }
 
 /**
- * Revoke the pairing of one device: its next renewal fails and it must be paired again. The access token it holds stays valid until it expires (15 minutes).
+ * Revoke the pairing of one device: its access token is refused at once (401), its renewal fails, and it must be paired again.
  * @summary Unpair a device
  */
 export const unpairDevice = (

@@ -158,6 +158,37 @@ class PairedDevicesTest extends AbstractResourceTest {
     unpair(USER1, garminId).statusCode(404);
   }
 
+  private ValidatableResponse deviceMe(String accessToken) {
+    return given().auth().oauth2(accessToken).when().get("/api/device/me").then();
+  }
+
+  /** docs/LEDGER_*.md API-65: the access token dies with its pairing, not 15 minutes later. */
+  @Test
+  void unpair_refusesThatDevicesAccessToken_atOnce() {
+    JsonPath karoo = pair(USER1, "karoo");
+    JsonPath garmin = pair(USER1, "garmin");
+    deviceMe(garmin.getString("accessToken")).statusCode(200);
+    String garminId = list(USER1).extract().jsonPath().getString("find { it.type == 'GARMIN' }.id");
+
+    unpair(USER1, garminId).statusCode(204);
+
+    deviceMe(garmin.getString("accessToken")).statusCode(401);
+    deviceMe(karoo.getString("accessToken")).statusCode(200);
+  }
+
+  /** The token a refresh hands out names the same pairing, and dies with it too. */
+  @Test
+  void unpair_refusesTheAccessTokenOfARefresh() {
+    JsonPath karoo = pair(USER1, "karoo");
+    String refreshed =
+        refresh(karoo.getString("refreshToken")).statusCode(200).extract().path("accessToken");
+    deviceMe(refreshed).statusCode(200);
+
+    unpair(USER1, list(USER1).extract().jsonPath().getString("[0].id")).statusCode(204);
+
+    deviceMe(refreshed).statusCode(401);
+  }
+
   @Test
   void unpair_someoneElsesDevice_isNotFound_andLeavesItPaired() {
     pair(USER1, "karoo");

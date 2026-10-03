@@ -14,6 +14,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @ApplicationScoped
 public class DeviceJwtService {
 
+  /** The pairing's session id, which {@link DeviceSessionFilter} checks on every request. */
+  public static final String SESSION_CLAIM = "sid";
+
   @ConfigProperty(name = "mp.jwt.verify.issuer")
   String issuer;
 
@@ -32,9 +35,11 @@ public class DeviceJwtService {
    *
    * @param user The authenticated user
    * @param clientId The client identifier (e.g., "karoo", "garmin")
+   * @param sessionId The session the device's pairing opened: {@link DeviceSessionFilter} refuses
+   *     the token as soon as it is revoked, so unpairing does not wait for the token to expire
    * @return JWT access token
    */
-  public String generateAccessToken(User user, String clientId) {
+  public String generateAccessToken(User user, String clientId, Long sessionId) {
     return Jwt.issuer(issuer)
         .subject(user.getEmail())
         .claim("email", user.getEmail())
@@ -42,6 +47,7 @@ public class DeviceJwtService {
         .claim("domainId", TsidUtils.toString(user.getDomain().getId()))
         .claim("displayName", user.getDisplayName())
         .claim("client", clientId)
+        .claim(SESSION_CLAIM, TsidUtils.toString(sessionId))
         .groups("user")
         .expiresIn(Duration.ofMinutes(accessTokenExpiryMinutes))
         .sign();

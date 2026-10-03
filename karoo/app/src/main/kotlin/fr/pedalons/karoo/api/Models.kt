@@ -4,7 +4,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // Device Code Flow
-@Serializable data class DeviceCodeRequest(@SerialName("clientId") val clientId: String = "karoo")
+// No default value: kotlinx.serialization leaves out a property equal to its default, so the
+// backend received `{}`, recorded the pairing as `device` and listed the Karoo as « Autre »
+// (docs/LEDGER_*.md API-65).
+@Serializable data class DeviceCodeRequest(@SerialName("clientId") val clientId: String)
 
 @Serializable
 data class DeviceCodeResponse(

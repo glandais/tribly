@@ -235,10 +235,11 @@ public class DeviceAuthService {
         || refresh.outcome() == RefreshTokenRotation.Outcome.UNKNOWN) {
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
-    User user = Objects.requireNonNull(refresh.session()).getUser();
+    AuthSession session = Objects.requireNonNull(refresh.session());
+    User user = session.getUser();
 
     return DeviceTokenResponse.builder()
-        .accessToken(deviceJwtService.generateAccessToken(user, clientId))
+        .accessToken(deviceJwtService.generateAccessToken(user, clientId, session.getId()))
         .tokenType("Bearer")
         .expiresIn(deviceJwtService.getAccessTokenExpirySeconds())
         .refreshToken(refresh.nextToken())
@@ -305,8 +306,6 @@ public class DeviceAuthService {
   }
 
   private DeviceTokenResponse createTokenResponse(User user, String clientId) {
-    // Generate tokens
-    String accessToken = deviceJwtService.generateAccessToken(user, clientId);
     String refreshToken = generateSecureToken();
     String refreshTokenHash = hashToken(refreshToken);
 
@@ -320,6 +319,8 @@ public class DeviceAuthService {
     session.setIpAddress("device");
     session.setDeviceClient(clientId);
     authSessionRepository.persist(session);
+    // After the persist: the access token names the session, which unpairing revokes.
+    String accessToken = deviceJwtService.generateAccessToken(user, clientId, session.getId());
 
     userRepository.recordLogin(user.getId());
 

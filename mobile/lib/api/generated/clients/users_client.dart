@@ -87,7 +87,7 @@ abstract class UsersClient {
 
   /// Unpair a device.
   ///
-  /// Revoke the pairing of one device: its next renewal fails and it must be paired again. The access token it holds stays valid until it expires (15 minutes).
+  /// Revoke the pairing of one device: its access token is refused at once (401), its renewal fails, and it must be paired again.
   ///
   /// [deviceId] - Pairing ID (TSID).
   @DELETE('/api/users/me/devices/{deviceId}')

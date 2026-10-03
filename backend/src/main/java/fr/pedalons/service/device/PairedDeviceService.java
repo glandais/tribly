@@ -12,8 +12,9 @@ import java.util.List;
 
 /**
  * The devices paired with the current account (docs/LEDGER_*.md API-64): each one is the session
- * its pairing opened. Unpairing revokes that session, so the device's next refresh fails; its
- * access token, a JWT, stays valid until it expires (15 minutes), as after a logout-all.
+ * its pairing opened. Unpairing revokes that session: the device's next refresh fails, and its
+ * access token, which names the session, is refused at once by {@link DeviceSessionFilter}
+ * (docs/LEDGER_*.md API-65).
  */
 @ApplicationScoped
 public class PairedDeviceService {

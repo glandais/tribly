@@ -53,6 +53,11 @@ public class AuthSessionRepository implements PanacheRepository<AuthSession> {
         userId);
   }
 
+  /** Whether the session is neither revoked nor expired — a device's, checked on every request. */
+  public boolean isLive(Long sessionId) {
+    return count("id = ?1 and revoked = false and expiresAt > CURRENT_TIMESTAMP", sessionId) > 0;
+  }
+
   /** Revokes a device session of this user; 0 when it is not one (or no longer live). */
   public int revokeDevice(Long sessionId, Long userId) {
     return update(

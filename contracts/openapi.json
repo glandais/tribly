@@ -21576,7 +21576,7 @@
     "/api/users/me/devices/{deviceId}" : {
       "delete" : {
         "summary" : "Unpair a device",
-        "description" : "Revoke the pairing of one device: its next renewal fails and it must be paired again. The access token it holds stays valid until it expires (15 minutes).",
+        "description" : "Revoke the pairing of one device: its access token is refused at once (401), its renewal fails, and it must be paired again.",
         "operationId" : "unpairDevice",
         "tags" : [ "Users" ],
         "parameters" : [ {
@@ -22037,7 +22037,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.5.1",
+    "version" : "10.5.2",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {
