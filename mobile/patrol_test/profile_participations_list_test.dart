@@ -7,7 +7,7 @@ import 'common.dart';
 /// inside `testAppKnownDefect`, a broken step of this path would pass unnoticed.
 void main() {
   testApp(
-    'A ride joined in the app is listed under « Mes sorties à venir » and opens from there',
+    'A ride joined in the app is listed in « Mes sorties » › « À venir » and opens from there',
     ($, modules, apiClients) async {
       final backend = apiClients.backend;
       final owner = await backend.newUser('Listed owner');
@@ -26,7 +26,8 @@ void main() {
       await modules.ride.join(groupId);
       expect(await backend.upcomingParticipationCount(member), 1);
 
-      // The profile not shown before the registration, its badge reads it at once.
+      // The profile not shown before the registration, the badge of « Mes sorties » reads it at once;
+      // the row opens /profil/sorties on « À venir ».
       await openLink($, Paths.profile());
       await modules.profile.waitUntilShown();
       expect(await modules.profile.upcomingCount(), 1);

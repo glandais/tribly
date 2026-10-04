@@ -11,6 +11,7 @@ import 'package:pedalons/features/home/providers/next_ride_provider.dart';
 import 'package:pedalons/features/home/providers/week_events_provider.dart';
 import 'package:pedalons/features/profile/data/profile_repository.dart';
 import 'package:pedalons/features/profile/providers/participations_provider.dart';
+import 'package:pedalons/features/profile/providers/profile_summary_provider.dart';
 import 'package:pedalons/features/home/providers/next_ride_leave_controller.dart';
 import 'package:pedalons/features/rides/data/ride_repository.dart';
 import 'package:pedalons/features/rides/providers/participation_changes.dart';
@@ -164,6 +165,26 @@ class _FakeProfileRepository implements ProfileRepository {
     );
   }
 
+  /// Le résumé de la vue d'ensemble : seul son compteur « à venir » compte
+  /// ici, le badge de « Mes sorties ».
+  @override
+  Future<ProfileSummaryDto> profileSummary() async => ProfileSummaryDto(
+    participations: ProfileParticipationSummaryDto(
+      upcomingCount: _server.participationCount(upcoming: true),
+      pastCount: _server.participationCount(upcoming: false),
+      next: const <PublicationDto>[],
+    ),
+    teams: const <ProfileTeamDto>[],
+    passkeyCount: 0,
+    pairedDevices: const <PairedDeviceDto>[],
+    blockedUserCount: 0,
+    notifications: const ProfileNotificationSummaryDto(
+      channels: <NotificationChannel>[],
+      enabledChannels: <NotificationChannel>[],
+      emailDigest: false,
+    ),
+  );
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -250,6 +271,7 @@ void main() {
         tripRepositoryProvider.overrideWithValue(_FakeTripRepository(server)),
         usersClientProvider.overrideWithValue(users),
         profileRepositoryProvider.overrideWithValue(profile),
+        accessTokenHolderProvider.overrideWith((ref) => 'token'),
         weekEventsProvider.overrideWith((Ref ref) async {
           weekBuilds++;
           return const <CalendarEventDto>[];
@@ -271,11 +293,7 @@ void main() {
   Future<void> mountDerivedViews() async {
     container.listen(nextRideProvider, (_, _) {}, fireImmediately: true);
     container.listen(weekEventsProvider, (_, _) {}, fireImmediately: true);
-    container.listen(
-      participationCountProvider(true),
-      (_, _) {},
-      fireImmediately: true,
-    );
+    container.listen(profileSummaryProvider, (_, _) {}, fireImmediately: true);
     container.listen(
       participationsProvider(true),
       (_, _) {},
@@ -288,9 +306,14 @@ void main() {
     );
     await container.read(nextRideProvider.future);
     await container.read(weekEventsProvider.future);
-    await container.read(participationCountProvider(true).future);
+    await container.read(profileSummaryProvider.future);
     await container.read(calendarMonthProvider(monthKey).future);
   }
+
+  /// Le badge de « Mes sorties », relu après invalidation.
+  Future<int> upcomingCount() async => (await container.read(
+    profileSummaryProvider.future,
+  ))!.participations.upcomingCount;
 
   Future<RideRegistrationController> openRide() async {
     container.listen(
@@ -316,7 +339,14 @@ void main() {
       'et incrémente le compteur du profil', () async {
     await mountDerivedViews();
     expect(container.read(nextRideProvider).value, isNull);
-    expect(container.read(participationCountProvider(true)).value, 0);
+    expect(
+      container
+          .read(profileSummaryProvider)
+          .value
+          ?.participations
+          .upcomingCount,
+      0,
+    );
 
     await (await openRide()).join('g2');
 
@@ -324,7 +354,7 @@ void main() {
     expect(next, isNotNull);
     expect(next!.ride.slug, 'np-665');
     expect(next.group?.name, 'Groupe B');
-    expect(await container.read(participationCountProvider(true).future), 1);
+    expect(await upcomingCount(), 1);
   });
 
   test('« Ma prochaine sortie » se dessine depuis la ligne de liste, sans '
@@ -344,7 +374,14 @@ void main() {
       server.ride = _twoGroups(registeredIn: 'g1');
       await mountDerivedViews();
       expect(container.read(nextRideProvider).value?.group?.id, 'g1');
-      expect(container.read(participationCountProvider(true)).value, 1);
+      expect(
+        container
+            .read(profileSummaryProvider)
+            .value
+            ?.participations
+            .upcomingCount,
+        1,
+      );
 
       // La carte de l'accueil quitte sans charger la sortie : la ligne de
       // liste porte le groupe (`docs/LEDGER_*.md API-4`).
@@ -360,7 +397,7 @@ void main() {
 
       expect(rides.getRideCalls, 0);
       expect(await container.read(nextRideProvider.future), isNull);
-      expect(await container.read(participationCountProvider(true).future), 0);
+      expect(await upcomingCount(), 0);
     },
   );
 
@@ -409,7 +446,7 @@ void main() {
 
       await (await openTrip()).join();
 
-      expect(await container.read(participationCountProvider(true).future), 1);
+      expect(await upcomingCount(), 1);
       await container.read(weekEventsProvider.future);
       await container.read(calendarMonthProvider(monthKey).future);
       expect(weekBuilds, weekBefore + 1);

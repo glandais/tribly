@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'module.dart';
 
-/// The home bell, the inbox, and the per-team switches of the profile.
+/// The home bell, the inbox, and the profile's « Notifications » settings: the channel chips of
+/// each type, the daily digest, the per-team switches, and the way between them and the inbox.
 final class Notifications extends Module {
   Notifications(super.$);
 
@@ -37,6 +38,44 @@ final class Notifications extends Module {
   /// « receive its announcements », toggled.
   Future<void> toggleTeamInProfile(String teamSlug) async {
     await (await scrolledTo(keys.notifications.teamSwitch(teamSlug))).tap();
+  }
+
+  /// Whether the type's row carries a chip for [channel] (`EMAIL`, `PUSH`): only the channels the
+  /// server declares get one.
+  bool showsChannelChip(String type, String channel) =>
+      isShown(keys.notifications.channelChip(type, channel));
+
+  /// The chip of [channel] on the row of [type], tapped: it writes that cell alone.
+  Future<void> toggleChannelChip(String type, String channel) async {
+    await (await scrolledTo(
+      keys.notifications.channelChip(type, channel),
+    )).tap();
+  }
+
+  /// Scrolls the settings down to the team's switch, their last section: once it shows, the
+  /// settings have loaded, whatever channels the server declares.
+  Future<void> waitUntilTeamSwitchIsShown(String teamSlug) async {
+    await scrolledTo(keys.notifications.teamSwitch(teamSlug));
+  }
+
+  /// Back to the top of the settings, where the first family's rows are built.
+  Future<void> scrollSettingsToTop() async {
+    await scrolledTo(keys.notifications.openInboxRow);
+  }
+
+  /// Whether « Résumé quotidien par e-mail » is there — read near the teams' section, just under it.
+  bool get showsDigest => isShown(keys.notifications.digestSwitch);
+
+  /// « Ouvrir mes notifications », at the top of the settings: the inbox, in the Accueil branch.
+  Future<void> openInboxFromSettings() async {
+    await (await scrolledTo(keys.notifications.openInboxRow)).tap();
+    await $(keys.notifications.settingsButton).waitUntilVisible();
+  }
+
+  /// The inbox's settings button: back to the profile's « Notifications ».
+  Future<void> openSettingsFromInbox() async {
+    await $(keys.notifications.settingsButton).tap();
+    await $(keys.notifications.openInboxRow).waitUntilExists();
   }
 
   // ── The bell ────────────────────────────────────────────────────────────

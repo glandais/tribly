@@ -15,6 +15,7 @@ import 'package:pedalons/features/profile/data/profile_repository.dart';
 import 'package:pedalons/features/profile/presentation/widgets/data_and_account_section.dart';
 import 'package:pedalons/features/profile/presentation/widgets/passkeys_section.dart';
 import 'package:pedalons/features/profile/presentation/widgets/preferences_section.dart';
+import 'package:pedalons/keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../support/localization.dart';
@@ -32,6 +33,24 @@ const UserDto _user = UserDto(
   contactableByMembers: true,
   emailVerified: true,
 );
+
+/// `PATCH /api/users/me/preferences` : garde les corps envoyés et renvoie
+/// l'utilisateur tel que le serveur l'aurait enregistré.
+class _FakeUsersClient implements UsersClient {
+  final List<UserPreferencesRequest> preferenceCalls =
+      <UserPreferencesRequest>[];
+
+  @override
+  Future<UserDto> updateMyPreferences({
+    required UserPreferencesRequest body,
+  }) async {
+    preferenceCalls.add(body);
+    return _user.copyWith(timezone: body.timezone ?? _user.timezone);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 class _FakeAuthRepository implements AuthRepository {
   @override
@@ -130,6 +149,7 @@ void main() {
     List<PasskeyDto> passkeys = const <PasskeyDto>[],
     Brightness brightness = Brightness.light,
     _StubProfileRepository? profile,
+    _FakeUsersClient? users,
   }) async {
     final _FakeAuthRepository auth = _FakeAuthRepository();
     final _FakePasskeys keys = _FakePasskeys(passkeys);
@@ -143,6 +163,7 @@ void main() {
             profile ?? _StubProfileRepository(),
           ),
           accessTokenHolderProvider.overrideWith((ref) => 'token'),
+          if (users != null) usersClientProvider.overrideWithValue(users),
           authProvider.overrideWith((ref) => _StubAuthNotifier(ref, auth)),
         ],
         child: MaterialApp(
@@ -175,6 +196,46 @@ void main() {
       // Ils s'appliquent immédiatement : aucun « Enregistrer » dans la carte.
       expect(find.text('Enregistrer'), findsNothing);
     });
+
+    testWidgets(
+      'le fuseau choisi dans la feuille part au serveur et s\'affiche sur la ligne',
+      (WidgetTester tester) async {
+        final _FakeUsersClient users = _FakeUsersClient();
+        await mount(tester, const PreferencesSection(), users: users);
+
+        await tester.tap(find.byKey(keys.profile.timezoneRow));
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(milliseconds: 50));
+        }
+        await tester.enterText(
+          find.descendant(
+            of: find.byKey(keys.profile.timezoneSearch),
+            matching: find.byType(EditableText),
+          ),
+          'auckland',
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+        await tester.tap(
+          find.byKey(keys.profile.timezoneOption('Pacific/Auckland')),
+        );
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(milliseconds: 50));
+        }
+
+        expect(
+          users.preferenceCalls.map((UserPreferencesRequest r) => r.timezone),
+          <String?>['Pacific/Auckland'],
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(keys.profile.timezoneRow),
+            matching: find.text('Pacific/Auckland'),
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Fuseau de l\'appareil'), findsNothing);
+      },
+    );
 
     testWidgets('l\'exemple chiffré est en métrique par défaut', (
       WidgetTester tester,

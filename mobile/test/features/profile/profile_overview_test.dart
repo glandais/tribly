@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +20,7 @@ import 'package:pedalons/keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../support/localization.dart';
+import '../rides/ride_fixtures.dart';
 
 /// La vue d'ensemble du profil : une ligne d'état par sujet, sans flèche de
 /// retour (l'onglet est une racine), et « Se déconnecter » une seule fois.
@@ -194,6 +197,60 @@ void main() {
     expect(find.text('Dans l\'application seulement'), findsOneWidget);
     // Garmin Connect reste connecté, sans appareil appairé.
     expect(find.text('Garmin Connect'), findsOneWidget);
+  });
+
+  testWidgets(
+    'push seul : ni e-mail ni résumé quotidien dans la ligne d\'état',
+    (WidgetTester tester) async {
+      // Un serveur sans envoi d'e-mails ne déclare pas EMAIL : le résumé
+      // renvoie emailDigest à false, la ligne ne parle que du push.
+      await mount(
+        tester,
+        summary: _summary.copyWith(
+          notifications: const ProfileNotificationSummaryDto(
+            channels: <NotificationChannel>[NotificationChannel.push],
+            enabledChannels: <NotificationChannel>[NotificationChannel.push],
+            emailDigest: false,
+          ),
+        ),
+      );
+      expect(find.text('Push'), findsOneWidget);
+      expect(find.textContaining('E-mail'), findsNothing);
+      expect(find.textContaining('résumé quotidien'), findsNothing);
+    },
+  );
+
+  testWidgets('« Mes sorties » annonce la prochaine sortie et le compteur', (
+    WidgetTester tester,
+  ) async {
+    final PublicationDto next = PublicationDto.fromJson(
+      jsonDecode(jsonEncode(fixtureRide().toJson())) as Map<String, dynamic>,
+    );
+    await mount(
+      tester,
+      summary: _summary.copyWith(
+        participations: ProfileParticipationSummaryDto(
+          upcomingCount: 1,
+          pastCount: 0,
+          next: <PublicationDto>[next],
+        ),
+      ),
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(keys.profile.participationsUpcomingRow),
+        matching: find.textContaining('Prochaine : '),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Aucune sortie à venir'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byKey(keys.profile.participationsUpcomingCount),
+        matching: find.text('1'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('« Se déconnecter » une seule fois, en bas de la liste', (

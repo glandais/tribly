@@ -58,7 +58,6 @@ void notifyParticipationChanged(
   // Profil. La frontière « à venir / passées » est figée à la première
   // lecture ; une participation qui change est le bon moment pour l'avancer.
   ref.invalidate(participationsNowProvider);
-  ref.invalidate(participationCountProvider);
   ref.invalidate(participationsProvider);
   ref.invalidate(profileSummaryProvider);
 

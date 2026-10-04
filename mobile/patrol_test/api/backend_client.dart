@@ -360,6 +360,21 @@ final class BackendClient {
       .where((n) => n['type'] == type && n['subjectSlug'] == subjectSlug)
       .firstOrNull;
 
+  /// Whether [who] receives [type] on [channel], per the API; null when the server offers no such
+  /// cell.
+  Future<bool?> notificationCellEnabled(
+    TestUser who,
+    String type,
+    String channel,
+  ) async {
+    final preferences = await get(who, '/api/notifications/preferences');
+    return (preferences['preferences'] as List)
+            .cast<Json>()
+            .where((p) => p['type'] == type && p['channel'] == channel)
+            .firstOrNull?['enabled']
+        as bool?;
+  }
+
   /// Whether [who] muted the team, per the API; null when the team isn't among theirs.
   Future<bool?> isMuted(TestUser who, String teamSlug) async {
     final preferences = await get(who, '/api/notifications/preferences');

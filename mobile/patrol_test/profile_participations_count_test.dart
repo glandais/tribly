@@ -4,14 +4,14 @@ import 'common.dart';
 /// No dedicated web counterpart; the nearest is `calendar.e2e.ts` (« Inscrit · Groupe A »). The
 /// list behind the counter is covered by `profile_participations_list_test`.
 ///
-/// Guarantee: the « Mes sorties à venir » badge counts a registration made in the app itself.
-/// `participationCountProvider` lives as long as the app (the profile is a tab), so a successful
-/// join invalidates it through `notifyParticipationChanged`
-/// (`rides/providers/participation_changes.dart`), the one place every view derived from my
-/// participations is refreshed from.
+/// Guarantee: the badge of « Mes sorties », on the profile's overview, counts a registration made
+/// in the app itself. It reads `GET /api/users/me/profile-summary` through `profileSummaryProvider`,
+/// which lives as long as the app (the profile is a tab), so a successful join invalidates it
+/// through `notifyParticipationChanged` (`rides/providers/participation_changes.dart`), the one
+/// place every view derived from my participations is refreshed from.
 void main() {
   testApp(
-    'The « Mes sorties à venir » badge counts a registration made in the app',
+    'The badge of « Mes sorties » on the profile counts a registration made in the app',
     ($, modules, apiClients) async {
       final backend = apiClients.backend;
       final owner = await backend.newUser('Count owner');
