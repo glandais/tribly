@@ -80,19 +80,11 @@ code : bascule de fuseau horaire sur l'appareil, ouverture d'un deeplink app tu�
 (parcours et liste de 200), rendu du text scaling ×1,3/×2,0, et la capture d'écran de preuve pour le
 jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
 
-- [ ] `MOB-1` **Accueil (11)** — « Ma prochaine sortie » s'affiche quand on est inscrit, disparaît
-      sinon ; badge `INSCRIT` sur les cartes du fil ; barre supérieure rétractable, barre d'outils
-      épinglée ; 5 squelettes au chargement, pas 2.
-- [ ] `MOB-2` **Sortie (12)** — les six états du bouton d'inscription. En particulier : un groupe
-      complet affiche `Complet` **désactivé** (il n'existe aucune liste d'attente, « complet » est un
-      état terminal) ; un `GROUP_FULL` en réponse restaure l'état optimiste **et nomme le groupe** ;
-      aucune erreur nue « Erreur ». Carte à un tracé par groupe, sélection au tap.
-- [ ] `MOB-3` **Pastille « Organisateur »** — présente uniquement si `RideGroupDto.leader` est
-      présent. **Le cas courant est l'absence** (les 665 sorties existantes de `n-peloton` n'ont pas
-      de meneur) : vérifier que ça ne rend rien, et surtout pas le créateur de la sortie.
-- [ ] `MOB-4` **Parcours (13)** — profil altimétrique colorisé par pente, réticule fluide au
-      glissement (60 fps ; regarder au `debugRepaintRainbowEnabled` que les barres ne sont pas
-      repeintes), section « Cols et montées ».
+**Recette du 4 octobre 2026** (prod, équipe `gaby-test1`, jeu de données « Recette — … », clair et
+sombre) : seize entrées livrées, trois défauts mineurs (`MOB-44` à `MOB-46`). Restent ci-dessous
+celles qu'il faut un gros volume pour juger (`MOB-5`, `MOB-13`, `MOB-20` — pas encore assez de
+données en prod), `MOB-15` pas faite, et le 500 du contact vendeur (`MOB-47`).
+
 - [ ] `MOB-5` **Exploration de parcours (21)** — vue liste et vue carte. Le mobile rend désormais les
       vraies tuiles `.mvt`, comme le web (jeton signé, API 2.3.0) : vérifier qu'au-delà de quelques
       centaines de tracés la carte les montre **tous**, sans plafond ni pilule de troncature, et
@@ -102,36 +94,12 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       carte ouverte au-delà de la durée de vie, les tuiles doivent continuer d'arriver et les
       marqueurs rester **au-dessus** de la masse. Bascule automatique en compact au-delà de 200
       résultats.
-- [ ] `MOB-6` **Calendrier (22)** — un mois s'affiche ; les étapes de voyage y sont (le voyage en
-      tant qu'objet non, c'est voulu) ; anneau « inscrit » sur l'événement ; un jour à la fois
-      « aujourd'hui » et « inscrit » porte les deux marqueurs.
-- [ ] `MOB-7` **Jeton ICS (22)** — copier l'URL d'abonnement, puis **capturer l'écran** : le jeton ne
-      doit apparaître nulle part à l'image, alors que le presse-papiers contient l'URL réelle.
-- [ ] `MOB-8` **Fuseaux horaires (22, 24, 25)** — régler l'appareil sur `Pacific/Auckland` puis
-      `America/Los_Angeles`. Une étape du lundi 17 août 2026 à 08:00 ne doit pas glisser d'un jour :
-      on cherche une **double conversion**, pas une localisation d'équipe (le contrat n'a aucun fuseau
-      d'équipe, `API-60`). Depuis `API-15` le mobile applique, comme le web, la préférence
-      `UserDto.timezone` et ne suit l'appareil qu'à défaut : refaire l'essai une fois avec un fuseau
-      posé dans le profil, différent de celui de l'appareil — c'est lui qui doit l'emporter.
-- [ ] `MOB-9` **Voyage et étape (24, 25)** — tracé et profil ; au-delà de 12 étapes le tracé est
-      volontairement partiel.
-- [ ] `MOB-10` **Publication (31)** — liens markdown : interne → route interne, externe →
-      navigateur, non lançable → bandeau. **Aucun lien inerte.** Tableau markdown à 4 colonnes :
-      défilement horizontal sans déborder la page. Pas de bloc auteur (le contrat ne l'expose pas —
-      ne pas s'étonner de son absence).
-- [ ] `MOB-11` **Annonces (32)** — prix : `1200` → `1 200,00 €` ; `25` + `WEEK` → « 25,00 € /
-      semaine » ; `null` → « Prix à négocier ». **La carte rend un secteur, jamais une punaise** : la
-      position est floutée à ~1 km et un marqueur ponctuel prétendrait une précision qui n'existe
-      pas.
-- [ ] `MOB-12` **Contact du vendeur (32)** — les quatre issues rendent quatre écrans distincts :
-      204, `AD_CONTACT_OPTED_OUT`, `AD_CONTACT_RATE_LIMITED` (429, `Retry-After` exploité),
-      `AD_CONTACT_DELIVERY_FAILED` (500). **Aucun succès affiché sur un 500.** Le bouton est absent
-      sur sa propre annonce. 9 et 2 001 caractères refusés côté client, sans appel réseau.
+- [ ] `MOB-47` **Contact du vendeur : l'échec d'envoi (500)** — reste de `MOB-12`, recetté le
+      4 octobre 2026 sauf ce cas : `AD_CONTACT_DELIVERY_FAILED` doit rendre son propre écran, **aucun
+      succès affiché sur un 500**. Ne se provoque pas en prod ; il faudrait une pile où le relais de
+      mail échoue à la demande (le web le simule par `page.route`, Patrol non plus — `MOB-25`).
 - [ ] `MOB-13` **Trombinoscope (34)** — sur `n-peloton`, le pied annonce le total exact (1 999) à
       chaque page. C'est le point où le mobile chargeait 20 membres sur 1 999 **sans le dire**.
-- [ ] `MOB-14` **Découverte d'équipes (34)** — la loupe et le CTA d'état vide mènent quelque part
-      (c'étaient les deux `// TODO` de `lib/`) ; chip `joinable=true` ; adhésion optimiste avec
-      bandeau d'échec nommant la cause.
 - [ ] `MOB-15` **Profil (33)** — les quatre réglages s'appliquent **immédiatement, sans bouton**
       (unités, thème, langue, « Être contacté par les membres ») ; un échec revient à la valeur
       précédente. Ajouter une seconde clé d'accès **n'écrase plus les autres**. `logout-all` est
@@ -140,27 +108,26 @@ jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
       la section reste **non rendue** tant que le serveur ne déclare aucun canal configurable — le
       défaut en dev, plus le cas en prod depuis que le push y est actif : à recetter dans les deux
       états.
-- [ ] `MOB-16` **Deeplinks à froid** — application tuée, ouvrir un lien de sortie, de parcours et
-      d'annonce. Le bon onglet est surligné et la pile de retour est cohérente. (Le test
-      `deep_link_hierarchy_test.dart` couvre la table ; il ne couvre pas l'ouverture réelle.)
-- [ ] `MOB-17` **Text scaling ×1,3 puis ×2,0** — badges, lignes de col à 3 colonnes, en-têtes
-      épinglés : aucun débordement.
-- [ ] `MOB-18` **Pièces jointes** — sur chacun des huit écrans à `MediaDto` (sortie, publication,
-      annonce, parcours, voyage, étape, page d'équipe, « à propos ») : le bloc apparaît **avec** un
-      fichier et disparaît sans, et un contenu qui ne porte qu'une pièce jointe sans texte affiche
-      quand même le bloc (l'« à propos » ne doit plus se déclarer vide).
-- [ ] `MOB-19` **Une image jointe se regarde dans l'app** — le tap ouvre la visionneuse zoomable, pas
-      le navigateur ; le sous-titre porte « 1920 × 1080 » quand `imageDimensions` est là ; le bouton
-      rapporte **l'originale** et ouvre la feuille de partage. À vérifier sur un contenu **visible
-      des seuls membres** : c'est le cas où l'ancien `openLink` tombait sur un 403, l'autorisation
-      de `/api/download/…` étant celle du contenu porteur. Un fichier volumineux (>10 Mo) : le
-      bandeau « Téléchargement en cours… » reste visible et l'échec réseau donne un bandeau rouge,
-      jamais une feuille de partage vide.
 - [ ] `MOB-20` **Performance** — liste de 200 items : rester au-dessus de 55 fps. Si le
       `BackdropFilter` des barres épinglées coûte trop cher, le repli prévu (non implémenté à ce
       jour — `blurToolbar` est une constante fixe à 12, aucune branche conditionnelle) serait **un
       seul jeton** à faire tomber à 0 (`PdlMotion.blurToolbar`, surface opaque), aucun écran à
       rouvrir.
+
+### Défauts trouvés par la recette du 4 octobre 2026
+
+Détail et pistes dans `docs/BUGS.md` (section Mobile).
+
+- [ ] `MOB-44` **Toucher l'équipe depuis un détail ramène parfois sur une page vide** — sortie,
+      parcours… ; chaque entrée fait `context.push(Paths.team(slug))` vers une `NoTransitionPage` de la
+      branche Équipes (`_teamTree`, `config/router.dart`). Piste non confirmée : un détail ouvert depuis
+      un autre onglet. Petit à moyen.
+- [ ] `MOB-45` **« Cols et montées (1) » au pluriel avec une seule montée** — `routes.climbs` lu par
+      `.tr()` dans `route_climbs_section.dart` ; passer à `.plural()` (fr et en). Petit.
+- [ ] `MOB-46` **Un lien relatif vers une section d'équipe ouvre une page vide sans retour** —
+      `/equipes/{slug}/annonces` dans une publication, reconnu par `internalLocationFor`
+      (`core/utils/link_launcher.dart`) puis poussé vers la `TeamHomePage` ; probablement la même cause
+      que `MOB-44`. Petit.
 
 ### Couverture e2e Patrol — ce que les tests ne couvrent pas encore
 
@@ -422,6 +389,16 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       émettre `<time>` quand l'instant est `EPOCH` donnerait des fichiers plus propres. Changement de
       bibliothèque, pas de Pédalons ; `GpxSanitizationBackfill.isDirty` accepte déjà l'absence de
       `<time>`. Taille : S.
+- [ ] `API-68` **Un asset déjà attaché ailleurs est ignoré sans erreur** — relevé pendant la recette
+      mobile du 4 octobre 2026 (`MOB-18`) : un `MediaDto` qui cite dans `assets` une pièce jointe
+      appartenant déjà à un autre contenu de l'équipe est accepté (201/200), mais le contenu ne la porte
+      pas. `AssetService.addAssetToEntity` saute en silence tout asset d'une autre équipe ou d'un autre
+      `TeamEntity`. Le garde-fou est juste (un asset n'a qu'un propriétaire, et on ne doit pas pouvoir
+      s'approprier celui d'un autre contenu ni d'une autre équipe) ; c'est le silence qui trompe : un
+      client d'API (script de seed, migration, futur « dupliquer ») croit avoir joint le fichier. Aucun
+      client actuel ne réutilise un asset (le web et l'app téléversent pour chaque contenu). Correctif :
+      refuser par un 400 `ASSET_NOT_AVAILABLE` nommant l'id, sans révéler à quel contenu il appartient
+      — changement de contrat, bump d'API. Petit.
 
 ---
 

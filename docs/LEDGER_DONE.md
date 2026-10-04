@@ -46,6 +46,64 @@ fichier garde **ce qui est fait**, et ce qu'il ne faut pas défaire.
   `{locale}-{AAAAMMJJ}`), et les lève-tôt sont un préfixe des inscrits finaux — c'est ce qui rend
   `--refresh` idempotent et ne fait qu'ajouter. L'installation sur l'hôte est `OPS-28`.
 
+### Recette sur une application qui tourne — 4 octobre 2026
+
+Passe manuelle sur la prod, compte administrateur, en clair et en sombre, dans l'équipe `gaby-test1`
+garnie pour l'occasion d'un jeu de données « Recette — … » créé par l'API : sorties à trois groupes
+(dont un mené par un autre membre et un à une place), du jour, sans meneur, passée et annulée ; un
+col synthétique et treize parcours d'étape ; un voyage de 13 étapes et deux voyages « Fuseaux » ;
+une publication à liens et tableau, une autre faite de pièces jointes seules (image 1920 × 1080 et
+PDF de 12 Mo) ; trois annonces ; une page d'équipe et un « à propos » à pièce jointe seule. Pas de
+test automatisé : ce qui suit est ce que les tests ne savent pas dire. Trois défauts mineurs
+relevés, `MOB-44` à `MOB-46`. Restent ouvertes `MOB-5`, `MOB-13`, `MOB-15`, `MOB-20` et `MOB-47` (le 500 de `MOB-12`).
+
+- [x] `MOB-1` **Accueil (11)** — « Ma prochaine sortie » apparaissait inscrit et disparaissait
+  désinscrit, le badge `INSCRIT` marquait les cartes du fil, la barre supérieure se rétractait sous
+  la barre d'outils épinglée, cinq squelettes au chargement.
+- [x] `MOB-2` **Sortie (12)** — les six états du bouton, dont `Complet` désactivé (un groupe à une
+  place rempli par un autre membre), le `GROUP_FULL` qui restaure l'état et nomme le groupe ; rien sur
+  une sortie passée (« Terminée ») ni annulée, pas même « Quitter » ; un tracé par groupe, sélection
+  au tap.
+- [x] `MOB-3` **Pastille « Organisateur »** — rendue sur le seul groupe qui a un `leader`, avec son
+  nom ; rien sur les autres groupes ni sur une sortie sans meneur, jamais le créateur de la sortie.
+- [x] `MOB-4` **Parcours (13)** — profil colorisé par pente, réticule fluide au glissement, section
+  « Cols et montées » (son titre au pluriel avec une montée est `MOB-45`).
+- [x] `MOB-6` **Calendrier (22)** — le mois s'affiche, les étapes du voyage y sont et pas le voyage,
+  l'anneau « inscrit » marque l'événement, le jour à la fois « aujourd'hui » et « inscrit » porte les
+  deux marqueurs.
+- [x] `MOB-7` **Jeton ICS (22)** — après « Copier le lien », la capture d'écran ne montre pas le
+  jeton, le presse-papiers porte l'URL réelle.
+- [x] `MOB-8` **Fuseaux horaires (22, 24, 25)** — appareil en `Pacific/Auckland` puis
+  `America/Los_Angeles` : l'étape du lundi 17 août 2026 à 08:00 n'a pas glissé d'un jour ; un fuseau
+  posé dans le profil, différent de celui de l'appareil, l'emportait.
+- [x] `MOB-9` **Voyage et étape (24, 25)** — tracé et profil ; à 13 étapes, le tracé du voyage s'est
+  arrêté à 12, comme voulu.
+- [x] `MOB-10` **Publication (31)** — liens interne absolu → route interne, externe → navigateur,
+  `mailto:` → client mail, schéma inconnu → bandeau ; aucun lien inerte (le lien relatif vers une
+  section d'équipe est `MOB-46`). Tableau à 4 colonnes défilant sans déborder la page.
+- [x] `MOB-11` **Annonces (32)** — `1 200,00 €`, « 25,00 € / semaine », « Prix à négocier » ; la
+  carte rend un secteur, jamais une punaise.
+- [x] `MOB-12` **Contact du vendeur (32)** — sur une annonce d'un autre membre : 204 (confirmation),
+  `AD_CONTACT_OPTED_OUT` (vendeur ayant coupé « Être contacté »), `AD_CONTACT_RATE_LIMITED` (11ᵉ
+  message de l'heure, `Retry-After` dit « Réessayez dans 1 heure ») rendaient chacun leur écran ;
+  bouton absent sur sa propre annonce ; 9 et 2 001 caractères refusés côté client. Le 500
+  (`AD_CONTACT_DELIVERY_FAILED`), impossible à provoquer en prod, est scindé en `MOB-47`.
+- [x] `MOB-14` **Découverte d'équipes (34)** — la loupe et le CTA d'état vide mènent quelque part,
+  chip `joinable=true`, adhésion optimiste avec bandeau d'échec nommant la cause.
+- [x] `MOB-16` **Deeplinks à froid** — application tuée, un lien de sortie, de parcours et d'annonce
+  ouvraient le bon écran, onglet surligné et pile de retour cohérente.
+- [x] `MOB-17` **Text scaling ×1,3 puis ×2,0** — badges, lignes de col, en-têtes épinglés : aucun
+  débordement.
+- [x] `MOB-18` **Pièces jointes** — le bloc apparaissait sur les huit écrans à `MediaDto` (sortie,
+  publication, annonce, parcours, voyage, étape, page d'équipe, « à propos ») avec un fichier et
+  disparaissait sans ; une publication et un « à propos » faits d'une seule pièce jointe sans texte
+  affichaient le bloc. Noté en chemin : un asset ne s'attache qu'à un contenu : le joindre à un second
+  est ignoré sans erreur (l'API répond 200 et le second contenu ne le porte pas) — `API-68`.
+- [x] `MOB-19` **Une image jointe se regarde dans l'app** — sur une publication visible des seuls
+  membres : visionneuse zoomable, sous-titre « 1920 × 1080 », le bouton rapportait l'originale vers
+  la feuille de partage ; pour un PDF de 12 Mo, bandeau « Téléchargement en cours… » tenu, échec
+  réseau en bandeau rouge, jamais de feuille de partage vide.
+
 ### Couverture e2e Patrol
 
 Écrits le 29 septembre 2026 par-dessus les P0 de l'audit de couverture e2e (`WEB-26`), un test
