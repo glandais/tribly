@@ -104,6 +104,30 @@ relevés, `MOB-44` à `MOB-46`. Restent ouvertes `MOB-5`, `MOB-13`, `MOB-15`, `M
   la feuille de partage ; pour un PDF de 12 Mo, bandeau « Téléchargement en cours… » tenu, échec
   réseau en bandeau rouge, jamais de feuille de partage vide.
 
+### Défauts trouvés par la recette du 4 octobre 2026
+
+Corrigés le 4 octobre 2026, contrat inchangé. Les deux défauts de navigation n'en font qu'un.
+
+- [x] `MOB-44` **Toucher l'équipe depuis un détail laissait une page vide** — une page de détail
+  (sortie, parcours, publication, voyage, annonce) vit sur le navigateur racine, au-dessus du shell ;
+  y faire `context.push` d'une page **d'onglet** (l'équipe, une de ses sections, de n'importe quelle
+  équipe) recréait la branche sous le détail avec des clés de page déjà prises : assertion
+  `!keyReservation.contains(key)` en debug, écran vide et `pop` qui lève, « parfois » en release.
+  `pushLocation` (`core/utils/push_location.dart`) garde le `push` partout ailleurs et, dans ce seul
+  cas, ouvre la page dans son onglet par `openWithHierarchy`, la pile d'un lien profond (Équipes →
+  équipe → section) ; tous les `context.push(Paths.team(…))` passent par lui. Test :
+  `test/core/utils/push_location_test.dart`, sur un routeur de même forme et les vrais chemins —
+  ses trois cas « depuis une sortie » échouent sans le correctif. **À ne pas défaire** : ne pas
+  revenir à `context.push` vers une page du shell depuis une page plein écran ; la pile affichée se
+  lit en déroulant les `ImperativeRouteMatch`, jamais par `currentConfiguration.uri`, qui reste sur
+  la base après un `push` impératif.
+- [x] `MOB-45` **« Cols et montées (1) »** — `routes.climbs` est un pluriel (`one` « Col ou montée
+  ({}) », « Climb ({}) » en anglais) lu par `.plural()` dans `route_climbs_section.dart`. Test :
+  `route_climbs_section_test.dart` (une montée, deux montées).
+- [x] `MOB-46` **Un lien relatif vers une section d'équipe ouvrait une page vide sans retour** — même
+  cause que `MOB-44` : `openLink` (`core/utils/link_launcher.dart`) poussait par `context.push` toute
+  route interne reconnue, depuis une publication plein écran. Il passe désormais par `pushLocation`.
+
 ### Couverture e2e Patrol
 
 Écrits le 29 septembre 2026 par-dessus les P0 de l'audit de couverture e2e (`WEB-26`), un test

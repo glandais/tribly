@@ -32,6 +32,7 @@ import '../widgets/trip_map.dart';
 import '../widgets/trip_summary_card.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
 import '../../../../keys.dart';
+import '../../../../core/utils/push_location.dart';
 
 /// L'écran 24 — le voyage.
 ///
@@ -161,7 +162,8 @@ class _TripDetailContent extends ConsumerWidget {
                   label: 'teams.viewTeam'.tr(),
                   variant: PdlButtonVariant.outline,
                   size: PdlButtonSize.sm,
-                  onPressed: () => context.push(Paths.team(trip.team.slug)),
+                  onPressed: () =>
+                      pushLocation(context, Paths.team(trip.team.slug)),
                 ),
               ),
             ),
@@ -298,7 +300,8 @@ class _TripDetailContent extends ConsumerWidget {
               label: 'teams.viewTeam'.tr(),
               variant: PdlButtonVariant.outline,
               size: PdlButtonSize.sm,
-              onPressed: () => context.push(Paths.team(trip.team.slug)),
+              onPressed: () =>
+                  pushLocation(context, Paths.team(trip.team.slug)),
             )
           : PdlButton(
               label: 'common.retry'.tr(),
@@ -390,7 +393,7 @@ class _TripDetailContent extends ConsumerWidget {
           PdlTeamLine(
             label: trip.team.name,
             imageUrl: trip.team.logoUrl,
-            onTap: () => context.push(Paths.team(trip.team.slug)),
+            onTap: () => pushLocation(context, Paths.team(trip.team.slug)),
           ),
           const SizedBox(height: 2),
           Text(trip.name, key: keys.trip.title, style: t.screenTitle),

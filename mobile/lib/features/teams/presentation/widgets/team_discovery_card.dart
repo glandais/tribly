@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' hide Visibility;
-import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
@@ -10,6 +9,7 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
+import '../../../../core/utils/push_location.dart';
 
 /// Débord du logo sous le bandeau, en pixels.
 const double _kLogoOverhang = 20;
@@ -53,7 +53,7 @@ class TeamDiscoveryCard extends StatelessWidget {
 
     return PdlCard(
       padding: PdlCardPadding.none,
-      onTap: () => context.push(Paths.team(team.slug)),
+      onTap: () => pushLocation(context, Paths.team(team.slug)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -184,7 +184,7 @@ class _Action extends StatelessWidget {
             label: 'teams.viewTeam'.tr(),
             variant: PdlButtonVariant.outline,
             size: PdlButtonSize.sm,
-            onPressed: () => context.push(Paths.team(team.slug)),
+            onPressed: () => pushLocation(context, Paths.team(team.slug)),
           ),
         ],
       );

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../api/generated/export.dart';
 import '../../config/paths.dart';
 import '../pdl/pdl_team_line.dart';
+import '../utils/push_location.dart';
 
 /// Ligne d'appartenance d'une publication : logo, nom d'équipe, chevron.
 ///
@@ -21,7 +21,7 @@ class TeamBanner extends StatelessWidget {
     return PdlTeamLine(
       label: team.name,
       imageUrl: team.logoUrl,
-      onTap: () => context.push(Paths.team(team.slug)),
+      onTap: () => pushLocation(context, Paths.team(team.slug)),
     );
   }
 }

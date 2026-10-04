@@ -15,6 +15,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../keys.dart';
 import '../../../teams/providers/team_providers.dart';
+import '../../../../core/utils/push_location.dart';
 
 /// Combien d'équipes « Mes équipes » montre au plus ; l'onglet Équipes a le
 /// reste.
@@ -163,7 +164,7 @@ class HomeTeamRow extends StatelessWidget {
 
     return PdlCard(
       padding: PdlCardPadding.tight,
-      onTap: () => context.push(Paths.team(team.slug)),
+      onTap: () => pushLocation(context, Paths.team(team.slug)),
       child: Row(
         children: <Widget>[
           PdlAvatar(name: team.name, imageUrl: team.logoUrl, size: 40),

@@ -81,7 +81,7 @@ code : bascule de fuseau horaire sur l'appareil, ouverture d'un deeplink app tu�
 jeton ICS. Thème clair et compte `gaby` pas repassés en revue depuis.
 
 **Recette du 4 octobre 2026** (prod, équipe `gaby-test1`, jeu de données « Recette — … », clair et
-sombre) : seize entrées livrées, trois défauts mineurs (`MOB-44` à `MOB-46`). Restent ci-dessous
+sombre) : seize entrées livrées, trois défauts mineurs (`MOB-44` à `MOB-46`, corrigés le même jour). Restent ci-dessous
 celles qu'il faut un gros volume pour juger (`MOB-5`, `MOB-13`, `MOB-20` — pas encore assez de
 données en prod), `MOB-15` pas faite, et le 500 du contact vendeur (`MOB-47`).
 
@@ -113,21 +113,6 @@ données en prod), `MOB-15` pas faite, et le 500 du contact vendeur (`MOB-47`).
       jour — `blurToolbar` est une constante fixe à 12, aucune branche conditionnelle) serait **un
       seul jeton** à faire tomber à 0 (`PdlMotion.blurToolbar`, surface opaque), aucun écran à
       rouvrir.
-
-### Défauts trouvés par la recette du 4 octobre 2026
-
-Détail et pistes dans `docs/BUGS.md` (section Mobile).
-
-- [ ] `MOB-44` **Toucher l'équipe depuis un détail ramène parfois sur une page vide** — sortie,
-      parcours… ; chaque entrée fait `context.push(Paths.team(slug))` vers une `NoTransitionPage` de la
-      branche Équipes (`_teamTree`, `config/router.dart`). Piste non confirmée : un détail ouvert depuis
-      un autre onglet. Petit à moyen.
-- [ ] `MOB-45` **« Cols et montées (1) » au pluriel avec une seule montée** — `routes.climbs` lu par
-      `.tr()` dans `route_climbs_section.dart` ; passer à `.plural()` (fr et en). Petit.
-- [ ] `MOB-46` **Un lien relatif vers une section d'équipe ouvre une page vide sans retour** —
-      `/equipes/{slug}/annonces` dans une publication, reconnu par `internalLocationFor`
-      (`core/utils/link_launcher.dart`) puis poussé vers la `TeamHomePage` ; probablement la même cause
-      que `MOB-44`. Petit.
 
 ### Couverture e2e Patrol — ce que les tests ne couvrent pas encore
 

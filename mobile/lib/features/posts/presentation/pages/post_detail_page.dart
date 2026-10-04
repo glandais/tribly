@@ -27,6 +27,7 @@ import '../../data/post_repository.dart';
 import '../../domain/post_neighbours.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
 import '../../../../keys.dart';
+import '../../../../core/utils/push_location.dart';
 
 final postDetailProvider =
     FutureProvider.family<PostDto, ({String teamSlug, String postSlug})>((
@@ -188,7 +189,8 @@ class _PostDetailContent extends ConsumerWidget {
                       label: 'teams.viewTeam'.tr(),
                       variant: PdlButtonVariant.outline,
                       size: PdlButtonSize.sm,
-                      onPressed: () => context.push(Paths.team(post.team.slug)),
+                      onPressed: () =>
+                          pushLocation(context, Paths.team(post.team.slug)),
                     ),
                   ),
               ],
@@ -246,7 +248,7 @@ class _PostDetailContent extends ConsumerWidget {
         PdlTeamLine(
           label: post.team.name,
           imageUrl: post.team.logoUrl,
-          onTap: () => context.push(Paths.team(post.team.slug)),
+          onTap: () => pushLocation(context, Paths.team(post.team.slug)),
         ),
         const SizedBox(height: PdlSpacing.chipGap),
         Row(

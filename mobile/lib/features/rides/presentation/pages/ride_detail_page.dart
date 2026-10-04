@@ -31,6 +31,7 @@ import '../widgets/ride_groups_map.dart';
 import '../widgets/ride_groups_section.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
 import '../../../../keys.dart';
+import '../../../../core/utils/push_location.dart';
 
 /// L'écran 12 — détail d'une sortie et inscription à un groupe.
 ///
@@ -145,7 +146,8 @@ class _RideDetailContent extends ConsumerWidget {
                   label: 'teams.viewTeam'.tr(),
                   variant: PdlButtonVariant.outline,
                   size: PdlButtonSize.sm,
-                  onPressed: () => context.push(Paths.team(ride.team.slug)),
+                  onPressed: () =>
+                      pushLocation(context, Paths.team(ride.team.slug)),
                 ),
               ),
             ),
@@ -171,7 +173,8 @@ class _RideDetailContent extends ConsumerWidget {
                   context.push(Paths.route(ride.team.slug, slug));
                 }
               },
-              onViewTeam: () => context.push(Paths.team(ride.team.slug)),
+              onViewTeam: () =>
+                  pushLocation(context, Paths.team(ride.team.slug)),
             ),
           ),
         ),
@@ -222,7 +225,7 @@ class _RideDetailContent extends ConsumerWidget {
           PdlTeamLine(
             label: ride.team.name,
             imageUrl: ride.team.logoUrl,
-            onTap: () => context.push(Paths.team(ride.team.slug)),
+            onTap: () => pushLocation(context, Paths.team(ride.team.slug)),
           ),
           const SizedBox(height: 2),
           Text(ride.name, key: keys.ride.title, style: t.screenTitle),

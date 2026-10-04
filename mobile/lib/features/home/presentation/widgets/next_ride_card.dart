@@ -22,6 +22,7 @@ import '../../providers/next_ride_leave_controller.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/next_ride_provider.dart';
 import '../../../../keys.dart';
+import '../../../../core/utils/push_location.dart';
 
 /// La vignette de « Ma prochaine sortie » : celle du **parcours du groupe**
 /// (`docs/LEDGER_*.md API-3`), puisque deux groupes sur deux parcours n'ont pas
@@ -132,7 +133,8 @@ class NextRideCard extends ConsumerWidget {
                     PdlTeamLine(
                       label: ride.team.name,
                       imageUrl: ride.team.logoUrl,
-                      onTap: () => context.push(Paths.team(ride.team.slug)),
+                      onTap: () =>
+                          pushLocation(context, Paths.team(ride.team.slug)),
                     ),
                     const SizedBox(height: 2),
                     Text(

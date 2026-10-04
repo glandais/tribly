@@ -17,6 +17,7 @@ import '../../providers/team_providers.dart';
 import '../widgets/pending_invitations_card.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
 import '../../../../keys.dart';
+import '../../../../core/utils/push_location.dart';
 
 /// The teams the user belongs to.
 ///
@@ -218,7 +219,7 @@ class _TeamCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AnimatedCard(
       key: keys.teams.teamCard(team.slug),
-      onTap: () => context.push(Paths.team(team.slug)),
+      onTap: () => pushLocation(context, Paths.team(team.slug)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(

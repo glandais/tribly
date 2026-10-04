@@ -28,9 +28,7 @@ void main() {
     name: name,
   );
 
-  testWidgets('une montée nommée rend son nom, les autres leur numéro', (
-    WidgetTester tester,
-  ) async {
+  Future<void> pumpSection(WidgetTester tester, List<ClimbDto> climbs) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
@@ -40,21 +38,41 @@ void main() {
           theme: PedalonsTheme.build(Brightness.light),
           home: Scaffold(
             body: SingleChildScrollView(
-              child: RouteClimbsSection(
-                climbs: <ClimbDto>[
-                  climb(name: 'Col du Glandon'),
-                  climb(),
-                ],
-              ),
+              child: RouteClimbsSection(climbs: climbs),
             ),
           ),
         ),
       ),
     );
     await tester.pump();
+  }
+
+  testWidgets('une montée nommée rend son nom, les autres leur numéro', (
+    WidgetTester tester,
+  ) async {
+    await pumpSection(tester, <ClimbDto>[
+      climb(name: 'Col du Glandon'),
+      climb(),
+    ]);
 
     expect(find.text('Col du Glandon'), findsOneWidget);
     expect(find.text('Montée 1'), findsNothing);
     expect(find.text('Montée 2'), findsOneWidget);
+  });
+
+  // docs/LEDGER_*.md MOB-45 — « Cols et montées (1) » pour une seule montée.
+  testWidgets('le titre est au singulier pour une seule montée', (
+    WidgetTester tester,
+  ) async {
+    await pumpSection(tester, <ClimbDto>[climb()]);
+    expect(find.textContaining('Col ou montée (1)'), findsOneWidget);
+    expect(find.textContaining('Cols et montées'), findsNothing);
+  });
+
+  testWidgets('le titre est au pluriel à partir de deux montées', (
+    WidgetTester tester,
+  ) async {
+    await pumpSection(tester, <ClimbDto>[climb(), climb()]);
+    expect(find.textContaining('Cols et montées (2)'), findsOneWidget);
   });
 }

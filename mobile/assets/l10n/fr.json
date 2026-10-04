@@ -636,7 +636,10 @@
     "exportFit": "FIT",
     "profileLoading": "Chargement du profil altimétrique...",
     "profileUnavailable": "Profil indisponible",
-    "climbs": "Cols et montées ({count})",
+    "climbs": {
+      "one": "Col ou montée ({})",
+      "other": "Cols et montées ({})"
+    },
     "climbNumber": "Montée {index}",
     "climbRange": "du {from} au {to}",
     "climbCategory": {

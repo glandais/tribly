@@ -17,6 +17,7 @@ import '../../../../core/widgets/deleted_badge.dart';
 import '../../../posts/domain/post_neighbours.dart';
 import '../../../rides/providers/participation_changes.dart';
 import '../../../tags/presentation/content_tags.dart';
+import '../../../../core/utils/push_location.dart';
 
 /// Les trois hauteurs de bandeau média de la charte, **partagées**.
 ///
@@ -158,7 +159,7 @@ class _CardShell extends StatelessWidget {
                     imageUrl: teamLogoUrl,
                     onTap: teamSlug == null
                         ? null
-                        : () => context.push(Paths.team(teamSlug!)),
+                        : () => pushLocation(context, Paths.team(teamSlug!)),
                   ),
                 const SizedBox(height: 4),
                 Row(

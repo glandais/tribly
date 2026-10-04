@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/app_config.dart';
@@ -9,6 +8,7 @@ import '../../config/paths.dart';
 import '../pdl/pdl_banner.dart';
 import '../pdl/pdl_button.dart';
 import '../theme/pdl_icons.dart';
+import 'push_location.dart';
 
 /// F-TE-10 — Le routeur de liens de l'application (plan §1.3.5).
 ///
@@ -20,7 +20,7 @@ import '../theme/pdl_icons.dart';
 /// La résolution se fait en trois temps, **dans cet ordre** :
 ///
 /// 1. une URL **du domaine courant** dont le chemin est reconnu par un motif de
-///    `paths.generated.dart` → `context.push` : rester dans l'app, ne pas
+///    `paths.generated.dart` → [pushLocation] : rester dans l'app, ne pas
 ///    partir dans le navigateur pour revenir sur la même page en moins bien ;
 /// 2. sinon `launchUrl(mode: externalApplication)` — `http`, `https`, mais
 ///    aussi `mailto:`, `tel:` et `webcal:`, les schémas déclarés dans
@@ -181,7 +181,9 @@ Future<LinkOutcome> openLink(BuildContext context, String href) async {
 
   final String? location = internalLocationFor(trimmed);
   if (location != null) {
-    context.push(location);
+    // Pas `context.push` : depuis une publication (plein écran), pousser une
+    // section d'équipe laissait une page vide (docs/LEDGER_*.md MOB-46).
+    pushLocation(context, location);
     return LinkOutcome.internal;
   }
 

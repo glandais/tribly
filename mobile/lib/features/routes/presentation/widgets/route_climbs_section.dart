@@ -9,7 +9,7 @@ import '../../../../core/theme/enum_colors.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/utils/formatters.dart';
 
-/// « Cols et montées (N) ».
+/// « Cols et montées (N) », au singulier pour une seule montée (`MOB-45`).
 ///
 /// `TrackDto.climbs` **existe au contrat et n'avait jamais été lu** par le
 /// mobile : cette section l'active.
@@ -37,9 +37,7 @@ class RouteClimbsSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         PdlSectionHeader(
-          title: 'routes.climbs'.tr(
-            namedArgs: <String, String>{'count': '${climbs.length}'},
-          ),
+          title: 'routes.climbs'.plural(climbs.length),
           padding: const EdgeInsets.only(bottom: 4),
         ),
         for (int i = 0; i < climbs.length; i++)

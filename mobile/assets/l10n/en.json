@@ -636,7 +636,10 @@
     "exportFit": "FIT",
     "profileLoading": "Loading elevation profile...",
     "profileUnavailable": "Profile unavailable",
-    "climbs": "Climbs ({count})",
+    "climbs": {
+      "one": "Climb ({})",
+      "other": "Climbs ({})"
+    },
     "climbNumber": "Climb {index}",
     "climbRange": "from {from} to {to}",
     "climbCategory": {
