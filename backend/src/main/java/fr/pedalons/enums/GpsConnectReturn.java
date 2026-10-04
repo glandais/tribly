@@ -11,8 +11,12 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum GpsConnectReturn {
-  /** The profile's connected services — the default. */
-  PROFILE("/profile"),
+  /**
+   * The profile's « Appareils et services » page, where the services are connected — the default.
+   * The profile's sub-page since the profile redesign, not the overview (contracts/routes.yaml,
+   * profileDevices).
+   */
+  PROFILE("/profile/devices"),
   /** The Karoo pairing page, which then tells the rider the Karoo is ready (ledger API-63). */
   DEVICE_KAROO("/karoo");
 

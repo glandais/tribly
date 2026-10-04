@@ -203,7 +203,7 @@ class GpsResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void handleCallback_withoutReturnTo_shouldRedirectToProfile() {
+  void handleCallback_withoutReturnTo_shouldRedirectToProfileDevices() {
     String state = startConnection(null);
 
     given()
@@ -215,7 +215,7 @@ class GpsResourceTest extends AbstractResourceTest {
         .get("/api/gps/callback/HAMMERHEAD")
         .then()
         .statusCode(307)
-        .header("Location", endsWith("/profile?gps_error=access_denied"));
+        .header("Location", endsWith("/profile/devices?gps_error=access_denied"));
   }
 
   @Test
