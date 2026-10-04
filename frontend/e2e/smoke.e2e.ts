@@ -166,10 +166,9 @@ test.describe('app links', () => {
     signedIn: boolean
   }[] = [
     { path: () => '/inscription', to: () => '/connexion', signedIn: false },
-    { path: () => '/profil/participations', to: () => '/profil', signedIn: true },
     { path: () => '/equipes/decouvrir', to: () => '/equipes', signedIn: true },
-    // /equipes/{team}/membres left this list with WEB-1: it is a web page now
-    // (member-directory.e2e.ts).
+    // /equipes/{team}/membres left this list with WEB-1, /profil/participations with the profile
+    // redesign (now /profil/sorties): both are web pages now.
   ]
   for (const landing of landings) {
     const label = landing.path('{team}')

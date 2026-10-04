@@ -175,25 +175,76 @@ routes:
     web: true
     mobile: true
     deeplink: true
-  # Rides and trips the current user is registered to. Mobile-only for now:
-  # the web profile has no equivalent screen.
+  # The profile's sub-pages (profile navigation redesign, 2026-10): the same tree, labels and
+  # paths on both clients. /profile is the overview; each sub-page is one subject.
+  # Rides and trips the current user is registered to (tabs Upcoming · History).
   - id: myParticipations
     path:
-      en: /profile/participations
-      fr: /profil/participations
-    web: false
+      en: /profile/rides
+      fr: /profil/sorties
+    web: true
     mobile: true
     deeplink: true
-    webFallback: profile
-  # Users the current user blocked (docs/plans/archive/2026-09-24-signalement.md). Mobile-only: the web
-  # shows them as a section of the profile page. No deeplink: no web page answers this URL.
+  - id: profilePreferences
+    path:
+      en: /profile/preferences
+      fr: /profil/preferences
+    web: true
+    mobile: true
+    deeplink: true
+  # Notification settings. The inbox (`notifications`) links here, and every e-mail footer too
+  # (NotificationLinks.PREFERENCES_PATH in the backend).
+  - id: profileNotifications
+    path:
+      en: /profile/notifications
+      fr: /profil/notifications
+    web: true
+    mobile: true
+    deeplink: true
+  - id: profileDevices
+    path:
+      en: /profile/devices
+      fr: /profil/appareils
+    web: true
+    mobile: true
+    deeplink: true
+  - id: profileSecurity
+    path:
+      en: /profile/security
+      fr: /profil/securite
+    web: true
+    mobile: true
+    deeplink: true
+  - id: profilePrivacy
+    path:
+      en: /profile/privacy
+      fr: /profil/vie-privee
+    web: true
+    mobile: true
+    deeplink: true
+  # Users the current user blocked (docs/plans/archive/2026-09-24-signalement.md), a sub-page of
+  # profilePrivacy.
   - id: blockedUsers
     path:
       en: /profile/blocked
       fr: /profil/bloques
-    web: false
+    web: true
     mobile: true
-    deeplink: false
+    deeplink: true
+  - id: profileAccount
+    path:
+      en: /profile/account
+      fr: /profil/compte
+    web: true
+    mobile: true
+    deeplink: true
+  - id: profileHelp
+    path:
+      en: /profile/help
+      fr: /profil/aide
+    web: true
+    mobile: true
+    deeplink: true
   - id: calendar
     path:
       en: /calendar

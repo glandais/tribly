@@ -75,6 +75,60 @@ export const paths = {
     }
   },
   notifications: () => '/notifications',
+  myParticipations: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/profil/sorties'
+      default: return '/profile/rides'
+    }
+  },
+  profilePreferences: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/profil/preferences'
+      default: return '/profile/preferences'
+    }
+  },
+  profileNotifications: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/profil/notifications'
+      default: return '/profile/notifications'
+    }
+  },
+  profileDevices: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/profil/appareils'
+      default: return '/profile/devices'
+    }
+  },
+  profileSecurity: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/profil/securite'
+      default: return '/profile/security'
+    }
+  },
+  profilePrivacy: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/profil/vie-privee'
+      default: return '/profile/privacy'
+    }
+  },
+  blockedUsers: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/profil/bloques'
+      default: return '/profile/blocked'
+    }
+  },
+  profileAccount: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/profil/compte'
+      default: return '/profile/account'
+    }
+  },
+  profileHelp: () => {
+    switch (getCurrentLocale()) {
+      case 'fr': return '/profil/aide'
+      default: return '/profile/help'
+    }
+  },
   calendar: () => {
     switch (getCurrentLocale()) {
       case 'fr': return '/calendrier'
@@ -426,6 +480,15 @@ export const pathVariants = {
   support: (): Record<Locale, string> => ({ en: '/support', fr: '/support' }),
   profile: (): Record<Locale, string> => ({ en: '/profile', fr: '/profil' }),
   notifications: (): Record<Locale, string> => ({ en: '/notifications', fr: '/notifications' }),
+  myParticipations: (): Record<Locale, string> => ({ en: '/profile/rides', fr: '/profil/sorties' }),
+  profilePreferences: (): Record<Locale, string> => ({ en: '/profile/preferences', fr: '/profil/preferences' }),
+  profileNotifications: (): Record<Locale, string> => ({ en: '/profile/notifications', fr: '/profil/notifications' }),
+  profileDevices: (): Record<Locale, string> => ({ en: '/profile/devices', fr: '/profil/appareils' }),
+  profileSecurity: (): Record<Locale, string> => ({ en: '/profile/security', fr: '/profil/securite' }),
+  profilePrivacy: (): Record<Locale, string> => ({ en: '/profile/privacy', fr: '/profil/vie-privee' }),
+  blockedUsers: (): Record<Locale, string> => ({ en: '/profile/blocked', fr: '/profil/bloques' }),
+  profileAccount: (): Record<Locale, string> => ({ en: '/profile/account', fr: '/profil/compte' }),
+  profileHelp: (): Record<Locale, string> => ({ en: '/profile/help', fr: '/profil/aide' }),
   calendar: (): Record<Locale, string> => ({ en: '/calendar', fr: '/calendrier' }),
   allRoutes: (): Record<Locale, string> => ({ en: '/routes', fr: '/parcours' }),
   allRoutesMap: (): Record<Locale, string> => ({ en: '/routes/map', fr: '/parcours/carte' }),
@@ -489,6 +552,5 @@ export const pathVariants = {
  */
 export const appOnlyFallbacks = [
   { id: 'register', patterns: ['/register', '/inscription'], fallback: 'login' as const },
-  { id: 'myParticipations', patterns: ['/profile/participations', '/profil/participations'], fallback: 'profile' as const },
   { id: 'teamsDiscover', patterns: ['/teams/discover', '/equipes/decouvrir'], fallback: 'teams' as const },
 ] as const

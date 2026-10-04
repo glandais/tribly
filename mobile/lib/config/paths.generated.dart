@@ -105,9 +105,54 @@ class Paths {
   static String myParticipations() {
     switch (getCurrentLocale()) {
       case 'fr':
-        return '/profil/participations';
+        return '/profil/sorties';
       default:
-        return '/profile/participations';
+        return '/profile/rides';
+    }
+  }
+
+  static String profilePreferences() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/profil/preferences';
+      default:
+        return '/profile/preferences';
+    }
+  }
+
+  static String profileNotifications() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/profil/notifications';
+      default:
+        return '/profile/notifications';
+    }
+  }
+
+  static String profileDevices() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/profil/appareils';
+      default:
+        return '/profile/devices';
+    }
+  }
+
+  static String profileSecurity() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/profil/securite';
+      default:
+        return '/profile/security';
+    }
+  }
+
+  static String profilePrivacy() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/profil/vie-privee';
+      default:
+        return '/profile/privacy';
     }
   }
 
@@ -117,6 +162,24 @@ class Paths {
         return '/profil/bloques';
       default:
         return '/profile/blocked';
+    }
+  }
+
+  static String profileAccount() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/profil/compte';
+      default:
+        return '/profile/account';
+    }
+  }
+
+  static String profileHelp() {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/profil/aide';
+      default:
+        return '/profile/help';
     }
   }
 
@@ -333,12 +396,40 @@ class PathVariants {
     'fr': '/notifications',
   };
   static Map<String, String> myParticipations() => {
-    'en': '/profile/participations',
-    'fr': '/profil/participations',
+    'en': '/profile/rides',
+    'fr': '/profil/sorties',
+  };
+  static Map<String, String> profilePreferences() => {
+    'en': '/profile/preferences',
+    'fr': '/profil/preferences',
+  };
+  static Map<String, String> profileNotifications() => {
+    'en': '/profile/notifications',
+    'fr': '/profil/notifications',
+  };
+  static Map<String, String> profileDevices() => {
+    'en': '/profile/devices',
+    'fr': '/profil/appareils',
+  };
+  static Map<String, String> profileSecurity() => {
+    'en': '/profile/security',
+    'fr': '/profil/securite',
+  };
+  static Map<String, String> profilePrivacy() => {
+    'en': '/profile/privacy',
+    'fr': '/profil/vie-privee',
   };
   static Map<String, String> blockedUsers() => {
     'en': '/profile/blocked',
     'fr': '/profil/bloques',
+  };
+  static Map<String, String> profileAccount() => {
+    'en': '/profile/account',
+    'fr': '/profil/compte',
+  };
+  static Map<String, String> profileHelp() => {
+    'en': '/profile/help',
+    'fr': '/profil/aide',
   };
   static Map<String, String> calendar() => {
     'en': '/calendar',

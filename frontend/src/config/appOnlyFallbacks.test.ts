@@ -26,7 +26,6 @@ describe('app-only deeplinks opened in a browser', () => {
   it.each([
     ['/inscription', '/connexion'],
     ['/register', '/connexion'],
-    ['/profil/participations', '/profil'],
     ['/equipes/decouvrir', '/equipes'],
     ['/teams/discover', '/equipes'],
   ])('%s lands on %s, not a 404', async (path, target) => {
