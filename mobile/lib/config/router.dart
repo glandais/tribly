@@ -79,6 +79,8 @@ String _tripAncestor(Map<String, String> p, String locale) =>
     PathVariants.trip(p['teamSlug']!, p['tripSlug']!)[locale]!;
 String _profileAncestor(Map<String, String> p, String locale) =>
     PathVariants.profile()[locale]!;
+String _profilePrivacyAncestor(Map<String, String> p, String locale) =>
+    PathVariants.profilePrivacy()[locale]!;
 String _teamAdsAncestor(Map<String, String> p, String locale) =>
     PathVariants.teamAds(p['teamSlug']!)[locale]!;
 String _teamRoutesAncestor(Map<String, String> p, String locale) =>
@@ -120,10 +122,9 @@ final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
 
   // Les sous-pages du profil vivent sous sa vue d'ensemble : ouvertes par un
   // lien froid (un e-mail mène à `/profile/notifications`), elles doivent
-  // trouver le profil dessous. « Utilisateurs bloqués » s'ouvre depuis
-  // « Confidentialité », mais son adresse n'est pas sous la sienne
-  // (`/profil/bloques`) : le profil seul est dessous, et sa flèche, sans pile,
-  // retombe sur « Confidentialité ».
+  // trouver le profil dessous. « Utilisateurs bloqués » est une sous-page de
+  // « Confidentialité » (`/profil/vie-privee/bloques`) : les deux sont dessous,
+  // Profil › Confidentialité › Bloqués, comme le fil d'Ariane du site.
   _DeepLinkHierarchy(
     patterns: PathVariants.myParticipations(),
     ancestors: [_profileAncestor],
@@ -150,7 +151,7 @@ final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
   ),
   _DeepLinkHierarchy(
     patterns: PathVariants.blockedUsers(),
-    ancestors: [_profileAncestor],
+    ancestors: [_profileAncestor, _profilePrivacyAncestor],
   ),
   _DeepLinkHierarchy(
     patterns: PathVariants.profileAccount(),
@@ -372,6 +373,38 @@ List<GoRoute> _perLocale(
         pageBuilder: asPage
             ? (ctx, st) => NoTransitionPage(child: builder(ctx, st))
             : null,
+      ),
+    );
+  }
+  return routes;
+}
+
+/// « Confidentialité » et, imbriquée dessous, « Utilisateurs bloqués » — son
+/// adresse prolonge la sienne (`/profil/vie-privee/bloques`). Ouverte par `go`
+/// (un lien froid, la boîte de réception), la liste trouve donc
+/// « Confidentialité » sous elle : son retour suit la même hiérarchie que le
+/// fil d'Ariane du site, sans repli à part.
+List<GoRoute> _profilePrivacyRoutes() {
+  final seen = <String>{};
+  final routes = <GoRoute>[];
+  for (final MapEntry<String, String> entry
+      in PathVariants.profilePrivacy().entries) {
+    if (!seen.add(entry.value)) continue;
+    final blocked = PathVariants.blockedUsers()[entry.key]!;
+    assert(
+      blocked.startsWith('${entry.value}/'),
+      'Expected "$blocked" to start with "${entry.value}/"',
+    );
+    routes.add(
+      GoRoute(
+        path: entry.value,
+        builder: (ctx, st) => const ProfilePrivacyPage(),
+        routes: [
+          GoRoute(
+            path: blocked.substring(entry.value.length + 1),
+            builder: (ctx, st) => const BlockedUsersPage(),
+          ),
+        ],
       ),
     );
   }
@@ -729,14 +762,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 PathVariants.profileSecurity(),
                 (ctx, st) => const ProfileSecurityPage(),
               ),
-              ..._perLocale(
-                PathVariants.profilePrivacy(),
-                (ctx, st) => const ProfilePrivacyPage(),
-              ),
-              ..._perLocale(
-                PathVariants.blockedUsers(),
-                (ctx, st) => const BlockedUsersPage(),
-              ),
+              ..._profilePrivacyRoutes(),
               ..._perLocale(
                 PathVariants.profileAccount(),
                 (ctx, st) => const ProfileAccountPage(),

@@ -43,6 +43,18 @@ final class Moderation extends Module {
     await waitUntilGone(keys.moderation.unblockButton(userId));
   }
 
+  /// Waits for the blocked users page to list [userId], with its « Débloquer ».
+  Future<void> waitUntilUnblockIsShown(String userId) async {
+    await $(keys.moderation.unblockButton(userId)).waitUntilVisible();
+  }
+
+  /// The blocked users page's back arrow, back to « Confidentialité » — the page above it,
+  /// whether the list was opened from there or by a link.
+  Future<void> backToPrivacy() async {
+    await goBack();
+    await $(keys.profile.contactableSwitch).waitUntilExists();
+  }
+
   /// Leaves the current pushed page (the blocked users list, a detail page).
   Future<void> goBack() async {
     await $.tester.pageBack();

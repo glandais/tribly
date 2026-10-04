@@ -151,7 +151,7 @@ test('« Utilisateurs bloqués » sits under « Confidentialité », in the side
   await follow(entry(page, isMobile, 'Confidentialité'))
   await expectPage(page, /\/profil\/vie-privee$/, 'Confidentialité')
   await follow(main(page).getByRole('link', { name: startsWith('Utilisateurs bloqués') }))
-  await expectPage(page, /\/profil\/bloques$/, 'Utilisateurs bloqués')
+  await expectPage(page, /\/profil\/vie-privee\/bloques$/, 'Utilisateurs bloqués')
 
   // A page of « Confidentialité »: the sidebar keeps it current.
   if (!isMobile)

@@ -159,9 +159,9 @@ class Paths {
   static String blockedUsers() {
     switch (getCurrentLocale()) {
       case 'fr':
-        return '/profil/bloques';
+        return '/profil/vie-privee/bloques';
       default:
-        return '/profile/blocked';
+        return '/profile/privacy/blocked';
     }
   }
 
@@ -420,8 +420,8 @@ class PathVariants {
     'fr': '/profil/vie-privee',
   };
   static Map<String, String> blockedUsers() => {
-    'en': '/profile/blocked',
-    'fr': '/profil/bloques',
+    'en': '/profile/privacy/blocked',
+    'fr': '/profil/vie-privee/bloques',
   };
   static Map<String, String> profileAccount() => {
     'en': '/profile/account',

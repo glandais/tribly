@@ -2,7 +2,7 @@ import 'common.dart';
 
 /// Web counterpart: `flow-moderation.e2e.ts` › « blocking a comment author hides their comments;
 /// unblocking… » (audit P0 #6). On mobile, unblocking lives in the profile's « Utilisateurs
-/// bloqués », a page the web doesn't have.
+/// bloqués », under « Confidentialité ».
 void main() {
   testApp(
     'Blocking a comment’s author hides their comments; unblocking from the profile brings them back',
@@ -41,8 +41,13 @@ void main() {
         isNot(contains(commentId)),
       );
 
-      // A post is a full-screen page, over the tab bar.
-      await openLink($, Paths.profilePrivacy());
+      // A post is a full-screen page, over the tab bar. A cold link to the
+      // blocked users finds « Confidentialité » underneath: Profil ›
+      // Confidentialité › Bloqués, as the site's breadcrumb.
+      await openLink($, Paths.blockedUsers());
+      await modules.moderation.waitUntilUnblockIsShown(commenter.id);
+      await modules.moderation.backToPrivacy();
+
       await modules.moderation.unblockFromProfile(commenter.id);
       expect(await backend.blockedIds(reader), isNot(contains(commenter.id)));
 

@@ -226,8 +226,8 @@ routes:
   # profilePrivacy.
   - id: blockedUsers
     path:
-      en: /profile/blocked
-      fr: /profil/bloques
+      en: /profile/privacy/blocked
+      fr: /profil/vie-privee/bloques
     web: true
     mobile: true
     deeplink: true

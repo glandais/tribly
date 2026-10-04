@@ -103,8 +103,8 @@
                 <data android:path="/profil/securite" />
                 <data android:path="/profile/privacy" />
                 <data android:path="/profil/vie-privee" />
-                <data android:path="/profile/blocked" />
-                <data android:path="/profil/bloques" />
+                <data android:path="/profile/privacy/blocked" />
+                <data android:path="/profil/vie-privee/bloques" />
                 <data android:path="/profile/account" />
                 <data android:path="/profil/compte" />
                 <data android:path="/profile/help" />

@@ -113,8 +113,8 @@ export const paths = {
   },
   blockedUsers: () => {
     switch (getCurrentLocale()) {
-      case 'fr': return '/profil/bloques'
-      default: return '/profile/blocked'
+      case 'fr': return '/profil/vie-privee/bloques'
+      default: return '/profile/privacy/blocked'
     }
   },
   profileAccount: () => {
@@ -486,7 +486,7 @@ export const pathVariants = {
   profileDevices: (): Record<Locale, string> => ({ en: '/profile/devices', fr: '/profil/appareils' }),
   profileSecurity: (): Record<Locale, string> => ({ en: '/profile/security', fr: '/profil/securite' }),
   profilePrivacy: (): Record<Locale, string> => ({ en: '/profile/privacy', fr: '/profil/vie-privee' }),
-  blockedUsers: (): Record<Locale, string> => ({ en: '/profile/blocked', fr: '/profil/bloques' }),
+  blockedUsers: (): Record<Locale, string> => ({ en: '/profile/privacy/blocked', fr: '/profil/vie-privee/bloques' }),
   profileAccount: (): Record<Locale, string> => ({ en: '/profile/account', fr: '/profil/compte' }),
   profileHelp: (): Record<Locale, string> => ({ en: '/profile/help', fr: '/profil/aide' }),
   calendar: (): Record<Locale, string> => ({ en: '/calendar', fr: '/calendrier' }),

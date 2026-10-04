@@ -150,7 +150,7 @@ export async function openBlockedUsersInApp(page: Page, displayName: string) {
   const blocked = main.getByRole('link', { name: /^Utilisateurs bloqués/ })
   await hydrated(blocked)
   await blocked.click()
-  await expect(page).toHaveURL(/\/profil\/bloques$/)
+  await expect(page).toHaveURL(/\/profil\/vie-privee\/bloques$/)
 }
 
 /**

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
-import '../../../../config/paths.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_tokens.dart';
@@ -69,11 +68,9 @@ class _BlockedUsersPageState extends ConsumerState<BlockedUsersPage> {
       backgroundColor: c.bg,
       appBar: PdlAppBar(
         title: 'moderation.blockedUsers.title'.tr(),
-        // Ouverte depuis « Confidentialité » ; par un lien froid, la pile ne
-        // contient que le profil, et sans pile on retombe sur la page
-        // d'où elle s'ouvre.
-        onBack: () =>
-            leaveProfileSubpage(context, fallback: Paths.profilePrivacy()),
+        // Sous-route de « Confidentialité » : même ouverte par `go`, la page
+        // la trouve dessous, le retour par défaut suffit.
+        onBack: () => leaveProfileSubpage(context),
         backSemanticLabel: 'common.back'.tr(),
       ),
       body: PdlRefresh(
