@@ -16,7 +16,7 @@ export interface ContractRoute {
   params: string[]
 }
 
-/** The web routes of contracts/routes.yaml (`web` not false), as scripts/ssr-audit.mjs reads them. */
+/** The web routes of contracts/routes.yaml (`web` not false), the set routes-render.e2e.ts opens. */
 export function contractWebRoutes(): ContractRoute[] {
   const raw = parse(readFileSync(repoFile('contracts/routes.yaml'), 'utf8')) as {
     routes: {

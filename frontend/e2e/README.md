@@ -40,6 +40,27 @@ or `backend`, about a minute each) and `up` before testing a change. `E2E_BASE_U
 `E2E_MAILPIT_URL` override where the suite looks, but the stack behind them must be one whose
 bootstrap admin is `admin@e2e.test` — not the workstation stack.
 
+## The SSR check: `routes-render.e2e.ts`
+
+It opens every web route of `contracts/routes.yaml` as six roles and fails on a hydration error, an
+uncaught page error, an error screen, and — on every screen rendered on its own path — any
+`[prefetch-audit]` verdict but `covered`: a query the page read after hydration that its route's
+`prefetch` did not put in the server render (see [docs/SSR-data-loading.md](../docs/SSR-data-loading.md);
+ledgers `WEB-52`, `WEB-53`). Its dataset (`support/routes-render.ts`) fills every entity the way a
+real team would — a ride with groups, routes and places, an ad with pictures and a location… — so the
+queries that only fire when the data exists are audited too: when a screen starts reading a new
+field, give the dataset that field.
+
+- **The audit is compiled in**: `.env.e2e` sets `FRONTEND_PREFETCH_AUDIT=true`, read at image build
+  time. `scripts/e2e.sh up` only builds a *missing* image, so a `tribly-e2e` frontend image built
+  before that line fails every rendering test with « no [prefetch-audit] verdict »: rebuild it
+  (`scripts/e2e.sh build frontend`).
+- **One route**: `pnpm e2e routes-render -g '<routeId> /'` (every role, both projects).
+- **Not every `console.error` fails it**, deliberately (decided 2026-10-04): only `[hydration]`.
+- **A green run dates from the day it ran.** A screen whose prefetch depends on the date (the
+  calendars' month windows) can be covered on the 4th and have a gap on the 27th; that is a unit
+  test's job (`useCalendarDateRange.test.ts`), not this one's.
+
 ## In CI
 
 `.github/workflows/e2e.yml` runs the whole suite **every night on `develop`** and **on demand**

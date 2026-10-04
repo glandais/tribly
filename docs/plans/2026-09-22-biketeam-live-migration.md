@@ -2,8 +2,8 @@
 
 > **Reste à faire** : suivi sous le préfixe `MIG` de [`docs/LEDGER_NEXT.md`](../LEDGER_NEXT.md) (mise en
 > production, 302 → 301, domaines personnalisés, liens et logos avant l'arrêt de biketeam, équipe
-> migrée supprimable, données non importées, fin de vie du code) et au §2 (purge de la corbeille,
-> `ssr-audit` sur `notifications`). Ce plan s'archivera après l'arrêt de biketeam.
+> migrée supprimable, données non importées, fin de vie du code) et au §2 (purge de la corbeille).
+> Ce plan s'archivera après l'arrêt de biketeam.
 >
 > Écrit le 22 septembre 2026. **Implémenté et fusionné** des deux côtés (V43, suite e2e du 25
 > septembre 2026), **en service en staging** ; la mise en production attend biketeam (§10, « Ordre
@@ -1374,7 +1374,8 @@ Chaque implémenteur ne s'appuie que sur ce document. Personne ne commite.
 
 1. `contracts/routes.yaml` : route `biketeamMigration` (§4.3) ; `pnpm generate-routes` ;
    `scripts/routes-ssr.yml` : entrée `- id: biketeamMigration` avec `skip:` (exige un jeton signé),
-   `pnpm ssr-audit:verify`.
+   `pnpm ssr-audit:verify`. (Outil retiré depuis, ledger `WEB-53` : c'est
+   `frontend/e2e/routes-render.e2e.ts` qui couvre la route.)
 2. `src/pages/biketeamMigration/BiketeamMigrationPage.tsx`, déclarée `auth: 'public'` dans
    `routes.config.ts` (comme `invitation`), `pageComponents.ts`. Modèle : `AcceptInvitationPage`.
    - lit `?request=`, le garde en `sessionStorage` (`pendingBiketeamMigrationRequest`) pour survivre
