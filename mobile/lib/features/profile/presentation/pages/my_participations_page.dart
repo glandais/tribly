@@ -47,44 +47,48 @@ class _MyParticipationsPageState extends ConsumerState<MyParticipationsPage> {
       participationsProvider(_upcoming).notifier,
     );
 
-    return Scaffold(
-      backgroundColor: c.bg,
-      appBar: PdlAppBar(
-        title: 'profile.participations.title'.tr(),
-        onBack: () => leaveProfileSubpage(context),
-        backSemanticLabel: 'profile.backToProfile'.tr(),
-      ),
-      body: PdlRefresh(
-        onRefresh: notifier.refresh,
-        child: CustomScrollView(
-          primary: true,
-          slivers: <Widget>[
-            PdlPinnedToolbar(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: PdlSpacing.section,
-                ),
-                child: PdlSegmented<bool>(
-                  value: _upcoming,
-                  onChanged: (bool value) => setState(() => _upcoming = value),
-                  segments: <PdlSegment<bool>>[
-                    PdlSegment<bool>(
-                      key: keys.profile.participationsUpcomingTab,
-                      value: true,
-                      label: 'profile.participations.upcoming'.tr(),
-                    ),
-                    PdlSegment<bool>(
-                      key: keys.profile.participationsHistoryTab,
-                      value: false,
-                      label: 'profile.participations.past'.tr(),
-                    ),
-                  ],
+    return ProfileSummaryRefreshOnLeave(
+      child: Scaffold(
+        backgroundColor: c.bg,
+        appBar: PdlAppBar(
+          title: 'profile.participations.title'.tr(),
+          onBack: () => leaveProfileSubpage(context),
+          backSemanticLabel: 'profile.backToProfile'.tr(),
+          backKey: keys.profile.backButton,
+        ),
+        body: PdlRefresh(
+          onRefresh: notifier.refresh,
+          child: CustomScrollView(
+            primary: true,
+            slivers: <Widget>[
+              PdlPinnedToolbar(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: PdlSpacing.section,
+                  ),
+                  child: PdlSegmented<bool>(
+                    value: _upcoming,
+                    onChanged: (bool value) =>
+                        setState(() => _upcoming = value),
+                    segments: <PdlSegment<bool>>[
+                      PdlSegment<bool>(
+                        key: keys.profile.participationsUpcomingTab,
+                        value: true,
+                        label: 'profile.participations.upcoming'.tr(),
+                      ),
+                      PdlSegment<bool>(
+                        key: keys.profile.participationsHistoryTab,
+                        value: false,
+                        label: 'profile.participations.past'.tr(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            ..._content(state, notifier),
-            const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
-          ],
+              ..._content(state, notifier),
+              const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
+            ],
+          ),
         ),
       ),
     );

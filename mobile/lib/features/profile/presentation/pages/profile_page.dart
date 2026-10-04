@@ -18,14 +18,16 @@ import '../../../../keys.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../providers/profile_summary_provider.dart';
+import '../widgets/connected_services_section.dart';
 import '../widgets/paired_devices_section.dart';
 import '../widgets/profile_subpage.dart';
 import 'profile_help_page.dart';
 
 /// Le profil : une **vue d'ensemble** courte, et une sous-page par sujet.
 ///
-/// La carte d'identité mène à « Mon compte » ; viennent ensuite des raccourcis
-/// groupés — Mon activité, Réglages, Sécurité et confidentialité, Compte —,
+/// La carte d'identité mène à « Mon compte », que le groupe Compte nomme aussi
+/// en toutes lettres ; viennent ensuite des raccourcis groupés — Mon activité,
+/// Réglages, Sécurité et confidentialité, Compte —,
 /// chacun avec **une ligne d'état** : on sait ce qu'on va trouver avant
 /// d'ouvrir. « Se déconnecter » ferme la liste, une seule fois dans le profil.
 ///
@@ -36,7 +38,8 @@ import 'profile_help_page.dart';
 /// Les lignes d'état viennent de deux sources, sans doublon : l'utilisateur
 /// connecté (préférences d'affichage, services GPS connectés) et
 /// `GET /api/users/me/profile-summary` (le reste, en un appel). Le résumé est
-/// relu au retour d'une sous-page, où l'un de ses compteurs a pu changer.
+/// relu quand une sous-page se ferme, où l'un de ses compteurs a pu changer ;
+/// tirer pour rafraîchir relit les deux sources.
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
@@ -47,14 +50,19 @@ class ProfilePage extends ConsumerWidget {
     );
     final ProfileSummaryDto? summary = ref.watch(profileSummaryProvider).value;
 
-    Future<void> open(String path) async {
-      await context.push(path);
-      ref.invalidate(profileSummaryProvider);
-    }
+    // Le résumé est relu quand la sous-page se ferme
+    // (`ProfileSummaryRefreshOnLeave`), quelle que soit la façon dont on y
+    // est arrivé : rien à faire au retour du `push`.
+    void open(String path) => context.push(path);
 
     return PdlScreenScaffold(
       appBar: PdlAppBar(title: 'profile.title'.tr()),
-      onRefresh: () => ref.refresh(profileSummaryProvider.future),
+      // Les deux sources des lignes d'état : le résumé, et `/me` (préférences
+      // d'affichage, services connectés), qu'un autre appareil a pu changer.
+      onRefresh: () => Future.wait(<Future<void>>[
+        ref.refresh(profileSummaryProvider.future),
+        refreshCurrentUser(ref).catchError((Object _) {}),
+      ]),
       slivers: <Widget>[
         const SliverToBoxAdapter(child: SizedBox(height: PdlSpacing.section)),
         SliverToBoxAdapter(
@@ -146,6 +154,14 @@ class ProfilePage extends ConsumerWidget {
             title: 'profile.groups.account'.tr(),
             rows: <Widget>[
               _ShortcutRow(
+                key: keys.profile.accountRow,
+                icon: PdlIcons.person,
+                title: 'profile.nav.account'.tr(),
+                neutral: true,
+                status: 'profile.status.account'.tr(),
+                onTap: () => open(Paths.profileAccount()),
+              ),
+              _ShortcutRow(
                 key: keys.profile.helpRow,
                 icon: PdlIcons.info,
                 title: 'profile.nav.help'.tr(),
@@ -170,7 +186,7 @@ class ProfilePage extends ConsumerWidget {
   Widget _ridesRow(
     BuildContext context,
     ProfileSummaryDto? summary,
-    Future<void> Function(String path) open,
+    void Function(String path) open,
   ) {
     final PdlColors c = context.pdl;
     final ProfileParticipationSummaryDto? p = summary?.participations;

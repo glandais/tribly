@@ -64,70 +64,76 @@ class _BlockedUsersPageState extends ConsumerState<BlockedUsersPage> {
       blockedUsersProvider,
     );
 
-    return Scaffold(
-      backgroundColor: c.bg,
-      appBar: PdlAppBar(
-        title: 'moderation.blockedUsers.title'.tr(),
-        // Sous-route de « Confidentialité » : même ouverte par `go`, la page
-        // la trouve dessous, le retour par défaut suffit.
-        onBack: () => leaveProfileSubpage(context),
-        backSemanticLabel: 'common.back'.tr(),
-      ),
-      body: PdlRefresh(
-        onRefresh: () => ref.refresh(blockedUsersProvider.future),
-        child: CustomScrollView(
-          primary: true,
-          slivers: <Widget>[
-            SliverPadding(
-              padding: const EdgeInsets.all(PdlSpacing.section),
-              sliver: SliverToBoxAdapter(
-                child: Text(
-                  'moderation.blockedUsers.hint'.tr(),
-                  style: context.pdlText.sub,
+    return ProfileSummaryRefreshOnLeave(
+      child: Scaffold(
+        backgroundColor: c.bg,
+        appBar: PdlAppBar(
+          title: 'moderation.blockedUsers.title'.tr(),
+          // Sous-route de « Confidentialité » : même ouverte par `go`, la page
+          // la trouve dessous, le retour par défaut suffit.
+          onBack: () => leaveProfileSubpage(context),
+          backSemanticLabel: 'common.back'.tr(),
+          backKey: keys.profile.backButton,
+        ),
+        body: PdlRefresh(
+          onRefresh: () => ref.refresh(blockedUsersProvider.future),
+          child: CustomScrollView(
+            primary: true,
+            slivers: <Widget>[
+              SliverPadding(
+                padding: const EdgeInsets.all(PdlSpacing.section),
+                sliver: SliverToBoxAdapter(
+                  child: Text(
+                    'moderation.blockedUsers.hint'.tr(),
+                    style: context.pdlText.sub,
+                  ),
                 ),
               ),
-            ),
-            ...blocked.when(
-              // Le premier chargement seulement : une relecture après un
-              // déblocage garde la liste affichée.
-              skipLoadingOnRefresh: true,
-              skipLoadingOnReload: true,
-              data: _list,
-              loading: () => const <Widget>[
-                SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: PdlSpacing.section),
-                  sliver: SliverToBoxAdapter(
-                    child: PdlSkeletonCardList(
-                      variant: PdlSkeletonCardVariant.person,
-                      count: 3,
+              ...blocked.when(
+                // Le premier chargement seulement : une relecture après un
+                // déblocage garde la liste affichée.
+                skipLoadingOnRefresh: true,
+                skipLoadingOnReload: true,
+                data: _list,
+                loading: () => const <Widget>[
+                  SliverPadding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: PdlSpacing.section,
+                    ),
+                    sliver: SliverToBoxAdapter(
+                      child: PdlSkeletonCardList(
+                        variant: PdlSkeletonCardVariant.person,
+                        count: 3,
+                      ),
                     ),
                   ),
-                ),
-              ],
-              error: (Object error, StackTrace stack) => <Widget>[
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(
-                    child: PdlEmptyState(
-                      variant: PdlEmptyVariant.error,
-                      title: 'common.loadError'.tr(),
-                      message: getErrorMessage(error, stack),
-                      actions: <Widget>[
-                        PdlButton(
-                          label: 'common.retry'.tr(),
-                          variant: PdlButtonVariant.outline,
-                          size: PdlButtonSize.sm,
-                          onPressed: () => ref.invalidate(blockedUsersProvider),
-                        ),
-                        ReportProblemButton(error: error, stackTrace: stack),
-                      ],
+                ],
+                error: (Object error, StackTrace stack) => <Widget>[
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: PdlEmptyState(
+                        variant: PdlEmptyVariant.error,
+                        title: 'common.loadError'.tr(),
+                        message: getErrorMessage(error, stack),
+                        actions: <Widget>[
+                          PdlButton(
+                            label: 'common.retry'.tr(),
+                            variant: PdlButtonVariant.outline,
+                            size: PdlButtonSize.sm,
+                            onPressed: () =>
+                                ref.invalidate(blockedUsersProvider),
+                          ),
+                          ReportProblemButton(error: error, stackTrace: stack),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
-          ],
+                ],
+              ),
+              const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
+            ],
+          ),
         ),
       ),
     );

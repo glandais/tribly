@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -76,6 +77,23 @@ class _FakeAuthRepository implements AuthRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// `GET /api/users/me` : l'utilisateur tel qu'un autre appareil l'a laissé.
+class _FakeUsersClient implements UsersClient {
+  _FakeUsersClient(this.me);
+
+  final UserDto me;
+  int getMeCalls = 0;
+
+  @override
+  Future<UserDto> getMe() async {
+    getMeCalls++;
+    return me;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _FakeSecureStorage implements SecureTokenStorage {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -96,6 +114,8 @@ void main() {
   Future<void> mount(
     WidgetTester tester, {
     ProfileSummaryDto summary = _summary,
+    UsersClient? users,
+    void Function()? onSummaryLoad,
   }) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -111,7 +131,11 @@ void main() {
           authRepositoryProvider.overrideWithValue(auth),
           accessTokenHolderProvider.overrideWith((ref) => 'token'),
           authProvider.overrideWith((ref) => _StubAuthNotifier(ref, auth)),
-          profileSummaryProvider.overrideWith((ref) async => summary),
+          profileSummaryProvider.overrideWith((ref) async {
+            onSummaryLoad?.call();
+            return summary;
+          }),
+          if (users != null) usersClientProvider.overrideWithValue(users),
           packageInfoProvider.overrideWith(
             (ref) async => PackageInfo(
               appName: 'Pédalons',
@@ -178,7 +202,52 @@ void main() {
     expect(find.text('2 clés d\'accès'), findsOneWidget);
     expect(find.text('1 personne bloquée · mes données'), findsOneWidget);
     expect(find.text('Version 1.4.0 (57)'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(keys.profile.accountRow),
+        matching: find.text('Mon compte'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Photo, nom affiché, suppression du compte'),
+      findsOneWidget,
+    );
   });
+
+  testWidgets(
+    'tirer pour rafraîchir relit le résumé et /me (préférences, services)',
+    (WidgetTester tester) async {
+      int summaryLoads = 0;
+      final _FakeUsersClient users = _FakeUsersClient(
+        _user.copyWith(
+          timezone: 'America/New_York',
+          connectedServices: const <GpsServiceConnectionDto>[],
+        ),
+      );
+      await mount(tester, users: users, onSummaryLoad: () => summaryLoads++);
+      expect(summaryLoads, 1);
+
+      // Le rafraîchissement de la page, sans la secousse de `PdlRefresh` ;
+      // sans `await` : la relecture n'aboutit qu'au fil des images.
+      unawaited(
+        tester
+            .widget<PdlScreenScaffold>(find.byType(PdlScreenScaffold))
+            .onRefresh!(),
+      );
+      for (int i = 0; i < 4; i++) {
+        await tester.pump(const Duration(milliseconds: 10));
+      }
+
+      expect(summaryLoads, 2);
+      expect(users.getMeCalls, 1);
+      expect(
+        find.text('Métrique · America/New_York · Système · Français'),
+        findsOneWidget,
+      );
+      expect(find.text('1 Karoo'), findsOneWidget);
+    },
+  );
 
   testWidgets('sans canal déclaré, les notifications restent dans l\'app', (
     WidgetTester tester,

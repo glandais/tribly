@@ -45,7 +45,12 @@ class ProfilePageKeys {
   final devicesRow = const _ProfilePageKey('devicesRow');
   final securityRow = const _ProfilePageKey('securityRow');
   final privacyRow = const _ProfilePageKey('privacyRow');
+  final accountRow = const _ProfilePageKey('accountRow');
   final helpRow = const _ProfilePageKey('helpRow');
+
+  /// La flèche de retour d'une sous-page du profil, vers la vue d'ensemble
+  /// (ou « Confidentialité », sous « Utilisateurs bloqués »).
+  final backButton = const _ProfilePageKey('backButton');
 
   /// « Mes sorties » : les segments « À venir » et « Historique ».
   final participationsUpcomingTab = const _ProfilePageKey(

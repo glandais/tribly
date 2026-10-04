@@ -51,7 +51,7 @@ final class Moderation extends Module {
   /// The blocked users page's back arrow, back to « Confidentialité » — the page above it,
   /// whether the list was opened from there or by a link.
   Future<void> backToPrivacy() async {
-    await goBack();
+    await $(keys.profile.backButton).tap();
     await $(keys.profile.contactableSwitch).waitUntilExists();
   }
 

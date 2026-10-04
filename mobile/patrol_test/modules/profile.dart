@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
-import 'package:pedalons/core/pdl/pdl.dart';
 
 import 'module.dart';
 
@@ -41,17 +40,9 @@ final class Profile extends Module {
   /// « Aide et à propos »: the companion apps, « Signaler un problème », legal pages, versions.
   Future<void> openHelp() => _open(keys.profile.helpRow, keys.profile.appsRow);
 
-  /// The sub-page's back arrow, back to the overview. Found by position rather than by its label,
-  /// which follows the app's language (« Retour au profil », « Back to profile »).
+  /// The sub-page's back arrow, back to the overview.
   Future<void> backToOverview() async {
-    await $.tester.tap(
-      find
-          .descendant(
-            of: find.byType(PdlAppBar),
-            matching: find.byType(PdlAppBarAction),
-          )
-          .first,
-    );
+    await $(keys.profile.backButton).tap();
     await waitUntilShown();
   }
 

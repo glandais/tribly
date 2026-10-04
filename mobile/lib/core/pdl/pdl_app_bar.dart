@@ -41,6 +41,7 @@ class PdlAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.titleWidget,
     this.onBack,
     this.backSemanticLabel,
+    this.backKey,
     this.leading,
     this.actions = const <Widget>[],
     this.variant = PdlAppBarVariant.solid,
@@ -60,6 +61,10 @@ class PdlAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Libellé d'accessibilité de la flèche : « Retour au voyage » vaut mieux
   /// que « Retour ». `core/pdl` ne traduit rien, l'écran fournit la chaîne.
   final String? backSemanticLabel;
+
+  /// Clé de la flèche de retour, pour qu'un test la trouve sans dépendre de
+  /// sa position ni de son libellé (qui suit la langue de l'app).
+  final Key? backKey;
 
   /// Remplace entièrement la zone de tête (et donc [onBack]).
   final Widget? leading;
@@ -126,6 +131,7 @@ class PdlAppBar extends StatelessWidget implements PreferredSizeWidget {
         (onBack == null
             ? null
             : PdlAppBarAction(
+                key: backKey,
                 icon: PdlIcons.back,
                 onPressed: onBack,
                 semanticLabel: backSemanticLabel,
