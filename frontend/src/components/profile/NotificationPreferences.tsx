@@ -12,6 +12,7 @@ import type { NotificationType } from '@/api/dto'
 import { cellOf, familiesWithRows } from './notificationFamilies'
 import { ProfileCard } from './ProfileShell'
 import { WebPushSettings } from './WebPushSettings'
+import classes from './NotificationPreferences.module.css'
 
 /**
  * The notification settings of `GET /api/notifications/preferences`, on their profile page: this
@@ -125,20 +126,22 @@ export function NotificationPreferences() {
                           {data.channels.map((channel) => {
                             const cell = cellOf(data, type, channel)
                             return (
-                              <Table.Td key={channel}>
+                              <Table.Td key={channel} className={classes.cell}>
                                 {cell && (
-                                  <Checkbox
-                                    checked={cell.enabled}
-                                    disabled={mutation.isPending}
-                                    onChange={(event) =>
-                                      toggle(type, channel, event.currentTarget.checked)
-                                    }
-                                    aria-label={t('notifications.preferences.toggleAriaLabel', {
-                                      type: typeLabel(type),
-                                      channel: channelLabel(channel),
-                                    })}
-                                    styles={{ body: { justifyContent: 'center' } }}
-                                  />
+                                  // The label is the 44 px touch target, not the 20 px box.
+                                  <label className={classes.hit}>
+                                    <Checkbox
+                                      checked={cell.enabled}
+                                      disabled={mutation.isPending}
+                                      onChange={(event) =>
+                                        toggle(type, channel, event.currentTarget.checked)
+                                      }
+                                      aria-label={t('notifications.preferences.toggleAriaLabel', {
+                                        type: typeLabel(type),
+                                        channel: channelLabel(channel),
+                                      })}
+                                    />
+                                  </label>
                                 )}
                               </Table.Td>
                             )

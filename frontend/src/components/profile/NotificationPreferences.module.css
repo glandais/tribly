@@ -1,0 +1,23 @@
+/*
+ * One cell of the type × channel matrix. The checkbox sits inside a <label> that fills the cell,
+ * so a tap anywhere in it toggles the box: on a phone or any touch screen the label is at least
+ * 44 px high and wide (the box itself stays 20 px, the table keeps its density); with a mouse on a
+ * wide screen the cell keeps its desktop size.
+ */
+.hit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+@media (max-width: 47.99em), (pointer: coarse) {
+  .cell {
+    padding-block: 0;
+  }
+
+  .hit {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
