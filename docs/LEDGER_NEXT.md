@@ -309,15 +309,6 @@ sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` u
       contrainte `…_check` aux valeurs de l'enum Java correspondant (`AuthTokenType`, `AssetType`,
       `service_type`, `platform_role`, `visibility`, `status`…) supprimerait cette classe de défaut.
 
-- [ ] `API-73` **Un changement d'adresse coupe toutes les sessions ouvertes pendant 15 min (S)** —
-      `PedalonsQueryContext.doInit` retrouve l'utilisateur par la valeur `email` du JWT : après
-      `confirmEmailChange`, chaque jeton d'accès encore valide (web, mobile, autres appareils) ne
-      résout plus personne et prend un 403 jusqu'à son renouvellement — qu'aucun client ne déclenche,
-      puisqu'ils ne rafraîchissent que sur 401. Résoudre par `userId` (déjà dans le JWT,
-      `JwtService`) en gardant le contrôle du `domainId`. Touche toutes les requêtes authentifiées :
-      tests `AuthResourceTest` et `AccessTokenDomainTest` à lancer. Le web contourne pour sa propre page
-      (`WEB-59`).
-
 ### Les chantiers d'infrastructure d'API
 
 Quatre chantiers ont été chiffrés au §4 du

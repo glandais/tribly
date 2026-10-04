@@ -2,6 +2,7 @@ package fr.pedalons.service.security;
 
 import static fr.pedalons.common.TokenUtils.hashToken;
 
+import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.ForbiddenException;
 import fr.pedalons.domain.auth.AuthSession;
 import fr.pedalons.domain.platform.Domain;
@@ -14,7 +15,6 @@ import fr.pedalons.repository.platform.DomainRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.team.TeamService;
-import fr.pedalons.service.user.UserService;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.RequestScoped;
@@ -48,8 +48,6 @@ public class PedalonsQueryContext {
   @Nullable User activeUser;
 
   boolean activeUserResolved = false;
-
-  @Inject UserService userService;
 
   @Inject TeamService teamService;
 
@@ -160,24 +158,27 @@ public class PedalonsQueryContext {
     Domain domain = domainResolver.getDomainNullable();
 
     if (identity.getPrincipal() instanceof JsonWebToken jwt) {
-      String email = jwt.getClaim("email");
+      String userIdStr = jwt.getClaim("userId");
       String domainIdStr = jwt.getClaim("domainId");
-      Long tokenDomainId =
-          domainIdStr != null ? fr.pedalons.common.TsidUtils.toLong(domainIdStr) : null;
+      Long tokenDomainId = domainIdStr != null ? TsidUtils.toLong(domainIdStr) : null;
       // For Garmin devices (or any client with domainId in JWT), use JWT's domainId
       // when HTTP headers don't resolve a domain
       if (domain == null && tokenDomainId != null) {
         domain = domainRepository.findByIdOptional(tokenDomainId).orElse(null);
       }
-      // A token is only worth something on the site that issued it. The same address can hold an
-      // account on every domain: looking the user up by email alone would open, on another host,
-      // the account that happens to share it.
+      // A token is only worth something on the site that issued it: on another host it opens
+      // nothing, not even the account that happens to share its address there.
       if (domain != null && !domain.getId().equals(tokenDomainId)) {
         return;
       }
-      if (domain != null) {
-        // Lookup user by email AND domain - do NOT create/update
-        user = userService.lookupUserByEmailAndDomain(domain.getId(), email).orElse(null);
+      // By id, never by the token's email: an address change would otherwise leave every access
+      // token still running on the other devices resolving nobody, a 403 no client refreshes on
+      // (docs/LEDGER_*.md API-73).
+      if (domain != null && userIdStr != null) {
+        user =
+            userRepository
+                .findActiveByIdAndDomain(domain.getId(), TsidUtils.toLong(userIdStr))
+                .orElse(null);
       }
     } else if (domain != null) {
       // Fallback to cookie-based auth for browser direct requests (downloads, images)

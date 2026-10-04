@@ -772,6 +772,34 @@ class AuthResourceTest extends AbstractResourceTest {
     preview("change-token").statusCode(400);
   }
 
+  /**
+   * The access tokens still running on the member's other devices carry the old address: they must
+   * keep opening the account until they expire (docs/LEDGER_*.md API-73).
+   */
+  @Test
+  void confirmEmailChange_keepsTheAccessTokensIssuedBeforeIt() {
+    User user = dataService.createVerifiedUser("stale@example.com", "Stale");
+    String accessTokenBefore = jwtService.generateAccessToken(user);
+    createEmailChangeToken(user, "fresh@example.com", "stale-change-token");
+
+    given()
+        .contentType(ContentType.JSON)
+        .body("{\"token\": \"stale-change-token\"}")
+        .when()
+        .post("/api/auth/confirm-email-change")
+        .then()
+        .statusCode(204);
+
+    given()
+        .auth()
+        .oauth2(accessTokenBefore)
+        .when()
+        .get("/api/users/me")
+        .then()
+        .statusCode(200)
+        .body("email", equalTo("fresh@example.com"));
+  }
+
   @Test
   void eachLinkOpensOnlyItsOwnDoor() {
     User user = dataService.createVerifiedUser("door@example.com", "Door");

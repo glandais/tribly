@@ -25,7 +25,6 @@ import jakarta.transaction.Transactional;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -181,17 +180,5 @@ public class UserService {
     accountErasureService.erase(user);
     // The request context memoizes the active user; it is no longer active.
     pedalonsContext.invalidateUser();
-  }
-
-  /**
-   * Lookup user by email and domain without creating/updating. Used by PedalonsQueryContext.
-   *
-   * @param domainId the domain ID
-   * @param email the user's email
-   * @return Optional containing the user if found, empty otherwise
-   */
-  @Transactional
-  public Optional<User> lookupUserByEmailAndDomain(Long domainId, String email) {
-    return userRepository.findByEmailAndDomain(domainId, email);
   }
 }

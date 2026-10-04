@@ -66,7 +66,7 @@ class UserServiceTest extends AbstractBaseTest {
     void shouldReturnUserDtoForExistingUser() {
       User user = dataService.createUser("test@example.com", "Test User");
 
-      when(jwt.getClaim("email")).thenReturn("test@example.com");
+      when(jwt.getClaim("userId")).thenReturn(TsidUtils.toString(user.getId()));
       when(jwt.getClaim("name")).thenReturn("Original Name");
       when(securityIdentity.isAnonymous()).thenReturn(false);
       when(securityIdentity.getPrincipal()).thenReturn(jwt);
@@ -103,9 +103,9 @@ class UserServiceTest extends AbstractBaseTest {
 
     @Test
     void shouldUpdateDisplayName() {
-      dataService.createUser("test@example.com", "Original Name");
+      User user = dataService.createUser("test@example.com", "Original Name");
 
-      when(jwt.getClaim("email")).thenReturn("test@example.com");
+      when(jwt.getClaim("userId")).thenReturn(TsidUtils.toString(user.getId()));
       when(jwt.getClaim("name")).thenReturn("Original Name");
       when(securityIdentity.isAnonymous()).thenReturn(false);
       when(securityIdentity.getPrincipal()).thenReturn(jwt);
@@ -118,9 +118,9 @@ class UserServiceTest extends AbstractBaseTest {
 
     @Test
     void shouldPreserveDisplayNameWhenNull() {
-      dataService.createUser("test@example.com", "Original Name");
+      User user = dataService.createUser("test@example.com", "Original Name");
 
-      when(jwt.getClaim("email")).thenReturn("test@example.com");
+      when(jwt.getClaim("userId")).thenReturn(TsidUtils.toString(user.getId()));
       when(jwt.getClaim("name")).thenReturn("Original Name");
       when(securityIdentity.isAnonymous()).thenReturn(false);
       when(securityIdentity.getPrincipal()).thenReturn(jwt);
@@ -152,7 +152,7 @@ class UserServiceTest extends AbstractBaseTest {
     void shouldSoftDeleteUser() {
       User user = dataService.createUser("test@example.com", "Test User");
 
-      when(jwt.getClaim("email")).thenReturn("test@example.com");
+      when(jwt.getClaim("userId")).thenReturn(TsidUtils.toString(user.getId()));
       when(jwt.getClaim("name")).thenReturn("Original Name");
       when(securityIdentity.isAnonymous()).thenReturn(false);
       when(securityIdentity.getPrincipal()).thenReturn(jwt);
