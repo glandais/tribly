@@ -64,8 +64,8 @@ with `readUrlFilters(url.searchParams, { schema, alias })`, then prefetches the 
 This is not an optimisation, it is what makes a filtered link work at all. Before it, `?p=5` or
 `?q=col` server-rendered an **empty list**: the prefetch always filled the default variant, the
 page read a different query key, and the content only appeared after hydration — on links whose
-entire purpose is being shared. Verify with `scripts/ssr-audit.mjs` (a `path:` entry in
-`routes-ssr.yml` may carry a query string) or with
+entire purpose is being shared. Verify with `e2e/routes-render.e2e.ts` (its prefetch audit fails on
+a refetch after hydration) or with
 `curl -s '…/parcours?p=5' | grep -c 'href="/equipes/…/parcours/'`.
 
 Two consequences when adding a filter:

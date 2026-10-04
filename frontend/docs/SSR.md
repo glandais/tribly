@@ -200,8 +200,9 @@ just pays one harmless extra render with the same value. `useComputedColorScheme
   filter schema/alias pair, a multi-phase sequence) gets a **data companion module** instead —
   the pattern, its rules and how to verify it are in
   [SSR-data-loading.md](SSR-data-loading.md).
-  Verify with `scripts/ssr-audit.mjs` (see [SSR-BUGS.md](SSR-BUGS.md)) rather than the network tab:
-  it reports the exact query keys that were fetched after hydration.
+  Verify with `e2e/routes-render.e2e.ts` (`pnpm e2e routes-render -g '<routeId> /'` on the e2e
+  stack) rather than the network tab: its prefetch audit reports the exact query keys that were
+  fetched after hydration.
 - **`node:async_hooks` must not leak into the client bundle**: `lib/requestContext.ts`
   (SSR-only) is bridged through the client-safe `lib/ssrContext.ts` getters
   (`getSSRHeaders/getSSRLocale/getSSRConfig/getSSRAuth`); only `entry-server.tsx` and
@@ -268,8 +269,8 @@ Consequences of `<Navigate>` worth knowing, both benign here:
   (`routes.yaml`, `web: false`) get a real 302 to their web fallback. Guard pages still use
   `<Navigate>`; moving one to a loader redirect is possible, not done.
 
-Found by `scripts/ssr-audit.mjs` on a guard page since removed; the open list is in
-[SSR-BUGS.md](SSR-BUGS.md).
+Found by the SSR crawler (since retired for `e2e/routes-render.e2e.ts`) on a guard page since
+removed; open SSR defects are ledger entries (`docs/LEDGER_NEXT.md`, `WEB` prefix).
 
 ## Verifying SSR end-to-end
 

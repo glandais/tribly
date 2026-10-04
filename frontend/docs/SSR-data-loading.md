@@ -12,9 +12,11 @@ A server-rendered page needs its data described in two places that must agree by
 - the route's `prefetch` in `routes.config.ts`, which must land the *same* keys in the
   per-request `QueryClient` before the render.
 
-Nothing enforces the agreement, and a divergence is **silent**: the page still works, the data
-still arrives — only after hydration instead of before it. No error, no failing test. It shows up
-as a gap in `scripts/ssr-audit.mjs`, or as a `[prefetch-audit]` console warning, and nowhere else.
+Nothing in the type system enforces the agreement, and a divergence is **silent** to the eye: the
+page still works, the data still arrives — only after hydration instead of before it. No error. It
+shows up as a `[prefetch-audit]` console warning, which `e2e/routes-render.e2e.ts` turns into a
+failing test for every screen and role (the e2e image is built with `FRONTEND_PREFETCH_AUDIT=true`,
+ledger `WEB-52`).
 
 The failure modes are all "looks fine, reads different":
 
@@ -209,10 +211,29 @@ curl -s 'http://localhost:3111/equipes/<team>/parcours?q=gravel&p=2' \
   | grep -o '__REACT_QUERY_STATE__.*' | head -c 2000
 
 # 2. nothing is fetched after hydration
-node ../scripts/ssr-audit.mjs --url http://localhost:3111      # or one page in a browser:
+pnpm e2e routes-render -g '<routeId> /'    # on the e2e stack, every role — or one page in a browser:
 # console → [prefetch-audit] route "…": all queries were covered by route prefetch
 ```
 
 `[prefetch-audit]` only flushes after 5 s with no fetch activity (`SETTLE_DEBOUNCE_MS` in
 `lib/prefetchAudit.ts`) — a scripted check must wait that long before concluding anything, and the
 build/server must have `FRONTEND_PREFETCH_AUDIT=true`.
+
+## Reading a prefetch gap
+
+- **"Depends on the viewport" is a claim to verify against the component, not a category to file
+  a gap under.** The calendars' late `calendar/events` window was once dismissed that way; the
+  range actually came from `CalendarView`'s mount effect, `getVisibleRange(date, view)`, a pure
+  function of two pieces of state that replaced the prefetched window one render after hydration.
+  `useCalendarDateRange` now bails out when the visible range is already inside the loaded one,
+  which required snapping that window to month boundaries (`useCalendarDateRange.test.ts` guards
+  the end-of-month days a rolling window missed). A range a mount effect computes from state is
+  always reproducible server-side.
+- **A query fired only on interaction is not a gap.** `MyParticipations`' paged queries on the
+  profile run when a section is opened; they cannot and need not be prefetched. The audit settles
+  5 s after load, before any click, so it does not see them.
+- **A production build tells you *that*, not *where*.** It minifies hydration errors (`#418` =
+  mismatch, with `args[]` naming what mismatched; `#185` = update loop) and carries no component
+  diff, and minified class names are chunk-local (two vendor chunks can each define their own
+  `Tn`), so a name from the bundle identifies nothing. Re-run the failing route against
+  `pnpm dev:ssr` to get the component tree.

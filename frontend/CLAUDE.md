@@ -132,12 +132,11 @@ Lists request `view=COMPACT` where they only need `excerpt` + `thumbnailUrl`; in
 
 `server.js` (Express) renders public pages on the server via the static prerender API (`react-dom/static`, NOT `renderToString` — lazy route pages would render as their Suspense fallback) and hydrates on the client. Entry points: `src/entry-server.tsx` (`render(url, headers)`) and `src/entry-client.tsx` (hydrate). React Router runs in **library mode** (`createStaticHandler`/`createStaticRouter`, not framework mode); Vite uses `ssrLoadModule` in dev (no Environment API).
 
-Currently-known SSR defects (and the crawler that finds them, `scripts/ssr-audit.mjs`) are listed
-in [docs/SSR-BUGS.md](docs/SSR-BUGS.md) — check it before reporting one.
+The SSR check is `e2e/routes-render.e2e.ts`, nightly on the e2e stack: every web route, six roles, failing on a hydration error, an uncaught page error or a prefetch gap (`pnpm e2e routes-render -g '<routeId> /'` re-checks one route, see [e2e/README.md](e2e/README.md)). Open or deliberately accepted SSR defects are ledger entries (`docs/LEDGER_NEXT.md`, `WEB` prefix) — check there before reporting one.
 
 **Before changing SSR-reachable code, read [docs/SSR.md](docs/SSR.md)** — it documents the architecture and the non-obvious failure modes (lazy pages vs renderToString, silent Suspense-swallowed crashes, useId tree parity via `AppProviders`/`AppFrame`, localStorage-derived render state, and the curl checks that actually catch regressions).
 
-**Before adding or editing a route's `prefetch`, read [docs/SSR-data-loading.md](docs/SSR-data-loading.md)** — a screen's data is declared once, in a companion module next to the page (`pages/ride/rideDetailData.ts`, `pages/route/routeListData.ts`), read as hooks by the page and as a `Promise.all` by `routes.config.ts`. Describing it twice doesn't break anything visibly: it just yields a different query key, so the client refetches after hydration and only `scripts/ssr-audit.mjs` notices.
+**Before adding or editing a route's `prefetch`, read [docs/SSR-data-loading.md](docs/SSR-data-loading.md)** — a screen's data is declared once, in a companion module next to the page (`pages/ride/rideDetailData.ts`, `pages/route/routeListData.ts`), read as hooks by the page and as a `Promise.all` by `routes.config.ts`. Describing it twice doesn't break anything visibly: it just yields a different query key, so the client refetches after hydration and only the prefetch audit notices — `e2e/routes-render.e2e.ts` fails on it.
 
 Hard invariants — keep these when touching SSR-reachable code:
 

@@ -62,7 +62,6 @@ mkcert localhost 127.0.0.1 <your LAN IP>   # generates localhost+2.pem and local
 | `pnpm test` | Vitest (watch mode) |
 | `pnpm test:coverage` | Vitest with coverage report |
 | `pnpm e2e` | Playwright against the e2e stack — see [e2e/README.md](e2e/README.md) |
-| `pnpm ssr-audit` | Crawl the SSR site for defects — see [docs/SSR-BUGS.md](docs/SSR-BUGS.md) |
 | `pnpm i18n:lint` | Validate i18n key usage |
 | `pnpm i18n:extract` | Extract new translation keys |
 | `pnpm check` | Install, regenerate, format, typecheck, lint and build |
