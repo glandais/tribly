@@ -636,6 +636,16 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
 
 ### Défauts d'interface
 
+- `WEB-59` **« Lien invalide » sur un changement d'adresse pourtant appliqué** (2026-10-04) —
+  `VerifyEmailPage` confirmait le changement, puis relisait `/me` avec le jeton d'accès en mémoire.
+  Ce jeton porte l'ancienne adresse, que le backend ne résout plus (`API-73`) : un 403, que
+  l'intercepteur ne rafraîchit pas (il ne réagit qu'aux 401), tombait dans le `catch` de la
+  confirmation et affichait l'erreur. Le changement d'adresse est maintenant affiché dès la
+  confirmation, puis la session est renouvelée par `refresh` (nouveau jeton et nouvel utilisateur),
+  dont un échec n'est plus montré. Constaté en prod le 4 octobre 2026. Pas de test : aucun parcours
+  e2e ne couvre le changement d'adresse. **À ne pas défaire** : rien après `confirmEmailChange`
+  ne doit pouvoir faire basculer la page en erreur, le lien étant déjà consommé.
+
 - `WEB-29` **Les sélecteurs d'image annoncent HEIC/HEIF, et c'est désormais vrai** (2026-09-29,
   sans changement de code) — `MediaEditor.tsx`, `tiptap/ImageUploadControl.tsx` et
   `UserProfilePage.tsx` proposaient `accept="image/*,.heic,.heif"` alors que le backend les

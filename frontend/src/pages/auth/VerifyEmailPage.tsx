@@ -23,8 +23,8 @@ import {
   activateAccount,
   confirmEmailChange,
   previewEmailLink,
+  refresh,
 } from '@/api/endpoints/authentication/authentication'
-import { getMe } from '@/api/endpoints/users/users'
 
 type VerificationState =
   'loading' | 'activate' | 'passkey' | 'activated' | 'emailChanged' | 'emailTaken' | 'error'
@@ -74,17 +74,26 @@ export function VerifyEmailPage() {
         }
         // An address change needs no password and opens no session: it applies at once.
         await confirmEmailChange({ token }, { skipErrorToast: true })
-        if (useAuthStore.getState().isAuthenticated) {
-          setUser(await getMe({ skipErrorToast: true }))
-        }
         setState('emailChanged')
+        if (useAuthStore.getState().isAuthenticated) {
+          // The access token in hand names the old address, which the backend no longer resolves
+          // (a 403, not a 401: the interceptor would not refresh). A fresh one carries the new
+          // address. The change is applied either way, so a failure here is not the link's.
+          try {
+            const session = await refresh({ skipErrorToast: true })
+            if (session.accessToken) setAccessToken(session.accessToken)
+            if (session.user) setUser(session.user)
+          } catch {
+            // The next 401 refreshes the session; nothing to show here.
+          }
+        }
       } catch (error: unknown) {
         setState(apiErrorCode(error) === 'EMAIL_ALREADY_EXISTS' ? 'emailTaken' : 'error')
       }
     }
 
     void read()
-  }, [token, setUser])
+  }, [token, setAccessToken, setUser])
 
   const handleActivate = async (values: { password: string }) => {
     if (!token) return
