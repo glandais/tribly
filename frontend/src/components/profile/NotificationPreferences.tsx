@@ -1,7 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { Fragment } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Alert, Divider, Group, Stack, Switch, Table, Text, Title } from '@mantine/core'
-import { IconAlertCircle } from '@tabler/icons-react'
+import { Checkbox, Skeleton, Stack, Switch, Table, Text, Title } from '@mantine/core'
 import {
   useGetMyNotificationPreferences,
   useUpdateMyNotificationPreferences,
@@ -10,29 +9,43 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { NotificationChannel, NotificationType } from '@/api/dto'
 import type { NotificationPreferencesDto } from '@/api/dto'
+import { tRegister } from '@/lib/i18nUtils'
+import { ProfileCard } from './ProfileShell'
 import { WebPushSettings } from './WebPushSettings'
 
-/** The fragment notification e-mails link to — `NotificationLinks.PREFERENCES_PATH`, server-side. */
-const ANCHOR = 'notifications'
-
 /**
- * The order the matrix lists its rows in — grouped by subject (rides, trips, posts, then what is
- * addressed to you personally), not the enum's order, which is the order types were added in.
+ * The rows of the matrix, grouped by family — the same families, in the same order, as the app's
+ * list. Not the enum's order, which is the order the types were added in.
  */
-const TYPE_ORDER = [
-  NotificationType.RIDE_PUBLISHED,
-  NotificationType.RIDE_UPDATED,
-  NotificationType.RIDE_CANCELLED,
-  NotificationType.RIDE_GROUP_REMOVED,
-  NotificationType.RIDE_REMINDER,
-  NotificationType.RIDE_JOINED,
-  NotificationType.TRIP_PUBLISHED,
-  NotificationType.TRIP_CANCELLED,
-  NotificationType.POST_PUBLISHED,
-  NotificationType.COMMENT_ON_MY_PUBLICATION,
-  NotificationType.COMMENT_REPLY,
-  NotificationType.TEAM_INVITATION,
-] as const
+const TYPE_FAMILIES: { labelKey: string; types: NotificationType[] }[] = [
+  {
+    labelKey: tRegister('notifications.family.rides'),
+    types: [
+      NotificationType.RIDE_PUBLISHED,
+      NotificationType.RIDE_UPDATED,
+      NotificationType.RIDE_CANCELLED,
+      NotificationType.RIDE_GROUP_REMOVED,
+      NotificationType.RIDE_REMINDER,
+      NotificationType.RIDE_JOINED,
+    ],
+  },
+  {
+    labelKey: tRegister('notifications.family.trips'),
+    types: [NotificationType.TRIP_PUBLISHED, NotificationType.TRIP_CANCELLED],
+  },
+  {
+    labelKey: tRegister('notifications.family.posts'),
+    types: [
+      NotificationType.POST_PUBLISHED,
+      NotificationType.COMMENT_ON_MY_PUBLICATION,
+      NotificationType.COMMENT_REPLY,
+    ],
+  },
+  {
+    labelKey: tRegister('notifications.family.teams'),
+    types: [NotificationType.TEAM_INVITATION, NotificationType.CONTENT_REPORTED],
+  },
+]
 
 function cellOf(
   preferences: NotificationPreferencesDto,
@@ -43,15 +56,17 @@ function cellOf(
 }
 
 /**
- * The notification settings of `GET /api/notifications/preferences`: the type × channel matrix,
- * the daily e-mail digest, and one mute switch per team.
+ * The notification settings of `GET /api/notifications/preferences`, on their profile page: this
+ * device (web push), the type × channel matrix grouped by family, the daily e-mail digest, and one
+ * mute switch per team.
  *
  * Only the **channels the server says are configurable** get a column: `IN_APP` never appears (the
- * inbox is always on, and `PUT` refuses it), and `PUSH` only once phase 4 ships an emitter. When
- * that list comes back empty, the matrix is hidden rather than rendered with no columns — see
- * `docs/plans/archive/2026-09-18-notifications.md` §5. The team mutes don't depend on it: muting a team
- * also keeps its announcements out of the inbox (§12), so they show whenever the user has a team.
- * The section disappears only when there is neither.
+ * inbox is always on, and `PUT` refuses it), `PUSH` only with an FCM account, `EMAIL` only when the
+ * server sends e-mail. With no channel, the matrix and the digest are hidden rather than rendered
+ * empty — see `docs/plans/archive/2026-09-18-notifications.md` §5. The team mutes don't depend on
+ * it: muting a team also keeps its announcements out of the inbox (§12), so they show whenever the
+ * user has a team. A type the server lists no cell for has no row, and a family left without rows
+ * has no heading.
  */
 export function NotificationPreferences() {
   const { t } = useTranslation()
@@ -64,23 +79,22 @@ export function NotificationPreferences() {
     },
   })
 
-  const hasChannels = !!data && data.channels.length > 0
-  const hasTeams = !!data && data.teams.length > 0
-  const visible = !isLoading && (hasChannels || hasTeams)
+  if (isLoading || !data) {
+    return <Skeleton height={240} radius="md" />
+  }
 
-  // An e-mail's "choose your notifications" link lands on /profile#notifications, but the section
-  // only exists once the preferences have loaded — by which time the browser has long given up on
-  // the fragment. Scroll to it ourselves, once, when it appears.
-  const scrolled = useRef(false)
-  useEffect(() => {
-    if (!visible || scrolled.current) return
-    if (window.location.hash !== `#${ANCHOR}`) return
-    scrolled.current = true
-    document.getElementById(ANCHOR)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [visible])
+  const hasChannels = data.channels.length > 0
+  const hasTeams = data.teams.length > 0
 
-  // Nothing to configure on this server: no header, no empty table.
-  if (!visible || !data) return null
+  if (!hasChannels && !hasTeams) {
+    return (
+      <ProfileCard>
+        <Text size="sm" c="dimmed">
+          {t('notifications.preferences.nothingToSet')}
+        </Text>
+      </ProfileCard>
+    )
+  }
 
   const toggle = (type: NotificationType, channel: NotificationChannel, enabled: boolean) => {
     // One cell per call: the endpoint takes a list of overrides, and sending the whole matrix
@@ -98,97 +112,112 @@ export function NotificationPreferences() {
     mutation.mutate({ data: { preferences: [], emailDigest } })
   }
 
-  // This section carries its own leading `Divider`, unlike its neighbours on the profile page:
-  // it is the only one that can render nothing at all, and a divider left behind by the page
-  // would show up as a double rule above Passkeys.
-  // `scrollMarginTop`: the sticky header would otherwise sit on top of the section's own title.
+  const families = TYPE_FAMILIES.map((family) => ({
+    ...family,
+    types: family.types.filter((type) =>
+      data.channels.some((channel) => cellOf(data, type, channel))
+    ),
+  })).filter((family) => family.types.length > 0)
+
+  const typeLabel = (type: NotificationType) =>
+    t(`notifications.typeLabel.${type satisfies NotificationType}`)
+  const channelLabel = (channel: NotificationChannel) =>
+    t(`notifications.channel.${channel satisfies NotificationChannel}`)
+
   return (
     <>
-      <Divider />
-      <Stack id={ANCHOR} style={{ scrollMarginTop: 80 }}>
-        <Title order={3} size="h5">
-          {t('notifications.preferences.title')}
-        </Title>
-        {hasChannels && (
-          <>
+      {/* The PUSH column reaches the member's devices; this is where a browser becomes one. */}
+      {data.channels.includes(NotificationChannel.PUSH) && <WebPushSettings />}
+
+      {hasChannels && (
+        <ProfileCard>
+          <Stack gap="sm">
+            <Title order={3} size="h5">
+              {t('notifications.preferences.matrix.title')}
+            </Title>
             <Text size="sm" c="dimmed">
               {t('notifications.preferences.description')}
             </Text>
-
-            <Alert variant="light" color="blue" icon={<IconAlertCircle size={16} />}>
-              {t('notifications.preferences.inAppAlwaysOn')}
-            </Alert>
-
-            {/* The PUSH column reaches the member's devices; this is where a browser becomes one. */}
-            {data.channels.includes(NotificationChannel.PUSH) && <WebPushSettings />}
-
             <Table.ScrollContainer minWidth={360}>
               <Table verticalSpacing="xs">
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>{t('notifications.preferences.columnType')}</Table.Th>
                     {data.channels.map((channel) => (
-                      <Table.Th key={channel} w={120}>
-                        {t(`notifications.channel.${channel satisfies NotificationChannel}`)}
+                      <Table.Th key={channel} w={90} ta="center">
+                        {channelLabel(channel)}
                       </Table.Th>
                     ))}
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {TYPE_ORDER.map((type) => (
-                    <Table.Tr key={type}>
-                      <Table.Td>
-                        <Text size="sm">
-                          {t(`notifications.typeLabel.${type satisfies NotificationType}`)}
-                        </Text>
-                      </Table.Td>
-                      {data.channels.map((channel) => {
-                        const cell = cellOf(data, type, channel)
-                        if (!cell) return <Table.Td key={channel} />
-                        return (
-                          <Table.Td key={channel}>
-                            <Group gap="xs" wrap="nowrap">
-                              <Switch
-                                checked={cell.enabled}
-                                disabled={mutation.isPending}
-                                onChange={(event) =>
-                                  toggle(type, channel, event.currentTarget.checked)
-                                }
-                                aria-label={t('notifications.preferences.toggleAriaLabel', {
-                                  type: t(
-                                    `notifications.typeLabel.${type satisfies NotificationType}`
-                                  ),
-                                  channel: t(
-                                    `notifications.channel.${channel satisfies NotificationChannel}`
-                                  ),
-                                })}
-                              />
-                            </Group>
+                  {families.map((family) => (
+                    <Fragment key={family.labelKey}>
+                      <Table.Tr bg="var(--mantine-color-default-hover)">
+                        <Table.Th
+                          colSpan={data.channels.length + 1}
+                          scope="colgroup"
+                          fz="xs"
+                          tt="uppercase"
+                          c="dimmed"
+                        >
+                          {t(family.labelKey)}
+                        </Table.Th>
+                      </Table.Tr>
+                      {family.types.map((type) => (
+                        <Table.Tr key={type}>
+                          <Table.Td>
+                            <Text size="sm">{typeLabel(type)}</Text>
                           </Table.Td>
-                        )
-                      })}
-                    </Table.Tr>
+                          {data.channels.map((channel) => {
+                            const cell = cellOf(data, type, channel)
+                            return (
+                              <Table.Td key={channel}>
+                                {cell && (
+                                  <Checkbox
+                                    checked={cell.enabled}
+                                    disabled={mutation.isPending}
+                                    onChange={(event) =>
+                                      toggle(type, channel, event.currentTarget.checked)
+                                    }
+                                    aria-label={t('notifications.preferences.toggleAriaLabel', {
+                                      type: typeLabel(type),
+                                      channel: channelLabel(channel),
+                                    })}
+                                    styles={{ body: { justifyContent: 'center' } }}
+                                  />
+                                )}
+                              </Table.Td>
+                            )
+                          })}
+                        </Table.Tr>
+                      ))}
+                    </Fragment>
                   ))}
                 </Table.Tbody>
               </Table>
             </Table.ScrollContainer>
+          </Stack>
+        </ProfileCard>
+      )}
 
-            {/* The digest only holds e-mails back: without an e-mail column, there is nothing to hold. */}
-            {data.channels.includes(NotificationChannel.EMAIL) && (
-              <Switch
-                checked={data.emailDigest}
-                disabled={mutation.isPending}
-                onChange={(event) => toggleDigest(event.currentTarget.checked)}
-                label={t('notifications.preferences.digest.label')}
-                description={t('notifications.preferences.digest.description')}
-              />
-            )}
-          </>
-        )}
+      {/* The digest only holds e-mails back: without an e-mail channel, there is nothing to hold. */}
+      {data.channels.includes(NotificationChannel.EMAIL) && (
+        <ProfileCard>
+          <Switch
+            checked={data.emailDigest}
+            disabled={mutation.isPending}
+            onChange={(event) => toggleDigest(event.currentTarget.checked)}
+            label={t('notifications.preferences.digest.label')}
+            description={t('notifications.preferences.digest.description')}
+          />
+        </ProfileCard>
+      )}
 
-        {hasTeams && (
+      {hasTeams && (
+        <ProfileCard>
           <Stack gap="xs">
-            <Title order={4} size="h6">
+            <Title order={3} size="h5">
               {t('notifications.preferences.teams.title')}
             </Title>
             <Text size="sm" c="dimmed">
@@ -208,8 +237,8 @@ export function NotificationPreferences() {
               />
             ))}
           </Stack>
-        )}
-      </Stack>
+        </ProfileCard>
+      )}
     </>
   )
 }

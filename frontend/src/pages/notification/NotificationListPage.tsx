@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { Box, Button, Group, Paper, Skeleton, Stack, Switch, Title } from '@mantine/core'
-import { IconBellOff, IconChecks, IconSearchOff } from '@tabler/icons-react'
+import { IconBellOff, IconChecks, IconSearchOff, IconSettings } from '@tabler/icons-react'
+import { PrefetchLink } from '@/components/common/PrefetchLink'
+import { paths } from '@/config/paths'
 import { EmptyState } from '@/components/common/EmptyState'
 import { Pagination } from '@/components/common/Pagination'
 import { QueryStateBoundary } from '@/components/common/QueryStateBoundary'
@@ -26,16 +28,27 @@ export function NotificationListPage() {
     <Box maw={672} mx="auto">
       <Group justify="space-between" align="center" wrap="wrap" mb="md">
         <Title order={2}>{t('notifications.title')}</Title>
-        {unreadCount > 0 && (
+        <Group gap="xs">
+          {unreadCount > 0 && (
+            <Button
+              variant="default"
+              leftSection={<IconChecks size={16} />}
+              onClick={markAllRead}
+              loading={isMarkingAllRead}
+            >
+              {t('notifications.actions.markAllRead')}
+            </Button>
+          )}
+          {/* What reaches the member by e-mail and push is set in the profile, which links back. */}
           <Button
-            variant="default"
-            leftSection={<IconChecks size={16} />}
-            onClick={markAllRead}
-            loading={isMarkingAllRead}
+            component={PrefetchLink}
+            to={paths.profileNotifications()}
+            variant="subtle"
+            leftSection={<IconSettings size={16} />}
           >
-            {t('notifications.actions.markAllRead')}
+            {t('notifications.actions.settings')}
           </Button>
-        )}
+        </Group>
       </Group>
 
       <Group justify="space-between" align="center" wrap="wrap" mb="sm">

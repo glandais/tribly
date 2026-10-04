@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
-import { Button, Group, Skeleton, Stack, Text, Title } from '@mantine/core'
+import { Button, Group, Skeleton, Stack, Text } from '@mantine/core'
 import {
   useListMyBlockedUsers,
   useUnblockUser,
@@ -13,7 +13,7 @@ import { UserAvatar } from '../common/UserAvatar'
 import { invalidateModeratedContent } from '@/lib/moderationCacheInvalidation'
 
 /**
- * "Blocked users" on the profile page — the one place a block can be undone. Unblocking needs no
+ * « Utilisateurs bloqués », its own page under « Confidentialité » — the one place a block can be undone. Unblocking needs no
  * confirmation: it is as silent as the block was, and can be redone from any comment or ad.
  */
 export function BlockedUsers() {
@@ -46,9 +46,6 @@ export function BlockedUsers() {
 
   return (
     <Stack>
-      <Title order={3} size="h5">
-        {t('profile.blockedUsers.title')}
-      </Title>
       <Text size="sm" c="dimmed">
         {t('profile.blockedUsers.description')}
       </Text>

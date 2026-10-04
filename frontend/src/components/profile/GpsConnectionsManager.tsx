@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { notifications } from '@mantine/notifications'
 import { useTranslation } from 'react-i18next'
@@ -19,7 +19,6 @@ import { useGpsConnections } from '@/hooks/useGpsConnections'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import type { GpsServiceType } from '@/api/dto'
 import { useFormattedDate } from '@/utils/dateFormat'
-import { GPS_SECTION_ANCHOR } from './profileAnchors'
 
 import garminLogo from '@/assets/gps/garmin.svg'
 import hammerheadLogo from '@/assets/gps/hammerhead.svg'
@@ -75,17 +74,6 @@ export function GpsConnectionsManager() {
     setSearchParams(next, { replace: true })
   }, [searchParams, setSearchParams, t])
 
-  // The profile renders after its own query, by which time the browser has given up on the
-  // fragment: scroll to the section ourselves, once (same as NotificationPreferences).
-  const scrolled = useRef(false)
-  useEffect(() => {
-    if (scrolled.current || window.location.hash !== `#${GPS_SECTION_ANCHOR}`) return
-    scrolled.current = true
-    document
-      .getElementById(GPS_SECTION_ANCHOR)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [])
-
   const handleConnect = (serviceType: GpsServiceType) => {
     initiateConnect(serviceType)
   }
@@ -99,12 +87,7 @@ export function GpsConnectionsManager() {
   }
 
   return (
-    <Stack
-      id={GPS_SECTION_ANCHOR}
-      style={{
-        scrollMarginTop: 'calc(var(--app-shell-header-height, 60px) + var(--mantine-spacing-md))',
-      }}
-    >
+    <Stack>
       <Group justify="space-between">
         <Title order={3} size="h5">
           {t('gps.title')}

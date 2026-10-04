@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Alert, Button, Group, Paper, Stack, Text } from '@mantine/core'
+import { Alert, Button, Group, Stack, Text, Title } from '@mantine/core'
 import { IconBellOff, IconBellRinging, IconDeviceMobile } from '@tabler/icons-react'
 import { useGetConfig } from '@/api/endpoints/configuration/configuration'
 import {
@@ -10,9 +10,10 @@ import {
   type WebPushStatus,
 } from '@/lib/push/webPush'
 import { openInstallInstructions } from '@/lib/install/installStore'
+import { ProfileCard } from './ProfileShell'
 
 /**
- * "Notifications on this device": subscribes the browser to the PUSH channel. Shown only when the
+ * « Sur cet appareil », at the head of the notification settings: subscribes the browser to the PUSH channel. Shown only when the
  * server offers web push (`ConfigDto.webPush`), and only after hydration — the status depends on
  * the browser's permission and on localStorage.
  */
@@ -44,11 +45,11 @@ export function WebPushSettings() {
   }
 
   return (
-    <Paper withBorder p="sm" radius="md">
+    <ProfileCard>
       <Stack gap="xs">
-        <Text fw={500} size="sm">
+        <Title order={3} size="h5">
           {t('notifications.webPush.title')}
-        </Text>
+        </Title>
         {status === 'needsInstall' && (
           <Group justify="space-between" wrap="wrap" gap="xs">
             <Text size="sm" c="dimmed">
@@ -111,6 +112,6 @@ export function WebPushSettings() {
           </Alert>
         )}
       </Stack>
-    </Paper>
+    </ProfileCard>
   )
 }

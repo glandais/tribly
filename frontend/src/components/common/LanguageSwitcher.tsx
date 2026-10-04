@@ -6,11 +6,18 @@ import {
   persistLanguageChoice,
   type SupportedLanguage,
 } from '../../i18n'
-import { useUpdateMyPreferences } from '@/api/endpoints/users/users'
+import { useQueryClient } from '@tanstack/react-query'
+import { getGetMeQueryKey, useUpdateMyPreferences } from '@/api/endpoints/users/users'
 import { useAuthStore, selectIsAuthenticated } from '@/store/authStore'
 
-export function LanguageSwitcher() {
+interface LanguageSwitcherProps {
+  /** A visible label (the profile's preferences page); the header's compact select has none. */
+  label?: string
+}
+
+export function LanguageSwitcher({ label }: LanguageSwitcherProps = {}) {
   const { i18n, t } = useTranslation()
+  const queryClient = useQueryClient()
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
   const mutation = useUpdateMyPreferences()
 
@@ -21,7 +28,10 @@ export function LanguageSwitcher() {
     // applies first; partial PATCH sends only the changed field, never the whole preference set.
     persistLanguageChoice(language)
     if (isAuthenticated) {
-      mutation.mutate({ data: { language } })
+      mutation.mutate(
+        { data: { language } },
+        { onSuccess: (user) => queryClient.setQueryData(getGetMeQueryKey(), user) }
+      )
     }
   }
 
@@ -29,13 +39,14 @@ export function LanguageSwitcher() {
     <NativeSelect
       value={i18n.language}
       onChange={(e) => handleChange(e.currentTarget.value)}
-      aria-label={t('nav.language')}
+      label={label}
+      aria-label={label ? undefined : t('nav.language')}
       data={supportedLanguages.map((lang) => ({
         value: lang,
         label: languageNames[lang as SupportedLanguage],
       }))}
-      size="xs"
-      w="auto"
+      size={label ? 'sm' : 'xs'}
+      w={label ? undefined : 'auto'}
     />
   )
 }

@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { ActionIcon, Box, useMantineColorScheme } from '@mantine/core'
 import { IconSun, IconMoon } from '@tabler/icons-react'
-import { useUpdateMyPreferences } from '@/api/endpoints/users/users'
+import { useQueryClient } from '@tanstack/react-query'
+import { getGetMeQueryKey, useUpdateMyPreferences } from '@/api/endpoints/users/users'
 import { useAuthStore, selectIsAuthenticated } from '@/store/authStore'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 
@@ -10,6 +11,7 @@ export function ColorSchemeSwitcher() {
   const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useResolvedColorScheme()
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
+  const queryClient = useQueryClient()
   const mutation = useUpdateMyPreferences()
 
   const toggleColorScheme = () => {
@@ -19,7 +21,11 @@ export function ColorSchemeSwitcher() {
     // Anonymous visitors have nothing to persist theme to; partial PATCH sends only the changed
     // field, never the whole preference set.
     if (isAuthenticated) {
-      mutation.mutate({ data: { theme: colorScheme === 'dark' ? 'DARK' : 'LIGHT' } })
+      // The answer is the account: the profile's preferences page reads its theme from there.
+      mutation.mutate(
+        { data: { theme: colorScheme === 'dark' ? 'DARK' : 'LIGHT' } },
+        { onSuccess: (user) => queryClient.setQueryData(getGetMeQueryKey(), user) }
+      )
     }
   }
 

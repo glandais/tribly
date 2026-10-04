@@ -52,7 +52,37 @@ export const pages = {
     () => import('../pages/auth/ForgotPasswordPage')
   ),
   ResetPasswordPage: lazyPage('ResetPasswordPage', () => import('../pages/auth/ResetPasswordPage')),
-  UserProfilePage: lazyPage('UserProfilePage', () => import('../pages/auth/UserProfilePage')),
+  ProfileOverviewPage: lazyPage(
+    'ProfileOverviewPage',
+    () => import('../pages/profile/ProfileOverviewPage')
+  ),
+  MyRidesPage: lazyPage('MyRidesPage', () => import('../pages/profile/MyRidesPage')),
+  ProfilePreferencesPage: lazyPage(
+    'ProfilePreferencesPage',
+    () => import('../pages/profile/ProfilePreferencesPage')
+  ),
+  ProfileNotificationsPage: lazyPage(
+    'ProfileNotificationsPage',
+    () => import('../pages/profile/ProfileNotificationsPage')
+  ),
+  ProfileDevicesPage: lazyPage(
+    'ProfileDevicesPage',
+    () => import('../pages/profile/ProfileDevicesPage')
+  ),
+  ProfileSecurityPage: lazyPage(
+    'ProfileSecurityPage',
+    () => import('../pages/profile/ProfileSecurityPage')
+  ),
+  ProfilePrivacyPage: lazyPage(
+    'ProfilePrivacyPage',
+    () => import('../pages/profile/ProfilePrivacyPage')
+  ),
+  BlockedUsersPage: lazyPage('BlockedUsersPage', () => import('../pages/profile/BlockedUsersPage')),
+  ProfileAccountPage: lazyPage(
+    'ProfileAccountPage',
+    () => import('../pages/profile/ProfileAccountPage')
+  ),
+  ProfileHelpPage: lazyPage('ProfileHelpPage', () => import('../pages/profile/ProfileHelpPage')),
   TeamListPage: lazyPage('TeamListPage', () => import('../pages/team/TeamListPage')),
   CreateTeamPage: lazyPage('CreateTeamPage', () => import('../pages/team/CreateTeamPage')),
   PublicationListPage: lazyPage(

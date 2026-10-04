@@ -9,7 +9,15 @@ import { prefetchTripDetail } from '@/pages/trip/tripDetailData'
 import { prefetchStageDetail } from '@/pages/trip/stageDetailData'
 import { prefetchPostDetail } from '@/pages/post/postDetailData'
 import { prefetchRouteDetail, prefetchRouteMap } from '@/pages/route/routeDetailData'
-import { prefetchUserProfile } from '@/pages/auth/profileData'
+import {
+  prefetchBlockedUsers,
+  prefetchProfileDevices,
+  prefetchProfileNotifications,
+  prefetchProfileOverview,
+  prefetchProfilePrivacy,
+  prefetchProfileSecurity,
+} from '@/pages/profile/profileData'
+import { prefetchMyRides } from '@/pages/profile/myRidesData'
 import { prefetchCalendar } from '@/pages/calendar/calendarData'
 import { prefetchGpxPreview, prefetchGpxPreviewView } from '@/pages/gpxtool/gpxPreviewData'
 import { prefetchGpxPreviewList } from '@/pages/gpxtool/gpxPreviewListData'
@@ -330,18 +338,98 @@ export const routesConfig: RoutesConfig = [
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.resetPassword.title') },
   },
+  // === Profile: the overview, then one page per subject (contracts/routes.yaml) ===
   {
     id: 'profile',
     paths: pathVariants.profile(),
-    component: pages.UserProfilePage,
+    component: pages.ProfileOverviewPage,
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.profile') },
-    // The two counts `MyParticipations` puts on its closed accordion controls. They share the
-    // component's own `hourAlignedNowIso()` boundary, which is the whole reason this can be
-    // prefetched at all — the raw `new Date()` it used before never matched the SSR key.
-    // The section's paged queries are deliberately left out: they only fire once opened.
-    prefetch: (queryClient) => prefetchUserProfile(queryClient),
+    // `/me` is seeded by the server with the session; the summary carries every state line.
+    prefetch: (queryClient) => prefetchProfileOverview(queryClient),
+  },
+  {
+    id: 'my-participations',
+    paths: pathVariants.myParticipations(),
+    component: pages.MyRidesPage,
+    auth: 'authenticated',
+    parentId: 'profile',
+    breadcrumb: { type: 'static', i18nKey: tRegister('profile.nav.rides') },
+    // Both tabs' totals, and the page window of the tab the URL asks for.
+    prefetch: (queryClient, _params, url) => prefetchMyRides(queryClient, url),
+  },
+  {
+    id: 'profile-preferences',
+    paths: pathVariants.profilePreferences(),
+    component: pages.ProfilePreferencesPage,
+    auth: 'authenticated',
+    parentId: 'profile',
+    breadcrumb: { type: 'static', i18nKey: tRegister('profile.nav.preferences') },
+    // Reads `/me` only, which the server seeds.
+  },
+  {
+    id: 'profile-notifications',
+    paths: pathVariants.profileNotifications(),
+    component: pages.ProfileNotificationsPage,
+    auth: 'authenticated',
+    parentId: 'profile',
+    breadcrumb: { type: 'static', i18nKey: tRegister('profile.nav.notifications') },
+    prefetch: (queryClient) => prefetchProfileNotifications(queryClient),
+  },
+  {
+    id: 'profile-devices',
+    paths: pathVariants.profileDevices(),
+    component: pages.ProfileDevicesPage,
+    auth: 'authenticated',
+    parentId: 'profile',
+    breadcrumb: { type: 'static', i18nKey: tRegister('profile.nav.devices') },
+    prefetch: (queryClient) => prefetchProfileDevices(queryClient),
+  },
+  {
+    id: 'profile-security',
+    paths: pathVariants.profileSecurity(),
+    component: pages.ProfileSecurityPage,
+    auth: 'authenticated',
+    parentId: 'profile',
+    breadcrumb: { type: 'static', i18nKey: tRegister('profile.nav.security') },
+    prefetch: (queryClient) => prefetchProfileSecurity(queryClient),
+  },
+  {
+    id: 'profile-privacy',
+    paths: pathVariants.profilePrivacy(),
+    component: pages.ProfilePrivacyPage,
+    auth: 'authenticated',
+    parentId: 'profile',
+    breadcrumb: { type: 'static', i18nKey: tRegister('profile.nav.privacy') },
+    prefetch: (queryClient) => prefetchProfilePrivacy(queryClient),
+  },
+  {
+    id: 'blocked-users',
+    paths: pathVariants.blockedUsers(),
+    component: pages.BlockedUsersPage,
+    auth: 'authenticated',
+    parentId: 'profile-privacy',
+    breadcrumb: { type: 'static', i18nKey: tRegister('profile.blockedUsers.title') },
+    prefetch: (queryClient) => prefetchBlockedUsers(queryClient),
+  },
+  {
+    id: 'profile-account',
+    paths: pathVariants.profileAccount(),
+    component: pages.ProfileAccountPage,
+    auth: 'authenticated',
+    parentId: 'profile',
+    breadcrumb: { type: 'static', i18nKey: tRegister('profile.nav.account') },
+    // Reads `/me` only; the deletion impact is read when its confirmation opens.
+  },
+  {
+    id: 'profile-help',
+    paths: pathVariants.profileHelp(),
+    component: pages.ProfileHelpPage,
+    auth: 'authenticated',
+    parentId: 'profile',
+    breadcrumb: { type: 'static', i18nKey: tRegister('profile.nav.help') },
+    // The version is the footer's, which the server prefetches for every document.
   },
   {
     id: 'notifications',

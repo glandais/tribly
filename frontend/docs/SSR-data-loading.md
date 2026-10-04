@@ -73,8 +73,9 @@ Two shapes fall out of the rules rather than being exceptions to them:
   fullscreen map (`routeDetailData.ts` serves `route-detail` and `route-map`). One filter/params
   derivation, one hook per view, one prefetch per route.
 - **Prefetch-only**, when the page itself owns no query and only mounts children that do
-  (`profileData.ts`: `UserProfilePage` renders `MyParticipations`, which queries the counts). Export
-  the shared params and the prefetch; adding a hook nobody calls would be noise.
+  (`pages/profile/profileData.ts`: each profile page mounts the section components that query —
+  `PasskeyManager`, `NotificationPreferences`…). Export the prefetch; adding a hook nobody calls
+  would be noise.
 
 ## The two shapes, worked
 
@@ -127,7 +128,8 @@ added to the page and forgotten in the prefetch. Don't reintroduce the exception
 | `pages/trip/stageDetailData.ts` | `stage-detail` | `stageRouteSlug` (the stage's route, looked up inside the trip) |
 | `pages/post/postDetailData.ts` | `post-detail` | two-phase prefetch (comments for the child) |
 | `pages/route/routeDetailData.ts` | `route-detail`, `route-map` | team+route pair, usages, comments, GPS services |
-| `pages/auth/profileData.ts` | `profile` | the participation-count params and their shared hour boundary |
+| `pages/profile/profileData.ts` | `profile` and its sub-pages | prefetch-only: the summary, and each section's parameterless query |
+| `pages/profile/myRidesData.ts` | `my-participations` | the tab/page filters, the two totals and their shared hour boundary |
 | `pages/calendar/calendarData.ts` | `calendar` | `getInitialCalendarRange()`, the range the hook seeds itself with |
 | `pages/team/teamMembersData.ts` | `team-members`, `team-directory` | member filters, the pending-invitations params (admin screen only) |
 | `pages/team/teamPlacesData.ts` | `team-admin-places` | the place filters `PlaceList` reads |
@@ -229,8 +231,8 @@ build/server must have `FRONTEND_PREFETCH_AUDIT=true`.
   which required snapping that window to month boundaries (`useCalendarDateRange.test.ts` guards
   the end-of-month days a rolling window missed). A range a mount effect computes from state is
   always reproducible server-side.
-- **A query fired only on interaction is not a gap.** `MyParticipations`' paged queries on the
-  profile run when a section is opened; they cannot and need not be prefetched. The audit settles
+- **A query fired only on interaction is not a gap.** The deletion impact of « Mon compte » is
+  read when its confirmation opens; it cannot and need not be prefetched. The audit settles
   5 s after load, before any click, so it does not see them.
 - **A production build tells you *that*, not *where*.** It minifies hydration errors (`#418` =
   mismatch, with `args[]` naming what mismatched; `#185` = update loop) and carries no component
