@@ -41,7 +41,7 @@ import { entityCard, homeFeed, pageAs, pageHydrated, watchHydration } from './su
 /**
  * docs/LEDGER_*.md WEB-14 — authenticated SSR (frontend/docs/SSR.md, "Session-aware SSR"): for a document
  * request carrying the refresh_token cookie, « Ma prochaine sortie », the « Inscrit » badge on the
- * feed cards and « Mes participations » are in the server HTML; without the cookie they are not;
+ * feed cards and the totals of « Mes sorties » are in the server HTML; without the cookie they are not;
  * and hydration adopts that markup instead of throwing it away.
  *
  * Setup: a PUBLIC team (a platform admin is needed to make it public), a public ride two days
@@ -51,8 +51,11 @@ import { entityCard, homeFeed, pageAs, pageHydrated, watchHydration } from './su
 
 const NEXT_RIDE = 'Ma prochaine sortie'
 const REGISTERED = 'Inscrit'
-const PARTICIPATIONS = 'Mes participations'
-const UPCOMING = 'Mes sorties à venir'
+/** « Mes sorties », the profile's page of the rider's participations (`/profil/sorties`). */
+const MY_RIDES_PATH = '/profil/sorties'
+const PARTICIPATIONS = 'Mes sorties'
+/** Its first tab, labelled with the total: the prefetched `size: 1` query's. */
+const UPCOMING = 'À venir'
 const BREADCRUMB = "Fil d'Ariane"
 
 interface Setup {
@@ -115,23 +118,22 @@ test.describe('server HTML, JavaScript disabled', () => {
     await expect(page.getByRole('heading', { name: NEXT_RIDE })).toHaveCount(0)
   })
 
-  test('signed in: the profile carries « Mes participations » with the upcoming count', async ({
-    page,
-    context,
-  }) => {
+  test('signed in: « Mes sorties » carries the upcoming count', async ({ page, context }) => {
     await signIn(context, setup.rider)
-    const response = await page.goto('/profil')
+    const response = await page.goto(MY_RIDES_PATH)
     expect(response?.status()).toBe(200)
 
-    await expect(page.getByRole('heading', { name: PARTICIPATIONS })).toBeVisible()
+    await expect(
+      page.getByRole('main').getByRole('heading', { name: PARTICIPATIONS, exact: true })
+    ).toBeVisible()
     // The count is the prefetched `size: 1` query's total: exactly the one registration.
-    await expect(page.getByRole('button', { name: new RegExp(UPCOMING) })).toHaveText(
+    await expect(page.getByRole('tab', { name: new RegExp(UPCOMING) })).toHaveText(
       new RegExp(`${UPCOMING}\\s*1$`)
     )
   })
 
-  test('anonymous: the profile has no « Mes participations »', async ({ page }) => {
-    const response = await page.goto('/profil')
+  test('anonymous: « Mes sorties » shows no participation', async ({ page }) => {
+    const response = await page.goto(MY_RIDES_PATH)
     expect(response?.status()).toBe(200)
     // The server did render the page for a visitor (the guarded route stays on its loading
     // branch): its breadcrumb, and a way to sign in. Attached rather than visible — the mobile
@@ -144,8 +146,8 @@ test.describe('server HTML, JavaScript disabled', () => {
       page.locator('a[href="/connexion"]').first(),
       'the anonymous page offers a login'
     ).toBeAttached()
-    await expect(page.getByText(PARTICIPATIONS)).toHaveCount(0)
-    await expect(page.getByText(UPCOMING)).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: PARTICIPATIONS })).toHaveCount(0)
+    await expect(page.getByRole('tab', { name: new RegExp(UPCOMING) })).toHaveCount(0)
   })
 })
 
@@ -173,9 +175,9 @@ test.describe('raw document response', () => {
     expect(anonymousHome.html).not.toContain(NEXT_RIDE)
     expect(anonymousHome.html).not.toContain(REGISTERED)
 
-    const signedProfile = await outletOf('/profil', cookie)
-    expect(signedProfile.html).toContain(PARTICIPATIONS)
-    const anonymousProfile = await outletOf('/profil')
+    const signedProfile = await outletOf(MY_RIDES_PATH, cookie)
+    expect(signedProfile.html).toContain(UPCOMING)
+    const anonymousProfile = await outletOf(MY_RIDES_PATH)
     // What the anonymous page does render — its breadcrumb and the login link — so that a broken
     // page cannot pass the absence check below.
     expect(anonymousProfile.html, 'the anonymous profile rendered its breadcrumb').toContain(
@@ -185,7 +187,8 @@ test.describe('raw document response', () => {
     expect(anonymousProfile.html, 'the anonymous profile offers a login').toContain(
       'href="/connexion"'
     )
-    expect(anonymousProfile.html).not.toContain(PARTICIPATIONS)
+    // The breadcrumb names the page (« Mes sorties »): the absence is read on the tab.
+    expect(anonymousProfile.html).not.toContain(UPCOMING)
   })
 })
 
@@ -203,18 +206,17 @@ test.describe('hydration, JavaScript enabled', () => {
     expect(await watch.removed()).toEqual([])
   })
 
-  test('profile: « Mes participations » survives hydration untouched', async ({
-    page,
-    context,
-  }) => {
+  test('profile: « Mes sorties » survives hydration untouched', async ({ page, context }) => {
     await signIn(context, setup.rider)
-    const watch = await watchHydration(page, [PARTICIPATIONS])
+    const watch = await watchHydration(page, [UPCOMING])
 
-    await page.goto('/profil')
+    await page.goto(MY_RIDES_PATH)
     await pageHydrated(page)
 
-    await expect(page.getByRole('heading', { name: PARTICIPATIONS })).toBeVisible()
-    await expect(page.getByRole('button', { name: new RegExp(UPCOMING) })).toHaveText(
+    await expect(
+      page.getByRole('main').getByRole('heading', { name: PARTICIPATIONS, exact: true })
+    ).toBeVisible()
+    await expect(page.getByRole('tab', { name: new RegExp(UPCOMING) })).toHaveText(
       new RegExp(`${UPCOMING}\\s*1$`)
     )
     expect(watch.hydrationErrors).toEqual([])

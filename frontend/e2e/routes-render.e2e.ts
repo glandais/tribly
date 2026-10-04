@@ -216,7 +216,17 @@ const screens: Record<string, Screen> = {
       ),
   },
   support: { roles: EVERYONE, sees: heading('Aide et contact') },
-  profile: { roles: SIGNED_IN, sees: heading('Paramètres du profil') },
+  // The profile: its overview, then one page per subject, each under the sidebar on a desktop.
+  profile: { roles: SIGNED_IN, sees: heading('Profil') },
+  myParticipations: { roles: SIGNED_IN, sees: heading('Mes sorties') },
+  profilePreferences: { roles: SIGNED_IN, sees: heading('Préférences') },
+  profileNotifications: { roles: SIGNED_IN, sees: heading('Notifications') },
+  profileDevices: { roles: SIGNED_IN, sees: heading('Appareils et services') },
+  profileSecurity: { roles: SIGNED_IN, sees: heading('Connexion et sécurité') },
+  profilePrivacy: { roles: SIGNED_IN, sees: heading('Confidentialité') },
+  blockedUsers: { roles: SIGNED_IN, sees: heading('Utilisateurs bloqués') },
+  profileAccount: { roles: SIGNED_IN, sees: heading('Mon compte') },
+  profileHelp: { roles: SIGNED_IN, sees: heading('Aide et à propos') },
   notifications: { roles: SIGNED_IN, sees: heading('Notifications') },
   calendar: { roles: SIGNED_IN, sees: heading('Calendrier') },
   allRoutes: {

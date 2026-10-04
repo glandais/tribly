@@ -136,6 +136,24 @@ export async function openProfileInApp(page: Page, displayName: string) {
 }
 
 /**
+ * From the profile's overview to « Utilisateurs bloqués », link by link — « Confidentialité », then
+ * its row — so the app is not reloaded. Two client-side steps on top of {@link openProfileInApp}.
+ */
+export async function openBlockedUsersInApp(page: Page, displayName: string) {
+  await openProfileInApp(page, displayName)
+  const main = page.getByRole('main')
+  // The sidebar's link on a desktop, the overview's row on a phone (named with its state line).
+  const privacy = main.getByRole('link', { name: /^Confidentialité/ }).first()
+  await hydrated(privacy)
+  await privacy.click()
+  await expect(page).toHaveURL(/\/profil\/vie-privee$/)
+  const blocked = main.getByRole('link', { name: /^Utilisateurs bloqués/ })
+  await hydrated(blocked)
+  await blocked.click()
+  await expect(page).toHaveURL(/\/profil\/bloques$/)
+}
+
+/**
  * Marks the current document; `stillSameDocument` then tells whether the page was reloaded since
  * (a full navigation starts a new window object, which drops the mark).
  */

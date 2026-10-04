@@ -10,7 +10,7 @@ import {
   markDocument,
   moderationWorld,
   navigateInApp,
-  openProfileInApp,
+  openBlockedUsersInApp,
   platformQueue,
   queueCard,
   queueTab,
@@ -350,7 +350,7 @@ test.describe('blocking', () => {
 
     await test.step('unblocking from the profile brings the comment back in the same app', async () => {
       const sameDocument = await markDocument(page)
-      await openProfileInApp(page, reader.user.displayName)
+      await openBlockedUsersInApp(page, reader.user.displayName)
       await expect(main.getByRole('heading', { name: 'Utilisateurs bloqués' })).toBeVisible()
       const unblock = main.getByRole('button', { name: 'Débloquer' })
       await expect(unblock).toHaveCount(1)
@@ -361,7 +361,8 @@ test.describe('blocking', () => {
       await expect(main.getByText("Vous n'avez bloqué personne.")).toBeVisible()
       expect((await blockedBy(reader)).users).toEqual([])
 
-      await page.goBack()
+      // Back through « Confidentialité » and the overview, to the post.
+      for (let step = 0; step < 3; step++) await page.goBack()
       await expect(page).toHaveURL(new RegExp(`${postPath(team.slug, post.slug)}$`))
       await expect(main.getByText(blockedComment, { exact: true })).toBeVisible()
       await expect(main.getByText(controlComment, { exact: true })).toBeVisible()

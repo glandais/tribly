@@ -66,12 +66,23 @@ async function signInWithPassword(page: Page, email: string, password: string) {
   await submit.click()
 }
 
-/** The profile page, signed in: its heading and the account's address. */
+/** The heading of the profile's overview. */
+const PROFILE = { name: 'Profil', exact: true } as const
+
+/** The profile's overview, signed in: its heading and the account's address. */
 async function openProfile(page: Page, email: string) {
   await page.goto('/profil')
   const main = page.getByRole('main')
-  await expect(main.getByRole('heading', { name: 'Paramètres du profil' })).toBeVisible()
+  await expect(main.getByRole('heading', PROFILE)).toBeVisible()
   await expect(main.getByText(email, { exact: true }).first()).toBeVisible()
+  return main
+}
+
+/** A page of the profile (« Mon compte », « Connexion et sécurité »…), signed in, by its heading. */
+async function openProfilePage(page: Page, path: string, heading: string) {
+  await page.goto(path)
+  const main = page.getByRole('main')
+  await expect(main.getByRole('heading', { name: heading, exact: true })).toBeVisible()
   return main
 }
 
@@ -79,9 +90,7 @@ async function openProfile(page: Page, email: string) {
 async function expectSignedOut(page: Page) {
   await page.goto('/profil')
   await expect(page.getByRole('main').getByRole('heading', { name: WELCOME })).toBeVisible()
-  await expect(
-    page.getByRole('main').getByRole('heading', { name: 'Paramètres du profil' })
-  ).toHaveCount(0)
+  await expect(page.getByRole('main').getByRole('heading', PROFILE)).toHaveCount(0)
 }
 
 test('sign up with the form, verify through the mail, sign out from the header, sign in with the password', async ({
@@ -148,9 +157,7 @@ test('sign up with the form, verify through the mail, sign out from the header, 
   // sent us to: it returns there.
   await signInWithPassword(page, email, password)
   await expect(page).toHaveURL(/\/profil$/)
-  await expect(
-    page.getByRole('main').getByRole('heading', { name: 'Paramètres du profil' })
-  ).toBeVisible()
+  await expect(page.getByRole('main').getByRole('heading', PROFILE)).toBeVisible()
   expect((await meFromSession(context)).email).toBe(email)
 })
 
@@ -312,7 +319,8 @@ test('forgotten password: the mail, a new password, then sign in with it', async
   await expect(loginWithPassword(email, user.password)).rejects.toBeInstanceOf(ApiError)
   expect((await loginWithPassword(email, newPassword)).user.email).toBe(email)
 
-  // Sign out from the profile page's own button, then back in with the new password.
+  // Sign out from the profile's own button (the sidebar's on a desktop, the foot of the list on a
+  // phone: one of the two is hidden), then back in with the new password.
   const signOut = profile.getByRole('button', { name: 'Se déconnecter' })
   await hydrated(signOut)
   await signOut.click()
@@ -323,35 +331,42 @@ test('forgotten password: the mail, a new password, then sign in with it', async
   await openProfile(page, email)
 })
 
-test('the display name is edited from the profile', async ({ page, context, isMobile }) => {
+test('the display name is edited from « Mon compte »', async ({ page, context, isMobile }) => {
   const user = await newUser(unique('Ancien nom'))
   const renamed = unique('Nouveau nom')
   await signIn(context, user)
-  const main = await openProfile(page, user.user.email)
+  const main = await openProfilePage(page, '/profil/compte', 'Mon compte')
 
-  const edit = main.getByRole('button', { name: 'Modifier le profil' })
-  await hydrated(edit)
-  await edit.click()
-  await main.getByRole('textbox', { name: "Nom d'affichage" }).fill(renamed)
+  // Always a field, saved by its own button: no « Modifier le profil » mode any more.
+  const field = main.getByRole('textbox', { name: 'Nom affiché' })
+  const save = main.getByRole('button', { name: 'Enregistrer' })
+  await expect(field).toHaveValue(user.user.displayName)
+  await expect(save, 'nothing to save before an edit').toBeDisabled()
+  await expect(main.getByRole('textbox', { name: 'Adresse e-mail' })).toHaveAttribute('readonly')
+  await hydrated(field)
+  await field.fill(renamed)
   const saved = page.waitForResponse(
     (r) => r.request().method() === 'PUT' && r.url().endsWith('/api/users/me')
   )
-  await main.getByRole('button', { name: 'Enregistrer' }).click()
+  await save.click()
   expect((await saved).ok()).toBe(true)
 
-  await expect(main.getByRole('textbox', { name: "Nom d'affichage" })).toHaveCount(0)
-  await expect(main.getByText(renamed, { exact: true }).first()).toBeVisible()
+  await expect(field).toHaveValue(renamed)
+  await expect(save, 'saved: nothing left to save').toBeDisabled()
   if (!isMobile)
     await expect(page.getByRole('banner').getByRole('button', { name: renamed })).toBeVisible()
   expect((await meFromSession(user)).displayName).toBe(renamed)
 
   await page.reload()
-  await expect(main.getByText(renamed, { exact: true }).first()).toBeVisible()
-  await expect(main.getByText(user.user.displayName, { exact: true })).toHaveCount(0)
+  await expect(field).toHaveValue(renamed)
+  // The overview's identity card says it too.
+  const profile = await openProfile(page, user.user.email)
+  await expect(profile.getByText(renamed, { exact: true }).first()).toBeVisible()
+  await expect(profile.getByText(user.user.displayName, { exact: true })).toHaveCount(0)
 })
 
 /**
- * « Déconnecter tous les appareils » (UserProfilePage.tsx, docs/LEDGER_*.md WEB-28): after the
+ * « Déconnecter tous les appareils » (ProfileSecurityPage.tsx, docs/LEDGER_*.md WEB-28): after the
  * confirmation, the browser lands on the login page, and a session opened elsewhere — the phone,
  * a Karoo — no longer refreshes either.
  */
@@ -362,7 +377,7 @@ test('signing out of every device from the profile closes the other sessions too
   const user = await newUser(unique('Tous appareils'))
   const elsewhere = await loginWithPassword(user.user.email, user.password)
   await signIn(context, user)
-  const main = await openProfile(page, user.user.email)
+  const main = await openProfilePage(page, '/profil/securite', 'Connexion et sécurité')
 
   const button = main.getByRole('button', { name: 'Déconnecter tous les appareils' })
   await hydrated(button)
@@ -384,7 +399,7 @@ test('signing out of every device from the profile closes the other sessions too
 })
 
 /**
- * The avatar sent from the profile (UserProfilePage.tsx, the camera button and its hidden file
+ * The avatar sent from « Mon compte » (ProfileAccountPage.tsx, the camera button and its hidden file
  * input): the upload answers the updated user, which useAuth puts in the store — so the header's
  * account control changes at once — and comments resolve their author at read time, so one written
  * before the upload shows the new picture too.
@@ -402,7 +417,7 @@ test('an avatar sent from the profile shows in the header and on the user’s co
   await postComments(user, team.slug, ride.slug, [comment])
   await signIn(context, user)
 
-  const main = await openProfile(page, user.user.email)
+  const main = await openProfilePage(page, '/profil/compte', 'Mon compte')
   await expect(avatarImage(main, name), 'no avatar yet: the initials').toHaveCount(0)
   const upload = main.getByRole('button', { name: 'Ajouter un avatar' })
   await hydrated(upload)
@@ -451,7 +466,7 @@ test('units, theme, language and contact preferences apply at once and persist',
 }) => {
   const user = await newUser(unique('Préférences'))
   await signIn(context, user)
-  const main = await openProfile(page, user.user.email)
+  const main = await openProfilePage(page, '/profil/preferences', 'Préférences')
   const html = page.locator('html')
   await expect(html).toHaveAttribute('data-mantine-color-scheme', 'light')
 
@@ -468,12 +483,14 @@ test('units, theme, language and contact preferences apply at once and persist',
   await main.getByText('Impérial (mi, ft)', { exact: true }).click()
   expect((await unitsSaved).ok()).toBe(true)
   await expect(imperial).toBeChecked()
+  // Never chosen: the theme follows the device.
+  await expect(main.getByRole('radio', { name: 'Système' })).toBeChecked()
 
-  // Contactable: a partial PATCH of the preferences.
-  const contactable = main.getByRole('switch', {
-    name: 'Recevoir les messages des membres au sujet de mes annonces',
-  })
+  // Contactable, on « Confidentialité »: a partial PATCH of the preferences.
+  await openProfilePage(page, '/profil/vie-privee', 'Confidentialité')
+  const contactable = main.getByRole('switch', { name: 'Être contacté par les membres' })
   await expect(contactable).toBeChecked()
+  await hydrated(contactable)
   const contactSaved = page.waitForResponse(
     (r) => r.request().method() === 'PATCH' && r.url().endsWith('/api/users/me/preferences')
   )
@@ -483,6 +500,7 @@ test('units, theme, language and contact preferences apply at once and persist',
   await expect(contactable).toBeEnabled()
 
   // Theme and language, from the header.
+  await openProfilePage(page, '/profil/preferences', 'Préférences')
   const controls = await headerControls(page, isMobile)
   const themeSaved = page.waitForResponse(
     (r) => r.request().method() === 'PATCH' && r.url().endsWith('/api/users/me/preferences')
@@ -496,7 +514,10 @@ test('units, theme, language and contact preferences apply at once and persist',
   )
   await controls.getByRole('combobox', { name: 'Langue' }).selectOption('en')
   expect((await languageSaved).ok()).toBe(true)
-  await expect(main.getByRole('heading', { name: 'Profile Settings' })).toBeVisible()
+  await expect(main.getByRole('heading', { name: 'Preferences', exact: true })).toBeVisible()
+  // The page follows the header: the account answered, and it is what the page reads.
+  await expect(main.getByRole('radio', { name: 'Dark' })).toBeChecked()
+  await expect(main.getByRole('combobox', { name: 'Language' })).toHaveValue('en')
 
   expect(await meFromSession(user)).toMatchObject({
     unitSystem: 'IMPERIAL',
@@ -507,12 +528,28 @@ test('units, theme, language and contact preferences apply at once and persist',
 
   // A reload renders every one of them from the account.
   await page.reload()
-  await expect(main.getByRole('heading', { name: 'Profile Settings' })).toBeVisible()
+  await expect(main.getByRole('heading', { name: 'Preferences', exact: true })).toBeVisible()
   await expect(html).toHaveAttribute('data-mantine-color-scheme', 'dark')
   await expect(main.getByRole('radio', { name: 'Imperial (mi, ft)' })).toBeChecked()
-  await expect(
-    main.getByRole('switch', { name: 'Receive messages from members about my ads' })
-  ).not.toBeChecked()
+  await expect(main.getByRole('radio', { name: 'Dark' })).toBeChecked()
+  await openProfilePage(page, '/profile/privacy', 'Privacy')
+  await expect(main.getByRole('switch', { name: 'Can be contacted by members' })).not.toBeChecked()
+
+  // « System », from the profile's own control: the one choice the header's toggle cannot make.
+  await openProfilePage(page, '/profile/preferences', 'Preferences')
+  const system = main.getByRole('radio', { name: 'System' })
+  await hydrated(system)
+  const systemSaved = page.waitForResponse(
+    (r) => r.request().method() === 'PATCH' && r.url().endsWith('/api/users/me/preferences')
+  )
+  await main.getByText('System', { exact: true }).click()
+  const systemResponse = await systemSaved
+  expect(systemResponse.ok()).toBe(true)
+  expect(systemResponse.request().postDataJSON()).toEqual({ theme: 'SYSTEM' })
+  await expect(system).toBeChecked()
+  // Playwright's browser prefers a light scheme unless told otherwise: « System » follows it.
+  await expect(html).toHaveAttribute('data-mantine-color-scheme', 'light')
+  expect((await meFromSession(user)).theme).toBe('SYSTEM')
 })
 
 test('a passkey registered from the profile signs in from the login page', async ({
@@ -523,10 +560,10 @@ test('a passkey registered from the profile signs in from the login page', async
   const user = await newUser(unique('Passkey'))
   const authenticator = await virtualAuthenticator(page)
   await signIn(context, user)
-  const main = await openProfile(page, user.user.email)
+  const main = await openProfilePage(page, '/profil/securite', 'Connexion et sécurité')
   const device = unique('Clé virtuelle')
 
-  await expect(main.getByText('Aucune passkey enregistrée.', { exact: false })).toBeVisible()
+  await expect(main.getByText("Aucune clé d'accès enregistrée.", { exact: false })).toBeVisible()
   await addPasskeyFromProfile(page, device)
 
   expect(await authenticator.credentials()).toHaveLength(1)
@@ -669,6 +706,11 @@ test.describe('deleting the account', () => {
    */
   async function openDangerZone(page: Page, email: string) {
     const main = await openProfile(page, email)
+    // « Mon compte », from the overview's identity card: where the danger zone lives.
+    const account = main.getByRole('link', { name: 'Mon compte', exact: true }).first()
+    await hydrated(account)
+    await account.click()
+    await expect(main.getByRole('heading', { name: 'Mon compte', exact: true })).toBeVisible()
     await expect(main.getByText('Zone de danger', { exact: true })).toBeVisible()
     const remove = main.getByRole('button', { name: 'Supprimer le compte' })
     await hydrated(remove)
@@ -821,15 +863,15 @@ test('a deleted passkey is gone from the profile and no longer signs in', async 
   const user = await newUser(unique('Passkey supprimée'))
   const authenticator = await virtualAuthenticator(page)
   await signIn(context, user)
-  const main = await openProfile(page, user.user.email)
+  const main = await openProfilePage(page, '/profil/securite', 'Connexion et sécurité')
   const device = unique('Clé à supprimer')
   await addPasskeyFromProfile(page, device)
   expect(await passkeysOf(user.accessToken)).toHaveLength(1)
 
-  await main.getByRole('button', { name: 'Supprimer cette passkey' }).click()
-  const dialog = page.getByRole('dialog', { name: 'Supprimer la passkey ?' })
+  await main.getByRole('button', { name: "Supprimer cette clé d'accès" }).click()
+  const dialog = page.getByRole('dialog', { name: "Supprimer la clé d'accès ?" })
   await expect(
-    dialog.getByText('Cette passkey ne pourra plus être utilisée pour vous connecter.')
+    dialog.getByText("Cette clé d'accès ne pourra plus être utilisée pour vous connecter.")
   ).toBeVisible()
   const deleted = page.waitForResponse(
     (r) => r.request().method() === 'DELETE' && r.url().includes('/api/auth/passkeys/')
@@ -838,7 +880,7 @@ test('a deleted passkey is gone from the profile and no longer signs in', async 
   expect((await deleted).ok()).toBe(true)
   await expect(dialog).toBeHidden()
   await expect(main.getByText(device, { exact: true })).toHaveCount(0)
-  await expect(main.getByText('Aucune passkey enregistrée.', { exact: false })).toBeVisible()
+  await expect(main.getByText("Aucune clé d'accès enregistrée.", { exact: false })).toBeVisible()
   expect(await passkeysOf(user.accessToken)).toEqual([])
 
   // The browser's authenticator still holds the credential — deleting it on the server is what
@@ -1362,9 +1404,7 @@ test.describe('?next= after signing in stays on the site', () => {
     await expect(page.getByRole('main').getByRole('heading', { name: WELCOME })).toBeVisible()
     await signInWithPassword(page, user.user.email, user.password)
     await expect(page).toHaveURL(`${stack.baseURL}/profil?onglet=1`)
-    await expect(
-      page.getByRole('main').getByRole('heading', { name: 'Paramètres du profil' })
-    ).toBeVisible()
+    await expect(page.getByRole('main').getByRole('heading', PROFILE)).toBeVisible()
   })
 
   // The data export's download link sends a visitor without a session to exactly this (the full
@@ -1391,7 +1431,7 @@ test.describe('time zone', () => {
   const ZONE = 'Asia/Tokyo'
 
   /**
-   * The timezone picker of the profile (a searchable combobox), found through the text that stands
+   * The timezone picker of « Préférences » (a searchable combobox), found through the text that stands
    * for its label — it has no accessible name, see the test below.
    */
   const zoneField = (page: Page) =>
@@ -1424,7 +1464,7 @@ test.describe('time zone', () => {
     await expect(main.getByText(inParis).first()).toBeVisible()
 
     // Chosen from the profile: a partial PATCH of the preferences.
-    await openProfile(page, user.user.email)
+    await openProfilePage(page, '/profil/preferences', 'Préférences')
     const field = zoneField(page)
     await expect(field).toHaveValue('Europe/Paris')
     await hydrated(field)
@@ -1457,7 +1497,7 @@ test.describe('time zone', () => {
   test('the time zone field is named by its label', async ({ page, context }) => {
     const user = await newUser(unique('Fuseau nommé'))
     await signIn(context, user)
-    await openProfile(page, user.user.email)
+    await openProfilePage(page, '/profil/preferences', 'Préférences')
     await expect(zoneField(page)).toBeVisible()
     await expect(
       page.getByRole('main').getByRole('combobox', { name: 'Fuseau horaire' })
@@ -1466,7 +1506,7 @@ test.describe('time zone', () => {
 })
 
 /**
- * « Télécharger mes données » (DataExportManager.tsx): the archive is built in the background — the
+ * « Demander mes données » (DataExportManager.tsx, on « Confidentialité »): the archive is built in the background — the
  * backend's scheduler takes one pending export per 30 s tick — and its link arrives by mail. Since
  * 7028b868 the link alone is not enough (UserExportDownloadResource.java): the token proves the
  * mailbox, the owner's session the account. A visitor without a session is sent (303) to the login
@@ -1483,10 +1523,10 @@ test.describe('personal data export', () => {
     const user = await newUser(unique('Export RGPD'))
     const other = await newUser(unique('Pas mon export'))
     await signIn(context, user)
-    const main = await openProfile(page, user.user.email)
-    await expect(main.getByRole('heading', { name: 'Vos données' })).toBeVisible()
+    const main = await openProfilePage(page, '/profil/vie-privee', 'Confidentialité')
+    await expect(main.getByRole('heading', { name: 'Mes données' })).toBeVisible()
 
-    const request = main.getByRole('button', { name: 'Télécharger mes données' })
+    const request = main.getByRole('button', { name: 'Demander mes données' })
     await hydrated(request)
     const seen = await mailbox(user.user.email)
     const requested = page.waitForResponse(

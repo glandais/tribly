@@ -229,9 +229,9 @@ test('muting a team in the profile silences its announcements, but not a reply',
 
   await test.step('the member mutes the team from the profile', async () => {
     await signIn(context, member)
-    await page.goto('/profil')
+    await page.goto('/profil/notifications')
     const main = page.getByRole('main')
-    await expect(main.getByRole('heading', { name: 'Annonces de vos équipes' })).toBeVisible()
+    await expect(main.getByRole('heading', { name: 'Annonces des équipes' })).toBeVisible()
     const mutedSwitch = main.getByRole('switch', { name: `Recevoir les annonces de ${muted.name}` })
     const heardSwitch = main.getByRole('switch', { name: `Recevoir les annonces de ${heard.name}` })
     await expect(mutedSwitch).toBeChecked()

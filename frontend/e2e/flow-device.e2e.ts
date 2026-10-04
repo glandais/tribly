@@ -324,7 +324,7 @@ test('each device is sent to the verification page of its own app', async () => 
 })
 
 /**
- * The profile lists each paired device and unpairs one at a time (docs/LEDGER_*.md API-64): until
+ * « Appareils et services » lists each paired device and unpairs one at a time (docs/LEDGER_*.md API-64): until
  * then only « Déconnecter tous les appareils » could, closing the browser and the app with it.
  * Unpairing revokes the session that device's pairing opened — its refresh fails — and nothing
  * else: the other device and this browser stay signed in.
@@ -343,7 +343,7 @@ test('the profile lists each paired device, and unpairing one ends its session o
   expect(listed.map((d) => d.type)).toEqual(['GARMIN', 'KAROO'])
   expect(listed.every((d) => d.pairedAt)).toBe(true)
 
-  await page.goto('/profil')
+  await page.goto('/profil/appareils')
   const main = page.getByRole('main')
   await expect(main.getByRole('heading', { name: 'Appareils appairés', exact: true })).toBeVisible()
   await expect(main.getByText('Karoo', { exact: true })).toBeVisible()

@@ -42,14 +42,14 @@ test('each server-rendered document hands the browser its rotated session cookie
 
   await page.goto('/profil')
   await expect(
-    page.getByRole('main').getByRole('heading', { name: 'Paramètres du profil' })
+    page.getByRole('main').getByRole('heading', { name: 'Profil', exact: true })
   ).toBeVisible()
   const first = await sessionCookie(page.context())
   expect(first, 'the document rotated the cookie').not.toBe(before)
 
   await page.reload()
   await expect(
-    page.getByRole('main').getByRole('heading', { name: 'Paramètres du profil' })
+    page.getByRole('main').getByRole('heading', { name: 'Profil', exact: true })
   ).toBeVisible()
   expect(await sessionCookie(page.context()), 'and the next one again').not.toBe(first)
   // The browser's current token is the session's: it refreshes, and rotates in turn.
@@ -95,13 +95,13 @@ test.describe('an access token refused by the API', () => {
     return seen
   }
 
-  /** Signs a fresh user in and opens the profile, hydrated, on the units control. */
+  /** Signs a fresh user in and opens the profile's preferences, hydrated, on the units control. */
   async function openUnits(page: Page, label: string) {
     const user = await newUser(label)
     await signIn(page.context(), user)
-    await page.goto('/profil')
+    await page.goto('/profil/preferences')
     const main = page.getByRole('main')
-    await expect(main.getByRole('heading', { name: 'Paramètres du profil' })).toBeVisible()
+    await expect(main.getByRole('heading', { name: 'Préférences', exact: true })).toBeVisible()
     const imperial = main.getByRole('radio', { name: 'Impérial (mi, ft)' })
     await hydrated(imperial)
     return { user, main, imperial }
@@ -129,7 +129,7 @@ test.describe('an access token refused by the API', () => {
     expect((await meFromSession(user)).unitSystem).toBe('IMPERIAL')
     // What any save of the profile says — no error, no « session expired ».
     expect(await shown()).toEqual(['Profil mis à jour avec succès'])
-    await expect(page).toHaveURL(/\/profil$/)
+    await expect(page).toHaveURL(/\/profil\/preferences$/)
   })
 
   test('a revoked session sends the user back to the login form', async ({ page }) => {
@@ -149,7 +149,7 @@ test.describe('an access token refused by the API', () => {
     await main.getByText('Impérial (mi, ft)', { exact: true }).click()
     await expect(main.getByRole('heading', { name: /^Bienvenue sur / })).toBeVisible()
     // Sent to the form with the page it was on, to come back to it once signed in again.
-    await expect(page).toHaveURL(/\/(login|connexion)\?next=%2Fprofil$/)
+    await expect(page).toHaveURL(/\/(login|connexion)\?next=%2Fprofil%2Fpreferences$/)
     expect(refreshes.map((r) => r.status)).toEqual([403])
     // A protected page stays closed to the dead session, and nothing was saved.
     await page.goto('/profil')

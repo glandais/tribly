@@ -325,14 +325,14 @@ test.describe('web push, on a server without it', () => {
       const firebase = watchFirebase(context)
       await page.goto('/')
       await pageHydrated(page)
-      await page.goto('/profil')
+      await page.goto('/profil/notifications')
       await pageHydrated(page)
-      // The section itself is there (the rider's team gives it its mute switches)...
-      await expect(
-        page.locator('#notifications').getByRole('heading', { name: 'Notifications' })
-      ).toBeVisible()
-      // ...but not the « this device » block (WebPushSettings.tsx:31).
-      await expect(page.getByText('Notifications sur cet appareil')).toHaveCount(0)
+      // The page itself is there (the rider's team gives it its mute switches)...
+      const main = page.getByRole('main')
+      await expect(main.getByRole('heading', { name: 'Notifications', exact: true })).toBeVisible()
+      await expect(main.getByRole('heading', { name: 'Annonces des équipes' })).toBeVisible()
+      // ...but not the « this device » block (WebPushSettings.tsx).
+      await expect(main.getByRole('heading', { name: 'Sur cet appareil' })).toHaveCount(0)
       await page.goto('/applications')
       await pageHydrated(page)
       expect(firebase).toEqual([])
