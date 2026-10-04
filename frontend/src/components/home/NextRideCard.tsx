@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import {
+  Anchor,
   Badge,
   Box,
   Button,
@@ -49,7 +50,8 @@ interface NextRideCardProps {
  * shown: the leader belongs to the ride page, and is never the ride's creator.
  *
  * The heading and the ride's name share one parent (the e2e `ssr-session` spec reads the card
- * through the heading), and the card itself is not a link: the feed's card is the ride's link.
+ * through the heading), and the card itself is not a link: the feed's card is the ride's link. The
+ * name is one, as everywhere else a ride's name is shown.
  */
 export function NextRideCard({ ride, headingId }: NextRideCardProps) {
   const { t } = useTranslation()
@@ -132,7 +134,9 @@ export function NextRideCard({ ride, headingId }: NextRideCardProps) {
             {t('home.nextRide.title')}
           </Title>
           <Title order={3} lineClamp={2} mt={-8}>
-            {ride.name}
+            <Anchor component={PrefetchLink} to={ridePath} inherit c="inherit">
+              {ride.name}
+            </Anchor>
           </Title>
 
           <CardTeamLink teamSlug={ride.team.slug} teamName={ride.team.name} />

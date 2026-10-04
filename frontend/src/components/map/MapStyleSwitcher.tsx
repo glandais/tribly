@@ -10,10 +10,21 @@ import {
   ActionIcon,
   UnstyledButton,
   Switch,
+  Checkbox,
+  ColorSwatch,
   Divider,
 } from '@mantine/core'
 import { groupStyles, isKnownGroup, type MapStyle, type MapStyleId } from './mapStyles'
 import { MapControlButton, MapControlGroup } from './MapControl'
+
+/** A trace the visitor can show or hide on its own: a ride's group, a trip's stage. */
+export interface MapTraceOption {
+  id: string
+  label: string
+  /** The trace's colour on the map, repeated beside its name. */
+  color: string
+  visible: boolean
+}
 
 export interface MapStyleSwitcherProps {
   /** The served basemaps, in served order. Empty while the config is in flight. */
@@ -24,6 +35,9 @@ export interface MapStyleSwitcherProps {
   onTerrain3DChange?: (enabled: boolean) => void
   hillshade?: boolean
   onHillshadeChange?: (enabled: boolean) => void
+  /** Listed under the basemaps, one checkbox each. Left out when the map shows a single trace. */
+  traces?: readonly MapTraceOption[]
+  onTraceToggle?: (id: string) => void
 }
 
 export function MapStyleSwitcher({
@@ -34,6 +48,8 @@ export function MapStyleSwitcher({
   onTerrain3DChange,
   hillshade = false,
   onHillshadeChange,
+  traces,
+  onTraceToggle,
 }: MapStyleSwitcherProps) {
   const { t } = useTranslation()
   const [isExpanded, setIsExpanded] = useState(false)
@@ -83,7 +99,7 @@ export function MapStyleSwitcher({
             shadow="lg"
             p="sm"
             radius="md"
-            maw={160}
+            maw={traces?.length ? 220 : 160}
             style={{ minHeight: 0, display: 'flex', flexDirection: 'column' }}
           >
             <Group
@@ -169,6 +185,32 @@ export function MapStyleSwitcher({
                         label={t('map.hillshade.label')}
                       />
                     )}
+                  </Stack>
+                </>
+              )}
+              {traces && traces.length > 0 && onTraceToggle && (
+                <>
+                  <Divider my="xs" />
+                  <Stack gap={6}>
+                    <Text size="xs" fw={600} c="dimmed" tt="uppercase">
+                      {t('map.traces.title')}
+                    </Text>
+                    {traces.map((trace) => (
+                      <Checkbox
+                        key={trace.id}
+                        size="sm"
+                        checked={trace.visible}
+                        onChange={() => onTraceToggle(trace.id)}
+                        label={
+                          <Group gap={6} wrap="nowrap">
+                            <ColorSwatch color={trace.color} size={12} withShadow={false} />
+                            <Text size="sm" truncate>
+                              {trace.label}
+                            </Text>
+                          </Group>
+                        }
+                      />
+                    ))}
                   </Stack>
                 </>
               )}

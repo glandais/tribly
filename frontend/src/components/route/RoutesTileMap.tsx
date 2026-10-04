@@ -10,6 +10,7 @@ import { useUnits } from '@/hooks/useUnits'
 import { useDefaultMapView } from '@/hooks/useDefaultMapView'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { PedalonsMap } from '../map/PedalonsMap'
+import { routeArrowLayout } from '../map/routeArrowLayout'
 import {
   ROUTES_FIT_OPTIONS,
   ROUTES_SOURCE_LAYER,
@@ -142,6 +143,15 @@ export function RoutesTileMap({ tilesUrl, bounds, boundsPending }: RoutesTileMap
             'line-opacity': 0.75,
             'line-width': ['interpolate', ['linear'], ['zoom'], 5, 1, 10, 2.5, 14, 4],
           }}
+        />
+        {/* Direction chevrons on the route under the pointer (or whose popup is open) only:
+            on every trace at once they would bury the map. */}
+        <Layer
+          id={`${LINES_LAYER}-arrows`}
+          type="symbol"
+          source-layer={ROUTES_SOURCE_LAYER}
+          filter={['==', ['get', 'slug'], hoveredSlug ?? selected?.slug ?? '']}
+          layout={routeArrowLayout}
         />
         <Layer
           id={HIT_LAYER}

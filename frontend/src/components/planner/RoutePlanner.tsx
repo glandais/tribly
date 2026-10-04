@@ -15,6 +15,7 @@ import { HideTrackControl } from '../map/HideTrackControl'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { useDefaultMapView } from '@/hooks/useDefaultMapView'
 import { KmMarkersLayer } from '../map/MapMarkers'
+import { routeArrowLayout } from '../map/routeArrowLayout'
 import { UndoRedoControl } from './UndoRedoControl'
 import { RouterProfileSelector } from './RouterProfileSelector'
 import { RoutePlannerMiniMap } from './RoutePlannerMiniMap'
@@ -582,6 +583,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
                         'line-opacity': 0.8,
                       }}
                     />
+                    <Layer id="route-arrows" type="symbol" layout={routeArrowLayout} />
                   </Source>
                 )}
 

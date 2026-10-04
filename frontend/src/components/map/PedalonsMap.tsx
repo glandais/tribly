@@ -6,7 +6,8 @@ import * as maplibregl from 'maplibre-gl'
 import './setupMaplibreWorker'
 import { Terrain3D } from './Terrain3D'
 import { MapAttribution } from './MapAttribution'
-import { MapStyleSwitcher } from './MapStyleSwitcher'
+import { RouteArrowImage } from './RouteArrows'
+import { MapStyleSwitcher, type MapStyleSwitcherProps } from './MapStyleSwitcher'
 import { useMapStyle } from '@/hooks/useMapStyle'
 
 /**
@@ -15,63 +16,72 @@ import { useMapStyle } from '@/hooks/useMapStyle'
  * There is deliberately no per-map position prop — a control that moves between pages is a control
  * the visitor has to look for.
  */
-type PedalonsMapProps = Omit<MapProps, 'mapLib' | 'mapStyle' | 'style'>
+type PedalonsMapProps = Omit<MapProps, 'mapLib' | 'mapStyle' | 'style'> &
+  /** The traces the basemap panel lets the visitor show or hide, on a map that holds several. */
+  Pick<MapStyleSwitcherProps, 'traces' | 'onTraceToggle'>
 
-export const PedalonsMap = forwardRef<MapRef, PedalonsMapProps>(({ children, ...props }, ref) => {
-  const { t } = useTranslation()
-  const {
-    styleId,
-    styles,
-    terrainSource,
-    setStyleId,
-    style,
-    terrain3d,
-    setTerrain3d,
-    hillshade,
-    setHillshade,
-  } = useMapStyle()
+export const PedalonsMap = forwardRef<MapRef, PedalonsMapProps>(
+  ({ children, traces, onTraceToggle, ...props }, ref) => {
+    const { t } = useTranslation()
+    const {
+      styleId,
+      styles,
+      terrainSource,
+      setStyleId,
+      style,
+      terrain3d,
+      setTerrain3d,
+      hillshade,
+      setHillshade,
+    } = useMapStyle()
 
-  // MapLibre's own controls (zoom, compass, fullscreen) label themselves in English otherwise.
-  // `locale` is a map *construction* option: switching language re-labels the next map to mount,
-  // not one already on screen. Fine for tooltips, but don't read this as reactive.
-  const locale = useMemo(
-    () => ({
-      'FullscreenControl.Enter': t('map.fullscreen.enter'),
-      'FullscreenControl.Exit': t('map.fullscreen.exit'),
-      'NavigationControl.ZoomIn': t('map.zoomIn'),
-      'NavigationControl.ZoomOut': t('map.zoomOut'),
-      'NavigationControl.ResetBearing': t('map.resetBearing'),
-    }),
-    [t]
-  )
+    // MapLibre's own controls (zoom, compass, fullscreen) label themselves in English otherwise.
+    // `locale` is a map *construction* option: switching language re-labels the next map to mount,
+    // not one already on screen. Fine for tooltips, but don't read this as reactive.
+    const locale = useMemo(
+      () => ({
+        'FullscreenControl.Enter': t('map.fullscreen.enter'),
+        'FullscreenControl.Exit': t('map.fullscreen.exit'),
+        'NavigationControl.ZoomIn': t('map.zoomIn'),
+        'NavigationControl.ZoomOut': t('map.zoomOut'),
+        'NavigationControl.ResetBearing': t('map.resetBearing'),
+      }),
+      [t]
+    )
 
-  return (
-    <Map
-      ref={ref}
-      mapLib={maplibregl}
-      mapStyle={style}
-      locale={locale}
-      style={{ width: '100%', height: '100%' }}
-      // Off as a map *option*, on as a child: `MapAttribution` has to rebuild the control when the
-      // basemap changes, which the built-in one — constructed once with the map — cannot do.
-      attributionControl={false}
-      {...props}
-    >
-      <NavigationControl position="top-left" />
-      <MapAttribution />
-      <Terrain3D source={terrainSource} terrain={terrain3d} hillshade={hillshade} />
-      <MapStyleSwitcher
-        styles={styles}
-        currentStyleId={styleId}
-        onStyleChange={setStyleId}
-        terrain3d={terrain3d}
-        hillshade={hillshade}
-        // No served elevation source, no relief controls: the switches would toggle nothing.
-        onTerrain3DChange={terrainSource ? setTerrain3d : undefined}
-        onHillshadeChange={terrainSource ? setHillshade : undefined}
-      />
-      {children}
-    </Map>
-  )
-})
+    return (
+      <Map
+        ref={ref}
+        mapLib={maplibregl}
+        mapStyle={style}
+        locale={locale}
+        style={{ width: '100%', height: '100%' }}
+        // Off as a map *option*, on as a child: `MapAttribution` has to rebuild the control when the
+        // basemap changes, which the built-in one — constructed once with the map — cannot do.
+        attributionControl={false}
+        {...props}
+      >
+        <NavigationControl position="top-left" />
+        <MapAttribution />
+        <Terrain3D source={terrainSource} terrain={terrain3d} hillshade={hillshade} />
+        {/* Every trace on the site shows its direction (`routeArrowLayout`): the image is ready on
+          every map rather than registered by each page that draws one. */}
+        <RouteArrowImage />
+        <MapStyleSwitcher
+          styles={styles}
+          currentStyleId={styleId}
+          onStyleChange={setStyleId}
+          terrain3d={terrain3d}
+          hillshade={hillshade}
+          // No served elevation source, no relief controls: the switches would toggle nothing.
+          onTerrain3DChange={terrainSource ? setTerrain3d : undefined}
+          onHillshadeChange={terrainSource ? setHillshade : undefined}
+          traces={traces}
+          onTraceToggle={onTraceToggle}
+        />
+        {children}
+      </Map>
+    )
+  }
+)
 PedalonsMap.displayName = 'PedalonsMap'

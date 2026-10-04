@@ -44,7 +44,7 @@ interface WeekAgendaProps {
 }
 
 /**
- * « Cette semaine » on the member home: a seven-day strip from today, a dot on each day with an
+ * « Les 7 prochains jours » (formerly « Cette semaine ») on the member home: a seven-day strip from today, a dot on each day with an
  * event, then the next events of all the member's teams — from one `GET /api/calendar/events`
  * call. Days are read in the effective timezone (the member's preference, else the browser's).
  */

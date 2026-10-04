@@ -34,6 +34,7 @@ import {
 import { crosshairPlugin, type ChartWithCrosshair } from './chartCrosshair'
 import { PedalonsMap } from '../map/PedalonsMap'
 import { HideTrackControl } from '../map/HideTrackControl'
+import { routeArrowLayout } from '../map/routeArrowLayout'
 import { useHideTrackKey } from '@/hooks/useHideTrackKey'
 import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
@@ -56,8 +57,12 @@ const ROUTE_COLORS = [
   '#e3a209',
 ]
 
-/** Chart overlay is 150px at the top-right; the extra top padding keeps the trace clear of it. */
-const ROUTES_FIT_PADDING = { top: 170, bottom: 50, left: 50, right: 50 } as const
+/**
+ * The chart overlay is 150px at the bottom; the extra bottom padding keeps the traces clear of it.
+ * At the bottom rather than the top: on a phone it spans the map's width, and at the top it covered
+ * the whole control column (zoom, basemaps, fullscreen).
+ */
+const ROUTES_FIT_PADDING = { top: 50, bottom: 170, left: 50, right: 50 } as const
 
 // Minimal interface RideGroupDto satisfies directly; a trip stage carries the whole RouteDto,
 // so TripDetailPage narrows it down to the slug.
@@ -111,6 +116,17 @@ export function RoutesMapView({
     [colorScheme, theme.colors.dark, theme.colors.gray]
   )
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
+  // Traces the visitor unticked in the basemap panel. Their layers stay mounted, hidden through
+  // `visibility`, so the click handler's layer list never names a layer that is gone.
+  const [hiddenItemIds, setHiddenItemIds] = useState<ReadonlySet<string>>(() => new Set())
+  const toggleTrace = useCallback((itemId: string) => {
+    setHiddenItemIds((previous) => {
+      const next = new Set(previous)
+      if (next.has(itemId)) next.delete(itemId)
+      else next.add(itemId)
+      return next
+    })
+  }, [])
   const [cursor, setCursor] = useState<string>('grab')
 
   // Press "h" (or the map control) to hide the traces and their markers, revealing the basemap
@@ -207,15 +223,34 @@ export function RoutesMapView({
     if (!firstFrame) fitBoundsToRoutes()
   }, [dedupedSlugsKey, routesData, fitBoundsToRoutes])
 
-  // Derive highlighted route from props or selected state
+  const visibleRoutes = useMemo(
+    () => routesData.filter((r) => !hiddenItemIds.has(r.itemId)),
+    [routesData, hiddenItemIds]
+  )
+
+  // Derive highlighted route from props or selected state, among the traces on screen
   const highlightedRoute = useMemo(() => {
     // Priority: prop > selected > first route
     const targetId = highlightedItemId ?? selectedRouteId
     if (targetId) {
-      return routesData.find((r) => r.itemId === targetId) ?? routesData[0] ?? null
+      return visibleRoutes.find((r) => r.itemId === targetId) ?? visibleRoutes[0] ?? null
     }
-    return routesData[0] ?? null
-  }, [highlightedItemId, selectedRouteId, routesData])
+    return visibleRoutes[0] ?? null
+  }, [highlightedItemId, selectedRouteId, visibleRoutes])
+
+  // One checkbox per trace in the basemap panel, once there is more than one to choose from
+  const traceOptions = useMemo(
+    () =>
+      routesData.length > 1
+        ? routesData.map((r) => ({
+            id: r.itemId,
+            label: r.itemName,
+            color: r.color,
+            visible: !hiddenItemIds.has(r.itemId),
+          }))
+        : undefined,
+    [routesData, hiddenItemIds]
+  )
 
   const handlePolylineClick = useCallback(
     (itemId: string) => {
@@ -458,9 +493,11 @@ export function RoutesMapView({
   const hoveredPoint =
     hoveredPointIndex >= 0 ? (highlightedRoute?.trackPoints[hoveredPointIndex] ?? null) : null
 
-  // End marker: always use last route's last point
-  const lastRoute = routesData[routesData.length - 1]
-  const endPoint = lastRoute.trackPoints[lastRoute.trackPoints.length - 1]
+  // Start and end markers: the first shown route's first point, the last shown route's last point
+  const firstRoute = visibleRoutes[0]
+  const lastRoute = visibleRoutes[visibleRoutes.length - 1]
+  const startPoint = firstRoute?.trackPoints[0]
+  const endPoint = lastRoute?.trackPoints[lastRoute.trackPoints.length - 1]
 
   return (
     <Box
@@ -475,7 +512,7 @@ export function RoutesMapView({
         pos="relative"
         w="100%"
         h={mapHeight}
-        className={colorScheme === 'dark' ? 'dark' : undefined}
+        className={colorScheme === 'dark' ? 'map-stack dark' : 'map-stack'}
         style={{ zIndex: 0 }}
       >
         <PedalonsMap
@@ -491,6 +528,8 @@ export function RoutesMapView({
           onMouseMove={handleMapMouseMove}
           onMouseOut={clearHoveredPoint}
           interactiveLayerIds={tracksHidden ? [] : interactiveLayerIds}
+          traces={traceOptions}
+          onTraceToggle={toggleTrace}
         >
           <HideTrackControl hidden={tracksHidden} onToggle={toggleTracksHidden} />
 
@@ -503,6 +542,7 @@ export function RoutesMapView({
               {/* Render all routes */}
               {routeGeoJSONs.map((route) => {
                 const isHighlighted = highlightedRoute?.itemId === route.itemId
+                const visibility = hiddenItemIds.has(route.itemId) ? 'none' : 'visible'
 
                 return (
                   <Source
@@ -514,24 +554,25 @@ export function RoutesMapView({
                     <Layer
                       id={`line-${route.itemId}`}
                       type="line"
+                      layout={{ visibility }}
                       paint={{
                         'line-color': route.color,
                         'line-width': isHighlighted ? 8 : 5,
                         'line-opacity': isHighlighted ? 0.9 : 0.5,
                       }}
                     />
+                    {/* Which way the route runs: chevrons along it, in the order of its points */}
+                    <Layer
+                      id={`arrows-${route.itemId}`}
+                      type="symbol"
+                      layout={{ ...routeArrowLayout, visibility }}
+                    />
                   </Source>
                 )
               })}
 
-              {/* Start marker (first route's first point) */}
-              <StartMarker
-                longitude={routesData[0].trackPoints[0][0]}
-                latitude={routesData[0].trackPoints[0][1]}
-              />
-
-              {/* End marker (last route's last point) */}
-              <EndMarker longitude={endPoint[0]} latitude={endPoint[1]} />
+              {startPoint && <StartMarker longitude={startPoint[0]} latitude={startPoint[1]} />}
+              {endPoint && <EndMarker longitude={endPoint[0]} latitude={endPoint[1]} />}
 
               {/* Position cursor, shared with the elevation profile */}
               {hoveredPoint && (
@@ -541,25 +582,26 @@ export function RoutesMapView({
           )}
         </PedalonsMap>
 
-        {/* Elevation chart overlay */}
-        <Paper
-          pos="absolute"
-          top={0}
-          right={0}
-          w={{ base: '100%', sm: '50%', md: '40%' }}
-          h={{ base: 120, sm: 140, md: 150 }}
-          shadow="lg"
-          style={{ zIndex: 1000, pointerEvents: 'auto', backgroundColor: chartColors.background }}
-        >
-          {chartData && (
+        {/* Elevation chart overlay, bottom-left: the control column is top-left, and the narrow
+            width on a phone leaves the attribution's ⓘ (bottom-right) uncovered. */}
+        {chartData && (
+          <Paper
+            pos="absolute"
+            bottom={0}
+            left={0}
+            w={{ base: 'calc(100% - 40px)', sm: '50%', md: '40%' }}
+            h={{ base: 120, sm: 140, md: 150 }}
+            shadow="lg"
+            style={{ zIndex: 1000, pointerEvents: 'auto', backgroundColor: chartColors.background }}
+          >
             <Line
               ref={chartRef}
               data={chartData}
               options={chartOptions}
               plugins={[crosshairPlugin]}
             />
-          )}
-        </Paper>
+          </Paper>
+        )}
       </Box>
     </Box>
   )

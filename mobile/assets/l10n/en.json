@@ -222,7 +222,7 @@
       "other": "{} publications"
     },
     "week": {
-      "title": "This week",
+      "title": "Next 7 days",
       "calendar": "Calendar",
       "empty": "Nothing planned in your teams over the next seven days.",
       "nothingElse": "Nothing else planned in your teams over the next seven days.",

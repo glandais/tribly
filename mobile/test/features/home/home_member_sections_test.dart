@@ -129,7 +129,7 @@ void main() {
         ],
       );
 
-      expect(find.text('Cette semaine'), findsOneWidget);
+      expect(find.text('Les 7 prochains jours'), findsOneWidget);
       expect(find.byKey(keys.home.weekEvent('mardi-soir')), findsOneWidget);
       expect(find.byKey(keys.home.weekEvent('etape-1')), findsOneWidget);
       expect(find.textContaining('VC Craponne'), findsOneWidget);
@@ -216,7 +216,7 @@ void main() {
       );
 
       expect(find.byKey(keys.home.weekSection), findsNothing);
-      expect(find.text('Cette semaine'), findsNothing);
+      expect(find.text('Les 7 prochains jours'), findsNothing);
     });
   });
 

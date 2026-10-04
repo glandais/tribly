@@ -22,6 +22,7 @@ import {
 import { useDisclosure, useHeadroom } from '@mantine/hooks'
 import {
   IconUser,
+  IconChevronRight,
   IconLogout,
   IconShield,
   IconMapSearch,
@@ -261,18 +262,28 @@ export function Layout() {
           <Divider />
           {isAuthenticated ? (
             <>
+              {/* Says it is a link: an avatar and a name alone read as a label, not as the way
+                  to the profile (the drawer has no other). */}
               <UnstyledButton component={PrefetchLink} to={paths.profile()} onClick={close}>
-                <Group>
+                <Group wrap="nowrap">
                   <Avatar
                     src={user?.avatarUrl}
                     alt={user?.displayName}
                     radius="xl"
-                    size="sm"
+                    size="md"
                     color="primary"
                   >
                     {user?.displayName?.charAt(0).toUpperCase()}
                   </Avatar>
-                  <Text size="sm">{user?.displayName}</Text>
+                  <Box style={{ flex: 1, minWidth: 0 }}>
+                    <Text size="sm" fw={500} truncate>
+                      {user?.displayName}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {t('nav.viewProfile')}
+                    </Text>
+                  </Box>
+                  <IconChevronRight size={16} color="var(--mantine-color-dimmed)" />
                 </Group>
               </UnstyledButton>
               <Button

@@ -117,6 +117,17 @@ body {
   }
 }
 
+/* MapLibre's fullscreen where the Fullscreen API is missing (iPhone Safari) is a `position: fixed`
+   map at z-index 99999 — but only within its stacking context. The map's own box (`map-stack`,
+   z-index 0 to keep its controls under the header) and the sticky `.detail-map` each open one, so
+   the participants' avatars, positioned and later in the page, painted over the "fullscreen" map.
+   Every such ancestor rises with it while it is fullscreen (`!important`: the map's box sets its
+   z-index inline). */
+.map-stack:has(.maplibregl-pseudo-fullscreen),
+.detail-map:has(.maplibregl-pseudo-fullscreen) {
+  z-index: var(--mantine-z-index-max) !important;
+}
+
 /* Ride/Trip detail: map spans 2 cols on xl (90em = 1440px) */
 @media (min-width: 90em) {
   .detail-map {

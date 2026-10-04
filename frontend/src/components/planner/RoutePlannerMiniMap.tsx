@@ -6,6 +6,8 @@ import type { MapRef } from 'react-map-gl/maplibre'
 import { ActionIcon, Box, Stack } from '@mantine/core'
 import { IconPlus, IconMinus } from '@tabler/icons-react'
 import { MapAttribution } from '@/components/map/MapAttribution'
+import { RouteArrowImage } from '@/components/map/RouteArrows'
+import { routeArrowLayout } from '@/components/map/routeArrowLayout'
 import { useMapStyle } from '@/hooks/useMapStyle'
 
 const DEFAULT_ZOOM = 15
@@ -71,6 +73,7 @@ export function RoutePlannerMiniMap({ center, routeGeoJson }: RoutePlannerMiniMa
             credit. `pointerEvents: 'auto'` for the same reason the zoom stack below sets it: the
             wrapper turns them off wholesale, and a ⓘ nobody can open credits nobody. */}
         <MapAttribution compact style={{ pointerEvents: 'auto' }} />
+        <RouteArrowImage />
         {routeGeoJson && (
           <Source id="mini-route" type="geojson" data={routeGeoJson}>
             <Layer
@@ -78,6 +81,7 @@ export function RoutePlannerMiniMap({ center, routeGeoJson }: RoutePlannerMiniMa
               type="line"
               paint={{ 'line-color': '#4F46E5', 'line-width': 3, 'line-opacity': 0.8 }}
             />
+            <Layer id="mini-route-arrows" type="symbol" layout={routeArrowLayout} />
           </Source>
         )}
       </Map>

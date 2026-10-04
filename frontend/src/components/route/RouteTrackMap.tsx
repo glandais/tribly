@@ -16,6 +16,7 @@ import {
   createGradientLineFeatures,
 } from '../map/mapUtils'
 import { PedalonsMap } from '../map/PedalonsMap'
+import { routeArrowLayout } from '../map/routeArrowLayout'
 import { HideTrackControl } from '../map/HideTrackControl'
 import { useHideTrackKey } from '@/hooks/useHideTrackKey'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
@@ -70,6 +71,20 @@ export function RouteTrackMap({
 
   // Create gradient line GeoJSON
   const lineFeatures = useMemo(() => createGradientLineFeatures(route.tracks), [route.tracks])
+
+  // The direction chevrons follow whole tracks: placed on the gradient's short segments, they
+  // would restart (or vanish) at every colour change.
+  const directionLines = useMemo(
+    () => ({
+      type: 'FeatureCollection' as const,
+      features: route.tracks.map((track) => ({
+        type: 'Feature' as const,
+        properties: {},
+        geometry: track.line,
+      })),
+    }),
+    [route.tracks]
+  )
 
   // The track is already in hand on the first render — the parent doesn't mount this without one —
   // so the map opens on it via `initialViewState` instead of snapping to it after `onLoad`.
@@ -155,6 +170,9 @@ export function RouteTrackMap({
                   'line-opacity': 0.8,
                 }}
               />
+            </Source>
+            <Source id="route-direction" type="geojson" data={directionLines}>
+              <Layer id="route-direction-arrows" type="symbol" layout={routeArrowLayout} />
             </Source>
 
             {/* Start marker */}

@@ -222,7 +222,7 @@
       "other": "{} publications"
     },
     "week": {
-      "title": "Cette semaine",
+      "title": "Les 7 prochains jours",
       "calendar": "Calendrier",
       "empty": "Rien de prévu dans vos équipes ces sept prochains jours.",
       "nothingElse": "Rien d'autre de prévu dans vos équipes ces sept prochains jours.",
