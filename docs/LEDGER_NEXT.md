@@ -291,16 +291,10 @@ refait le parcours : un seul QR, l'étape Hammerhead enchaînée sur le téléph
 un retour d'OAuth paramétré (`returnTo`, contrat `10.4.0`) et un Karoo qui suit `/api/device/me`
 au lieu de redemander. Hammerhead y est **obligatoire** (décision du 2 octobre 2026).
 
-**État au 2 octobre 2026 : code écrit sur les quatre modules, pas encore recetté.** Restent : les
-tests backend (`GpsResourceTest`), les e2e web (`flow-device.e2e.ts`) et Patrol
+**État au 2 octobre 2026 : code écrit sur les quatre modules, pas encore recetté.** Les tests
+backend (`GpsResourceTest`) sont verts depuis le 4 octobre ; restent les e2e web (`flow-device.e2e.ts`) et Patrol
 (`device_link_test`, `device_hammerhead_test`) à lancer sur la pile e2e, et la recette manuelle
 sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` une fois tout cela vert.
-
-- [ ] `API-70` **Tests backend du résumé du profil à lancer (XS)** — `API-69` est livré avec ses
-      tests écrits mais pas exécutés : `mvn test -Dtest='ProfileSummary*,GpsResourceTest,AdContactResourceTest'`
-      dans `backend/` (le dernier rend le gabarit `ad-contact.*` réécrit par `WEB-57`). `ProfileSummaryQueryCountTest` a un budget d'entités sur mesure (3 par ligne
-      ajoutée — adhésion, équipe, session d'appareil — plus 8) : à ajuster si Hibernate en charge
-      d'autres, sans jamais réintroduire une requête par ligne.
 
 - [ ] `API-72` **Contraintes CHECK des enums vérifiées contre Flyway (S)** — les tests construisent
       le schéma depuis les entités (`%test.quarkus.flyway.migrate-at-start=false`) : un enum persisté

@@ -1606,7 +1606,7 @@ d'état de la vue d'ensemble du profil (`WEB-55`, `MOB-48`) avec `/me`. Avec lui
 `GpsConnectReturn.PROFILE` revient sur `/profile/devices` (enum inchangé). Tests :
 `ProfileSummaryResourceTest` (compteurs, filtre de domaine, bloqués supprimés, e-mail coupé côté
 serveur), `ProfileSummaryQueryCountTest`, `GpsResourceTest.handleCallback_withoutReturnTo_shouldRedirectToProfileDevices`,
-helper `TestDataService.createPairedDevice` — **écrits, pas encore lancés** (`API-70`). **À ne pas
+helper `TestDataService.createPairedDevice` — verts le 4 octobre 2026 (`API-70`). **À ne pas
 défaire** : chaque compteur reste une requête `count`, jamais le chargement de la liste ; la
 prochaine sortie passe par `listMyParticipations` (taille 1, lookups par page) ; `teams` filtré
 par domainId ; `emailDigest` à false quand `EMAIL` n'est pas disponible (le champ brut de
@@ -1614,6 +1614,13 @@ par domainId ; `emailDigest` à false quand `EMAIL` n'est pas disponible (le cha
 préférences d'affichage, `contactableByMembers` et `connectedServices` restent dans `/me`, sans
 doublon. Le compteur « à venir » est borné par `Instant.now()`, l'onglet web par
 `hourAlignedNowIso()` : un écart d'au plus une heure est accepté.
+
+- `API-70` **Tests backend du résumé du profil lancés** (2026-10-04) — `ProfileSummaryResourceTest`,
+  `ProfileSummaryQueryCountTest`, `GpsResourceTest` et `AdContactResourceTest` (gabarit
+  `ad-contact.*` réécrit par `WEB-57`) sont passés dans la suite backend complète sur `b954747c`
+  (3128 tests, 0 échec). Le budget d'entités de `ProfileSummaryQueryCountTest` (3 par ligne ajoutée,
+  plus 8) a tenu sans ajustement. **À ne pas défaire** : si Hibernate charge un jour plus
+  d'entités, on ajuste le budget, jamais en réintroduisant une requête par ligne.
 
 ## OPS — Exploitation, déploiement, recette du backend
 
