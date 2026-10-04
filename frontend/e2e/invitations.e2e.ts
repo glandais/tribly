@@ -404,7 +404,7 @@ test.describe('invitee side', () => {
     await page.getByRole('button', { name: 'Créer un compte' }).click()
     await expect(
       page.getByText(
-        "Cliquez sur le lien dans l'email pour choisir votre mot de passe et activer votre compte."
+        "Cliquez sur le lien dans l'e-mail pour choisir votre mot de passe et activer votre compte."
       )
     ).toBeVisible()
 
