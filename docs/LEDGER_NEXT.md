@@ -302,6 +302,13 @@ sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` u
       ajoutée — adhésion, équipe, session d'appareil — plus 8) : à ajuster si Hibernate en charge
       d'autres, sans jamais réintroduire une requête par ligne.
 
+- [ ] `API-72` **Contraintes CHECK des enums vérifiées contre Flyway (S)** — les tests construisent
+      le schéma depuis les entités (`%test.quarkus.flyway.migrate-at-start=false`) : un enum persisté
+      en `varchar` qui gagne une valeur sans migration passe toute la suite et casse en prod (`API-71`).
+      Un test qui applique `db/migration` sur une base PostGIS vierge (TestContainers) et compare chaque
+      contrainte `…_check` aux valeurs de l'enum Java correspondant (`AuthTokenType`, `AssetType`,
+      `service_type`, `platform_role`, `visibility`, `status`…) supprimerait cette classe de défaut.
+
 ### Les chantiers d'infrastructure d'API
 
 Quatre chantiers ont été chiffrés au §4 du
