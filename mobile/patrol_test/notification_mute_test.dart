@@ -21,6 +21,8 @@ void main() {
 
       await openAppSignedIn($, member);
       await modules.navigation.goToProfile();
+      await modules.profile.waitUntilShown();
+      await modules.profile.openNotificationSettings();
       await modules.notifications.toggleTeamInProfile(mutedSlug);
       await eventually(
         () => backend.isMuted(member, mutedSlug),

@@ -8,8 +8,8 @@ extension ProfileSeed on BackendClient {
   /// `language`, `contactableByMembers`).
   Future<Json> profile(TestUser who) => get(who, '/api/users/me');
 
-  /// Sets [who]'s preferred IANA timezone, as the web profile's picker does — the mobile app has
-  /// no picker of its own and applies the preference (docs/LEDGER_*.md API-15).
+  /// Sets [who]'s preferred IANA timezone, as the profile's « Fuseau horaire » does on the web and
+  /// in the app (docs/LEDGER_*.md API-15).
   Future<void> setTimezone(TestUser who, String timezone) =>
       patch(who, '/api/users/me/preferences', {'timezone': timezone});
 

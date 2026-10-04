@@ -11,8 +11,9 @@ final class Peripheral extends Module {
 
   // ── Apps and the beta sign-up ───────────────────────────────────────────
 
-  /// Profile → « À propos » → « Applications ».
+  /// Profile → « Aide et à propos » → « Applications ».
   Future<void> openAppsFromProfile() async {
+    await _openHelp();
     await (await scrolledTo(keys.profile.appsRow)).tap();
     await $(keys.apps.betaEmailField).waitUntilExists();
   }
@@ -60,8 +61,9 @@ final class Peripheral extends Module {
 
   // ── « Signaler un problème » ────────────────────────────────────────────
 
-  /// Profile → « À propos » → « Signaler un problème ».
+  /// Profile → « Aide et à propos » → « Signaler un problème ».
   Future<void> openReportProblemFromProfile() async {
+    await _openHelp();
     await (await scrolledTo(keys.profile.reportProblemRow)).tap();
     await $(keys.feedback.messageField).waitUntilVisible();
   }
@@ -125,5 +127,11 @@ final class Peripheral extends Module {
       }
       await $.pump(const Duration(milliseconds: 200));
     }
+  }
+
+  /// The profile overview's « Aide et à propos », where both entries live.
+  Future<void> _openHelp() async {
+    await (await scrolledTo(keys.profile.helpRow)).tap();
+    await $(keys.profile.appsRow).waitUntilExists();
   }
 }

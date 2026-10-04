@@ -25,11 +25,12 @@ void main() {
       replaceAccessToken($, 'expired-access-token');
       await modules.navigation.goToProfile();
       await modules.profile.waitUntilShown();
-      // The badge only appears once `GET /api/users/me/participations` has answered.
+      // The badge only appears once `GET /api/users/me/profile-summary` has answered.
       await modules.profile.waitUntilUpcomingCountIs(0);
       expect(currentAccessToken($), isNot(equals('expired-access-token')));
       expect(currentAccessToken($), isNotNull);
 
+      await modules.profile.openSecurity();
       replaceAccessToken($, 'expired-access-token');
       await modules.profileSettings.logOutEverywhere();
       await modules.auth.waitUntilLoginPageIsVisible();

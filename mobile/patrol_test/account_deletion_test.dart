@@ -34,6 +34,7 @@ void main() {
       await openAppSignedIn($, owner);
       await modules.navigation.goToProfile();
       await modules.profile.waitUntilShown();
+      await modules.profile.openAccount();
 
       // Sole admin of a team with another member: refused before any confirmation.
       await modules.profile.deleteAccount();

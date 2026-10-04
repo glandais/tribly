@@ -9,8 +9,8 @@ import 'common.dart';
 
 /// Web counterpart: `flow-account.e2e.ts` › profile settings.
 ///
-/// The profile's settings apply at once, with no « save » but the display name's, and live on the
-/// server (`PATCH /api/users/me/preferences`) so that another device finds them: units (the example
+/// The profile's settings apply at once, with no « save » but the display name's (« Mon compte »),
+/// and live on the server (`PATCH /api/users/me/preferences`) so that another device finds them: units (the example
 /// figures follow), theme (the app redraws), language (the app speaks it), and « Être contacté par
 /// les membres », which the ad relay obeys — off, a buyer's message is refused
 /// `AD_CONTACT_OPTED_OUT`.
@@ -31,16 +31,23 @@ void main() {
       await openAppSignedIn($, seller);
       await modules.navigation.goToProfile();
       await modules.profile.waitUntilShown();
-      final contactableAtFirst = modules.profileSettings.contactableIsOn;
 
+      await modules.profile.openAccount();
       await modules.profileSettings.renameTo(newName);
+      await modules.profile.backToOverview();
+
+      await modules.profile.openPrivacy();
+      final contactableAtFirst = modules.profileSettings.contactableIsOn;
+      await modules.profileSettings.toggleContactable();
+      await modules.profile.backToOverview();
+
+      await modules.profile.openPreferences();
       await modules.profileSettings.chooseUnits(UnitSystem.imperial);
       await modules.profileSettings.waitUntilUnitsExampleSays(
         AppFormatters.withUnit('', UnitSymbols.mile),
       );
       await modules.profileSettings.chooseTheme(ThemePreference.dark);
       await modules.profileSettings.waitUntilAppIs(Brightness.dark);
-      await modules.profileSettings.toggleContactable();
       await modules.profileSettings.chooseLanguage('en');
       await modules.profileSettings.waitUntilLanguageRowSays('English');
 
@@ -57,6 +64,8 @@ void main() {
       );
       expect(saved['displayName'], newName);
       expect(contactableAtFirst, isTrue);
+      await modules.profile.backToOverview();
+      await modules.profile.openPrivacy();
       expect(modules.profileSettings.contactableIsOn, isFalse);
       expect(
         await backend.contactSellerError(buyer, teamSlug, ad['slug'] as String),
@@ -64,6 +73,8 @@ void main() {
       );
 
       // Back to French: the language is a choice both ways.
+      await modules.profile.backToOverview();
+      await modules.profile.openPreferences();
       await modules.profileSettings.chooseLanguage('fr');
       await modules.profileSettings.waitUntilLanguageRowSays('Français');
       await eventually(

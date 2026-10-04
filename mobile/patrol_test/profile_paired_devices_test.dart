@@ -21,6 +21,7 @@ void main() {
       await openAppSignedIn($, user);
       await modules.navigation.goToProfile();
       await modules.profile.waitUntilShown();
+      await modules.profile.openDevices();
       await modules.profileSettings.waitUntilDeviceIsListed(idOf('KAROO'));
       await modules.profileSettings.waitUntilDeviceIsListed(idOf('GARMIN'));
 

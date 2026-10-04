@@ -33,7 +33,8 @@ final class Notifications extends Module {
     await $(keys.notifications.tile(notificationId)).tap();
   }
 
-  /// Profile → the team's switch « receive its announcements », toggled.
+  /// « Notifications » of the profile (`Profile.openNotificationSettings`) → the team's switch
+  /// « receive its announcements », toggled.
   Future<void> toggleTeamInProfile(String teamSlug) async {
     await (await scrolledTo(keys.notifications.teamSwitch(teamSlug))).tap();
   }

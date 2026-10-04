@@ -5,16 +5,27 @@ import 'package:pedalons/core/pdl/pdl.dart';
 
 import 'module.dart';
 
-/// The profile's settings: identity, display preferences, data export, sessions.
+/// Inside the profile's sub-pages, once [Profile] has opened them: identity (« Mon compte »),
+/// display preferences (« Préférences »), the contact switch and the data export
+/// (« Confidentialité »), sessions (« Connexion et sécurité »), paired devices (« Appareils et
+/// services »).
 final class ProfileSettings extends Module {
   ProfileSettings(super.$);
 
   // ── Identity ────────────────────────────────────────────────────────────
 
-  /// Types [name] in « Nom affiché » and taps « Enregistrer ».
+  /// Types [name] in « Nom affiché », taps « Enregistrer », and waits until the server's answer is
+  /// adopted — « Enregistrer » turns disabled again once nothing differs from it.
   Future<void> renameTo(String name) async {
     await (await scrolledTo(keys.profile.displayNameField)).enterText(name);
     await $(keys.profile.displayNameSave).tap();
+    await _waitUntil(
+      () =>
+          !($(keys.profile.displayNameSave).evaluate().single.widget
+                  as PdlButton)
+              .enabled,
+      'the display name saved',
+    );
   }
 
   // ── Display preferences ─────────────────────────────────────────────────
@@ -38,6 +49,19 @@ final class ProfileSettings extends Module {
 
   Future<void> waitUntilAppIs(Brightness brightness) =>
       _waitUntil(() => appBrightness == brightness, 'the app in $brightness');
+
+  /// « Fuseau horaire », [search] typed in its sheet, then the zone [name] (IANA) in the list.
+  Future<void> chooseTimezone(String name, {required String search}) async {
+    await (await scrolledTo(keys.profile.timezoneRow)).tap();
+    await $(keys.profile.timezoneSearch).enterText(search);
+    await $(keys.profile.timezoneOption(name)).tap();
+    await waitUntilGone(keys.profile.timezoneOption(name));
+  }
+
+  Future<void> waitUntilTimezoneRowSays(String text) => _waitUntil(
+    () => shows(keys.profile.timezoneRow, text),
+    'the time zone row « $text »',
+  );
 
   /// « Langue », then the language of [code] in its sheet.
   Future<void> chooseLanguage(String code) async {

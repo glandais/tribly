@@ -7,8 +7,8 @@ import 'api/rides_home_trips_seed.dart';
 import 'common.dart';
 
 /// Web counterpart: `flow-account.e2e.ts` › the profile's timezone picker — the web renders every
-/// date in `UserDto.timezone` when it is set. The mobile app has no picker; it applies the same
-/// preference (docs/LEDGER_*.md API-15).
+/// date in `UserDto.timezone` when it is set, and the app applies the same preference
+/// (docs/LEDGER_*.md API-15). Choosing it in the app is `profile_timezone_test`.
 ///
 /// A stage at 08:00 in Auckland is set on the server as an instant; a member whose preference is
 /// `Pacific/Auckland` reads « 08:00 » and that day — whatever the device's own zone, which would

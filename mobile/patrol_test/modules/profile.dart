@@ -1,11 +1,64 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
+import 'package:pedalons/core/pdl/pdl.dart';
 
 import 'module.dart';
 
+/// The profile tab: its overview — one shortcut per sub-page, each with its status line — and the
+/// way into and out of the sub-pages. What happens inside a sub-page is in [ProfileSettings].
 final class Profile extends Module {
   Profile(super.$);
+
+  // ── Sub-pages ───────────────────────────────────────────────────────────
+
+  /// The identity card → « Mon compte » (photo, display name, account deletion).
+  Future<void> openAccount() =>
+      _open(keys.profile.identityCard, keys.profile.displayNameField);
+
+  /// « Préférences »: units, time zone, theme, language.
+  Future<void> openPreferences() =>
+      _open(keys.profile.preferencesRow, keys.profile.languageRow);
+
+  /// « Notifications »: one row per type, the team switches, the inbox link.
+  Future<void> openNotificationSettings() =>
+      _open(keys.profile.notificationsRow, keys.notifications.openInboxRow);
+
+  /// « Appareils et services »: the connected GPS services and the paired devices.
+  Future<void> openDevices() async {
+    await (await scrolledTo(keys.profile.devicesRow)).tap();
+    await $.pump(const Duration(milliseconds: 500));
+  }
+
+  /// « Connexion et sécurité »: passkeys, « Déconnecter tous les appareils ».
+  Future<void> openSecurity() =>
+      _open(keys.profile.securityRow, keys.profile.logoutAllButton);
+
+  /// « Confidentialité »: the contact switch, blocked users, error reports, data export.
+  Future<void> openPrivacy() =>
+      _open(keys.profile.privacyRow, keys.profile.contactableSwitch);
+
+  /// « Aide et à propos »: the companion apps, « Signaler un problème », legal pages, versions.
+  Future<void> openHelp() => _open(keys.profile.helpRow, keys.profile.appsRow);
+
+  /// The sub-page's back arrow, back to the overview. Found by position rather than by its label,
+  /// which follows the app's language (« Retour au profil », « Back to profile »).
+  Future<void> backToOverview() async {
+    await $.tester.tap(
+      find
+          .descendant(
+            of: find.byType(PdlAppBar),
+            matching: find.byType(PdlAppBarAction),
+          )
+          .first,
+    );
+    await waitUntilShown();
+  }
+
+  Future<void> _open(Key row, Key shownOnPage) async {
+    await (await scrolledTo(row)).tap();
+    await $(shownOnPage).waitUntilExists();
+  }
 
   Future<void> logOut() async {
     await $(keys.profile.logoutButton).scrollTo().tap();
@@ -17,13 +70,13 @@ final class Profile extends Module {
 
   // ── Participations ──────────────────────────────────────────────────────
 
-  /// The badge of « Mes sorties à venir », once its count has loaded.
+  /// The badge of « Mes sorties » (the upcoming ones), once the profile summary has loaded.
   Future<int> upcomingCount() async {
     await $(keys.profile.participationsUpcomingCount).waitUntilExists();
     return int.parse(_upcomingBadgeText);
   }
 
-  /// Waits until the badge of « Mes sorties à venir » reads [expected].
+  /// Waits until the badge of « Mes sorties » reads [expected].
   Future<void> waitUntilUpcomingCountIs(
     int expected, {
     Duration timeout = const Duration(seconds: 10),
@@ -48,7 +101,7 @@ final class Profile extends Module {
     await (await scrolledTo(keys.profile.participationsUpcomingRow)).tap();
   }
 
-  /// Waits for the publication [slug] in « Mes participations ».
+  /// Waits for the publication [slug] in « Mes sorties ».
   Future<void> waitUntilParticipationIsListed(String slug) async {
     await $(keys.profile.participationCard(slug)).waitUntilVisible();
   }
@@ -68,7 +121,7 @@ final class Profile extends Module {
 
   // ── Deleting the account ────────────────────────────────────────────────
 
-  /// Taps « Supprimer mon compte ». The app first asks the server what it would do to the
+  /// Taps « Supprimer le compte », in « Mon compte » ([openAccount]). The app first asks the server what it would do to the
   /// member's teams: wait for its answer with [waitUntilDeletionIsBlocked] or
   /// [waitUntilConfirmationIsShown].
   Future<void> deleteAccount() async {

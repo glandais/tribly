@@ -42,7 +42,7 @@ void main() {
       );
 
       // A post is a full-screen page, over the tab bar.
-      await openLink($, Paths.profile());
+      await openLink($, Paths.profilePrivacy());
       await modules.moderation.unblockFromProfile(commenter.id);
       expect(await backend.blockedIds(reader), isNot(contains(commenter.id)));
 

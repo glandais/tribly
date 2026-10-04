@@ -3,10 +3,10 @@ import 'common.dart';
 
 /// Web counterpart: `flow-account.e2e.ts` › « personal data export ».
 ///
-/// « Demander un export » queues a GDPR export (`POST /api/users/me/export`, 202); the backend's
+/// « Demander mes données » queues a GDPR export (`POST /api/users/me/export`, 202); the backend's
 /// scheduler builds it — one pending export per 30 s tick — and mails a download link. The card
 /// says where the export stands: « En préparation… » once asked, then « Prêt · valable jusqu'au
-/// {date} » once the server calls it `READY`, which a member sees on coming back to the profile.
+/// {date} » once the server calls it `READY`, which a member sees on coming back to « Confidentialité ».
 void main() {
   testApp(
     'A data export requested from the profile is mailed, and the profile then says it is ready',
@@ -18,6 +18,7 @@ void main() {
       await openAppSignedIn($, user);
       await modules.navigation.goToProfile();
       await modules.profile.waitUntilShown();
+      await modules.profile.openPrivacy();
       await modules.profileSettings.waitUntilExportStatusSays('Jamais demandé');
       await modules.profileSettings.requestExport();
       await modules.profileSettings.waitUntilExportStatusSays('En préparation');
@@ -33,6 +34,7 @@ void main() {
       await openAppSignedIn($, user);
       await modules.navigation.goToProfile();
       await modules.profile.waitUntilShown();
+      await modules.profile.openPrivacy();
       await modules.profileSettings.waitUntilExportStatusSays('Prêt');
 
       // The token rides in the query, which the access log masks, not in the path (API-45).

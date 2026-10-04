@@ -19,6 +19,7 @@ void main() {
       await openAppSignedIn($, user);
       await modules.navigation.goToProfile();
       await modules.profile.waitUntilShown();
+      await modules.profile.openSecurity();
       await modules.profileSettings.logOutEverywhere();
       await modules.auth.waitUntilLoginPageIsVisible();
 
