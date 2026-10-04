@@ -90,18 +90,28 @@ class PdlChip extends StatelessWidget {
       ),
     );
 
-    return SizedBox(
-      height: PdlMetrics.tapTarget,
-      child: Center(
-        child: Semantics(
-          button: onTap != null || onRemoved != null,
-          selected: selected,
-          child: Material(
-            type: MaterialType.transparency,
-            child: InkWell(
-              onTap: onRemoved ?? onTap,
-              borderRadius: PdlRadii.pillAll,
-              child: pill,
+    final VoidCallback? action = onRemoved ?? onTap;
+    // Les 5 px au-dessus et au-dessous de la pastille font partie de la cible :
+    // sans ce détecteur, seul l'`InkWell` de la pastille répondrait, et la
+    // cible réelle retomberait à 34 px. Un toucher sur la pastille, lui, reste
+    // à l'`InkWell` (le détecteur le plus profond gagne) et garde son effet.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      excludeFromSemantics: true,
+      onTap: action,
+      child: SizedBox(
+        height: PdlMetrics.tapTarget,
+        child: Center(
+          child: Semantics(
+            button: action != null,
+            selected: selected,
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                onTap: action,
+                borderRadius: PdlRadii.pillAll,
+                child: pill,
+              ),
             ),
           ),
         ),

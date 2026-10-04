@@ -45,6 +45,22 @@ void main() {
     expect(tester.getSize(pill.first).height, PdlMetrics.chipVisual);
   });
 
+  testWidgets('PdlChip répond aussi dans les 5 px autour de sa pastille', (
+    WidgetTester tester,
+  ) async {
+    int taps = 0;
+    await pump(tester, PdlChip(label: 'Push', onTap: () => taps++));
+
+    final Rect box = tester.getRect(find.byType(PdlChip));
+    // Hors de la pastille (34 px centrés dans 44), mais dans la cible.
+    await tester.tapAt(Offset(box.center.dx, box.top + 2));
+    await tester.tapAt(Offset(box.center.dx, box.bottom - 2));
+    // Et sur la pastille : un seul appel, pas deux.
+    await tester.tapAt(box.center);
+
+    expect(taps, 3);
+  });
+
   testWidgets('PdlButton(size: sm) compacte la typo, jamais la cible', (
     WidgetTester tester,
   ) async {
