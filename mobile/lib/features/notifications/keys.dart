@@ -20,7 +20,18 @@ class NotificationsKeys {
   ValueKey<String> tile(String notificationId) =>
       _NotificationsKey('tile_$notificationId');
 
-  /// L'interrupteur « je reçois ses annonces » d'une équipe, dans le profil.
+  /// La boîte : son accès aux réglages des notifications.
+  final settingsButton = const _NotificationsKey('settingsButton');
+
+  /// Réglages (`/profil/notifications`) : la ligne d'un type, la puce d'un
+  /// canal sur cette ligne, le résumé quotidien et le lien vers la boîte.
+  ValueKey<String> typeRow(String type) => _NotificationsKey('typeRow_$type');
+  ValueKey<String> channelChip(String type, String channel) =>
+      _NotificationsKey('channelChip_${type}_$channel');
+  final digestSwitch = const _NotificationsKey('digestSwitch');
+  final openInboxRow = const _NotificationsKey('openInboxRow');
+
+  /// L'interrupteur « je reçois ses annonces » d'une équipe, dans les réglages.
   ValueKey<String> teamSwitch(String teamSlug) =>
       _NotificationsKey('teamSwitch_$teamSlug');
 

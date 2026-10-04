@@ -165,9 +165,13 @@ void main() {
 
       expect(find.text('Métrique'), findsOneWidget);
       expect(find.text('Impérial'), findsOneWidget);
+      expect(find.text('Fuseau horaire'), findsOneWidget);
+      // Jamais choisi : le fuseau de l'appareil.
+      expect(find.text('Fuseau de l\'appareil'), findsOneWidget);
       expect(find.text('Système'), findsOneWidget);
       expect(find.text('Langue'), findsOneWidget);
-      expect(find.text('Être contacté par les membres'), findsOneWidget);
+      // La confidentialité a sa propre page.
+      expect(find.text('Être contacté par les membres'), findsNothing);
       // Ils s'appliquent immédiatement : aucun « Enregistrer » dans la carte.
       expect(find.text('Enregistrer'), findsNothing);
     });
@@ -182,17 +186,6 @@ void main() {
       expect(find.textContaining('66,5'), findsOneWidget);
       expect(find.textContaining('413'), findsOneWidget);
     });
-
-    testWidgets(
-      'la mention de confidentialité accompagne l\'interrupteur de contact',
-      (WidgetTester tester) async {
-        await mount(tester, const PreferencesSection());
-        expect(
-          find.textContaining('votre adresse ne leur est jamais montrée'),
-          findsOneWidget,
-        );
-      },
-    );
   });
 
   group('clés d\'accès', () {
@@ -279,7 +272,7 @@ void main() {
           migratedTeams: const <TeamPublicationDto>[],
         ),
       );
-      await mount(tester, const AccountSection(), profile: profile);
+      await mount(tester, const DeleteAccountSection(), profile: profile);
 
       await tester.tap(find.text('Supprimer le compte'));
       await settle(tester);
@@ -303,7 +296,7 @@ void main() {
             migratedTeams: <TeamPublicationDto>[_team('Club migré')],
           ),
         );
-        await mount(tester, const AccountSection(), profile: profile);
+        await mount(tester, const DeleteAccountSection(), profile: profile);
 
         await tester.tap(find.text('Supprimer le compte'));
         await settle(tester);
@@ -334,7 +327,7 @@ void main() {
           migratedTeams: const <TeamPublicationDto>[],
         ),
       );
-      await mount(tester, const AccountSection(), profile: profile);
+      await mount(tester, const DeleteAccountSection(), profile: profile);
 
       await tester.tap(find.text('Supprimer le compte'));
       await settle(tester);

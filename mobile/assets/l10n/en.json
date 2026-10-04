@@ -777,7 +777,8 @@
       "neverUsed": "Never used",
       "deleteTitle": "Delete the passkey “{device}”?",
       "deleteMessage": "This device will no longer sign in without a password. Your other passkeys stay valid.",
-      "deleteSemantic": "Delete the passkey {device}"
+      "deleteSemantic": "Delete the passkey {device}",
+      "hint": "Sign in with your fingerprint, your face or your device's code, without an e-mail code."
     },
     "language": "Language",
     "version": "Version",
@@ -811,8 +812,8 @@
       "hint": "Members of your teams can write to you about your classifieds; your address is never shown to them."
     },
     "participations": {
-      "title": "My participations",
-      "upcoming": "My upcoming rides",
+      "title": "My rides",
+      "upcoming": "Upcoming",
       "past": "History",
       "count": {
         "zero": "No participation",
@@ -848,10 +849,11 @@
       "unpair": "Unpair",
       "unpairTitle": "Unpair {device}?",
       "unpairSemantic": "Unpair {device}",
-      "unpairMessage": "The device will lose access to your account and will have to be paired again. Your other devices and sessions stay signed in."
+      "unpairMessage": "The device will lose access to your account and will have to be paired again. Your other devices and sessions stay signed in.",
+      "howToPairTitle": "How to pair"
     },
     "data": {
-      "title": "Your data",
+      "title": "My data",
       "export": "Export of my data",
       "never": "Never requested",
       "preparing": "Being prepared…",
@@ -860,7 +862,7 @@
       "expired": "Expired · you can request a new one",
       "failed": "Preparation failed",
       "byEmail": "The archive is emailed to you: the download link is in that message.",
-      "request": "Request an export",
+      "request": "Request my data",
       "newExport": "New export",
       "requesting": "Requesting…"
     },
@@ -889,7 +891,68 @@
         "other": "You are the only admin of the teams {teams}, which came from biketeam: their old biketeam addresses redirect to them, so they can't go with your account. Make another member an admin in each, then come back to delete your account. To delete those teams, a platform admin must first cancel their switch-over on biketeam."
       }
     },
-    "community": "Community"
+    "community": "Community",
+    "backToProfile": "Back to profile",
+    "overview": {
+      "identityLink": "Photo, name and account"
+    },
+    "groups": {
+      "activity": "My activity",
+      "settings": "Settings",
+      "security": "Security and privacy",
+      "account": "Account"
+    },
+    "nav": {
+      "rides": "My rides",
+      "teams": "My teams",
+      "preferences": "Preferences",
+      "notifications": "Notifications",
+      "devices": "Devices and services",
+      "security": "Sign-in and security",
+      "privacy": "Privacy",
+      "account": "My account",
+      "help": "Help and about"
+    },
+    "status": {
+      "nextRide": "Next: {date}",
+      "noUpcoming": "No upcoming ride",
+      "teams": {
+        "zero": "No team",
+        "one": "{} team",
+        "other": "{} teams"
+      },
+      "deviceTimezone": "Device time zone",
+      "inAppOnly": "In the app only",
+      "emailAndPush": "E-mail and push",
+      "emailOnly": "E-mail",
+      "pushOnly": "Push",
+      "digest": "daily digest",
+      "paired": "{count} {device}",
+      "noDevice": "No service or device",
+      "blocked": {
+        "zero": "Nobody blocked",
+        "one": "{} person blocked",
+        "other": "{} people blocked"
+      },
+      "myData": "my data",
+      "version": "Version {version}"
+    },
+    "timezone": "Time zone",
+    "timezoneSearch": "Search a time zone",
+    "timezoneNone": "No matching time zone",
+    "timezoneHint": "Dates and times are shown in this time zone, in the app and on the website.",
+    "sessions": {
+      "title": "Sessions",
+      "hint": "Closes all your sessions: this device, the website, and your paired Karoo or Garmin. You will have to sign in again everywhere.",
+      "deleteAccount": "To delete your account, open My account"
+    },
+    "privacyPage": {
+      "blockedTitle": "Blocked users",
+      "reportsTitle": "Error reports"
+    },
+    "help": {
+      "legalTitle": "Legal"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -940,7 +1003,8 @@
       "RIDE_GROUP_REMOVED": "Group removed from a ride",
       "RIDE_JOINED": "Someone joins your ride",
       "COMMENT_ON_MY_PUBLICATION": "Comment on your publication",
-      "TEAM_INVITATION": "Team invitation"
+      "TEAM_INVITATION": "Team invitation",
+      "CONTENT_REPORTED": "Reported content"
     },
     "channel": {
       "IN_APP": "In app",
@@ -954,7 +1018,20 @@
       "digestHint": "One e-mail a day, at 7:00, for what can wait. Cancellations, changes and reminders are still sent right away.",
       "teamsTitle": "Team announcements",
       "teamsHint": "Turn a team off to stop receiving its published rides, trips and posts, inbox included. What concerns you personally still reaches you.",
-      "teamSwitch": "Announcements from {team}"
+      "teamSwitch": "Announcements from {team}",
+      "intro": "You always get them in the app. Choose here what interrupts you: tap E-mail or Push on each row.",
+      "introInAppOnly": "You get all your notifications in the app.",
+      "openInbox": "Open my notifications",
+      "families": {
+        "rides": "Rides",
+        "trips": "Trips",
+        "posts": "Posts",
+        "teams": "Teams and moderation"
+      },
+      "chipSemantic": {
+        "EMAIL": "{type}, by e-mail",
+        "PUSH": "{type}, by push"
+      }
     },
     "push": {
       "title": "Notifications on this device",
@@ -968,7 +1045,8 @@
       "both": "A ride has a new date and meeting point",
       "other": "A ride was changed"
     },
-    "joinedGroup": "Group “{group}”"
+    "joinedGroup": "Group “{group}”",
+    "settings": "Notification settings"
   },
   "apps": {
     "title": "Apps",

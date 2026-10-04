@@ -24,7 +24,7 @@ final latestExportProvider = FutureProvider<UserExportDto?>((ref) async {
   return ref.watch(profileRepositoryProvider).latestExport();
 });
 
-/// Vos données : l'export RGPD.
+/// Mes données : l'export RGPD.
 ///
 /// Trois états, et ils ne se ressemblent pas : jamais demandé, en préparation,
 /// prêt jusqu'à une date. Le troisième porte sa **date d'expiration** — un
@@ -152,19 +152,91 @@ class _DataExportCardState extends ConsumerState<DataExportCard> {
   }
 }
 
-/// Compte et zone de danger.
+/// « Déconnecter tous les appareils », dans « Connexion et sécurité ».
 ///
 /// **`logout-all` était écrit et câblé nulle part** : le dépôt l'expose depuis
 /// le début, aucun écran ne l'appelait. C'est la seule façon de reprendre la
 /// main quand une session traîne sur un appareil qu'on n'a plus.
-class AccountSection extends ConsumerStatefulWidget {
-  const AccountSection({super.key});
+class LogoutAllCard extends ConsumerStatefulWidget {
+  const LogoutAllCard({super.key});
 
   @override
-  ConsumerState<AccountSection> createState() => _AccountSectionState();
+  ConsumerState<LogoutAllCard> createState() => _LogoutAllCardState();
 }
 
-class _AccountSectionState extends ConsumerState<AccountSection> {
+class _LogoutAllCardState extends ConsumerState<LogoutAllCard> {
+  bool _busy = false;
+  String? _error;
+
+  Future<void> _logoutAll() async {
+    final bool confirmed = await confirmDestructive(
+      context,
+      title: 'profile.account.logoutAllTitle'.tr(),
+      message: 'profile.account.logoutAllMessage'.tr(),
+      confirmLabel: 'profile.account.logoutAll'.tr(),
+    );
+    if (!confirmed || !mounted) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    // Un refus du serveur lève et laisse la session ouverte : on l'affiche en
+    // bandeau plutôt que d'annoncer une déconnexion qui n'a pas eu lieu.
+    try {
+      await ref.read(authProvider.notifier).logoutAll();
+      if (mounted) context.go(Paths.login());
+    } catch (error, stackTrace) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _error = getErrorMessage(error, stackTrace);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final PdlTypography t = context.pdlText;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        PdlCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text('profile.sessions.hint'.tr(), style: t.sub),
+              const SizedBox(height: PdlSpacing.cardTight),
+              PdlButton(
+                key: keys.profile.logoutAllButton,
+                label: 'profile.account.logoutAll'.tr(),
+                variant: PdlButtonVariant.outline,
+                fullWidth: true,
+                loading: _busy,
+                loadingLabel: 'common.loading'.tr(),
+                onPressed: _logoutAll,
+              ),
+            ],
+          ),
+        ),
+        if (_error != null) ...<Widget>[
+          const SizedBox(height: PdlSpacing.chipGap),
+          PdlBanner(tone: PdlBannerTone.danger, message: _error!),
+        ],
+      ],
+    );
+  }
+}
+
+/// La zone de danger de « Mon compte » : supprimer le compte.
+class DeleteAccountSection extends ConsumerStatefulWidget {
+  const DeleteAccountSection({super.key});
+
+  @override
+  ConsumerState<DeleteAccountSection> createState() =>
+      _DeleteAccountSectionState();
+}
+
+class _DeleteAccountSectionState extends ConsumerState<DeleteAccountSection> {
   bool _busy = false;
   String? _error;
 
@@ -179,44 +251,6 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
 
   static List<String> _names(List<TeamPublicationDto> teams) =>
       teams.map((TeamPublicationDto team) => team.name).toList();
-
-  Future<void> _run(Future<void> Function() action) async {
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      await action();
-      if (mounted) setState(() => _busy = false);
-    } catch (error, stackTrace) {
-      if (!mounted) return;
-      setState(() {
-        _busy = false;
-        _error = getErrorMessage(error, stackTrace);
-      });
-    }
-  }
-
-  Future<void> _logout() async {
-    await ref.read(authProvider.notifier).logout();
-    if (mounted) context.go(Paths.login());
-  }
-
-  Future<void> _logoutAll() async {
-    final bool confirmed = await confirmDestructive(
-      context,
-      title: 'profile.account.logoutAllTitle'.tr(),
-      message: 'profile.account.logoutAllMessage'.tr(),
-      confirmLabel: 'profile.account.logoutAll'.tr(),
-    );
-    if (!confirmed || !mounted) return;
-    // Un refus du serveur lève et laisse la session ouverte : `_run` l'affiche
-    // en bandeau plutôt que d'annoncer une déconnexion qui n'a pas eu lieu.
-    await _run(() async {
-      await ref.read(authProvider.notifier).logoutAll();
-      if (mounted) context.go(Paths.login());
-    });
-  }
 
   /// La suppression commence par demander ce qu'elle ferait aux équipes.
   ///
@@ -274,11 +308,21 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
       confirmLabel: 'profile.account.delete'.tr(),
     );
     if (!confirmed || !mounted) return;
-    await _run(() async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
       await ref.read(profileRepositoryProvider).deleteAccount();
       await ref.read(authProvider.notifier).logout();
       if (mounted) context.go(Paths.login());
-    });
+    } catch (error, stackTrace) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _error = getErrorMessage(error, stackTrace);
+      });
+    }
   }
 
   @override
@@ -296,29 +340,6 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          PdlSectionHeader(title: 'profile.account.title'.tr()),
-          PdlButton(
-            key: keys.profile.logoutButton,
-            label: 'profile.account.logout'.tr(),
-            variant: PdlButtonVariant.outline,
-            fullWidth: true,
-            enabled: !_busy,
-            onPressed: () => _run(_logout),
-          ),
-          const SizedBox(height: PdlSpacing.chipGap),
-          PdlButton(
-            key: keys.profile.logoutAllButton,
-            label: 'profile.account.logoutAll'.tr(),
-            variant: PdlButtonVariant.outline,
-            fullWidth: true,
-            enabled: !_busy,
-            onPressed: _logoutAll,
-          ),
-          if (_error != null) ...<Widget>[
-            const SizedBox(height: PdlSpacing.chipGap),
-            PdlBanner(tone: PdlBannerTone.danger, message: _error!),
-          ],
-          const SizedBox(height: 20),
           Divider(height: 1, color: c.borderSubtle),
           const SizedBox(height: 14),
           Text(
@@ -338,6 +359,10 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
             enabled: !_busy,
             onPressed: _deleteAccount,
           ),
+          if (_error != null) ...<Widget>[
+            const SizedBox(height: PdlSpacing.chipGap),
+            PdlBanner(tone: PdlBannerTone.danger, message: _error!),
+          ],
           if (_migratedTeams case final List<String> migrated) ...<Widget>[
             const SizedBox(height: PdlSpacing.chipGap),
             PdlBanner(

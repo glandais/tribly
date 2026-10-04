@@ -133,10 +133,14 @@ class _PasskeysSectionState extends ConsumerState<PasskeysSection> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           PdlSectionHeader(
-            title: 'profile.security'.tr(),
+            title: 'profile.passkeys.title'.tr(),
             count: passkeys.hasValue
                 ? 'profile.passkeys.count'.plural(list.length)
                 : null,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: PdlSpacing.chipGap),
+            child: Text('profile.passkeys.hint'.tr(), style: ty.sub),
           ),
           PdlCard(
             padding: PdlCardPadding.none,

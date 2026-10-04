@@ -65,7 +65,7 @@ void main() {
     await pumpCard(tester, exportWith('PROCESSING'));
 
     expect(find.text('En préparation…'), findsOneWidget);
-    expect(find.text('Demander un export'), findsOneWidget);
+    expect(find.text('Demander mes données'), findsOneWidget);
   });
 
   testWidgets('sans export, rien n\'a été demandé', (

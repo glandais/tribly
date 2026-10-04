@@ -161,6 +161,17 @@ class UserPreferencesNotifier extends Notifier<UserPreferences> {
     UserPreferencesRequest(contactableByMembers: value),
   );
 
+  /// Le fuseau d'affichage (`UserDto.timezone`, nom IANA). Il n'a ni état
+  /// local ni miroir : `app.dart` le lit sur l'utilisateur connecté et le pose
+  /// dans `AppFormatters`, et c'est la réponse du serveur, adoptée par
+  /// `setUser`, qui le fait changer. Le même champ que le site.
+  Future<void> setTimezone(String value) async {
+    final UserDto user = await ref
+        .read(usersClientProvider)
+        .updateMyPreferences(body: UserPreferencesRequest(timezone: value));
+    ref.read(authProvider.notifier).setUser(user);
+  }
+
   /// Applique en optimiste, puis persiste. En cas d'échec réseau l'état revient
   /// à sa valeur précédente et l'exception remonte : c'est à l'écran d'en
   /// rendre compte, pas au provider de l'avaler.

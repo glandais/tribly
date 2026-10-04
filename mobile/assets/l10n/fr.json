@@ -760,7 +760,7 @@
     "preferences": "Préférences",
     "about": "À propos",
     "passkeys": {
-      "title": "Passkeys",
+      "title": "Clés d'accès",
       "enabled": "Connexion biométrique activée",
       "notConfigured": "Non configuré",
       "add": "Ajouter une clé d'accès",
@@ -777,7 +777,8 @@
       "neverUsed": "Jamais utilisée",
       "deleteTitle": "Supprimer la clé « {device} » ?",
       "deleteMessage": "Cet appareil ne pourra plus se connecter sans mot de passe. Vos autres clés restent valables.",
-      "deleteSemantic": "Supprimer la clé {device}"
+      "deleteSemantic": "Supprimer la clé {device}",
+      "hint": "Connectez-vous avec votre empreinte, votre visage ou le code de votre appareil, sans code par e-mail."
     },
     "language": "Langue",
     "version": "Version",
@@ -811,8 +812,8 @@
       "hint": "Les membres de vos équipes peuvent vous écrire au sujet de vos annonces ; votre adresse ne leur est jamais montrée."
     },
     "participations": {
-      "title": "Mes participations",
-      "upcoming": "Mes sorties à venir",
+      "title": "Mes sorties",
+      "upcoming": "À venir",
       "past": "Historique",
       "count": {
         "zero": "Aucune participation",
@@ -848,10 +849,11 @@
       "unpair": "Délier",
       "unpairTitle": "Délier {device} ?",
       "unpairSemantic": "Délier {device}",
-      "unpairMessage": "L'appareil n'aura plus accès à votre compte et devra être appairé de nouveau. Vos autres appareils et sessions restent ouverts."
+      "unpairMessage": "L'appareil n'aura plus accès à votre compte et devra être appairé de nouveau. Vos autres appareils et sessions restent ouverts.",
+      "howToPairTitle": "Comment appairer"
     },
     "data": {
-      "title": "Vos données",
+      "title": "Mes données",
       "export": "Export de mes données",
       "never": "Jamais demandé",
       "preparing": "En préparation…",
@@ -860,7 +862,7 @@
       "expired": "Expiré · vous pouvez en demander un nouveau",
       "failed": "La préparation a échoué",
       "byEmail": "L'archive vous est envoyée par e-mail : le lien de téléchargement se trouve dans ce message.",
-      "request": "Demander un export",
+      "request": "Demander mes données",
       "newExport": "Nouvel export",
       "requesting": "Demande en cours…"
     },
@@ -889,7 +891,68 @@
         "other": "Vous êtes le seul administrateur des équipes {teams}, venues de biketeam : leurs anciennes adresses biketeam redirigent vers elles, elles ne peuvent pas partir avec votre compte. Nommez un autre administrateur dans chacune, puis revenez supprimer votre compte. Pour supprimer ces équipes, un administrateur de la plateforme doit d'abord annuler leur bascule sur biketeam."
       }
     },
-    "community": "Communauté"
+    "community": "Communauté",
+    "backToProfile": "Retour au profil",
+    "overview": {
+      "identityLink": "Photo, nom et compte"
+    },
+    "groups": {
+      "activity": "Mon activité",
+      "settings": "Réglages",
+      "security": "Sécurité et confidentialité",
+      "account": "Compte"
+    },
+    "nav": {
+      "rides": "Mes sorties",
+      "teams": "Mes équipes",
+      "preferences": "Préférences",
+      "notifications": "Notifications",
+      "devices": "Appareils et services",
+      "security": "Connexion et sécurité",
+      "privacy": "Confidentialité",
+      "account": "Mon compte",
+      "help": "Aide et à propos"
+    },
+    "status": {
+      "nextRide": "Prochaine : {date}",
+      "noUpcoming": "Aucune sortie à venir",
+      "teams": {
+        "zero": "Aucune équipe",
+        "one": "{} équipe",
+        "other": "{} équipes"
+      },
+      "deviceTimezone": "Fuseau de l'appareil",
+      "inAppOnly": "Dans l'application seulement",
+      "emailAndPush": "E-mail et push",
+      "emailOnly": "E-mail",
+      "pushOnly": "Push",
+      "digest": "résumé quotidien",
+      "paired": "{count} {device}",
+      "noDevice": "Aucun service ni appareil",
+      "blocked": {
+        "zero": "Aucune personne bloquée",
+        "one": "{} personne bloquée",
+        "other": "{} personnes bloquées"
+      },
+      "myData": "mes données",
+      "version": "Version {version}"
+    },
+    "timezone": "Fuseau horaire",
+    "timezoneSearch": "Rechercher un fuseau",
+    "timezoneNone": "Aucun fuseau ne correspond",
+    "timezoneHint": "Les dates et heures s'affichent dans ce fuseau, sur l'application comme sur le site.",
+    "sessions": {
+      "title": "Sessions",
+      "hint": "Ferme toutes vos sessions : cet appareil, le site, et votre Karoo ou votre Garmin appairé. Vous devrez vous reconnecter partout.",
+      "deleteAccount": "Pour supprimer votre compte, ouvrez Mon compte"
+    },
+    "privacyPage": {
+      "blockedTitle": "Utilisateurs bloqués",
+      "reportsTitle": "Rapports d'erreur"
+    },
+    "help": {
+      "legalTitle": "Informations légales"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -940,7 +1003,8 @@
       "RIDE_GROUP_REMOVED": "Groupe retiré d'une sortie",
       "RIDE_JOINED": "Inscription à votre sortie",
       "COMMENT_ON_MY_PUBLICATION": "Commentaire sur votre publication",
-      "TEAM_INVITATION": "Invitation dans une équipe"
+      "TEAM_INVITATION": "Invitation dans une équipe",
+      "CONTENT_REPORTED": "Contenu signalé"
     },
     "channel": {
       "IN_APP": "Application",
@@ -954,7 +1018,20 @@
       "digestHint": "Un seul e-mail par jour, à 7 h, pour ce qui peut attendre. Les annulations, modifications et rappels partent toujours tout de suite.",
       "teamsTitle": "Annonces des équipes",
       "teamsHint": "Coupez une équipe pour ne plus recevoir ses sorties, voyages et articles publiés, boîte de réception comprise. Ce qui vous concerne personnellement vous parvient toujours.",
-      "teamSwitch": "Annonces de {team}"
+      "teamSwitch": "Annonces de {team}",
+      "intro": "Vous les recevez toujours dans l'application. Choisissez ici ce qui vous interrompt : touchez E-mail ou Push sur chaque ligne.",
+      "introInAppOnly": "Vous recevez toutes vos notifications dans l'application.",
+      "openInbox": "Ouvrir mes notifications",
+      "families": {
+        "rides": "Sorties",
+        "trips": "Voyages",
+        "posts": "Publications",
+        "teams": "Équipes et modération"
+      },
+      "chipSemantic": {
+        "EMAIL": "{type}, par e-mail",
+        "PUSH": "{type}, en push"
+      }
     },
     "push": {
       "title": "Notifications sur cet appareil",
@@ -968,7 +1045,8 @@
       "both": "Une sortie change de date et de point de départ",
       "other": "Une sortie a été modifiée"
     },
-    "joinedGroup": "Groupe « {group} »"
+    "joinedGroup": "Groupe « {group} »",
+    "settings": "Réglages des notifications"
   },
   "apps": {
     "title": "Applications",

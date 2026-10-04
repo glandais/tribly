@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../core/pagination/pagination.dart';
@@ -13,9 +12,11 @@ import '../../../../core/utils/api_error_handler.dart';
 import '../../../../keys.dart';
 import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/participations_provider.dart';
+import '../widgets/profile_subpage.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
 
-/// Les sorties et voyages auxquels on est inscrit — à venir, ou passés.
+/// Mes sorties (`/profil/sorties`) : les sorties et voyages auxquels on est
+/// inscrit — onglets « À venir » et « Historique ».
 ///
 /// Deux jeux et non deux écrans : la bascule est un segmenté, et chaque jeu a
 /// sa liste paginée et son compteur, tous deux issus du **`total`** que
@@ -23,9 +24,9 @@ import '../../../feedback/presentation/report_problem_button.dart';
 class MyParticipationsPage extends ConsumerStatefulWidget {
   const MyParticipationsPage({super.key, this.initialUpcoming = true});
 
-  /// Onglet d'ouverture. Il vient de la ligne qu'on a touchée sur le profil,
-  /// dans l'`extra` de la route : ouvrir « Historique » et atterrir sur « à
-  /// venir » serait ignorer le geste.
+  /// Onglet d'ouverture : « À venir » par défaut. Il peut voyager dans
+  /// l'`extra` de la route, hors de l'URL, parce qu'il n'identifie pas la
+  /// page.
   final bool initialUpcoming;
 
   @override
@@ -50,8 +51,8 @@ class _MyParticipationsPageState extends ConsumerState<MyParticipationsPage> {
       backgroundColor: c.bg,
       appBar: PdlAppBar(
         title: 'profile.participations.title'.tr(),
-        onBack: () => context.pop(),
-        backSemanticLabel: 'profile.title'.tr(),
+        onBack: () => leaveProfileSubpage(context),
+        backSemanticLabel: 'profile.backToProfile'.tr(),
       ),
       body: PdlRefresh(
         onRefresh: notifier.refresh,
@@ -68,10 +69,12 @@ class _MyParticipationsPageState extends ConsumerState<MyParticipationsPage> {
                   onChanged: (bool value) => setState(() => _upcoming = value),
                   segments: <PdlSegment<bool>>[
                     PdlSegment<bool>(
+                      key: keys.profile.participationsUpcomingTab,
                       value: true,
                       label: 'profile.participations.upcoming'.tr(),
                     ),
                     PdlSegment<bool>(
+                      key: keys.profile.participationsHistoryTab,
                       value: false,
                       label: 'profile.participations.past'.tr(),
                     ),

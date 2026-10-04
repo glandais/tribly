@@ -18,7 +18,14 @@ import '../features/navigation/presentation/shell/main_shell.dart';
 import '../features/notifications/presentation/pages/notifications_page.dart';
 import '../features/moderation/presentation/pages/blocked_users_page.dart';
 import '../features/profile/presentation/pages/my_participations_page.dart';
+import '../features/profile/presentation/pages/profile_account_page.dart';
+import '../features/profile/presentation/pages/profile_devices_page.dart';
+import '../features/profile/presentation/pages/profile_help_page.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
+import '../features/profile/presentation/pages/profile_preferences_page.dart';
+import '../features/profile/presentation/pages/profile_privacy_page.dart';
+import '../features/profile/presentation/pages/profile_security_page.dart';
+import '../features/notifications/presentation/pages/notification_settings_page.dart';
 import '../core/logging/client_context.dart';
 import '../core/pdl/pdl.dart';
 import '../features/ads/presentation/pages/ad_detail_page.dart';
@@ -111,10 +118,46 @@ final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
     ancestors: [_homeAncestor],
   ),
 
-  // La page des participations vit sous le profil : ouverte par un lien
-  // froid, elle doit trouver le profil dessous.
+  // Les sous-pages du profil vivent sous sa vue d'ensemble : ouvertes par un
+  // lien froid (un e-mail mène à `/profile/notifications`), elles doivent
+  // trouver le profil dessous. « Utilisateurs bloqués » s'ouvre depuis
+  // « Confidentialité », mais son adresse n'est pas sous la sienne
+  // (`/profil/bloques`) : le profil seul est dessous, et sa flèche, sans pile,
+  // retombe sur « Confidentialité ».
   _DeepLinkHierarchy(
     patterns: PathVariants.myParticipations(),
+    ancestors: [_profileAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.profilePreferences(),
+    ancestors: [_profileAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.profileNotifications(),
+    ancestors: [_profileAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.profileDevices(),
+    ancestors: [_profileAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.profileSecurity(),
+    ancestors: [_profileAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.profilePrivacy(),
+    ancestors: [_profileAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.blockedUsers(),
+    ancestors: [_profileAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.profileAccount(),
+    ancestors: [_profileAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.profileHelp(),
     ancestors: [_profileAncestor],
   ),
 
@@ -654,7 +697,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // 4 · Profile
+          // 4 · Profile : la vue d'ensemble, racine de l'onglet, et une
+          // sous-page par sujet — les mêmes adresses que le site.
           StatefulShellBranch(
             navigatorKey: _profileNavigatorKey,
             routes: [
@@ -666,17 +710,40 @@ final routerProvider = Provider<GoRouter>((ref) {
               ..._perLocale(
                 PathVariants.myParticipations(),
                 (ctx, st) => MyParticipationsPage(
-                  // L'onglet d'ouverture vient de la ligne touchée sur le
-                  // profil : il voyage dans `extra`, hors de l'URL, parce
-                  // qu'il n'identifie pas la page.
                   initialUpcoming: st.extra is bool ? st.extra! as bool : true,
                 ),
               ),
-              // Mobile seulement, et sans lien d'app : aucune page web ne
-              // répond à cette adresse, seul le profil y mène.
+              ..._perLocale(
+                PathVariants.profilePreferences(),
+                (ctx, st) => const ProfilePreferencesPage(),
+              ),
+              ..._perLocale(
+                PathVariants.profileNotifications(),
+                (ctx, st) => const NotificationSettingsPage(),
+              ),
+              ..._perLocale(
+                PathVariants.profileDevices(),
+                (ctx, st) => const ProfileDevicesPage(),
+              ),
+              ..._perLocale(
+                PathVariants.profileSecurity(),
+                (ctx, st) => const ProfileSecurityPage(),
+              ),
+              ..._perLocale(
+                PathVariants.profilePrivacy(),
+                (ctx, st) => const ProfilePrivacyPage(),
+              ),
               ..._perLocale(
                 PathVariants.blockedUsers(),
                 (ctx, st) => const BlockedUsersPage(),
+              ),
+              ..._perLocale(
+                PathVariants.profileAccount(),
+                (ctx, st) => const ProfileAccountPage(),
+              ),
+              ..._perLocale(
+                PathVariants.profileHelp(),
+                (ctx, st) => const ProfileHelpPage(),
               ),
             ],
           ),

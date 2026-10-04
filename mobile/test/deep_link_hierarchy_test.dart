@@ -58,8 +58,32 @@ final List<_LinkCase> _cases = [
     PathVariants.home(),
   ]),
 
-  // La page des participations vit sous le profil.
+  // Les sous-pages du profil vivent sous sa vue d'ensemble.
   _LinkCase('myParticipations', PathVariants.myParticipations(), [
+    PathVariants.profile(),
+  ]),
+  _LinkCase('profilePreferences', PathVariants.profilePreferences(), [
+    PathVariants.profile(),
+  ]),
+  _LinkCase('profileNotifications', PathVariants.profileNotifications(), [
+    PathVariants.profile(),
+  ]),
+  _LinkCase('profileDevices', PathVariants.profileDevices(), [
+    PathVariants.profile(),
+  ]),
+  _LinkCase('profileSecurity', PathVariants.profileSecurity(), [
+    PathVariants.profile(),
+  ]),
+  _LinkCase('profilePrivacy', PathVariants.profilePrivacy(), [
+    PathVariants.profile(),
+  ]),
+  _LinkCase('blockedUsers', PathVariants.blockedUsers(), [
+    PathVariants.profile(),
+  ]),
+  _LinkCase('profileAccount', PathVariants.profileAccount(), [
+    PathVariants.profile(),
+  ]),
+  _LinkCase('profileHelp', PathVariants.profileHelp(), [
     PathVariants.profile(),
   ]),
 

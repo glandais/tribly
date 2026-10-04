@@ -7,6 +7,7 @@ import '../../calendar/providers/calendar_month_provider.dart';
 import '../../home/providers/next_ride_provider.dart';
 import '../../home/providers/week_events_provider.dart';
 import '../../profile/providers/participations_provider.dart';
+import '../../profile/providers/profile_summary_provider.dart';
 
 /// **Le** point où l'app dit « une de mes participations vient de changer ».
 ///
@@ -59,6 +60,7 @@ void notifyParticipationChanged(
   ref.invalidate(participationsNowProvider);
   ref.invalidate(participationCountProvider);
   ref.invalidate(participationsProvider);
+  ref.invalidate(profileSummaryProvider);
 
   // Calendrier : chaque événement porte `registered`.
   ref.invalidate(calendarMonthProvider);

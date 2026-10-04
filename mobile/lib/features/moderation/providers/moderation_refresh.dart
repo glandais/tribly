@@ -10,6 +10,7 @@ import '../../home/providers/week_events_provider.dart';
 import '../../routes/providers/route_count_provider.dart';
 import '../../routes/providers/route_list_provider.dart';
 import '../data/moderation_repository.dart';
+import '../../profile/providers/profile_summary_provider.dart';
 
 /// Relit les listes d'où un signalement retire la cible.
 ///
@@ -52,6 +53,8 @@ void refreshAfterReport(ProviderContainer container, ReportTargetType type) {
 /// d'organisation, et un blocage ne les touche pas.
 void refreshAfterBlockChange(ProviderContainer container) {
   container.invalidate(blockedUsersProvider);
+  // Le compteur « personnes bloquées » de la vue d'ensemble du profil.
+  container.invalidate(profileSummaryProvider);
   container.invalidate(commentThreadProvider);
   container.invalidate(adListProvider);
   _invalidateFeed(container);

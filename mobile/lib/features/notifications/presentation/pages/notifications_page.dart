@@ -64,6 +64,15 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
             context.canPop() ? context.pop() : context.go(Paths.home()),
         backSemanticLabel: 'common.back'.tr(),
         actions: <Widget>[
+          // Les réglages vivent dans le profil (`/profil/notifications`), une
+          // autre branche du shell : `go` y change d'onglet, et leur retour
+          // retombe sur le profil.
+          PdlAppBarAction(
+            key: keys.notifications.settingsButton,
+            icon: PdlIcons.settings,
+            semanticLabel: 'notifications.settings'.tr(),
+            onPressed: () => context.go(Paths.profileNotifications()),
+          ),
           if (hasUnread)
             PdlAppBarAction(
               key: keys.notifications.markAllReadButton,

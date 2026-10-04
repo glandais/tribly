@@ -272,6 +272,24 @@ class AppFormatters {
   static String? _displayZoneName;
   static bool _zonesLoaded = false;
 
+  /// Les noms IANA que l'app sait appliquer, triés — ceux que propose le
+  /// sélecteur de fuseau du profil. Charge la base au premier appel.
+  static List<String> timezoneNames() {
+    _ensureZonesLoaded();
+    final List<String> names =
+        tz.timeZoneDatabase.locations.keys
+            .where((String name) => name.contains('/') || name == 'UTC')
+            .toList()
+          ..sort();
+    return names;
+  }
+
+  static void _ensureZonesLoaded() {
+    if (_zonesLoaded) return;
+    tz_data.initializeTimeZones();
+    _zonesLoaded = true;
+  }
+
   /// Pose le fuseau d'affichage : un nom IANA (« Europe/Paris »), ou `null`
   /// pour le fuseau de l'appareil. Un nom que la base embarquée ne connaît pas
   /// retombe sur l'appareil plutôt que d'échouer : le serveur valide contre la
@@ -286,10 +304,7 @@ class AppFormatters {
       _displayZone = null;
       return;
     }
-    if (!_zonesLoaded) {
-      tz_data.initializeTimeZones();
-      _zonesLoaded = true;
-    }
+    _ensureZonesLoaded();
     try {
       _displayZone = tz.getLocation(name);
     } on tz.LocationNotFoundException {

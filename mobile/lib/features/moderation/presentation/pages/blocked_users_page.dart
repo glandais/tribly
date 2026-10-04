@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../config/paths.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_tokens.dart';
@@ -13,6 +13,7 @@ import '../../data/moderation_repository.dart';
 import '../../providers/moderation_refresh.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
 import '../../../../keys.dart';
+import '../../../profile/presentation/widgets/profile_subpage.dart';
 
 /// « Utilisateurs bloqués » — ouverte depuis le profil, mobile seulement.
 ///
@@ -68,8 +69,12 @@ class _BlockedUsersPageState extends ConsumerState<BlockedUsersPage> {
       backgroundColor: c.bg,
       appBar: PdlAppBar(
         title: 'moderation.blockedUsers.title'.tr(),
-        onBack: () => context.pop(),
-        backSemanticLabel: 'profile.title'.tr(),
+        // Ouverte depuis « Confidentialité » ; par un lien froid, la pile ne
+        // contient que le profil, et sans pile on retombe sur la page
+        // d'où elle s'ouvre.
+        onBack: () =>
+            leaveProfileSubpage(context, fallback: Paths.profilePrivacy()),
+        backSemanticLabel: 'common.back'.tr(),
       ),
       body: PdlRefresh(
         onRefresh: () => ref.refresh(blockedUsersProvider.future),

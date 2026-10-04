@@ -2,285 +2,475 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../api/generated/export.dart';
-import '../../../../api/pedalons_api_client.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/enum_colors.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
-import '../../../feedback/presentation/feedback_sheet.dart';
-import '../../../moderation/data/moderation_repository.dart';
-import '../../../notifications/presentation/widgets/notification_preferences_section.dart';
-import '../../providers/participations_provider.dart';
-import '../widgets/connected_services_section.dart';
-import '../widgets/data_and_account_section.dart';
-import '../widgets/paired_devices_section.dart';
-import '../widgets/passkeys_section.dart';
-import '../widgets/preferences_section.dart';
-import '../widgets/profile_identity_section.dart';
+import '../../../../core/utils/api_error_handler.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../keys.dart';
+import '../../../auth/domain/auth_state.dart';
+import '../../../auth/providers/auth_provider.dart';
+import '../../providers/profile_summary_provider.dart';
+import '../widgets/paired_devices_section.dart';
+import '../widgets/profile_subpage.dart';
+import 'profile_help_page.dart';
 
-final _serverVersionProvider = FutureProvider<VersionDto>((ref) async {
-  return ref.watch(serverVersionClientProvider).getVersion();
-});
-
-final _packageInfoProvider = FutureProvider<PackageInfo>(
-  (ref) => PackageInfo.fromPlatform(),
-);
-
-/// Le profil : une colonne unique bornée à 600 px, et dix sections au même
-/// motif — un en-tête, puis une carte.
+/// Le profil : une **vue d'ensemble** courte, et une sous-page par sujet.
 ///
-/// **Les notifications sont revenues, sous condition.** Elles n'avaient ni
-/// endpoint de préférences ni push en v2, et les dessiner aurait produit des
-/// réglages sans effet (brief §5). [NotificationPreferencesSection] les rend
-/// désormais — mais **seulement** les canaux que le serveur déclare
-/// configurables, et rien du tout quand il n'y en a aucun, ce qui reste le cas
-/// par défaut. La section porte donc son propre en-tête, contrairement à ses
-/// voisines : celui-ci disparaît avec elle.
+/// La carte d'identité mène à « Mon compte » ; viennent ensuite des raccourcis
+/// groupés — Mon activité, Réglages, Sécurité et confidentialité, Compte —,
+/// chacun avec **une ligne d'état** : on sait ce qu'on va trouver avant
+/// d'ouvrir. « Se déconnecter » ferme la liste, une seule fois dans le profil.
+///
+/// Les mêmes libellés et les mêmes routes que le site (`/profil/preferences`,
+/// `/profil/notifications`…). L'onglet Profil est une **racine** : pas de
+/// flèche de retour ici ; chaque sous-page, elle, revient vers « Profil ».
+///
+/// Les lignes d'état viennent de deux sources, sans doublon : l'utilisateur
+/// connecté (préférences d'affichage, services GPS connectés) et
+/// `GET /api/users/me/profile-summary` (le reste, en un appel). Le résumé est
+/// relu au retour d'une sous-page, où l'un de ses compteurs a pu changer.
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final PdlColors c = context.pdl;
-
-    return Scaffold(
-      backgroundColor: c.bg,
-      appBar: PdlAppBar(
-        title: 'profile.title'.tr(),
-        // Le profil est un onglet, donc souvent sans pile derrière lui : on
-        // arrive de l'avatar de l'accueil par un changement de branche, qui ne
-        // laisse rien à dépiler. La flèche retombe alors sur l'accueil plutôt
-        // que de disparaître — même arbitrage que l'accueil d'équipe.
-        onBack: () =>
-            context.canPop() ? context.pop() : context.go(Paths.home()),
-        backSemanticLabel: 'common.back'.tr(),
-      ),
-      body: PdlScreenScaffold(
-        constrainWidth: true,
-        slivers: <Widget>[
-          const SliverToBoxAdapter(child: ProfileIdentitySection()),
-          _section(
-            title: 'profile.participations.title'.tr(),
-            child: const _ParticipationsCard(),
-          ),
-          _section(
-            title: 'profile.preferences'.tr(),
-            child: const PreferencesSection(),
-          ),
-          const SliverToBoxAdapter(child: NotificationPreferencesSection()),
-          const SliverToBoxAdapter(child: PasskeysSection()),
-          _section(
-            title: 'profile.gps.title'.tr(),
-            child: const GpsServicesCard(),
-          ),
-          _section(
-            title: 'profile.devices.title'.tr(),
-            child: const PairedDevicesCard(),
-          ),
-          _section(
-            title: 'profile.data.title'.tr(),
-            child: const DataExportCard(),
-          ),
-          _section(
-            title: 'profile.community'.tr(),
-            child: const _BlockedUsersCard(),
-          ),
-          _section(title: 'profile.about'.tr(), child: const _AboutCard()),
-          const SliverToBoxAdapter(child: AccountSection()),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
-        ],
-      ),
+    final UserDto? user = ref.watch(
+      authProvider.select((AuthState s) => s.user),
     );
-  }
+    final ProfileSummaryDto? summary = ref.watch(profileSummaryProvider).value;
 
-  Widget _section({required String title, required Widget child}) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          PdlSpacing.section,
-          0,
-          PdlSpacing.section,
-          PdlSpacing.section,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            PdlSectionHeader(title: title),
-            child,
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// « Mes sorties à venir » et « Historique », comptés par le `total` de
-/// l'endpoint — deux appels d'une ligne, aucun endpoint de comptage.
-class _ParticipationsCard extends ConsumerWidget {
-  const _ParticipationsCard();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final PdlColors c = context.pdl;
-
-    Widget row({
-      required bool upcoming,
-      required IconData icon,
-      required String title,
-    }) {
-      final int? count = ref.watch(participationCountProvider(upcoming)).value;
-      return PdlSettingRow(
-        key: upcoming
-            ? keys.profile.participationsUpcomingRow
-            : keys.profile.participationsHistoryRow,
-        icon: icon,
-        title: title,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            if (count != null)
-              PdlBadge(
-                key: upcoming ? keys.profile.participationsUpcomingCount : null,
-                label: '$count',
-                size: PdlBadgeSize.lg,
-                tone: upcoming
-                    ? PdlDerivedTones.registered(c)
-                    : PdlTone.pair(c.softGray, c.neutral),
-              ),
-            const SizedBox(width: 4),
-            Icon(PdlIcons.chevronRight, size: 20, color: c.textPlaceholder),
-          ],
-        ),
-        showDivider: upcoming,
-        onTap: () => context.push(Paths.myParticipations(), extra: upcoming),
-      );
+    Future<void> open(String path) async {
+      await context.push(path);
+      ref.invalidate(profileSummaryProvider);
     }
 
-    return PdlCard(
-      padding: PdlCardPadding.none,
-      child: Column(
-        children: <Widget>[
-          row(
-            upcoming: true,
-            icon: PdlIcons.ride,
-            title: 'profile.participations.upcoming'.tr(),
+    return PdlScreenScaffold(
+      appBar: PdlAppBar(title: 'profile.title'.tr()),
+      onRefresh: () => ref.refresh(profileSummaryProvider.future),
+      slivers: <Widget>[
+        const SliverToBoxAdapter(child: SizedBox(height: PdlSpacing.section)),
+        SliverToBoxAdapter(
+          child: ProfileSection(
+            child: user == null
+                ? const PdlSkeletonCard()
+                : _IdentityCard(
+                    user: user,
+                    onTap: () => open(Paths.profileAccount()),
+                  ),
           ),
-          row(
-            upcoming: false,
-            icon: PdlIcons.time,
-            title: 'profile.participations.past'.tr(),
+        ),
+        SliverToBoxAdapter(
+          child: _Group(
+            title: 'profile.groups.activity'.tr(),
+            rows: <Widget>[
+              _ridesRow(context, summary, open),
+              _ShortcutRow(
+                key: keys.profile.teamsRow,
+                icon: PdlIcons.teams,
+                title: 'profile.nav.teams'.tr(),
+                status: summary == null
+                    ? null
+                    : 'profile.status.teams'.plural(summary.teams.length),
+                // Les équipes ont leur onglet : on y va, sans empiler la
+                // branche Équipes sur celle du profil.
+                onTap: () => context.go(Paths.teams()),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        SliverToBoxAdapter(
+          child: _Group(
+            title: 'profile.groups.settings'.tr(),
+            rows: <Widget>[
+              _ShortcutRow(
+                key: keys.profile.preferencesRow,
+                icon: PdlIcons.units,
+                title: 'profile.nav.preferences'.tr(),
+                status: _preferencesStatus(context, ref, user),
+                onTap: () => open(Paths.profilePreferences()),
+              ),
+              _ShortcutRow(
+                key: keys.profile.notificationsRow,
+                icon: PdlIcons.notifications,
+                title: 'profile.nav.notifications'.tr(),
+                status: summary == null
+                    ? null
+                    : _notificationsStatus(summary.notifications),
+                onTap: () => open(Paths.profileNotifications()),
+              ),
+              _ShortcutRow(
+                key: keys.profile.devicesRow,
+                icon: PdlIcons.devices,
+                title: 'profile.nav.devices'.tr(),
+                status: summary == null ? null : _devicesStatus(user, summary),
+                onTap: () => open(Paths.profileDevices()),
+              ),
+            ],
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: _Group(
+            title: 'profile.groups.security'.tr(),
+            rows: <Widget>[
+              _ShortcutRow(
+                key: keys.profile.securityRow,
+                icon: PdlIcons.passkey,
+                title: 'profile.nav.security'.tr(),
+                status: summary == null
+                    ? null
+                    : 'profile.passkeys.count'.plural(summary.passkeyCount),
+                onTap: () => open(Paths.profileSecurity()),
+              ),
+              _ShortcutRow(
+                key: keys.profile.privacyRow,
+                icon: PdlIcons.privacy,
+                title: 'profile.nav.privacy'.tr(),
+                status: summary == null
+                    ? null
+                    : '${'profile.status.blocked'.plural(summary.blockedUserCount)} · ${'profile.status.myData'.tr()}',
+                onTap: () => open(Paths.profilePrivacy()),
+              ),
+            ],
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: _Group(
+            title: 'profile.groups.account'.tr(),
+            rows: <Widget>[
+              _ShortcutRow(
+                key: keys.profile.helpRow,
+                icon: PdlIcons.info,
+                title: 'profile.nav.help'.tr(),
+                neutral: true,
+                status: switch (appVersionLabel(ref)) {
+                  '' => null,
+                  final String version => 'profile.status.version'.tr(
+                    namedArgs: <String, String>{'version': version},
+                  ),
+                },
+                onTap: () => open(Paths.profileHelp()),
+              ),
+              const _LogoutRow(),
+            ],
+          ),
+        ),
+      ],
     );
+  }
+
+  /// « Mes sorties » : la prochaine, et le nombre de sorties à venir.
+  Widget _ridesRow(
+    BuildContext context,
+    ProfileSummaryDto? summary,
+    Future<void> Function(String path) open,
+  ) {
+    final PdlColors c = context.pdl;
+    final ProfileParticipationSummaryDto? p = summary?.participations;
+    final PublicationDto? next = p?.next.firstOrNull;
+    final DateTime? when = next == null
+        ? null
+        : AppFormatters.tryParseDisplayTime(next.dateTime);
+
+    return _ShortcutRow(
+      key: keys.profile.participationsUpcomingRow,
+      icon: PdlIcons.ride,
+      title: 'profile.nav.rides'.tr(),
+      status: p == null
+          ? null
+          : when == null
+          ? 'profile.status.noUpcoming'.tr()
+          : 'profile.status.nextRide'.tr(
+              namedArgs: <String, String>{
+                'date': AppFormatters.formatRideDate(when),
+              },
+            ),
+      badge: p == null
+          ? null
+          : PdlBadge(
+              key: keys.profile.participationsUpcomingCount,
+              label: '${p.upcomingCount}',
+              size: PdlBadgeSize.lg,
+              tone: p.upcomingCount > 0
+                  ? PdlDerivedTones.registered(c)
+                  : PdlTone.pair(c.softGray, c.neutral),
+            ),
+      onTap: () => open(Paths.myParticipations()),
+    );
+  }
+
+  String _preferencesStatus(
+    BuildContext context,
+    WidgetRef ref,
+    UserDto? user,
+  ) {
+    final UserPreferences prefs = ref.watch(userPreferencesProvider);
+    final String units = prefs.unitSystem == UnitSystem.imperial
+        ? 'profile.unitOptions.imperial'.tr()
+        : 'profile.unitOptions.metric'.tr();
+    final String theme = switch (prefs.theme) {
+      ThemePreference.light => 'profile.themeOptions.light'.tr(),
+      ThemePreference.dark => 'profile.themeOptions.dark'.tr(),
+      ThemePreference.system ||
+      ThemePreference.$unknown => 'profile.themeOptions.system'.tr(),
+    };
+    final String language =
+        'languages.${prefs.language ?? Localizations.localeOf(context).languageCode}'
+            .tr();
+    final String timezone =
+        user?.timezone ?? 'profile.status.deviceTimezone'.tr();
+    return <String>[units, timezone, theme, language].join(' · ');
+  }
+
+  /// Où vont les notifications : les canaux où au moins un type est allumé,
+  /// et le résumé quotidien. Sans canal, elles restent dans l'application.
+  String _notificationsStatus(ProfileNotificationSummaryDto n) {
+    final bool email = n.enabledChannels.contains(NotificationChannel.email);
+    final bool push = n.enabledChannels.contains(NotificationChannel.push);
+    final String channels = switch ((email, push)) {
+      (true, true) => 'profile.status.emailAndPush'.tr(),
+      (true, false) => 'profile.status.emailOnly'.tr(),
+      (false, true) => 'profile.status.pushOnly'.tr(),
+      (false, false) => 'profile.status.inAppOnly'.tr(),
+    };
+    if (!n.emailDigest) return channels;
+    return '$channels · ${'profile.status.digest'.tr()}';
+  }
+
+  /// Les services GPS connectés par leur nom, puis les compteurs appairés par
+  /// type : « Garmin Connect · 1 Karoo ».
+  String _devicesStatus(UserDto? user, ProfileSummaryDto summary) {
+    final List<String> parts = <String>[
+      for (final GpsServiceConnectionDto s
+          in user?.connectedServices ?? const <GpsServiceConnectionDto>[])
+        s.displayName,
+    ];
+    final Map<String, int> paired = <String, int>{};
+    for (final PairedDeviceDto device in summary.pairedDevices) {
+      final String name = pairedDeviceName(device);
+      paired[name] = (paired[name] ?? 0) + 1;
+    }
+    paired.forEach((String device, int count) {
+      parts.add(
+        'profile.status.paired'.tr(
+          namedArgs: <String, String>{'count': '$count', 'device': device},
+        ),
+      );
+    });
+    if (parts.isEmpty) return 'profile.status.noDevice'.tr();
+    return parts.join(' · ');
   }
 }
 
-/// L'entrée de « Utilisateurs bloqués » — la seule, puisque bloquer se fait
-/// depuis le contenu de la personne, là où elle est affichée.
-class _BlockedUsersCard extends ConsumerWidget {
-  const _BlockedUsersCard();
+/// La carte d'identité : avatar, nom affiché, adresse e-mail, et le chemin
+/// vers « Mon compte » — toute la carte est la cible.
+class _IdentityCard extends StatelessWidget {
+  const _IdentityCard({required this.user, required this.onTap});
+
+  final UserDto user;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
-    final int? count = ref.watch(blockedUsersProvider).value?.length;
-
-    return PdlCard(
-      padding: PdlCardPadding.none,
-      child: PdlSettingRow(
-        key: keys.moderation.blockedUsersRow,
-        icon: PdlIcons.block,
-        title: 'moderation.blockedUsers.title'.tr(),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+    final PdlTypography t = context.pdlText;
+    return Semantics(
+      button: true,
+      child: PdlCard(
+        key: keys.profile.identityCard,
+        onTap: onTap,
+        child: Row(
           children: <Widget>[
-            if (count != null && count > 0)
-              PdlBadge(
-                label: '$count',
-                size: PdlBadgeSize.lg,
-                tone: PdlTone.pair(c.softGray, c.neutral),
+            PdlAvatar(
+              name: user.displayName,
+              imageUrl: user.avatarUrl,
+              size: 60,
+              isCurrentUser: true,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    user.displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: t.cardTitle,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    user.email,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: t.sub,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'profile.overview.identityLink'.tr(),
+                    style: t.sub.copyWith(
+                      color: c.link,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-            const SizedBox(width: 4),
+            ),
+            const SizedBox(width: 8),
             Icon(PdlIcons.chevronRight, size: 20, color: c.textPlaceholder),
           ],
         ),
-        onTap: () => context.push(Paths.blockedUsers()),
       ),
     );
   }
 }
 
-/// Versions et pages légales.
-class _AboutCard extends ConsumerWidget {
-  const _AboutCard();
+/// Un groupe de raccourcis : un en-tête, une carte, des lignes séparées.
+class _Group extends StatelessWidget {
+  const _Group({required this.title, required this.rows});
+
+  final String title;
+  final List<Widget> rows;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final PdlTypography t = context.pdlText;
+  Widget build(BuildContext context) {
+    final PdlColors c = context.pdl;
+    return ProfileSection(
+      title: title,
+      child: PdlCard(
+        padding: PdlCardPadding.none,
+        child: Column(
+          children: <Widget>[
+            for (int i = 0; i < rows.length; i++)
+              if (i < rows.length - 1)
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: c.borderSubtle)),
+                  ),
+                  child: rows[i],
+                )
+              else
+                rows[i],
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-    // Une version absente n'est pas une erreur d'écran : on n'affiche rien
-    // plutôt qu'un « Chargement impossible » pour un numéro de build.
-    final String appVersion = ref
-        .watch(_packageInfoProvider)
-        .maybeWhen(
-          data: (PackageInfo info) => info.buildNumber.isEmpty
-              ? info.version
-              : '${info.version} (${info.buildNumber})',
-          orElse: () => '',
-        );
-    final String serverVersion = ref
-        .watch(_serverVersionProvider)
-        .maybeWhen(
-          data: (VersionDto version) => version.apiVersion,
-          orElse: () => '',
-        );
+/// Un raccourci : pastille d'icône, titre, ligne d'état, compteur éventuel,
+/// chevron. La ligne d'état est absente tant que sa donnée n'est pas arrivée,
+/// plutôt qu'un « Chargement… » sur chaque ligne.
+class _ShortcutRow extends StatelessWidget {
+  const _ShortcutRow({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.status,
+    this.badge,
+    this.neutral = false,
+  });
 
-    return PdlCard(
-      padding: PdlCardPadding.none,
-      child: Column(
+  final IconData icon;
+  final String title;
+  final String? status;
+  final Widget? badge;
+  final VoidCallback onTap;
+
+  /// Pastille grise plutôt qu'indigo : le groupe « Compte ».
+  final bool neutral;
+
+  @override
+  Widget build(BuildContext context) {
+    final PdlColors c = context.pdl;
+    return PdlSettingRow(
+      leading: _IconTile(icon: icon, neutral: neutral),
+      title: title,
+      subtitle: status,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          PdlSettingRow(
-            title: 'profile.version'.tr(),
-            trailing: Text(appVersion, style: t.mono),
-            showDivider: true,
-          ),
-          PdlSettingRow(
-            key: keys.profile.reportProblemRow,
-            icon: PdlIcons.bug,
-            title: 'feedback.reportProblem'.tr(),
-            onTap: () => showFeedbackSheet(context),
-            showDivider: true,
-          ),
-          PdlSettingRow(
-            title: 'profile.serverVersion'.tr(),
-            trailing: Text(serverVersion, style: t.mono),
-            showDivider: true,
-          ),
-          PdlSettingRow(
-            key: keys.profile.appsRow,
-            title: 'profile.apps'.tr(),
-            onTap: () => context.push(Paths.apps()),
-            showDivider: true,
-          ),
-          PdlSettingRow(
-            title: 'profile.privacy'.tr(),
-            onTap: () => context.push(Paths.privacy()),
-            showDivider: true,
-          ),
-          PdlSettingRow(
-            title: 'profile.terms'.tr(),
-            onTap: () => context.push(Paths.terms()),
-          ),
+          ?badge,
+          const SizedBox(width: 4),
+          Icon(PdlIcons.chevronRight, size: 20, color: c.textPlaceholder),
         ],
       ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      onTap: onTap,
+    );
+  }
+}
+
+class _IconTile extends StatelessWidget {
+  const _IconTile({required this.icon, this.neutral = false});
+
+  final IconData icon;
+  final bool neutral;
+
+  @override
+  Widget build(BuildContext context) {
+    final PdlColors c = context.pdl;
+    return ExcludeSemantics(
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: neutral ? c.neutralSoft : c.primarySoft,
+          borderRadius: PdlRadii.mdAll,
+        ),
+        child: Icon(
+          icon,
+          size: 18,
+          color: neutral ? c.neutralOnSoft : c.primaryOnSoft,
+        ),
+      ),
+    );
+  }
+}
+
+/// « Se déconnecter » : la seule occurrence du profil, en bas de la liste.
+class _LogoutRow extends ConsumerStatefulWidget {
+  const _LogoutRow();
+
+  @override
+  ConsumerState<_LogoutRow> createState() => _LogoutRowState();
+}
+
+class _LogoutRowState extends ConsumerState<_LogoutRow> {
+  bool _busy = false;
+
+  Future<void> _logout() async {
+    setState(() => _busy = true);
+    try {
+      await ref.read(authProvider.notifier).logout();
+      if (mounted) context.go(Paths.login());
+    } catch (error, stackTrace) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(getErrorMessage(error, stackTrace))),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PdlSettingRow(
+      key: keys.profile.logoutButton,
+      leading: const _IconTile(icon: PdlIcons.logout, neutral: true),
+      title: 'profile.account.logout'.tr(),
+      trailing: const SizedBox.shrink(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      onTap: _busy ? null : _logout,
     );
   }
 }
