@@ -74,7 +74,7 @@ export async function resolveMembershipDefault(
  * A list route prefetches the window `usePaginatedQuery` reads: the page the URL asks for, plus
  * the neighbours it fetches ahead on the client (next, and previous when there is one). Leaving
  * one out doesn't lose the data, it just moves the round trip back after hydration — which is
- * exactly what the crawler reports as a gap.
+ * exactly what the prefetch audit (`e2e/routes-render.e2e.ts`) reports as a gap.
  */
 export async function prefetchPageWindow<P extends { page: number }>(
   params: P,

@@ -2,7 +2,9 @@ import type { QueryClient } from '@tanstack/react-query'
 import {
   prefetchListMyParticipationsQuery,
   prefetchGetLatestExportQuery,
+  prefetchListPairedDevicesQuery,
 } from '@/api/endpoints/users/users'
+import { prefetchGetMyNotificationPreferencesQuery } from '@/api/endpoints/notifications/notifications'
 import { prefetchListPasskeysQuery } from '@/api/endpoints/passkeys/passkeys'
 import { prefetchGetAvailableServicesQuery } from '@/api/endpoints/gps-services/gps-services'
 import { prefetchListMyBlockedUsersQuery } from '@/api/endpoints/moderation/moderation'
@@ -30,8 +32,10 @@ import { hourAlignedNowIso } from '@/utils/nowIso'
  *   `isAuthenticated` gate, no param; only its *polling* while an export is in flight is a client
  *   concern.
  * - `BlockedUsers`'s `useListMyBlockedUsers()` — unconditional, no param.
+ * - `NotificationPreferences`'s `useGetMyNotificationPreferences()` — unconditional, no param.
+ * - `PairedDevicesManager`'s `useListPairedDevices()` — unconditional, no param.
  *
- * All four render on first paint — none behind a tab, modal or accordion — so unlike the
+ * All six render on first paint — none behind a tab, modal or accordion — so unlike the
  * participation counts they need no shared derivation, just the matching generated `prefetchXxxQuery`.
  *
  * The section's paged participation queries are deliberately NOT prefetched here — they only fire
@@ -47,5 +51,7 @@ export async function prefetchUserProfile(queryClient: QueryClient): Promise<voi
     prefetchGetAvailableServicesQuery(queryClient),
     prefetchGetLatestExportQuery(queryClient),
     prefetchListMyBlockedUsersQuery(queryClient),
+    prefetchGetMyNotificationPreferencesQuery(queryClient),
+    prefetchListPairedDevicesQuery(queryClient),
   ])
 }

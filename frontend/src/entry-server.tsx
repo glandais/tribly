@@ -19,6 +19,7 @@ import { resolveSsrSession } from './lib/ssrSession'
 import { getConfig, getGetConfigQueryKey } from './api/endpoints/configuration/configuration'
 import { getVersion, getGetVersionQueryKey } from './api/endpoints/server-version/server-version'
 import { getGetMeQueryKey } from './api/endpoints/users/users'
+import { prefetchCountMyUnreadNotificationsQuery } from './api/endpoints/notifications/notifications'
 import { getGetTeamQueryKey } from './api/endpoints/teams/teams'
 import type { TeamDetailDto } from './api/dto'
 import { ApiClientError } from './lib/apiError'
@@ -147,6 +148,14 @@ export async function render(
         queryClient.setQueryData(getGetMeQueryKey(), session.user)
       }
 
+      // The header bell's unread badge, on every page of a signed-in visitor — Layout's, like
+      // /api/version above, so no route's prefetch() owns it. Started now, with the session, and
+      // awaited before the render: it runs alongside the route loaders rather than after them.
+      // prefetchQuery never throws; a failure leaves the badge to the client.
+      const unreadCount = session?.user
+        ? prefetchCountMyUnreadNotificationsQuery(queryClient)
+        : Promise.resolve()
+
       // The signed-in visitor's stored theme, so the very first render (server and client) already
       // matches it instead of the anonymous 'auto' default — see AppProviders.tsx.
       const themePreference = mapThemePreference(store.auth.user?.theme)
@@ -230,6 +239,8 @@ export async function render(
       // noindex for anything not PUBLIC — the content's own visibility (from meta()) or its team's.
       routeMeta = withIndexing(routeMeta, metaCtx)
       const head = buildMetaTags(routeMeta, metaCtx)
+
+      await unreadCount
 
       const html = await renderAppToString(
         <React.StrictMode>

@@ -19,7 +19,10 @@ import { prefetchRoutesMap } from '@/pages/route/routesMapData'
 import { prefetchStageMap } from '@/pages/trip/stageMapData'
 import { prefetchTeamForm } from '@/pages/team/teamFormData'
 import { prefetchDeviceVerify } from '@/pages/device/deviceVerifyData'
-import { prefetchEditRideTemplateForm } from '@/pages/ridetemplate/rideTemplateFormData'
+import {
+  prefetchCreateRideTemplateForm,
+  prefetchEditRideTemplateForm,
+} from '@/pages/ridetemplate/rideTemplateFormData'
 import { prefetchAdminDashboard } from '@/pages/admin/adminDashboardData'
 import { prefetchAdminDomains } from '@/pages/admin/adminDomainsData'
 import { prefetchAdminTeams } from '@/pages/admin/adminTeamsData'
@@ -30,11 +33,13 @@ import { prefetchTeamAbout } from '@/pages/team/teamAboutData'
 import { prefetchTeamPage } from '@/pages/team/teamPageData'
 import { prefetchTeamPagesAdmin } from '@/pages/team/teamPagesAdminData'
 import { prefetchEditTeamPageForm } from '@/pages/team/teamPageFormData'
-import { prefetchEditTripForm } from '@/pages/trip/tripFormData'
-import { prefetchEditPostForm } from '@/pages/post/postFormData'
-import { prefetchEditRouteForm } from '@/pages/route/routeFormData'
+import { prefetchCreateTripForm, prefetchEditTripForm } from '@/pages/trip/tripFormData'
+import { prefetchCreatePostForm, prefetchEditPostForm } from '@/pages/post/postFormData'
+import { prefetchCreateRouteForm, prefetchEditRouteForm } from '@/pages/route/routeFormData'
 import { prefetchAdDetail } from '@/pages/ad/adDetailData'
-import { prefetchEditAdForm } from '@/pages/ad/adFormData'
+import { prefetchCreateAdForm, prefetchEditAdForm } from '@/pages/ad/adFormData'
+import { prefetchTeamSettings } from '@/pages/team/teamSettingsData'
+import { prefetchNotificationList } from '@/pages/notification/notificationListData'
 import { prefetchTeamPlaces } from '@/pages/team/teamPlacesData'
 import { prefetchTeamTagsAdmin } from '@/pages/team/teamTagsData'
 import { prefetchTeamDirectory, prefetchTeamMembers } from '@/pages/team/teamMembersData'
@@ -69,7 +74,7 @@ import type { QueryClient } from '@tanstack/react-query'
  * `/teams/{slug}/…`.
  *
  * They all render the team's name (breadcrumb, layout header) yet none of them used to prefetch
- * it, so `GET /api/teams/{slug}` was the single most repeated gap the crawler found: ~20 routes
+ * it, so `GET /api/teams/{slug}` was the single most repeated prefetch gap found: ~20 routes
  * fetching the same already-cacheable object after the first paint. `extra` adds whatever else the
  * page reads — pass the same `prefetchXxxQuery` its read-only sibling route uses, so the query key
  * matches by construction rather than by hand-copying params.
@@ -345,8 +350,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('notifications.title') },
-    // No `prefetch`: the inbox is per-user, and an anonymous server render has nothing to fill it
-    // with — see pages/notification/notificationListData.ts.
+    prefetch: (queryClient, _params, url) => prefetchNotificationList(queryClient, url),
   },
   {
     id: 'calendar',
@@ -536,7 +540,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.settings') },
-    prefetch: teamScopedPrefetch(),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchTeamSettings(qc, p.teamSlug!)),
   },
 
   // === Ride Routes ===
@@ -590,7 +594,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'ride-templates',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.new') },
-    prefetch: teamScopedPrefetch(),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchCreateRideTemplateForm(qc, p.teamSlug!)),
     showBackLink: true,
   },
   {
@@ -615,7 +619,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('trips.create.title') },
-    prefetch: teamScopedPrefetch(),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchCreateTripForm(qc, p.teamSlug!)),
     showBackLink: true,
   },
   {
@@ -675,7 +679,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('posts.create.title') },
-    prefetch: teamScopedPrefetch(),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchCreatePostForm(qc, p.teamSlug!)),
     showBackLink: true,
   },
   {
@@ -727,7 +731,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'routes',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.new') },
-    prefetch: teamScopedPrefetch(),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchCreateRouteForm(qc, p.teamSlug!)),
     showBackLink: true,
   },
   {
@@ -788,7 +792,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'ads',
     breadcrumb: { type: 'static', i18nKey: tRegister('ads.create.title') },
-    prefetch: teamScopedPrefetch(),
+    prefetch: teamScopedPrefetch((qc, p) => prefetchCreateAdForm(qc, p.teamSlug!)),
     showBackLink: true,
   },
   {

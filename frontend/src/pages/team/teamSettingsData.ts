@@ -1,17 +1,29 @@
-import { useGetTeam } from '@/api/endpoints/teams/teams'
+import type { QueryClient } from '@tanstack/react-query'
+import { getGetTeamQueryKey, prefetchGetTeamQuery, useGetTeam } from '@/api/endpoints/teams/teams'
+import { prefetchGetTeamWebhookQuery } from '@/api/endpoints/team-webhook/team-webhook'
+import type { TeamDetailDto } from '@/api/dto'
 
 /**
- * `TeamSettingsPage` reads only the team — the form, the slug change and the delete confirmation
- * all work off `team` from this one query, mutations included (mutations don't need a companion,
- * they aren't part of SSR). That query is already covered server-side by `teamScopedPrefetch()`
- * on the `team-settings` route in `routes.config.ts`, which prefetches the same
- * `getGetTeamQueryKey` entry. There is no `prefetchTeamSettings` here: adding one would prefetch
- * the team a second time under the same key. This module exists only so the page's fetch and the
- * route's prefetch stay discoverable in one place, per the project's "always a companion"
- * convention.
+ * `TeamSettingsPage` reads the team — the form, the slug change and the delete confirmation all
+ * work off `team` from this one query, mutations included (mutations don't need a companion, they
+ * aren't part of SSR) — and `TeamWebhookSettings` reads the team's webhook, on the first paint.
+ * The team is covered server-side by the `teamScopedPrefetch` wrapper on the `team-settings` route
+ * in `routes.config.ts`; {@link prefetchTeamSettings} adds the webhook.
  */
 export function useTeamSettingsData(teamSlug: string | undefined) {
   return useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
+}
+
+/**
+ * The webhook `TeamWebhookSettings` reads, for a team admin only: the page sends anyone else back
+ * to the team, and the endpoint refuses them. The team read is the wrapper's own, running
+ * concurrently — React Query hands this call the same in-flight fetch, so it is not sent twice.
+ */
+export async function prefetchTeamSettings(queryClient: QueryClient, teamSlug: string) {
+  await prefetchGetTeamQuery(queryClient, teamSlug)
+  const team = queryClient.getQueryData<TeamDetailDto>(getGetTeamQueryKey(teamSlug))
+  if (team?.role !== 'ADMIN') return
+  await prefetchGetTeamWebhookQuery(queryClient, teamSlug)
 }

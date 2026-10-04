@@ -1,22 +1,21 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useGetAdEdit, prefetchGetAdEditQuery, prefetchGetAdQuery } from '@/api/endpoints/ads/ads'
+import { prefetchTeamTags } from '@/config/prefetchHelpers'
 
 /**
  * The one description of what `CreateAdPage` and `EditAdPage` read, consumed two ways: the pages
  * call {@link useCreateAdFormData} / {@link useEditAdFormData} for the query results, the `ad-new`
- * and `ad-edit` routes in `routes.config.ts` call `teamScopedPrefetch()` /
+ * and `ad-edit` routes in `routes.config.ts` call {@link prefetchCreateAdForm} /
  * {@link prefetchEditAdForm} for the same data server-side. Same shape as `pages/ride/rideFormData.ts`
- * — one module, two routes — because `AdEditor` (unlike `RideEditor`) mounts no data-fetching
- * children of its own: there is nothing beyond the team and, for the edit form, the ad itself.
+ * — one module, two routes. `AdEditor`'s only data-fetching child is its `TagPicker` (the team's ad
+ * tags); beyond that there is the team and, for the edit form, the ad itself.
  *
  * Its own module rather than exports of the pages: `routes.config.ts` is imported eagerly and must
  * not pull either page out of its lazy chunk.
  *
- * `CreateAdPage` reads nothing beyond the team, already covered by the bare `teamScopedPrefetch()`
- * on `ad-new` in `routes.config.ts` — so there is no `prefetchCreateAdForm` here, the same reasoning
- * as `pages/team/teamAdminData.ts`: adding one would prefetch the team a second time under the same
- * key.
+ * The team is the `teamScopedPrefetch` wrapper's, on both routes: {@link prefetchCreateAdForm} must
+ * not prefetch it again, the same reasoning as `pages/team/teamAdminData.ts` (same key, twice).
  */
 
 /**
@@ -42,16 +41,21 @@ export function useEditAdFormData(teamSlug?: string, adSlug?: string) {
   return { team, ad }
 }
 
+/** Server-side counterpart of what `AdEditor` reads on a new ad: its `TagPicker`'s tags. */
+export async function prefetchCreateAdForm(queryClient: QueryClient, teamSlug: string) {
+  await prefetchTeamTags(queryClient, teamSlug, 'AD')
+}
+
 /**
- * Server-side counterpart of {@link useEditAdFormData}'s ad-specific data (the team itself comes
- * from the `teamScopedPrefetch` wrapper).
+ * Server-side counterpart of {@link useEditAdFormData}'s ad-specific data and the editor's tags
+ * (the team itself comes from the `teamScopedPrefetch` wrapper).
  *
  * **Both ad shapes, and both are needed.** `getAdEdit` is what the form reads; `routes.config.ts`
  * used to prime `getAd` alone, a different key, so the prefetched entry was dead weight and the form
  * fetched again after hydration. Priming only `getAdEdit` then moved the gap rather than closing it:
  * this route's breadcrumb trail renders its **parent** `ad-detail` crumb, whose dynamic `ad` entity
  * makes `useBreadcrumbData` call `useGetAd` on every route that carries an `adSlug` — the edit page
- * included. The crawler caught exactly that on the run after the first fix.
+ * included. The prefetch audit caught exactly that on the run after the first fix.
  */
 export async function prefetchEditAdForm(
   queryClient: QueryClient,
@@ -61,5 +65,6 @@ export async function prefetchEditAdForm(
   await Promise.all([
     prefetchGetAdEditQuery(queryClient, teamSlug, adSlug),
     prefetchGetAdQuery(queryClient, teamSlug, adSlug),
+    prefetchCreateAdForm(queryClient, teamSlug),
   ])
 }

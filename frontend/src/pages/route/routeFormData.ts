@@ -1,6 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useGetRoute, prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
+import { prefetchTeamTags } from '@/config/prefetchHelpers'
 
 /**
  * The one description of what `CreateRoutePage` and `EditRoutePage` read, consumed two ways: the
@@ -17,13 +18,11 @@ import { useGetRoute, prefetchGetRouteQuery } from '@/api/endpoints/routes/route
  */
 
 /**
- * `CreateRoutePage` reads nothing beyond the team itself — the form starts from an empty route, no
- * GPX or points to preload. That query is already covered server-side by the bare
- * `teamScopedPrefetch()` on the `route-new` route in `routes.config.ts`, which prefetches the same
- * `getGetTeamQueryKey` entry. There is no `prefetchCreateRouteForm` here: adding one would
- * prefetch the team a second time under the same key. This module exists only so the page's fetch
- * and the route's prefetch stay discoverable in one place, per the project's "always a companion"
- * convention.
+ * `CreateRoutePage` reads the team itself — the form starts from an empty route, no GPX or points
+ * to preload — and `RouteEditor`'s `TagPicker` reads the team's route tags. The team is covered
+ * server-side by the `teamScopedPrefetch` wrapper on `route-new` in `routes.config.ts`;
+ * {@link prefetchCreateRouteForm} adds the tags only, since prefetching the team again would fetch
+ * it a second time under the same key.
  */
 export function useCreateRouteFormData(teamSlug?: string) {
   return useGetTeam(teamSlug!, { query: { enabled: !!teamSlug } })
@@ -41,14 +40,22 @@ export function useEditRouteFormData(teamSlug?: string, routeSlug?: string) {
   return { team, route }
 }
 
+/** Server-side counterpart of what `RouteEditor` reads on a new route: its `TagPicker`'s tags. */
+export async function prefetchCreateRouteForm(queryClient: QueryClient, teamSlug: string) {
+  await prefetchTeamTags(queryClient, teamSlug, 'ROUTE')
+}
+
 /**
- * Server-side counterpart of {@link useEditRouteFormData}'s route-specific query (the team itself
- * comes from the `teamScopedPrefetch` wrapper).
+ * Server-side counterpart of {@link useEditRouteFormData}'s route-specific query and the editor's
+ * tags (the team itself comes from the `teamScopedPrefetch` wrapper).
  */
 export async function prefetchEditRouteForm(
   queryClient: QueryClient,
   teamSlug: string,
   routeSlug: string
 ) {
-  await prefetchGetRouteQuery(queryClient, teamSlug, routeSlug)
+  await Promise.all([
+    prefetchGetRouteQuery(queryClient, teamSlug, routeSlug),
+    prefetchCreateRouteForm(queryClient, teamSlug),
+  ])
 }

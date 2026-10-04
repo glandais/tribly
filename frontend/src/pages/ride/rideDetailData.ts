@@ -18,7 +18,8 @@ import type { RideDto, RouteDetailDto } from '@/api/dto'
  * `routes.config.ts` calls {@link prefetchRideDetail} for the same data server-side. Describing it
  * twice is what this file exists to prevent: a divergence doesn't break anything visibly, it just
  * yields a different query key, so the client refetches after hydration and only
- * `scripts/ssr-audit.mjs` notices.
+ * the prefetch audit of
+ * `e2e/routes-render.e2e.ts` notices.
  *
  * Its own module rather than exports of `RideDetailPage.tsx`: `routes.config.ts` is imported
  * eagerly and must not pull the page out of its lazy chunk (same contract as

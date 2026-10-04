@@ -4,21 +4,18 @@ import {
   useGetTemplate,
   prefetchGetTemplateQuery,
 } from '@/api/endpoints/ride-templates/ride-templates'
+import { prefetchTeamTags } from '@/config/prefetchHelpers'
 
 /**
- * `CreateRideTemplatePage` and `EditRideTemplatePage` read nothing beyond the team (and, for the
- * edit page, the template itself). The team query is already covered server-side by
- * `teamScopedPrefetch()` on both the `ride-template-new` and `ride-template-edit` routes in
- * `routes.config.ts`, which prefetches the same `getGetTeamQueryKey` entry — a `prefetch` here
- * would fetch it a second time under the same key. This module exists only so each page's fetch
- * and the route's prefetch stay discoverable in one place, per the project's "always a companion"
- * convention.
- *
- * `EditRideTemplatePage` leaves that team-only special case: its template query is primed by
- * {@link prefetchEditRideTemplateForm}, wrapped in `teamScopedPrefetch` on `ride-template-edit` in
- * `routes.config.ts` next to the team fetch. It calls the same generated `prefetchGetTemplateQuery`
- * — same `teamSlug`/`templateSlug` params, same order — `useEditRideTemplateFormData` builds via
- * `useGetTemplate`, so the primed cache entry and the client read share one key.
+ * `CreateRideTemplatePage` and `EditRideTemplatePage` read the team (and, for the edit page, the
+ * template itself), and `RideTemplateEditor`'s `TagPicker` reads the team's ride tags. The team
+ * query is covered server-side by the `teamScopedPrefetch` wrapper on both `ride-template-new` and
+ * `ride-template-edit` in `routes.config.ts` — never prefetched here, it would go out twice under
+ * the same key. {@link prefetchCreateRideTemplateForm} adds the tags, and
+ * {@link prefetchEditRideTemplateForm} the tags and the template: it calls the same generated
+ * `prefetchGetTemplateQuery` — same `teamSlug`/`templateSlug` params, same order —
+ * `useEditRideTemplateFormData` builds via `useGetTemplate`, so the primed cache entry and the
+ * client read share one key.
  */
 
 /** Every query `CreateRideTemplatePage` itself owns — just the team. */
@@ -30,8 +27,7 @@ export function useCreateRideTemplateFormData(teamSlug: string | undefined) {
 
 /**
  * Every query `EditRideTemplatePage` itself owns, returned as the raw query results so the page
- * keeps reading `.data` / `.isLoading` directly. See the module docblock: the template query is
- * server-rendered nowhere today, a pre-existing gap, not one introduced by this move.
+ * keeps reading `.data` / `.isLoading` directly.
  */
 export function useEditRideTemplateFormData(
   teamSlug: string | undefined,
@@ -44,15 +40,23 @@ export function useEditRideTemplateFormData(
   return { team, template }
 }
 
+/** Server-side counterpart of what `RideTemplateEditor` reads on a new template: its tags. */
+export async function prefetchCreateRideTemplateForm(queryClient: QueryClient, teamSlug: string) {
+  await prefetchTeamTags(queryClient, teamSlug, 'RIDE')
+}
+
 /**
- * Primes the template query `EditRideTemplatePage` reads via `useEditRideTemplateFormData` — the
- * gap closed on `ride-template-edit`. Wrapped in `teamScopedPrefetch` in `routes.config.ts`, next
- * to the team fetch that wrapper already covers.
+ * Primes the template query `EditRideTemplatePage` reads via `useEditRideTemplateFormData`, and the
+ * editor's tags. Wrapped in `teamScopedPrefetch` in `routes.config.ts`, next to the team fetch that
+ * wrapper already covers.
  */
 export async function prefetchEditRideTemplateForm(
   queryClient: QueryClient,
   teamSlug: string,
   templateSlug: string
 ) {
-  await prefetchGetTemplateQuery(queryClient, teamSlug, templateSlug)
+  await Promise.all([
+    prefetchGetTemplateQuery(queryClient, teamSlug, templateSlug),
+    prefetchCreateRideTemplateForm(queryClient, teamSlug),
+  ])
 }

@@ -8,7 +8,8 @@ import type { QueryClient } from '@tanstack/react-query'
  * in `routes.config.ts` calls {@link prefetchTeamPage} for the same two calls server-side.
  * Describing it twice is what this file exists to prevent — even though there is no derivation to
  * share here, a divergence would still be silent: it just yields a different query key, so the
- * client refetches after hydration and only `scripts/ssr-audit.mjs` notices.
+ * client refetches after hydration and only the prefetch audit of
+ * `e2e/routes-render.e2e.ts` notices.
  *
  * Its own module rather than exports of `TeamPageDetailPage.tsx`: `routes.config.ts` is imported
  * eagerly and must not pull the page out of its lazy chunk (same contract as

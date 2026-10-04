@@ -1,12 +1,12 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useGetPost, prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
+import { prefetchTeamTags } from '@/config/prefetchHelpers'
 
 /**
- * `CreatePostPage` reads nothing beyond the team — that's already covered server-side by a bare
- * `teamScopedPrefetch()` on the `post-new` route in `routes.config.ts`, which prefetches the same
- * `getGetTeamQueryKey` entry. There is no `prefetchCreatePostForm` here: adding one would prefetch
- * the team a second time under the same key (the team-only special case; see `teamAdminData.ts`).
+ * `CreatePostPage` reads the team — covered server-side by the `teamScopedPrefetch` wrapper on the
+ * `post-new` route in `routes.config.ts` — and `PostEditor`'s `TagPicker` reads the team's post
+ * tags, which {@link prefetchCreatePostForm} adds (never the team again: same key, fetched twice).
  *
  * `EditPostPage` reads the team plus the post itself. The team is still the `teamScopedPrefetch`
  * wrapper's job, but the post is `EditPostPage`'s own data, so {@link prefetchEditPostForm} covers
@@ -14,7 +14,8 @@ import { useGetPost, prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
  * prefetchEditPostForm(qc, p.teamSlug!, p.postSlug!))` in `routes.config.ts`. Describing that query
  * twice (once here, once inline in the route table) is what this module exists to prevent: a
  * divergence doesn't break anything visibly, it just yields a different query key, so the client
- * refetches after hydration and only `scripts/ssr-audit.mjs` notices.
+ * refetches after hydration and only the prefetch audit of
+ * `e2e/routes-render.e2e.ts` notices.
  */
 
 /** Every query `CreatePostPage` itself owns, returned as the raw query result. */
@@ -32,14 +33,22 @@ export function useEditPostFormData(teamSlug: string | undefined, postSlug: stri
   return { team, post }
 }
 
+/** Server-side counterpart of what `PostEditor` reads on a new post: its `TagPicker`'s tags. */
+export async function prefetchCreatePostForm(queryClient: QueryClient, teamSlug: string) {
+  await prefetchTeamTags(queryClient, teamSlug, 'POST')
+}
+
 /**
- * Server-side counterpart of {@link useEditPostFormData}'s post query (the team itself comes from
- * the `teamScopedPrefetch` wrapper).
+ * Server-side counterpart of {@link useEditPostFormData}'s post query and the editor's tags (the
+ * team itself comes from the `teamScopedPrefetch` wrapper).
  */
 export async function prefetchEditPostForm(
   queryClient: QueryClient,
   teamSlug: string,
   postSlug: string
 ) {
-  await prefetchGetPostQuery(queryClient, teamSlug, postSlug)
+  await Promise.all([
+    prefetchGetPostQuery(queryClient, teamSlug, postSlug),
+    prefetchCreatePostForm(queryClient, teamSlug),
+  ])
 }

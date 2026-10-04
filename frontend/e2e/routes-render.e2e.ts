@@ -12,7 +12,7 @@ import {
   type Dataset,
   type RenderRole,
 } from './support/routes-render'
-import { pageAs, pageHydrated, watchHydration } from './support/ui'
+import { pageAs, pageHydrated, watchHydration, watchPrefetchAudit } from './support/ui'
 
 /**
  * Every web route of contracts/routes.yaml, for every role: the screen for those who may see it,
@@ -24,7 +24,9 @@ import { pageAs, pageHydrated, watchHydration } from './support/ui'
  * (`pageerror`) or failed to hydrate (`[hydration]`), that no error screen is shown, and that
  * something only the landing screen has is visible. A refused role also checks that nothing of the
  * protected screen shows (`guards`): a page whose `<Navigate>` went missing would render its admin
- * form, and that test would fail on it.
+ * form, and that test would fail on it. A screen that renders on its own path also checks that the
+ * server prefetched every query it reads (`[prefetch-audit]`, frontend/docs/SSR-data-loading.md):
+ * a gap still renders, but fetches after hydration, behind a loader the server painted.
  *
  * The guard redirects are derived from each route's `auth` in routes.config.ts: an `authenticated`
  * route sends an anonymous visitor to the login page, an `unauthenticated` one sends a signed-in
@@ -59,6 +61,8 @@ interface Screen extends Expectation {
   roles: readonly RenderRole[]
   /** Rendered outside the app shell (`layout: 'bare'`): no <main>. */
   bare?: boolean
+  /** What only the screen shows to these roles, when it renders differently for them. */
+  seesAs?: Partial<Record<RenderRole, Expectation['sees']>>
   /** Per-role outcomes that differ from the screen itself — the page's own redirects. */
   otherwise?: Partial<Record<RenderRole, Outcome>>
   /** The roles the page turns away, and the fallback each one lands on. */
@@ -161,7 +165,14 @@ const NOT_ORGANIZER = 'only the team organizers manage it'
 const NOT_ADMIN = 'only the team admins manage it'
 
 const screens: Record<string, Screen> = {
-  home: { roles: EVERYONE, sees: heading('Dernières publications') },
+  // A visitor gets the presentation and the sign-in form, a signed-in user the member home.
+  home: {
+    roles: EVERYONE,
+    sees: heading('Dernières publications'),
+    seesAs: {
+      anonymous: heading('Organisez vos sorties. Partagez vos parcours. Roulez ensemble.'),
+    },
+  },
   login: {
     roles: ['anonymous'],
     sees: (main) =>
@@ -188,6 +199,7 @@ const screens: Record<string, Screen> = {
   // the page says the Karoo is ready instead (docs/LEDGER_*.md API-63).
   deviceHammerhead: { roles: SIGNED_IN, sees: heading(DEVICE_PAGE.hammerhead) },
   apps: { roles: EVERYONE, sees: heading('Applications') },
+  features: { roles: EVERYONE, sees: heading("Tout ce qu'il faut pour faire rouler une équipe") },
   // The legal pages repeat their title in their own markdown: two level-1 headings.
   privacy: {
     roles: EVERYONE,
@@ -712,6 +724,7 @@ for (const route of contract) {
       const where = `${route.id} as ${role} (${path})`
 
       const { pageErrors, hydrationErrors } = await watchHydration(page)
+      const prefetchAudit = watchPrefetchAudit(page)
       if (role !== 'anonymous') await signIn(page.context(), d.sessions[role])
 
       const response = await page.goto(path)
@@ -728,7 +741,8 @@ for (const route of contract) {
         .toBe(lands)
 
       const main = screen.bare && !expected.lands ? page.locator('body') : page.getByRole('main')
-      await expected.sees(main, d, page)
+      const sees = (kind === 'renders' && screen.seesAs?.[role]) || expected.sees
+      await sees(main, d, page)
 
       // The page is up: now the absences mean something.
       for (const failure of [
@@ -750,6 +764,13 @@ for (const route of contract) {
       // lists on a phone used to fail hydration (fixed 2026-09-25). The browser runs in
       // Europe/Paris and the SSR server in UTC, so a zone-dependent render shows up here.
       expect(hydrationErrors, `${where}: hydration errors`).toEqual([])
+
+      // Only on the screen's own path: a redirect, or a refusal's fallback, is not the screen
+      // whose prefetch is declared. The audit disarms on a redirect anyway (`discarded`).
+      if (kind === 'renders' && !expected.lands) {
+        const audit = await prefetchAudit.result()
+        expect(audit.verdict, `${where}: prefetch — ${audit.text}`).toBe('covered')
+      }
     })
   }
 }

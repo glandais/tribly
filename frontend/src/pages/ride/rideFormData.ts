@@ -2,8 +2,9 @@ import type { QueryClient } from '@tanstack/react-query'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useGetRide, prefetchGetRideQuery, getGetRideQueryKey } from '@/api/endpoints/rides/rides'
 import { prefetchListPlacesQuery, prefetchGetPlaceQuery } from '@/api/endpoints/places/places'
+import { prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
 import { placeAutocompleteParams } from '@/components/common/placeAutocompleteParams'
-import { prefetchRoutesBulkChunked } from '@/config/prefetchHelpers'
+import { prefetchRoutesBulkChunked, prefetchTeamTags } from '@/config/prefetchHelpers'
 import type { RideDto, RideRequest, Status } from '@/api/dto'
 
 /**
@@ -12,7 +13,8 @@ import type { RideDto, RideRequest, Status } from '@/api/dto'
  * the `ride-new` and `ride-edit` routes in `routes.config.ts` call {@link prefetchRideFormPlaces}
  * / {@link prefetchEditRideForm} for the same data server-side. Describing it twice is what this
  * file exists to prevent: a divergence doesn't break anything visibly, it just yields a different
- * query key, so the client refetches after hydration and only `scripts/ssr-audit.mjs` notices.
+ * query key, so the client refetches after hydration and only the prefetch audit of
+ * `e2e/routes-render.e2e.ts` notices.
  *
  * Its own module rather than exports of the pages: `routes.config.ts` is imported eagerly and must
  * not pull either page out of its lazy chunk.
@@ -62,6 +64,15 @@ export function rideFormGroupRouteSlugs(ride: RideDto | undefined): string[] {
 }
 
 /**
+ * The ride's own route, which the edit form previews (`RoutePreview`, a single `getRoute`) as soon
+ * as it is set — read off {@link rideToRequest}, the very projection `EditRidePage` seeds the form
+ * with, so the prefetched slug is the one the form holds.
+ */
+export function rideFormRouteSlug(ride: RideDto | undefined): string | undefined {
+  return ride ? rideToRequest(ride).routeSlug : undefined
+}
+
+/**
  * Every query `CreateRidePage` itself owns, returned as the raw query result so the page keeps
  * reading `.data` / `.isLoading` directly.
  */
@@ -73,10 +84,14 @@ export function useCreateRideFormData(teamSlug?: string) {
 /**
  * Server-side counterpart of {@link useCreateRideFormData}'s ride-form-specific data (the team
  * itself comes from the `teamScopedPrefetch` wrapper). Covers more than the hook: the two
- * `PlaceAutocomplete` fields are queried by `RideEditor`'s children, not by `CreateRidePage` itself.
+ * `PlaceAutocomplete` fields and the `TagPicker` are queried by `RideEditor`'s children, not by
+ * `CreateRidePage` itself.
  */
 export async function prefetchCreateRideForm(queryClient: QueryClient, teamSlug: string) {
-  await prefetchRideFormPlaces(queryClient, teamSlug)
+  await Promise.all([
+    prefetchRideFormPlaces(queryClient, teamSlug),
+    prefetchTeamTags(queryClient, teamSlug, 'RIDE'),
+  ])
 }
 
 /**
@@ -98,9 +113,10 @@ export function useEditRideFormData(teamSlug?: string, rideSlug?: string) {
  * paint, on top of the ride itself which `EditRidePage` does own.
  *
  * Two phases, because the second depends on the first: the form's current selections — the two
- * chosen places, and each group's route — are only knowable once the ride is in cache. They are
- * what the crawler reported on `rideEdit` after the pickers were gated: not lists waiting for a
- * click, but the values the form renders straight away.
+ * chosen places, the ride's own route, and each group's route — are only knowable once the ride is
+ * in cache. These are not lists waiting for a click but values the form renders straight away: the
+ * places and group routes were the gaps reported on `rideEdit` once the pickers were gated, and the
+ * ride's own route the one `e2e/routes-render.e2e.ts` reported once its dataset gave the ride one.
  */
 export async function prefetchEditRideForm(
   queryClient: QueryClient,
@@ -110,13 +126,16 @@ export async function prefetchEditRideForm(
   await Promise.all([
     prefetchGetRideQuery(queryClient, teamSlug, rideSlug),
     prefetchRideFormPlaces(queryClient, teamSlug),
+    prefetchTeamTags(queryClient, teamSlug, 'RIDE'),
   ])
 
   const ride = queryClient.getQueryData<RideDto>(getGetRideQueryKey(teamSlug, rideSlug))
+  const routeSlug = rideFormRouteSlug(ride)
   await Promise.all([
     ...rideFormPlaceIds(ride).map((placeId) =>
       prefetchGetPlaceQuery(queryClient, teamSlug, placeId)
     ),
+    routeSlug ? prefetchGetRouteQuery(queryClient, teamSlug, routeSlug) : Promise.resolve(),
     prefetchRoutesBulkChunked(queryClient, teamSlug, rideFormGroupRouteSlugs(ride), {
       geometry: false,
     }),

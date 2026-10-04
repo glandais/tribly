@@ -25,3 +25,8 @@ export const notificationFiltersAlias = {
 export function isNotificationFiltered(filters: NotificationFilters): boolean {
   return filters.unreadOnly
 }
+
+/** The list's query parameters, read by the page and by its prefetch: one projection, one key. */
+export function notificationApiParams(filters: NotificationFilters) {
+  return { page: filters.page, size: filters.size, unreadOnly: filters.unreadOnly }
+}

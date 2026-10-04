@@ -75,6 +75,45 @@ export async function watchHydration(page: Page, markers: string[] = []) {
   }
 }
 
+/**
+ * What the prefetch audit (src/lib/prefetchAudit.ts) said about the first load: `covered` when the
+ * SSR cache held every query the page fetched, `gaps` when it did not, `discarded` when the route
+ * changed before it settled — a redirect, which measured nothing.
+ */
+export interface PrefetchAudit {
+  verdict: 'covered' | 'gaps' | 'discarded'
+  /** The audit's own console line: for `gaps`, the query keys the route's `prefetch` missed. */
+  text: string
+}
+
+/**
+ * Records the prefetch audit's verdict on the next page load. Call it before `goto`; `result()`
+ * then waits for the verdict, which the audit logs 5 s after the client router started. Needs a frontend built with FRONTEND_PREFETCH_AUDIT=true, which `.env.e2e` sets.
+ */
+export function watchPrefetchAudit(page: Page) {
+  let audit: PrefetchAudit | undefined
+  page.on('console', (message) => {
+    const text = message.text()
+    if (audit || !text.startsWith('[prefetch-audit] route')) return
+    if (text.includes('changed before settling')) audit = { verdict: 'discarded', text }
+    else if (text.includes('not covered by route prefetch')) audit = { verdict: 'gaps', text }
+    else if (text.includes('all queries were covered')) audit = { verdict: 'covered', text }
+  })
+  return {
+    async result(): Promise<PrefetchAudit> {
+      await expect
+        .poll(() => audit !== undefined, {
+          message:
+            'no [prefetch-audit] verdict — was the frontend image built with ' +
+            'FRONTEND_PREFETCH_AUDIT=true (scripts/e2e.sh build frontend)?',
+          timeout: 20_000,
+        })
+        .toBe(true)
+      return audit!
+    },
+  }
+}
+
 /** The global toasts (Mantine Notifications) — apiClient shows one for every coded API error. */
 export const toasts = (page: Page) => page.locator('.mantine-Notification-root')
 

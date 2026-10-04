@@ -8,7 +8,8 @@ import { useGetPage, prefetchGetPageQuery } from '@/api/endpoints/team-pages/tea
  * results, the `team-admin-page-edit` route in `routes.config.ts` calls
  * {@link prefetchEditTeamPageForm} for the same data server-side. Describing it twice is what this
  * file exists to prevent: a divergence doesn't break anything visibly, it just yields a different
- * query key, so the client refetches after hydration and only `scripts/ssr-audit.mjs` notices.
+ * query key, so the client refetches after hydration and only the prefetch audit of
+ * `e2e/routes-render.e2e.ts` notices.
  *
  * Its own module rather than exports of the pages: `routes.config.ts` is imported eagerly and must
  * not pull either page out of its lazy chunk.

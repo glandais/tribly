@@ -487,7 +487,9 @@ test('the exact point of an ad is neither in the server documents nor in any API
       expect.soft(document.html.includes(needle), `${label}: ${needle} in the document`).toBe(false)
   }
 
-  // In the browser: whatever the pages fetch.
+  // In the browser: whatever the pages fetch. Opened by their URL they fetch nothing — the server
+  // prefetches every query they read (docs/LEDGER_*.md WEB-52) — so the detail is reached from the
+  // list, as a member would: that client-side navigation reads the ad from the API.
   const { context, page } = await pageAs(browser, member)
   try {
     await stubBasemap(page)
@@ -501,18 +503,22 @@ test('the exact point of an ad is neither in the server documents nor in any API
           .then((body) => ({ url: response.url(), body }))
       )
     })
-    for (const { label, path } of pages) {
-      await page.goto(path)
-      await pageHydrated(page)
-      await expect(page.getByRole('heading', { name: ad.name }).first(), label).toBeVisible()
-    }
+    await page.goto(pages[1].path)
+    await pageHydrated(page)
+    const card = page.getByRole('main').getByRole('link', { name: ad.name }).first()
+    await hydrated(card)
+    await card.click()
+    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(adPath(team.slug, ad))}$`))
+    await expect(page.getByRole('heading', { name: ad.name }).first()).toBeVisible()
     // The detail's sector: the page did draw the location it was given.
-    await page.goto(adPath(team.slug, ad))
     await expect(page.getByRole('img', { name: /à environ 1 km près/ })).toBeVisible()
     await pageHydrated(page)
 
     const responses = await Promise.all(bodies)
-    expect(responses.length, 'the pages fetched from the API').toBeGreaterThan(0)
+    expect(
+      responses.some(({ url }) => new URL(url).pathname.endsWith(`/classifieds/${ad.slug}`)),
+      'the ad read by the browser'
+    ).toBe(true)
     for (const response of responses)
       for (const needle of needles)
         expect.soft(response.body.includes(needle), `${needle} in ${response.url}`).toBe(false)

@@ -1,16 +1,18 @@
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useGetTrip, prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
-import { prefetchRoutesBulkChunked } from '@/config/prefetchHelpers'
+import { prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
+import { prefetchRoutesBulkChunked, prefetchTeamTags } from '@/config/prefetchHelpers'
 import type { TripDto, TripRequest, Status } from '@/api/dto'
 import type { QueryClient } from '@tanstack/react-query'
 
 /**
  * The one description of what `CreateTripPage` and `EditTripPage` read, consumed two ways: the
  * pages call {@link useCreateTripFormData} / {@link useEditTripFormData} for the query results,
- * the `trip-new` and `trip-edit` routes in `routes.config.ts` call {@link prefetchEditTripForm} for
- * the same data server-side. Describing it twice is what this file exists to prevent: a divergence
+ * the `trip-new` and `trip-edit` routes in `routes.config.ts` call {@link prefetchCreateTripForm} /
+ * {@link prefetchEditTripForm} for the same data server-side. Describing it twice is what this file exists to prevent: a divergence
  * doesn't break anything visibly, it just yields a different query key, so the client refetches
- * after hydration and only `scripts/ssr-audit.mjs` notices.
+ * after hydration and only the prefetch audit of
+ * `e2e/routes-render.e2e.ts` notices.
  *
  * Its own module rather than exports of the pages: `routes.config.ts` is imported eagerly and must
  * not pull either page out of its lazy chunk.
@@ -19,9 +21,8 @@ import type { QueryClient } from '@tanstack/react-query'
  * `teamScopedPrefetch` in `routes.config.ts`, which already prefetches `GET /api/teams/{slug}` (and
  * gates the whole prefetch on authentication) — the shared machinery ~15 admin routes reuse.
  *
- * `trip-new` reads nothing beyond the team: `CreateTripPage` mounts no other query, so there is no
- * `prefetchCreateTripForm` here — the route stays a bare `teamScopedPrefetch()` in
- * `routes.config.ts`, same as the team-only special case. Only `trip-edit` adds the trip itself.
+ * Both forms mount `TripEditor`, whose `TagPicker` reads the team's trip tags on the first paint:
+ * {@link prefetchCreateTripForm} covers that alone, and `trip-edit` adds the trip itself.
  */
 
 /**
@@ -60,29 +61,56 @@ export function tripFormStageRouteSlugs(trip: TripDto | undefined): string[] {
 }
 
 /**
+ * The trip's own route, which the edit form's details tab previews (`RoutePreview`, a single
+ * `getRoute`) as soon as it is set — read off {@link tripToRequest}, the projection `EditTripPage`
+ * seeds the form with. Same as the ride form's `rideFormRouteSlug`.
+ */
+export function tripFormRouteSlug(trip: TripDto | undefined): string | undefined {
+  return trip ? tripToRequest(trip).routeSlug : undefined
+}
+
+/** Server-side counterpart of what `TripEditor` reads on a new trip: its `TagPicker`'s tags. */
+export async function prefetchCreateTripForm(queryClient: QueryClient, teamSlug: string) {
+  await prefetchTeamTags(queryClient, teamSlug, 'TRIP')
+}
+
+/**
  * Server-side counterpart of {@link useEditTripFormData}'s trip-form-specific data (the team itself
  * comes from the `teamScopedPrefetch` wrapper).
  *
  * Two phases, because the second depends on the first: the stages — and so the routes they point at
- * — are only knowable once the trip is in cache. This is the gap `scripts/ssr-audit.mjs` reported on
- * `tripEdit` once `routes-ssr.yml` was pointed at a trip whose stages actually have routes; before
- * that the query never fired and prefetching it on the symmetry with `rideEdit` would have primed a
- * key nobody read.
+ * — are only knowable once the trip is in cache. This is the gap the (since retired) manual SSR
+ * crawler reported on `tripEdit` once it was pointed at a trip whose stages actually have routes —
+ * the prefetch audit of `e2e/routes-render.e2e.ts` now guards it, its dataset giving the trip's
+ * stages routes. Before that the query never fired, and prefetching it on the symmetry with
+ * `rideEdit` would have primed a key nobody read.
  *
- * `TripEditor`'s two `PlaceAutocomplete` fields per stage are deliberately NOT covered: the crawler
- * has never seen them query on the first paint. Add them if and when a report names them.
+ * The same second phase primes the trip's own route ({@link tripFormRouteSlug}), which the details
+ * tab previews on the first paint — the counterpart of the ride form's gap that
+ * `e2e/routes-render.e2e.ts` reported on `rideEdit`.
+ *
+ * `TripEditor`'s two `PlaceAutocomplete` fields per stage are deliberately NOT covered: neither the
+ * retired crawler nor the prefetch audit has seen them query on the first paint. Add them if and
+ * when the audit names them.
  */
 export async function prefetchEditTripForm(
   queryClient: QueryClient,
   teamSlug: string,
   tripSlug: string
 ) {
-  await prefetchGetTripQuery(queryClient, teamSlug, tripSlug)
+  await Promise.all([
+    prefetchGetTripQuery(queryClient, teamSlug, tripSlug),
+    prefetchCreateTripForm(queryClient, teamSlug),
+  ])
 
   const trip = queryClient.getQueryData<TripDto>(getGetTripQueryKey(teamSlug, tripSlug))
-  await prefetchRoutesBulkChunked(queryClient, teamSlug, tripFormStageRouteSlugs(trip), {
-    geometry: false,
-  })
+  const routeSlug = tripFormRouteSlug(trip)
+  await Promise.all([
+    prefetchRoutesBulkChunked(queryClient, teamSlug, tripFormStageRouteSlugs(trip), {
+      geometry: false,
+    }),
+    routeSlug ? prefetchGetRouteQuery(queryClient, teamSlug, routeSlug) : Promise.resolve(),
+  ])
 }
 
 /**
