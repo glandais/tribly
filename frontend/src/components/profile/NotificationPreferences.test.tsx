@@ -24,7 +24,7 @@ vi.mock('@/api/endpoints/notifications/notifications', () => ({
   useUpdateMyNotificationPreferences: () => ({ mutate: vi.fn(), isPending: false }),
 }))
 // The browser part of « Sur cet appareil » is not under test here.
-vi.mock('./WebPushSettings', () => ({ WebPushSettings: () => <div>web-push</div> }))
+vi.mock('./WebPushSettings', () => ({ WebPushSettings: () => <div data-testid="web-push" /> }))
 
 import { NotificationPreferences } from './NotificationPreferences'
 
@@ -91,7 +91,7 @@ describe('NotificationPreferences', () => {
     // No cell, no checkbox: the e-mail column of a reply is empty.
     expect(screen.getAllByRole('checkbox')).toHaveLength(3)
     expect(screen.queryByText('notifications.typeLabel.TRIP_PUBLISHED')).toBeNull()
-    expect(screen.getByText('web-push')).toBeTruthy()
+    expect(screen.getByTestId('web-push')).toBeTruthy()
     expect(screen.getByText('notifications.preferences.digest.label')).toBeTruthy()
   })
 
@@ -116,7 +116,7 @@ describe('NotificationPreferences', () => {
     renderPreferences()
 
     expect(screen.queryByRole('table')).toBeNull()
-    expect(screen.queryByText('web-push')).toBeNull()
+    expect(screen.queryByTestId('web-push')).toBeNull()
     expect(
       screen.getByRole('heading', { name: 'notifications.preferences.teams.title' })
     ).toBeTruthy()

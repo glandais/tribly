@@ -18,7 +18,7 @@ function renderShell(section: Parameters<typeof ProfileShell>[0]['section']) {
       <QueryClientProvider client={new QueryClient()}>
         <MemoryRouter>
           <ProfileShell section={section} title="Titre">
-            <p>contenu</p>
+            <p data-testid="content" />
           </ProfileShell>
         </MemoryRouter>
       </QueryClientProvider>

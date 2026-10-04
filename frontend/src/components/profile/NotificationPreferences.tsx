@@ -7,53 +7,11 @@ import {
   getGetMyNotificationPreferencesQueryKey,
 } from '@/api/endpoints/notifications/notifications'
 import { useQueryClient } from '@tanstack/react-query'
-import { NotificationChannel, NotificationType } from '@/api/dto'
-import type { NotificationPreferencesDto } from '@/api/dto'
-import { tRegister } from '@/lib/i18nUtils'
+import { NotificationChannel } from '@/api/dto'
+import type { NotificationType } from '@/api/dto'
+import { cellOf, familiesWithRows } from './notificationFamilies'
 import { ProfileCard } from './ProfileShell'
 import { WebPushSettings } from './WebPushSettings'
-
-/**
- * The rows of the matrix, grouped by family — the same families, in the same order, as the app's
- * list. Not the enum's order, which is the order the types were added in.
- */
-const TYPE_FAMILIES: { labelKey: string; types: NotificationType[] }[] = [
-  {
-    labelKey: tRegister('notifications.family.rides'),
-    types: [
-      NotificationType.RIDE_PUBLISHED,
-      NotificationType.RIDE_UPDATED,
-      NotificationType.RIDE_CANCELLED,
-      NotificationType.RIDE_GROUP_REMOVED,
-      NotificationType.RIDE_REMINDER,
-      NotificationType.RIDE_JOINED,
-    ],
-  },
-  {
-    labelKey: tRegister('notifications.family.trips'),
-    types: [NotificationType.TRIP_PUBLISHED, NotificationType.TRIP_CANCELLED],
-  },
-  {
-    labelKey: tRegister('notifications.family.posts'),
-    types: [
-      NotificationType.POST_PUBLISHED,
-      NotificationType.COMMENT_ON_MY_PUBLICATION,
-      NotificationType.COMMENT_REPLY,
-    ],
-  },
-  {
-    labelKey: tRegister('notifications.family.teams'),
-    types: [NotificationType.TEAM_INVITATION, NotificationType.CONTENT_REPORTED],
-  },
-]
-
-function cellOf(
-  preferences: NotificationPreferencesDto,
-  type: NotificationType,
-  channel: NotificationChannel
-) {
-  return preferences.preferences.find((cell) => cell.type === type && cell.channel === channel)
-}
 
 /**
  * The notification settings of `GET /api/notifications/preferences`, on their profile page: this
@@ -112,12 +70,7 @@ export function NotificationPreferences() {
     mutation.mutate({ data: { preferences: [], emailDigest } })
   }
 
-  const families = TYPE_FAMILIES.map((family) => ({
-    ...family,
-    types: family.types.filter((type) =>
-      data.channels.some((channel) => cellOf(data, type, channel))
-    ),
-  })).filter((family) => family.types.length > 0)
+  const families = familiesWithRows(data)
 
   const typeLabel = (type: NotificationType) =>
     t(`notifications.typeLabel.${type satisfies NotificationType}`)
