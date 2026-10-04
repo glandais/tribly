@@ -282,6 +282,7 @@ export function ProfileOverviewPage() {
                     leftSection={<Icon size={20} stroke={1.5} />}
                     rightSection={<IconChevronRight size={16} />}
                     py="sm"
+                    mih={44}
                   />
                 )
               })}

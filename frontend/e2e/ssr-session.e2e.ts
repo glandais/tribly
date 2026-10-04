@@ -134,6 +134,8 @@ test.describe('server HTML, JavaScript disabled', () => {
     await expect(page.getByRole('tab', { name: new RegExp(UPCOMING) })).toHaveText(
       new RegExp(`${UPCOMING}\\s*1$`)
     )
+    // And the open tab's page of the list, prefetched too: the ride's card is in the server HTML.
+    await expect(page.getByRole('main').getByText(setup.rideName).first()).toBeVisible()
   })
 
   test('signed in: the profile overview carries the next ride and its state line', async ({
@@ -196,6 +198,8 @@ test.describe('raw document response', () => {
 
     const signedProfile = await outletOf(MY_RIDES_PATH, cookie)
     expect(signedProfile.html).toContain(UPCOMING)
+    // The tab's label is static: what proves the session's data is the ride's card in the list.
+    expect(signedProfile.html).toContain(setup.rideName)
     const anonymousProfile = await outletOf(MY_RIDES_PATH)
     // What the anonymous page does render — its breadcrumb and the login link — so that a broken
     // page cannot pass the absence check below.
@@ -208,6 +212,7 @@ test.describe('raw document response', () => {
     )
     // The breadcrumb names the page (« Mes sorties »): the absence is read on the tab.
     expect(anonymousProfile.html).not.toContain(UPCOMING)
+    expect(anonymousProfile.html).not.toContain(setup.rideName)
   })
 })
 

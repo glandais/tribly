@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Stack, Switch, Text } from '@mantine/core'
 import { isErrorReportingEnabled, setErrorReportingEnabled } from '@/lib/feedback/errorReporter'
@@ -6,7 +6,10 @@ import { isErrorReportingEnabled, setErrorReportingEnabled } from '@/lib/feedbac
 /** Opt out of the automatic error reports. Stored in this browser only, like the app's own. */
 export function ErrorReportingPreference() {
   const { t } = useTranslation()
-  const [enabled, setEnabled] = useState(isErrorReportingEnabled)
+  // Read once hydrated: the choice lives in this browser's storage, which the server rendering the
+  // page cannot see — it renders the default, and the switch follows the browser right after.
+  const [enabled, setEnabled] = useState(true)
+  useEffect(() => setEnabled(isErrorReportingEnabled()), [])
 
   return (
     <Stack gap={4}>

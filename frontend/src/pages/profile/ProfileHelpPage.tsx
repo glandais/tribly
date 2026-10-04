@@ -43,6 +43,7 @@ export function ProfileHelpPage() {
             leftSection={<Icon size={20} stroke={1.5} />}
             rightSection={<IconChevronRight size={16} />}
             py="sm"
+            mih={44}
           />
         ))}
         <NavLink
@@ -52,6 +53,7 @@ export function ProfileHelpPage() {
           label={t('feedback.menu')}
           leftSection={<IconMessageReport size={20} stroke={1.5} />}
           py="sm"
+          mih={44}
         />
         {links.slice(2).map(({ label, to, icon: Icon }) => (
           <NavLink
@@ -62,6 +64,7 @@ export function ProfileHelpPage() {
             leftSection={<Icon size={20} stroke={1.5} />}
             rightSection={<IconChevronRight size={16} />}
             py="sm"
+            mih={44}
           />
         ))}
       </Paper>
