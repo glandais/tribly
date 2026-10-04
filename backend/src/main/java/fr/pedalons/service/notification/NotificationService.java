@@ -18,6 +18,7 @@ import fr.pedalons.dto.notifications.response.NotificationPreferenceDto;
 import fr.pedalons.dto.notifications.response.NotificationPreferencesDto;
 import fr.pedalons.dto.notifications.response.NotificationTeamPreferenceDto;
 import fr.pedalons.dto.notifications.response.UnreadCountDto;
+import fr.pedalons.dto.users.response.ProfileNotificationSummaryDto;
 import fr.pedalons.enums.NotificationChannel;
 import fr.pedalons.enums.NotificationType;
 import fr.pedalons.repository.common.BaseRepository;
@@ -171,6 +172,40 @@ public class NotificationService {
       settings.setEmailDigest(request.emailDigest());
     }
     return preferences(user.getId(), pedalonsContext.getDomainId());
+  }
+
+  /**
+   * The profile overview's notification line: what {@link #getPreferences()} would show, reduced to
+   * the channels the user receives anything on. Two queries, whatever the number of types.
+   */
+  public ProfileNotificationSummaryDto summary(Long userId) {
+    Set<NotificationChannel> available = channels.available();
+    List<NotificationChannel> shown =
+        Arrays.stream(NotificationChannel.values()).filter(available::contains).toList();
+    Map<Cell, Boolean> overrides = new HashMap<>();
+    if (!shown.isEmpty()) {
+      for (NotificationPreference preference : preferenceRepository.findByUser(userId)) {
+        overrides.put(
+            new Cell(preference.getType(), preference.getChannel()), preference.isEnabled());
+      }
+    }
+    List<NotificationChannel> enabled =
+        shown.stream()
+            .filter(
+                channel ->
+                    Arrays.stream(NotificationType.values())
+                        .anyMatch(
+                            type ->
+                                overrides.getOrDefault(
+                                    new Cell(type, channel), type.isEnabledByDefault(channel))))
+            .toList();
+    boolean digest =
+        available.contains(NotificationChannel.EMAIL)
+            && settingsRepository
+                .findByUser(userId)
+                .map(NotificationSettings::isEmailDigest)
+                .orElse(false);
+    return new ProfileNotificationSummaryDto(shown, enabled, digest);
   }
 
   /** The caller's live teams on this domain, by slug, in name order. */

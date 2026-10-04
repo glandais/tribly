@@ -1205,6 +1205,19 @@ public class TestDataService {
     return session;
   }
 
+  /** A live session opened by pairing a device of {@code clientId} ({@code karoo}, {@code garmin}). */
+  @Transactional
+  public fr.pedalons.domain.auth.AuthSession createPairedDevice(User user, String clientId) {
+    var session =
+        new fr.pedalons.domain.auth.AuthSession(
+            user,
+            hashToken(generateSecureToken()),
+            java.time.Instant.now().plusSeconds(30 * 24 * 60 * 60));
+    session.setDeviceClient(clientId);
+    authSessionRepository.persistAndFlush(session);
+    return session;
+  }
+
   /**
    * Creates a refresh token for a user and returns the raw token (not the hash). The token is
    * stored as a hash in the database.

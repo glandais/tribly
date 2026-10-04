@@ -27,6 +27,22 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
   }
 
   /**
+   * The user's live teams on one domain, team loaded in the same query, in name order — the profile
+   * overview's « Mes équipes ». One query whatever the number of teams.
+   */
+  public List<UserTeam> findByUserAndDomainWithTeam(Long userId, Long domainId) {
+    return getEntityManager()
+        .createQuery(
+            "select ut from UserTeam ut join fetch ut.team t"
+                + " where ut.user.id = :userId and t.domain.id = :domainId and t.deleted = false"
+                + " order by lower(t.name), t.id",
+            UserTeam.class)
+        .setParameter("userId", userId)
+        .setParameter("domainId", domainId)
+        .getResultList();
+  }
+
+  /**
    * @param searchEmail whether {@code search} may also match a member's e-mail address. Only ever
    *     true for an administrator. The address is in no response, but a query that matches on it
    *     turns this endpoint into an oracle: type any address, see whether a row comes back. That is

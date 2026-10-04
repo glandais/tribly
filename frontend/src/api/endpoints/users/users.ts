@@ -20,6 +20,7 @@ import type {
   ErrorResponse,
   ListMyParticipationsParams,
   PairedDeviceDto,
+  ProfileSummaryDto,
   PublicationListResponse,
   UpdateUserRequest,
   UploadAvatarBody,
@@ -1527,4 +1528,140 @@ export const useUpdateMyPreferences = <
   TContext
 > => {
   return useMutation(getUpdateMyPreferencesMutationOptions(options), queryClient)
+}
+/**
+ * What the profile overview shows next to each shortcut, in one request: the next outing and the outing counts, the teams with the user's role, the passkey count, the paired devices, the number of blocked users and where notifications go. The display preferences, contactableByMembers and the connected GPS services are on GET /api/users/me and are not repeated. A fixed number of queries, whatever the amount of data.
+ * @summary Summarise the current user's profile
+ */
+export const getMyProfileSummary = (
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<ProfileSummaryDto>(
+    { url: `/api/users/me/profile-summary`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getGetMyProfileSummaryQueryKey = () => {
+  return [`/api/users/me/profile-summary`] as const
+}
+
+export const getGetMyProfileSummaryQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyProfileSummary>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyProfileSummary>>, TError, TData>>
+  request?: SecondParameter<typeof axiosMutator>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetMyProfileSummaryQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyProfileSummary>>> = ({ signal }) =>
+    getMyProfileSummary(requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMyProfileSummary>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMyProfileSummaryQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMyProfileSummary>>
+>
+export type GetMyProfileSummaryQueryError = ErrorType<ErrorResponse | void>
+
+export function useGetMyProfileSummary<
+  TData = Awaited<ReturnType<typeof getMyProfileSummary>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getMyProfileSummary>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyProfileSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getMyProfileSummary>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyProfileSummary<
+  TData = Awaited<ReturnType<typeof getMyProfileSummary>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getMyProfileSummary>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyProfileSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getMyProfileSummary>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyProfileSummary<
+  TData = Awaited<ReturnType<typeof getMyProfileSummary>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyProfileSummary>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Summarise the current user's profile
+ */
+
+export function useGetMyProfileSummary<
+  TData = Awaited<ReturnType<typeof getMyProfileSummary>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyProfileSummary>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetMyProfileSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Summarise the current user's profile
+ */
+export const prefetchGetMyProfileSummaryQuery = async <
+  TData = Awaited<ReturnType<typeof getMyProfileSummary>>,
+  TError = ErrorType<ErrorResponse | void>,
+>(
+  queryClient: QueryClient,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyProfileSummary>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetMyProfileSummaryQueryOptions(options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }

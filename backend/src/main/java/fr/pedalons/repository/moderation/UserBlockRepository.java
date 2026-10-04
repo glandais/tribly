@@ -70,6 +70,11 @@ public class UserBlockRepository implements PanacheRepository<UserBlock> {
         .getResultList();
   }
 
+  /** How many live accounts this member blocked: the rows {@link #findByBlocker} would list. */
+  public long countByBlocker(Long blockerId) {
+    return count("blocker.id = ?1 and blocked.deleted = false", blockerId);
+  }
+
   /** Every block this member made or received, for account erasure. */
   public long deleteByUser(Long userId) {
     return delete("blocker.id = ?1 or blocked.id = ?1", userId);

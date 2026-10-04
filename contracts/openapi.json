@@ -3617,6 +3617,116 @@
           }
         }
       },
+      "ProfileNotificationSummaryDto" : {
+        "description" : "Where the current user's notifications go, summed up",
+        "type" : "object",
+        "required" : [ "channels", "enabledChannels", "emailDigest" ],
+        "properties" : {
+          "channels" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationChannel"
+            },
+            "description" : "Channels that can be configured on this server, in display order"
+          },
+          "enabledChannels" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationChannel"
+            },
+            "description" : "Among channels, those on which at least one notification type is turned on for the user (their choices, or the defaults they never changed)"
+          },
+          "emailDigest" : {
+            "type" : "boolean",
+            "description" : "Whether non-urgent e-mails are held for a daily digest. Always false when EMAIL is not among channels."
+          }
+        }
+      },
+      "ProfileParticipationSummaryDto" : {
+        "description" : "The rides and trips the current user is registered to, summed up",
+        "type" : "object",
+        "required" : [ "upcomingCount", "pastCount", "next" ],
+        "properties" : {
+          "upcomingCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Outings starting from now on"
+          },
+          "pastCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Outings that started before now"
+          },
+          "next" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PublicationDto"
+            },
+            "description" : "The next outing, in the compact list view (no markdown body): empty when nothing is coming up, never more than one row"
+          }
+        }
+      },
+      "ProfileSummaryDto" : {
+        "description" : "The state of each subject of the current user's profile, for its overview",
+        "type" : "object",
+        "required" : [ "participations", "teams", "passkeyCount", "pairedDevices", "blockedUserCount", "notifications" ],
+        "properties" : {
+          "participations" : {
+            "description" : "Rides and trips the user is registered to",
+            "type" : "object",
+            "$ref" : "#/components/schemas/ProfileParticipationSummaryDto"
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ProfileTeamDto"
+            },
+            "description" : "The user's teams on this site, in name order, each with the user's role in it"
+          },
+          "passkeyCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Number of passkeys registered on the account"
+          },
+          "pairedDevices" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PairedDeviceDto"
+            },
+            "description" : "Devices (Karoo, Garmin) paired with the account, newest first — the same rows as GET /api/users/me/devices"
+          },
+          "blockedUserCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Number of live accounts the user blocked"
+          },
+          "notifications" : {
+            "description" : "Where the user's notifications go",
+            "type" : "object",
+            "$ref" : "#/components/schemas/ProfileNotificationSummaryDto"
+          }
+        }
+      },
+      "ProfileTeamDto" : {
+        "type" : "object",
+        "description" : "One of the current user's teams, with the user's role in it",
+        "required" : [ "slug", "name", "role" ],
+        "properties" : {
+          "slug" : {
+            "type" : "string",
+            "description" : "Team URL slug"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Team name"
+          },
+          "role" : {
+            "description" : "The user's role in the team",
+            "type" : "string",
+            "$ref" : "#/components/schemas/TeamRole"
+          }
+        }
+      },
       "PublicUserDto" : {
         "type" : "object",
         "description" : "Public user information (limited fields)",
@@ -22024,6 +22134,42 @@
         } ]
       }
     },
+    "/api/users/me/profile-summary" : {
+      "get" : {
+        "summary" : "Summarise the current user's profile",
+        "description" : "What the profile overview shows next to each shortcut, in one request: the next outing and the outing counts, the teams with the user's role, the passkey count, the paired devices, the number of blocked users and where notifications go. The display preferences, contactableByMembers and the connected GPS services are on GET /api/users/me and are not repeated. A fixed number of queries, whatever the amount of data.",
+        "operationId" : "getMyProfileSummary",
+        "tags" : [ "Users" ],
+        "responses" : {
+          "200" : {
+            "description" : "Profile summary",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProfileSummaryDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/version" : {
       "get" : {
         "summary" : "Get server version",
@@ -22047,7 +22193,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.6.0",
+    "version" : "10.7.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

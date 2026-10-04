@@ -11,6 +11,7 @@ import 'package:retrofit/error_logger.dart';
 import '../models/account_deletion_impact_dto.dart';
 import '../models/list_view_mode.dart';
 import '../models/paired_device_dto.dart';
+import '../models/profile_summary_dto.dart';
 import '../models/publication_list_response.dart';
 import '../models/status.dart';
 import '../models/update_user_request.dart';
@@ -151,4 +152,10 @@ abstract class UsersClient {
   Future<UserDto> updateMyPreferences({
     @Body() required UserPreferencesRequest body,
   });
+
+  /// Summarise the current user's profile.
+  ///
+  /// What the profile overview shows next to each shortcut, in one request: the next outing and the outing counts, the teams with the user's role, the passkey count, the paired devices, the number of blocked users and where notifications go. The display preferences, contactableByMembers and the connected GPS services are on GET /api/users/me and are not repeated. A fixed number of queries, whatever the amount of data.
+  @GET('/api/users/me/profile-summary')
+  Future<ProfileSummaryDto> getMyProfileSummary();
 }

@@ -9,12 +9,14 @@ import fr.pedalons.dto.users.request.UpdateUserRequest;
 import fr.pedalons.dto.users.request.UserPreferencesRequest;
 import fr.pedalons.dto.users.response.AccountDeletionImpactDto;
 import fr.pedalons.dto.users.response.PairedDeviceDto;
+import fr.pedalons.dto.users.response.ProfileSummaryDto;
 import fr.pedalons.dto.users.response.UserDto;
 import fr.pedalons.dto.users.response.UserExportDto;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.Status;
 import fr.pedalons.service.common.PublicationService;
 import fr.pedalons.service.device.PairedDeviceService;
+import fr.pedalons.service.user.ProfileSummaryService;
 import fr.pedalons.service.user.UserAvatarService;
 import fr.pedalons.service.user.UserExportService;
 import fr.pedalons.service.user.UserService;
@@ -56,6 +58,8 @@ public class UserResource {
   @Inject PublicationService publicationService;
 
   @Inject PairedDeviceService pairedDeviceService;
+
+  @Inject ProfileSummaryService profileSummaryService;
 
   @GET
   @Path("/me")
@@ -179,6 +183,35 @@ public class UserResource {
     userAvatarService.deleteAvatar();
     UserDto userDto = userService.getUserDto();
     return Response.ok(userDto).build();
+  }
+
+  @GET
+  @Path("/me/profile-summary")
+  @Operation(
+      operationId = "getMyProfileSummary",
+      summary = "Summarise the current user's profile",
+      description =
+          "What the profile overview shows next to each shortcut, in one request: the next outing"
+              + " and the outing counts, the teams with the user's role, the passkey count, the"
+              + " paired devices, the number of blocked users and where notifications go. The"
+              + " display preferences, contactableByMembers and the connected GPS services are on"
+              + " GET /api/users/me and are not repeated. A fixed number of queries, whatever the"
+              + " amount of data.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Profile summary",
+        content = @Content(schema = @Schema(implementation = ProfileSummaryDto.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response getMyProfileSummary() {
+    // The body describes exactly one user; no shared cache may ever hand it to another.
+    return Response.ok(profileSummaryService.getSummary())
+        .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
+        .build();
   }
 
   @GET
