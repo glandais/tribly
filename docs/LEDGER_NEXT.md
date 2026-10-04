@@ -9,7 +9,7 @@ portage web livré à trois tâches près, et tenu à jour depuis (dernière rel
 Rien ici ne bloque quoi que ce soit. C'est la propriété qui compte : la v2 est livrable en l'état,
 et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de réparer une panne.
 
-**Contrat d'API au 3 octobre 2026 : `10.5.2`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au 4 octobre 2026 : `10.7.0`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
 
@@ -121,7 +121,8 @@ les scénarios `MOB-25` à `MOB-36` sauf `MOB-26`, écrits le 29 septembre 2026 
 `mobile/patrol_test/README.md`, « Coverage »). Ce que chacun laisse de côté est dit dans son entrée
 livrée. Hors périmètre, parce que l'app ne les a pas : écrire une publication (le seul écrit est un
 commentaire), la file de modération (une entrée `CONTENT_REPORTED` ouvre `/…/admin/reports` dans le
-navigateur), la connexion par code e-mailé et une préférence de fuseau.
+navigateur), et la connexion par code e-mailé (la préférence de fuseau existe dans l'app depuis `MOB-48` :
+`profile_timezone_test`).
 
 - [ ] `MOB-26` **Clés d'accès** — une clé ajoutée depuis le profil (`passkeys_section.dart`) connecte
       depuis `login_page.dart` ; une clé supprimée ne connecte plus (`flow-account.e2e.ts`). Demande
@@ -137,6 +138,32 @@ navigateur), la connexion par code e-mailé et une préférence de fuseau.
 - [ ] `MOB-37` **Les tests Patrol ne tournent qu'en local** — aucun workflow de `.github/` ne les
       lance : `ci.yml` ne passe que les tests unitaires. Il faudrait un runner macOS (simulateur) ou un
       émulateur Android, plus la stack e2e (`scripts/e2e.sh up`) dans le job. Pendant web : `AUD-3`.
+
+- [ ] `MOB-49` **Profil refondu (`MOB-48`) : Patrol, recette et trois choix à confirmer (S)** — écrit
+      le 4 octobre 2026, vérifié seulement par `flutter analyze` et `flutter test`.
+      - **Patrol à lancer** sur la pile e2e (`scripts/e2e.sh up`, puis depuis `mobile/`
+        `bash e2e.sh -t patrol_test/<test>.dart`) : `notification_settings_test`,
+        `profile_timezone_test`, `profile_preferences_test`, `profile_data_export_test`,
+        `profile_logout_all_test`, `profile_paired_devices_test`,
+        `profile_participations_count_test`, `profile_participations_list_test`,
+        `account_deletion_test`, `expired_access_token_test`, `notification_mute_test`,
+        `block_user_test`, `report_problem_test`, `apps_beta_signup_test`. La pile e2e ne déclare
+        aucun canal (e-mail coupé, pas de FCM) : la bascule d'une puce n'y est pas exercée
+        (`NOTIF-4`).
+      - **Recette sur appareil**, clair et sombre : vue d'ensemble, sous-pages, puces (la cible de
+        44 px de `PdlChip` vaut désormais pour toutes les puces de filtre de l'app).
+      - **À confirmer avec le propriétaire** (choix pris sans lui, d'après `App.dc.html`) : le groupe
+        Compte n'a pas de ligne « Mon compte » (la carte d'identité et une ligne de Connexion et
+        sécurité y mènent) ; pas de cloche dans l'en-tête du Profil (un `push` d'une branche à
+        l'autre empilerait les branches) ; `blockedUsers` n'a que le profil comme ancêtre de lien
+        profond (le test exige un préfixe de chemin), son retour sans pile retombe sur
+        Confidentialité. Confirmés, ils vont dans « Délibérément dehors ».
+      - Mineurs : le tirer-pour-rafraîchir de la vue d'ensemble relit profile-summary mais pas
+        `/me` ; une sous-page ouverte par lien profond puis quittée par `pop` n'invalide pas le
+        résumé ; `Profile.backToOverview` (Patrol) trouve la flèche par position, `PdlAppBar` n'ayant
+        pas de clé pour elle. Clés de traduction devenues inutiles : `profile.security`,
+        `profile.community`, `profile.participations.count`, `profile.passkeys.enabled` /
+        `notConfigured` / `replace`, `notifications.preferences.inAppAlwaysOn`.
 
 ---
 
@@ -192,6 +219,28 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       n'émet pas de 404 d'équipe ; ne pas abandonner un refresh déjà parti sans en relayer le
       `Set-Cookie`, ou le laisser finir en arrière-plan.
 
+- [ ] `WEB-56` **Profil refondu (`WEB-55`) : e2e à lancer et recette navigateur (S)** — écrit le
+      4 octobre 2026, vérifié seulement par typecheck, lint, i18n, vitest et build. Sur la pile e2e
+      (`scripts/e2e.sh build frontend` puis `build backend`, `scripts/e2e.sh up`, puis
+      `scripts/e2e.sh test profile-navigation ssr-session routes-render flow-account auth
+      flow-moderation flow-device flow-notifications pwa`), les deux projets Playwright :
+      `profile-navigation` (bascule bureau / téléphone, `aria-current`, fil d'Ariane masqué sous
+      `sm`) et `flow-account` (« Ajouter une clé d'accès ») sont les plus exposés aux sélecteurs ;
+      `routes-render` couvre les dix routes du profil et l'audit de préchargement. Les états d'un
+      compte neuf supposés par `profile-navigation` (« Métrique », « Aucun service ni appareil »,
+      « Aucune clé d'accès ») sont à ajuster si le backend change ses défauts. Recette à l'œil :
+      mise en page, point de rupture `md`, mode sombre ; cases du tableau des notifications à
+      20 px sur téléphone (aucune maquette téléphone de cette page : `size="md"` à envisager) ;
+      titre de la zone de danger en `c="red"` plutôt que le jeton de danger. Avec un fuseau non
+      enregistré, Préférences montre celui du navigateur, que le serveur ne connaît pas (`WEB-54`).
+- [ ] `WEB-57` **Lexique du profil hors du profil (XS, à trancher)** — « Nom affiché » et « Clés
+      d'accès » ne valent que dans le profil : l'inscription dit encore « Nom d'affichage »
+      (`auth.form.displayName`, `admin.users.displayName`), la connexion « Passkey »
+      (`auth.login.tabs.passkey`, `auth.passkey.login`, `auth.errors.passkeyFailed`), et le gabarit
+      `ad-contact.*` du backend « désactivez l'option dans votre profil » (pourrait nommer Profil ›
+      Confidentialité). L'étendre demande de reprendre les e2e d'inscription et de connexion
+      (`flow-account`, invitations).
+
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
 L'audit ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md), `WEB-26`) est exécuté : P0, P1
@@ -232,6 +281,12 @@ au lieu de redemander. Hammerhead y est **obligatoire** (décision du 2 octobre 
 tests backend (`GpsResourceTest`), les e2e web (`flow-device.e2e.ts`) et Patrol
 (`device_link_test`, `device_hammerhead_test`) à lancer sur la pile e2e, et la recette manuelle
 sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` une fois tout cela vert.
+
+- [ ] `API-70` **Tests backend du résumé du profil à lancer (XS)** — `API-69` est livré avec ses
+      tests écrits mais pas exécutés : `mvn test -Dtest='ProfileSummary*,GpsResourceTest'` dans
+      `backend/`. `ProfileSummaryQueryCountTest` a un budget d'entités sur mesure (3 par ligne
+      ajoutée — adhésion, équipe, session d'appareil — plus 8) : à ajuster si Hibernate en charge
+      d'autres, sans jamais réintroduire une requête par ligne.
 
 ### Les chantiers d'infrastructure d'API
 
@@ -686,6 +741,7 @@ redevient une entrée de sa section sous le même identifiant.
 | `API-67` | **« Mes équipes » d'un admin de plateforme** | Comportement actuel gardé (décidé le 4 octobre 2026 avec le propriétaire) | `GET /api/teams?minRole=MEMBER` renvoie à un admin de plateforme toutes les équipes du domaine, qu'il voit donc toutes dans « Mes équipes » à l'accueil (web et mobile, `WEB-42`, `MOB-42`). Ne pas restreindre la requête à ses adhésions réelles sans rouvrir ce point |
 | `WEB-44` | **Passkey en tête du formulaire de connexion** | Ordre actuel gardé (décidé le 4 octobre 2026 avec le propriétaire) | `LoginForm` (`WEB-42`) garde email et mot de passe en tête, puis « ou », puis la passkey et le code par e-mail. Le bouton passkey n'apparaît qu'après hydratation (`browserSupportsWebAuthn`) : en tête, il décalerait le haut de l'accueil rendu côté serveur |
 | `WEB-54` | **Calendrier rendu côté serveur dans le mauvais fuseau, sans préférence `timezone`** | Accepté tel quel (décidé le 4 octobre 2026, à la dissolution de `frontend/docs/SSR-BUGS.md`) | Sans préférence `timezone`, le serveur ne connaît pas le fuseau du visiteur et rend en UTC : une sortie à 00 h 30, heure de Paris, s'affiche dans la case de la **veille**, puis change de case au rendu qui suit l'hydratation, avec le vrai fuseau (`useEffectiveTimezone`, `getServerSnapshot` en UTC ; `CalendarView`). Ce n'est pas une erreur d'hydratation : le rendu d'hydratation lit UTC des deux côtés, et le mois de la grille est calé sur `hourAlignedNow()` dans le même fuseau. Régler une préférence `timezone` supprime l'effet. Seule autre issue : ne pas rendre la grille côté serveur quand le fuseau est deviné, ce qui perd tout l'intérêt de son préchargement |
+| `WEB-58` | **Redirection des anciennes adresses du profil** (`/profil#notifications`, `/profil#gps`, `/profil/participations`) | Non (4 octobre 2026, refonte du profil `WEB-55` / `MOB-48`) | Le site n'est pas encore en service : aucun lien extérieur ne les cite. Les liens internes (e-mails `NotificationLinks.PREFERENCES_PATH`, `FeaturesPromoCard`, aide, politique) visent les nouvelles routes `/profil/<sujet>`. À rouvrir seulement si une de ces adresses a été publiée |
 | `WEB-8` | **Scroll infini côté web** | Non porté | Incompatible avec la règle structurante du frontend (filtres et pagination dans la query string, donc toute vue partageable). `usePaginatedQuery` précharge déjà la page suivante **et** la précédente |
 | `WEB-9` | **Gabarits tactiles portés au web** | Non portés | Feuilles à crans, barre d'onglets basse, app bar interpolée, chips en remplacement des `Select` : ils résolvent une contrainte que le desktop n'a pas, et produiraient des composants hors Mantine |
 | `WEB-10` | **Minimum de 44 px sur les boutons web** | Règle **tactile** uniquement | Le web descend à 36 px au-dessus de 768 px. Ne pas prendre `pedalons.css` pour une spécification web |

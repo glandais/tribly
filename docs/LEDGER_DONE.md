@@ -281,6 +281,46 @@ couvert » ; les tests ne tournent qu'en local (`MOB-37`).
   supprimés. **À ne pas défaire** : plus aucun test de bout en bout ne couvre le tri « plus proches
   d'abord » (`sortDir=ASC`) de `/api/publications`, dont l'app ne dépend plus.
 
+### Profil
+
+- `MOB-48` **Le profil en vue d'ensemble et sous-pages, même arbre que le site** (4 octobre 2026,
+  **API 10.7.0**, maquette validée du 4 octobre). L'onglet Profil est une **racine** (plus de flèche
+  retour sur `/profil`) : carte d'identité (vers Mon compte), puis des raccourcis groupés, chacun
+  avec sa **ligne d'état** — Mon activité (Mes sorties : « Prochaine : … » et compteur ; Mes équipes,
+  qui ouvre l'onglet Équipes), Réglages (Préférences, Notifications, Appareils et services),
+  Sécurité et confidentialité (Connexion et sécurité, Confidentialité), Compte (Aide et à propos,
+  Se déconnecter). Une route par sujet dans la branche Profil du shell (`config/router.dart`), sous
+  `ProfileSubpage` (retour : `pop`, sinon `go` vers `/profil`) : `/profil/sorties` (À venir ·
+  Historique), `/profil/preferences` (unités, **fuseau horaire, nouveau dans l'app**, même champ
+  `UserDto.timezone` que le site, feuille de recherche `timezone_sheet.dart`), `/profil/notifications`
+  (`notification_settings_page.dart` : une ligne par type groupée en familles Sorties, Voyages,
+  Publications, Équipes et modération, une **puce à bascule par canal** E-mail/Push, Annonces des
+  équipes, « Ouvrir mes notifications » ; la boîte de réception a un bouton Réglages),
+  `/profil/appareils`, `/profil/securite` (Clés d'accès, `LogoutAllCard`), `/profil/vie-privee`
+  (Être contacté par les membres, Utilisateurs bloqués `/profil/bloques`, Rapports d'erreur, Mes
+  données), `/profil/compte` (identité, `DeleteAccountSection`), `/profil/aide`. Les lignes d'état
+  lisent `/me` et `profileSummaryProvider` (`GET /api/users/me/profile-summary`, `API-69`) ;
+  `participationCountProvider` est supprimé. `PdlChip` répond sur toute sa boîte de 44 px (un
+  `GestureDetector` opaque autour de la pastille de 34 px), pour toutes les puces de l'app.
+  Tests : `test/features/profile/profile_overview_test.dart`, `profile_subpages_test.dart`,
+  `profile_page_test.dart` (fuseau envoyé au serveur), `profile_summary_provider_test.dart`,
+  `test/features/notifications/notification_settings_page_test.dart`,
+  `test/deep_link_hierarchy_test.dart` (les nouvelles routes), `test/core/pdl/tap_target_test.dart`
+  (« PdlChip répond aussi dans les 5 px autour de sa pastille »),
+  `test/features/rides/participation_changes_test.dart` ; Patrol `notification_settings_test`,
+  `profile_timezone_test` et les tests du profil repris (modules `Profile.openX` /
+  `backToOverview`), **pas encore lancés** (`MOB-49`). **À ne pas défaire** : un **arbre unique et un
+  lexique commun** aux deux clients (Profil, Nom affiché, Adresse e-mail, Clés d'accès, Mon compte,
+  Demander mes données, Être contacté par les membres, Résumé quotidien par e-mail, Annonces des
+  équipes) — un sujet change de place ou de nom des deux côtés à la fois ; une route `/profil/<sujet>`
+  par sujet, jamais d'ancre ; les canaux affichés sont **ceux que le serveur déclare**
+  (`channels`) : sans `EMAIL`, ni puce E-mail ni résumé quotidien, `IN_APP` jamais réglable ; une
+  puce n'écrit que sa cellule ; les lignes d'état viennent de `/me` + profile-summary, jamais d'un
+  appel par sujet ; `notifyParticipationChanged` et `refreshAfterBlockChange` invalident
+  `profileSummaryProvider`, qui se recharge aussi quand l'ensemble de mes équipes change
+  (`myTeamsProvider`) ; Se déconnecter une seule fois dans le profil ; la navigation entre branches
+  (profil → boîte de réception ou Équipes, boîte → réglages) passe par `go`, jamais `push`.
+
 ---
 
 ## WEB — Site web
@@ -645,9 +685,8 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   `FeaturesPromoCard` s'affichait à tous les membres et menait à la page Fonctionnalités. Elle ne
   s'affiche plus que sans service GPS connecté (`UserDto.connectedServices`) **ni** appareil appairé
   (`GET /api/users/me/devices`, masquée tant qu'il charge pour ne pas clignoter chez ceux qui en
-  ont), et mène à `/profil#gps`, la section « Services GPS » de `GpsConnectionsManager`, qui défile
-  jusqu'à elle une fois rendue (même motif que `#notifications`) ; ancre dans
-  `components/profile/profileAnchors.ts`. Texte (`home.member.promo.text`) réécrit pour dire où se
+  ont), et mène aux services GPS du profil — d'abord par l'ancre `/profil#gps`, depuis le 4 octobre
+  2026 à la page `/profil/appareils` (`WEB-55`, l'ancre et `profileAnchors.ts` sont supprimés). Texte (`home.member.promo.text`) réécrit pour dire où se
   fait le branchement. Pas d'équivalent mobile à aligner. Non vérifié à l'écran (pas de session
   connectée pendant la correction).
 
@@ -843,6 +882,43 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   `profile.devices.hint` dans `PairedDevicesCard`. Tests : `PairedDevicesManager.test.tsx` (titre et
   description) et `paired_devices_card_test.dart` (la phrase). **À ne pas défaire** : un service
   OAuth n'est jamais appelé « appareil » (titre, confirmation de déconnexion, aide).
+
+- `WEB-55` **Le profil en vue d'ensemble et sous-pages, même arbre que l'app** (4 octobre 2026,
+  **API 10.7.0**, maquette validée du 4 octobre). `/profil` (`ProfileOverviewPage`) : carte
+  d'identité (vers Mon compte), Mes sorties (prochaine sortie, à venir, historique), Mes équipes avec
+  le rôle (bureau), puis un raccourci par sujet avec sa **ligne d'état** (`profileStatus.ts`), lue
+  dans `/me` et `GET /api/users/me/profile-summary` (`API-69`). Neuf sous-pages
+  (`pages/profile/`) : `/profil/sorties` (`myParticipations`, onglets À venir · Historique, onglet et
+  page dans l'URL `?vue=` / `?p=`), `/profil/preferences` (unités, fuseau, thème Système / Clair /
+  Sombre, langue), `/profil/notifications` (Sur cet appareil, tableau type × canal groupé par famille
+  — `notificationFamilies.ts`, `CONTENT_REPORTED` ajouté sous « Équipes et modération » —, Résumé
+  quotidien par e-mail, Annonces des équipes, lien vers la boîte de réception, qui renvoie ici),
+  `/profil/appareils`, `/profil/securite`, `/profil/vie-privee` et sa sous-page `/profil/bloques`
+  (`blockedUsers`, désormais web), `/profil/compte` (Nom affiché toujours éditable, plus de mode
+  « Modifier le profil », adresse en lecture seule, zone de danger), `/profil/aide`. Bureau : barre
+  latérale groupée (`ProfileShell.tsx`, non collante, `aria-current` sur l'entrée active) ;
+  téléphone : liste groupée sur `/profil` terminée par Se déconnecter. Fil d'Ariane Profil ›
+  Sous-page, le lien « ← Retour » (`navigate(-1)`) est supprimé. Préchargement serveur de chaque page
+  dans `pages/profile/profileData.ts` et `myRidesData.ts`, câblé dans `config/routes.config.ts`.
+  Supprimés : `UserProfilePage`, `pages/auth/profileData.ts`, `MyParticipations.tsx`,
+  `profileAnchors.ts`. `FeaturesPromoCard` (`WEB-51`) mène à `/profil/appareils` ; les pages d'aide
+  et la politique (`privacy/*.md`) citent les nouveaux chemins. Le thème et la langue de l'en-tête
+  mettent à jour le `/me` en cache. Tests : vitest `profileStatus.test.ts`, `ProfileShell.test.tsx`,
+  `NotificationPreferences.test.tsx`, `notificationFamilies.test.ts` (chaque `NotificationType` dans
+  exactement une famille), `ProfileOverviewPage.test.tsx` ; e2e `profile-navigation.e2e.ts`,
+  `ssr-session.e2e.ts` (HTML serveur de `/profil` et de `/profil/sorties` porteur de la sortie,
+  hydratation propre), `routes-render.e2e.ts` (une ligne par route du profil), `flow-account`,
+  `auth`, `flow-moderation`, `flow-device`, `flow-notifications`, `pwa` repris — **pas encore
+  lancés** (`WEB-56`). **À ne pas défaire** : **arbre unique et lexique commun** aux deux clients
+  (source web unique : `components/profile/profileNav.ts`) ; une route `/profil/<sujet>` par sujet,
+  **sans redirection** des anciennes ancres `/profil#notifications`, `#gps` ni de
+  `/profil/participations` (`WEB-58`) ; seuls les canaux de `NotificationPreferencesDto.channels`
+  ont une colonne, pas de résumé quotidien sans `EMAIL`, un type sans réglage serveur n'a pas de
+  ligne ; la bascule bureau / téléphone est **CSS seulement** (`visibleFrom` / `hiddenFrom`), jamais
+  un `matchMedia` lu en JS (hydratation) ; le thème de Préférences lit `user.theme`, pas l'état
+  local de Mantine ; `TimezonePreference` ne remplit le fuseau du navigateur qu'après hydratation
+  et `ErrorReportingPreference` lit `localStorage` dans un effet ; Se déconnecter une seule fois
+  dans le profil (le menu avatar et le tiroir gardent le leur) ; lignes du profil à `mih={44}`.
 
 ### Accueil et page Fonctionnalités
 
@@ -1419,6 +1495,28 @@ dans `TeamStatsRepository.load` (4 requêtes d'agrégat, jamais par ligne), via
 `TeamEntityRepository.getPedalonsQuery` qui apporte les filtres domaine, visibilité, module et
 suppression ; `recentPostCount` ne compte jamais un brouillon, même pour un admin ;
 `RECENT_POST_WINDOW` = 7 jours.
+
+### `API-69` Résumé du profil en un appel (contrat `10.7.0`)
+
+Livré le 4 octobre 2026 (10.6.0 → 10.7.0, mineur, rétrocompatible) : `GET
+/api/users/me/profile-summary` (`getMyProfileSummary`, `Cache-Control: private, no-store`) rend un
+`ProfileSummaryDto` — `participations` (`upcomingCount`, `pastCount`, `next` : 0 ou 1 sortie en vue
+COMPACT), `teams` (slug, nom, rôle, équipes du domaine triées par nom), `passkeyCount`,
+`pairedDevices`, `blockedUserCount` (comptes non supprimés), `notifications` (`channels` que le
+serveur sait envoyer, `enabledChannels`, `emailDigest` à false sans `EMAIL`). Il nourrit les lignes
+d'état de la vue d'ensemble du profil (`WEB-55`, `MOB-48`) avec `/me`. Avec lui :
+`NotificationLinks.PREFERENCES_PATH` = `/profile/notifications` (lien des e-mails) et
+`GpsConnectReturn.PROFILE` revient sur `/profile/devices` (enum inchangé). Tests :
+`ProfileSummaryResourceTest` (compteurs, filtre de domaine, bloqués supprimés, e-mail coupé côté
+serveur), `ProfileSummaryQueryCountTest`, `GpsResourceTest.handleCallback_withoutReturnTo_shouldRedirectToProfileDevices`,
+helper `TestDataService.createPairedDevice` — **écrits, pas encore lancés** (`API-70`). **À ne pas
+défaire** : chaque compteur reste une requête `count`, jamais le chargement de la liste ; la
+prochaine sortie passe par `listMyParticipations` (taille 1, lookups par page) ; `teams` filtré
+par domainId ; `emailDigest` à false quand `EMAIL` n'est pas disponible (le champ brut de
+`NotificationPreferencesDto.emailDigest`, lui, ne l'est pas : les clients le masquent) ; les
+préférences d'affichage, `contactableByMembers` et `connectedServices` restent dans `/me`, sans
+doublon. Le compteur « à venir » est borné par `Instant.now()`, l'onglet web par
+`hourAlignedNowIso()` : un écart d'au plus une heure est accepté.
 
 ## OPS — Exploitation, déploiement, recette du backend
 

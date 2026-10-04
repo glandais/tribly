@@ -314,7 +314,7 @@ Users can connect GPS devices from their profile to upload routes directly to th
   — a service with no credentials is not offered
 
 **Usage:**
-1. Navigate to Profile > GPS Devices
+1. Navigate to Profile > Devices and services (`/profile/devices`)
 2. Click "Connect" next to your device
 3. Authorize the application on the service's own site (OAuth redirect, with PKCE for Garmin)
 4. On any route detail page, use "Send to Device" to upload routes
