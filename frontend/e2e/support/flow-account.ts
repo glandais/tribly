@@ -193,16 +193,17 @@ export const icsDateTime = (instant: string) =>
     .replace(/[-:]/g, '')
 
 /**
- * Registers a passkey from the open profile page, as a user does it: « Ajouter », a device name,
+ * Registers a passkey from « Connexion et sécurité », as a user does it: « Ajouter une clé d'accès »,
+ * a device name,
  * « Enregistrer » — the virtual authenticator of {@link virtualAuthenticator} answers the browser's
  * prompt. Returns once the new passkey is listed.
  */
 export async function addPasskeyFromProfile(page: Page, deviceName: string) {
   const main = page.getByRole('main')
-  const add = main.getByRole('button', { name: 'Ajouter', exact: true })
+  const add = main.getByRole('button', { name: "Ajouter une clé d'accès", exact: true })
   await hydrated(add)
   await add.click()
-  const dialog = page.getByRole('dialog', { name: 'Ajouter une passkey' })
+  const dialog = page.getByRole('dialog', { name: "Ajouter une clé d'accès" })
   await dialog.getByRole('textbox', { name: "Nom de l'appareil (optionnel)" }).fill(deviceName)
   const registered = page.waitForResponse(
     (r) => r.request().method() === 'POST' && r.url().includes('/api/auth/passkeys/register')

@@ -41,7 +41,8 @@ import { entityCard, homeFeed, pageAs, pageHydrated, watchHydration } from './su
 /**
  * docs/LEDGER_*.md WEB-14 — authenticated SSR (frontend/docs/SSR.md, "Session-aware SSR"): for a document
  * request carrying the refresh_token cookie, « Ma prochaine sortie », the « Inscrit » badge on the
- * feed cards and the totals of « Mes sorties » are in the server HTML; without the cookie they are not;
+ * feed cards, the totals of « Mes sorties » and the profile overview's next ride and state line are in
+ * the server HTML; without the cookie they are not;
  * and hydration adopts that markup instead of throwing it away.
  *
  * Setup: a PUBLIC team (a platform admin is needed to make it public), a public ride two days
@@ -57,6 +58,9 @@ const PARTICIPATIONS = 'Mes sorties'
 /** Its first tab, labelled with the total: the prefetched `size: 1` query's. */
 const UPCOMING = 'À venir'
 const BREADCRUMB = "Fil d'Ariane"
+/** The profile's overview, and the state line of « Mes sorties » for the one registration. */
+const PROFILE_PATH = '/profil'
+const OVERVIEW_UPCOMING = '1 à venir'
 
 interface Setup {
   rider: AuthResponse
@@ -132,6 +136,21 @@ test.describe('server HTML, JavaScript disabled', () => {
     )
   })
 
+  test('signed in: the profile overview carries the next ride and its state line', async ({
+    page,
+    context,
+  }) => {
+    await signIn(context, setup.rider)
+    const response = await page.goto(PROFILE_PATH)
+    expect(response?.status()).toBe(200)
+
+    const main = page.getByRole('main')
+    await expect(main.getByRole('heading', { name: 'Profil', exact: true })).toBeVisible()
+    // GET /api/users/me/profile-summary, prefetched by the server: no state line without it.
+    await expect(main.getByRole('link', { name: setup.rideName, exact: true })).toBeVisible()
+    await expect(main.getByText(OVERVIEW_UPCOMING, { exact: true }).first()).toBeVisible()
+  })
+
   test('anonymous: « Mes sorties » shows no participation', async ({ page }) => {
     const response = await page.goto(MY_RIDES_PATH)
     expect(response?.status()).toBe(200)
@@ -202,6 +221,23 @@ test.describe('hydration, JavaScript enabled', () => {
 
     await expect(page.getByRole('heading', { name: NEXT_RIDE })).toBeVisible()
     await expect(feedCard(page, setup.rideName)).toContainText(REGISTERED)
+    expect(watch.hydrationErrors).toEqual([])
+    expect(await watch.removed()).toEqual([])
+  })
+
+  test("profile: the overview's summary survives hydration untouched", async ({
+    page,
+    context,
+  }) => {
+    await signIn(context, setup.rider)
+    const watch = await watchHydration(page, [setup.rideName, OVERVIEW_UPCOMING])
+
+    await page.goto(PROFILE_PATH)
+    await pageHydrated(page)
+
+    const main = page.getByRole('main')
+    await expect(main.getByRole('link', { name: setup.rideName, exact: true })).toBeVisible()
+    await expect(main.getByText(OVERVIEW_UPCOMING, { exact: true }).first()).toBeVisible()
     expect(watch.hydrationErrors).toEqual([])
     expect(await watch.removed()).toEqual([])
   })
