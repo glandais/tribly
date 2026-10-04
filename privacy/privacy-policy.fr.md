@@ -125,7 +125,7 @@ Un contenu signalé par au moins trois membres est masqué aux membres en attend
 Pour corriger les bugs, nous recevons :
 
 - **Vos signalements de problème ou suggestions** (« Signaler un problème », dans le site ou l'application) : le texte que vous écrivez, la plateforme et la version de l'application, et, si vous laissez cochée la case « Joindre les informations techniques », la page ou l'écran affiché, l'équipe que vous consultez, le système et le modèle de l'appareil ou le navigateur, la langue, le fuseau horaire, et un journal de vos dernières actions dans l'application (pages visitées, requêtes en échec, erreurs). Le formulaire vous montre exactement ce qui sera envoyé.
-- **Des rapports d'erreur automatiques** (connecté uniquement) : quand l'application rencontre une erreur inattendue, elle envoie la description technique de l'erreur, les mêmes informations techniques et le journal de vos dernières actions. Vous pouvez désactiver cet envoi dans **Profil → Préférences**.
+- **Des rapports d'erreur automatiques** (connecté uniquement) : quand l'application rencontre une erreur inattendue, elle envoie la description technique de l'erreur, les mêmes informations techniques et le journal de vos dernières actions. Vous pouvez désactiver cet envoi dans **Profil → Confidentialité**.
 
 Le journal ne contient ni mot de passe, ni contenu de formulaire, ni paramètre d'adresse web ; les jetons de connexion et les adresses e-mail qui s'y trouveraient sont masqués par nos serveurs avant tout enregistrement. Ces informations sont transmises à l'équipe Pedalons sous forme de tickets dans un dépôt **privé** GitHub (voir section 4), où vous êtes désigné par un identifiant technique, jamais par votre nom ni votre adresse e-mail.
 
@@ -352,7 +352,7 @@ Conformément au Règlement Général sur la Protection des Données (RGPD), vou
 
 ### Exporter vos données vous-même
 
-Vous pouvez exercer vous-même vos droits d'accès et de portabilité, sans nous écrire : dans **Profil → Vos données**, sur le site ou dans l'application, demandez un export. Nous préparons une archive ZIP et vous envoyons par e-mail un lien de téléchargement, valable **7 jours**. Un export par heure et par compte.
+Vous pouvez exercer vous-même vos droits d'accès et de portabilité, sans nous écrire : dans **Profil → Confidentialité → Mes données**, sur le site ou dans l'application, demandez un export. Nous préparons une archive ZIP et vous envoyons par e-mail un lien de téléchargement, valable **7 jours**. Un export par heure et par compte.
 
 L'archive contient, au format JSON, tout ce qui vous concerne : votre profil, vos équipes, vos inscriptions, ce que vous avez publié et vos fichiers, vos notifications des 90 derniers jours et leurs réglages, vos appareils enregistrés pour le push, vos blocages, les signalements que vous avez faits (sans la copie du texte signalé, qui est le contenu de quelqu'un d'autre) et vos signalements de problème. Les secrets d'authentification (mot de passe haché, jetons, clés) en sont exclus pour des raisons de sécurité, mais leurs métadonnées (dates, appareils, services) y figurent. L'archive ne contient pas encore votre fuseau horaire, votre réglage de contact pour les annonces, vos invitations dans une équipe, ni la trace des messages envoyés au sujet des petites annonces ; demandez-les à privacy@pedalons.fr.
 
@@ -360,8 +360,7 @@ L'archive contient, au format JSON, tout ce qui vous concerne : votre profil, vo
 
 Vous pouvez supprimer votre compte vous-même, à tout moment, sans nous écrire :
 
-- **dans l'application mobile** : **Profil → Compte → Zone de danger**, puis « Supprimer le compte » ;
-- **sur le site web** : **Profil → Actions du compte → Zone de danger**, puis « Supprimer le compte ».
+- **sur le site web comme dans l'application mobile** : **Profil → Mon compte → Zone de danger**, puis « Supprimer le compte ».
 
 Si vous êtes le seul administrateur d'une équipe qui compte d'autres membres, vous devez d'abord nommer un autre membre administrateur : l'application et le site vous indiquent les équipes concernées. Une équipe dont vous êtes le seul membre est supprimée avec votre compte.
 

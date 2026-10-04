@@ -125,7 +125,7 @@ Content reported by at least three members is hidden from members until a modera
 To fix bugs, we receive:
 
 - **Your problem reports or suggestions** ("Report a problem", on the website or in the app): the text you write, the platform and the app version, and, if you leave the "Attach technical information" box checked, the page or screen displayed, the team you are viewing, the device's system and model or the browser, the language, the time zone, and a log of your last actions in the app (pages visited, failed requests, errors). The form shows you exactly what will be sent.
-- **Automatic error reports** (signed in only): when the app hits an unexpected error, it sends the technical description of the error, the same technical information and the log of your last actions. You can turn this off in **Profile → Preferences**.
+- **Automatic error reports** (signed in only): when the app hits an unexpected error, it sends the technical description of the error, the same technical information and the log of your last actions. You can turn this off in **Profile → Privacy**.
 
 The log contains no password, no form content and no web address parameter; any sign-in token or e-mail address found in it is masked by our servers before anything is stored. This information reaches the Pedalons team as tickets in a **private** GitHub repository (see section 4), where you are designated by a technical identifier, never by your name or e-mail address.
 
@@ -352,7 +352,7 @@ Under the General Data Protection Regulation (GDPR), you have the following righ
 
 ### Export your data yourself
 
-You can exercise the rights of access and portability yourself, without writing to us: under **Profile → Your data**, on the website or in the app, request an export. We prepare a ZIP archive and email you a download link, valid for **7 days**. One export per hour per account.
+You can exercise the rights of access and portability yourself, without writing to us: under **Profile → Privacy → My data**, on the website or in the app, request an export. We prepare a ZIP archive and email you a download link, valid for **7 days**. One export per hour per account.
 
 The archive contains, in JSON format, everything that concerns you: your profile, your teams, your sign-ups, what you have published and your files, your notifications from the last 90 days and their settings, your devices registered for push, your blocks, the reports you made (without the copy of the reported text, which is someone else's content) and your problem reports. Authentication secrets (password hash, tokens, keys) are excluded for security reasons, but their metadata (dates, devices, services) is included. The archive does not yet include your time zone, your ad-contact setting, your team invitations, or the record of messages sent about classified ads; ask privacy@pedalons.fr for these.
 
@@ -360,8 +360,7 @@ The archive contains, in JSON format, everything that concerns you: your profile
 
 You can delete your account yourself, at any time, without writing to us:
 
-- **in the mobile app**: **Profile → Account → Danger zone**, then "Delete the account";
-- **on the website**: **Profile → Account Actions → Danger Zone**, then "Delete Account".
+- **on the website as in the mobile app**: **Profile → My account → Danger zone**, then "Delete the account".
 
 If you are the only administrator of a team that has other members, you must first make another member an administrator: the app and the website name the teams concerned. A team of which you are the only member is deleted along with your account.
 

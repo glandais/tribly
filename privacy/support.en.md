@@ -1,6 +1,6 @@
 A question, a problem, an idea? Write to us at **[contact@pedalons.fr](mailto:contact@pedalons.fr)**. We answer in English or French, usually within a few days.
 
-The easiest way to report a bug: **Report a problem**, in your profile menu on the website or in **Profile → About** in the app. The report automatically includes the page, the version and a log of your last actions.
+The easiest way to report a bug: **Report a problem**, in your profile menu on the website, or under **Profile → Help and about**, on the website as in the app. The report automatically includes the page, the version and a log of your last actions.
 
 By e-mail, please mention the device you use, the app version (**Profile**, at the bottom of the screen) and the team involved.
 
@@ -18,14 +18,14 @@ Check your spam folder, and that the address you typed is the one of your accoun
 
 Tap "⋯" on the comment, post, ad, ride or route, then **Report**. The report goes to the team's organizers and to the Pédalons team, and the content disappears from your view at once.
 
-To stop seeing what a member posts, choose **Block** in the same menu; they are not told. You can unblock them under **Profile → Community → Blocked users**.
+To stop seeing what a member posts, choose **Block** in the same menu; they are not told. You can unblock them under **Profile → Privacy → Blocked users**.
 
 You can also write to us at the address above, naming the team and the content involved.
 
 ### How do I delete my account?
 
-In the app: **Profile → Account → Danger zone**, then "Delete the account". The [privacy policy](/privacy) details what is erased, and what to do if you no longer have access to your account.
+On the website as in the app: **Profile → My account → Danger zone**, then "Delete the account". The [privacy policy](/privacy) details what is erased, and what to do if you no longer have access to your account.
 
 ### How do I send a route to my GPS bike computer?
 
-First connect your bike computer (Hammerhead Karoo, Garmin or Wahoo) from **Profile → GPS devices**. The "Send to device" action then appears on every route.
+First connect your bike computer (Hammerhead Karoo, Garmin or Wahoo) from **Profile → Devices and services**. The "Send to device" action then appears on every route.
