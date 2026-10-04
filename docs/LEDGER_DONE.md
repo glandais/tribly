@@ -500,6 +500,22 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   Vérifié à la main dans Chrome sur staging (sortie à 8 groupes, page parcours, carte des
   parcours ; plein écran simulé par la classe). Pas de test automatisé : jsdom ne rend pas MapLibre.
 
+- `WEB-50` **« Fonctionnalités » quitte l'en-tête d'un membre connecté** (4 octobre 2026, relevé
+  dans `docs/BUGS.md`) — la page vend le produit à un visiteur ; un membre l'a déjà adopté.
+  `useMainNavItems` (`hooks/useNavItems.ts`) ne l'ajoute plus quand la session est ouverte (en-tête
+  et tiroir) ; la page reste accessible par son URL et le pied de page. Test : `MainNav.test.tsx`.
+
+- `WEB-51` **La carte « Envoyez vos parcours vers votre compteur » de l'accueil ne s'adresse plus
+  qu'à qui n'a rien branché, et mène au profil** (4 octobre 2026, relevé dans `docs/BUGS.md`) —
+  `FeaturesPromoCard` s'affichait à tous les membres et menait à la page Fonctionnalités. Elle ne
+  s'affiche plus que sans service GPS connecté (`UserDto.connectedServices`) **ni** appareil appairé
+  (`GET /api/users/me/devices`, masquée tant qu'il charge pour ne pas clignoter chez ceux qui en
+  ont), et mène à `/profil#gps`, la section « Services GPS » de `GpsConnectionsManager`, qui défile
+  jusqu'à elle une fois rendue (même motif que `#notifications`) ; ancre dans
+  `components/profile/profileAnchors.ts`. Texte (`home.member.promo.text`) réécrit pour dire où se
+  fait le branchement. Pas d'équivalent mobile à aligner. Non vérifié à l'écran (pas de session
+  connectée pendant la correction).
+
 - `WEB-28` **« Déconnecter tous les appareils » sur le site** (2026-09-30, contrat inchangé) — le
   profil web (`UserProfilePage.tsx`, section « Actions du compte ») a le bouton du mobile, avec la
   même confirmation et une ligne qui dit ce qu'il ferme (ce navigateur, l'app, le Karoo ou le Garmin

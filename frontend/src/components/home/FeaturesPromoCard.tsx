@@ -1,12 +1,25 @@
 import { useTranslation } from 'react-i18next'
 import { Group, Paper, Stack, Text, ThemeIcon } from '@mantine/core'
 import { IconChevronRight, IconDeviceWatch } from '@tabler/icons-react'
+import { useListPairedDevices } from '@/api/endpoints/users/users'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
+import { GPS_SECTION_ANCHOR } from '@/components/profile/profileAnchors'
 import { paths } from '@/config/paths'
+import { useAuth } from '@/hooks/useAuth'
 
-/** The member home's closing card: sending a route to a bike computer, and the features page. */
+/**
+ * The member home's closing card: sending a route to a bike computer. Only for a member who has
+ * neither a connected GPS service nor a paired device — the others already do it — and it leads to
+ * the profile's connections, where the thing is done, not to the features page, which only sells it
+ * (docs/LEDGER_*.md WEB-51). Hidden while the devices load: it would flash for those who have one.
+ */
 export function FeaturesPromoCard() {
   const { t } = useTranslation()
+  const { user } = useAuth()
+  const { data: devices, isLoading } = useListPairedDevices()
+
+  const hasService = (user?.connectedServices?.length ?? 0) > 0
+  if (!user || hasService || isLoading || !devices || devices.length > 0) return null
 
   return (
     <Paper
@@ -14,7 +27,7 @@ export function FeaturesPromoCard() {
       radius="md"
       p="md"
       component={PrefetchLink}
-      to={paths.features()}
+      to={`${paths.profile()}#${GPS_SECTION_ANCHOR}`}
       style={{ color: 'inherit', textDecoration: 'none' }}
     >
       <Group wrap="nowrap" gap="md">

@@ -76,24 +76,30 @@ export function useHomeNavItems(): MainNavItem[] {
 /**
  * The site's main navigation, shown in the header (and the mobile drawer): the home section's
  * entries, then the features page. The breadcrumb dropdown keeps to useHomeNavItems — the features
- * page is no sibling of the feed in the route tree.
+ * page is no sibling of the feed in the route tree. The features page is for visitors only: a
+ * member is already sold, and the home's promo card points them to what they can still connect
+ * (docs/LEDGER_*.md WEB-50).
  */
 export function useMainNavItems(): MainNavItem[] {
   const { t } = useTranslation()
   const homeItems = useHomeNavItems()
+  const { isAuthenticated } = useAuth()
 
   return useMemo(
-    () => [
-      ...homeItems,
-      {
-        id: 'features',
-        routeId: 'features',
-        path: paths.features(),
-        label: t('nav.features'),
-        icon: IconSparkles,
-      },
-    ],
-    [homeItems, t]
+    () =>
+      isAuthenticated
+        ? homeItems
+        : [
+            ...homeItems,
+            {
+              id: 'features',
+              routeId: 'features',
+              path: paths.features(),
+              label: t('nav.features'),
+              icon: IconSparkles,
+            },
+          ],
+    [homeItems, isAuthenticated, t]
   )
 }
 

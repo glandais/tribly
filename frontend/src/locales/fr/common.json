@@ -693,7 +693,7 @@
   "home.member.summary.registeredAll_many": "Vous êtes inscrit à toutes.",
   "home.member.summary.registeredAll_other": "Vous êtes inscrit à toutes.",
   "home.member.promo.title": "Envoyez vos parcours vers votre compteur",
-  "home.member.promo.text": "Karoo, Garmin ou Wahoo : le parcours de votre groupe arrive sur votre compteur. Voir toutes les fonctionnalités.",
+  "home.member.promo.text": "Karoo, Garmin ou Wahoo : connectez votre compte ou appairez votre compteur depuis votre profil, et le parcours de votre groupe y arrive.",
   "home.actions.label": "Actions rapides",
   "home.actions.createRide": "Créer une sortie",
   "home.actions.addRoute": "Ajouter un parcours",

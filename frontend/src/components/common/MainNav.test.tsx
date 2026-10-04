@@ -49,7 +49,7 @@ afterEach(() => {
 })
 
 describe('HeaderMainNav', () => {
-  it('lists the home section then the features page, calendar only when signed in', () => {
+  it('lists the home section, the calendar only when signed in, the features page only when not', () => {
     expect(linkNames(renderAt(paths.home()))).toEqual([
       'home.tabs.feed',
       'teams.title',
@@ -63,7 +63,6 @@ describe('HeaderMainNav', () => {
       'teams.title',
       'calendar.title',
       'nav.routes',
-      'nav.features',
     ])
   })
 
@@ -82,6 +81,7 @@ describe('HeaderMainNav', () => {
     cleanup()
     expect(current(renderAt(paths.calendar()))).toEqual(['calendar.title'])
     cleanup()
+    auth.isAuthenticated = false
     expect(current(renderAt(paths.features()))).toEqual(['nav.features'])
   })
 

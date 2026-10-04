@@ -10,8 +10,8 @@
     - les boutons de carte sont cachés par le profil
     - en mode plein écran, les pastilles des participants sont au dessus de la carte
     - dans la liste des calques, on ne peut pas choisir les traces à afficher
-[ ] Quand on est connecté, ne pas afficher Fonctionnalités en haut
-[ ] Quand on est connecté, sur l'accueil, envoyez vos parcours vers votre compteur
+[x] Quand on est connecté, ne pas afficher Fonctionnalités en haut — `WEB-50`
+[x] Quand on est connecté, sur l'accueil, envoyez vos parcours vers votre compteur — `WEB-51`
     - ne s'affiche que si l'utilisateur n'a ni compteur ni service connecté
     - renvoie à la connexion de GPS sur son profil et non sur fonctionnalités
 
