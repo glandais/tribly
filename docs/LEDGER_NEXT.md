@@ -139,31 +139,34 @@ navigateur), et la connexion par code e-mailé (la préférence de fuseau existe
       lance : `ci.yml` ne passe que les tests unitaires. Il faudrait un runner macOS (simulateur) ou un
       émulateur Android, plus la stack e2e (`scripts/e2e.sh up`) dans le job. Pendant web : `AUD-3`.
 
-- [ ] `MOB-49` **Profil refondu (`MOB-48`) : Patrol, recette et trois choix à confirmer (S)** — écrit
-      le 4 octobre 2026, vérifié seulement par `flutter analyze` et `flutter test`.
+- [ ] `MOB-49` **Profil refondu (`MOB-48`, `WEB-57`) : Patrol et recette (S)** — écrit le
+      4 octobre 2026, vérifié seulement par `flutter analyze` et `flutter test` (782 verts). Les trois
+      choix sont tranchés avec le propriétaire (ligne « Mon compte » ajoutée, pas de cloche dans
+      l'en-tête du Profil — `MOB-50` —, Utilisateurs bloqués sous Confidentialité) et livrés dans
+      `MOB-48` ; il ne reste que l'exécution.
       - **Patrol à lancer** sur la pile e2e (`scripts/e2e.sh up`, puis depuis `mobile/`
         `bash e2e.sh -t patrol_test/<test>.dart`) : `notification_settings_test`,
-        `profile_timezone_test`, `profile_preferences_test`, `profile_data_export_test`,
+        `profile_timezone_test`, `profile_preferences_test` (`Profile.backToOverview` touche
+        désormais `keys.profile.backButton`), `profile_data_export_test`,
         `profile_logout_all_test`, `profile_paired_devices_test`,
         `profile_participations_count_test`, `profile_participations_list_test`,
         `account_deletion_test`, `expired_access_token_test`, `notification_mute_test`,
-        `block_user_test`, `report_problem_test`, `apps_beta_signup_test`. La pile e2e ne déclare
-        aucun canal (e-mail coupé, pas de FCM) : la bascule d'une puce n'y est pas exercée
-        (`NOTIF-4`).
-      - **Recette sur appareil**, clair et sombre : vue d'ensemble, sous-pages, puces (la cible de
-        44 px de `PdlChip` vaut désormais pour toutes les puces de filtre de l'app).
-      - **À confirmer avec le propriétaire** (choix pris sans lui, d'après `App.dc.html`) : le groupe
-        Compte n'a pas de ligne « Mon compte » (la carte d'identité et une ligne de Connexion et
-        sécurité y mènent) ; pas de cloche dans l'en-tête du Profil (un `push` d'une branche à
-        l'autre empilerait les branches) ; `blockedUsers` n'a que le profil comme ancêtre de lien
-        profond (le test exige un préfixe de chemin), son retour sans pile retombe sur
-        Confidentialité. Confirmés, ils vont dans « Délibérément dehors ».
-      - Mineurs : le tirer-pour-rafraîchir de la vue d'ensemble relit profile-summary mais pas
-        `/me` ; une sous-page ouverte par lien profond puis quittée par `pop` n'invalide pas le
-        résumé ; `Profile.backToOverview` (Patrol) trouve la flèche par position, `PdlAppBar` n'ayant
-        pas de clé pour elle. Clés de traduction devenues inutiles : `profile.security`,
-        `profile.community`, `profile.participations.count`, `profile.passkeys.enabled` /
-        `notConfigured` / `replace`, `notifications.preferences.inAppAlwaysOn`.
+        `block_user_test` (lien froid vers `/profil/vie-privee/bloques`, retour sur Confidentialité
+        par `Moderation.backToPrivacy`), `report_problem_test`, `apps_beta_signup_test`
+        (« Adresse e-mail invalide », `WEB-57`), et par prudence `login_with_password_test`,
+        `sign_up_verify_test`, `password_reset_test` (libellés d'authentification renommés). La
+        pile e2e ne déclare aucun canal (e-mail coupé, pas de FCM) : la bascule d'une puce n'y est
+        pas exercée (`NOTIF-4`).
+      - **Recette sur appareil**, clair et sombre : vue d'ensemble (ligne Mon compte, tirer pour
+        rafraîchir), sous-pages, Confidentialité › Utilisateurs bloqués et retour, puces (la cible
+        de 44 px de `PdlChip` vaut pour toutes les puces de filtre de l'app).
+      - Mineurs : la ligne d'état de Mon compte (« Photo, nom affiché, suppression du compte ») et
+        la carte d'identité (« Photo, nom et compte ») se répètent un peu ; `Moderation.goBack()`
+        (`patrol_test/modules/moderation.dart`) n'a plus d'appelant et repose sur
+        `$.tester.pageBack()`, que `PdlAppBar` ne satisfait pas — à retirer. Clés de traduction
+        devenues inutiles : `profile.security`, `profile.community`, `profile.participations.count`,
+        `profile.passkeys.enabled` / `notConfigured` / `replace`,
+        `notifications.preferences.inAppAlwaysOn`.
 
 ---
 
@@ -219,27 +222,34 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       n'émet pas de 404 d'équipe ; ne pas abandonner un refresh déjà parti sans en relayer le
       `Set-Cookie`, ou le laisser finir en arrière-plan.
 
-- [ ] `WEB-56` **Profil refondu (`WEB-55`) : e2e à lancer et recette navigateur (S)** — écrit le
-      4 octobre 2026, vérifié seulement par typecheck, lint, i18n, vitest et build. Sur la pile e2e
-      (`scripts/e2e.sh build frontend` puis `build backend`, `scripts/e2e.sh up`, puis
-      `scripts/e2e.sh test profile-navigation ssr-session routes-render flow-account auth
-      flow-moderation flow-device flow-notifications pwa`), les deux projets Playwright :
-      `profile-navigation` (bascule bureau / téléphone, `aria-current`, fil d'Ariane masqué sous
-      `sm`) et `flow-account` (« Ajouter une clé d'accès ») sont les plus exposés aux sélecteurs ;
-      `routes-render` couvre les dix routes du profil et l'audit de préchargement. Les états d'un
-      compte neuf supposés par `profile-navigation` (« Métrique », « Aucun service ni appareil »,
-      « Aucune clé d'accès ») sont à ajuster si le backend change ses défauts. Recette à l'œil :
-      mise en page, point de rupture `md`, mode sombre ; cases du tableau des notifications à
-      20 px sur téléphone (aucune maquette téléphone de cette page : `size="md"` à envisager) ;
-      titre de la zone de danger en `c="red"` plutôt que le jeton de danger. Avec un fuseau non
-      enregistré, Préférences montre celui du navigateur, que le serveur ne connaît pas (`WEB-54`).
-- [ ] `WEB-57` **Lexique du profil hors du profil (XS, à trancher)** — « Nom affiché » et « Clés
-      d'accès » ne valent que dans le profil : l'inscription dit encore « Nom d'affichage »
-      (`auth.form.displayName`, `admin.users.displayName`), la connexion « Passkey »
-      (`auth.login.tabs.passkey`, `auth.passkey.login`, `auth.errors.passkeyFailed`), et le gabarit
-      `ad-contact.*` du backend « désactivez l'option dans votre profil » (pourrait nommer Profil ›
-      Confidentialité). L'étendre demande de reprendre les e2e d'inscription et de connexion
-      (`flow-account`, invitations).
+- [ ] `WEB-56` **Profil refondu (`WEB-55`, `WEB-57`) : e2e à lancer et recette navigateur (S)** —
+      écrit le 4 octobre 2026, vérifié seulement par typecheck, lint, i18n, vitest (237 verts) et
+      e2e:typecheck. Plus rien à trancher : Utilisateurs bloqués est sous Confidentialité
+      (`/profil/vie-privee/bloques`), la zone de danger suit le jeton `danger` et les cases des
+      notifications ont leur cible de 44 px sur téléphone (`WEB-55`). Reste l'exécution :
+      - **e2e** sur la pile e2e (`scripts/e2e.sh build frontend` puis `build backend`,
+        `scripts/e2e.sh up`, puis `scripts/e2e.sh test profile-navigation ssr-session
+        routes-render flow-account auth flow-moderation flow-device flow-notifications pwa
+        invitations flow-platform-admin ad-contact`), les deux projets Playwright.
+        `profile-navigation` (bascule bureau / téléphone, `aria-current`, fil d'Ariane masqué sous
+        `sm`, nouvelle URL des bloqués) et `flow-account` (libellés « Adresse e-mail », « Nom
+        affiché », « Clé d'accès » de `WEB-57`) sont les plus exposés aux sélecteurs : Playwright
+        compare `name` en sous-chaîne insensible à la casse, « Adresse e-mail » doit rester unique
+        sur la connexion, l'inscription et l'inscription bêta. `routes-render` couvre les dix
+        routes du profil et l'audit de préchargement. Les états d'un compte neuf supposés par
+        `profile-navigation` (« Métrique », « Aucun service ni appareil », « Aucune clé d'accès »)
+        sont à ajuster si le backend change ses défauts.
+      - **Recette à l'œil** : mise en page, point de rupture `md`, mode sombre (la bordure
+        `danger-outline` de la zone de danger y compris) ; sur un téléphone, une touche n'importe
+        où dans la cellule coche la case des notifications (le `<label>` enveloppe le `div` racine
+        du `Checkbox` Mantine : HTML pas strictement valide, toléré par les navigateurs). Avec un
+        fuseau non enregistré, Préférences montre celui du navigateur, que le serveur ne connaît
+        pas (`WEB-54`).
+      - Mineurs : `auth.login.tabs.passkey` et `auth.passkey.login` semblent sans usage ; les textes
+        légaux disent encore « depuis votre profil » / « désactivable dans votre profil »
+        (`privacy/terms-of-service.fr.md`, `privacy/privacy-policy.fr.md`) et pourraient nommer
+        Profil › Confidentialité ou Profil › Mon compte ; l'e-mail `ad-contact` nomme le réglage
+        sans lien (il faudrait passer l'URL absolue de `/profile/privacy` au gabarit).
 
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
@@ -283,8 +293,8 @@ tests backend (`GpsResourceTest`), les e2e web (`flow-device.e2e.ts`) et Patrol
 sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` une fois tout cela vert.
 
 - [ ] `API-70` **Tests backend du résumé du profil à lancer (XS)** — `API-69` est livré avec ses
-      tests écrits mais pas exécutés : `mvn test -Dtest='ProfileSummary*,GpsResourceTest'` dans
-      `backend/`. `ProfileSummaryQueryCountTest` a un budget d'entités sur mesure (3 par ligne
+      tests écrits mais pas exécutés : `mvn test -Dtest='ProfileSummary*,GpsResourceTest,AdContactResourceTest'`
+      dans `backend/` (le dernier rend le gabarit `ad-contact.*` réécrit par `WEB-57`). `ProfileSummaryQueryCountTest` a un budget d'entités sur mesure (3 par ligne
       ajoutée — adhésion, équipe, session d'appareil — plus 8) : à ajuster si Hibernate en charge
       d'autres, sans jamais réintroduire une requête par ligne.
 
@@ -750,6 +760,7 @@ redevient une entrée de sa section sous le même identifiant.
 | `MOB-22` | **Jeu d'icônes Tabler côté mobile** | Material outline conservé | L'écart ne porte que sur la graisse du trait des icônes de badge de 11 px. `PdlIcons` devrait être le **seul** fichier à nommer `Icons.*` (c'est tenu dans `lib/core/pdl`, pas encore ailleurs : une vingtaine de fichiers le font encore) : une fois ce ménage fait, basculer ne touchera qu'un fichier |
 | `MOB-23` | **Écran de profil public d'un membre** | Aucune maquette ne va au-delà de la liste | Les lignes du trombinoscope ne sont pas cliquables. Ne pas inventer l'écran |
 | `MOB-24` | **Édition et création de contenu au mobile** | Hors brief : la v2 est une version de consultation et de participation | Le sélecteur de meneur dans l'éditeur de groupes existe **côté web** (livré hors plan) ; l'équivalent mobile n'est pas ouvert |
+| `MOB-50` | **Cloche des notifications dans l'en-tête du Profil** | Non (décidé le 4 octobre 2026 avec le propriétaire, refonte `MOB-48`) | La boîte de réception est dans une autre branche du shell : un `push` depuis le Profil empilerait les branches, un `go` y ferait perdre la place. Elle reste à un onglet ; les réglages de notifications sont dans `/profil/notifications`. Ne pas ajouter de cloche au Profil |
 | `OPS-18` | **Rotation des secrets exposés par les sauvegardes en clair** (`ENCRYPTION_KEY`, clé JWT, compte de service FCM) | Non (décidé le 29 septembre 2026, avec `OPS-13`) | Les 30 copies antérieures à `OPS-13` les contenaient en clair sur l'hôte de sauvegarde. Rotation jugée disproportionnée : ces copies sont supprimées et le SSD trimé. Reste un résidu physique possible sur le SSD de l'hôte ; à rouvrir si le matériel est perdu ou volé |
 | `NOTIF-5` | **Badge iOS du push** | Écarté, côté serveur comme côté app | Serveur : il faudrait recompter les non-lues à l'envoi, et `NotificationMessage` ne porte ni le domaine ni ce compteur. App : `flutter_local_notifications` ne pose un badge qu'en affichant une notification, et en arrière-plan c'est le système qui affiche celle de FCM — une dépendance de plus pour un compteur que la cloche montre déjà. D'où l'absence de `content-available` (voir `NOTIF-9`) |
 | `NOTIF-6` | **Isolat de fond du push (`onBackgroundMessage`)** | Non écrit | Le serveur envoie `notification` **et** `data` : le système affiche la bannière sans l'app, un isolat n'aurait rien à faire de plus |

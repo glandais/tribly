@@ -288,28 +288,53 @@ couvert » ; les tests ne tournent qu'en local (`MOB-37`).
   retour sur `/profil`) : carte d'identité (vers Mon compte), puis des raccourcis groupés, chacun
   avec sa **ligne d'état** — Mon activité (Mes sorties : « Prochaine : … » et compteur ; Mes équipes,
   qui ouvre l'onglet Équipes), Réglages (Préférences, Notifications, Appareils et services),
-  Sécurité et confidentialité (Connexion et sécurité, Confidentialité), Compte (Aide et à propos,
-  Se déconnecter). Une route par sujet dans la branche Profil du shell (`config/router.dart`), sous
-  `ProfileSubpage` (retour : `pop`, sinon `go` vers `/profil`) : `/profil/sorties` (À venir ·
+  Sécurité et confidentialité (Connexion et sécurité, Confidentialité), Compte (Mon compte — ligne
+  ajoutée le 4 octobre, clé `keys.profile.accountRow`, statut fixe « Photo, nom affiché, suppression
+  du compte » —, Aide et à propos, Se déconnecter). Une route par sujet dans la branche Profil du
+  shell (`config/router.dart`), sous `ProfileSubpage` (retour : `pop`, sinon `go` vers `/profil` ;
+  flèche retour de `PdlAppBar` clé `keys.profile.backButton` via le nouveau paramètre `backKey`) :
+  `/profil/sorties` (À venir ·
   Historique), `/profil/preferences` (unités, **fuseau horaire, nouveau dans l'app**, même champ
   `UserDto.timezone` que le site, feuille de recherche `timezone_sheet.dart`), `/profil/notifications`
   (`notification_settings_page.dart` : une ligne par type groupée en familles Sorties, Voyages,
   Publications, Équipes et modération, une **puce à bascule par canal** E-mail/Push, Annonces des
   équipes, « Ouvrir mes notifications » ; la boîte de réception a un bouton Réglages),
   `/profil/appareils`, `/profil/securite` (Clés d'accès, `LogoutAllCard`), `/profil/vie-privee`
-  (Être contacté par les membres, Utilisateurs bloqués `/profil/bloques`, Rapports d'erreur, Mes
-  données), `/profil/compte` (identité, `DeleteAccountSection`), `/profil/aide`. Les lignes d'état
-  lisent `/me` et `profileSummaryProvider` (`GET /api/users/me/profile-summary`, `API-69`) ;
-  `participationCountProvider` est supprimé. `PdlChip` répond sur toute sa boîte de 44 px (un
-  `GestureDetector` opaque autour de la pastille de 34 px), pour toutes les puces de l'app.
-  Tests : `test/features/profile/profile_overview_test.dart`, `profile_subpages_test.dart`,
+  (Être contacté par les membres, Utilisateurs bloqués, Rapports d'erreur, Mes données), et sa
+  sous-route **`/profil/vie-privee/bloques`** (EN `/profile/privacy/blocked`, déplacée de
+  `/profil/bloques` le 4 octobre) : route go_router **enfant** de `profilePrivacy`
+  (`_profilePrivacyRoutes()`), ancêtres de lien profond Profil › Confidentialité, plus de repli
+  spécial du retour ; `/profil/compte` (identité, `DeleteAccountSection`), `/profil/aide`. Les
+  lignes d'état lisent `/me` et `profileSummaryProvider` (`GET /api/users/me/profile-summary`,
+  `API-69`) ; `participationCountProvider` est supprimé. Tirer pour rafraîchir la vue d'ensemble
+  relit le résumé **et** `/me` (`refreshCurrentUser`, échec de `/me` ignoré) ;
+  `ProfileSummaryRefreshOnLeave` (`profile_subpage.dart`, autour de `ProfileSubpage`,
+  `MyParticipationsPage` et `BlockedUsersPage`) invalide `profileSummaryProvider` quand **toute**
+  sous-page quitte l'arbre, lien profond suivi d'un `pop` compris — la vue d'ensemble n'invalide
+  plus après son `push`. `PdlChip` répond sur toute sa boîte de 44 px (un `GestureDetector` opaque
+  autour de la pastille de 34 px), pour **toutes les puces de l'app** (tests de filtres
+  `route_filters`, `route_filter_chips_bar`, `route_filter_sheet`, `tag_filter`,
+  `team_list_tag_filter`, `publication_feed_toolbar` verts). Le lexique vaut aussi hors du profil
+  (`WEB-57`). Tests : `test/features/profile/profile_overview_test.dart` (ligne Mon compte,
+  tirer pour rafraîchir), `profile_summary_refresh_test.dart` (sous-page ouverte par lien froid
+  puis `pop` : le résumé est relu), `profile_subpages_test.dart`,
   `profile_page_test.dart` (fuseau envoyé au serveur), `profile_summary_provider_test.dart`,
   `test/features/notifications/notification_settings_page_test.dart`,
-  `test/deep_link_hierarchy_test.dart` (les nouvelles routes), `test/core/pdl/tap_target_test.dart`
+  `test/deep_link_hierarchy_test.dart` (les nouvelles routes, `blockedUsers` → [profile,
+  profilePrivacy]), `test/core/pdl/tap_target_test.dart`
   (« PdlChip répond aussi dans les 5 px autour de sa pastille »),
   `test/features/rides/participation_changes_test.dart` ; Patrol `notification_settings_test`,
-  `profile_timezone_test` et les tests du profil repris (modules `Profile.openX` /
-  `backToOverview`), **pas encore lancés** (`MOB-49`). **À ne pas défaire** : un **arbre unique et un
+  `profile_timezone_test`, `block_user_test` (lien froid vers les bloqués, retour sur
+  Confidentialité) et les tests du profil repris (modules `Profile.openX` / `backToOverview` et
+  `Moderation.backToPrivacy`, qui touchent `keys.profile.backButton`), **pas encore lancés**
+  (`MOB-49`). **Tranché avec le propriétaire le 4 octobre** : ligne « Mon compte » dans le groupe
+  Compte (en plus de la carte d'identité) ; **pas de cloche dans l'en-tête du Profil** (un `push`
+  d'une branche à l'autre empilerait les branches — la boîte de réception reste à un onglet) ;
+  Utilisateurs bloqués **sous** Confidentialité, dans l'URL comme dans la pile. **À ne pas
+  défaire** : pas de cloche dans l'en-tête du Profil (`MOB-50`) ; la route des bloqués reste imbriquée sous
+  `profilePrivacy` (c'est ce qui met Confidentialité sous elle quand elle est ouverte par `go`) ;
+  l'invalidation de `ProfileSummaryRefreshOnLeave` passe par `scheduleMicrotask` (invalider dans
+  `dispose` lève « markNeedsBuild called when widget tree was locked ») ; un **arbre unique et un
   lexique commun** aux deux clients (Profil, Nom affiché, Adresse e-mail, Clés d'accès, Mon compte,
   Demander mes données, Être contacté par les membres, Résumé quotidien par e-mail, Annonces des
   équipes) — un sujet change de place ou de nom des deux côtés à la fois ; une route `/profil/<sujet>`
@@ -893,9 +918,17 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   Sombre, langue), `/profil/notifications` (Sur cet appareil, tableau type × canal groupé par famille
   — `notificationFamilies.ts`, `CONTENT_REPORTED` ajouté sous « Équipes et modération » —, Résumé
   quotidien par e-mail, Annonces des équipes, lien vers la boîte de réception, qui renvoie ici),
-  `/profil/appareils`, `/profil/securite`, `/profil/vie-privee` et sa sous-page `/profil/bloques`
-  (`blockedUsers`, désormais web), `/profil/compte` (Nom affiché toujours éditable, plus de mode
-  « Modifier le profil », adresse en lecture seule, zone de danger), `/profil/aide`. Bureau : barre
+  `/profil/appareils`, `/profil/securite`, `/profil/vie-privee` et sa sous-page
+  **`/profil/vie-privee/bloques`** (EN `/profile/privacy/blocked`, `blockedUsers`, désormais web,
+  `parentId: 'profile-privacy'` — déplacée de `/profil/bloques` le 4 octobre, fil d'Ariane Profil ›
+  Confidentialité › Utilisateurs bloqués), `/profil/compte` (Nom affiché toujours éditable, plus de
+  mode « Modifier le profil », adresse en lecture seule, zone de danger : titre `c="danger"`, carte
+  bordée par le nouveau `tone="danger"` de `ProfileCard`), `/profil/aide`. Les actions destructives
+  du profil (déconnecter un service, désappairer, erreur de connexion GPS — `GpsConnectionsManager`,
+  `PairedDevicesManager`) prennent aussi le jeton `danger`. Le tableau des notifications
+  (`NotificationPreferences.module.css`) enveloppe chaque case d'un `<label>` qui remplit sa cellule :
+  **cible de 44 × 44 px** sous `48em` ou en `pointer: coarse`, case visible à 20 px, densité
+  inchangée au bureau. Bureau : barre
   latérale groupée (`ProfileShell.tsx`, non collante, `aria-current` sur l'entrée active) ;
   téléphone : liste groupée sur `/profil` terminée par Se déconnecter. Fil d'Ariane Profil ›
   Sous-page, le lien « ← Retour » (`navigate(-1)`) est supprimé. Préchargement serveur de chaque page
@@ -908,8 +941,12 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   exactement une famille), `ProfileOverviewPage.test.tsx` ; e2e `profile-navigation.e2e.ts`,
   `ssr-session.e2e.ts` (HTML serveur de `/profil` et de `/profil/sorties` porteur de la sortie,
   hydratation propre), `routes-render.e2e.ts` (une ligne par route du profil), `flow-account`,
-  `auth`, `flow-moderation`, `flow-device`, `flow-notifications`, `pwa` repris — **pas encore
-  lancés** (`WEB-56`). **À ne pas défaire** : **arbre unique et lexique commun** aux deux clients
+  `auth`, `flow-moderation` (`support/moderation.ts`, nouvelle URL des bloqués), `flow-device`,
+  `flow-notifications`, `pwa` repris — **pas encore lancés** (`WEB-56`). **Tranché le 4 octobre**
+  avec le propriétaire : Utilisateurs bloqués sous Confidentialité, même place que dans l'app. **À
+  ne pas défaire** : les actions destructives du profil utilisent le jeton `danger`, jamais `red`
+  brut ; la cible de 44 px des notifications est le `<label>` de la cellule, pas une case agrandie
+  (le tableau du bureau garde sa densité) ; **arbre unique et lexique commun** aux deux clients
   (source web unique : `components/profile/profileNav.ts`) ; une route `/profil/<sujet>` par sujet,
   **sans redirection** des anciennes ancres `/profil#notifications`, `#gps` ni de
   `/profil/participations` (`WEB-58`) ; seuls les canaux de `NotificationPreferencesDto.channels`
@@ -919,6 +956,28 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   local de Mantine ; `TimezonePreference` ne remplit le fuseau du navigateur qu'après hydratation
   et `ErrorReportingPreference` lit `localStorage` dans un effet ; Se déconnecter une seule fois
   dans le profil (le menu avatar et le tiroir gardent le leur) ; lignes du profil à `mih={44}`.
+
+- `WEB-57` **Le lexique du profil vaut hors du profil, sur les deux clients et dans les e-mails**
+  (4 octobre 2026, pas de changement de contrat). En français, partout : « Nom affiché » (plus
+  « Nom d'affichage » : `auth.form.displayName`, `admin.users.displayName`,
+  `admin.domains.namePlaceholder`), « Clé d'accès / Clés d'accès » (plus « Passkey » : connexion,
+  `auth.errors.passkeyFailed`, `errors.api.PASSKEY_NOT_FOUND`, admin, pages Fonctionnalités ; sur
+  l'app, connexion, activation par e-mail), « Adresse e-mail » pour tout champ et ses erreurs
+  (connexion, inscription, mot de passe oublié, inscription bêta, colonnes d'admin ;
+  `INVALID_CREDENTIALS`, `EMAIL_ALREADY_EXISTS`, `EMAIL_NOT_VERIFIED`, `PASSWORD_NOT_SET` sur l'app),
+  et « e-mail » avec trait d'union dans toute phrase. En anglais : « Display name », « Email
+  address », « passkey ». Fichiers : `frontend/src/locales/{fr,en}/common.json`,
+  `mobile/assets/l10n/{fr,en}.json`, `privacy/privacy-policy.fr.md` (« nom affiché », source de
+  `frontend/src/assets/legal/` via `pnpm copy-legal`). Le gabarit `ad-contact.{fr,en}.{html,txt}`
+  du backend nomme le réglage et sa place : « désactivez « Être contacté par les membres » dans
+  Profil › Confidentialité » (EN « Profile › Privacy »), sans lien (il faudrait un paramètre d'URL
+  passé par le service). Tests repris : e2e `flow-account` (inscription, connexion, code e-mail,
+  mot de passe oublié, compte existant, clé d'accès supprimée), `invitations`, `pwa`,
+  `flow-device`, `flow-platform-admin` (inscriptions bêta) ; Patrol `modules/peripheral.dart`
+  (« Adresse e-mail invalide », `apps_beta_signup_test`) ; widget
+  `test/features/teams/pending_invitations_card_test.dart` — e2e et Patrol **pas encore lancés**
+  (`WEB-56`, `MOB-49`). **À ne pas défaire** : le lexique est le même dans le profil et hors du
+  profil, sur le site, l'app et les e-mails ; un terme change partout à la fois.
 
 ### Accueil et page Fonctionnalités
 
