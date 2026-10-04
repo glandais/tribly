@@ -14,16 +14,16 @@
     "login": "Connexion",
     "register": "Créer un compte",
     "logout": "Déconnexion",
-    "email": "Email",
-    "displayName": "Nom d'affichage",
+    "email": "Adresse e-mail",
+    "displayName": "Nom affiché",
     "passkey": {
-      "login": "Connexion avec Passkey",
-      "register": "Ajouter Passkey",
-      "prompt": "Ajouter un Passkey?",
+      "login": "Se connecter avec une clé d'accès",
+      "register": "Ajouter une clé d'accès",
+      "prompt": "Ajouter une clé d'accès ?",
       "description": "Connectez-vous plus rapidement avec votre empreinte digitale ou Face ID.",
-      "success": "Passkey ajouté avec succès!",
+      "success": "Clé d'accès ajoutée",
       "simplifiedLogin": "Connexion simplifiée",
-      "enablePrompt": "Activez Passkey pour vous connecter avec votre empreinte",
+      "enablePrompt": "Ajoutez une clé d'accès pour vous connecter avec votre empreinte",
       "enable": "Activer"
     },
     "otp": {
@@ -37,14 +37,14 @@
       "createAccount": "Créer mon compte"
     },
     "verifyEmail": {
-      "title": "Vérification email",
+      "title": "Vérification de l'adresse e-mail",
       "verifying": "Vérification en cours...",
       "success": "Compte activé !",
       "accountCreated": "Votre compte a été créé avec succès.",
       "tokenMissing": "Token de vérification manquant",
       "backToLogin": "Retour à la connexion",
-      "registerError": "Erreur lors de l'enregistrement du passkey: {error}",
-      "verificationSent": "Un email de vérification a été envoyé à {email}. Ouvrez son lien pour choisir votre mot de passe.",
+      "registerError": "Erreur lors de l'enregistrement de la clé d'accès : {error}",
+      "verificationSent": "Un e-mail de vérification a été envoyé à {email}. Ouvrez son lien pour choisir votre mot de passe.",
       "activateTitle": "Activer votre compte",
       "activateMessage": "Choisissez le mot de passe du compte {email}.",
       "signedInAs": "Vous êtes connecté en tant que {current}. Activer ce compte vous connectera à {email} à sa place.",
@@ -60,7 +60,7 @@
     "passwordPlaceholder": "Votre mot de passe",
     "forgotPassword": {
       "title": "Mot de passe oublié",
-      "subtitle": "Entrez votre email pour recevoir un code de réinitialisation",
+      "subtitle": "Entrez votre adresse e-mail pour recevoir un code de réinitialisation",
       "submit": "Envoyer le code",
       "sent": {
         "title": "Code envoyé",
@@ -86,17 +86,17 @@
       "passwordMismatch": "Les mots de passe ne correspondent pas"
     },
     "errors": {
-      "emailRequired": "L'email est requis",
+      "emailRequired": "L'adresse e-mail est requise",
       "passwordRequired": "Le mot de passe est requis",
-      "emailInvalid": "Email invalide",
-      "displayNameRequired": "Le nom d'affichage est requis",
+      "emailInvalid": "Adresse e-mail invalide",
+      "displayNameRequired": "Le nom affiché est requis",
       "displayNameTooShort": "Au moins 2 caractères",
       "displayNameTooLong": "100 caractères maximum",
       "tokenMissing": "Token manquant",
       "authFailed": "Erreur lors de l'authentification",
       "generic": "Erreur: {error}",
-      "INVALID_CREDENTIALS": "Email ou mot de passe incorrect",
-      "PASSWORD_NOT_SET": "Aucun mot de passe défini. Un code de réinitialisation a été envoyé à votre email."
+      "INVALID_CREDENTIALS": "Adresse e-mail ou mot de passe incorrect",
+      "PASSWORD_NOT_SET": "Aucun mot de passe défini. Un code de réinitialisation a été envoyé à votre adresse e-mail."
     },
     "terms": {
       "accept": "J'ai au moins 16 ans et j'accepte les conditions d'utilisation : aucune tolérance pour les contenus injurieux ni pour les comportements abusifs.",
@@ -935,7 +935,8 @@
         "other": "{} personnes bloquées"
       },
       "myData": "mes données",
-      "version": "Version {version}"
+      "version": "Version {version}",
+      "account": "Photo, nom affiché, suppression du compte"
     },
     "timezone": "Fuseau horaire",
     "timezoneSearch": "Rechercher un fuseau",
@@ -1070,11 +1071,11 @@
     },
     "signup": {
       "title": "Devenir testeur·se",
-      "subtitle": "Laissez votre email pour être averti·e dès qu'une bêta ouvre, sur n'importe laquelle de ces applications.",
-      "emailLabel": "Email",
+      "subtitle": "Laissez votre adresse e-mail pour être averti·e dès qu'une bêta ouvre, sur n'importe laquelle de ces applications.",
+      "emailLabel": "Adresse e-mail",
       "submit": "S'inscrire",
       "validation": {
-        "email": "Email invalide"
+        "email": "Adresse e-mail invalide"
       },
       "sent": {
         "title": "Inscription enregistrée",
@@ -1160,9 +1161,9 @@
       "BAD_REQUEST": "Requête invalide",
       "BUSINESS_RULE": "Cette action n'est pas autorisée",
       "DOMAIN_NOT_FOUND": "Domaine introuvable",
-      "EMAIL_ALREADY_EXISTS": "Un compte existe déjà avec cet email",
+      "EMAIL_ALREADY_EXISTS": "Un compte existe déjà avec cette adresse e-mail",
       "EMAIL_NOT_SENT": "L'e-mail de vérification n'a pas pu partir. Réessayez dans un instant.",
-      "EMAIL_NOT_VERIFIED": "Veuillez vérifier votre email avant de continuer",
+      "EMAIL_NOT_VERIFIED": "Veuillez vérifier votre adresse e-mail avant de continuer",
       "FILE_REQUIRED": "Un fichier est requis",
       "FORBIDDEN": "Vous n'avez pas les droits pour effectuer cette action",
       "GPS_CREDENTIAL_ALREADY_EXISTS": "Un identifiant GPS existe déjà pour ce service",
@@ -1177,7 +1178,7 @@
       "GROUP_FULL": "Ce groupe est complet",
       "RIDE_PAST": "Cette sortie est passée : on ne peut plus s'y inscrire",
       "INTERNAL_ERROR": "Erreur interne du serveur",
-      "INVALID_CREDENTIALS": "Email ou mot de passe incorrect",
+      "INVALID_CREDENTIALS": "Adresse e-mail ou mot de passe incorrect",
       "LOGIN_RATE_LIMITED": "Trop de mots de passe erronés pour cette adresse. Réessayez dans un quart d'heure, ou connectez-vous avec un code reçu par e-mail.",
       "DEVICE_CODE_RATE_LIMITED": "Trop de codes d'appareil erronés récemment. Réessayez dans quelques minutes.",
       "INVALID_FORMAT": "Le format du fichier est invalide",
@@ -1189,7 +1190,7 @@
       "MIGRATED_TEAM": "Cette équipe est venue de biketeam, dont les anciennes adresses redirigent vers elle : elle ne peut pas être supprimée. Un administrateur de la plateforme doit d'abord annuler sa bascule sur biketeam.",
       "NOT_FOUND": "La ressource demandée est introuvable",
       "NOT_REGISTERED": "Vous n'êtes pas inscrit à cette sortie",
-      "PASSKEY_NOT_FOUND": "Passkey introuvable",
+      "PASSKEY_NOT_FOUND": "Clé d'accès introuvable",
       "PASSWORD_NOT_SET": "Aucun mot de passe n'est défini pour ce compte",
       "PUBLIC_RIDE_PRIVATE_ROUTE": "Une sortie publique ne peut pas utiliser un parcours privé",
       "PUBLIC_TRIP_PRIVATE_ROUTE": "Un voyage public ne peut pas utiliser un parcours privé",

@@ -25,7 +25,7 @@ final class Peripheral extends Module {
   }
 
   Future<void> waitUntilBetaEmailIsRefused() => _waitUntil(
-    () => shows(keys.apps.betaEmailField, 'Email invalide'),
+    () => shows(keys.apps.betaEmailField, 'Adresse e-mail invalide'),
     'the beta e-mail refused',
   );
 

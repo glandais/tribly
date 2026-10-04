@@ -138,7 +138,7 @@ void main() {
     }
 
     expect(
-      find.text('Veuillez vérifier votre email avant de continuer'),
+      find.text('Veuillez vérifier votre adresse e-mail avant de continuer'),
       findsOneWidget,
     );
     // L'invitation reste là : on peut réessayer une fois l'adresse vérifiée.

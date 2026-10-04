@@ -14,16 +14,16 @@
     "login": "Login",
     "register": "Create account",
     "logout": "Logout",
-    "email": "Email",
+    "email": "Email address",
     "displayName": "Display name",
     "passkey": {
-      "login": "Login with Passkey",
-      "register": "Add Passkey",
-      "prompt": "Add a Passkey?",
+      "login": "Sign in with a passkey",
+      "register": "Add a passkey",
+      "prompt": "Add a passkey?",
       "description": "Login faster with your fingerprint or Face ID.",
-      "success": "Passkey added successfully!",
+      "success": "Passkey added",
       "simplifiedLogin": "Simplified login",
-      "enablePrompt": "Enable Passkey to login with your fingerprint",
+      "enablePrompt": "Add a passkey to sign in with your fingerprint",
       "enable": "Enable"
     },
     "otp": {
@@ -60,7 +60,7 @@
     "passwordPlaceholder": "Your password",
     "forgotPassword": {
       "title": "Forgot password",
-      "subtitle": "Enter your email to receive a reset code",
+      "subtitle": "Enter your email address to receive a reset code",
       "submit": "Send code",
       "sent": {
         "title": "Code sent",
@@ -86,16 +86,16 @@
       "passwordMismatch": "Passwords do not match"
     },
     "errors": {
-      "emailRequired": "Email is required",
+      "emailRequired": "Email address is required",
       "passwordRequired": "Password is required",
-      "emailInvalid": "Invalid email",
+      "emailInvalid": "Invalid email address",
       "displayNameRequired": "Display name is required",
       "displayNameTooShort": "At least 2 characters",
       "displayNameTooLong": "100 characters maximum",
       "tokenMissing": "Token missing",
       "authFailed": "Authentication failed",
       "generic": "Error: {error}",
-      "INVALID_CREDENTIALS": "Incorrect email or password",
+      "INVALID_CREDENTIALS": "Incorrect email address or password",
       "PASSWORD_NOT_SET": "No password set. A reset code has been sent to your email."
     },
     "terms": {
@@ -935,7 +935,8 @@
         "other": "{} people blocked"
       },
       "myData": "my data",
-      "version": "Version {version}"
+      "version": "Version {version}",
+      "account": "Photo, display name, account deletion"
     },
     "timezone": "Time zone",
     "timezoneSearch": "Search a time zone",
@@ -1070,11 +1071,11 @@
     },
     "signup": {
       "title": "Become a tester",
-      "subtitle": "Leave your email to be notified as soon as a beta opens, for any of these apps.",
-      "emailLabel": "Email",
+      "subtitle": "Leave your email address to be notified as soon as a beta opens, for any of these apps.",
+      "emailLabel": "Email address",
       "submit": "Sign up",
       "validation": {
-        "email": "Invalid email"
+        "email": "Invalid email address"
       },
       "sent": {
         "title": "Sign-up recorded",
@@ -1160,7 +1161,7 @@
       "BAD_REQUEST": "Invalid request",
       "BUSINESS_RULE": "This action is not allowed",
       "DOMAIN_NOT_FOUND": "Domain not found",
-      "EMAIL_ALREADY_EXISTS": "An account already exists with this email",
+      "EMAIL_ALREADY_EXISTS": "An account already exists with this email address",
       "EMAIL_NOT_SENT": "The verification email could not be sent. Please try again in a moment.",
       "EMAIL_NOT_VERIFIED": "Please verify your email before continuing",
       "FILE_REQUIRED": "A file is required",
@@ -1177,7 +1178,7 @@
       "GROUP_FULL": "This group is full",
       "RIDE_PAST": "This ride is over: registration is closed",
       "INTERNAL_ERROR": "Internal server error",
-      "INVALID_CREDENTIALS": "Invalid email or password",
+      "INVALID_CREDENTIALS": "Invalid email address or password",
       "LOGIN_RATE_LIMITED": "Too many wrong passwords for this address. Try again in a quarter of an hour, or sign in with a code sent by email.",
       "DEVICE_CODE_RATE_LIMITED": "Too many wrong device codes lately. Try again in a few minutes.",
       "INVALID_FORMAT": "The file format is invalid",
