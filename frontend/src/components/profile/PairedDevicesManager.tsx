@@ -108,7 +108,7 @@ export function PairedDevicesManager() {
                   </Group>
                   <ActionIcon
                     variant="subtle"
-                    color="red"
+                    color="danger"
                     onClick={() => setToUnpair(device)}
                     title={t('gps.devices.unpair')}
                     aria-label={t('gps.devices.unpairLabel', { device: deviceName(device.type) })}

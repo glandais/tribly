@@ -156,9 +156,9 @@ export function ProfileAccountPage() {
         </form>
       </ProfileCard>
 
-      <ProfileCard>
+      <ProfileCard tone="danger">
         <Box>
-          <Title order={3} size="h5" c="red">
+          <Title order={3} size="h5" c="danger">
             {t('profile.account.dangerZone.title')}
           </Title>
           <Text size="sm" c="dimmed" mt={4}>

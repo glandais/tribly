@@ -124,10 +124,18 @@ export function ProfileShell({
   )
 }
 
-/** A block of a profile page: one subject, in its own bordered card. */
-export function ProfileCard({ children }: { children: ReactNode }) {
+/**
+ * A block of a profile page: one subject, in its own bordered card. `tone="danger"` draws the
+ * border in the charter's danger token (docs/BRANDING.md §3.1), for the account's danger zone.
+ */
+export function ProfileCard({ children, tone }: { children: ReactNode; tone?: 'danger' }) {
   return (
-    <Paper withBorder radius="md" p="lg">
+    <Paper
+      withBorder
+      radius="md"
+      p="lg"
+      style={tone === 'danger' ? { borderColor: 'var(--mantine-color-danger-outline)' } : undefined}
+    >
       {children}
     </Paper>
   )

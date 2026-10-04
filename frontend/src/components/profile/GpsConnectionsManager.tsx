@@ -65,7 +65,7 @@ export function GpsConnectionsManager() {
                 ? 'gps.notifications.returnDenied'
                 : 'gps.notifications.returnFailed'
             ),
-            color: 'red',
+            color: 'danger',
           }
     )
     const next = new URLSearchParams(searchParams)
@@ -140,7 +140,7 @@ export function GpsConnectionsManager() {
                         </Badge>
                         <ActionIcon
                           variant="subtle"
-                          color="red"
+                          color="danger"
                           onClick={() => setDisconnectServiceType(type)}
                           title={t('gps.disconnect')}
                           aria-label={t('gps.disconnect')}
