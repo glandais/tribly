@@ -14,6 +14,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/push_location.dart';
 import '../../../../keys.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -53,7 +54,7 @@ class ProfilePage extends ConsumerWidget {
     // Le résumé est relu quand la sous-page se ferme
     // (`ProfileSummaryRefreshOnLeave`), quelle que soit la façon dont on y
     // est arrivé : rien à faire au retour du `push`.
-    void open(String path) => context.push(path);
+    void open(String path) => pushLocation(context, path);
 
     return PdlScreenScaffold(
       appBar: PdlAppBar(title: 'profile.title'.tr()),

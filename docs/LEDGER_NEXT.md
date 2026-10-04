@@ -100,14 +100,18 @@ données en prod), `MOB-15` pas faite, et le 500 du contact vendeur (`MOB-47`).
       mail échoue à la demande (le web le simule par `page.route`, Patrol non plus — `MOB-25`).
 - [ ] `MOB-13` **Trombinoscope (34)** — sur `n-peloton`, le pied annonce le total exact (1 999) à
       chaque page. C'est le point où le mobile chargeait 20 membres sur 1 999 **sans le dire**.
-- [ ] `MOB-15` **Profil (33)** — les quatre réglages s'appliquent **immédiatement, sans bouton**
-      (unités, thème, langue, « Être contacté par les membres ») ; un échec revient à la valeur
-      précédente. Ajouter une seconde clé d'accès **n'écrase plus les autres**. `logout-all` est
-      câblé. La cloche et la section Notifications existent depuis la phase 3 de
-      [`plans/archive/2026-09-18-notifications.md`](plans/archive/2026-09-18-notifications.md) — mais
-      la section reste **non rendue** tant que le serveur ne déclare aucun canal configurable — le
-      défaut en dev, plus le cas en prod depuis que le push y est actif : à recetter dans les deux
-      états.
+- [ ] `MOB-15` **Profil (33)** — à recetter sur le profil refondu (`MOB-48` : vue d'ensemble puis
+      sous-pages `/profil/<sujet>`). **Préférences** : les quatre réglages (unités, fuseau horaire,
+      thème, langue) s'appliquent **immédiatement, sans bouton**, et la ligne d'état de la vue
+      d'ensemble suit au retour ; un échec revient à la valeur précédente. **Confidentialité** :
+      « Être contacté par les membres », même règle ; Utilisateurs bloqués s'ouvre en
+      Profil › Confidentialité › Bloqués, y compris par lien profond. **Connexion et sécurité** :
+      ajouter une seconde clé d'accès **n'écrase plus les autres**, « Déconnecter tous les
+      appareils » est câblé. **Notifications** : une ligne par type, une puce par canal déclaré par
+      le serveur — à recetter dans les deux états, aucun canal configurable (le défaut en dev ; la
+      ligne d'état dit alors que tout reste dans l'app) et push actif (le cas en prod). La cloche reste sur
+      l'Accueil (`MOB-50`). Les mêmes parcours sont automatisés dans Patrol (`MOB-49`), pas encore
+      lancés.
 - [ ] `MOB-20` **Performance** — liste de 200 items : rester au-dessus de 55 fps. Si le
       `BackdropFilter` des barres épinglées coûte trop cher, le repli prévu (non implémenté à ce
       jour — `blurToolbar` est une constante fixe à 12, aucune branche conditionnelle) serait **un

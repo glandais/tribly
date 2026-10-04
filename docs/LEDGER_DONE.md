@@ -344,7 +344,9 @@ couvert » ; les tests ne tournent qu'en local (`MOB-37`).
   appel par sujet ; `notifyParticipationChanged` et `refreshAfterBlockChange` invalident
   `profileSummaryProvider`, qui se recharge aussi quand l'ensemble de mes équipes change
   (`myTeamsProvider`) ; Se déconnecter une seule fois dans le profil ; la navigation entre branches
-  (profil → boîte de réception ou Équipes, boîte → réglages) passe par `go`, jamais `push`.
+  (profil → boîte de réception ou Équipes, boîte → réglages) passe par `go`, jamais `push` ; l'ouverture
+  d'une sous-page passe par `pushLocation` (`MOB-44`), qui reprend la pile du lien profond quand on
+  part d'une page plein écran (`test/core/utils/push_location_test.dart`).
 
 ---
 

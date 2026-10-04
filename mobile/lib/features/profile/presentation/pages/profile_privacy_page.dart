@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../config/paths.dart';
 import '../../../../core/pdl/pdl.dart';
@@ -12,6 +11,7 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/utils/api_error_handler.dart';
+import '../../../../core/utils/push_location.dart';
 import '../../../../keys.dart';
 import '../../providers/profile_summary_provider.dart';
 import '../widgets/data_and_account_section.dart';
@@ -116,7 +116,7 @@ class _ProfilePrivacyPageState extends ConsumerState<ProfilePrivacyPage> {
                     ),
                   ],
                 ),
-                onTap: () => context.push(Paths.blockedUsers()),
+                onTap: () => pushLocation(context, Paths.blockedUsers()),
               ),
             ),
           ),

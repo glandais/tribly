@@ -61,6 +61,30 @@ void main() {
                 ),
               ],
             ),
+            StatefulShellBranch(
+              routes: <RouteBase>[
+                GoRoute(
+                  path: Paths.profile(),
+                  pageBuilder: (c, s) => tab('profil'),
+                ),
+                GoRoute(
+                  path: Paths.profileAccount(),
+                  pageBuilder: (c, s) => tab('mon compte'),
+                ),
+                GoRoute(
+                  path: Paths.profilePrivacy(),
+                  pageBuilder: (c, s) => tab('confidentialité'),
+                  routes: <RouteBase>[
+                    GoRoute(
+                      path: Paths.blockedUsers().substring(
+                        Paths.profilePrivacy().length + 1,
+                      ),
+                      pageBuilder: (c, s) => tab('bloqués'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ],
         ),
       ],
@@ -145,5 +169,36 @@ void main() {
 
     await back(tester, router);
     expect(shown('équipe vc'), findsOneWidget);
+  });
+
+  // MOB-48 : les sous-pages du profil sont des pages d'onglet ; ouvertes
+  // depuis une page plein écran, elles prennent la pile de leur lien profond.
+  testWidgets(
+    'd\'une sortie aux utilisateurs bloqués : Profil › Confidentialité',
+    (WidgetTester tester) async {
+      final GoRouter router = await pump(tester);
+      await open(tester, Paths.ride('vc', 'rando'));
+      await open(tester, Paths.blockedUsers());
+      expect(tester.takeException(), isNull);
+      expect(shown('bloqués'), findsOneWidget);
+
+      await back(tester, router);
+      expect(shown('confidentialité'), findsOneWidget);
+      await back(tester, router);
+      expect(shown('profil'), findsOneWidget);
+    },
+  );
+
+  testWidgets('depuis l\'onglet Profil, une sous-page par push ordinaire', (
+    WidgetTester tester,
+  ) async {
+    final GoRouter router = await pump(tester);
+    router.go(Paths.profile());
+    await tester.pumpAndSettle();
+    await open(tester, Paths.profileAccount());
+    expect(shown('mon compte'), findsOneWidget);
+
+    await back(tester, router);
+    expect(shown('profil'), findsOneWidget);
   });
 }

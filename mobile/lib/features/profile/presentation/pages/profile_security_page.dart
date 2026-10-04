@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../config/paths.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../core/utils/push_location.dart';
 import '../widgets/data_and_account_section.dart';
 import '../widgets/passkeys_section.dart';
 import '../widgets/profile_subpage.dart';
@@ -33,7 +33,7 @@ class ProfileSecurityPage extends StatelessWidget {
               padding: PdlCardPadding.none,
               child: PdlSettingRow(
                 title: 'profile.sessions.deleteAccount'.tr(),
-                onTap: () => context.push(Paths.profileAccount()),
+                onTap: () => pushLocation(context, Paths.profileAccount()),
               ),
             ),
           ),
