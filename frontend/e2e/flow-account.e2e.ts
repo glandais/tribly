@@ -61,7 +61,7 @@ async function signInWithPassword(page: Page, email: string, password: string) {
   const main = page.getByRole('main')
   const submit = main.getByRole('button', { name: 'Se connecter', exact: true })
   await hydrated(submit)
-  await main.getByRole('textbox', { name: 'Email' }).fill(email)
+  await main.getByRole('textbox', { name: 'Adresse e-mail' }).fill(email)
   await main.getByRole('textbox', { name: 'Mot de passe' }).fill(password)
   await submit.click()
 }
@@ -108,8 +108,8 @@ test('sign up with the form, verify through the mail, sign out from the header, 
   await toRegister.click()
   await expect(main.getByRole('heading', { name: 'Créer un compte' })).toBeVisible()
 
-  await main.getByRole('textbox', { name: 'Email' }).fill(email)
-  await main.getByRole('textbox', { name: "Nom d'affichage" }).fill(displayName)
+  await main.getByRole('textbox', { name: 'Adresse e-mail' }).fill(email)
+  await main.getByRole('textbox', { name: 'Nom affiché' }).fill(displayName)
   // No password on the sign-up form: it is chosen on the page the link opens (SEC-24).
   await expect(main.getByRole('textbox', { name: 'Mot de passe', exact: true })).toHaveCount(0)
   await main.getByRole('checkbox').check()
@@ -123,7 +123,7 @@ test('sign up with the form, verify through the mail, sign out from the header, 
     )
   ).toBeVisible()
   await expect(main.getByRole('heading', { name: WELCOME })).toBeVisible()
-  await expect(main.getByRole('textbox', { name: 'Email' })).toHaveValue(email)
+  await expect(main.getByRole('textbox', { name: 'Adresse e-mail' })).toHaveValue(email)
   // Not usable before the address is verified.
   await expect(loginWithPassword(email, password)).rejects.toBeInstanceOf(ApiError)
 
@@ -165,7 +165,7 @@ test('a wrong password is refused and signs nobody in', async ({ page, context }
   const user = await newUser(unique('Mauvais mot de passe'))
   await openLogin(page)
   await signInWithPassword(page, user.user.email, 'not-the-password')
-  await expect(page.getByText('Email ou mot de passe incorrect')).toBeVisible()
+  await expect(page.getByText('Adresse e-mail ou mot de passe incorrect')).toBeVisible()
   await expect(page).toHaveURL(/\/connexion$/)
   expect(await sessionCookie(context)).toBeUndefined()
 })
@@ -184,11 +184,11 @@ test.describe('sign-in by e-mailed code', () => {
   /** From the login page to the code step: the address typed, the code requested and read. */
   async function requestCode(page: Page, email: string) {
     const main = await openLogin(page)
-    const byMail = main.getByRole('button', { name: 'Connexion par email' })
+    const byMail = main.getByRole('button', { name: 'Connexion par e-mail' })
     await hydrated(byMail)
     await byMail.click()
-    await expect(main.getByRole('heading', { name: 'Code par email' })).toBeVisible()
-    await main.getByRole('textbox', { name: 'Email' }).fill(email)
+    await expect(main.getByRole('heading', { name: 'Code par e-mail' })).toBeVisible()
+    await main.getByRole('textbox', { name: 'Adresse e-mail' }).fill(email)
     const seen = await mailbox(email)
     await main.getByRole('button', { name: 'Envoyer le code' }).click()
     await expect(main.getByRole('heading', { name: 'Entrez votre code' })).toBeVisible()
@@ -295,10 +295,10 @@ test('forgotten password: the mail, a new password, then sign in with it', async
   await forgot.click()
   const main = page.getByRole('main')
   await expect(main.getByRole('heading', { name: 'Mot de passe oublié' })).toBeVisible()
-  await main.getByRole('textbox', { name: 'Email' }).fill(email)
+  await main.getByRole('textbox', { name: 'Adresse e-mail' }).fill(email)
   const seen = await mailbox(email)
   await main.getByRole('button', { name: 'Envoyer le lien' }).click()
-  await expect(main.getByRole('heading', { name: 'Email envoyé' })).toBeVisible()
+  await expect(main.getByRole('heading', { name: 'E-mail envoyé' })).toBeVisible()
 
   await page.goto(mailLinkTo(await waitForNewMail(email, seen), '/reset-password'))
   await expect(main.getByRole('heading', { name: 'Réinitialiser le mot de passe' })).toBeVisible()
@@ -824,7 +824,7 @@ test.describe('deleting the account', () => {
 
     // The address and password open nothing any more — neither through the form nor the API.
     await signInWithPassword(page, user.user.email, user.password)
-    await expect(page.getByText('Email ou mot de passe incorrect')).toBeVisible()
+    await expect(page.getByText('Adresse e-mail ou mot de passe incorrect')).toBeVisible()
     await expect(page).toHaveURL(/\/connexion/)
     const refused = await loginWithPassword(user.user.email, user.password).catch(
       (error: unknown) => error
@@ -894,7 +894,7 @@ test('a deleted passkey is gone from the profile and no longer signs in', async 
   const refused = page.waitForResponse((r) => r.url().endsWith('/api/auth/passkeys/authenticate'))
   await quick.click()
   expect((await refused).ok(), 'the server refuses the deleted credential').toBe(false)
-  await expect(page.getByText("Échec de l'authentification par passkey")).toBeVisible()
+  await expect(page.getByText("Échec de l'authentification par clé d'accès")).toBeVisible()
   await expect(page).toHaveURL(/\/connexion$/)
   expect(await sessionCookie(context)).toBeUndefined()
 })
@@ -1070,11 +1070,11 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
       const main = page.getByRole('main')
       const submit = main.getByRole('button', { name: 'Envoyer le lien' })
       await hydrated(submit)
-      await main.getByRole('textbox', { name: 'Email' }).fill(email)
+      await main.getByRole('textbox', { name: 'Adresse e-mail' }).fill(email)
       const answered = page.waitForResponse((r) => r.url().endsWith('/api/auth/forgot-password'))
       await submit.click()
       expect((await answered).status()).toBe(200)
-      await expect(main.getByRole('heading', { name: 'Email envoyé' })).toBeVisible()
+      await expect(main.getByRole('heading', { name: 'E-mail envoyé' })).toBeVisible()
       return main.innerText()
     }
 
@@ -1096,10 +1096,10 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
 
     async function ask(email: string) {
       const main = await openLogin(page)
-      const byMail = main.getByRole('button', { name: 'Connexion par email' })
+      const byMail = main.getByRole('button', { name: 'Connexion par e-mail' })
       await hydrated(byMail)
       await byMail.click()
-      await main.getByRole('textbox', { name: 'Email' }).fill(email)
+      await main.getByRole('textbox', { name: 'Adresse e-mail' }).fill(email)
       const answered = page.waitForResponse((r) => r.url().endsWith('/api/auth/otp'))
       await main.getByRole('button', { name: 'Envoyer le code' }).click()
       expect((await answered).status()).toBe(200)
@@ -1122,8 +1122,8 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
     await hydrated(toRegister)
     await toRegister.click()
     await expect(main.getByRole('heading', { name: 'Créer un compte' })).toBeVisible()
-    await main.getByRole('textbox', { name: 'Email' }).fill(email)
-    await main.getByRole('textbox', { name: "Nom d'affichage" }).fill(unique('Inscription'))
+    await main.getByRole('textbox', { name: 'Adresse e-mail' }).fill(email)
+    await main.getByRole('textbox', { name: 'Nom affiché' }).fill(unique('Inscription'))
     return main
   }
 
@@ -1173,8 +1173,8 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
     await main.getByRole('checkbox').check()
     const shown = await watchToasts(page)
     await main.getByRole('button', { name: 'Créer un compte' }).click()
-    await expect(page.getByText('Un compte existe déjà avec cet email')).toBeVisible()
-    expect(await shown()).toEqual(['Un compte existe déjà avec cet email'])
+    await expect(page.getByText('Un compte existe déjà avec cette adresse e-mail')).toBeVisible()
+    expect(await shown()).toEqual(['Un compte existe déjà avec cette adresse e-mail'])
   })
 
   test('signing up with an address that has an account says so and sends no mail', async ({
@@ -1187,10 +1187,10 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
     const registered = page.waitForResponse((r) => r.url().endsWith('/api/auth/register'))
     await main.getByRole('button', { name: 'Créer un compte' }).click()
     expect((await registered).status()).toBe(400)
-    await expect(page.getByText('Un compte existe déjà avec cet email')).toBeVisible()
+    await expect(page.getByText('Un compte existe déjà avec cette adresse e-mail')).toBeVisible()
     // Still on the sign-up form, nothing lost.
     await expect(main.getByRole('heading', { name: 'Créer un compte' })).toBeVisible()
-    await expect(main.getByRole('textbox', { name: 'Email' })).toHaveValue(user.user.email)
+    await expect(main.getByRole('textbox', { name: 'Adresse e-mail' })).toHaveValue(user.user.email)
     expect((await mailsTo(user.user.email)).length).toBe(before)
     // The account is untouched.
     expect((await loginWithPassword(user.user.email, user.password)).user.id).toBe(user.user.id)
@@ -1207,7 +1207,7 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
   }) => {
     const email = freshAddress('mail non parti')
     const main = await fillSignUp(page, email)
-    const displayName = await main.getByRole('textbox', { name: "Nom d'affichage" }).inputValue()
+    const displayName = await main.getByRole('textbox', { name: 'Nom affiché' }).inputValue()
     const terms = main.getByRole('checkbox')
     await terms.check()
     let refused = 0
@@ -1229,8 +1229,8 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
     expect(await shown()).toEqual([message])
     // Still the sign-up form, every field as typed.
     await expect(main.getByRole('heading', { name: 'Créer un compte' })).toBeVisible()
-    await expect(main.getByRole('textbox', { name: 'Email' })).toHaveValue(email)
-    await expect(main.getByRole('textbox', { name: "Nom d'affichage" })).toHaveValue(displayName)
+    await expect(main.getByRole('textbox', { name: 'Adresse e-mail' })).toHaveValue(email)
+    await expect(main.getByRole('textbox', { name: 'Nom affiché' })).toHaveValue(displayName)
     await expect(terms).toBeChecked()
 
     // The same click again, now answered by the backend: the mail leaves, the login form follows.
@@ -1244,7 +1244,7 @@ test.describe('replayed links, unknown addresses, sign-up checks', () => {
       )
     ).toBeVisible()
     await expect(main.getByRole('heading', { name: WELCOME })).toBeVisible()
-    await expect(main.getByRole('textbox', { name: 'Email' })).toHaveValue(email)
+    await expect(main.getByRole('textbox', { name: 'Adresse e-mail' })).toHaveValue(email)
     mailLinkTo(await waitForNewMail(email, seen), '/verify-email')
     expect(refused).toBe(1)
   })
@@ -1535,7 +1535,7 @@ test.describe('personal data export', () => {
     await request.click()
     expect((await requested).status()).toBe(202)
     await expect(
-      page.getByText("Export demandé. Vous recevrez un email dès qu'il sera prêt.")
+      page.getByText("Export demandé. Vous recevrez un e-mail dès qu'il sera prêt.")
     ).toBeVisible()
 
     // One at a time: the button waits, and the API refuses a second one.
@@ -1551,7 +1551,7 @@ test.describe('personal data export', () => {
 
     // The profile follows the export to its end.
     await expect(
-      main.getByText(/^Votre export est prêt\. Le lien envoyé par email est valable jusqu'au /)
+      main.getByText(/^Votre export est prêt\. Le lien envoyé par e-mail est valable jusqu'au /)
     ).toBeVisible({ timeout: 15_000 })
     await expect(main.getByText('Préparation en cours')).toHaveCount(0)
     await expect(request).toBeEnabled()

@@ -126,7 +126,7 @@ test.describe('the service worker', () => {
       const main = page.getByRole('main')
       const submit = main.getByRole('button', { name: 'Se connecter', exact: true })
       await hydrated(submit)
-      await main.getByRole('textbox', { name: 'Email' }).fill(second.user.email)
+      await main.getByRole('textbox', { name: 'Adresse e-mail' }).fill(second.user.email)
       await main.getByRole('textbox', { name: 'Mot de passe' }).fill(second.password)
       await submit.click()
       await expect(page).not.toHaveURL(/\/connexion$/)

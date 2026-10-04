@@ -589,7 +589,7 @@ test('the row actions of the domain list have an accessible name', async ({ page
  */
 test.describe('beta sign-ups', () => {
   const submitSignUp = async (page: Page, email: string) => {
-    const field = page.getByRole('main').getByRole('textbox', { name: 'Email' })
+    const field = page.getByRole('main').getByRole('textbox', { name: 'Adresse e-mail' })
     await hydrated(field)
     await field.fill(email)
     const sent = page.waitForResponse(
@@ -610,11 +610,11 @@ test.describe('beta sign-ups', () => {
       await visitor.goto('/applications')
       await expect(visitor.getByRole('heading', { name: 'Devenir testeur·se' })).toBeVisible()
       // A malformed address stays on the form, with its message.
-      const field = visitor.getByRole('main').getByRole('textbox', { name: 'Email' })
+      const field = visitor.getByRole('main').getByRole('textbox', { name: 'Adresse e-mail' })
       await hydrated(field)
       await field.fill('pas-une-adresse')
       await visitor.getByRole('main').getByRole('button', { name: "S'inscrire" }).click()
-      await expect(visitor.getByText('Email invalide', { exact: true })).toBeVisible()
+      await expect(visitor.getByText('Adresse e-mail invalide', { exact: true })).toBeVisible()
 
       await submitSignUp(visitor, email)
       // Again, in capitals: the same answer, and no second row.

@@ -83,7 +83,7 @@ test('an anonymous rider scanning the Garmin code signs in, comes back to the sa
   const completions = countCompletions(page)
   const submit = main.getByRole('button', { name: 'Se connecter', exact: true })
   await hydrated(submit)
-  await main.getByRole('textbox', { name: 'Email' }).fill(rider.user.email)
+  await main.getByRole('textbox', { name: 'Adresse e-mail' }).fill(rider.user.email)
   await main.getByRole('textbox', { name: 'Mot de passe' }).fill(rider.password)
   await submit.click()
 

@@ -294,7 +294,7 @@ test.describe('invitee side', () => {
     // …which returns there once signed in with the invited address.
     await hydrated(signInLink)
     await signInLink.click()
-    await page.getByLabel('Email').fill(invitee.user.email)
+    await page.getByLabel('Adresse e-mail').fill(invitee.user.email)
     await page.getByLabel('Mot de passe').fill(invitee.password)
     await page.getByRole('main').getByRole('button', { name: 'Se connecter', exact: true }).click()
     await expect(page).toHaveURL(new RegExp(`/invitation\\?token=${token}$`))
@@ -397,8 +397,8 @@ test.describe('invitee side', () => {
 
     // Sign up from there.
     await page.getByRole('button', { name: 'Créer un compte' }).click()
-    await page.getByRole('textbox', { name: 'Email' }).fill(email)
-    await page.getByRole('textbox', { name: "Nom d'affichage" }).fill('Nouvelle recrue')
+    await page.getByRole('textbox', { name: 'Adresse e-mail' }).fill(email)
+    await page.getByRole('textbox', { name: 'Nom affiché' }).fill('Nouvelle recrue')
     await page.getByRole('checkbox').check()
     const seen = await mailbox(email)
     await page.getByRole('button', { name: 'Créer un compte' }).click()
