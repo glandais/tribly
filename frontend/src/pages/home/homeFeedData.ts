@@ -6,7 +6,10 @@ import {
   getListAllPublicationsQueryKey,
   prefetchListAllPublicationsQuery,
 } from '@/api/endpoints/publications/publications'
-import { prefetchListMyParticipationsQuery } from '@/api/endpoints/users/users'
+import {
+  prefetchListMyParticipationsQuery,
+  prefetchListPairedDevicesQuery,
+} from '@/api/endpoints/users/users'
 import { useGetEvents, prefetchGetEventsQuery } from '@/api/endpoints/calendar/calendar'
 import { useListTeams, prefetchListTeamsQuery } from '@/api/endpoints/teams/teams'
 import { prefetchGetAvailableServicesQuery } from '@/api/endpoints/gps-services/gps-services'
@@ -159,6 +162,8 @@ export async function prefetchHomeFeed(queryClient: QueryClient, url: URL): Prom
       prefetchListTeamsQuery(queryClient, MY_TEAMS_PARAMS),
       // `NextRideCard`'s « Envoyer vers l'appareil » goes through `useGpsConnections()`.
       prefetchGetAvailableServicesQuery(queryClient),
+      // `FeaturesPromoCard` reads the paired devices for every member, before deciding to show.
+      prefetchListPairedDevicesQuery(queryClient),
     ])
   }
   const filters = readUrlFilters(url.searchParams, homeFeedFilterOptions(membershipDefault))

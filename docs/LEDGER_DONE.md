@@ -435,7 +435,9 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   formulaires de création et d'édition (`prefetchCreate…Form` / `prefetchEdit…Form` des modules
   `pages/*/…FormData.ts`) ; la liste `/notifications` (`prefetchNotificationList`) ; les préférences
   de notification et les appareils appairés du profil (`profileData.ts`) ; le webhook des réglages
-  d'équipe, pour un admin seulement (`prefetchTeamSettings`). `routes-render.e2e.ts` reçoit la
+  d'équipe, pour un admin seulement (`prefetchTeamSettings`). Après rebase, la carte de fin de l'accueil membre
+  (`FeaturesPromoCard`, `WEB-51`) lisait les appareils appairés hors préchargement : ajoutés à
+  `prefetchHomeFeed`. `routes-render.e2e.ts` reçoit la
   route `features`, qui y manquait, et l'accueil anonyme y attend désormais la présentation visiteur (`seesAs`) : sur
   `develop`, `home` échouait en anonyme depuis le nouvel accueil. `ads-browse.e2e.ts` (« the exact
   point of an ad… ») ouvre l'annonce depuis la liste : ouvertes par leur URL, les deux pages ne
