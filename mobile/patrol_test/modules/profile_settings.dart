@@ -120,8 +120,11 @@ final class ProfileSettings extends Module {
 
   // ── Paired devices ──────────────────────────────────────────────────────
 
+  /// A device row has no action of its own: only its cross takes a tap, so its centre is not
+  /// hit-testable and [scrolledTo] would never call it visible. The list loads first.
   Future<void> waitUntilDeviceIsListed(String id) async {
-    await scrolledTo(keys.profile.pairedDevice(id));
+    await $(keys.profile.pairedDevice(id)).waitUntilExists();
+    await scrolledIntoView(keys.profile.pairedDevice(id));
   }
 
   /// The cross of the device [id], then the confirmation.
