@@ -138,8 +138,8 @@ Issues du dépôt `pedalons-feedback`, corrigées le 6 octobre 2026, contrat inc
   (tracés, marqueurs, réticule) n'était pas posée. Sous Android, `PdlMassTiles.platformSource`
   écrit un TileJSON équivalent dans le cache de l'app et passe son URL `file://` ; iOS garde
   `tiles`. Une masse qui ne se pose pas n'emporte plus le reste (`_applyMassLayer` rattrape et
-  journalise). Test : `pdl_mass_layer_test.dart` (le document TileJSON) ; la pose sur appareil
-  Android reste à constater. **À ne pas défaire** : ne pas revenir à `tiles` sous Android tant que
+  journalise). Test : `pdl_mass_layer_test.dart` (le document TileJSON) ; constaté sur un Pixel 6a
+  (Android, build debug) le 6 octobre 2026. **À ne pas défaire** : ne pas revenir à `tiles` sous Android tant que
   le greffon ne lit pas `VectorSource.tiles` (la liaison JNI sur `TileSet` existe, c'est
   `style_controller.dart` qui ne l'emploie pas).
 - [x] `MOB-56` **La connexion levait quand Firebase n'avait pas démarré** (feedback #4) —
