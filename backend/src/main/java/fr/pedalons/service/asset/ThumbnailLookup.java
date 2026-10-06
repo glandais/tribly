@@ -1,5 +1,6 @@
 package fr.pedalons.service.asset;
 
+import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.repository.asset.AssetRepository;
 import fr.pedalons.repository.asset.AssetRepository.ThumbnailRow;
 import fr.pedalons.service.security.PedalonsQueryContext;
@@ -8,6 +9,7 @@ import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
@@ -79,6 +81,39 @@ public class ThumbnailLookup {
       thumbnails.put(entityId, new ThemedThumbnail(light.get(entityId), dark.get(entityId)));
     }
     return thumbnails;
+  }
+
+  /**
+   * The thumbnail each ride shows on a list row, in one query for the whole page: the ride's own,
+   * else its route's — the same fallback {@code RideDto} applies on the detail path. The ride and
+   * route asset collections are never walked (docs/LEDGER_*.md API-80).
+   *
+   * @return ride id → its thumbnail; a ride with none, neither its own nor its route's, is absent
+   */
+  public Map<Long, ThemedThumbnail> forRides(List<Ride> rides) {
+    if (rides.isEmpty()) {
+      return Map.of();
+    }
+    Set<Long> ids = new HashSet<>();
+    for (Ride ride : rides) {
+      ids.add(ride.getId());
+      // Ride.route is an eager to-one, already loaded with the ride: reading its id costs nothing.
+      if (ride.getRoute() != null) {
+        ids.add(ride.getRoute().getId());
+      }
+    }
+    Map<Long, ThemedThumbnail> byEntity = forTeamEntities(ids);
+    Map<Long, ThemedThumbnail> byRide = new HashMap<>();
+    for (Ride ride : rides) {
+      ThemedThumbnail thumbnail = byEntity.get(ride.getId());
+      if (thumbnail == null && ride.getRoute() != null) {
+        thumbnail = byEntity.get(ride.getRoute().getId());
+      }
+      if (thumbnail != null) {
+        byRide.put(ride.getId(), thumbnail);
+      }
+    }
+    return byRide;
   }
 
   private static Set<Long> union(Set<Long> a, Set<Long> b) {

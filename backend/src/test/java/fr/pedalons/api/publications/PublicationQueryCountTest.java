@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.pedalons.api.AbstractQueryCountTest;
+import fr.pedalons.common.TsidUtils;
+import fr.pedalons.domain.asset.Asset;
 import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.ride.Ride;
@@ -34,7 +36,9 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -213,6 +217,91 @@ class PublicationQueryCountTest extends AbstractQueryCountTest {
         "GET /api/teams/{teamSlug}/publications?type=RIDE in forecast window",
         asUser1(),
         "/api/teams/" + team1Slug + "/publications?type=RIDE");
+  }
+
+  /**
+   * docs/LEDGER_*.md API-80: every ride sits on a route of its own carrying both themed thumbnails,
+   * and one ride in three has its own light thumbnail too. The row's picture is the ride's own, else
+   * its route's — resolved for the whole page by {@code ThumbnailLookup.forRides}, never by walking
+   * {@code ride.getRoute().getAssets()} per row.
+   *
+   * <p>Only statements are budgeted here, not hydrated entities: {@code MediaDto} still reads each
+   * ride's own asset inventory, and since rides and routes share the {@code TeamEntity.assets}
+   * collection role, Hibernate's batch fetch may initialise the routes' collections alongside —
+   * a cost of the media inventory, not of the thumbnail.
+   */
+  @Test
+  void listTeamRides_routeThumbnails_costAPageNotARow() {
+    Instant base = Instant.now().plus(7, ChronoUnit.DAYS);
+    Map<String, String> expectedThumbnailBySlug = new HashMap<>();
+    for (int i = 0; i < LARGE_PAGE; i++) {
+      String slug = "routed-ride-" + i;
+      Ride ride =
+          dataService.createRide(
+              team1,
+              user1,
+              "Routed Ride " + i,
+              slug,
+              base.plusSeconds(i),
+              Visibility.PUBLIC,
+              Status.PUBLISHED);
+      Route route = dataService.createRoute(team1, user1, "Routed route " + i);
+      Asset routeLight =
+          dataService.attachAsset(route, user1, AssetType.ROUTE_THUMBNAIL_LIGHT, "light.png");
+      dataService.attachAsset(route, user1, AssetType.ROUTE_THUMBNAIL_DARK, "dark.png");
+      dataService.setRideRoute(ride, route);
+      Asset expected = routeLight;
+      if (i % 3 == 0) {
+        expected = dataService.attachAsset(ride, user1, AssetType.RIDE_THUMBNAIL_LIGHT, "own.png");
+      }
+      expectedThumbnailBySlug.put(slug, TsidUtils.toString(expected.getId()));
+    }
+
+    // Not vacuous: every row carries a picture, the ride's own when it has one, else its route's.
+    List<Map<String, Object>> rows =
+        asUser1()
+            .get()
+            .when()
+            .get("/api/teams/" + team1Slug + "/publications?type=RIDE&size=" + LARGE_PAGE)
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("publications");
+    assertEquals(LARGE_PAGE, rows.size());
+    for (Map<String, Object> row : rows) {
+      String thumbnailUrl = (String) row.get("thumbnailUrl");
+      String expectedAssetId = expectedThumbnailBySlug.get((String) row.get("slug"));
+      assertTrue(
+          thumbnailUrl != null && thumbnailUrl.contains("/" + expectedAssetId + "/"),
+          () -> row.get("slug") + " expected asset " + expectedAssetId + ", got " + thumbnailUrl);
+    }
+
+    String path = "/api/teams/" + team1Slug + "/publications?type=RIDE&size=";
+    QueryStats.Counters small =
+        queryStats.measureAll(
+            "GET /api/teams/{teamSlug}/publications?type=RIDE routed [" + SMALL_PAGE + " rows]",
+            () -> asUser1().get().when().get(path + SMALL_PAGE).then().statusCode(200));
+    QueryStats.Counters large =
+        queryStats.measureAll(
+            "GET /api/teams/{teamSlug}/publications?type=RIDE routed [" + LARGE_PAGE + " rows]",
+            () -> asUser1().get().when().get(path + LARGE_PAGE).then().statusCode(200));
+    long growth = large.statements() - small.statements();
+    assertTrue(
+        growth <= MAX_STATEMENT_GROWTH,
+        () ->
+            "N+1 on the ride row thumbnails: "
+                + SMALL_PAGE
+                + " rows cost "
+                + small.statements()
+                + " SQL statements, "
+                + LARGE_PAGE
+                + " rows cost "
+                + large.statements()
+                + " (+"
+                + growth
+                + ", budget +"
+                + MAX_STATEMENT_GROWTH
+                + ")");
   }
 
   @Test

@@ -26,6 +26,8 @@ import fr.pedalons.repository.common.PublicationQuery;
 import fr.pedalons.repository.ride.RideSummaryRepository;
 import fr.pedalons.repository.trip.TripSummaryRepository;
 import fr.pedalons.service.asset.AssetService;
+import fr.pedalons.service.asset.ThumbnailLookup;
+import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.post.PostAuthorLookup;
 import fr.pedalons.service.security.PedalonsQueryContext;
@@ -40,6 +42,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import org.jspecify.annotations.Nullable;
@@ -70,6 +73,8 @@ public class PublicationService {
   @Inject TagLookup tagLookup;
 
   @Inject RideWeatherLookup rideWeatherLookup;
+
+  @Inject ThumbnailLookup thumbnailLookup;
 
   @Inject TagService tagService;
 
@@ -511,6 +516,10 @@ public class PublicationService {
     // page leaves within the forecast horizon. Read from the cache only, never the provider.
     RideWeatherSummaries rideWeather =
         rideWeatherLookup.forRides(itemsOfType(publications.items(), Ride.class));
+    // One more for the thumbnail of every ride, its own else its route's (docs/LEDGER_*.md
+    // API-80), none for a page without rides.
+    Map<Long, ThemedThumbnail> rideThumbnails =
+        thumbnailLookup.forRides(itemsOfType(publications.items(), Ride.class));
     List<PublicationDto> dtos =
         publications.items().stream()
             .map(
@@ -524,6 +533,7 @@ public class PublicationService {
                         postAuthors,
                         tags,
                         rideWeather,
+                        rideThumbnails,
                         view))
             .toList();
     return new PublicationListResponse(dtos, publications.total(), query.page(), query.size());

@@ -16,7 +16,9 @@ import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
+import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import fr.pedalons.service.weather.RideWeatherSummaries;
+import java.util.Map;
 import org.eclipse.microprofile.openapi.annotations.media.DiscriminatorMapping;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -69,6 +71,8 @@ public interface PublicationDto {
    * @param tags the tags of every row of the page, loaded in bulk by {@code TagLookup}
    * @param rideWeather the weather line of every ride of the page, loaded in at most one query by
    *     {@code RideWeatherLookup}
+   * @param rideThumbnails the thumbnail of every ride of the page, its own else its route's,
+   *     loaded in one query by {@code ThumbnailLookup.forRides}
    */
   static PublicationDto from(
       Publication publication,
@@ -79,6 +83,7 @@ public interface PublicationDto {
       PostAuthors postAuthors,
       ContentTags tags,
       RideWeatherSummaries rideWeather,
+      Map<Long, ThemedThumbnail> rideThumbnails,
       @Nullable ListViewMode view) {
     return switch (publication) {
       case Post post -> PostDto.from(post, assetService, commentCounts, postAuthors, tags, view);
@@ -91,6 +96,7 @@ public interface PublicationDto {
               commentCounts,
               tags,
               rideWeather,
+              rideThumbnails,
               view);
       case Trip trip ->
           TripDto.fromListItem(

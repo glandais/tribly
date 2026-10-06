@@ -318,6 +318,9 @@ public class RideDto implements PublicationDto {
    * @param tags the tags of this whole page, resolved in one query by {@code TagLookup}
    * @param weather the weather lines of this whole page, resolved in at most one query by {@code
    *     RideWeatherLookup}
+   * @param thumbnails ride id → thumbnail, the ride's own else its route's, for this whole page,
+   *     resolved in one query by {@code ThumbnailLookup.forRides} — never {@code
+   *     ride.getRoute().getAssets()} per row (docs/LEDGER_*.md API-80)
    * @param view {@link ListViewMode#COMPACT} leaves the markdown body and the asset inventory out of the
    *     row; {@code excerpt} and {@code thumbnailUrl} carry what it renders instead
    */
@@ -329,6 +332,7 @@ public class RideDto implements PublicationDto {
       CommentCounts commentCounts,
       ContentTags tags,
       RideWeatherSummaries weather,
+      Map<Long, ThemedThumbnail> thumbnails,
       @Nullable ListViewMode view) {
     return build(
         ride,
@@ -346,6 +350,7 @@ public class RideDto implements PublicationDto {
         commentCounts.forEntity(ride.getId()),
         tags.forContent(ride.getId()),
         weather,
+        thumbnails.get(ride.getId()),
         view);
   }
 
@@ -444,7 +449,36 @@ public class RideDto implements PublicationDto {
         commentCounts.forEntity(ride.getId()),
         tags,
         weather,
+        ownOrRouteThumbnail(ride, assetService),
         ListViewMode.FULL);
+  }
+
+  /**
+   * The detail path's thumbnail: one ride, so walking its assets (which {@code MediaDto} reads
+   * anyway) is fine. Same rule as {@code ThumbnailLookup.forRides} on the list path — the ride's
+   * own variants, else its route's.
+   */
+  private static @Nullable ThemedThumbnail ownOrRouteThumbnail(
+      Ride ride, AssetService assetService) {
+    String light = null;
+    String dark = null;
+    for (var asset : ride.getAssets()) {
+      switch (asset.getType()) {
+        case RIDE_THUMBNAIL_LIGHT -> light = assetService.getImageUrl(asset);
+        case RIDE_THUMBNAIL_DARK -> dark = assetService.getImageUrl(asset);
+        default -> {}
+      }
+    }
+    if (light == null && dark == null && ride.getRoute() != null) {
+      for (var asset : ride.getRoute().getAssets()) {
+        switch (asset.getType()) {
+          case ROUTE_THUMBNAIL_LIGHT -> light = assetService.getImageUrl(asset);
+          case ROUTE_THUMBNAIL_DARK -> dark = assetService.getImageUrl(asset);
+          default -> {}
+        }
+      }
+    }
+    return light == null && dark == null ? null : new ThemedThumbnail(light, dark);
   }
 
   private static RideListSummary.RouteMetrics metricsOf(Route route) {
@@ -468,33 +502,13 @@ public class RideDto implements PublicationDto {
       @Nullable Integer commentCount,
       List<TagDto> tags,
       RideWeatherSummaries weather,
+      @Nullable ThemedThumbnail thumbnail,
       @Nullable ListViewMode view) {
     Place startPlace = ride.getStart();
     Place endPlace = ride.getEnd();
     // Ride.route is an eager to-one, already loaded with the ride: the metrics cost no query.
     RideListSummary.RouteMetrics metrics =
         ride.getRoute() != null ? metricsOf(ride.getRoute()) : firstGroupRoute;
-
-    // Get thumbnail URLs from ride's own assets
-    String thumbnailLightUrl = null;
-    String thumbnailDarkUrl = null;
-    for (var asset : ride.getAssets()) {
-      switch (asset.getType()) {
-        case RIDE_THUMBNAIL_LIGHT -> thumbnailLightUrl = assetService.getImageUrl(asset);
-        case RIDE_THUMBNAIL_DARK -> thumbnailDarkUrl = assetService.getImageUrl(asset);
-        default -> {}
-      }
-    }
-    // Fallback to route thumbnail if ride has no own thumbnails
-    if (thumbnailLightUrl == null && thumbnailDarkUrl == null && ride.getRoute() != null) {
-      for (var asset : ride.getRoute().getAssets()) {
-        switch (asset.getType()) {
-          case ROUTE_THUMBNAIL_LIGHT -> thumbnailLightUrl = assetService.getImageUrl(asset);
-          case ROUTE_THUMBNAIL_DARK -> thumbnailDarkUrl = assetService.getImageUrl(asset);
-          default -> {}
-        }
-      }
-    }
 
     return new RideDto(
         TeamPublicationDto.from(ride.getTeam()),
@@ -519,9 +533,9 @@ public class RideDto implements PublicationDto {
         startPlace != null ? PlaceDetailDto.from(startPlace) : null,
         endPlace != null ? PlaceDetailDto.from(endPlace) : null,
         topParticipants,
-        thumbnailLightUrl,
-        thumbnailDarkUrl,
-        thumbnailLightUrl != null ? thumbnailLightUrl : thumbnailDarkUrl,
+        thumbnail != null ? thumbnail.light() : null,
+        thumbnail != null ? thumbnail.dark() : null,
+        thumbnail != null ? thumbnail.collapsed() : null,
         ride.isDeleted(),
         registeredGroupId != null,
         registeredGroupId != null ? TsidUtils.toString(registeredGroupId) : null,
