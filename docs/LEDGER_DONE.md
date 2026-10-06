@@ -1819,8 +1819,8 @@ en mètres, vent dominant, alerte pluie ≥ 50 %) et l'attribution Open-Meteo.co
 (`RideWeatherSummaryDto`, min → max sur la fenêtre départ → dernière arrivée estimée), chargé par
 `RideWeatherLookup.forRides` dans `PublicationService.list` et `RideService.toDto`. Les enums
 `WeatherStatus`, `WeatherCondition` (table WMO dans la description du schéma), `RelativeWind`,
-`CompassPoint` et `WeatherCheckpointKind` sont dans `fr.pedalons.enums`. Tests **écrits, pas encore
-lancés** (`API-75`) : purs — `CellKeyTest`, `RouteSampleLookupTest`, `RideWeatherCalculatorTest`
+`CompassPoint` et `WeatherCheckpointKind` sont dans `fr.pedalons.enums`. Tests (lancés le 6 octobre, verts :
+`API-75`) : purs — `CellKeyTest`, `RouteSampleLookupTest`, `RideWeatherCalculatorTest`
 (changements d'heure, vitesse par défaut, aller-retour), `WeatherRefreshPolicyTest`,
 `OpenMeteoGatewayTest`, `OpenMeteoClientTest`, `OpenMeteoCircuitBreakerTest` ; `@QuarkusTest` —
 `WeatherCacheTest`, `WeatherPlannerTest`, `WeatherFetchWorkerTest`, `WeatherHousekeepingTest`,
@@ -1860,6 +1860,18 @@ lancés** (`API-75`) : purs — `CellKeyTest`, `RouteSampleLookupTest`, `RideWea
 - Sur échec, rien n'est supprimé : on sert le cache périmé (`STALE` au-delà de deux intervalles de
   rafraîchissement).
 
+### `API-75` Tests backend de la météo, lancés
+
+Lancés le 6 octobre 2026 : les 16 classes de la météo des sorties et des voyages
+(`TripWeatherResourceTest`, `CellKeyTest`, `RouteSampleLookupTest`, `RideWeatherCalculatorTest`,
+`WeatherRefreshPolicyTest`, `OpenMeteoGatewayTest`, `OpenMeteoClientTest`,
+`OpenMeteoCircuitBreakerTest`, `OpenMeteoGatewayHttpTest`, `WeatherCacheTest`,
+`WeatherFetchWorkerTest`, `WeatherPlannerTest`, `WeatherHousekeepingTest`, `RideWeatherResourceTest`,
+`PublicationQueryCountTest`, `ArchitectureTest` : 166 tests) puis la suite complète (3 312 tests),
+sans un échec ni correction : le SQL natif de V61 (upsert `NULLS NOT DISTINCT`, backoff, fenêtre de
+la liste) tient sur la base de test. **À ne pas défaire** : un échec futur de
+`PublicationQueryCountTest` se corrige dans `RideWeatherLookup`, jamais en desserrant le test.
+
 ### `API-76` Météo des voyages, étape par étape : `getTripWeather` (contrat `10.11.0`)
 
 Livré le 6 octobre 2026 (10.10.0 → 10.11.0, mineur, ajouts seulement), sur les briques de `API-74`
@@ -1879,8 +1891,7 @@ premier point du parcours est le départ. `WeatherPlanner` demande aussi les mai
 partant dans `[now, now+7 j]` (`TripStageRepository.findForWeather`) et des voyages sans étape
 (`TripRepository.findStagelessForWeather`), via `TripWeatherPlans`, que la lecture
 (`TripWeatherService`) partage. Au passage : lecture du cache extraite dans `WeatherSeriesLoader`,
-ETag dans `WeatherEtag`, communs aux sorties et aux voyages. Tests **écrits, pas encore lancés**
-(voir `API-75`) : `TripWeatherResourceTest`, cas `trip_*` et `legSummary_*` de
+ETag dans `WeatherEtag`, communs aux sorties et aux voyages. Tests (lancés, verts : `API-75`) : `TripWeatherResourceTest`, cas `trip_*` et `legSummary_*` de
 `RideWeatherCalculatorTest`, `plan_shouldPlanTheStagesOfPublishedTripsLeavingInTheWindow` de
 `WeatherPlannerTest`.
 

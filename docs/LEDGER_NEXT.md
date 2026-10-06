@@ -352,13 +352,6 @@ La météo des **sorties** est livrée (`API-74`, `WEB-60`, `MOB-51`, contrat `1
 **étapes de voyage** aussi (`API-76`, `WEB-67`, `MOB-57`, contrat `10.11.0`) ; le plan
 [`2026-10-05-weather.md`](plans/2026-10-05-weather.md) reste ouvert pour ce qui suit.
 
-- [ ] `API-75` **Lancer les tests backend de la météo (S)** — écrits les 5 et 6 octobre 2026 (sorties, puis voyages `API-76`), compilés
-      (`mvn -DskipTests test-compile`, checkstyle propre), **jamais lancés** (`OPS-2`) :
-      `cd backend && mvn test -Dtest='TripWeatherResourceTest,CellKeyTest,RouteSampleLookupTest,RideWeatherCalculatorTest,WeatherRefreshPolicyTest,OpenMeteoGatewayTest,OpenMeteoClientTest,OpenMeteoCircuitBreakerTest,OpenMeteoGatewayHttpTest,WeatherCacheTest,WeatherFetchWorkerTest,WeatherPlannerTest,WeatherHousekeepingTest,RideWeatherResourceTest,PublicationQueryCountTest,ArchitectureTest'`,
-      puis la suite complète (`RideDto.from` et `PublicationDto.from` ont gagné un paramètre
-      obligatoire). Le SQL natif a seulement été essayé à la main sur un PostGIS jetable (V61,
-      upsert `NULLS NOT DISTINCT`, backoff, fenêtre de la liste). Un échec de
-      `PublicationQueryCountTest` se corrige dans `RideWeatherLookup`, jamais en desserrant le test.
 - [ ] `API-82` **Météo des voyages sur les cartes de liste (M)** — reste de `API-76` : un résumé de
       la prochaine étape dans `TripDto` (`weather`, optionnel), en **une** requête par page comme
       `RideWeatherLookup` (SQL de la fenêtre de la prochaine étape, sans charger les étapes), avec
