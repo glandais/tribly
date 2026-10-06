@@ -1,5 +1,6 @@
 package fr.pedalons.service.asset;
 
+import fr.pedalons.common.Crons;
 import fr.pedalons.domain.asset.Asset;
 import fr.pedalons.repository.asset.AssetRepository;
 import io.quarkus.scheduler.Scheduled;
@@ -24,7 +25,7 @@ public class AssetCleanupScheduler {
 
   @Inject AssetRepository assetRepository;
 
-  @Scheduled(cron = "0 30 3 * * ?")
+  @Scheduled(cron = "0 30 3 * * ?", timeZone = Crons.ZONE)
   @Transactional
   void cleanupOrphanedAssets() {
     Instant cutoff = Instant.now().minus(1, ChronoUnit.DAYS);

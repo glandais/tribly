@@ -1,5 +1,6 @@
 package fr.pedalons.service.gpx;
 
+import fr.pedalons.common.Crons;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -18,7 +19,7 @@ public class GpxPreviewCleanupScheduler {
 
   @Inject GpxPreviewService gpxPreviewService;
 
-  @Scheduled(cron = "0 0 4 * * ?")
+  @Scheduled(cron = "0 0 4 * * ?", timeZone = Crons.ZONE)
   void cleanupExpiredPreviews() {
     int deleted = gpxPreviewService.purgeExpired();
     if (deleted > 0) {

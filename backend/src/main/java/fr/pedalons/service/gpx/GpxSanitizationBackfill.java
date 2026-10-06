@@ -1,5 +1,6 @@
 package fr.pedalons.service.gpx;
 
+import fr.pedalons.common.Crons;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.enums.AssetType;
@@ -116,6 +117,7 @@ public class GpxSanitizationBackfill {
    */
   @Scheduled(
       cron = "0 15 4 * * ?",
+      timeZone = Crons.ZONE,
       concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
       identity = "gpx-sanitization-backfill")
   void runOnce() {

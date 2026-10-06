@@ -1,5 +1,7 @@
 package fr.pedalons.service.user;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Everything a running export job needs, as plain values.
  *
@@ -9,7 +11,7 @@ package fr.pedalons.service.user;
  *
  * <p>{@code baseUrl}, {@code siteName} and {@code language} are copied from the {@code UserExport}
  * row rather than resolved — the scheduler has no HTTP request, so {@code DomainResolver} does not
- * exist for it.
+ * exist for it. {@code timezone} is the user's own preference, read when the job is loaded.
  */
 public record ExportJobContext(
     Long exportId,
@@ -21,4 +23,5 @@ public record ExportJobContext(
     String displayName,
     String baseUrl,
     String siteName,
-    String language) {}
+    String language,
+    @Nullable String timezone) {}

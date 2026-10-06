@@ -13,7 +13,10 @@ import fr.pedalons.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -107,8 +110,8 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
         new CalendarEventDto(
             "allday123",
             "All Day Event",
-            Instant.parse("2024-06-15T00:00:00Z"),
-            Instant.parse("2024-06-16T00:00:00Z"),
+            Instant.parse("2024-06-15T06:00:00Z"),
+            Instant.parse("2024-06-15T15:00:00Z"),
             true,
             CalendarEventType.TRIP_STAGE,
             "team-slug",
@@ -354,18 +357,91 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
   void allDayEnd_coversEveryDayUpToTheEnd() {
     Instant start = Instant.parse("2024-06-15T07:00:00Z");
     assertEquals(
-        Instant.parse("2024-06-16T00:00:00Z"),
-        IcsGenerationService.allDayEnd(start, Instant.parse("2024-06-15T17:00:00Z")));
+        LocalDate.parse("2024-06-16"),
+        IcsGenerationService.allDayEnd(start, Instant.parse("2024-06-15T17:00:00Z"), UTC));
     assertEquals(
-        Instant.parse("2024-06-17T00:00:00Z"),
-        IcsGenerationService.allDayEnd(start, Instant.parse("2024-06-16T01:00:00Z")));
+        LocalDate.parse("2024-06-17"),
+        IcsGenerationService.allDayEnd(start, Instant.parse("2024-06-16T01:00:00Z"), UTC));
     // Already a midnight: that day is the exclusive end.
     assertEquals(
-        Instant.parse("2024-06-16T00:00:00Z"),
-        IcsGenerationService.allDayEnd(start, Instant.parse("2024-06-16T00:00:00Z")));
+        LocalDate.parse("2024-06-16"),
+        IcsGenerationService.allDayEnd(start, Instant.parse("2024-06-16T00:00:00Z"), UTC));
     // Never before the day after the start.
     assertEquals(
-        Instant.parse("2024-06-16T00:00:00Z"),
-        IcsGenerationService.allDayEnd(start, Instant.parse("2024-06-14T00:00:00Z")));
+        LocalDate.parse("2024-06-16"),
+        IcsGenerationService.allDayEnd(start, Instant.parse("2024-06-14T00:00:00Z"), UTC));
+  }
+
+  /** Days and midnights are the stage's, not UTC's (API-90). */
+  @Test
+  void allDayEnd_countsDaysInTheStageZone() {
+    // 23:30 in Paris (UTC+2) is still the 15th there: the stage occupies that one day.
+    assertEquals(
+        LocalDate.parse("2024-06-16"),
+        IcsGenerationService.allDayEnd(
+            Instant.parse("2024-06-15T06:00:00Z"), Instant.parse("2024-06-15T21:30:00Z"), PARIS));
+    // Midnight in Paris is 22:00 UTC: already the exclusive end.
+    assertEquals(
+        LocalDate.parse("2024-06-16"),
+        IcsGenerationService.allDayEnd(
+            Instant.parse("2024-06-15T06:00:00Z"), Instant.parse("2024-06-15T22:00:00Z"), PARIS));
+  }
+
+  /**
+   * A stage leaving at 00:30 and ending at 23:30, Paris time, is that one day — not the eve, and
+   * not two days (API-90).
+   */
+  @Test
+  void generateIcs_allDayStage_isDatedInParisByDefault() {
+    CalendarEventDto event =
+        stage(
+            "night", Instant.parse("2024-06-14T22:30:00Z"), Instant.parse("2024-06-15T21:30:00Z"));
+
+    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
+
+    assertTrue(ics.contains("DTSTART;VALUE=DATE:20240615"), ics);
+    assertTrue(ics.contains("DTEND;VALUE=DATE:20240616"), ics);
+  }
+
+  /** A stage abroad is dated in the zone it is given, its start place's (API-90). */
+  @Test
+  void generateIcs_allDayStage_isDatedInItsOwnZone() {
+    // 08:00 to 18:00 in Tokyo (UTC+9) is still the 14th in UTC and in Paris.
+    CalendarEventDto event =
+        stage(
+            "tokyo", Instant.parse("2024-06-14T23:00:00Z"), Instant.parse("2024-06-15T09:00:00Z"));
+
+    String ics =
+        icsGenerationService.generateIcs(
+            List.of(event), "Calendar", Map.of("tokyo", ZoneId.of("Asia/Tokyo")));
+
+    assertTrue(ics.contains("DTSTART;VALUE=DATE:20240615"), ics);
+    assertTrue(ics.contains("DTEND;VALUE=DATE:20240616"), ics);
+  }
+
+  private static final ZoneId UTC = ZoneId.of("UTC");
+  private static final ZoneId PARIS = ZoneId.of("Europe/Paris");
+
+  private static CalendarEventDto stage(String id, Instant start, Instant end) {
+    return new CalendarEventDto(
+        id,
+        "Stage",
+        start,
+        end,
+        true,
+        CalendarEventType.TRIP_STAGE,
+        "team",
+        "Team",
+        id,
+        "trip",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        null,
+        Status.PUBLISHED);
   }
 }

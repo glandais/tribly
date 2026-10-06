@@ -54,17 +54,22 @@ export function WeekAgenda({ nowIso, events, isLoading, isError, nextRide }: Wee
   const locale = i18n.language === 'fr' ? fr : enUS
   const dayKey = (date: Date | string) => formatInTimeZone(date, timezone, 'yyyy-MM-dd')
 
+  // Calendar days, not 24-hour steps: the day the clocks change is 23 or 25 hours long, and
+  // `now + i × 24 h` from late evening skipped or repeated one (docs/LEDGER_*.md WEB-71). Each day
+  // is held as noon UTC of its date in the effective zone, where adding 24 hours is always the
+  // next date; it is read back in UTC.
   const days = useMemo(() => {
-    const start = new Date(nowIso).getTime()
-    return Array.from({ length: 7 }, (_, i) => new Date(start + i * DAY_MS))
-  }, [nowIso])
+    const today = new Date(`${formatInTimeZone(nowIso, timezone, 'yyyy-MM-dd')}T12:00:00Z`)
+    return Array.from({ length: 7 }, (_, i) => new Date(today.getTime() + i * DAY_MS))
+  }, [nowIso, timezone])
+  const calendarDayKey = (day: Date) => formatInTimeZone(day, 'UTC', 'yyyy-MM-dd')
 
-  const dayKeys = new Set(days.map((d) => dayKey(d)))
+  const dayKeys = new Set(days.map(calendarDayKey))
   const inWeek = (events ?? [])
     .filter((e) => !e.finished && dayKeys.has(dayKey(e.start)))
     .sort((a, b) => a.start.localeCompare(b.start))
   const busyDays = new Set(inWeek.map((e) => dayKey(e.start)))
-  const todayKey = dayKey(days[0])
+  const todayKey = calendarDayKey(days[0])
   const rows = inWeek.filter(
     (e) =>
       !(
@@ -89,7 +94,7 @@ export function WeekAgenda({ nowIso, events, isLoading, isError, nextRide }: Wee
 
       <SimpleGrid cols={7} spacing={4} mb="sm" aria-hidden>
         {days.map((day) => {
-          const key = dayKey(day)
+          const key = calendarDayKey(day)
           const isToday = key === todayKey
           return (
             <Stack
@@ -103,10 +108,10 @@ export function WeekAgenda({ nowIso, events, isLoading, isError, nextRide }: Wee
               }}
             >
               <Text size="xs" c="dimmed" tt="uppercase">
-                {formatInTimeZone(day, timezone, 'EEEEE', { locale })}
+                {formatInTimeZone(day, 'UTC', 'EEEEE', { locale })}
               </Text>
               <Text size="sm" fw={isToday ? 700 : 500} c={isToday ? 'primary' : undefined}>
-                {formatInTimeZone(day, timezone, 'd', { locale })}
+                {formatInTimeZone(day, 'UTC', 'd', { locale })}
               </Text>
               <Box
                 w={6}

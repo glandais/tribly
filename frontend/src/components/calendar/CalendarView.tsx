@@ -121,9 +121,9 @@ export function CalendarView({
   const mounted = useMounted()
 
   useEffect(() => {
-    const { start, end } = getVisibleRange(date, view)
+    const { start, end } = getVisibleRange(date, view, tz)
     onDateRangeChange(start, end)
-  }, [date, view]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [date, view, tz]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const scheduleEvents = useMemo<ScheduleEventData[]>(
     () =>

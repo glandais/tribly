@@ -35,6 +35,32 @@ class CalendarResourceTest extends AbstractResourceTest {
 
   // ==================== Get Events Tests ====================
 
+  /** A malformed bound is the caller's error, not a 500 (API-91). */
+  @Test
+  void getEvents_withMalformedBound_shouldReturn400() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .queryParam("from", "2026-10-11")
+        .when()
+        .get("/api/calendar/events")
+        .then()
+        .statusCode(400);
+  }
+
+  /** The same reading for the publication list, whose bounds go through the same parser. */
+  @Test
+  void listPublications_withMalformedBound_shouldReturn400() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .queryParam("to", "not-a-date")
+        .when()
+        .get("/api/publications")
+        .then()
+        .statusCode(400);
+  }
+
   @Test
   void getEvents_withAuth_shouldReturnEvents() {
     given()

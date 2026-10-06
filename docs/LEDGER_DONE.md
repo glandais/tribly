@@ -936,6 +936,21 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   réponse arrive (`useAuthStore.getState()`, pas la valeur du rendu). Pas de test unitaire : le
   hook tire `useGetMe`, Mantine et i18n ; la course reste couverte, sans garantie, par ce e2e.
 
+- `WEB-71` **Calculs de jours hors du fuseau effectif** (2026-10-06, lot 0 du plan
+  [fuseau des événements](plans/2026-10-06-event-timezones.md)) — trois endroits comptaient les
+  jours dans le fuseau du navigateur ou par pas de 24 h. `WeekAgenda` construit ses sept jours en
+  jours calendaires (midi UTC de la date du fuseau effectif, relu en UTC) : `now + i × 24 h` sautait
+  un jour le soir du passage à l'heure d'été. `getVisibleRange` (`components/calendar/calendarRange.ts`)
+  prend le fuseau effectif et rend les minuits de ce fuseau, en comptant les jours sur des dates
+  UTC ; `CalendarView` le lui passe. « Ajouter une étape » (`TripEditor.handleAddStage`) passe par
+  `addCalendarDays` (`utils/dateFormat.ts`) : J+n à la même heure murale du fuseau effectif, au
+  lieu de `setDate` dans celui du navigateur. `toDateTimeLocalValue` / `fromDateTimeLocalValue`,
+  sans appelant, sont supprimées. Couvert par `calendarRange.test.ts` (minuits de Tokyo, semaine du
+  passage à l'heure d'été), `useCalendarDateRange.test.ts` (grille dans la fenêtre préchargée, à
+  Honolulu et Kiritimati), `dateFormat.test.ts` (`addCalendarDays`) ; `WeekAgenda` n'a pas de test.
+  **À ne pas défaire** : un jour se compte en arithmétique de calendrier, jamais en millisecondes
+  ni sur un `Date` local.
+
 ### Référencement
 
 - `WEB-4` **`PUBLIC_UNLISTED` n'est plus indexé** (2026-09-30) — `frontend/index.html` servait un
@@ -1034,6 +1049,14 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   visibilité et par étape) et `components/card/CardActions.test.tsx` (Publier appelle l'endpoint de
   statut et jamais `updateRide`, qui voit quoi, confirmation). **Ne pas** publier depuis une liste
   par la mise à jour complète, ni faire passer le `.ics` unitaire par le jeton d'abonnement.
+
+- `WEB-70` **Dates des métadonnées SEO et `og:` en UTC** (2026-10-06, lot 0 du plan
+  [fuseau des événements](plans/2026-10-06-event-timezones.md)) — `formatDate` de
+  `config/routeMeta.ts` formatait sans `timeZone`, donc en UTC sur le serveur SSR : une sortie à
+  00:30 heure de Paris était annoncée la veille dans le titre et l'aperçu de lien. Les dates y sont
+  formatées en `Europe/Paris` (`META_TIME_ZONE`) en attendant le fuseau de l'entité (`API-60`).
+  Couvert par `routeMeta.test.ts` (« ride date in the link preview »). **À ne pas défaire** : ni le
+  fuseau du serveur ni celui du lecteur pour un aperçu de lien.
 
 ### Tags d'équipe
 
@@ -1613,6 +1636,42 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   les blocs réservés aux membres ne sont pas construits pour un visiteur (pas calculés puis vidés) ;
   les sections publiques passent par les mêmes requêtes que les listes d'équipe ; la réponse reste
   `private, no-store`, puisque son contenu dépend de l'appelant.
+
+- `API-90` **iCal : les dates des étapes « journée entière » étaient calculées en UTC** (2026-10-06,
+  sans changement de contrat, lot 0 du plan [fuseau des événements](plans/2026-10-06-event-timezones.md))
+  — une étape partant avant 02:00 heure de Paris commençait la veille dans l'agenda, une finissant
+  après 22:00 y perdait son dernier jour. `IcsGenerationService` date `DTSTART` et `DTEND` des
+  événements `allDay` dans le fuseau de l'étape, que `StageTimezones` résout : lieu de départ →
+  1er point du parcours (non supprimé) → `Europe/Paris`. `TimezoneService.findZoneId` rend un
+  `Optional` pour ce repli (`getZoneId` garde son repli UTC pour la météo). `allDayEnd` compte
+  désormais en `LocalDate` dans ce fuseau. Les flux d'abonnement (`CalendarService.Feed`) et
+  l'ICS d'un voyage (`PublicationIcsService`) passent la table id → fuseau ; les sorties restent en
+  UTC avec `Z`. `X-WR-TIMEZONE:Europe/Paris` reste en dur, le fuseau d'équipe d'`API-60` le
+  remplacera. Couvert par `StageTimezonesTest` et `IcsGenerationServiceTest`
+  (`allDayEnd_countsDaysInTheStageZone`, `generateIcs_allDayStage_isDatedInParisByDefault`,
+  `generateIcs_allDayStage_isDatedInItsOwnZone`). **À ne pas défaire** : une date d'événement
+  journée entière se calcule dans un fuseau de lieu, jamais en UTC ni dans celui du serveur.
+
+- `API-91` **`from` / `to` malformés donnaient une 500** (2026-10-06, sans changement de contrat)
+  — `Instant.parse` lève une `DateTimeParseException`, que `GlobalExceptionMapper` ne traite pas en
+  400. Les six ressources (`CalendarResource`, `TeamCalendarResource`, `PublicationResource`,
+  `TeamPublicationResource`, `AdResource`, `UserResource`) lisent leurs bornes par
+  `QueryInstants.parse`, qui lève `BadRequestException`. Décision : pas de `format: date-time` au
+  contrat — il changerait le type des paramètres dans les clients générés pour un gain nul —, ni de
+  traduction globale de `DateTimeParseException` en 400, qui ferait passer pour l'erreur de
+  l'appelant une donnée invalide lue en base. Couvert par
+  `CalendarResourceTest.getEvents_withMalformedBound_shouldReturn400` et
+  `listPublications_withMalformedBound_shouldReturn400`.
+
+- `API-92` **Mail d'export : date en heure de Paris et au format français pour tout le monde**
+  (2026-10-06, sans changement de contrat) — l'expiration du lien suit la langue et le fuseau du
+  destinataire par `NotificationTexts.formatDateTime` (« dimanche 11 octobre à 08h30 », « Sunday,
+  October 11 at 3:30 PM »), le formateur des notifications rendu public ; `ExportJobContext` porte
+  `user.timezone`, lu au chargement du job. Les quinze `@Scheduled(cron = …)` déclarent
+  `timeZone = Crons.ZONE` (`UTC`) : comportement inchangé en production, où la JVM est en UTC, mais
+  plus dépendant du fuseau de la machine. Couvert par
+  `NotificationTextsTest.formatDateTime_followsTheReadersLanguageAndZone`. **À ne pas défaire** :
+  un nouveau cron prend `timeZone = Crons.ZONE` ; les heures des tâches de nuit sont des heures UTC.
 
 ### Vie privée : les métadonnées retirées à l'import
 

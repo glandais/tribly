@@ -124,7 +124,8 @@ class UserExportBuilderTest extends AbstractBaseTest {
             user.getDisplayName(),
             domain.getBaseUrl(),
             domain.getName(),
-            "fr");
+            "fr",
+            null);
   }
 
   @Test
@@ -315,7 +316,8 @@ class UserExportBuilderTest extends AbstractBaseTest {
             "X",
             "http://x",
             "X",
-            "fr");
+            "fr",
+            null);
 
     assertThrows(RuntimeException.class, () -> builder.build(broken));
 

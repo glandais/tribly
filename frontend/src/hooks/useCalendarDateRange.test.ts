@@ -28,10 +28,15 @@ describe('getInitialCalendarRange', () => {
       vi.setSystemTime(now)
       const window = getInitialCalendarRange()
 
-      // `CalendarView` seeds its date in the visitor's zone, which can be the UTC day either side.
-      for (const offset of [-1, 0, 1]) {
+      // `CalendarView` seeds its date in the visitor's zone, which can be the UTC day either side,
+      // and draws the grid between that zone's midnights.
+      for (const [offset, tz] of [
+        [-1, 'Pacific/Honolulu'],
+        [0, 'UTC'],
+        [1, 'Pacific/Kiritimati'],
+      ] as const) {
         const date = dayjs(now).utc().add(offset, 'day').format('YYYY-MM-DD')
-        const grid = getVisibleRange(date, 'month')
+        const grid = getVisibleRange(date, 'month', tz)
         const where = `${date} (utc ${now.toISOString()})`
 
         expect(grid.start.toISOString() >= window.from, `grid starts before window: ${where}`).toBe(

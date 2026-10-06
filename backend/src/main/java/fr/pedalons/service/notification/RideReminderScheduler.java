@@ -1,5 +1,6 @@
 package fr.pedalons.service.notification;
 
+import fr.pedalons.common.Crons;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.service.notification.event.RideReminder;
@@ -31,7 +32,10 @@ public class RideReminderScheduler {
   @Inject RideRepository rideRepository;
   @Inject NotificationPublisher publisher;
 
-  @Scheduled(cron = "0 7 * * * ?", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+  @Scheduled(
+      cron = "0 7 * * * ?",
+      timeZone = Crons.ZONE,
+      concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
   void remind() {
     try {
       int queued = queueReminders(Instant.now());

@@ -187,24 +187,15 @@ export function nextWeekdayAt(
 }
 
 /**
- * Convert to datetime-local input format: "2025-06-15T09:00", in the given timezone.
+ * `instant` moved `days` calendar days on, at the same wall-clock time in `timeZone` — not `days ×
+ * 24 h`, which lands an hour off across a daylight-saving change, nor `setDate` on a `Date`, which
+ * counts in the browser's zone rather than the one the time was typed in (docs/LEDGER_*.md WEB-71).
  */
-export function toDateTimeLocalValue(
-  date: Date | string | null | undefined,
-  timeZone: string = Intl.DateTimeFormat().resolvedOptions().timeZone
-): string {
-  const dateObj = toDate(date)
-  if (!dateObj) return ''
-
-  return formatInTimeZone(dateObj, timeZone, "yyyy-MM-dd'T'HH:mm")
-}
-
-/**
- * Parse datetime-local input value to Date
- * Assumes browser timezone
- */
-export function fromDateTimeLocalValue(value: string): Date {
-  return parseISO(value)
+export function addCalendarDays(instant: string, days: number, timeZone: string): string {
+  const day = new Date(`${formatInTimeZone(instant, timeZone, 'yyyy-MM-dd')}T00:00:00Z`)
+  day.setUTCDate(day.getUTCDate() + days)
+  const wallTime = `${day.toISOString().slice(0, 10)} ${formatInTimeZone(instant, timeZone, 'HH:mm:ss')}`
+  return fromZonedTime(wallTime, timeZone).toISOString()
 }
 
 /**
@@ -225,9 +216,6 @@ export function useFormattedDate() {
     formatPattern: (date: Date | string | null | undefined, pattern: string) =>
       formatPattern(date, pattern, language, timezone),
     isToday: (date: Date | string | null | undefined) => isSameDay(date, timezone),
-    toDateTimeLocalValue: (date: Date | string | null | undefined) =>
-      toDateTimeLocalValue(date, timezone),
-    fromDateTimeLocalValue,
     isGuessedTimezone: isGuessed,
   }
 }

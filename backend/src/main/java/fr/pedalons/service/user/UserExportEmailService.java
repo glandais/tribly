@@ -1,11 +1,10 @@
 package fr.pedalons.service.user;
 
 import fr.pedalons.infrastructure.email.EmailService;
+import fr.pedalons.service.notification.NotificationTexts;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 /**
@@ -17,9 +16,6 @@ import java.util.Map;
  */
 @ApplicationScoped
 public class UserExportEmailService {
-
-  private static final DateTimeFormatter EXPIRY_FORMAT =
-      DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.of("Europe/Paris"));
 
   @Inject EmailService emailService;
 
@@ -33,7 +29,9 @@ public class UserExportEmailService {
             "displayName", ctx.displayName(),
             "appName", ctx.siteName(),
             "downloadUrl", ctx.baseUrl() + UserExportService.downloadPath(token),
-            "expiresAt", EXPIRY_FORMAT.format(expiresAt),
+            // In the recipient's language and zone, as notifications are (docs/LEDGER_*.md API-92).
+            "expiresAt",
+                NotificationTexts.formatDateTime(expiresAt, ctx.language(), ctx.timezone()),
             "fileSize", humanReadable(sizeBytes)));
   }
 

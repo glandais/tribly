@@ -67,6 +67,13 @@ export function withIndexing(
   return { ...meta, noindex: true }
 }
 
+/**
+ * Zone of the dates in titles and link previews. Rendered by the SSR server, whose zone is UTC, and
+ * read by anyone the link is shared with: neither the server's zone nor the reader's is the ride's.
+ * Paris until the entity carries its own (docs/LEDGER_*.md WEB-70, API-60).
+ */
+const META_TIME_ZONE = 'Europe/Paris'
+
 /** Localised long date (day + month + year), matching the resolved SSR locale — not the browser. */
 function formatDate(instant: Instant | undefined, locale: Locale): string | undefined {
   if (!instant) return undefined
@@ -76,6 +83,7 @@ function formatDate(instant: Instant | undefined, locale: Locale): string | unde
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    timeZone: META_TIME_ZONE,
   }).format(d)
 }
 

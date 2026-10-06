@@ -1,5 +1,6 @@
 package fr.pedalons.service.user;
 
+import fr.pedalons.common.Crons;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -21,7 +22,7 @@ public class AccountErasureScheduler {
   @Inject AccountErasureService accountErasureService;
 
   /** 04:45, after the export sweep at 04:30. */
-  @Scheduled(cron = "0 45 4 * * ?")
+  @Scheduled(cron = "0 45 4 * * ?", timeZone = Crons.ZONE)
   void eraseDeletedAccounts() {
     List<Long> pending = accountErasureService.findPendingErasure();
     int erased = 0;

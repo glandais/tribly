@@ -1,5 +1,6 @@
 package fr.pedalons.service.feedback;
 
+import fr.pedalons.common.Crons;
 import fr.pedalons.domain.feedback.ErrorOccurrence;
 import fr.pedalons.domain.feedback.ErrorSignature;
 import fr.pedalons.domain.feedback.FeedbackReport;
@@ -69,7 +70,10 @@ public class FeedbackGithubWorker {
     }
   }
 
-  @Scheduled(cron = "0 0 7 * * ?", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+  @Scheduled(
+      cron = "0 0 7 * * ?",
+      timeZone = Crons.ZONE,
+      concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
   void daily() {
     try {
       summarize();
@@ -78,7 +82,7 @@ public class FeedbackGithubWorker {
     }
   }
 
-  @Scheduled(cron = "0 15 4 * * ?")
+  @Scheduled(cron = "0 15 4 * * ?", timeZone = Crons.ZONE)
   void purge() {
     long deleted = feedbackService.purgeExpired();
     if (deleted > 0) {

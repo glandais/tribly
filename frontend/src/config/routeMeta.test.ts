@@ -78,3 +78,16 @@ describe('robots directive (WEB-4)', () => {
     expect(robotsTags(ctx, undefined)).toEqual(['<meta name="robots" content="index, follow" />'])
   })
 })
+
+describe('ride date in the link preview (WEB-70)', () => {
+  it('is the day in Paris, not the SSR server’s UTC day', () => {
+    const ctx = context('PUBLIC', 'PUBLIC')
+    const ride = ctx.queryClient.getQueryData<RideDto>(getGetRideQueryKey('np', 'sortie'))!
+    // 00:30 in Paris on 11 October is still 10 October in UTC.
+    ctx.queryClient.setQueryData(getGetRideQueryKey('np', 'sortie'), {
+      ...ride,
+      dateTime: '2026-10-10T22:30:00Z',
+    })
+    expect(rideMeta(ctx)?.description).toContain('11 octobre 2026')
+  })
+})

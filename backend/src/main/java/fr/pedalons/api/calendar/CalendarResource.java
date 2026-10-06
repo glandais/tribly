@@ -1,5 +1,6 @@
 package fr.pedalons.api.calendar;
 
+import fr.pedalons.common.QueryInstants;
 import fr.pedalons.dto.calendar.request.AuthMode;
 import fr.pedalons.dto.calendar.response.CalendarEventsResponse;
 import fr.pedalons.dto.calendar.response.CalendarTokenDto;
@@ -51,8 +52,8 @@ public class CalendarResource {
           @Nullable String fromStr,
       @Parameter(description = "End date (ISO 8601)") @QueryParam("to") @Nullable String toStr) {
 
-    Instant from = fromStr != null ? Instant.parse(fromStr) : null;
-    Instant to = toStr != null ? Instant.parse(toStr) : null;
+    Instant from = QueryInstants.parse(fromStr);
+    Instant to = QueryInstants.parse(toStr);
 
     CalendarEventsResponse events = calendarService.getEventsForUser(AuthMode.WEB, from, to);
     // Each event carries "registered" and "groupName": the answer is specific to the caller and

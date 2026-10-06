@@ -94,4 +94,20 @@ class NotificationTextsTest {
     assertEquals(NotificationRecipientResolver.EXCERPT_LENGTH, excerpt.length());
     assertTrue(excerpt.endsWith("…"));
   }
+
+  /** The data-export mail's expiry reads like a notification date (API-92). */
+  @Test
+  void formatDateTime_followsTheReadersLanguageAndZone() {
+    Instant instant = Instant.parse("2026-10-11T06:30:00Z");
+    assertEquals(
+        "dimanche 11 octobre à 08h30",
+        NotificationTexts.formatDateTime(instant, "fr-FR", "Europe/Paris"));
+    assertEquals(
+        "Sunday, October 11 at 3:30 PM",
+        NotificationTexts.formatDateTime(instant, "en", "Asia/Tokyo"));
+    // No zone, or one nobody knows: Paris.
+    assertEquals(
+        "dimanche 11 octobre à 08h30",
+        NotificationTexts.formatDateTime(instant, null, "Mars/Base"));
+  }
 }

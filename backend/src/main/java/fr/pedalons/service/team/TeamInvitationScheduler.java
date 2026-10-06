@@ -1,5 +1,6 @@
 package fr.pedalons.service.team;
 
+import fr.pedalons.common.Crons;
 import fr.pedalons.repository.team.TeamInvitationRepository;
 import io.quarkus.logging.Log;
 import io.quarkus.scheduler.Scheduled;
@@ -28,7 +29,7 @@ public class TeamInvitationScheduler {
   @ConfigProperty(name = "pedalons.teams.invitations.retention-days", defaultValue = "365")
   int retentionDays;
 
-  @Scheduled(cron = "0 30 3 * * ?")
+  @Scheduled(cron = "0 30 3 * * ?", timeZone = Crons.ZONE)
   @Transactional
   void sweepInvitations() {
     long expired = invitationRepository.expireOverdue();

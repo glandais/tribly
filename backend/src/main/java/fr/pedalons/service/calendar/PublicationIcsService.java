@@ -9,6 +9,7 @@ import fr.pedalons.dto.trips.response.TripDto;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.Status;
+import fr.pedalons.repository.trip.TripStageRepository;
 import fr.pedalons.service.publication.PublicationEndCalculator;
 import fr.pedalons.service.ride.RideService;
 import fr.pedalons.service.security.annotation.CheckAccess;
@@ -16,6 +17,8 @@ import fr.pedalons.service.trip.TripService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jspecify.annotations.Nullable;
@@ -37,6 +40,8 @@ public class PublicationIcsService {
   @Inject TripService tripService;
   @Inject IcsGenerationService icsGenerationService;
   @Inject PublicationEndCalculator publicationEndCalculator;
+  @Inject StageTimezones stageTimezones;
+  @Inject TripStageRepository tripStageRepository;
 
   @CheckAccess(entityType = EntityType.RIDE, action = ActionType.READ)
   public String rideIcs(String teamSlug, String rideSlug) {
@@ -60,10 +65,15 @@ public class PublicationIcsService {
   @CheckAccess(entityType = EntityType.TRIP, action = ActionType.READ)
   public String tripIcs(String teamSlug, String tripSlug) {
     TripDto trip = tripService.getDto(teamSlug, tripSlug);
+    List<Long> stageIds =
+        trip.getStages().stream().map(stage -> TsidUtils.toLong(stage.id())).toList();
     // Each stage up to its own end — one query for all of them (docs/LEDGER_*.md API-85).
-    Map<Long, Instant> ends =
-        publicationEndCalculator.effectiveEnds(
-            trip.getStages().stream().map(stage -> TsidUtils.toLong(stage.id())).toList());
+    Map<Long, Instant> ends = publicationEndCalculator.effectiveEnds(stageIds);
+    // And its days counted where it starts (docs/LEDGER_*.md API-90).
+    Map<String, ZoneId> zones = new HashMap<>();
+    stageTimezones
+        .of(tripStageRepository.list("id in ?1", stageIds))
+        .forEach((id, zone) -> zones.put(TsidUtils.toString(id), zone));
     List<CalendarEventDto> events =
         trip.getStages().stream()
             .map(
@@ -80,7 +90,7 @@ public class PublicationIcsService {
                         trip.getSlug(),
                         trip.getStatus()))
             .toList();
-    return icsGenerationService.generateIcs(events, trip.getName());
+    return icsGenerationService.generateIcs(events, trip.getName(), zones);
   }
 
   /** Only what the ICS writer reads is set; the card-only fields stay empty. */

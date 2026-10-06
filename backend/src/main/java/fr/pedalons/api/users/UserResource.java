@@ -1,5 +1,6 @@
 package fr.pedalons.api.users;
 
+import fr.pedalons.common.QueryInstants;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.dto.error.ErrorCode;
@@ -301,8 +302,8 @@ public class UserResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    Instant from = fromStr != null ? Instant.parse(fromStr) : null;
-    Instant to = toStr != null ? Instant.parse(toStr) : null;
+    Instant from = QueryInstants.parse(fromStr);
+    Instant to = QueryInstants.parse(toStr);
 
     PublicationListResponse response =
         publicationService.listMyParticipations(from, to, status, view, page, size);

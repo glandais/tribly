@@ -1,5 +1,6 @@
 package fr.pedalons.service.beta;
 
+import fr.pedalons.common.Crons;
 import fr.pedalons.repository.beta.BetaSignupRepository;
 import io.quarkus.logging.Log;
 import io.quarkus.scheduler.Scheduled;
@@ -22,7 +23,7 @@ public class BetaSignupScheduler {
   @ConfigProperty(name = "pedalons.beta.signups.retention-days", defaultValue = "365")
   int retentionDays;
 
-  @Scheduled(cron = "0 45 3 * * ?")
+  @Scheduled(cron = "0 45 3 * * ?", timeZone = Crons.ZONE)
   @Transactional
   void purgeOldSignups() {
     long purged =

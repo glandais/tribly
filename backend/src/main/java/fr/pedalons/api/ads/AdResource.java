@@ -1,5 +1,6 @@
 package fr.pedalons.api.ads;
 
+import fr.pedalons.common.QueryInstants;
 import fr.pedalons.dto.ads.request.AdContactRequest;
 import fr.pedalons.dto.ads.request.AdRequest;
 import fr.pedalons.dto.ads.request.AdSearchParams;
@@ -109,8 +110,8 @@ public class AdResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    Instant from = fromStr != null ? Instant.parse(fromStr) : null;
-    Instant to = toStr != null ? Instant.parse(toStr) : null;
+    Instant from = QueryInstants.parse(fromStr);
+    Instant to = QueryInstants.parse(toStr);
 
     AdSearchParams params =
         AdSearchParams.builder()
@@ -182,8 +183,8 @@ public class AdResource {
       @Parameter(description = TAGS_PARAM_DESCRIPTION) @QueryParam("tags")
           @Nullable List<String> tags) {
 
-    Instant from = fromStr != null ? Instant.parse(fromStr) : null;
-    Instant to = toStr != null ? Instant.parse(toStr) : null;
+    Instant from = QueryInstants.parse(fromStr);
+    Instant to = QueryInstants.parse(toStr);
 
     AdSearchParams params =
         AdSearchParams.builder()

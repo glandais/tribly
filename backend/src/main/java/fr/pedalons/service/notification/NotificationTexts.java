@@ -80,9 +80,7 @@ public class NotificationTexts {
     String language = language(languageTag);
     Properties texts = bundle(language);
     String date =
-        subjectDateTime == null
-            ? ""
-            : DATE_FORMATS.get(language).withZone(zone(timezone)).format(subjectDateTime);
+        subjectDateTime == null ? "" : formatDateTime(subjectDateTime, language, timezone);
     Map<String, String> values = new HashMap<>();
     values.put("actor", actorName != null ? actorName : teamName);
     values.put("team", teamName);
@@ -116,6 +114,15 @@ public class NotificationTexts {
   public String digestText(@Nullable String languageTag, String key, int count) {
     return fill(
         bundle(language(languageTag)), "digest." + key, Map.of("count", String.valueOf(count)));
+  }
+
+  /**
+   * A date and time as every message to a person writes it — in their language, in their zone, the
+   * default ones when they have none (« samedi 11 octobre à 08h30 »).
+   */
+  public static String formatDateTime(
+      Instant instant, @Nullable String languageTag, @Nullable String timezone) {
+    return DATE_FORMATS.get(language(languageTag)).withZone(zone(timezone)).format(instant);
   }
 
   /** "fr-CA" reads the French file; a language nobody translated reads the default. */

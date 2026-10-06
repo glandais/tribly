@@ -328,20 +328,6 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       est une fonction fléchée, que `new` refuse avec `ScrollArea` et `SegmentedControl` de
       Mantine — `RideWeatherSection.test.tsx` le remplace localement par `vi.stubGlobal`.
 
-- [ ] `WEB-70` **Dates des métadonnées SEO et `og:` en UTC (S)** — `formatDate` de
-      `frontend/src/config/routeMeta.ts` appelle `Intl.DateTimeFormat` sans `timeZone`, rendu par
-      le serveur Node en UTC : une sortie à 00:30 heure de Paris est annoncée la veille dans le titre
-      et l'aperçu de lien (sortie, voyage). En attendant le fuseau de l'entité (`API-60`), formater
-      en `Europe/Paris`.
-- [ ] `WEB-71` **Calculs de jours hors du fuseau effectif (S)** — trois endroits comptent les jours
-      dans le fuseau du processus plutôt que dans `useEffectiveTimezone` :
-      `components/home/WeekAgenda.tsx` (`now + i × 24 h` : le jour d'un changement d'heure peut
-      sauter un jour), `components/calendar/calendarRange.ts` (`dayjs(date)` sans `.tz` : bornes
-      décalées quand `user.timezone` diffère du navigateur), `components/trip/TripEditor.tsx`
-      `handleAddStage` (`setDate(+n)` dans le fuseau du navigateur). Au passage,
-      `toDateTimeLocalValue` / `fromDateTimeLocalValue` (`utils/dateFormat.ts`) n'ont pas
-      d'appelant hors du hook qui les expose.
-
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
 L'audit ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md), `WEB-26`) est exécuté : P0, P1
@@ -439,25 +425,8 @@ toléré une version).
 (`API-15`), avec pour condition de réouverture « des voyages à l'étranger qui rendent l'heure locale
 de l'étape nécessaire » — c'est le cas qui a déclenché l'audit. Le fuseau résolu est bien celui du
 lieu de départ, comme la note d'alors le demandait ; celui de l'équipe n'est que le repli.
-**Pas commencé** ; plan validé le 6 octobre 2026 (décisions au §12).
-
-- [ ] `API-90` **iCal : les dates des étapes « journée entière » sont calculées en UTC (S)** —
-      `IcsGenerationService.ICS_DATE_FORMAT` (`withZone(UTC)`) formate le `DTSTART` des événements
-      `allDay` (étapes) et le `DTEND` d'`allDayEnd` (`API-85`) : une étape qui part avant 02:00
-      heure de Paris commence la veille dans l'agenda, une qui finit après 22:00 (UTC+2) y perd son
-      dernier jour. `X-WR-TIMEZONE:Europe/Paris` est en dur. Corrigeable avant `API-60` avec le
-      fuseau du lieu de départ de l'étape (`TimezoneService`), repli Paris.
-- [ ] `API-91` **`from` / `to` malformés donnent une 500 (S)** — déclarés `string` sans format dans le
-      contrat et lus par `Instant.parse` (`CalendarResource`, `TeamCalendarResource`,
-      `PublicationResource`, `TeamPublicationResource`, `AdResource`, `UserResource`) ; une
-      `DateTimeParseException` n'est pas une `IllegalArgumentException`, `GlobalExceptionMapper` ne
-      la traite pas en 400. Typer les paramètres `Instant` (`format: date-time`) ou mapper l'exception.
-- [ ] `API-92` **Mail d'export : date en heure de Paris et au format français pour tout le monde
-      (S)** — `UserExportEmailService.EXPIRY_FORMAT` (`dd/MM/yyyy HH:mm`, `Europe/Paris`) ignore le
-      fuseau et la langue du destinataire ; formater comme `NotificationTexts` (fuseau de
-      l'utilisateur, motif par langue). Au passage, les `@Scheduled(cron = …)` n'ont pas de
-      `timeZone` et suivent celui de la JVM, non configuré (UTC dans le conteneur) : le dire dans
-      chaque cron, ou fixer `timeZone`.
+Plan validé le 6 octobre 2026 (décisions au §12). **Lot 0 livré le 6 octobre 2026** (`API-90`,
+`API-91`, `API-92`, `WEB-70`, `WEB-71`) ; les lots 1 à 5 ne sont pas commencés.
 
 ### Les chantiers d'infrastructure d'API
 

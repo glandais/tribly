@@ -2,6 +2,7 @@ package fr.pedalons.infrastructure.timezone;
 
 import jakarta.inject.Singleton;
 import java.time.ZoneId;
+import java.util.Optional;
 import net.iakovlev.timeshape.TimeZoneEngine;
 
 /**
@@ -25,6 +26,14 @@ public class TimezoneService {
    * @return the ZoneId for the coordinates, or UTC if not found
    */
   public ZoneId getZoneId(double lat, double lon) {
-    return engine.query(lat, lon).orElse(ZoneId.of("UTC"));
+    return findZoneId(lat, lon).orElse(ZoneId.of("UTC"));
+  }
+
+  /**
+   * The timezone of the given GPS coordinates, empty at sea or anywhere outside every zone — for a
+   * caller whose fallback is not UTC.
+   */
+  public Optional<ZoneId> findZoneId(double lat, double lon) {
+    return engine.query(lat, lon);
   }
 }

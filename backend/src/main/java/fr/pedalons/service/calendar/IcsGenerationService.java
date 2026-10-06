@@ -5,10 +5,13 @@ import fr.pedalons.service.security.DomainResolver;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 public class IcsGenerationService {
@@ -16,12 +19,22 @@ public class IcsGenerationService {
   private static final DateTimeFormatter ICS_DATETIME_FORMAT =
       DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneId.of("UTC"));
 
-  private static final DateTimeFormatter ICS_DATE_FORMAT =
-      DateTimeFormatter.ofPattern("yyyyMMdd").withZone(ZoneId.of("UTC"));
+  private static final DateTimeFormatter ICS_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
 
   @Inject DomainResolver domainResolver;
 
+  /** A calendar whose all-day events are all counted in {@link StageTimezones#FALLBACK}. */
   public String generateIcs(List<CalendarEventDto> events, String calendarName) {
+    return generateIcs(events, calendarName, Map.of());
+  }
+
+  /**
+   * @param allDayZones the zone each all-day event's dates are counted in, keyed by event id —
+   *     {@link StageTimezones#FALLBACK} for an event it lacks. Timed events are written in UTC and
+   *     need none.
+   */
+  public String generateIcs(
+      List<CalendarEventDto> events, String calendarName, Map<String, ZoneId> allDayZones) {
     StringBuilder ics = new StringBuilder();
 
     // VCALENDAR header with Apple/Google compatibility
@@ -36,14 +49,14 @@ public class IcsGenerationService {
 
     // Add each event
     for (CalendarEventDto event : events) {
-      appendEvent(ics, event);
+      appendEvent(ics, event, allDayZones.getOrDefault(event.id(), StageTimezones.FALLBACK));
     }
 
     ics.append("END:VCALENDAR\r\n");
     return ics.toString();
   }
 
-  private void appendEvent(StringBuilder ics, CalendarEventDto event) {
+  private void appendEvent(StringBuilder ics, CalendarEventDto event, ZoneId allDayZone) {
     ics.append("BEGIN:VEVENT\r\n");
 
     // UID must be globally unique and stable
@@ -55,7 +68,7 @@ public class IcsGenerationService {
     // Start date/time
     if (event.allDay()) {
       ics.append("DTSTART;VALUE=DATE:")
-          .append(ICS_DATE_FORMAT.format(event.start()))
+          .append(ICS_DATE_FORMAT.format(LocalDate.ofInstant(event.start(), allDayZone)))
           .append("\r\n");
     } else {
       ics.append("DTSTART:").append(ICS_DATETIME_FORMAT.format(event.start())).append("\r\n");
@@ -65,7 +78,7 @@ public class IcsGenerationService {
     if (event.end() != null) {
       if (event.allDay()) {
         ics.append("DTEND;VALUE=DATE:")
-            .append(ICS_DATE_FORMAT.format(allDayEnd(event.start(), event.end())))
+            .append(ICS_DATE_FORMAT.format(allDayEnd(event.start(), event.end(), allDayZone)))
             .append("\r\n");
       } else {
         ics.append("DTEND:").append(ICS_DATETIME_FORMAT.format(event.end())).append("\r\n");
@@ -95,12 +108,14 @@ public class IcsGenerationService {
    * The exclusive end date of an all-day event (RFC 5545): the day after the one its end falls on,
    * unless that end is already a midnight — so a stage ending at 17:00 occupies its own day, one
    * ending the next morning both days (docs/LEDGER_*.md API-85). Never before the day after the
-   * start.
+   * start. Days and midnights are those of {@code zone}, the stage's (docs/LEDGER_*.md API-90).
    */
-  static Instant allDayEnd(Instant start, Instant end) {
-    Instant endDay = end.truncatedTo(ChronoUnit.DAYS);
-    Instant exclusive = endDay.equals(end) ? endDay : endDay.plus(1, ChronoUnit.DAYS);
-    Instant minimum = start.truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS);
+  static LocalDate allDayEnd(Instant start, Instant end, ZoneId zone) {
+    ZonedDateTime local = end.atZone(zone);
+    LocalDate endDay = local.toLocalDate();
+    boolean midnight = local.toLocalTime().equals(LocalTime.MIDNIGHT);
+    LocalDate exclusive = midnight ? endDay : endDay.plusDays(1);
+    LocalDate minimum = LocalDate.ofInstant(start, zone).plusDays(1);
     return exclusive.isBefore(minimum) ? minimum : exclusive;
   }
 

@@ -1,5 +1,6 @@
 package fr.pedalons.service.auth;
 
+import fr.pedalons.common.Crons;
 import fr.pedalons.repository.auth.AuthFailureRepository;
 import fr.pedalons.repository.auth.AuthSessionRepository;
 import fr.pedalons.repository.auth.AuthTokenRepository;
@@ -47,7 +48,7 @@ public class AuthCleanupScheduler {
   @Inject CalendarTokenRepository calendarTokenRepository;
   @Inject CalendarService calendarService;
 
-  @Scheduled(cron = "0 0 3 * * ?") // Every day at 3 AM
+  @Scheduled(cron = "0 0 3 * * ?", timeZone = Crons.ZONE) // Every day at 3 AM
   @Transactional
   void cleanupExpiredAuthData() {
     long deletedSessions = authSessionRepository.deleteExpiredSessions();

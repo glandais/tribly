@@ -1,5 +1,6 @@
 package fr.pedalons.api.publications;
 
+import fr.pedalons.common.QueryInstants;
 import fr.pedalons.dto.common.CountResponse;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
@@ -109,8 +110,8 @@ public class TeamPublicationResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    Instant from = fromStr != null ? Instant.parse(fromStr) : null;
-    Instant to = toStr != null ? Instant.parse(toStr) : null;
+    Instant from = QueryInstants.parse(fromStr);
+    Instant to = QueryInstants.parse(toStr);
 
     PublicationListResponse publications =
         publicationService.listTeam(
@@ -191,8 +192,8 @@ public class TeamPublicationResource {
       @Parameter(description = PublicationResource.WHEN_PARAM_DESCRIPTION) @QueryParam("when")
           @Nullable PublicationWhen when) {
 
-    Instant from = fromStr != null ? Instant.parse(fromStr) : null;
-    Instant to = toStr != null ? Instant.parse(toStr) : null;
+    Instant from = QueryInstants.parse(fromStr);
+    Instant to = QueryInstants.parse(toStr);
 
     CountResponse count =
         publicationService.countTeam(

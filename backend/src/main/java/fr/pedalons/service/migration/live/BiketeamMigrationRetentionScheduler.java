@@ -1,5 +1,6 @@
 package fr.pedalons.service.migration.live;
 
+import fr.pedalons.common.Crons;
 import fr.pedalons.repository.migration.BiketeamMigrationJobRepository;
 import io.quarkus.logging.Log;
 import io.quarkus.scheduler.Scheduled;
@@ -27,7 +28,7 @@ public class BiketeamMigrationRetentionScheduler {
   @ConfigProperty(name = "pedalons.biketeam.retention-days", defaultValue = "365")
   int retentionDays;
 
-  @Scheduled(cron = "0 50 3 * * ?")
+  @Scheduled(cron = "0 50 3 * * ?", timeZone = Crons.ZONE)
   @Transactional
   void purgeEndedMigrations() {
     long purged =

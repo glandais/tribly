@@ -1,5 +1,6 @@
 package fr.pedalons.service.notification;
 
+import fr.pedalons.common.Crons;
 import fr.pedalons.enums.NotificationChannel;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -100,7 +101,7 @@ public class NotificationScheduler {
     }
   }
 
-  @Scheduled(cron = "0 15 4 * * ?")
+  @Scheduled(cron = "0 15 4 * * ?", timeZone = Crons.ZONE)
   void housekeeping() {
     try {
       int purged = retentionService.purgeExpired();

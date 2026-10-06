@@ -1,5 +1,6 @@
 package fr.pedalons.service.user;
 
+import fr.pedalons.common.Crons;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -19,7 +20,7 @@ public class UserExportCleanupScheduler {
   @Inject UserExportService userExportService;
 
   /** 04:30, after the GPX preview purge at 04:00. */
-  @Scheduled(cron = "0 30 4 * * ?")
+  @Scheduled(cron = "0 30 4 * * ?", timeZone = Crons.ZONE)
   void cleanupExports() {
     int expired = userExportService.purgeExpired();
     int stuck = userExportService.retryStuckJobs();

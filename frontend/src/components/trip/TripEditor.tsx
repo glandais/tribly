@@ -33,6 +33,7 @@ import { Status } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
 import { CreateTripBody } from '@/api/zod/trips/trips.zod'
 import { TagPicker } from '@/components/tag'
+import { addCalendarDays, useEffectiveTimezone } from '@/utils/dateFormat'
 
 interface TripEditorProps {
   team: TeamDetailDto
@@ -97,6 +98,7 @@ export function TripEditor({
 
   const status = form.values.status
   const dateTime = form.values.dateTime
+  const { timezone } = useEffectiveTimezone()
   const stages = form.values.stages
   const routeSlug = form.values.routeSlug
 
@@ -149,12 +151,16 @@ export function TripEditor({
   }, [status, form])
 
   const handleAddStage = () => {
-    const newStageDate = new Date(dateTime || new Date().toISOString())
-    newStageDate.setDate(newStageDate.getDate() + stages.length)
+    // Day n + 1 at the trip's own time of day, counted in the zone the pickers type in.
+    const newStageDate = addCalendarDays(
+      dateTime || new Date().toISOString(),
+      stages.length,
+      timezone
+    )
 
     form.insertListItem('stages', {
       name: t('trips.create.form.stages.defaultName', { number: stages.length + 1 }),
-      dateTime: newStageDate.toISOString(),
+      dateTime: newStageDate,
       media: defaultMedia(),
     })
 

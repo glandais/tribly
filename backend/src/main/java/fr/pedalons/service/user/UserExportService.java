@@ -346,7 +346,8 @@ public class UserExportService {
         user.getDisplayName(),
         export.getBaseUrl(),
         export.getSiteName(),
-        export.getLanguage());
+        export.getLanguage(),
+        user.getTimezone());
   }
 
   // The three mark* methods below are called from processOnePendingExport, i.e. on `this`, where a

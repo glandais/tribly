@@ -1,5 +1,6 @@
 package fr.pedalons.service.weather;
 
+import fr.pedalons.common.Crons;
 import fr.pedalons.repository.weather.WeatherCellRepository;
 import fr.pedalons.repository.weather.WeatherDailyRepository;
 import fr.pedalons.repository.weather.WeatherHourlyRepository;
@@ -30,7 +31,7 @@ public class WeatherHousekeeping {
   @Inject WeatherHourlyRepository hourlyRepository;
   @Inject WeatherDailyRepository dailyRepository;
 
-  @Scheduled(cron = "0 40 3 * * ?")
+  @Scheduled(cron = "0 40 3 * * ?", timeZone = Crons.ZONE)
   void nightly() {
     try {
       purge(Instant.now());
