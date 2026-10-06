@@ -10,7 +10,7 @@ _TeamDashboardDto _$TeamDashboardDtoFromJson(
   Map<String, dynamic> json,
 ) => _TeamDashboardDto(
   team: TeamDetailDto.fromJson(json['team'] as Map<String, dynamic>),
-  role: json['role'] as String,
+  role: json['role'] as String?,
   myUpcoming: json['myUpcoming'] == null
       ? null
       : PublicationListResponse.fromJson(

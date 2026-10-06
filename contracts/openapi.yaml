@@ -5449,15 +5449,16 @@ components:
           type: object
           $ref: "#/components/schemas/TeamWebhookDto"
     TeamDashboardDto:
-      description: "A team's dashboard for one of its members. Each section is a short\
-        \ page (at most 5 rows) of the matching list, compact rows, deleted content\
-        \ left out; its total is what the full list holds. A section is null when\
-        \ its module is disabled for the team. The organizer block is null for a MEMBER,\
-        \ the admin block null below ADMIN."
+      description: "A team's dashboard for one of its members, or its public part\
+        \ for a visitor. Each section is a short page (at most 5 rows) of the matching\
+        \ list, compact rows, deleted content left out; its total is what the full\
+        \ list holds. A section is null when its module is disabled for the team.\
+        \ The organizer block is null for a MEMBER, the admin block null below ADMIN.\
+        \ For a visitor (role null) only team, upcomingRides, latestPosts and newRoutes\
+        \ are filled."
       type: object
       required:
       - team
-      - role
       properties:
         team:
           description: "The team, as GET /api/teams/{teamSlug} returns it — header,\
@@ -5466,14 +5467,15 @@ components:
           $ref: "#/components/schemas/TeamDetailDto"
         role:
           description: "The caller's role in the team, the one the sections were built\
-            \ for. ADMIN for a platform admin."
+            \ for. ADMIN for a platform admin; null for a visitor, anonymous or not\
+            \ a member."
           type: string
           $ref: "#/components/schemas/TeamRole"
         myUpcoming:
           description: "« Vos prochaines sorties »: the team's rides and trips starting\
             \ from now that the caller is registered to, soonest first (at most 3).\
             \ A ride row's registeredGroup is the group joined, with its pace. Null\
-            \ when both rides and trips are disabled."
+            \ when both rides and trips are disabled, and for a visitor."
           type: object
           $ref: "#/components/schemas/PublicationListResponse"
         upcomingRides:
@@ -5496,15 +5498,16 @@ components:
         latestAds:
           description: "« Annonces »: the team's latest ads, newest first (at most\
             \ 3). A null price reads « Prix à négocier »; the place is locationDescription,\
-            \ a sector — never a pin. Null when ads are disabled."
+            \ a sector — never a pin. Null when ads are disabled, and for a visitor."
           type: object
           $ref: "#/components/schemas/AdListResponse"
         organizer:
-          description: What organizers and administrators see on top. Null for a MEMBER.
+          description: What organizers and administrators see on top. Null for a MEMBER
+            and a visitor.
           type: object
           $ref: "#/components/schemas/TeamDashboardOrganizerDto"
         admin:
-          description: The administration panel. Null below ADMIN.
+          description: "The administration panel. Null below ADMIN, and for a visitor."
           type: object
           $ref: "#/components/schemas/TeamDashboardAdminDto"
     TeamDashboardOrganizerDto:
@@ -12598,12 +12601,15 @@ paths:
   /api/teams/{teamSlug}/dashboard:
     get:
       summary: Get the team dashboard
-      description: "Everything a member's « Tableau de bord » shows, in one call,\
-        \ graded by the caller's role: the member sections for everyone, the organizer\
-        \ block for organizers and administrators, the admin block for administrators.\
-        \ Each section is a short page of the matching list, and is null when the\
-        \ team has disabled its module. The teams switcher, the unread notification\
-        \ count and the calendar token are not part of it."
+      description: "Everything a « Tableau de bord » shows, in one call, graded by\
+        \ the caller's role. A visitor (anonymous, or signed in without belonging\
+        \ to the team) gets the public part only: upcoming rides, latest posts and\
+        \ new routes, under the usual visibility rules (PUBLIC entities only), with\
+        \ role, myUpcoming, latestAds, organizer and admin null. A member gets the\
+        \ member sections, an organizer the organizer block too, an administrator\
+        \ the admin block too. Each section is a short page of the matching list,\
+        \ and is null when the team has disabled its module. The teams switcher, the\
+        \ unread notification count and the calendar token are not part of it."
       operationId: getTeamDashboard
       tags:
       - Teams
@@ -12621,14 +12627,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TeamDashboardDto"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: The caller is not a member of the team
+          description: The team is visible to its members only and the caller is not
+            one
           content:
             application/json:
               schema:
@@ -12639,9 +12640,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-      security:
-      - SecurityScheme:
-        - user
   /api/teams/{teamSlug}/invitations:
     get:
       summary: List a team's invitations
@@ -18735,7 +18733,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 10.15.0
+  version: 10.16.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

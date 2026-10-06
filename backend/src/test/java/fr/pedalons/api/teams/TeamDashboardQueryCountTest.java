@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -124,20 +125,19 @@ class TeamDashboardQueryCountTest extends AbstractQueryCountTest {
     }
   }
 
-  private QueryStats.Counters measure(String label, String user) {
+  /** {@code user} null measures an anonymous visitor (docs/LEDGER_*.md API-86). */
+  private QueryStats.Counters measure(String label, @Nullable String user) {
     return queryStats.measureAll(
         label,
         () ->
-            given()
-                .auth()
-                .oauth2(getAccessToken(user))
+            (user == null ? given() : given().auth().oauth2(getAccessToken(user)))
                 .when()
                 .get("/api/teams/" + team1Slug + "/dashboard")
                 .then()
                 .statusCode(200));
   }
 
-  private void assertFlatAcrossData(String user) {
+  private void assertFlatAcrossData(@Nullable String user) {
     // Five of everything fills every section's page (the largest is five rows).
     seed(0, 5);
     QueryStats.Counters small =
@@ -202,5 +202,17 @@ class TeamDashboardQueryCountTest extends AbstractQueryCountTest {
   @Test
   void dashboard_asMember_costDoesNotScaleWithTheTeam() {
     assertFlatAcrossData(USER3);
+  }
+
+  /** A signed-in visitor: the public part, through the visitor branch of the visibility rules. */
+  @Test
+  void dashboard_asNonMember_costDoesNotScaleWithTheTeam() {
+    assertFlatAcrossData(USER4);
+  }
+
+  /** An anonymous visitor: the public part, through the anonymous branch. */
+  @Test
+  void dashboard_anonymously_costDoesNotScaleWithTheTeam() {
+    assertFlatAcrossData(null);
   }
 }

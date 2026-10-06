@@ -408,8 +408,9 @@ public class PublicationService {
    * deleted ones left out whatever the caller's role — unlike {@link #listTeam}, which shows an
    * administrator the deleted ones too.
    *
-   * <p>No {@code @CheckAccess}: the dashboard has already established that the caller belongs to
-   * the team, and the visibility rules of the query still apply row by row. Same per-page lookups as
+   * <p>No {@code @CheckAccess}: the dashboard has already established that the caller may read the
+   * team (a visitor too, docs/LEDGER_*.md API-86), and the visibility rules of the query apply row
+   * by row, a visitor's included. Same per-page lookups as
    * every list, so the cost of a section does not depend on its rows.
    *
    * @param filters narrows the base query (type, window, status, order…); domain, team, caller and

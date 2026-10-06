@@ -442,8 +442,9 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
    * The team's latest routes for its dashboard, compact rows, deleted ones left out whatever the
    * caller's role — unlike {@link #getRoutes}, which shows an administrator the deleted ones too.
    *
-   * <p>No {@code @CheckAccess}: the dashboard has already established that the caller belongs to
-   * the team; the visibility rules of the query still apply row by row.
+   * <p>No {@code @CheckAccess}: the dashboard has already established that the caller may read the
+   * team (a visitor too, docs/LEDGER_*.md API-86); the visibility rules of the query apply row by
+   * row, a visitor's included.
    */
   public RouteListResponse listTeamSection(Team team, int size) {
     return getRoutesWithTeamIds(

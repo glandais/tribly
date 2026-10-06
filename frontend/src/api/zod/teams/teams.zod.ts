@@ -1759,7 +1759,7 @@ export const DeleteTeamParams = zod.object({
 export const DeleteTeamResponse = zod.void()
 
 /**
- * Everything a member's « Tableau de bord » shows, in one call, graded by the caller's role: the member sections for everyone, the organizer block for organizers and administrators, the admin block for administrators. Each section is a short page of the matching list, and is null when the team has disabled its module. The teams switcher, the unread notification count and the calendar token are not part of it.
+ * Everything a « Tableau de bord » shows, in one call, graded by the caller's role. A visitor (anonymous, or signed in without belonging to the team) gets the public part only: upcoming rides, latest posts and new routes, under the usual visibility rules (PUBLIC entities only), with role, myUpcoming, latestAds, organizer and admin null. A member gets the member sections, an organizer the organizer block too, an administrator the admin block too. Each section is a short page of the matching list, and is null when the team has disabled its module. The teams switcher, the unread notification count and the calendar token are not part of it.
  * @summary Get the team dashboard
  */
 export const GetTeamDashboardParams = zod.object({
@@ -2141,8 +2141,9 @@ export const GetTeamDashboardResponse = zod
       ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+      .optional()
       .describe(
-        "The caller's role in the team, the one the sections were built for. ADMIN for a platform admin."
+        "The caller's role in the team, the one the sections were built for. ADMIN for a platform admin; null for a visitor, anonymous or not a member."
       ),
     myUpcoming: zod
       .object({
@@ -4231,7 +4232,7 @@ export const GetTeamDashboardResponse = zod
       })
       .optional()
       .describe(
-        "« Vos prochaines sorties »: the team's rides and trips starting from now that the caller is registered to, soonest first (at most 3). A ride row's registeredGroup is the group joined, with its pace. Null when both rides and trips are disabled."
+        "« Vos prochaines sorties »: the team's rides and trips starting from now that the caller is registered to, soonest first (at most 3). A ride row's registeredGroup is the group joined, with its pace. Null when both rides and trips are disabled, and for a visitor."
       ),
     upcomingRides: zod
       .object({
@@ -9006,7 +9007,7 @@ export const GetTeamDashboardResponse = zod
       })
       .optional()
       .describe(
-        "« Annonces »: the team's latest ads, newest first (at most 3). A null price reads « Prix à négocier »; the place is locationDescription, a sector — never a pin. Null when ads are disabled."
+        "« Annonces »: the team's latest ads, newest first (at most 3). A null price reads « Prix à négocier »; the place is locationDescription, a sector — never a pin. Null when ads are disabled, and for a visitor."
       ),
     organizer: zod
       .object({
@@ -15745,7 +15746,7 @@ export const GetTeamDashboardResponse = zod
           ),
       })
       .optional()
-      .describe('What organizers and administrators see on top. Null for a MEMBER.'),
+      .describe('What organizers and administrators see on top. Null for a MEMBER and a visitor.'),
     admin: zod
       .object({
         newestMembers: zod
@@ -15830,10 +15831,10 @@ export const GetTeamDashboardResponse = zod
           ),
       })
       .optional()
-      .describe('The administration panel. Null below ADMIN.'),
+      .describe('The administration panel. Null below ADMIN, and for a visitor.'),
   })
   .describe(
-    "A team's dashboard for one of its members. Each section is a short page (at most 5 rows) of the matching list, compact rows, deleted content left out; its total is what the full list holds. A section is null when its module is disabled for the team. The organizer block is null for a MEMBER, the admin block null below ADMIN."
+    "A team's dashboard for one of its members, or its public part for a visitor. Each section is a short page (at most 5 rows) of the matching list, compact rows, deleted content left out; its total is what the full list holds. A section is null when its module is disabled for the team. The organizer block is null for a MEMBER, the admin block null below ADMIN. For a visitor (role null) only team, upcomingRides, latestPosts and newRoutes are filled."
   )
 
 /**

@@ -17,14 +17,14 @@ T _$identity<T>(T value) => value;
 mixin _$TeamDashboardDto {
 
 /// The team, as GET /api/teams/{teamSlug} returns it — header, feature flags, memberCount; memberCountByRole is filled for an administrator.
- TeamDetailDto get team;/// The caller's role in the team, the one the sections were built for. ADMIN for a platform admin.
- String get role;/// « Vos prochaines sorties »: the team's rides and trips starting from now that the caller is registered to, soonest first (at most 3). A ride row's registeredGroup is the group joined, with its pace. Null when both rides and trips are disabled.
+ TeamDetailDto get team;/// The caller's role in the team, the one the sections were built for. ADMIN for a platform admin; null for a visitor, anonymous or not a member.
+ String? get role;/// « Vos prochaines sorties »: the team's rides and trips starting from now that the caller is registered to, soonest first (at most 3). A ride row's registeredGroup is the group joined, with its pace. Null when both rides and trips are disabled, and for a visitor.
  PublicationListResponse? get myUpcoming;/// « Sorties à venir »: the team's published rides starting from now, soonest first (at most 3). Each row carries groupSummaries (fill per group), distance, elevationGain, surfaceType, registered and commentCount. Null when rides are disabled.
  PublicationListResponse? get upcomingRides;/// « Dernières publications »: the team's latest published posts, newest first (at most 3). Null when posts are disabled.
  PublicationListResponse? get latestPosts;/// « Nouveaux parcours »: the team's latest routes, newest first (at most 3). Null when routes are disabled.
- RouteListResponse? get newRoutes;/// « Annonces »: the team's latest ads, newest first (at most 3). A null price reads « Prix à négocier »; the place is locationDescription, a sector — never a pin. Null when ads are disabled.
- AdListResponse? get latestAds;/// What organizers and administrators see on top. Null for a MEMBER.
- TeamDashboardOrganizerDto? get organizer;/// The administration panel. Null below ADMIN.
+ RouteListResponse? get newRoutes;/// « Annonces »: the team's latest ads, newest first (at most 3). A null price reads « Prix à négocier »; the place is locationDescription, a sector — never a pin. Null when ads are disabled, and for a visitor.
+ AdListResponse? get latestAds;/// What organizers and administrators see on top. Null for a MEMBER and a visitor.
+ TeamDashboardOrganizerDto? get organizer;/// The administration panel. Null below ADMIN, and for a visitor.
  TeamDashboardAdminDto? get admin;
 /// Create a copy of TeamDashboardDto
 /// with the given fields replaced by the non-null parameter values.
@@ -63,7 +63,7 @@ abstract mixin class $TeamDashboardDtoCopyWith<$Res>  {
   factory $TeamDashboardDtoCopyWith(TeamDashboardDto value, $Res Function(TeamDashboardDto) _then) = _$TeamDashboardDtoCopyWithImpl;
 @useResult
 $Res call({
- TeamDetailDto team, String role, PublicationListResponse? myUpcoming, PublicationListResponse? upcomingRides, PublicationListResponse? latestPosts, RouteListResponse? newRoutes, AdListResponse? latestAds, TeamDashboardOrganizerDto? organizer, TeamDashboardAdminDto? admin
+ TeamDetailDto team, String? role, PublicationListResponse? myUpcoming, PublicationListResponse? upcomingRides, PublicationListResponse? latestPosts, RouteListResponse? newRoutes, AdListResponse? latestAds, TeamDashboardOrganizerDto? organizer, TeamDashboardAdminDto? admin
 });
 
 
@@ -80,11 +80,11 @@ class _$TeamDashboardDtoCopyWithImpl<$Res>
 
 /// Create a copy of TeamDashboardDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? role = null,Object? myUpcoming = freezed,Object? upcomingRides = freezed,Object? latestPosts = freezed,Object? newRoutes = freezed,Object? latestAds = freezed,Object? organizer = freezed,Object? admin = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? team = null,Object? role = freezed,Object? myUpcoming = freezed,Object? upcomingRides = freezed,Object? latestPosts = freezed,Object? newRoutes = freezed,Object? latestAds = freezed,Object? organizer = freezed,Object? admin = freezed,}) {
   return _then(TeamDashboardDto(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
-as TeamDetailDto,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as String,myUpcoming: freezed == myUpcoming ? _self.myUpcoming : myUpcoming // ignore: cast_nullable_to_non_nullable
+as TeamDetailDto,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String?,myUpcoming: freezed == myUpcoming ? _self.myUpcoming : myUpcoming // ignore: cast_nullable_to_non_nullable
 as PublicationListResponse?,upcomingRides: freezed == upcomingRides ? _self.upcomingRides : upcomingRides // ignore: cast_nullable_to_non_nullable
 as PublicationListResponse?,latestPosts: freezed == latestPosts ? _self.latestPosts : latestPosts // ignore: cast_nullable_to_non_nullable
 as PublicationListResponse?,newRoutes: freezed == newRoutes ? _self.newRoutes : newRoutes // ignore: cast_nullable_to_non_nullable
@@ -269,7 +269,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TeamDetailDto team,  String role,  PublicationListResponse? myUpcoming,  PublicationListResponse? upcomingRides,  PublicationListResponse? latestPosts,  RouteListResponse? newRoutes,  AdListResponse? latestAds,  TeamDashboardOrganizerDto? organizer,  TeamDashboardAdminDto? admin)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TeamDetailDto team,  String? role,  PublicationListResponse? myUpcoming,  PublicationListResponse? upcomingRides,  PublicationListResponse? latestPosts,  RouteListResponse? newRoutes,  AdListResponse? latestAds,  TeamDashboardOrganizerDto? organizer,  TeamDashboardAdminDto? admin)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TeamDashboardDto() when $default != null:
 return $default(_that.team,_that.role,_that.myUpcoming,_that.upcomingRides,_that.latestPosts,_that.newRoutes,_that.latestAds,_that.organizer,_that.admin);case _:
@@ -290,7 +290,7 @@ return $default(_that.team,_that.role,_that.myUpcoming,_that.upcomingRides,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TeamDetailDto team,  String role,  PublicationListResponse? myUpcoming,  PublicationListResponse? upcomingRides,  PublicationListResponse? latestPosts,  RouteListResponse? newRoutes,  AdListResponse? latestAds,  TeamDashboardOrganizerDto? organizer,  TeamDashboardAdminDto? admin)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TeamDetailDto team,  String? role,  PublicationListResponse? myUpcoming,  PublicationListResponse? upcomingRides,  PublicationListResponse? latestPosts,  RouteListResponse? newRoutes,  AdListResponse? latestAds,  TeamDashboardOrganizerDto? organizer,  TeamDashboardAdminDto? admin)  $default,) {final _that = this;
 switch (_that) {
 case _TeamDashboardDto():
 return $default(_that.team,_that.role,_that.myUpcoming,_that.upcomingRides,_that.latestPosts,_that.newRoutes,_that.latestAds,_that.organizer,_that.admin);case _:
@@ -310,7 +310,7 @@ return $default(_that.team,_that.role,_that.myUpcoming,_that.upcomingRides,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TeamDetailDto team,  String role,  PublicationListResponse? myUpcoming,  PublicationListResponse? upcomingRides,  PublicationListResponse? latestPosts,  RouteListResponse? newRoutes,  AdListResponse? latestAds,  TeamDashboardOrganizerDto? organizer,  TeamDashboardAdminDto? admin)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TeamDetailDto team,  String? role,  PublicationListResponse? myUpcoming,  PublicationListResponse? upcomingRides,  PublicationListResponse? latestPosts,  RouteListResponse? newRoutes,  AdListResponse? latestAds,  TeamDashboardOrganizerDto? organizer,  TeamDashboardAdminDto? admin)?  $default,) {final _that = this;
 switch (_that) {
 case _TeamDashboardDto() when $default != null:
 return $default(_that.team,_that.role,_that.myUpcoming,_that.upcomingRides,_that.latestPosts,_that.newRoutes,_that.latestAds,_that.organizer,_that.admin);case _:
@@ -325,14 +325,14 @@ return $default(_that.team,_that.role,_that.myUpcoming,_that.upcomingRides,_that
 @JsonSerializable()
 
 class _TeamDashboardDto implements TeamDashboardDto {
-  const _TeamDashboardDto({required this.team, required this.role, this.myUpcoming, this.upcomingRides, this.latestPosts, this.newRoutes, this.latestAds, this.organizer, this.admin});
+  const _TeamDashboardDto({required this.team, this.role, this.myUpcoming, this.upcomingRides, this.latestPosts, this.newRoutes, this.latestAds, this.organizer, this.admin});
   factory _TeamDashboardDto.fromJson(Map<String, dynamic> json) => _$TeamDashboardDtoFromJson(json);
 
 /// The team, as GET /api/teams/{teamSlug} returns it — header, feature flags, memberCount; memberCountByRole is filled for an administrator.
 @override final  TeamDetailDto team;
-/// The caller's role in the team, the one the sections were built for. ADMIN for a platform admin.
-@override final  String role;
-/// « Vos prochaines sorties »: the team's rides and trips starting from now that the caller is registered to, soonest first (at most 3). A ride row's registeredGroup is the group joined, with its pace. Null when both rides and trips are disabled.
+/// The caller's role in the team, the one the sections were built for. ADMIN for a platform admin; null for a visitor, anonymous or not a member.
+@override final  String? role;
+/// « Vos prochaines sorties »: the team's rides and trips starting from now that the caller is registered to, soonest first (at most 3). A ride row's registeredGroup is the group joined, with its pace. Null when both rides and trips are disabled, and for a visitor.
 @override final  PublicationListResponse? myUpcoming;
 /// « Sorties à venir »: the team's published rides starting from now, soonest first (at most 3). Each row carries groupSummaries (fill per group), distance, elevationGain, surfaceType, registered and commentCount. Null when rides are disabled.
 @override final  PublicationListResponse? upcomingRides;
@@ -340,11 +340,11 @@ class _TeamDashboardDto implements TeamDashboardDto {
 @override final  PublicationListResponse? latestPosts;
 /// « Nouveaux parcours »: the team's latest routes, newest first (at most 3). Null when routes are disabled.
 @override final  RouteListResponse? newRoutes;
-/// « Annonces »: the team's latest ads, newest first (at most 3). A null price reads « Prix à négocier »; the place is locationDescription, a sector — never a pin. Null when ads are disabled.
+/// « Annonces »: the team's latest ads, newest first (at most 3). A null price reads « Prix à négocier »; the place is locationDescription, a sector — never a pin. Null when ads are disabled, and for a visitor.
 @override final  AdListResponse? latestAds;
-/// What organizers and administrators see on top. Null for a MEMBER.
+/// What organizers and administrators see on top. Null for a MEMBER and a visitor.
 @override final  TeamDashboardOrganizerDto? organizer;
-/// The administration panel. Null below ADMIN.
+/// The administration panel. Null below ADMIN, and for a visitor.
 @override final  TeamDashboardAdminDto? admin;
 
 /// Create a copy of TeamDashboardDto
@@ -382,7 +382,7 @@ abstract mixin class _$TeamDashboardDtoCopyWith<$Res> implements $TeamDashboardD
   factory _$TeamDashboardDtoCopyWith(_TeamDashboardDto value, $Res Function(_TeamDashboardDto) _then) = __$TeamDashboardDtoCopyWithImpl;
 @override @useResult
 $Res call({
- TeamDetailDto team, String role, PublicationListResponse? myUpcoming, PublicationListResponse? upcomingRides, PublicationListResponse? latestPosts, RouteListResponse? newRoutes, AdListResponse? latestAds, TeamDashboardOrganizerDto? organizer, TeamDashboardAdminDto? admin
+ TeamDetailDto team, String? role, PublicationListResponse? myUpcoming, PublicationListResponse? upcomingRides, PublicationListResponse? latestPosts, RouteListResponse? newRoutes, AdListResponse? latestAds, TeamDashboardOrganizerDto? organizer, TeamDashboardAdminDto? admin
 });
 
 
@@ -399,11 +399,11 @@ class __$TeamDashboardDtoCopyWithImpl<$Res>
 
 /// Create a copy of TeamDashboardDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? role = null,Object? myUpcoming = freezed,Object? upcomingRides = freezed,Object? latestPosts = freezed,Object? newRoutes = freezed,Object? latestAds = freezed,Object? organizer = freezed,Object? admin = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? team = null,Object? role = freezed,Object? myUpcoming = freezed,Object? upcomingRides = freezed,Object? latestPosts = freezed,Object? newRoutes = freezed,Object? latestAds = freezed,Object? organizer = freezed,Object? admin = freezed,}) {
   return _then(_TeamDashboardDto(
 team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
-as TeamDetailDto,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as String,myUpcoming: freezed == myUpcoming ? _self.myUpcoming : myUpcoming // ignore: cast_nullable_to_non_nullable
+as TeamDetailDto,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String?,myUpcoming: freezed == myUpcoming ? _self.myUpcoming : myUpcoming // ignore: cast_nullable_to_non_nullable
 as PublicationListResponse?,upcomingRides: freezed == upcomingRides ? _self.upcomingRides : upcomingRides // ignore: cast_nullable_to_non_nullable
 as PublicationListResponse?,latestPosts: freezed == latestPosts ? _self.latestPosts : latestPosts // ignore: cast_nullable_to_non_nullable
 as PublicationListResponse?,newRoutes: freezed == newRoutes ? _self.newRoutes : newRoutes // ignore: cast_nullable_to_non_nullable

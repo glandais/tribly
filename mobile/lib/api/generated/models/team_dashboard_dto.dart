@@ -15,17 +15,17 @@ import 'team_role.dart';
 part 'team_dashboard_dto.freezed.dart';
 part 'team_dashboard_dto.g.dart';
 
-/// A team's dashboard for one of its members. Each section is a short page (at most 5 rows) of the matching list, compact rows, deleted content left out; its total is what the full list holds. A section is null when its module is disabled for the team. The organizer block is null for a MEMBER, the admin block null below ADMIN.
+/// A team's dashboard for one of its members, or its public part for a visitor. Each section is a short page (at most 5 rows) of the matching list, compact rows, deleted content left out; its total is what the full list holds. A section is null when its module is disabled for the team. The organizer block is null for a MEMBER, the admin block null below ADMIN. For a visitor (role null) only team, upcomingRides, latestPosts and newRoutes are filled.
 @Freezed()
 abstract class TeamDashboardDto with _$TeamDashboardDto {
   const factory TeamDashboardDto({
     /// The team, as GET /api/teams/{teamSlug} returns it — header, feature flags, memberCount; memberCountByRole is filled for an administrator.
     required TeamDetailDto team,
 
-    /// The caller's role in the team, the one the sections were built for. ADMIN for a platform admin.
-    required String role,
+    /// The caller's role in the team, the one the sections were built for. ADMIN for a platform admin; null for a visitor, anonymous or not a member.
+    String? role,
 
-    /// « Vos prochaines sorties »: the team's rides and trips starting from now that the caller is registered to, soonest first (at most 3). A ride row's registeredGroup is the group joined, with its pace. Null when both rides and trips are disabled.
+    /// « Vos prochaines sorties »: the team's rides and trips starting from now that the caller is registered to, soonest first (at most 3). A ride row's registeredGroup is the group joined, with its pace. Null when both rides and trips are disabled, and for a visitor.
     PublicationListResponse? myUpcoming,
 
     /// « Sorties à venir »: the team's published rides starting from now, soonest first (at most 3). Each row carries groupSummaries (fill per group), distance, elevationGain, surfaceType, registered and commentCount. Null when rides are disabled.
@@ -37,13 +37,13 @@ abstract class TeamDashboardDto with _$TeamDashboardDto {
     /// « Nouveaux parcours »: the team's latest routes, newest first (at most 3). Null when routes are disabled.
     RouteListResponse? newRoutes,
 
-    /// « Annonces »: the team's latest ads, newest first (at most 3). A null price reads « Prix à négocier »; the place is locationDescription, a sector — never a pin. Null when ads are disabled.
+    /// « Annonces »: the team's latest ads, newest first (at most 3). A null price reads « Prix à négocier »; the place is locationDescription, a sector — never a pin. Null when ads are disabled, and for a visitor.
     AdListResponse? latestAds,
 
-    /// What organizers and administrators see on top. Null for a MEMBER.
+    /// What organizers and administrators see on top. Null for a MEMBER and a visitor.
     TeamDashboardOrganizerDto? organizer,
 
-    /// The administration panel. Null below ADMIN.
+    /// The administration panel. Null below ADMIN, and for a visitor.
     TeamDashboardAdminDto? admin,
   }) = _TeamDashboardDto;
 

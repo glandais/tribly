@@ -10,19 +10,22 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A team's « Tableau de bord », for one of its members, in one response.
+ * A team's « Tableau de bord », for one of its members or for a visitor, in one response.
  *
  * <p>Every section is a short page (five rows at most) built by the same services and per-page
  * lookups as the lists it previews, so its rows are the rows those lists show and its {@code total}
  * is what « Voir tout » opens. A section is null when the team has turned its module off; the
- * organizer and admin blocks are null below their role.
+ * organizer and admin blocks are null below their role. A visitor (null role) gets the public
+ * sections only — docs/LEDGER_*.md API-86.
  */
 @Schema(
     description =
-        "A team's dashboard for one of its members. Each section is a short page (at most 5 rows)"
-            + " of the matching list, compact rows, deleted content left out; its total is what the"
-            + " full list holds. A section is null when its module is disabled for the team. The"
-            + " organizer block is null for a MEMBER, the admin block null below ADMIN.")
+        "A team's dashboard for one of its members, or its public part for a visitor. Each section"
+            + " is a short page (at most 5 rows) of the matching list, compact rows, deleted"
+            + " content left out; its total is what the full list holds. A section is null when its"
+            + " module is disabled for the team. The organizer block is null for a MEMBER, the"
+            + " admin block null below ADMIN. For a visitor (role null) only team, upcomingRides,"
+            + " latestPosts and newRoutes are filled.")
 @ValidateSchema
 public record TeamDashboardDto(
     @Schema(
@@ -31,11 +34,11 @@ public record TeamDashboardDto(
                     + " memberCount; memberCountByRole is filled for an administrator.",
             required = true)
         TeamDetailDto team,
-    @Schema(
+    @Nullable
+        @Schema(
             description =
                 "The caller's role in the team, the one the sections were built for. ADMIN for a"
-                    + " platform admin.",
-            required = true)
+                    + " platform admin; null for a visitor, anonymous or not a member.")
         TeamRole role,
     @Nullable
         @Schema(
@@ -43,7 +46,7 @@ public record TeamDashboardDto(
                 "« Vos prochaines sorties »: the team's rides and trips starting from now that the"
                     + " caller is registered to, soonest first (at most 3). A ride row's"
                     + " registeredGroup is the group joined, with its pace. Null when both rides"
-                    + " and trips are disabled.")
+                    + " and trips are disabled, and for a visitor.")
         PublicationListResponse myUpcoming,
     @Nullable
         @Schema(
@@ -70,10 +73,13 @@ public record TeamDashboardDto(
             description =
                 "« Annonces »: the team's latest ads, newest first (at most 3). A null price reads"
                     + " « Prix à négocier »; the place is locationDescription, a sector — never a"
-                    + " pin. Null when ads are disabled.")
+                    + " pin. Null when ads are disabled, and for a visitor.")
         AdListResponse latestAds,
     @Nullable
-        @Schema(description = "What organizers and administrators see on top. Null for a MEMBER.")
+        @Schema(
+            description =
+                "What organizers and administrators see on top. Null for a MEMBER and a visitor.")
         TeamDashboardOrganizerDto organizer,
-    @Nullable @Schema(description = "The administration panel. Null below ADMIN.")
+    @Nullable
+        @Schema(description = "The administration panel. Null below ADMIN, and for a visitor.")
         TeamDashboardAdminDto admin) {}

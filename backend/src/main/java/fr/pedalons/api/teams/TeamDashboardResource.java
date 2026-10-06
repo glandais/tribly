@@ -3,7 +3,7 @@ package fr.pedalons.api.teams;
 import fr.pedalons.dto.dashboard.response.TeamDashboardDto;
 import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.service.team.TeamDashboardService;
-import jakarta.annotation.security.RolesAllowed;
+import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -26,29 +26,28 @@ public class TeamDashboardResource {
   @Inject TeamDashboardService dashboardService;
 
   @GET
-  @RolesAllowed("user")
+  @PermitAll
   @Operation(
       operationId = "getTeamDashboard",
       summary = "Get the team dashboard",
       description =
-          "Everything a member's « Tableau de bord » shows, in one call, graded by the caller's"
-              + " role: the member sections for everyone, the organizer block for organizers and"
-              + " administrators, the admin block for administrators. Each section is a short page"
-              + " of the matching list, and is null when the team has disabled its module. The"
-              + " teams switcher, the unread notification count and the calendar token are not"
-              + " part of it.")
+          "Everything a « Tableau de bord » shows, in one call, graded by the caller's role. A"
+              + " visitor (anonymous, or signed in without belonging to the team) gets the public"
+              + " part only: upcoming rides, latest posts and new routes, under the usual"
+              + " visibility rules (PUBLIC entities only), with role, myUpcoming, latestAds,"
+              + " organizer and admin null. A member gets the member sections, an organizer the"
+              + " organizer block too, an administrator the admin block too. Each section is a"
+              + " short page of the matching list, and is null when the team has disabled its"
+              + " module. The teams switcher, the unread notification count and the calendar token"
+              + " are not part of it.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
         description = "Dashboard built",
         content = @Content(schema = @Schema(implementation = TeamDashboardDto.class))),
     @APIResponse(
-        responseCode = "401",
-        description = "Unauthorized",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-    @APIResponse(
         responseCode = "403",
-        description = "The caller is not a member of the team",
+        description = "The team is visible to its members only and the caller is not one",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "404",

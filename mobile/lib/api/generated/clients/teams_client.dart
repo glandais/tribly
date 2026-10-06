@@ -94,7 +94,7 @@ abstract class TeamsClient {
 
   /// Get the team dashboard.
   ///
-  /// Everything a member's « Tableau de bord » shows, in one call, graded by the caller's role: the member sections for everyone, the organizer block for organizers and administrators, the admin block for administrators. Each section is a short page of the matching list, and is null when the team has disabled its module. The teams switcher, the unread notification count and the calendar token are not part of it.
+  /// Everything a « Tableau de bord » shows, in one call, graded by the caller's role. A visitor (anonymous, or signed in without belonging to the team) gets the public part only: upcoming rides, latest posts and new routes, under the usual visibility rules (PUBLIC entities only), with role, myUpcoming, latestAds, organizer and admin null. A member gets the member sections, an organizer the organizer block too, an administrator the admin block too. Each section is a short page of the matching list, and is null when the team has disabled its module. The teams switcher, the unread notification count and the calendar token are not part of it.
   ///
   /// [teamSlug] - Team URL slug.
   @GET('/api/teams/{teamSlug}/dashboard')

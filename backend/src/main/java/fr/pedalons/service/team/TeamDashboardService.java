@@ -1,6 +1,5 @@
 package fr.pedalons.service.team;
 
-import fr.pedalons.common.exception.ForbiddenException;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.ads.request.AdSearchParams;
 import fr.pedalons.dto.ads.response.AdListResponse;
@@ -12,6 +11,8 @@ import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.dto.ridetemplates.response.RideTemplateListResponse;
 import fr.pedalons.dto.routes.response.RouteListResponse;
 import fr.pedalons.dto.teams.response.TeamDetailDto;
+import fr.pedalons.enums.ActionType;
+import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.MemberSortBy;
 import fr.pedalons.enums.SortDirection;
@@ -24,11 +25,12 @@ import fr.pedalons.service.notification.TeamWebhookService;
 import fr.pedalons.service.ridetemplate.RideTemplateService;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.PedalonsQueryContext;
-import fr.pedalons.service.security.annotation.Logged;
+import fr.pedalons.service.security.annotation.CheckAccess;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A team's « Tableau de bord »: every section a member, an organizer or an administrator sees on
@@ -38,6 +40,14 @@ import java.time.Instant;
  * page of an existing listing, built by its own service with its own per-page lookups. The cost of
  * the dashboard is therefore a fixed number of queries per section, whatever the rows hold ({@code
  * TeamDashboardQueryCountTest}) — and a section shows exactly the rows its « Voir tout » opens.
+ *
+ * <p>A visitor — anonymous, or signed in without belonging to the team — gets the public part
+ * (docs/LEDGER_*.md API-86): upcoming rides, latest posts, new routes, built by the very same
+ * queries, so the same visibility rules apply row by row (a {@code TEAM} entity, a draft, an
+ * unlisted entity never reaches them) and a {@code TEAM} team stays closed ({@code @CheckAccess}
+ * TEAM READ, the rule of {@code GET /api/teams/{teamSlug}}). What belongs to members only — their
+ * registrations, the ads, the organizer and admin blocks — is not built at all for a visitor,
+ * rather than built and emptied.
  *
  * <p>Two departures from the plain listings, both deliberate: deleted content is left out even for
  * an administrator (the team lists show it to them, a dashboard is not where it gets restored), and
@@ -72,16 +82,17 @@ public class TeamDashboardService {
   @Inject TeamWebhookService teamWebhookService;
 
   /**
-   * The dashboard of one team for the current user.
+   * The dashboard of one team for the current caller, member or visitor.
    *
-   * @throws ForbiddenException when the caller is not a member of the team — a visitor, member of
-   *     another team or not, keeps the public team page
+   * <p>{@code @CheckAccess} TEAM READ: anyone may read a team that is not {@code TEAM}-only, only
+   * its members one that is — a 403 otherwise, as for the team itself.
    */
-  @Logged
+  @CheckAccess(entityType = EntityType.TEAM, action = ActionType.READ)
   @Transactional
   public TeamDashboardDto getDashboard(String teamSlug) {
     Team team = teamService.getTeam(teamSlug);
-    TeamRole role = roleOf(team);
+    @Nullable TeamRole role = roleOf(team);
+    boolean member = role != null;
     TeamDetailDto detail = teamService.getTeamDetailDto(teamSlug);
     Instant now = Instant.now();
 
@@ -89,8 +100,9 @@ public class TeamDashboardService {
     boolean rides = team.isEnableRides() && team.isEnableRoutes();
     boolean trips = team.isEnableTrips() && team.isEnableRoutes();
 
+    // Members only: a visitor has no registrations, and the ads tab is offered to members only.
     PublicationListResponse myUpcoming =
-        rides || trips
+        member && (rides || trips)
             ? publicationService.listTeamSection(
                 team, MY_UPCOMING_SIZE, q -> q.participating(true).notEndedAt(now).ascending(true))
             : null;
@@ -103,14 +115,14 @@ public class TeamDashboardService {
     RouteListResponse newRoutes =
         team.isEnableRoutes() ? routeService.listTeamSection(team, LATEST_SIZE) : null;
     AdListResponse latestAds =
-        team.isEnableAds()
+        member && team.isEnableAds()
             ? adService.listAds(
                 teamSlug, AdSearchParams.builder().build(), ListViewMode.COMPACT, 0, LATEST_SIZE)
             : null;
 
     TeamDashboardOrganizerDto organizer =
-        role.isOrganizer() ? organizer(team, teamSlug, rides, now) : null;
-    TeamDashboardAdminDto admin = role.isAdmin() ? admin(teamSlug) : null;
+        role != null && role.isOrganizer() ? organizer(team, teamSlug, rides, now) : null;
+    TeamDashboardAdminDto admin = role != null && role.isAdmin() ? admin(teamSlug) : null;
 
     return new TeamDashboardDto(
         detail,
@@ -124,16 +136,15 @@ public class TeamDashboardService {
         admin);
   }
 
-  /** The caller's role in the team; a platform admin is an administrator everywhere. */
-  private TeamRole roleOf(Team team) {
+  /**
+   * The caller's role in the team, null for a visitor; a platform admin is an administrator
+   * everywhere.
+   */
+  private @Nullable TeamRole roleOf(Team team) {
     if (pedalonsContext.isPlatformAdmin()) {
       return TeamRole.ADMIN;
     }
-    TeamRole role = pedalonsContext.getContext(team).teamRole();
-    if (role == null) {
-      throw new ForbiddenException();
-    }
-    return role;
+    return pedalonsContext.getContext(team).teamRole();
   }
 
   private TeamDashboardOrganizerDto organizer(

@@ -32,8 +32,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@code GET /api/teams/{teamSlug}/dashboard}: one response, graded by role. Fixture: team1 has
- * user1 (ADMIN), user2 (ORGANIZER), user3 (MEMBER); user4 and user5 belong to no team.
+ * {@code GET /api/teams/{teamSlug}/dashboard}: one response, graded by role, the public part for a
+ * visitor (docs/LEDGER_*.md API-86). Fixture: team1 (PUBLIC) has user1 (ADMIN), user2 (ORGANIZER),
+ * user3 (MEMBER); team2 is members-only; user4 and user5 belong to no team.
  */
 @QuarkusTest
 class TeamDashboardResourceTest extends AbstractResourceTest {
@@ -107,14 +108,96 @@ class TeamDashboardResourceTest extends AbstractResourceTest {
         team1, user1, ReportTargetType.POST, reported.getId(), user3, ReportReason.SPAM);
   }
 
-  @Test
-  void anonymous_shouldBeUnauthorized() {
-    given().when().get(dashboard()).then().statusCode(401);
+  private ValidatableResponse dashboardAnonymously() {
+    return given().when().get(dashboard()).then().statusCode(200);
+  }
+
+  /**
+   * A visitor gets the public part only (docs/LEDGER_*.md API-86): no role, no registrations, no
+   * ads, no organizer or admin block — and every section it does get is a member's section.
+   */
+  private void assertPublicPartOnly(ValidatableResponse visitor) {
+    visitor
+        .header("Cache-Control", containsString("no-store"))
+        .body("role", nullValue())
+        .body("team.slug", equalTo(team1Slug))
+        .body("team.memberCountByRole", nullValue())
+        .body("myUpcoming", nullValue())
+        .body("latestAds", nullValue())
+        .body("organizer", nullValue())
+        .body("admin", nullValue())
+        .body("upcomingRides.publications.slug", contains("routed", "bare", "full"))
+        .body("upcomingRides.publications.slug", not(hasItem("draft-ride")))
+        .body("upcomingRides.publications.slug", not(hasItem("past")))
+        .body("latestPosts.publications", hasSize(3))
+        .body("newRoutes.routes.name", contains("Monts d'Or"));
   }
 
   @Test
-  void nonMember_shouldBeForbidden() {
+  void anonymous_shouldGetThePublicPart() {
+    assertPublicPartOnly(dashboardAnonymously());
+  }
+
+  @Test
+  void nonMember_shouldGetThePublicPart() {
+    assertPublicPartOnly(dashboardAs(USER4));
+  }
+
+  /**
+   * What is not PUBLIC — a members-only or an unlisted ride, post or route, a draft — never reaches
+   * a visitor's sections, signed in or not; the members see it. Each one is the newest or soonest
+   * of its section, so it would be on the page if the visibility rules did not hold.
+   */
+  @Test
+  void visitor_shouldNotSeeWhatIsNotPublic() {
+    Instant sooner = soon.minus(1, ChronoUnit.HOURS);
+    dataService.createRide(team1, user1, "Interne", "interne", sooner, Visibility.TEAM);
+    dataService.createRide(
+        team1, user1, "Non listée", "non-listee", sooner, Visibility.PUBLIC_UNLISTED);
+    dataService.createRide(
+        team1, user1, "Brouillon", "brouillon", sooner, Visibility.PUBLIC, Status.DRAFT);
+    Post internal =
+        dataService.createPost(
+            team1, user1, "Post interne", Instant.now().plusSeconds(60), Visibility.TEAM);
+    Post unlisted =
+        dataService.createPost(
+            team1,
+            user1,
+            "Post non listé",
+            Instant.now().plusSeconds(120),
+            Visibility.PUBLIC_UNLISTED);
+    dataService.createRoute(team1, user1, "Parcours interne", Visibility.TEAM);
+    dataService.createRoute(team1, user1, "Parcours non listé", Visibility.PUBLIC_UNLISTED);
+
+    for (ValidatableResponse visitor :
+        new ValidatableResponse[] {dashboardAnonymously(), dashboardAs(USER4)}) {
+      visitor
+          .body("role", nullValue())
+          .body("upcomingRides.publications.slug", contains("routed", "bare", "full"))
+          .body("upcomingRides.total", equalTo(3))
+          .body("latestPosts.publications.slug", not(hasItem(internal.getSlug())))
+          .body("latestPosts.publications.slug", not(hasItem(unlisted.getSlug())))
+          .body("newRoutes.routes.name", contains("Monts d'Or"))
+          .body("newRoutes.total", equalTo(1));
+    }
+
+    // The members see the members-only and unlisted rows, never the draft.
+    dashboardAs(USER3)
+        .body("upcomingRides.publications.slug", hasItem("interne"))
+        .body("upcomingRides.publications.slug", hasItem("non-listee"))
+        .body("upcomingRides.publications.slug", not(hasItem("brouillon")))
+        .body("latestPosts.publications.slug", hasItem(unlisted.getSlug()))
+        .body("latestPosts.publications.slug", hasItem(internal.getSlug()))
+        .body("newRoutes.total", equalTo(3));
+  }
+
+  /** A team switched to members-only stays closed to visitors: 403, as for the team itself. */
+  @Test
+  void membersOnlyTeam_shouldStayClosedToVisitors() {
+    dataService.setTeamVisibility(team1, Visibility.TEAM);
+    given().when().get(dashboard()).then().statusCode(403);
     given().auth().oauth2(getAccessToken(USER4)).when().get(dashboard()).then().statusCode(403);
+    dashboardAs(USER3).body("role", equalTo("MEMBER"));
   }
 
   @Test
@@ -272,13 +355,13 @@ class TeamDashboardResourceTest extends AbstractResourceTest {
         .body("latestPosts", notNullValue());
   }
 
-  /** A member who left is a visitor again. */
+  /** A member who left is a visitor again: the public part only. */
   @Test
-  void formerMember_shouldBeForbidden() {
+  void formerMember_shouldGetThePublicPartOnly() {
     dataService.addUserToTeam(user5, team1, TeamRole.MEMBER);
-    dashboardAs(USER5);
+    dashboardAs(USER5).body("role", equalTo("MEMBER")).body("latestAds", notNullValue());
     dataService.removeMember(user5, team1);
-    given().auth().oauth2(getAccessToken(USER5)).when().get(dashboard()).then().statusCode(403);
+    assertPublicPartOnly(dashboardAs(USER5));
   }
 
   /** The private team's dashboard is its members' only. */
@@ -299,5 +382,6 @@ class TeamDashboardResourceTest extends AbstractResourceTest {
         .get("/api/teams/" + team2Slug + "/dashboard")
         .then()
         .statusCode(403);
+    given().when().get("/api/teams/" + team2Slug + "/dashboard").then().statusCode(403);
   }
 }

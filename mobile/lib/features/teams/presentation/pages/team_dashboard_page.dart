@@ -191,12 +191,16 @@ class _Summary extends StatelessWidget {
   });
 
   final TeamDetailDto team;
-  final String role;
+
+  /// Nul pour un visiteur, qui reçoit la partie publique (ledger `API-86`) :
+  /// pas de badge de rôle.
+  final String? role;
   final bool organizer;
 
   @override
   Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
+    final String? role = this.role;
     final bool hasCalendar = team.enableRides || team.enableTrips;
     // Comme le site : une sortie se crée sur un parcours, il faut donc les
     // deux modules.
@@ -213,12 +217,14 @@ class _Summary extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              PdlBadge(
-                label: 'teams.dashboard.role.$role'.tr(),
-                tone: TeamRole.fromJson(role).tone(c),
-                icon: role == 'MEMBER' ? null : PdlIcons.admin,
-              ),
-              const SizedBox(width: PdlSpacing.chipGap),
+              if (role != null) ...<Widget>[
+                PdlBadge(
+                  label: 'teams.dashboard.role.$role'.tr(),
+                  tone: TeamRole.fromJson(role).tone(c),
+                  icon: role == 'MEMBER' ? null : PdlIcons.admin,
+                ),
+                const SizedBox(width: PdlSpacing.chipGap),
+              ],
               Expanded(
                 child: Text(
                   'teams.membersList.count'.plural(team.memberCount),
