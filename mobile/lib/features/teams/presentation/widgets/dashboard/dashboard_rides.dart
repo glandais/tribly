@@ -21,6 +21,8 @@ import '../../../../rides/providers/participation_changes.dart';
 import '../../../../routes/presentation/route_export.dart';
 import '../../team_web_paths.dart';
 import 'dashboard_section.dart';
+import '../../../../../core/widgets/zone_mention_line.dart';
+import '../../../../rides/domain/group_start.dart';
 
 /// Une inscription faite dans l'app depuis le chargement du tableau de bord
 /// l'emporte sur la ligne chargée avant elle — même règle que le fil.
@@ -96,7 +98,9 @@ class _MyUpcomingRowState extends ConsumerState<_MyUpcomingRow> {
     final PdlTypography t = context.pdlText;
     final UnitSystem units = ref.watch(unitSystemProvider);
     final PublicationDto p = widget.publication;
-    final DateTime? at = AppFormatters.tryParseDisplayTime(p.dateTime);
+    // Le jour d'un rendez-vous, dans le fuseau de son entité
+    // (docs/LEDGER_*.md API-60).
+    final DateTime? at = AppFormatters.tryParseZoneTime(p.dateTime, p.timezone);
 
     final (
       String path,
@@ -237,14 +241,22 @@ class _MyUpcomingRowState extends ConsumerState<_MyUpcomingRow> {
   /// départ, puis « Groupe B · 26 km/h ».
   List<PdlStat> _rideStats(PublicationDtoRide ride, UnitSystem units) {
     final RideGroupDto? group = ride.registeredGroup;
-    final DateTime? at = DateTime.tryParse(ride.dateTime);
-    final String? time = group?.time != null
-        ? AppFormatters.formatLocalTime(group!.time!)
-        : at == null
+    // Le départ du groupe rejoint — qui vaut celui de la sortie quand il n'a
+    // pas d'heure propre —, dans le fuseau de la sortie (docs/LEDGER_*.md
+    // API-60), et la mention quand le lecteur est ailleurs.
+    final String start = group?.startAt ?? ride.dateTime;
+    final DateTime? instant = DateTime.tryParse(start);
+    final String? mention = instant == null
         ? null
-        : AppFormatters.formatTime(at);
+        : AppFormatters.formatZoneMention(instant, ride.timezone);
     return <PdlStat>[
-      if (time != null) PdlStat(value: time, icon: PdlIcons.time),
+      if (instant != null)
+        PdlStat(
+          value: formatGroupStart(start, ride.timezone),
+          icon: PdlIcons.time,
+        ),
+      if (mention != null)
+        PdlStat(value: mention, icon: PdlIcons.otherTimezone),
       if (ride.startPlace != null)
         PdlStat(value: ride.startPlace!.name, icon: PdlIcons.placeStart),
       if (group != null)
@@ -259,10 +271,20 @@ class _MyUpcomingRowState extends ConsumerState<_MyUpcomingRow> {
   }
 
   List<PdlStat> _tripStats(PublicationDtoTrip trip, UnitSystem units) {
-    final DateTime? start = AppFormatters.tryParseDisplayTime(trip.dateTime);
-    final DateTime? end = trip.endDate == null
+    // Une ligne de liste ne porte pas les étapes : `endDate` se lit dans le
+    // fuseau du voyage, comme le documente `TripDto` (docs/LEDGER_*.md API-60).
+    final DateTime? start = AppFormatters.tryParseZoneTime(
+      trip.dateTime,
+      trip.timezone,
+    );
+    final DateTime? end = AppFormatters.tryParseZoneTime(
+      trip.endDate,
+      trip.timezone,
+    );
+    final DateTime? instant = DateTime.tryParse(trip.dateTime);
+    final String? mention = instant == null
         ? null
-        : AppFormatters.tryParseDisplayTime(trip.endDate!);
+        : AppFormatters.formatZoneMention(instant, trip.timezone);
     return <PdlStat>[
       if (start != null)
         PdlStat(
@@ -272,6 +294,8 @@ class _MyUpcomingRowState extends ConsumerState<_MyUpcomingRow> {
                     '${AppFormatters.formatDayMonth(end)}',
           icon: PdlIcons.date,
         ),
+      if (mention != null)
+        PdlStat(value: mention, icon: PdlIcons.otherTimezone),
       if (trip.stageCount > 0)
         PdlStat(
           value: 'trips.stageCount'.plural(trip.stageCount),
@@ -352,7 +376,7 @@ class _MetaLine extends StatelessWidget {
 class _DateBlock extends StatelessWidget {
   const _DateBlock({required this.date});
 
-  /// Déjà ramenée au fuseau d'affichage.
+  /// Déjà ramenée à l'heure murale du fuseau de l'entité.
   final DateTime date;
 
   @override
@@ -449,7 +473,7 @@ class DashboardRideCard extends ConsumerWidget {
     final PdlTypography t = context.pdlText;
     final UnitSystem units = ref.watch(unitSystemProvider);
     final bool registered = _registered(ref, ride.id, ride.registered);
-    final DateTime? at = AppFormatters.tryParseDisplayTime(ride.dateTime);
+    final DateTime? at = DateTime.tryParse(ride.dateTime);
     final List<RideGroupSummaryDto> groups =
         <RideGroupSummaryDto>[...ride.groupSummaries]..sort(
           (RideGroupSummaryDto a, RideGroupSummaryDto b) =>
@@ -491,7 +515,13 @@ class DashboardRideCard extends ConsumerWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          if (at != null) Text(AppFormatters.formatRideDate(at), style: t.sub),
+          if (at != null) ...<Widget>[
+            Text(
+              AppFormatters.formatRideDate(at, zone: ride.timezone),
+              style: t.sub,
+            ),
+            ?ZoneMentionLine.maybe(ride.dateTime, ride.timezone),
+          ],
           const SizedBox(height: PdlSpacing.chipGap),
           PdlStatRow(
             stats: <PdlStat>[

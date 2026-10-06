@@ -29,7 +29,7 @@ export function AgendaRow({ publication, actions }: AgendaRowProps) {
   return (
     <Paper withBorder radius="md" p="sm" data-testid="agenda-row">
       <Group wrap="nowrap" gap="md" align="center">
-        <DayBox date={publication.dateTime} />
+        <DayBox date={publication.dateTime} zone={publication.timezone} />
         <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
           <Group gap="xs" wrap="wrap">
             <Anchor component={PrefetchLink} to={path} fw={600} c="inherit" lineClamp={1}>

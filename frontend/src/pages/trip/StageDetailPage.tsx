@@ -24,7 +24,7 @@ import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { TripLayout } from '../../components/trip/TripLayout'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
-import { FormattedDateTime } from '../../components/common/FormattedDate'
+import { Rendezvous } from '../../components/common/Rendezvous'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { ShareButton } from '../../components/common/ShareButton'
 import { CommentSection } from '../../components/comment'
@@ -175,7 +175,7 @@ export function StageDetailPage() {
                 <Group gap="xs" mt="xs">
                   <IconCalendar size={16} />
                   <Text size="sm" c="dimmed">
-                    <FormattedDateTime date={stage.dateTime} />
+                    <Rendezvous date={stage.dateTime} zone={stage.timezone} variant="detail" />
                   </Text>
                   {stage.averageSpeed && (
                     <>
@@ -234,6 +234,7 @@ export function StageDetailPage() {
               isFetching={weather.isFetching}
               onRetry={() => void weather.refetch()}
               canEdit={canEdit}
+              timezone={stage.timezone}
             />
           </ErrorBoundary>
 

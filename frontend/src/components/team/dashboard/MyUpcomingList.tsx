@@ -13,8 +13,11 @@ import { DayBox } from '@/components/common/DayBox'
 import { Stat, TypeBadge } from '@/components/card/common'
 import type { PublicationDto, RideDto, TripDto } from '@/api/dto'
 import { useUnits } from '@/hooks/useUnits'
-import { useFormattedDate } from '@/utils/dateFormat'
-import { isTrip, publicationPath, shortTime } from './dashboardHelpers'
+import { useRendezvousFormat } from '@/hooks/useRendezvousFormat'
+import { ZoneMentionIcon } from '@/components/common/Rendezvous'
+import { formatPattern } from '@/utils/dateFormat'
+import { tripEndZone } from '@/utils/rendezvous'
+import { isTrip, publicationPath } from './dashboardHelpers'
 import { SendToDeviceMenu } from './SendToDeviceMenu'
 
 /**
@@ -48,15 +51,17 @@ function RegisteredBadge() {
 function RideRow({ ride }: { ride: RideDto }) {
   const { t } = useTranslation()
   const { speed } = useUnits()
-  const { formatPattern } = useFormattedDate()
+  // Rendezvous in the ride's zone, the day box included (docs/LEDGER_*.md API-60). The group's
+  // `startAt` is the ride's departure when it has no time of its own.
+  const departure = useRendezvousFormat(ride.timezone)
   const group = ride.registeredGroup
   const routeSlug = group?.routeSlug ?? ride.routeSlug
-  const groupTime = shortTime(group?.time)
+  const startAt = group?.startAt ?? ride.dateTime
 
   return (
     <Paper withBorder radius="md" p="md">
       <Group wrap="wrap" gap="md" align="center">
-        <DayBox date={ride.dateTime} />
+        <DayBox date={ride.dateTime} zone={ride.timezone} />
         <Stack gap={4} style={{ flex: '1 1 220px', minWidth: 0 }}>
           <Group gap="xs" wrap="wrap">
             <Anchor component={PrefetchLink} to={publicationPath(ride)} fw={600} c="inherit">
@@ -66,7 +71,13 @@ function RideRow({ ride }: { ride: RideDto }) {
           </Group>
           <Group gap="md" wrap="wrap">
             <Stat icon={<IconClock size={16} />}>
-              <span suppressHydrationWarning>{groupTime ?? formatPattern(ride.dateTime, 'p')}</span>
+              <span suppressHydrationWarning={departure.isGuessedText}>
+                {departure.formatTime(startAt)}
+              </span>
+              <ZoneMentionIcon
+                mention={departure.mention(startAt)}
+                isGuessed={departure.isGuessedTimezone}
+              />
             </Stat>
             {ride.startPlace && <Stat icon={<IconMapPin size={16} />}>{ride.startPlace.name}</Stat>}
             {group && (
@@ -93,18 +104,20 @@ function RideRow({ ride }: { ride: RideDto }) {
 }
 
 function TripRow({ trip }: { trip: TripDto }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { distance } = useUnits()
-  const { formatPattern } = useFormattedDate()
+  // The first day in the trip's zone, the last in its last stage's (docs/LEDGER_*.md API-60).
+  const start = useRendezvousFormat(trip.timezone)
+  const endZone = tripEndZone(trip) ?? start.zone
 
   const range = trip.endDate
-    ? `${formatPattern(trip.dateTime, 'd MMM')} – ${formatPattern(trip.endDate, 'd MMM')}`
-    : formatPattern(trip.dateTime, 'd MMM')
+    ? `${start.formatPattern(trip.dateTime, 'd MMM')} – ${formatPattern(trip.endDate, 'd MMM', i18n.language, endZone)}`
+    : start.formatPattern(trip.dateTime, 'd MMM')
 
   return (
     <Paper withBorder radius="md" p="md">
       <Group wrap="wrap" gap="md" align="center">
-        <DayBox date={trip.dateTime} />
+        <DayBox date={trip.dateTime} zone={trip.timezone} />
         <Stack gap={4} style={{ flex: '1 1 220px', minWidth: 0 }}>
           <Group gap="xs" wrap="wrap">
             <Anchor component={PrefetchLink} to={publicationPath(trip)} fw={600} c="inherit">
@@ -115,7 +128,11 @@ function TripRow({ trip }: { trip: TripDto }) {
           </Group>
           <Group gap="md" wrap="wrap">
             <Stat icon={<IconCalendar size={16} />}>
-              <span suppressHydrationWarning>{range}</span>
+              <span suppressHydrationWarning={start.isGuessedText}>{range}</span>
+              <ZoneMentionIcon
+                mention={start.mention(trip.dateTime)}
+                isGuessed={start.isGuessedTimezone}
+              />
             </Stat>
             <Stat icon={<IconRoute size={16} />}>
               {t('trips.card.stageCount', { count: trip.stageCount })}

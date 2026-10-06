@@ -57,8 +57,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 const RoutesMapView = lazy(() =>
   import('../../components/route/RoutesMapView').then((m) => ({ default: m.RoutesMapView }))
 )
-import { useFormattedDate } from '../../utils/dateFormat'
-import { FormattedDateTime } from '../../components/common/FormattedDate'
+import { Rendezvous } from '../../components/common/Rendezvous'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
@@ -74,7 +73,6 @@ import { RideWeatherSection } from '@/components/weather'
 
 export function RideDetailPage() {
   const { t } = useTranslation()
-  const { formatDateTime, isGuessedTimezone } = useFormattedDate()
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const { isAuthenticated } = useAuth()
   // Failure message for the group whose join/leave just failed. Kept in the card rather than
@@ -162,7 +160,8 @@ export function RideDetailPage() {
   // group is full, and gating the whole zone on it hid every « Complet » badge once all groups filled.
   const canJoinRide = isMember && ride.status === Status.PUBLISHED && !ride.registered && !isPast
 
-  const formattedDate = <FormattedDateTime date={ride.dateTime} />
+  // A rendezvous, in the ride's zone (docs/LEDGER_*.md API-60).
+  const formattedDate = <Rendezvous date={ride.dateTime} zone={ride.timezone} variant="detail" />
 
   // The ride, the feed it shows in, and its forecast (its own query key, not a prefix of the ride's).
   const invalidateRideQueries = () => {
@@ -434,14 +433,13 @@ export function RideDetailPage() {
         {ride.status === Status.DRAFT && ride.publishAt && (
           <Group mt="xs" gap="xs">
             <IconCalendar size={16} color="var(--mantine-color-yellow-text)" />
-            <Text
-              size="sm"
-              c="var(--mantine-color-yellow-text)"
-              suppressHydrationWarning={isGuessedTimezone}
-            >
-              {t('rides.detail.scheduledPublish', {
-                date: formatDateTime(ride.publishAt),
-              })}
+            <Text size="sm" c="var(--mantine-color-yellow-text)">
+              <Rendezvous
+                date={ride.publishAt}
+                zone={ride.timezone}
+                variant="detail"
+                template={(date) => t('rides.detail.scheduledPublish', { date })}
+              />
             </Text>
           </Group>
         )}
@@ -548,6 +546,8 @@ export function RideDetailPage() {
                   <RideGroupCard
                     key={group.id}
                     group={group}
+                    rideTimezone={ride.timezone}
+                    rideDateTime={ride.dateTime}
                     teamSlug={teamSlug!}
                     rideSlug={ride.slug}
                     rideRouteSlug={ride.routeSlug}

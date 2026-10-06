@@ -12,7 +12,8 @@ import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { Stat, SurfaceBadge } from '@/components/card/common'
 import type { RideDto, RideGroupSummaryDto } from '@/api/dto'
 import { useUnits } from '@/hooks/useUnits'
-import { useFormattedDate } from '@/utils/dateFormat'
+import { useRendezvousFormat } from '@/hooks/useRendezvousFormat'
+import { ZoneMentionIcon } from '@/components/common/Rendezvous'
 import { publicationEditPath, publicationPath, rideHasNoRoute } from './dashboardHelpers'
 
 interface UpcomingRideCardProps {
@@ -29,7 +30,8 @@ interface UpcomingRideCardProps {
 export function UpcomingRideCard({ ride, canManage }: UpcomingRideCardProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
-  const { formatPattern } = useFormattedDate()
+  // The departure, a rendezvous in the ride's zone (docs/LEDGER_*.md API-60).
+  const departure = useRendezvousFormat(ride.timezone)
   const ridePath = publicationPath(ride)
   const groups = [...ride.groupSummaries].sort((a, b) => a.sortOrder - b.sortOrder)
 
@@ -55,8 +57,13 @@ export function UpcomingRideCard({ ride, canManage }: UpcomingRideCardProps) {
           <Anchor component={PrefetchLink} to={ridePath} fw={600} c="inherit" lineClamp={2}>
             {ride.name}
           </Anchor>
-          <Text size="sm" c="dimmed" suppressHydrationWarning>
-            {formatPattern(ride.dateTime, 'EEE d MMM')} · {formatPattern(ride.dateTime, 'p')}
+          <Text size="sm" c="dimmed" suppressHydrationWarning={departure.isGuessedText}>
+            {departure.formatPattern(ride.dateTime, 'EEE d MMM')} ·{' '}
+            {departure.formatTime(ride.dateTime)}
+            <ZoneMentionIcon
+              mention={departure.mention(ride.dateTime)}
+              isGuessed={departure.isGuessedTimezone}
+            />
           </Text>
         </div>
 

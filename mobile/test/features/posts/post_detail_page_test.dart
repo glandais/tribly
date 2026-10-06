@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pedalons/api/generated/export.dart';
 import 'package:pedalons/core/pdl/pdl.dart';
 import 'package:pedalons/core/theme/pedalons_theme.dart';
+import 'package:pedalons/core/utils/formatters.dart';
+import 'package:pedalons/core/widgets/zone_mention_line.dart';
 import 'package:pedalons/features/posts/data/post_repository.dart';
 import 'package:pedalons/features/posts/domain/post_neighbours.dart';
 import 'package:pedalons/features/posts/presentation/pages/post_detail_page.dart';
@@ -32,8 +34,9 @@ PostDto _post({
   TeamPublicationDto team = _team,
   bool signedAsTeam = true,
   PublicUserDto? createdBy,
+  String timezone = 'Europe/Paris',
 }) => PostDto(
-  timezone: 'Europe/Paris',
+  timezone: timezone,
   tags: const [],
   type: 'POST',
   team: team,
@@ -112,6 +115,32 @@ void main() {
       expect(find.byType(PdlPersonRow), findsNothing);
     },
   );
+
+  // docs/LEDGER_*.md API-60 : la date d'une publication est un rendez-vous,
+  // lu dans son fuseau, avec l'heure et la mention — la règle du web.
+  group('lue d\'un autre fuseau', () {
+    setUp(() => AppFormatters.setDisplayTimezone('Europe/Paris'));
+    tearDown(() => AppFormatters.setDisplayTimezone(null));
+
+    testWidgets('date et heure de Tokyo, puis la mention', (
+      WidgetTester tester,
+    ) async {
+      await openPost(tester, _post(timezone: 'Asia/Tokyo'));
+
+      expect(find.textContaining('3 mai à 18:00'), findsOneWidget);
+      expect(find.byType(ZoneMentionLine), findsOneWidget);
+      expect(find.textContaining('heure de Tokyo'), findsOneWidget);
+    });
+
+    testWidgets('au décalage du lecteur, ni mention ni icône', (
+      WidgetTester tester,
+    ) async {
+      await openPost(tester, _post());
+
+      expect(find.textContaining('3 mai à 11:00'), findsOneWidget);
+      expect(find.byType(ZoneMentionLine), findsNothing);
+    });
+  });
 
   testWidgets('signée par son auteur : avatar, nom et date', (
     WidgetTester tester,

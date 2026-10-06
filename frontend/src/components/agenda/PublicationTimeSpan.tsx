@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next'
-import { useFormattedDate } from '@/utils/dateFormat'
-import type { DatedPublication } from '@/utils/publicationTiming'
+import { useEffectiveTimezone } from '@/utils/dateFormat'
+import { formatPublicationSpan, type DatedPublication } from '@/utils/publicationTiming'
+import { rendezvousMention } from '@/utils/rendezvous'
+import { isSupportedZone } from '@/utils/zoneLabel'
+import { ZoneMentionIcon } from '@/components/common/Rendezvous'
 
 interface PublicationTimeSpanProps {
   publication: DatedPublication
@@ -16,24 +19,27 @@ interface PublicationTimeSpanProps {
  * ride reads « 08:30 → retour vers 14:10 » — « vers », the end being an estimate from its
  * groups' distance and pace; a trip, which spans days, « ven. 16 → dim. 18 oct. ». A ride back
  * on another day names that day.
+ *
+ * A rendezvous (docs/LEDGER_*.md API-60): read in the entity's zone, with one zone indicator for
+ * the whole span, its mention taken at the start.
  */
 export function PublicationTimeSpan({ publication, mode = 'full' }: PublicationTimeSpanProps) {
-  const { t } = useTranslation()
-  const { formatDateTime, formatTime, formatPattern, isGuessedTimezone } = useFormattedDate()
-  const start = publication.dateTime
-  const end = publication.endDateTime
-  const sameDay = formatPattern(start, 'yyyy-MM-dd') === formatPattern(end, 'yyyy-MM-dd')
-
-  let text: string
-  if (publication.type === 'TRIP') {
-    const sameMonth = formatPattern(start, 'yyyy-MM') === formatPattern(end, 'yyyy-MM')
-    text = sameDay
-      ? formatPattern(start, 'EEE d MMM')
-      : `${formatPattern(start, sameMonth ? 'EEE d' : 'EEE d MMM')} → ${formatPattern(end, 'EEE d MMM')}`
-  } else {
-    const from = mode === 'full' ? formatDateTime(start) : formatTime(start)
-    const back = sameDay ? formatTime(end) : formatPattern(end, 'EEE d MMM p')
-    text = `${from} → ${t('agenda.returnAround', { time: back })}`
-  }
-  return <span suppressHydrationWarning={isGuessedTimezone}>{text}</span>
+  const { t, i18n } = useTranslation()
+  const { timezone: readerZone, isGuessed, isPlaceholder } = useEffectiveTimezone()
+  const text = formatPublicationSpan(publication, mode, i18n.language, t, readerZone)
+  const mention = rendezvousMention(
+    publication.dateTime,
+    publication.timezone,
+    isPlaceholder ? null : readerZone,
+    i18n.language,
+    t
+  )
+  return (
+    <>
+      <span suppressHydrationWarning={!isSupportedZone(publication.timezone) && isGuessed}>
+        {text}
+      </span>
+      <ZoneMentionIcon mention={mention} isGuessed={isGuessed} />
+    </>
+  )
 }

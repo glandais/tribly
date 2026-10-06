@@ -59,7 +59,12 @@ class _PostRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PdlTypography t = context.pdlText;
-    final DateTime? at = AppFormatters.tryParseDisplayTime(post.dateTime);
+    // La date d'une publication est un rendez-vous dans son fuseau, celui de
+    // l'équipe (`PostDto.timezone`, docs/LEDGER_*.md API-60).
+    final DateTime? at = AppFormatters.tryParseZoneTime(
+      post.dateTime,
+      post.timezone,
+    );
     // Signée au nom de l'équipe, la publication n'a pas d'autre auteur à
     // montrer ; sinon c'est `createdBy`, qui est bien ici l'auteur.
     final String? author = post.signedAsTeam

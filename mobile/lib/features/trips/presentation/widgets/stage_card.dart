@@ -12,6 +12,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../rides/presentation/widgets/ride_weather_summary_line.dart';
 import '../../providers/trip_detail_provider.dart';
+import '../../../../core/widgets/zone_mention_line.dart';
 
 /// Une étape dans la liste du voyage.
 ///
@@ -103,6 +104,9 @@ class StageCard extends ConsumerWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                // L'étape dans son fuseau, et la mention en seconde ligne
+                // quand le lecteur est ailleurs (docs/LEDGER_*.md API-60).
+                ?ZoneMentionLine.maybe(stage.dateTime, stage.timezone),
                 if (_journey() != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 2),

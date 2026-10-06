@@ -16,6 +16,7 @@ import '../../../../keys.dart';
 import '../../../calendar/presentation/widgets/agenda_card.dart';
 import '../../providers/next_ride_provider.dart';
 import '../../providers/week_events_provider.dart';
+import '../../../../core/widgets/zone_mention_line.dart';
 
 /// Combien de lignes « Cette semaine » montre au plus ; le reste est au
 /// calendrier.
@@ -154,8 +155,13 @@ class WeekAgendaRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
     final PdlTypography t = context.pdlText;
-    final DateTime start = AppFormatters.toDisplayTime(
+    // Le jour et l'heure de l'événement dans le fuseau de son entité, pour
+    // que la vignette et l'heure disent le même jour ; la mention porte celui
+    // du lecteur quand il diffère (docs/LEDGER_*.md API-60). La semaine
+    // elle-même reste celle du lecteur (`weekEventsProvider`).
+    final DateTime start = AppFormatters.toZoneTime(
       DateTime.parse(event.start),
+      event.timezone,
     );
     final PublicationType type = event.type == 'TRIP_STAGE'
         ? PublicationType.trip
@@ -193,6 +199,8 @@ class WeekAgendaRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: t.sub,
                 ),
+                if (!event.allDay)
+                  ?ZoneMentionLine.maybe(event.start, event.timezone),
                 if (event.registered || cancelled) ...<Widget>[
                   const SizedBox(height: 6),
                   Wrap(

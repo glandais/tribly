@@ -92,6 +92,7 @@ class RideCard extends ConsumerWidget {
                       Text(
                         AppFormatters.formatRideDate(
                           DateTime.parse(ride.dateTime),
+                          zone: ride.timezone,
                         ),
                         style: theme.textTheme.bodySmall,
                       ),

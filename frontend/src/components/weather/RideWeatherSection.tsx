@@ -147,7 +147,11 @@ export function RideWeatherSection({
 
         {weather && hasForecast(status) && (
           <>
-            <DepartureWeather departure={weather.departure} time={ride.dateTime} />
+            <DepartureWeather
+              departure={weather.departure}
+              time={ride.dateTime}
+              timezone={ride.timezone}
+            />
 
             {leg && (
               <>
@@ -171,7 +175,7 @@ export function RideWeatherSection({
                       maw={320}
                     />
                   ))}
-                <LegWeather leg={leg} />
+                <LegWeather leg={leg} timezone={ride.timezone} />
               </>
             )}
           </>

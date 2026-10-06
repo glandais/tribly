@@ -705,7 +705,9 @@ aucune formule enthousiaste (« Génial ! », « C'est parti ! » sont hors marq
   → « Email ou mot de passe incorrect », « Échec de l'ajout du membre. Veuillez réessayer. »
 - **Compteurs : toujours pluralisés** (`_one` / `_many` / `_other`).
   → « 1 groupe » / « 3 groupes », « 1 étape » / « 4 étapes », « 12 participants ».
-- **Dates** : format français long abrégé, heure sur 24 h. Le calendrier propose
+- **Dates** : format français long abrégé, heure sur 24 h — sur le web, qui suit la langue ; le
+  mobile suit le réglage 12 h / 24 h du téléphone (ledger `API-60`). Un rendez-vous lu d'un autre
+  fuseau porte la mention « heure de Tokyo (ven. 01:00 chez vous) ». Le calendrier propose
   « Jour / Semaine / Mois », « Toute la journée », « +{{count}} autres ».
 - **Unités** : `km` / `m` en métrique, `mi` / `ft` en impérial — l'utilisateur choisit dans ses
   préférences. Espace insécable entre le nombre et l'unité, séparateur de milliers = espace fine

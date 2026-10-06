@@ -24,6 +24,8 @@ interface StageWeatherSectionProps {
   onRetry: () => void
   /** Organisers alone hear about a stage without a route (NO_LOCATION): they can fix it. */
   canEdit: boolean
+  /** The stage's zone: its passages are read in it (docs/LEDGER_*.md API-60). */
+  timezone?: string
 }
 
 /**
@@ -42,6 +44,7 @@ export function StageWeatherSection({
   isFetching,
   onRetry,
   canEdit,
+  timezone,
 }: StageWeatherSectionProps) {
   const { t } = useTranslation()
   const { formatDate, isGuessedTimezone } = useFormattedDate()
@@ -111,7 +114,9 @@ export function StageWeatherSection({
           </Group>
         )}
 
-        {stage && hasForecast(status) && <LegWeather leg={stage.leg} subject="stage" />}
+        {stage && hasForecast(status) && (
+          <LegWeather leg={stage.leg} subject="stage" timezone={timezone} />
+        )}
 
         {weather && status !== WeatherStatus.NO_LOCATION && (
           <WeatherAttribution attribution={weather.attribution} fetchedAt={stage?.leg.fetchedAt} />

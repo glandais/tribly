@@ -50,8 +50,9 @@ TripStageDto fixtureStage({
   String? startAddress,
   String? endPlaceName,
   int? commentCount,
+  String timezone = 'Europe/Paris',
 }) => TripStageDto(
-  timezone: 'Europe/Paris',
+  timezone: timezone,
   id: 's$index',
   slug: slug ?? 'j$index',
   name: name ?? 'J$index',

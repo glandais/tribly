@@ -24,6 +24,9 @@ import { paths } from '@/config/paths'
 import classes from './Home.module.css'
 import { eventPath } from './memberHomeHelpers'
 import { useEffectiveTimezone } from '@/utils/dateFormat'
+import { supportedZone } from '@/utils/zoneLabel'
+import { rendezvousMention } from '@/utils/rendezvous'
+import { ZoneMentionIcon } from '@/components/common/Rendezvous'
 import { PUBLICATION_TYPE_COLORS } from '@/lib/badgeColors.generated'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -50,7 +53,7 @@ interface WeekAgendaProps {
  */
 export function WeekAgenda({ nowIso, events, isLoading, isError, nextRide }: WeekAgendaProps) {
   const { t, i18n } = useTranslation()
-  const { timezone } = useEffectiveTimezone()
+  const { timezone, isPlaceholder } = useEffectiveTimezone()
   const locale = i18n.language === 'fr' ? fr : enUS
   const dayKey = (date: Date | string) => formatInTimeZone(date, timezone, 'yyyy-MM-dd')
 
@@ -164,11 +167,22 @@ export function WeekAgenda({ nowIso, events, isLoading, isError, nextRide }: Wee
                     backgroundColor: 'var(--mantine-color-default-hover)',
                   }}
                 >
+                  {/* The row's day and time are a rendezvous, in the event's zone (docs/LEDGER_*.md
+                      API-60); the strip, the dots and the grouping stay the reader's. */}
                   <Text size="xs" c="dimmed">
-                    {formatInTimeZone(event.start, timezone, 'EEE', { locale })}
+                    {formatInTimeZone(
+                      event.start,
+                      supportedZone(event.timezone) || timezone,
+                      'EEE',
+                      {
+                        locale,
+                      }
+                    )}
                   </Text>
                   <Text fw={700} lh={1.1}>
-                    {formatInTimeZone(event.start, timezone, 'd', { locale })}
+                    {formatInTimeZone(event.start, supportedZone(event.timezone) || timezone, 'd', {
+                      locale,
+                    })}
                   </Text>
                 </Stack>
                 <Box style={{ flex: 1, minWidth: 0 }}>
@@ -186,15 +200,29 @@ export function WeekAgenda({ nowIso, events, isLoading, isError, nextRide }: Wee
                     )}
                   </Group>
                   <Text size="xs" c="dimmed" truncate>
-                    {[
-                      event.allDay
-                        ? null
-                        : formatInTimeZone(event.start, timezone, 'p', { locale }),
-                      event.teamName,
-                      event.groupName,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
+                    {!event.allDay && (
+                      <>
+                        {formatInTimeZone(
+                          event.start,
+                          supportedZone(event.timezone) || timezone,
+                          'p',
+                          {
+                            locale,
+                          }
+                        )}
+                        <ZoneMentionIcon
+                          mention={rendezvousMention(
+                            event.start,
+                            event.timezone,
+                            isPlaceholder ? null : timezone,
+                            i18n.language,
+                            t
+                          )}
+                        />
+                        {' · '}
+                      </>
+                    )}
+                    {[event.teamName, event.groupName].filter(Boolean).join(' · ')}
                   </Text>
                 </Box>
                 <IconChevronRight size={16} color="var(--mantine-color-dimmed)" />

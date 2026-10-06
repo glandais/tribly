@@ -14,6 +14,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../providers/route_detail_provider.dart';
+import '../../../../core/widgets/zone_mention_line.dart';
 
 /// « Utilisée dans » — les sorties, publications et voyages qui emploient ce
 /// parcours.
@@ -63,10 +64,16 @@ class _UsageCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
     final PdlTypography t = context.pdlText;
-    final DateTime? at = AppFormatters.tryParseDisplayTime(usage.dateTime);
-    final DateTime? end = usage.endDate == null
-        ? null
-        : AppFormatters.tryParseDisplayTime(usage.endDate!);
+    // Deux rendez-vous dans le seul fuseau que porte l'usage
+    // (`RouteUsageDto.timezone`, docs/LEDGER_*.md API-60).
+    final DateTime? at = AppFormatters.tryParseZoneTime(
+      usage.dateTime,
+      usage.timezone,
+    );
+    final DateTime? end = AppFormatters.tryParseZoneTime(
+      usage.endDate,
+      usage.timezone,
+    );
 
     return PdlCard(
       key: keys.routeDetail.usage(usage.slug),
@@ -108,6 +115,7 @@ class _UsageCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  ?ZoneMentionLine.maybe(usage.dateTime, usage.timezone),
                 ],
                 if (usage.viaChildNames.isNotEmpty) ...<Widget>[
                   const SizedBox(height: 4),

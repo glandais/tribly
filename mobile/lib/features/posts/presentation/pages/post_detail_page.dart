@@ -18,6 +18,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/share_link.dart';
 import '../../../../core/widgets/markdown_content.dart';
 import '../../../../core/widgets/media_attachments.dart';
+import '../../../../core/widgets/zone_mention_line.dart';
 import '../../../comments/data/comment_repository.dart';
 import '../../../comments/presentation/widgets/comment_thread.dart';
 import '../../../moderation/presentation/moderation_menu.dart';
@@ -240,7 +241,24 @@ class _PostDetailContent extends ConsumerWidget {
   Widget _identity(BuildContext context) {
     final PdlColors c = context.pdl;
     final PdlTypography t = context.pdlText;
-    final DateTime? at = AppFormatters.tryParseDisplayTime(post.dateTime);
+    // Un rendez-vous dans le fuseau de la publication, celui de l'équipe
+    // (`PostDto.timezone`, docs/LEDGER_*.md API-60) : date et heure, puis la
+    // mention « heure de Tokyo (ven. 17:30 chez vous) » quand le décalage du
+    // lecteur diffère — la règle du détail web, pour que les deux clients
+    // disent la même chose de la même publication.
+    final DateTime? wall = AppFormatters.tryParseZoneTime(
+      post.dateTime,
+      post.timezone,
+    );
+    final String? at = wall == null
+        ? null
+        : 'dates.at'.tr(
+            namedArgs: <String, String>{
+              'date': AppFormatters.formatFullDate(wall),
+              'time': AppFormatters.formatTime(wall),
+            },
+          );
+    final Widget? mention = ZoneMentionLine.maybe(post.dateTime, post.timezone);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,7 +308,7 @@ class _PostDetailContent extends ConsumerWidget {
             imageUrl: author.avatarUrl,
             avatarSize: 32,
             subtitle: <String>[
-              if (at != null) AppFormatters.formatFullDate(at),
+              ?at,
               // Un administrateur voit qui a écrit une publication que
               // l'équipe signe : il doit savoir que les lecteurs, eux, ne le
               // voient pas.
@@ -299,8 +317,9 @@ class _PostDetailContent extends ConsumerWidget {
           ),
         ] else if (at != null) ...<Widget>[
           const SizedBox(height: 4),
-          Text(AppFormatters.formatFullDate(at), style: t.sub),
+          Text(at, style: t.sub),
         ],
+        if (mention != null) ...<Widget>[const SizedBox(height: 4), mention],
         // Les tags sous la signature : ils qualifient le contenu, pas son
         // statut (ledger `MOB-39`).
         if (post.tags.isNotEmpty) ...<Widget>[

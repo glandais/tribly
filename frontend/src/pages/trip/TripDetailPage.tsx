@@ -63,8 +63,8 @@ const RoutesMapView = lazy(() =>
   import('../../components/route/RoutesMapView').then((m) => ({ default: m.RoutesMapView }))
 )
 import type { MapRouteItem } from '../../components/route/RoutesMapView'
-import { useFormattedDate } from '../../utils/dateFormat'
-import { FormattedDateTime } from '../../components/common/FormattedDate'
+import { Rendezvous } from '../../components/common/Rendezvous'
+import { tripEndZone } from '../../utils/rendezvous'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { ContentActionsMenu } from '../../components/moderation/ContentActionsMenu'
@@ -76,7 +76,6 @@ import { TagList } from '@/components/tag'
 
 export function TripDetailPage() {
   const { t } = useTranslation()
-  const { formatDateTime, isGuessedTimezone } = useFormattedDate()
   const { teamSlug, tripSlug } = useParams<{ teamSlug: string; tripSlug: string }>()
   const { isAuthenticated, user } = useAuth()
   const [highlightedStageId, setHighlightedStageId] = useState<string | null>(null)
@@ -159,7 +158,9 @@ export function TripDetailPage() {
   const hasJoined = !!user && trip.registered
   const canJoinTrip = isMember && trip.status === Status.PUBLISHED && !hasJoined
 
-  const formattedDate = <FormattedDateTime date={trip.dateTime} />
+  // Rendezvous (docs/LEDGER_*.md API-60): the start in the trip's zone (its first stage's), the end
+  // in its last stage's.
+  const formattedDate = <Rendezvous date={trip.dateTime} zone={trip.timezone} variant="detail" />
 
   const handlePublish = () => {
     updateMutation.mutate(
@@ -401,14 +402,13 @@ export function TripDetailPage() {
         {trip.status === Status.DRAFT && trip.publishAt && (
           <Group mt="sm" gap="xs">
             <IconCalendar size={16} color="var(--mantine-color-yellow-text)" />
-            <Text
-              size="sm"
-              c="var(--mantine-color-yellow-text)"
-              suppressHydrationWarning={isGuessedTimezone}
-            >
-              {t('trips.detail.scheduledPublish', {
-                date: formatDateTime(trip.publishAt),
-              })}
+            <Text size="sm" c="var(--mantine-color-yellow-text)">
+              <Rendezvous
+                date={trip.publishAt}
+                zone={trip.timezone}
+                variant="detail"
+                template={(date) => t('trips.detail.scheduledPublish', { date })}
+              />
             </Text>
           </Group>
         )}
@@ -450,8 +450,13 @@ export function TripDetailPage() {
           {trip.endDate && (
             <Group gap="xs">
               <IconCalendarCheck size={16} />
-              <Text size="sm" c="dimmed" suppressHydrationWarning={isGuessedTimezone}>
-                {t('trips.detail.endDate', { date: formatDateTime(trip.endDate) })}
+              <Text size="sm" c="dimmed">
+                <Rendezvous
+                  date={trip.endDate}
+                  zone={tripEndZone(trip)}
+                  variant="detail"
+                  template={(date) => t('trips.detail.endDate', { date })}
+                />
               </Text>
             </Group>
           )}

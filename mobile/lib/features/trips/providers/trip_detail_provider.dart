@@ -52,15 +52,36 @@ final tripDetailProvider = FutureProvider.autoDispose.family<TripDto, TripKey>(
 /// en a une : une traversée de sept jours n'est pas « passée » le lendemain de
 /// son départ.
 ///
-/// Fuseau d'affichage (`AppFormatters.toDisplayTime`), jamais d'UTC affiché
-/// (§1.0.3-11).
+/// Les dates d'un voyage sont des rendez-vous : elles se lisent à l'heure
+/// murale du fuseau de l'entité, jamais en UTC (docs/LEDGER_*.md API-60,
+/// plan §7). Un voyage multi-fuseaux prend son départ dans le fuseau de sa
+/// première étape (`timezone`), sa fin dans celui de sa dernière.
 extension TripTiming on TripDto {
-  DateTime? get startsAt => AppFormatters.tryParseDisplayTime(dateTime);
+  DateTime? get startsAt => AppFormatters.tryParseZoneTime(dateTime, timezone);
 
-  DateTime? get endsAt {
-    final String? raw = endDate;
-    return raw == null ? null : AppFormatters.tryParseDisplayTime(raw);
+  /// Le fuseau de la fin : celui de l'étape **la plus tardive** quand les
+  /// étapes sont chargées (le détail), celui du voyage sinon (une ligne de
+  /// liste, où `TripDto.endDate` est documenté dans `timezone`).
+  ///
+  /// La plus tardive par instant, pas la dernière par ordre : `endDate` est le
+  /// plus grand `dateTime` des étapes, quel que soit l'ordre que
+  /// l'organisateur leur a donné — la règle du web (`tripEndZone`) et du
+  /// backend (docs/LEDGER_*.md API-60).
+  String get endTimezone {
+    TripStageDto? latest;
+    DateTime? latestAt;
+    for (final TripStageDto stage in stages) {
+      final DateTime? at = DateTime.tryParse(stage.dateTime);
+      if (at == null) continue;
+      if (latestAt == null || !at.isBefore(latestAt)) {
+        latest = stage;
+        latestAt = at;
+      }
+    }
+    return latest?.timezone ?? timezone;
   }
+
+  DateTime? get endsAt => AppFormatters.tryParseZoneTime(endDate, endTimezone);
 
   bool get isPast => finished;
 
@@ -83,7 +104,9 @@ extension TripTiming on TripDto {
 }
 
 extension TripStageTiming on TripStageDto {
-  DateTime? get startsAt => AppFormatters.tryParseDisplayTime(dateTime);
+  /// Le départ de l'étape dans **son** fuseau, qui peut différer de celui du
+  /// voyage (docs/LEDGER_*.md API-60).
+  DateTime? get startsAt => AppFormatters.tryParseZoneTime(dateTime, timezone);
 
   /// Le rang à partir de zéro — l'index de palette de l'étape.
   int get paletteIndex => stageIndex - 1;

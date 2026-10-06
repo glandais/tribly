@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Anchor, Group, Paper, Stack, Text } from '@mantine/core'
 import { IconMountain, IconRoute } from '@tabler/icons-react'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
-import { FormattedDate } from '@/components/common/FormattedDate'
+import { Rendezvous } from '@/components/common/Rendezvous'
 import { CardImage, SurfaceBadge, Stat, TypeBadge } from '@/components/card/common'
 import { RouteThumbnail } from '@/components/route/RouteThumbnail'
 import type { AdDto, AdType, PostDto, RentalPeriod, RouteDto } from '@/api/dto'
@@ -54,7 +54,7 @@ export function LatestPostsList({ posts }: { posts: PostDto[] }) {
                   </Text>
                 )}
                 <Text size="xs" c="dimmed">
-                  <FormattedDate date={post.dateTime} />
+                  <Rendezvous date={post.dateTime} zone={post.timezone} format="date" />
                   {author && ` · ${author}`}
                   {post.commentCount !== undefined &&
                     ` · ${t('comments.count', { count: post.commentCount })}`}

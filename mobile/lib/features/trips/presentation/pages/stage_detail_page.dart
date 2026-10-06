@@ -27,6 +27,7 @@ import '../../providers/trip_weather_provider.dart';
 import '../widgets/stage_weather_card.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
 import '../../../../keys.dart';
+import '../../../../core/widgets/zone_mention_line.dart';
 
 /// L'écran 25 — une étape de voyage.
 ///
@@ -341,6 +342,8 @@ class _StageDetailContent extends ConsumerWidget {
                           ].join(' · '),
                           style: t.xs,
                         ),
+                        // Le départ vu d'ailleurs (docs/LEDGER_*.md API-60).
+                        ?ZoneMentionLine.maybe(stage.dateTime, stage.timezone),
                       ],
                     ),
                   ),

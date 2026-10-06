@@ -113,3 +113,32 @@ export function zoneCityOf(timezone: string, language: string): string {
   if (/^[AEIOUYÀÂÄÉÈÊËÎÏÔÖÙÛÜŸ]/i.test(city) || FRENCH_MUTE_H.has(city)) return `d'${city}`
   return `de ${city}`
 }
+
+// Zones checked once per identifier: `Intl` is the costly part, and the answer never changes.
+const zoneSupport = new Map<string, boolean>()
+
+/**
+ * Whether this runtime's `Intl` knows `timezone` (docs/LEDGER_*.md API-60). The backend validates
+ * zones against the JDK's tz database, which can be ahead of a browser's ICU (`Europe/Kyiv` on an
+ * older Safari, `America/Ciudad_Juarez`): formatting in an unknown zone throws, so a rendezvous in
+ * one falls back to the reader's zone, without mention — the rule mobile follows.
+ */
+export function isSupportedZone(timezone: string | null | undefined): timezone is string {
+  if (!timezone) return false
+  let supported = zoneSupport.get(timezone)
+  if (supported === undefined) {
+    try {
+      new Intl.DateTimeFormat('en', { timeZone: timezone })
+      supported = true
+    } catch {
+      supported = false
+    }
+    zoneSupport.set(timezone, supported)
+  }
+  return supported
+}
+
+/** `timezone` when this runtime can format in it, `undefined` otherwise (see `isSupportedZone`). */
+export function supportedZone(timezone: string | null | undefined): string | undefined {
+  return isSupportedZone(timezone) ? timezone : undefined
+}

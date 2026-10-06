@@ -4,7 +4,7 @@ import { IconDroplet } from '@tabler/icons-react'
 import type { WeatherCheckpointDto } from '@/api/dto'
 import { WeatherCheckpointKind } from '@/api/dto'
 import { useUnits } from '@/hooks/useUnits'
-import { FormattedTime } from '../common/FormattedDate'
+import { useRendezvousFormat } from '@/hooks/useRendezvousFormat'
 import { WeatherIcon } from './WeatherIcon'
 import { WindArrow } from './WindArrow'
 import { useWeatherLabels } from './useWeatherLabels'
@@ -13,6 +13,8 @@ import classes from './WeatherCheckpointStrip.module.css'
 
 interface WeatherCheckpointStripProps {
   checkpoints: WeatherCheckpointDto[]
+  /** The ride's or stage's zone: passages are rendezvous read in it (docs/LEDGER_*.md API-60). */
+  timezone?: string
 }
 
 /**
@@ -23,7 +25,7 @@ interface WeatherCheckpointStripProps {
  * The points hold nothing focusable, so the scrolling viewport itself is a named, focusable region:
  * without it a long route's later points were out of a keyboard user's reach.
  */
-export function WeatherCheckpointStrip({ checkpoints }: WeatherCheckpointStripProps) {
+export function WeatherCheckpointStrip({ checkpoints, timezone }: WeatherCheckpointStripProps) {
   const { t } = useTranslation()
 
   return (
@@ -47,15 +49,22 @@ export function WeatherCheckpointStrip({ checkpoints }: WeatherCheckpointStripPr
         style={{ listStyle: 'none' }}
       >
         {checkpoints.map((checkpoint) => (
-          <CheckpointCard key={checkpoint.index} checkpoint={checkpoint} />
+          <CheckpointCard key={checkpoint.index} checkpoint={checkpoint} timezone={timezone} />
         ))}
       </Group>
     </ScrollArea>
   )
 }
 
-function CheckpointCard({ checkpoint }: { checkpoint: WeatherCheckpointDto }) {
+function CheckpointCard({
+  checkpoint,
+  timezone,
+}: {
+  checkpoint: WeatherCheckpointDto
+  timezone?: string
+}) {
   const { t } = useTranslation()
+  const passage = useRendezvousFormat(timezone)
   const { distance, temperature, speed } = useUnits()
   const labels = useWeatherLabels()
   const weather = checkpoint.weather
@@ -77,8 +86,8 @@ function CheckpointCard({ checkpoint }: { checkpoint: WeatherCheckpointDto }) {
         <Text size="xs" fw={600} ta="center" lineClamp={1}>
           {place}
         </Text>
-        <Text size="xs" c="dimmed">
-          <FormattedTime date={checkpoint.time} />
+        <Text size="xs" c="dimmed" suppressHydrationWarning={passage.isGuessedText}>
+          {passage.formatTime(checkpoint.time)}
         </Text>
         {weather ? (
           <>

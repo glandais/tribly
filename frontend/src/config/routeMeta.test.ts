@@ -90,4 +90,23 @@ describe('ride date in the link preview (WEB-70)', () => {
     })
     expect(rideMeta(ctx)?.description).toContain('11 octobre 2026')
   })
+
+  it('is the day in the ride’s own zone (docs/LEDGER_*.md API-60)', () => {
+    const ctx = context('PUBLIC', 'PUBLIC')
+    const ride = ctx.queryClient.getQueryData<RideDto>(getGetRideQueryKey('np', 'sortie'))!
+    // Where Paris would say otherwise: 23:30 UTC on 10 October is the 11th in Paris but the 10th in
+    // New York; 16:30 UTC is the 10th in Paris but the 11th in Tokyo.
+    ctx.queryClient.setQueryData(getGetRideQueryKey('np', 'sortie'), {
+      ...ride,
+      dateTime: '2026-10-10T23:30:00Z',
+      timezone: 'America/New_York',
+    })
+    expect(rideMeta(ctx)?.description).toContain('10 octobre 2026')
+    ctx.queryClient.setQueryData(getGetRideQueryKey('np', 'sortie'), {
+      ...ride,
+      dateTime: '2026-10-10T16:30:00Z',
+      timezone: 'Asia/Tokyo',
+    })
+    expect(rideMeta(ctx)?.description).toContain('11 octobre 2026')
+  })
 })

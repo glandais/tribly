@@ -4,6 +4,9 @@ import 'package:pedalons/api/generated/export.dart';
 import 'package:pedalons/core/pdl/pdl.dart';
 import 'package:pedalons/core/theme/pdl_tokens.dart';
 import 'package:pedalons/core/theme/pedalons_theme.dart';
+import 'package:pedalons/core/utils/formatters.dart';
+import 'package:pedalons/core/widgets/zone_mention_line.dart';
+import 'package:pedalons/features/rides/domain/group_start.dart';
 import 'package:pedalons/features/rides/domain/ride_group_action.dart';
 import 'package:pedalons/features/rides/presentation/widgets/ride_group_card.dart';
 
@@ -34,6 +37,7 @@ void main() {
     bool pending = false,
     Brightness brightness = Brightness.light,
     double textScale = 1.0,
+    String timezone = 'Europe/Paris',
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -44,6 +48,8 @@ void main() {
             body: SingleChildScrollView(
               child: RideGroupCard(
                 group: g,
+                rideDateTime: '2026-10-11T06:00:00Z',
+                timezone: timezone,
                 action: action,
                 pending: pending,
                 trackColor: multiTrackColor(g.sortOrder),
@@ -156,6 +162,72 @@ void main() {
         RideGroupAction.leave,
       );
     });
+  });
+
+  // ── L'heure du groupe : `startAt`, dans le fuseau de la sortie ─────────
+
+  group('heure du groupe (docs/LEDGER_*.md API-60)', () {
+    setUp(() => AppFormatters.setDisplayTimezone('Europe/Paris'));
+    tearDown(() => AppFormatters.setDisplayTimezone(null));
+
+    testWidgets('un groupe qui part à son heure la montre, sans secondes', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        g: fixtureGroup(startAt: '2026-10-11T06:30:00Z'),
+        action: RideGroupAction.join,
+      );
+      expect(find.text('08:30'), findsOneWidget);
+      expect(find.textContaining(':00:'), findsNothing);
+    });
+
+    testWidgets('un groupe qui part avec la sortie ne répète pas l\'heure', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        g: fixtureGroup(startAt: '2026-10-11T08:00:00+02:00'),
+        action: RideGroupAction.join,
+      );
+      expect(find.text('08:00'), findsNothing);
+    });
+
+    testWidgets('lue d\'un autre décalage, l\'heure porte sa mention', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        g: fixtureGroup(startAt: '2026-10-11T06:30:00Z'),
+        action: RideGroupAction.join,
+        timezone: 'Asia/Tokyo',
+      );
+      expect(find.text('15:30'), findsOneWidget);
+      expect(find.byType(ZoneMentionLine), findsOneWidget);
+    });
+
+    testWidgets('au décalage du lecteur, pas de mention', (
+      WidgetTester tester,
+    ) async {
+      await pump(
+        tester,
+        g: fixtureGroup(startAt: '2026-10-11T06:30:00Z'),
+        action: RideGroupAction.join,
+      );
+      expect(find.byType(ZoneMentionLine), findsNothing);
+    });
+  });
+
+  test('groupLeavesAtOwnTime compare des instants, pas des chaînes', () {
+    expect(
+      groupLeavesAtOwnTime('2026-10-11T08:00:00+02:00', '2026-10-11T06:00:00Z'),
+      isFalse,
+    );
+    expect(
+      groupLeavesAtOwnTime('2026-10-11T06:30:00Z', '2026-10-11T06:00:00Z'),
+      isTrue,
+    );
+    expect(formatGroupStart('2026-10-11T06:30:00Z', 'Asia/Tokyo'), '15:30');
   });
 
   // ── Le rendu des six états, dans les deux modes ─────────────────────────

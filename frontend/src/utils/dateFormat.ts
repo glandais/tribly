@@ -26,6 +26,8 @@ const SERVER_FALLBACK_TIMEZONE = 'UTC'
 const subscribeToNothing = () => () => {}
 const getBrowserTimezone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
 const getServerTimezone = () => SERVER_FALLBACK_TIMEZONE
+const isClientSnapshot = () => true
+const isServerSnapshot = () => false
 
 /**
  * The timezone to render dates/times in, and whether it's a guess rather than the visitor's own
@@ -33,15 +35,26 @@ const getServerTimezone = () => SERVER_FALLBACK_TIMEZONE
  * (via `getSSRAuth()`) and reactively client-side, so no dedicated store/module-load seeding is
  * needed here the way `theme`/`language` required.
  */
-export function useEffectiveTimezone(): { timezone: string; isGuessed: boolean } {
+export function useEffectiveTimezone(): {
+  timezone: string
+  isGuessed: boolean
+  /**
+   * The zone is the server's placeholder (`UTC`), not the reader's: an anonymous SSR render or the
+   * hydration render of a reader without a preference. Nothing may be said *about the reader's own
+   * clock* then — the « heure de Paris (06:00 chez vous) » mention of a rendezvous waits for the
+   * post-hydration render (docs/LEDGER_*.md API-60).
+   */
+  isPlaceholder: boolean
+} {
   const user = useAuthStore(selectUser)
   const browserTimezone = useSyncExternalStore(
     subscribeToNothing,
     getBrowserTimezone,
     getServerTimezone
   )
-  if (user?.timezone) return { timezone: user.timezone, isGuessed: false }
-  return { timezone: browserTimezone, isGuessed: true }
+  const hydrated = useSyncExternalStore(subscribeToNothing, isClientSnapshot, isServerSnapshot)
+  if (user?.timezone) return { timezone: user.timezone, isGuessed: false, isPlaceholder: false }
+  return { timezone: browserTimezone, isGuessed: true, isPlaceholder: !hydrated }
 }
 
 // Locale map for quick access

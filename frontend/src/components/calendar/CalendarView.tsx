@@ -15,7 +15,10 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { paths } from '@/config/paths'
 import { useUnits } from '@/hooks/useUnits'
-import { useEffectiveTimezone } from '@/utils/dateFormat'
+import { formatTime, useEffectiveTimezone } from '@/utils/dateFormat'
+import { supportedZone } from '@/utils/zoneLabel'
+import { rendezvousMention } from '@/utils/rendezvous'
+import { ZoneMentionIcon } from '@/components/common/Rendezvous'
 import { hourAlignedNow } from '@/utils/nowIso'
 import { getVisibleRange } from '@/components/calendar/calendarRange'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
@@ -73,7 +76,7 @@ export function CalendarView({
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
   const { distance: formatDistance, elevation: formatElevation } = useUnits()
-  const { timezone: tz } = useEffectiveTimezone()
+  const { timezone: tz, isPlaceholder } = useEffectiveTimezone()
   const colorScheme = useResolvedColorScheme()
 
   const labels = useMemo<ScheduleLabelsOverride>(
@@ -154,17 +157,32 @@ export function CalendarView({
     [formatDistance, formatElevation]
   )
 
-  /** "team · time · start place" — the summary line required on every event. */
+  /**
+   * "team · time · start place" — the summary line required on every event. The time is a
+   * rendezvous, in the event's zone with the language's 12/24 h rule (docs/LEDGER_*.md API-60); the
+   * grid itself stays in the reader's zone `tz`.
+   */
   const buildSummary = useCallback(
     (dto: CalendarEventDto): string =>
       [
         dto.teamName,
-        dto.allDay ? t('calendar.schedule.allDay') : dayjs(dto.start).tz(tz).format('HH:mm'),
+        dto.allDay
+          ? t('calendar.schedule.allDay')
+          : formatTime(dto.start, i18n.language, supportedZone(dto.timezone) || tz),
         dto.startPlaceName ?? null,
       ]
         .filter(Boolean)
         .join(SEPARATOR),
-    [t, tz]
+    [t, tz, i18n.language]
+  )
+
+  /** « heure de Tokyo (ven. 01:00 chez vous) » when the event's offset is not the reader's. */
+  const buildMention = useCallback(
+    (dto: CalendarEventDto) =>
+      dto.allDay
+        ? null
+        : rendezvousMention(dto.start, dto.timezone, isPlaceholder ? null : tz, i18n.language, t),
+    [t, tz, isPlaceholder, i18n.language]
   )
 
   /** "Inscrit" / "Inscrit · Groupe A", empty when the user is not registered. */
@@ -198,13 +216,14 @@ export function CalendarView({
           <Text span inherit fw={600}>
             {dto.title}
           </Text>
+          <ZoneMentionIcon mention={buildMention(dto)} withTooltip={false} />
           <Text span inherit c="dimmed">
             {details ? SEPARATOR + details : ''}
           </Text>
         </Text>
       )
     },
-    [buildMetrics, buildRegistration, buildSummary]
+    [buildMention, buildMetrics, buildRegistration, buildSummary]
   )
 
   const renderEvent = useCallback<RenderEvent>(
@@ -224,6 +243,7 @@ export function CalendarView({
       const thumbnail = (themedThumbnail ?? dto?.thumbnailUrl)?.replace('{size}', '128')
       const metrics = dto ? buildMetrics(dto) : ''
       const registration = dto ? buildRegistration(dto) : ''
+      const mention = dto ? buildMention(dto) : null
 
       const button = (
         <button
@@ -257,6 +277,11 @@ export function CalendarView({
           <Text size="xs" c="inherit">
             {buildSummary(dto)}
           </Text>
+          {mention ? (
+            <Text size="xs" c="inherit">
+              {mention.full}
+            </Text>
+          ) : null}
           {metrics ? (
             <Text size="xs" c="inherit">
               {metrics}
@@ -300,7 +325,7 @@ export function CalendarView({
         </Tooltip>
       )
     },
-    [buildMetrics, buildRegistration, buildSummary, colorScheme, t, tz]
+    [buildMention, buildMetrics, buildRegistration, buildSummary, colorScheme, t, tz]
   )
 
   /**
@@ -315,6 +340,7 @@ export function CalendarView({
         return renderEvent(event, props)
       }
       const registration = buildRegistration(dto)
+      const mention = buildMention(dto)
       const body = (
         <Group gap="xs" wrap="nowrap" align="stretch">
           <Box
@@ -332,6 +358,11 @@ export function CalendarView({
             <Text size="xs" c="dimmed">
               {buildSummary(dto)}
             </Text>
+            {mention ? (
+              <Text size="xs" c="dimmed">
+                {mention.full}
+              </Text>
+            ) : null}
             {registration ? (
               <Text size="xs" fw={500}>
                 {registration}
@@ -342,7 +373,7 @@ export function CalendarView({
       )
       return renderEvent(event, { ...props, children: body })
     },
-    [buildRegistration, buildSummary, renderEvent]
+    [buildMention, buildRegistration, buildSummary, renderEvent]
   )
 
   const handleEventClick = useCallback(

@@ -11,6 +11,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../providers/trip_detail_provider.dart';
+import '../../../../core/widgets/zone_mention_line.dart';
 
 /// Le bloc de synthèse d'un voyage : quatre chiffres et les participants.
 ///
@@ -63,6 +64,9 @@ class TripSummaryCard extends ConsumerWidget {
         label: 'trips.summary.dates'.tr(),
         value: _dates(),
         extra: _duration(),
+        // Le départ vu d'ailleurs : « heure de Tokyo (ven. 01:00 chez
+        // vous) » (docs/LEDGER_*.md API-60).
+        note: ZoneMentionLine.maybe(trip.dateTime, trip.timezone),
       ),
       _cell(
         context,
@@ -136,6 +140,7 @@ class TripSummaryCard extends ConsumerWidget {
     required String label,
     required String value,
     String? extra,
+    Widget? note,
     IconData? icon,
   }) {
     final PdlColors c = context.pdl;
@@ -157,12 +162,15 @@ class TripSummaryCard extends ConsumerWidget {
           ],
         ),
         if (extra != null) Text(extra, style: t.xs),
+        ?note,
       ],
     );
   }
 
   /// « 12 → 18 août 2026 », ou la seule date de départ quand le voyage tient
-  /// en un jour — `endDate` nul signifie exactement cela, par contrat.
+  /// en un jour — `endDate` nul signifie exactement cela, par contrat. Le
+  /// départ se lit dans le fuseau de la première étape, la fin dans celui de
+  /// la dernière ([TripTiming.endsAt]) : la durée compte les jours vécus.
   String _dates() {
     final DateTime? start = trip.startsAt;
     if (start == null) return _dash;

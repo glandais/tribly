@@ -190,6 +190,8 @@ class _RideGroupsSectionState extends ConsumerState<RideGroupsSection> {
     return RideGroupCard(
       key: keys.ride.group(group.id),
       group: group,
+      rideDateTime: ride.dateTime,
+      timezone: ride.timezone,
       action: rideGroupAction(ride: ride, group: group, isMember: isMember),
       trackColor: multiTrackColor(group.sortOrder),
       units: units,

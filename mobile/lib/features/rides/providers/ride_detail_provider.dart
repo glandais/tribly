@@ -48,7 +48,10 @@ final rideDetailProvider = FutureProvider.family<RideDto, RideKey>(
 /// sortie annulée et passée est les deux. Les écrans 11, 12 et 13 lisent tous
 /// [isPast].
 extension RideTiming on RideDto {
-  DateTime? get startsAt => AppFormatters.tryParseDisplayTime(dateTime);
+  /// Le départ, à l'heure murale du **fuseau de la sortie** : c'est un
+  /// rendez-vous (docs/LEDGER_*.md API-60, plan §7). La mention éventuelle se
+  /// calcule sur [dateTime], l'instant du contrat.
+  DateTime? get startsAt => AppFormatters.tryParseZoneTime(dateTime, timezone);
 
   bool get isPast => finished;
 

@@ -168,8 +168,9 @@ String formatWind(WindDto wind, UnitSystem units, {bool gusts = true}) {
   return '$base, $g';
 }
 
-/// L'heure HH:mm d'un instant du contrat, dans le fuseau d'affichage ; `—`
-/// s'il est illisible.
+/// L'heure d'un instant du contrat (24 h ou 12 h selon le téléphone), dans le
+/// fuseau d'affichage ; `—` s'il est illisible. La météo passe sur `start_at`
+/// au lot 4 (docs/LEDGER_*.md API-60).
 String formatWeatherTime(String iso) {
   final DateTime? at = DateTime.tryParse(iso);
   return at == null ? '—' : AppFormatters.formatTime(at);

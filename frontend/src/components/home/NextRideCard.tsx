@@ -34,7 +34,9 @@ import { useUnits } from '@/hooks/useUnits'
 import { useGpsConnections } from '@/hooks/useGpsConnections'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { useFormattedDate } from '@/utils/dateFormat'
-import { FormattedDateTime } from '../common/FormattedDate'
+import { Rendezvous } from '../common/Rendezvous'
+import { useRendezvousFormat } from '@/hooks/useRendezvousFormat'
+import { groupLeavesAtOwnTime } from '@/utils/groupStart'
 import { RideWeatherSummaryLine } from '../weather/RideWeatherSummaryLine'
 
 interface NextRideCardProps {
@@ -58,6 +60,8 @@ export function NextRideCard({ ride, headingId }: NextRideCardProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
   const { formatRelative } = useFormattedDate()
+  // Departures are rendezvous, in the ride's zone (docs/LEDGER_*.md API-60).
+  const departure = useRendezvousFormat(ride.timezone)
   const colorScheme = useResolvedColorScheme()
   const queryClient = useQueryClient()
   const leaveMutation = useLeaveGroup()
@@ -144,15 +148,18 @@ export function NextRideCard({ ride, headingId }: NextRideCardProps) {
 
           <Stack gap={6}>
             <Stat icon={<IconCalendar size={16} />}>
-              <FormattedDateTime date={ride.dateTime} />
+              <Rendezvous date={ride.dateTime} zone={ride.timezone} variant="detail" />
             </Stat>
             {ride.startPlace && <Stat icon={<IconMapPin size={16} />}>{ride.startPlace.name}</Stat>}
-            <RideWeatherSummaryLine summary={ride.weather} />
+            <RideWeatherSummaryLine summary={ride.weather} timezone={ride.timezone} />
             <Stat icon={<IconUsers size={16} />}>
               {group
                 ? t('home.nextRide.groupParticipants', {
-                    group: group.time
-                      ? t('home.nextRide.groupAndTime', { group: group.name, time: group.time })
+                    group: groupLeavesAtOwnTime(group.startAt, ride.dateTime)
+                      ? t('home.nextRide.groupAndTime', {
+                          group: group.name,
+                          time: departure.formatTime(group.startAt),
+                        })
                       : group.name,
                     participants,
                   })

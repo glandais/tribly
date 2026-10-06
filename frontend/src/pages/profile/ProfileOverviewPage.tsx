@@ -21,7 +21,7 @@ import { IconBike, IconChevronRight } from '@tabler/icons-react'
 import { useGetMyProfileSummary } from '@/api/endpoints/users/users'
 import type { ProfileSummaryDto, PublicationDto, TeamRole } from '@/api/dto'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
-import { FormattedDateTime } from '@/components/common/FormattedDate'
+import { Rendezvous } from '@/components/common/Rendezvous'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import {
   PROFILE_SIDEBAR_FROM,
@@ -105,7 +105,8 @@ function RidesCard({ summary }: { summary: ProfileSummaryDto | undefined }) {
               </ThemeIcon>
               <Box style={{ minWidth: 0 }}>
                 <Text size="xs" fw={600} c="dimmed">
-                  {t('profile.rides.next')} · <FormattedDateTime date={next.dateTime} />
+                  {t('profile.rides.next')} ·{' '}
+                  <Rendezvous date={next.dateTime} zone={next.timezone} />
                 </Text>
                 <Anchor
                   component={PrefetchLink}

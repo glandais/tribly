@@ -3,7 +3,7 @@ import { Group, Stack, Text } from '@mantine/core'
 import { IconDroplet, IconSunrise, IconSunset, IconWind } from '@tabler/icons-react'
 import type { DepartureWeatherDto, Instant } from '@/api/dto'
 import { useUnits } from '@/hooks/useUnits'
-import { useFormattedDate } from '@/utils/dateFormat'
+import { useRendezvousFormat } from '@/hooks/useRendezvousFormat'
 import { Stat } from '../card/common'
 import { FormattedTime } from '../common/FormattedDate'
 import { WeatherIcon } from './WeatherIcon'
@@ -18,13 +18,15 @@ interface DepartureWeatherProps {
    * not read « Au départ · 10:00 ».
    */
   time: Instant
+  /** The ride's or stage's zone: passages are rendezvous read in it (docs/LEDGER_*.md API-60). */
+  timezone?: string
 }
 
 /** The meeting point at departure: sky, temperature and felt temperature, rain, wind, daylight. */
-export function DepartureWeather({ departure, time }: DepartureWeatherProps) {
+export function DepartureWeather({ departure, time, timezone }: DepartureWeatherProps) {
   const { t } = useTranslation()
   const { temperature, speed } = useUnits()
-  const { formatTime, isGuessedTimezone } = useFormattedDate()
+  const { formatTime, isGuessedText } = useRendezvousFormat(timezone)
   const labels = useWeatherLabels()
   const conditions = departure.conditions
 
@@ -43,7 +45,7 @@ export function DepartureWeather({ departure, time }: DepartureWeatherProps) {
       <WeatherIcon condition={conditions.condition} daylight={conditions.daylight} size={44} />
       <Stack gap={4} style={{ minWidth: 0 }}>
         <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-          <span suppressHydrationWarning={isGuessedTimezone}>
+          <span suppressHydrationWarning={isGuessedText}>
             {t('rides.weather.departure.title', { time: formatTime(time) })}
           </span>
         </Text>

@@ -6,6 +6,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../../api/generated/export.dart';
 import '../units/unit_system.dart';
+import 'zone_label.dart';
 
 /// **Le** point d'entrée du formatage de l'app.
 ///
@@ -294,11 +295,22 @@ class AppFormatters {
   // ─────────────────────────────────────────────────────────────────────────
   // Dates et heures
   //
-  // Un instant venu du serveur en UTC est ramené au **fuseau d'affichage**
-  // avant d'être rendu : la préférence `UserDto.timezone` quand l'utilisateur
-  // en a choisi une, le fuseau de l'appareil sinon — la règle du web
-  // (`useEffectiveTimezone`), docs/LEDGER_*.md API-15. Le « fuseau d'équipe »
-  // reste abandonné (§1.0.3-11).
+  // Deux natures d'instants (docs/LEDGER_*.md API-60, plan §7) :
+  //
+  // * un **horodatage** (création, commentaire, notification reçue, « il y a
+  //   2 h », date d'une annonce) se lit dans le **fuseau d'affichage** du
+  //   lecteur : la préférence `UserDto.timezone` quand il en a choisi une, le
+  //   fuseau de l'appareil sinon — la règle du web (`useEffectiveTimezone`),
+  //   docs/LEDGER_*.md API-15. C'est [toDisplayTime] / [tryParseDisplayTime] ;
+  // * un **rendez-vous** (départ de sortie, de groupe, d'étape, retour estimé,
+  //   dates d'un voyage, date d'une publication) se lit dans le **fuseau de
+  //   l'entité** (`RideDto.timezone`…), avec une mention quand son décalage
+  //   diffère de celui du lecteur. C'est [toZoneTime] / [tryParseZoneTime], puis
+  //   [zoneMention] et [formatZoneMention].
+  //
+  // Les deux rendent une heure murale que les formateurs ci-dessous prennent
+  // telle quelle. « Aujourd'hui », « demain », la grille du calendrier et le
+  // regroupement par jour restent relatifs au lecteur.
   //
   // Le fuseau est un réglage **global**, comme la locale d'`Intl` : `app.dart`
   // le pose à chaque reconstruction depuis l'utilisateur connecté. Le passer
@@ -309,6 +321,21 @@ class AppFormatters {
   static tz.Location? _displayZone;
   static String? _displayZoneName;
   static bool _zonesLoaded = false;
+
+  /// Les fuseaux d'entité déjà résolus ; `null` pour un nom inconnu.
+  static final Map<String, tz.Location?> _entityZones =
+      <String, tz.Location?>{};
+
+  /// 24 h par défaut : c'est ce que rendent les tests et l'app tant
+  /// qu'`app.dart` n'a pas lu le réglage du téléphone.
+  static bool _use24HourFormat = true;
+
+  /// Pose le format d'heure — `MediaQuery.alwaysUse24HourFormat`, que
+  /// `app.dart` lit à chaque reconstruction (docs/LEDGER_*.md API-60, plan §7 :
+  /// le mobile suit le réglage du téléphone, comme Karoo et Garmin ; le web suit
+  /// la langue). Global comme le fuseau d'affichage : un changement du réglage
+  /// ne se voit qu'à la reconstruction suivante des écrans.
+  static void setUse24HourFormat(bool value) => _use24HourFormat = value;
 
   /// Les noms IANA que l'app sait appliquer, triés — ceux que propose le
   /// sélecteur de fuseau du profil. Charge la base au premier appel.
@@ -333,8 +360,8 @@ class AppFormatters {
   /// retombe sur l'appareil plutôt que d'échouer : le serveur valide contre la
   /// base du JDK, qui peut avoir une version d'avance.
   ///
-  /// La base n'est chargée qu'au premier nom posé : un utilisateur sans
-  /// préférence ne paie rien.
+  /// La base se charge au premier nom posé, ou au premier rendez-vous rendu
+  /// dans le fuseau de son entité ([toZoneTime]).
   static void setDisplayTimezone(String? name) {
     if (name == _displayZoneName) return;
     _displayZoneName = name;
@@ -342,11 +369,29 @@ class AppFormatters {
       _displayZone = null;
       return;
     }
+    _displayZone = _lookupZone(name);
+  }
+
+  static const Set<String> _utcNames = <String>{
+    'UTC',
+    'UCT',
+    'GMT',
+    'Zulu',
+    'Etc/UTC',
+    'Etc/UCT',
+    'Etc/GMT',
+    'Etc/Zulu',
+  };
+
+  /// Le fuseau IANA [name], ou `null` s'il est inconnu. La base embarquée
+  /// (`latest`) ne connaît pas l'alias « UTC », que le serveur peut rendre :
+  /// les alias d'UTC se résolvent donc à la main.
+  static tz.Location? _lookupZone(String name) {
     _ensureZonesLoaded();
     try {
-      _displayZone = tz.getLocation(name);
+      return tz.getLocation(name);
     } on tz.LocationNotFoundException {
-      _displayZone = null;
+      return _utcNames.contains(name) ? tz.UTC : null;
     }
   }
 
@@ -367,19 +412,9 @@ class AppFormatters {
     if (!date.isUtc) return date;
     final tz.Location? zone = _displayZone;
     if (zone == null) return date.toLocal();
-    final tz.TZDateTime wall = tz.TZDateTime.from(date, zone);
     // Seule approximation : une heure murale qui tombe dans le saut d'heure
     // d'été de l'*appareil* est décalée d'une heure par le constructeur local.
-    return DateTime(
-      wall.year,
-      wall.month,
-      wall.day,
-      wall.hour,
-      wall.minute,
-      wall.second,
-      wall.millisecond,
-      wall.microsecond,
-    );
+    return _wall(tz.TZDateTime.from(date, zone));
   }
 
   /// L'heure murale courante du fuseau d'affichage.
@@ -411,19 +446,129 @@ class AppFormatters {
     return parsed == null ? null : toDisplayTime(parsed);
   }
 
-  /// Heure au format HH:mm de la locale courante.
-  static String formatTime(DateTime date) =>
-      DateFormat.Hm().format(toDisplayTime(date));
-
-  /// Formate une `LocalTime` (« 08:30:00 ») en HH:mm, secondes ôtées.
-  ///
-  /// Volontairement sans fuseau : une `LocalTime` est une heure de cadran, pas
-  /// un instant. « Départ 8 h 30 » reste 8 h 30 où que soit le téléphone.
-  static String formatLocalTime(String localTime) {
-    final List<String> parts = localTime.split(':');
-    if (parts.length >= 2) return '${parts[0]}:${parts[1]}';
-    return localTime;
+  /// Le fuseau d'entité nommé [name], ou `null` s'il est inconnu de la base
+  /// embarquée (le serveur valide contre celle du JDK, qui peut avoir une
+  /// version d'avance). Charge la base au premier appel : un rendez-vous suffit.
+  static tz.Location? _entityZone(String? name) {
+    if (name == null || name.isEmpty) return null;
+    return _entityZones.putIfAbsent(name, () => _lookupZone(name));
   }
+
+  /// Ramène l'instant d'un **rendez-vous** à l'heure murale du fuseau de son
+  /// entité [zone] (`RideDto.timezone`…) — docs/LEDGER_*.md API-60. Même
+  /// contrat que [toDisplayTime] : une date non UTC est déjà une heure murale
+  /// et reste telle quelle. Un fuseau inconnu retombe sur le fuseau
+  /// d'affichage, et [zoneMention] ne dit alors rien.
+  static DateTime toZoneTime(DateTime instant, String? zone) {
+    if (!instant.isUtc) return instant;
+    final tz.Location? location = _entityZone(zone);
+    if (location == null) return toDisplayTime(instant);
+    return _wall(tz.TZDateTime.from(instant, location));
+  }
+
+  /// Lit un instant ISO 8601 du contrat et le ramène au fuseau de l'entité
+  /// [zone] ; `null` pour une valeur absente ou illisible.
+  static DateTime? tryParseZoneTime(String? iso, String? zone) {
+    if (iso == null) return null;
+    final DateTime? parsed = DateTime.tryParse(iso);
+    return parsed == null ? null : toZoneTime(parsed, zone);
+  }
+
+  static DateTime _wall(tz.TZDateTime wall) => DateTime(
+    wall.year,
+    wall.month,
+    wall.day,
+    wall.hour,
+    wall.minute,
+    wall.second,
+    wall.millisecond,
+    wall.microsecond,
+  );
+
+  /// Vrai quand le fuseau [zone] a, à l'[instant] (UTC), le même décalage
+  /// que le fuseau d'affichage du lecteur — la condition pour **taire** la
+  /// mention (plan §7) : on compare des décalages, pas des identifiants, si
+  /// bien qu'un lecteur à Bruxelles ne voit rien pour une sortie à Paris. Un
+  /// fuseau inconnu compte comme identique : on l'a rendu chez le lecteur.
+  static bool sameOffsetAt(DateTime instant, String? zone) {
+    final tz.Location? location = _entityZone(zone);
+    if (location == null) return true;
+    final DateTime utc = instant.toUtc();
+    final Duration entity = location
+        .timeZone(utc.millisecondsSinceEpoch)
+        .offset;
+    final tz.Location? reader = _displayZone;
+    final Duration readerOffset = reader == null
+        ? utc.toLocal().timeZoneOffset
+        : reader.timeZone(utc.millisecondsSinceEpoch).offset;
+    return entity == readerOffset;
+  }
+
+  /// « heure de Tokyo » quand le fuseau [zone] du rendez-vous diffère, à son
+  /// [instant], de celui du lecteur ; `null` sinon — le cas de presque tout le
+  /// monde, presque toujours.
+  static String? zoneMention(DateTime instant, String? zone) {
+    if (zone == null || sameOffsetAt(instant, zone)) return null;
+    final String language = Intl.getCurrentLocale();
+    return 'dates.zoneMention'.tr(
+      namedArgs: <String, String>{
+        'city': zoneCityName(zone, language),
+        'ofCity': zoneCityOf(zone, language),
+      },
+    );
+  }
+
+  /// L'heure du lecteur pour le rendez-vous à l'[instant] : « 01:00 », ou
+  /// « ven. 01:00 » quand son jour diffère de celui du fuseau [zone].
+  static String readerEquivalent(DateTime instant, String? zone) {
+    final DateTime utc = instant.toUtc();
+    final DateTime reader = toDisplayTime(utc);
+    final DateTime entity = toZoneTime(utc, zone);
+    final String time = formatTime(reader);
+    final bool sameDay =
+        reader.year == entity.year &&
+        reader.month == entity.month &&
+        reader.day == entity.day;
+    return sameDay ? time : '${dayAbbrev(reader.weekday)} $time';
+  }
+
+  /// La mention complète d'un rendez-vous — « heure de Tokyo (ven. 01:00 chez
+  /// vous) » — ou `null` quand le lecteur partage son décalage. C'est la
+  /// seconde ligne d'une carte, et ce qui suit « · » dans un détail.
+  static String? formatZoneMention(DateTime instant, String? zone) {
+    final String? mention = zoneMention(instant, zone);
+    if (mention == null) return null;
+    return 'dates.zoneMentionWithLocal'.tr(
+      namedArgs: <String, String>{
+        'zone': mention,
+        'local': 'dates.atYourPlace'.tr(
+          namedArgs: <String, String>{'time': readerEquivalent(instant, zone)},
+        ),
+      },
+    );
+  }
+
+  /// Le détail d'un rendez-vous en une ligne : « samedi 11 octobre à 08:00 »,
+  /// suivi de « · heure de Tokyo (ven. 01:00 chez vous) » quand le décalage
+  /// diffère de celui du lecteur.
+  static String formatRendezvous(DateTime instant, String? zone) {
+    final DateTime wall = toZoneTime(instant, zone);
+    final String at = 'dates.at'.tr(
+      namedArgs: <String, String>{
+        'date': formatFullDate(wall),
+        'time': formatTime(wall),
+      },
+    );
+    final String? mention = formatZoneMention(instant, zone);
+    return mention == null ? at : '$at · $mention';
+  }
+
+  /// Heure de la locale courante, en 24 h (« 08:30 ») ou en 12 h
+  /// (« 8:30 AM ») selon le réglage du téléphone ([setUse24HourFormat]).
+  static String formatTime(DateTime date) =>
+      (_use24HourFormat ? DateFormat.Hm() : DateFormat.jm()).format(
+        toDisplayTime(date),
+      );
 
   /// « 15 janvier ».
   static String formatDayMonth(DateTime date) {
@@ -460,16 +605,27 @@ class AppFormatters {
   static String get tomorrow => tr('dates.tomorrow');
 
   /// Date d'une sortie, relative au jour courant, avec l'heure.
-  static String formatRideDate(DateTime date, {DateTime? now}) {
-    final DateTime local = toDisplayTime(date);
+  ///
+  /// Avec [zone], [date] est l'instant du contrat (UTC) d'un rendez-vous : la
+  /// date et l'heure se lisent dans le fuseau de l'entité, « aujourd'hui » et
+  /// « demain » restent relatifs au lecteur (docs/LEDGER_*.md API-60, plan
+  /// §7). Quand le jour de l'entité n'est pas celui du lecteur, le relatif
+  /// mentirait à l'un des deux : la date s'écrit en entier.
+  static String formatRideDate(DateTime date, {DateTime? now, String? zone}) {
+    final DateTime reader = toDisplayTime(date);
+    final DateTime local = zone == null ? reader : toZoneTime(date, zone);
     final DateTime reference = toDisplayTime(now ?? displayNow());
-    final int dayDiff = DateTime(local.year, local.month, local.day)
+    final int dayDiff = DateTime(reader.year, reader.month, reader.day)
         .difference(DateTime(reference.year, reference.month, reference.day))
         .inDays;
-    final String time = formatTime(date);
-    if (dayDiff == 0) return '$today $time';
-    if (dayDiff == 1) return '$tomorrow $time';
-    return '${formatFullDate(date)} $time';
+    final bool sameDay =
+        local.year == reader.year &&
+        local.month == reader.month &&
+        local.day == reader.day;
+    final String time = formatTime(local);
+    if (sameDay && dayDiff == 0) return '$today $time';
+    if (sameDay && dayDiff == 1) return '$tomorrow $time';
+    return '${formatFullDate(local)} $time';
   }
 
   /// « il y a 3 jours », « dans 2 h », « à l'instant ».

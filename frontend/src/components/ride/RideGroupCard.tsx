@@ -32,9 +32,15 @@ import { paths } from '@/config/paths'
 import { useUnits } from '@/hooks/useUnits'
 import { useAuth } from '@/hooks/useAuth'
 import { useGpsConnections } from '@/hooks/useGpsConnections'
+import { Rendezvous } from '../common/Rendezvous'
+import { groupLeavesAtOwnTime } from '@/utils/groupStart'
 
 interface RideGroupCardProps {
   group: RideGroupDto
+  /** The ride's zone: a group departure is a rendezvous read in it (docs/LEDGER_*.md API-60). */
+  rideTimezone: string
+  /** The ride's departure: the group's time shows only when `startAt` is another instant. */
+  rideDateTime: string
   teamSlug: string
   rideSlug: string
   rideRouteSlug?: string
@@ -56,6 +62,8 @@ interface RideGroupCardProps {
 
 export function RideGroupCard({
   group,
+  rideTimezone,
+  rideDateTime,
   teamSlug,
   rideSlug,
   rideRouteSlug,
@@ -161,11 +169,13 @@ export function RideGroupCard({
 
       {/* Details row */}
       <Group mt="xs">
-        {group.time && (
+        {/* The group leaves at its own time: `startAt` is not the ride's instant (never the
+            deprecated `time`, docs/LEDGER_*.md API-60). */}
+        {groupLeavesAtOwnTime(group.startAt, rideDateTime) && (
           <Group gap={4}>
             <IconClock size={16} />
             <Text size="sm" c="dimmed">
-              {group.time}
+              <Rendezvous date={group.startAt} zone={rideTimezone} format="time" />
             </Text>
           </Group>
         )}

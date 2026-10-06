@@ -281,7 +281,12 @@ class _RideBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final PdlColors c = context.pdl;
-    final DateTime? at = AppFormatters.tryParseDisplayTime(ride.dateTime);
+    // L'instant du contrat : la plage et la date se lisent dans le fuseau de
+    // la sortie, la mention se calcule au départ (docs/LEDGER_*.md API-60).
+    final DateTime? at = DateTime.tryParse(ride.dateTime);
+    final String? mention = at == null
+        ? null
+        : AppFormatters.formatZoneMention(at, ride.timezone);
     final bool isPast = ride.finished;
     // Partie et pas rentrée : « En cours » plutôt que « Terminée », que
     // `finished` (départ passé) aurait affiché (ledger `MOB-60`).
@@ -290,7 +295,11 @@ class _RideBody extends ConsumerWidget {
       endDateTime: ride.endDateTime,
       status: ride.status,
     );
-    final String? span = rideTimeSpan(ride.dateTime, ride.endDateTime);
+    final String? span = rideTimeSpan(
+      ride.dateTime,
+      ride.endDateTime,
+      timezone: ride.timezone,
+    );
     // Une inscription faite dans l'app depuis le chargement du fil l'emporte
     // sur la page chargée avant elle.
     final bool registered =
@@ -365,9 +374,12 @@ class _RideBody extends ConsumerWidget {
       stats: <PdlStat>[
         if (at != null)
           PdlStat(
-            value: span ?? AppFormatters.formatRideDate(at),
+            value:
+                span ?? AppFormatters.formatRideDate(at, zone: ride.timezone),
             icon: PdlIcons.date,
           ),
+        if (mention != null)
+          PdlStat(value: mention, icon: PdlIcons.otherTimezone),
         PdlStat(
           value: 'rides.participants'.tr(
             namedArgs: <String, String>{'count': '${ride.participantCount}'},
@@ -405,7 +417,12 @@ class _PostBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
-    final DateTime? at = AppFormatters.tryParseDisplayTime(post.dateTime);
+    // Un rendez-vous dans le fuseau de la publication (`PostDto.timezone`,
+    // docs/LEDGER_*.md API-60) ; date seule, donc sans mention.
+    final DateTime? at = AppFormatters.tryParseZoneTime(
+      post.dateTime,
+      post.timezone,
+    );
 
     return _CardShell(
       onTap: () => context.push(
@@ -464,7 +481,16 @@ class _TripBody extends ConsumerWidget {
           ),
         ) ??
         trip.registered;
-    final DateTime? start = AppFormatters.tryParseDisplayTime(trip.dateTime);
+    // Un rendez-vous dans le fuseau du voyage ; une ligne de liste ne porte pas
+    // les étapes, la fin se lit donc dans le même (docs/LEDGER_*.md API-60).
+    final DateTime? start = AppFormatters.tryParseZoneTime(
+      trip.dateTime,
+      trip.timezone,
+    );
+    final DateTime? instant = DateTime.tryParse(trip.dateTime);
+    final String? mention = instant == null
+        ? null
+        : AppFormatters.formatZoneMention(instant, trip.timezone);
     final bool underWay = isUnderWay(
       dateTime: trip.dateTime,
       endDateTime: trip.endDateTime,
@@ -529,10 +555,16 @@ class _TripBody extends ConsumerWidget {
             // Du départ à la fin stockée (`endDateTime`, ledger `API-85`) :
             // « ven. 16 → dim. 18 oct. ».
             value:
-                tripDaySpan(trip.dateTime, trip.endDateTime) ??
+                tripDaySpan(
+                  trip.dateTime,
+                  trip.endDateTime,
+                  timezone: trip.timezone,
+                ) ??
                 AppFormatters.formatDayMonth(start),
             icon: PdlIcons.date,
           ),
+        if (mention != null)
+          PdlStat(value: mention, icon: PdlIcons.otherTimezone),
         if (trip.stageCount > 0)
           PdlStat(
             value: 'trips.stageCount'.plural(trip.stageCount),

@@ -40,8 +40,7 @@ import { ContentActionsMenu } from '../../components/moderation/ContentActionsMe
 import { ShareButton } from '../../components/common/ShareButton'
 import { CommentSection } from '../../components/comment'
 import { TeamContextBanner } from '../../components/team/TeamContextBanner'
-import { useFormattedDate } from '../../utils/dateFormat'
-import { FormattedDateTime } from '../../components/common/FormattedDate'
+import { Rendezvous } from '../../components/common/Rendezvous'
 import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { STATUS_COLORS } from '@/lib/badgeColors.generated'
@@ -49,7 +48,6 @@ import { TagList } from '@/components/tag'
 
 export function PostDetailPage() {
   const { t } = useTranslation()
-  const { formatDateTime, isGuessedTimezone } = useFormattedDate()
   const { teamSlug, postSlug } = useParams<{ teamSlug: string; postSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -96,7 +94,8 @@ export function PostDetailPage() {
   const isOrganizer = team?.role === 'ORGANIZER'
   const canEdit = isAdmin || isOrganizer
 
-  const formattedDate = <FormattedDateTime date={post.dateTime} />
+  // A post's date is entered, a rendezvous in its (the team's) zone (docs/LEDGER_*.md API-60).
+  const formattedDate = <Rendezvous date={post.dateTime} zone={post.timezone} variant="detail" />
 
   const invalidatePosts = () => {
     queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
@@ -278,14 +277,13 @@ export function PostDetailPage() {
           {post.status === Status.DRAFT && post.publishAt && (
             <Group gap="xs" mt="sm">
               <IconCalendar size={16} color="var(--mantine-color-yellow-text)" />
-              <Text
-                size="sm"
-                c="var(--mantine-color-yellow-text)"
-                suppressHydrationWarning={isGuessedTimezone}
-              >
-                {t('posts.detail.scheduledPublish', {
-                  date: formatDateTime(post.publishAt),
-                })}
+              <Text size="sm" c="var(--mantine-color-yellow-text)">
+                <Rendezvous
+                  date={post.publishAt}
+                  zone={post.timezone}
+                  variant="detail"
+                  template={(date) => t('posts.detail.scheduledPublish', { date })}
+                />
               </Text>
             </Group>
           )}

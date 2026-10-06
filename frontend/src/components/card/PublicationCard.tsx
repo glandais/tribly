@@ -20,7 +20,7 @@ import {
 } from './common'
 import { EntityLogo } from '../common/EntityLogo'
 import { UserAvatarGroup } from '../common/UserAvatar'
-import { FormattedDateTime } from '../common/FormattedDate'
+import { Rendezvous } from '../common/Rendezvous'
 import { paths } from '@/config/paths'
 import { PublicationCardProgress } from './PublicationCardProgress'
 import { RouteThumbnail } from '../route/RouteThumbnail'
@@ -78,7 +78,7 @@ export function PublicationCard({ publication, showTeam, actions }: PublicationC
     }
   }
 
-  const formattedDate = <FormattedDateTime date={publication.dateTime} />
+  const formattedDate = <Rendezvous date={publication.dateTime} zone={publication.timezone} />
 
   // Render stats based on publication type
   const renderStats = () => {
@@ -262,7 +262,10 @@ export function PublicationCard({ publication, showTeam, actions }: PublicationC
           {/* The server sends it only within the forecast window, or with its opening date; a
               trip's is that of its next stage (docs/LEDGER_*.md API-82). */}
           {(publication.type === 'RIDE' || publication.type === 'TRIP') && (
-            <RideWeatherSummaryLine summary={(publication as RideDto | TripDto).weather} />
+            <RideWeatherSummaryLine
+              summary={(publication as RideDto | TripDto).weather}
+              timezone={publication.timezone}
+            />
           )}
         </Box>
       </CardContent>

@@ -490,11 +490,6 @@ void main() {
         withLocale('fr', fr, () => AppFormatters.formatTime(utc.toLocal())),
       );
     });
-
-    test('une LocalTime reste une heure de cadran', () {
-      expect(AppFormatters.formatLocalTime('08:30:00'), '08:30');
-      expect(AppFormatters.formatLocalTime('8:30'), '8:30');
-    });
   });
 
   group('filtres de parcours', () {

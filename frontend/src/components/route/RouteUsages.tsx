@@ -3,7 +3,8 @@ import { IconCalendar } from '@tabler/icons-react'
 import { Box, Group, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core'
 import { Card, CardContent, CardTitle, TypeBadge, Stat } from '../card/common'
 import { useGetRouteUsages } from '@/api/endpoints/routes/routes'
-import { FormattedDate, FormattedDateTime } from '../common/FormattedDate'
+import { Rendezvous, ZoneMentionIcon } from '../common/Rendezvous'
+import { useRendezvousFormat } from '@/hooks/useRendezvousFormat'
 import { paths } from '@/config/paths'
 import type { RouteUsageDto } from '@/api/dto'
 
@@ -78,13 +79,9 @@ export function RouteUsages({ teamSlug, routeSlug }: RouteUsagesProps) {
                   <Stat icon={<IconCalendar size={16} />}>
                     {/* A trip carries the date of its last stage: show the range, like its card. */}
                     {usage.endDate ? (
-                      <>
-                        <FormattedDate date={usage.dateTime} />
-                        {' → '}
-                        <FormattedDate date={usage.endDate} />
-                      </>
+                      <UsageRange usage={usage} />
                     ) : (
-                      <FormattedDateTime date={usage.dateTime} />
+                      <Rendezvous date={usage.dateTime} zone={usage.timezone} />
                     )}
                   </Stat>
                   {hint && (
@@ -99,5 +96,26 @@ export function RouteUsages({ teamSlug, routeSlug }: RouteUsagesProps) {
         })}
       </SimpleGrid>
     </Box>
+  )
+}
+
+/**
+ * A trip's « start → end », both rendezvous in the usage's one zone, with one zone indicator for
+ * the range (docs/LEDGER_*.md API-60).
+ */
+function UsageRange({ usage }: { usage: RouteUsageDto }) {
+  const rendezvous = useRendezvousFormat(usage.timezone)
+  return (
+    <>
+      <span suppressHydrationWarning={rendezvous.isGuessedText}>
+        {rendezvous.formatDate(usage.dateTime)}
+        {' → '}
+        {rendezvous.formatDate(usage.endDate)}
+      </span>
+      <ZoneMentionIcon
+        mention={rendezvous.mention(usage.dateTime)}
+        isGuessed={rendezvous.isGuessedTimezone}
+      />
+    </>
   )
 }

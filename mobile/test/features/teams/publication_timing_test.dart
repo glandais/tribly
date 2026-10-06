@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pedalons/core/utils/formatters.dart';
 import 'package:pedalons/features/teams/domain/publication_timing.dart';
 
 import '../../support/localization.dart';
@@ -41,28 +42,93 @@ void main() {
   });
 
   group('rideTimeSpan', () {
+    tearDown(() => AppFormatters.setDisplayTimezone(null));
+
+    test('les deux bouts se lisent dans le fuseau de la sortie', () {
+      // Lu de Paris le samedi 10, une sortie de Tokyo le dimanche 11 à 06:00
+      // — samedi 23:00 à Paris : 06:00 → 12:30, heure de Tokyo
+      // (docs/LEDGER_*.md API-60) ; ni « aujourd'hui » ni « demain », les deux
+      // jours ne coïncidant pas.
+      AppFormatters.setDisplayTimezone('Europe/Paris');
+      final String? span = rideTimeSpan(
+        '2026-10-10T21:00:00Z',
+        '2026-10-11T03:30:00Z',
+        timezone: 'Asia/Tokyo',
+        now: DateTime.utc(2026, 10, 10, 8),
+      );
+      expect(span, 'dimanche 11 octobre 06:00 → retour vers 12:30');
+    });
+
+    test('« demain » reste relatif au lecteur', () {
+      AppFormatters.setDisplayTimezone('Europe/Brussels');
+      final String? span = rideTimeSpan(
+        '2026-10-11T06:30:00Z',
+        '2026-10-11T12:10:00Z',
+        timezone: 'Europe/Paris',
+        now: DateTime.utc(2026, 10, 10, 8),
+      );
+      expect(span, 'Demain 08:30 → retour vers 14:10');
+    });
+
     test('« départ → retour vers … »', () {
       final String? span = rideTimeSpan(
         '2026-10-11T08:30:00Z',
         '2026-10-11T10:10:00Z',
+        timezone: 'Europe/Paris',
         now: now,
       );
       expect(span, contains(' → retour vers '));
     });
 
     test('une date illisible : rien, l\'appelant garde la date seule', () {
-      expect(rideTimeSpan('?', '2026-10-11T10:10:00Z'), isNull);
+      expect(
+        rideTimeSpan('?', '2026-10-11T10:10:00Z', timezone: 'UTC'),
+        isNull,
+      );
     });
   });
 
   group('tripDaySpan', () {
+    test(
+      'un voyage multi-fuseaux finit dans le fuseau de sa dernière étape',
+      () {
+        // Départ de Paris le vendredi 16 à 22:00, arrivée le samedi 17 à
+        // 20:00 UTC : dimanche 18 à Tokyo, encore samedi à Paris.
+        expect(
+          tripDaySpan(
+            '2026-10-16T20:00:00Z',
+            '2026-10-17T20:00:00Z',
+            timezone: 'Europe/Paris',
+            endTimezone: 'Asia/Tokyo',
+          ),
+          'ven. 16 → dim. 18 oct.',
+        );
+        expect(
+          tripDaySpan(
+            '2026-10-16T20:00:00Z',
+            '2026-10-17T20:00:00Z',
+            timezone: 'Europe/Paris',
+          ),
+          'ven. 16 → sam. 17 oct.',
+        );
+      },
+    );
+
     test('plusieurs jours : une flèche ; un seul : pas de flèche', () {
       expect(
-        tripDaySpan('2026-10-16T08:00:00Z', '2026-10-18T16:00:00Z'),
+        tripDaySpan(
+          '2026-10-16T08:00:00Z',
+          '2026-10-18T16:00:00Z',
+          timezone: 'Europe/Paris',
+        ),
         contains(' → '),
       );
       expect(
-        tripDaySpan('2026-10-16T08:00:00Z', '2026-10-16T16:00:00Z'),
+        tripDaySpan(
+          '2026-10-16T08:00:00Z',
+          '2026-10-16T16:00:00Z',
+          timezone: 'Europe/Paris',
+        ),
         isNot(contains(' → ')),
       );
     });

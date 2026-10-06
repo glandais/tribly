@@ -5,6 +5,7 @@ import type { RideWeatherSummaryDto } from '@/api/dto'
 import { WeatherStatus } from '@/api/dto'
 import { useUnits } from '@/hooks/useUnits'
 import { useFormattedDate } from '@/utils/dateFormat'
+import { useRendezvousFormat } from '@/hooks/useRendezvousFormat'
 import { formatTemperature, temperatureToDisplay } from '@/utils/unitFormat'
 import { WeatherIcon } from './WeatherIcon'
 import { useWeatherLabels } from './useWeatherLabels'
@@ -12,6 +13,8 @@ import { rainAlertCondition, showsSummary, temperatureRange } from './weatherDis
 
 interface RideWeatherSummaryLineProps {
   summary: RideWeatherSummaryDto | undefined
+  /** The ride's or stage's zone: passages are rendezvous read in it (docs/LEDGER_*.md API-60). */
+  timezone?: string
 }
 
 /**
@@ -26,10 +29,11 @@ interface RideWeatherSummaryLineProps {
  * docs/plans/archive/2026-10-05-weather.md §4): the
  * card only words it and converts the units.
  */
-export function RideWeatherSummaryLine({ summary }: RideWeatherSummaryLineProps) {
+export function RideWeatherSummaryLine({ summary, timezone }: RideWeatherSummaryLineProps) {
   const { t } = useTranslation()
   const { temperature, unitSystem } = useUnits()
-  const { formatDate, formatTime, isGuessedTimezone } = useFormattedDate()
+  const { formatDate, isGuessedTimezone } = useFormattedDate()
+  const passage = useRendezvousFormat(timezone)
   const labels = useWeatherLabels()
 
   if (!summary || !showsSummary(summary)) return null
@@ -97,10 +101,10 @@ export function RideWeatherSummaryLine({ summary }: RideWeatherSummaryLineProps)
             probability: summary.rainAlert.probability,
           })}
         >
-          <span suppressHydrationWarning={isGuessedTimezone}>
+          <span suppressHydrationWarning={passage.isGuessedText}>
             {t('rides.weather.summary.rainAlert', {
               condition: labels.condition(rainAlertCondition(summary.rainAlert.condition)),
-              time: formatTime(summary.rainAlert.time),
+              time: passage.formatTime(summary.rainAlert.time),
             })}
           </span>
         </Badge>

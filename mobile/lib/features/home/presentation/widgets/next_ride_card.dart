@@ -24,6 +24,8 @@ import '../../../teams/presentation/widgets/publication_card.dart';
 import '../../providers/next_ride_provider.dart';
 import '../../../../keys.dart';
 import '../../../../core/utils/push_location.dart';
+import '../../../../core/widgets/zone_mention_line.dart';
+import '../../../rides/domain/group_start.dart';
 
 /// La vignette de « Ma prochaine sortie » : celle du **parcours du groupe**
 /// (`docs/LEDGER_*.md API-3`), puisque deux groupes sur deux parcours n'ont pas
@@ -82,7 +84,11 @@ class NextRideCard extends ConsumerWidget {
             Expanded(child: Text('home.nextRide'.tr(), style: t.sectionTitle)),
             if (at != null)
               PdlBadge(
-                label: AppFormatters.formatRelative(at),
+                // L'instant du contrat, pas l'heure murale de la sortie :
+                // « dans 2 jours » se compte depuis le lecteur.
+                label: AppFormatters.formatRelative(
+                  DateTime.parse(ride.dateTime),
+                ),
                 tone: PdlDerivedTones.registered(c),
                 size: PdlBadgeSize.lg,
                 icon: PdlIcons.check,
@@ -217,15 +223,20 @@ class NextRideCard extends ConsumerWidget {
           c,
           t,
           PdlIcons.time,
-          g.time == null
+          !groupLeavesAtOwnTime(g.startAt, ride.dateTime)
               ? g.name
               : 'home.groupDeparture'.tr(
                   namedArgs: <String, String>{
                     'group': g.name,
-                    'time': AppFormatters.formatLocalTime(g.time!),
+                    'time': formatGroupStart(g.startAt, ride.timezone),
                   },
                 ),
         ),
+      // « heure de Tokyo (ven. 01:00 chez vous) » quand le lecteur est
+      // ailleurs, au départ qui le concerne (docs/LEDGER_*.md API-60).
+      if (ZoneMentionLine.maybe(g?.startAt ?? ride.dateTime, ride.timezone)
+          case final Widget mention)
+        Padding(padding: const EdgeInsets.only(bottom: 10), child: mention),
       if (ride.startPlace != null) ...<Widget>[
         const SizedBox(height: 10),
         PdlPlaceRow(

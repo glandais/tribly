@@ -1794,6 +1794,8 @@
   "teams.title": "Équipes",
   "temperature": "{{temperature}} °C",
   "temperature_imperial": "{{temperature}} °F",
+  "timezone.readerEquivalent": "{{time}} chez vous",
+  "timezone.rendezvousMention": "{{zone}} ({{equivalent}})",
   "timezone.zoneMention": "heure {{ofCity}}",
   "trips.card.stageCount_one": "{{count}} étape",
   "trips.card.stageCount_many": "{{count}} étapes",

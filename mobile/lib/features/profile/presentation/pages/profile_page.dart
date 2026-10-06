@@ -192,9 +192,11 @@ class ProfilePage extends ConsumerWidget {
     final PdlColors c = context.pdl;
     final ProfileParticipationSummaryDto? p = summary?.participations;
     final PublicationDto? next = p?.next.firstOrNull;
+    // L'instant du contrat : la date se lit dans le fuseau de la sortie, sans
+    // mention sur une ligne d'état (docs/LEDGER_*.md API-60).
     final DateTime? when = next == null
         ? null
-        : AppFormatters.tryParseDisplayTime(next.dateTime);
+        : DateTime.tryParse(next.dateTime);
 
     return _ShortcutRow(
       key: keys.profile.participationsUpcomingRow,
@@ -206,7 +208,10 @@ class ProfilePage extends ConsumerWidget {
           ? 'profile.status.noUpcoming'.tr()
           : 'profile.status.nextRide'.tr(
               namedArgs: <String, String>{
-                'date': AppFormatters.formatRideDate(when),
+                'date': AppFormatters.formatRideDate(
+                  when,
+                  zone: next!.timezone,
+                ),
               },
             ),
       badge: p == null

@@ -5,7 +5,7 @@ import { IconArrowsMaximize, IconArrowUp, IconCalendar, IconMapPin } from '@tabl
 import { Paper, Group, Text, UnstyledButton, Badge, Box } from '@mantine/core'
 import type { RideWeatherSummaryDto, TripStageDto } from '@/api/dto'
 import { RideWeatherSummaryLine } from '@/components/weather'
-import { FormattedDateTime } from '../common/FormattedDate'
+import { Rendezvous } from '../common/Rendezvous'
 import { useUnits } from '@/hooks/useUnits'
 import { MediaDisplay } from '../common/MediaDisplay'
 import { EntityLogo } from '../common/EntityLogo'
@@ -71,14 +71,14 @@ export function TripStageCard({
         <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
           <IconCalendar size={16} color="var(--mantine-color-dimmed)" />
           <Text size="sm" c="dimmed">
-            <FormattedDateTime date={stage.dateTime} />
+            <Rendezvous date={stage.dateTime} zone={stage.timezone} />
           </Text>
         </Group>
       </Group>
 
       {weather && (
         <Box mb="sm">
-          <RideWeatherSummaryLine summary={weather} />
+          <RideWeatherSummaryLine summary={weather} timezone={stage.timezone} />
         </Box>
       )}
 

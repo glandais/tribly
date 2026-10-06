@@ -21,7 +21,8 @@ import {
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import type { ReportReason, ReportTargetType, TeamDashboardOrganizerDto, RideDto } from '@/api/dto'
 import { paths } from '@/config/paths'
-import { useFormattedDate } from '@/utils/dateFormat'
+import { formatPattern, useFormattedDate } from '@/utils/dateFormat'
+import { isSupportedZone } from '@/utils/zoneLabel'
 import { publicationEditPath, publicationPath, ridesOf } from './dashboardHelpers'
 
 interface TodoBandProps {
@@ -35,8 +36,8 @@ interface TodoBandProps {
  * queue (`requireTeamModerator`), which is why the reports tile is shown to organizers too.
  */
 export function TodoBand({ teamSlug, organizer }: TodoBandProps) {
-  const { t } = useTranslation()
-  const { formatPattern } = useFormattedDate()
+  const { t, i18n } = useTranslation()
+  const reader = useFormattedDate()
   const { drafts, ridesWithoutRoute, ridesWithFullGroup, reports } = organizer
 
   const firstDraft = drafts.publications[0]
@@ -45,7 +46,13 @@ export function TodoBand({ teamSlug, organizer }: TodoBandProps) {
   const firstFull = withFullGroup[0]
   const fullGroup = firstFull?.groupSummaries.find((g) => g.full)
 
-  const rideLabel = (ride: RideDto) => `${ride.name}, ${formatPattern(ride.dateTime, 'EEE d MMM')}`
+  // The ride's day, a rendezvous in its zone (docs/LEDGER_*.md API-60).
+  const rideLabel = (ride: RideDto) =>
+    `${ride.name}, ${
+      isSupportedZone(ride.timezone)
+        ? formatPattern(ride.dateTime, 'EEE d MMM', i18n.language, ride.timezone)
+        : reader.formatPattern(ride.dateTime, 'EEE d MMM')
+    }`
 
   return (
     <section aria-labelledby="dashboard-todo">

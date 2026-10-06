@@ -14,6 +14,7 @@ import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../keys.dart';
+import '../../../../core/widgets/zone_mention_line.dart';
 
 /// La couleur d'un événement de calendrier.
 ///
@@ -63,8 +64,11 @@ class AgendaCard extends ConsumerWidget {
 
   final CalendarEventDto event;
 
+  /// L'heure de l'événement dans le fuseau de son entité — un rendez-vous
+  /// (docs/LEDGER_*.md API-60). La grille et le regroupement par jour, eux,
+  /// restent au fuseau du lecteur (`calendarDayOf`).
   DateTime get _start =>
-      AppFormatters.toDisplayTime(DateTime.parse(event.start));
+      AppFormatters.toZoneTime(DateTime.parse(event.start), event.timezone);
 
   /// Dit par le serveur (`docs/LEDGER_*.md API-16`) : fin de l'événement, ou
   /// son début quand il n'a pas de fin.
@@ -147,6 +151,8 @@ class AgendaCard extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       style: t.sub,
                     ),
+                    if (!event.allDay)
+                      ?ZoneMentionLine.maybe(event.start, event.timezone),
                     if (stats.isNotEmpty) ...<Widget>[
                       const SizedBox(height: 6),
                       PdlStatRow(stats: stats),

@@ -63,6 +63,13 @@ class _PedalonsAppState extends ConsumerState<PedalonsApp> {
     // (docs/LEDGER_*.md API-15). Posé avant que le moindre écran ne formate une
     // date ; déconnecté, on revient à l'appareil.
     AppFormatters.setDisplayTimezone(authState.user?.timezone);
+    // 12 h ou 24 h : le réglage du téléphone, pas la langue (docs/LEDGER_*.md
+    // API-60, plan §7). `runApp` pose déjà un `MediaQuery` au-dessus de nous ;
+    // le lire ici reconstruit l'app quand le réglage change.
+    AppFormatters.setUse24HourFormat(
+      MediaQuery.maybeAlwaysUse24HourFormatOf(context) ??
+          WidgetsBinding.instance.platformDispatcher.alwaysUse24HourFormat,
+    );
 
     final lightTheme = PedalonsTheme.build(Brightness.light);
     final darkTheme = PedalonsTheme.build(Brightness.dark);

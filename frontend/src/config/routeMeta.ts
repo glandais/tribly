@@ -69,22 +69,34 @@ export function withIndexing(
 
 /**
  * Zone of the dates in titles and link previews. Rendered by the SSR server, whose zone is UTC, and
- * read by anyone the link is shared with: neither the server's zone nor the reader's is the ride's.
- * Paris until the entity carries its own (docs/LEDGER_*.md WEB-70, API-60).
+ * read by anyone the link is shared with: neither the server's zone nor the reader's is the ride's
+ * — the entity's own is the only one that makes sense (docs/LEDGER_*.md WEB-70, API-60, plan §7).
+ * Paris only for a payload without one.
  */
-const META_TIME_ZONE = 'Europe/Paris'
+const META_FALLBACK_TIME_ZONE = 'Europe/Paris'
 
 /** Localised long date (day + month + year), matching the resolved SSR locale — not the browser. */
-function formatDate(instant: Instant | undefined, locale: Locale): string | undefined {
+function formatDate(
+  instant: Instant | undefined,
+  locale: Locale,
+  timeZone: string | undefined
+): string | undefined {
   if (!instant) return undefined
   const d = new Date(instant)
   if (Number.isNaN(d.getTime())) return undefined
-  return new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: META_TIME_ZONE,
-  }).format(d)
+  const format = (zone: string) =>
+    new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: zone,
+    }).format(d)
+  // A meta builder never throws: an identifier this runtime does not know falls back.
+  try {
+    return format(timeZone || META_FALLBACK_TIME_ZONE)
+  } catch {
+    return format(META_FALLBACK_TIME_ZONE)
+  }
 }
 
 /** ISO-8601 publication time, preferring the explicit publish time over creation. */
@@ -248,7 +260,7 @@ export const rideMeta: RouteMetaFn = (ctx) => {
   const description = stripped
     ? truncate(stripped, 200)
     : joinFacets([
-        formatDate(ride.dateTime, ctx.locale),
+        formatDate(ride.dateTime, ctx.locale, ride.timezone),
         ride.startPlace?.name && `${ctx.t('seo.ride.startPrefix')}${ride.startPlace.name}`,
         ride.participantCount > 0 &&
           ctx.t('seo.ride.participants', { count: ride.participantCount }),
@@ -283,8 +295,8 @@ export const tripMeta: RouteMetaFn = (ctx) => {
     ? truncate(stripped, 200)
     : joinFacets([
         trip.stageCount > 0 && ctx.t('seo.trip.stages', { count: trip.stageCount }),
-        formatDate(trip.dateTime, ctx.locale) &&
-          `${ctx.t('seo.trip.startPrefix')}${formatDate(trip.dateTime, ctx.locale)}`,
+        formatDate(trip.dateTime, ctx.locale, trip.timezone) &&
+          `${ctx.t('seo.trip.startPrefix')}${formatDate(trip.dateTime, ctx.locale, trip.timezone)}`,
         trip.participantCount > 0 &&
           ctx.t('seo.ride.participants', { count: trip.participantCount }),
       ])

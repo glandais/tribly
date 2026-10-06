@@ -216,7 +216,11 @@ class DashboardTodo extends StatelessWidget {
   }
 
   static String _rideWithDate(PublicationDtoRide ride) {
-    final DateTime? at = AppFormatters.tryParseDisplayTime(ride.dateTime);
+    // Le jour de la sortie dans son fuseau (docs/LEDGER_*.md API-60).
+    final DateTime? at = AppFormatters.tryParseZoneTime(
+      ride.dateTime,
+      ride.timezone,
+    );
     return at == null
         ? ride.name
         : '${ride.name}, ${AppFormatters.formatFullDate(at)}';

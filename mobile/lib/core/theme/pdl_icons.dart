@@ -134,6 +134,10 @@ abstract final class PdlIcons {
 
   // ── Temps, agenda, personnes ───────────────────────────────────────────
   static const IconData time = Icons.schedule;
+
+  /// Un rendez-vous lu dans un autre fuseau que celui du lecteur
+  /// (docs/LEDGER_*.md API-60) — distinct de [visibilityPublic].
+  static const IconData otherTimezone = Icons.travel_explore;
   static const IconData date = Icons.event_outlined;
   static const IconData dateBusy = Icons.event_busy;
   static const IconData people = Icons.people_outline;

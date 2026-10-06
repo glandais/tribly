@@ -46,10 +46,5 @@ export function rideHasNoRoute(ride: RideDto): boolean {
   return !ride.routeSlug && ride.groupSummaries.every((g) => !g.routeSlug)
 }
 
-/** "08:30:00" → "08:30": a group's start time is a wall-clock LocalTime, never a zoned instant. */
-export function shortTime(time: string | undefined): string | undefined {
-  return time ? time.slice(0, 5) : undefined
-}
-
 /** Router state that opens the invitation dialog of the members page on arrival. */
 export const OPEN_INVITE_STATE = { openInvite: true } as const

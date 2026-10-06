@@ -3,7 +3,7 @@ import { Stack, Text } from '@mantine/core'
 import type { WeatherLegDto } from '@/api/dto'
 import { WeatherStatus } from '@/api/dto'
 import { useUnits } from '@/hooks/useUnits'
-import { useFormattedDate } from '@/utils/dateFormat'
+import { useRendezvousFormat } from '@/hooks/useRendezvousFormat'
 import { WeatherCheckpointStrip } from './WeatherCheckpointStrip'
 import { WeatherRainBanner } from './WeatherRainBanner'
 import { WindExposureBar } from './WindExposureBar'
@@ -13,14 +13,17 @@ import { hasForecast } from './weatherDisplay'
 export function LegWeather({
   leg,
   subject = 'group',
+  timezone,
 }: {
   leg: WeatherLegDto
+  /** The ride's or stage's zone: passages are rendezvous read in it (docs/LEDGER_*.md API-60). */
+  timezone?: string
   /** What rides the leg — only the wording of a missing route or speed changes. */
   subject?: 'group' | 'stage'
 }) {
   const { t } = useTranslation()
   const { distance, speed } = useUnits()
-  const { formatTime, isGuessedTimezone } = useFormattedDate()
+  const { formatTime, isGuessedText } = useRendezvousFormat(timezone)
 
   if (leg.status === WeatherStatus.NO_LOCATION) {
     return (
@@ -40,7 +43,7 @@ export function LegWeather({
   return (
     <Stack gap="sm">
       <Stack gap={2}>
-        <Text size="sm" fw={600} suppressHydrationWarning={isGuessedTimezone}>
+        <Text size="sm" fw={600} suppressHydrationWarning={isGuessedText}>
           {t('rides.weather.leg.schedule', {
             start: formatTime(leg.startTime),
             arrival: formatTime(leg.arrivalTime),
@@ -60,8 +63,8 @@ export function LegWeather({
             : t('rides.weather.leg.speed', { speed: speed(leg.averageSpeed) })}
         </Text>
       </Stack>
-      <WeatherRainBanner rainAlert={leg.rainAlert} />
-      <WeatherCheckpointStrip checkpoints={leg.checkpoints} />
+      <WeatherRainBanner rainAlert={leg.rainAlert} timezone={timezone} />
+      <WeatherCheckpointStrip checkpoints={leg.checkpoints} timezone={timezone} />
       <WindExposureBar
         segments={leg.segments}
         exposure={leg.windExposure}

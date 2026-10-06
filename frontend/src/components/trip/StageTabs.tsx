@@ -4,7 +4,7 @@ import { ScrollArea, Tabs, Stack, Text } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import { IconHome } from '@tabler/icons-react'
 import type { TripDto } from '@/api/dto'
-import { FormattedDate } from '../common/FormattedDate'
+import { Rendezvous } from '../common/Rendezvous'
 import { paths } from '@/config/paths'
 import { EntityLogo } from '../common/EntityLogo'
 
@@ -60,7 +60,7 @@ export function StageTabs({ trip, teamSlug, currentTab }: StageTabsProps) {
                   {stage.name}
                 </Text>
                 <Text size="xs" opacity={0.7}>
-                  <FormattedDate date={stage.dateTime} />
+                  <Rendezvous date={stage.dateTime} zone={stage.timezone} format="date" />
                 </Text>
               </Stack>
             </Tabs.Tab>

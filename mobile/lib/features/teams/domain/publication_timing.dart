@@ -33,24 +33,47 @@ bool _sameDay(DateTime a, DateTime b) =>
 /// « vers », la fin étant estimée sur la distance et l'allure des groupes ;
 /// un retour un autre jour nomme ce jour (« retour vers sam. 17 oct. 02:00 »).
 ///
+/// Les deux bouts se lisent dans le fuseau de la sortie [timezone] — ce sont
+/// des rendez-vous (docs/LEDGER_*.md API-60, plan §7) ; « aujourd'hui » et
+/// « demain » restent relatifs au lecteur. La mention, une seule pour la plage,
+/// est à l'appelant : `AppFormatters.formatZoneMention` au départ.
+///
 /// `null` quand l'une des deux dates est illisible : l'appelant garde alors
 /// la date seule.
-String? rideTimeSpan(String dateTime, String endDateTime, {DateTime? now}) {
-  final DateTime? start = AppFormatters.tryParseDisplayTime(dateTime);
-  final DateTime? end = AppFormatters.tryParseDisplayTime(endDateTime);
-  if (start == null || end == null) return null;
+String? rideTimeSpan(
+  String dateTime,
+  String endDateTime, {
+  required String timezone,
+  DateTime? now,
+}) {
+  final DateTime? instant = DateTime.tryParse(dateTime);
+  final DateTime? start = AppFormatters.tryParseZoneTime(dateTime, timezone);
+  final DateTime? end = AppFormatters.tryParseZoneTime(endDateTime, timezone);
+  if (instant == null || start == null || end == null) return null;
   final String back = _sameDay(start, end)
       ? AppFormatters.formatTime(end)
       : '${_shortDay(end, withMonth: true)} ${AppFormatters.formatTime(end)}';
-  return '${AppFormatters.formatRideDate(start, now: now)} → '
+  return '${AppFormatters.formatRideDate(instant, now: now, zone: timezone)} → '
       '${'teams.agenda.returnAround'.tr(namedArgs: <String, String>{'time': back})}';
 }
 
 /// Les jours d'un voyage : « ven. 16 → dim. 18 oct. », le mois une seule fois
 /// quand il ne change pas ; « ven. 16 oct. » sur un seul jour.
-String? tripDaySpan(String dateTime, String endDateTime) {
-  final DateTime? start = AppFormatters.tryParseDisplayTime(dateTime);
-  final DateTime? end = AppFormatters.tryParseDisplayTime(endDateTime);
+///
+/// Le départ se lit dans le fuseau du voyage [timezone] (celui de sa première
+/// étape), la fin dans [endTimezone] (celui de sa dernière, quand on le
+/// connaît) — docs/LEDGER_*.md API-60, plan §7.
+String? tripDaySpan(
+  String dateTime,
+  String endDateTime, {
+  required String timezone,
+  String? endTimezone,
+}) {
+  final DateTime? start = AppFormatters.tryParseZoneTime(dateTime, timezone);
+  final DateTime? end = AppFormatters.tryParseZoneTime(
+    endDateTime,
+    endTimezone ?? timezone,
+  );
   if (start == null || end == null) return null;
   if (_sameDay(start, end)) return _shortDay(start, withMonth: true);
   final bool sameMonth = start.year == end.year && start.month == end.month;

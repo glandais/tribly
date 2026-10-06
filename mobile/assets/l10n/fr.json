@@ -145,6 +145,9 @@
     "tomorrow": "Demain",
     "departure": "Départ: {time}",
     "at": "{date} à {time}",
+    "zoneMention": "heure {ofCity}",
+    "atYourPlace": "{time} chez vous",
+    "zoneMentionWithLocal": "{zone} ({local})",
     "relative": {
       "now": "à l'instant",
       "minutesAgo": {

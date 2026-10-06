@@ -16,8 +16,9 @@ RideGroupDto fixtureGroup({
   int sortOrder = 0,
   PublicUserDto? leader,
   String? routeSlug,
+  String startAt = '2026-10-11T06:00:00Z',
 }) => RideGroupDto(
-  startAt: '2026-10-11T06:00:00Z',
+  startAt: startAt,
   id: id,
   name: name,
   countParticipants: countParticipants,

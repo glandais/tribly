@@ -9,6 +9,8 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/zone_mention_line.dart';
+import '../../domain/group_start.dart';
 import '../../domain/ride_group_action.dart';
 import '../../../../keys.dart';
 
@@ -25,6 +27,8 @@ class RideGroupCard extends StatelessWidget {
   const RideGroupCard({
     super.key,
     required this.group,
+    required this.rideDateTime,
+    required this.timezone,
     required this.action,
     required this.trackColor,
     required this.units,
@@ -42,6 +46,14 @@ class RideGroupCard extends StatelessWidget {
   });
 
   final RideGroupDto group;
+
+  /// Le départ de la sortie (instant du contrat) : le groupe n'affiche son
+  /// heure que s'il part à une autre (docs/LEDGER_*.md API-60).
+  final String rideDateTime;
+
+  /// Le fuseau de la sortie, où se lit l'heure du groupe.
+  final String timezone;
+
   final RideGroupAction action;
 
   /// Couleur du tracé du groupe sur la carte, issue de `kMultiTrackPalette`
@@ -83,6 +95,15 @@ class RideGroupCard extends StatelessWidget {
           _titleRow(context, c, t),
           const SizedBox(height: PdlSpacing.cardTight),
           _statsRow(),
+          // L'heure propre du groupe est un rendez-vous : lue d'un autre
+          // décalage, sa mention « heure de Tokyo (…) » en seconde ligne,
+          // comme l'icône à info-bulle du web (docs/LEDGER_*.md API-60).
+          if (groupLeavesAtOwnTime(group.startAt, rideDateTime))
+            if (ZoneMentionLine.maybe(group.startAt, timezone)
+                case final Widget mention) ...<Widget>[
+              const SizedBox(height: 4),
+              mention,
+            ],
           if (group.leader != null) ...<Widget>[
             const SizedBox(height: PdlSpacing.cardTight),
             _leaderRow(t, c),
@@ -165,9 +186,9 @@ class RideGroupCard extends StatelessWidget {
   /// 1.3.0 : cette ligne ne coûte plus un `getRoute` par groupe.
   Widget _statsRow() {
     final List<PdlStat> stats = <PdlStat>[
-      if (group.time != null)
+      if (groupLeavesAtOwnTime(group.startAt, rideDateTime))
         PdlStat(
-          value: AppFormatters.formatLocalTime(group.time!),
+          value: formatGroupStart(group.startAt, timezone),
           icon: PdlIcons.time,
         ),
       if (group.averageSpeed != null)

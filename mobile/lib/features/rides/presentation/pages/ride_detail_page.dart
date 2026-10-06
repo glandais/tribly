@@ -34,6 +34,7 @@ import '../widgets/ride_weather_card.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
 import '../../../../keys.dart';
 import '../../../../core/utils/push_location.dart';
+import '../../../../core/widgets/zone_mention_line.dart';
 
 /// L'écran 12 — détail d'une sortie et inscription à un groupe.
 ///
@@ -319,9 +320,17 @@ class _RideDetailContent extends ConsumerWidget {
       cell(
         'rides.dateAndTime'.tr(),
         start == null ? '—' : AppFormatters.formatLongDate(start),
+        // L'heure de la sortie, puis « heure de Tokyo (ven. 01:00 chez vous) »
+        // quand le lecteur est ailleurs (docs/LEDGER_*.md API-60).
         extra: start == null
             ? null
-            : Text(AppFormatters.formatTime(start), style: t.xs),
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(AppFormatters.formatTime(start), style: t.xs),
+                  ?ZoneMentionLine.maybe(ride.dateTime, ride.timezone),
+                ],
+              ),
       ),
       cell(
         'participants.title'.tr(),

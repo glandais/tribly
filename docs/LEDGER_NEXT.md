@@ -476,6 +476,55 @@ envoie des heures murales et le backend résout ; le fuseau qu'il demande ou dé
 l'étiquette (et au contrôle « publication dans le futur »), et l'aperçu du §9 vient du backend, pas
 d'un calcul client. Reste du lot 2 : le scénario Playwright `timezoneId: 'Asia/Tokyo'` du §11.
 
+**Lot 3 (web) livré le 7 octobre 2026** (sans changement de contrat). Les rendez-vous se lisent dans
+le fuseau de l'entité, les horodatages restent dans celui du lecteur : `useRendezvousFormat(zone)`
+(formateurs dans le fuseau de l'entité, mention à l'instant de l'événement), `rendezvousMention`
+(`utils/rendezvous.ts` : « heure de Tokyo (sam. 23:00 chez vous) », le jour seulement quand il
+change, rien quand les décalages sont égaux) et `<Rendezvous>` (`detail` : mention en ligne ;
+`card` : icône `IconWorld` + infobulle ; `ZoneMentionIcon` pour une plage ou un texte composé).
+Appliqué aux détails (sortie, voyage et sa fin dans le fuseau de la dernière étape — `tripEndZone`,
+étape, article, publication programmée), aux cartes et lignes (`PublicationCard`, tableau de bord,
+`NextRideCard`, `RouteUsages`, profil, onglets d'étape), aux plages de l'Agenda
+(`formatPublicationSpan`, une seule icône ; `DayBox` prend le fuseau de l'entité à côté d'une plage
+en mode `time`), à l'heure des groupes (`startAt`, fin du « 08:30:00 » brut et de `shortTime`), au
+calendrier (heure de l'événement en `p` selon la langue au lieu de `HH:mm` figé, mention dans
+l'infobulle et en seconde ligne sur téléphone ; la grille reste celle du lecteur) et à la semaine de
+l'accueil (jour et heure de la ligne dans le fuseau de l'entité ; bandeau, points et « aujourd'hui »
+du lecteur). Décidé au passage : les heures de la météo (départ, passages, alerte pluie) suivent le
+fuseau de la sortie ou de l'étape, sans mention (l'en-tête du détail la porte) ; la date SEO /
+`og:` (`routeMeta.ts`) passe au fuseau de l'entité (une ligne, prise sur le lot 4). Tests :
+`rendezvous.test.ts` (Paris lu depuis Bruxelles muet, Tokyo lu depuis Paris avec le jour qui change,
+Londres/UTC selon l'heure d'été, plages et voyage multi-fuseaux), `Rendezvous.test.tsx`,
+`routeMeta.test.ts` étendu. **À ne pas défaire** : la mention compare des décalages à l'instant de
+l'événement, jamais des identifiants ; le texte dans le fuseau de l'entité est identique côté
+serveur et client, seule la mention dépend du lecteur.
+
+**Lot 3 (mobile) livré le 7 octobre 2026** (sans changement de contrat). Même règle que le web :
+`zone_label.dart` reprend la table des villes françaises et la règle « de / d' / du / des » de
+`zoneLabel.ts` (à garder en phase), les rendez-vous passent par `AppFormatters` dans le fuseau de
+l'entité avec la mention (en ligne au détail, en seconde ligne sur les cartes), l'heure d'un groupe
+vient de `startAt`, et l'heure suit le réglage 12 h / 24 h du téléphone
+(`MediaQuery.alwaysUse24HourFormat`) au lieu de `DateFormat.Hm`. Un fuseau inconnu se lit dans
+celui du lecteur, sans mention. Les heures de la météo et les étapes « journée entière » du
+calendrier restent dans le fuseau du lecteur (lot 4). Tests : `display_timezone_test.dart` étendu
+(Paris lu depuis Bruxelles muet, Tokyo lu depuis Paris avec le jour qui change), détail d'article,
+fin de voyage par l'étape la plus tardive.
+
+Arbitré à la relecture du lot 3 (web et mobile) : **pas de mention tant que le fuseau du lecteur
+est le substitut du serveur** (`useEffectiveTimezone().isPlaceholder` : rendu SSR anonyme et rendu
+d'hydratation) — calculée contre `UTC`, elle affirmait un « 06:00 chez vous » faux à tout visiteur
+d'une équipe européenne ; elle apparaît au rendu qui suit l'hydratation (`Rendezvous.test.tsx`,
+`renderToString`). **Un fuseau que l'`Intl` du navigateur ignore** (la base tz du JDK peut le
+devancer : `Europe/Kyiv` sur un vieux Safari) se lit dans le fuseau du lecteur, sans mention, au
+lieu de lever pendant le rendu (`isSupportedZone`, `zoneLabel.ts`) — la règle du mobile. **La date
+d'un article est un rendez-vous complet sur les deux clients** : date et heure dans le fuseau de
+l'article, puis la mention (`post_detail_page.dart` rejoint le détail web). **L'heure d'un groupe**
+ne s'affiche que si `startAt` est un autre instant que le départ de la sortie
+(`groupLeavesAtOwnTime`, web et mobile, jamais le `time` déprécié) et porte sa mention sur les deux
+clients (icône à infobulle, focalisable au clavier, sur le web ; seconde ligne sur mobile). La fin
+d'un voyage se lit dans le fuseau de l'étape **la plus tardive par instant**, pas la dernière par
+ordre, sur les deux clients (`tripEndZone`, `TripTiming.endTimezone`).
+
 **Divergence acceptée le temps du lot 1** : la météo, les appareils et `PublicationEndCalculator`
 lisent encore le départ d'un groupe par `RideWeatherPlans.departure()` + `legStart`, avec repli UTC
 et le parcours du premier groupe ; `start_at` suit la chaîne du §4 avec repli équipe. Pour une
@@ -490,10 +539,10 @@ instant constant, puis `start_at` et fin recalculés) que si elle en trouve.
 Reste :
 
 - **Lot 2** (web) : le scénario Playwright du §11 (équipe à Paris, navigateur à Tokyo).
-- **Lot 3** (web, mobile) : affichage rendez-vous / horodatage, mention « chez vous », 12 h / 24 h
-  du téléphone sur le mobile.
-- **Lot 4** (backend, web) : notifications, webhooks, iCal (`StageTimezones` lit le fuseau stocké),
-  SEO ; météo, appareils et `PublicationEndCalculator` sur `start_at` (fin de `legStart` et de
+- **Lot 3** : `NotificationItem` (« commence le … ») reste dans le fuseau du lecteur faute de
+  fuseau dans `NotificationDto` (lot 4) ; les heures de la météo sur mobile suivent au lot 4.
+- **Lot 4** (backend, web) : notifications, webhooks, iCal (`StageTimezones` lit le fuseau stocké)
+  — la date SEO est déjà livrée avec le lot 3 web ; météo, appareils et `PublicationEndCalculator` sur `start_at` (fin de `legStart` et de
   `TimezoneService.getZoneId`) ; `DeviceRideDto.timezone`, `NotificationDto.subjectTimezone`
   (nouvelle colonne d'instantané).
 - **Lot 5 = version N+1** : dernier rattrapage puis `team_entities.timezone` et
