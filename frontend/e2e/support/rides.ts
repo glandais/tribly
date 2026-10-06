@@ -97,9 +97,11 @@ export async function openRide(page: Page, teamSlug: string, ride: RideDto) {
 /**
  * The card of one ride group (`RideGroupCard`, a Mantine Paper holding the group's name as its own
  * text). Group names are unique per test, so a second match is a strict-mode error, not a guess.
+ * The « Météo » section is a Paper too, and names each group in its picker: it is a `<section>`,
+ * a group card is not.
  */
 export function groupCard(page: Page, groupName: string): Locator {
   return page
-    .locator('.mantine-Paper-root')
+    .locator('.mantine-Paper-root:not(section)')
     .filter({ has: page.getByText(groupName, { exact: true }) })
 }
