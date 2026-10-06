@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -86,12 +87,15 @@ class WeatherFetchWorkerTest extends AbstractBaseTest {
 
   private void answerWith(
       Function<Location, fr.pedalons.infrastructure.openmeteo.OpenMeteoForecast> answer) {
-    when(gateway.forecast(anyList()))
-        .thenAnswer(
+    // doAnswer, not when(...): when() would call forecast() on a mock a test may have stubbed to
+    // throw, and that throw would escape here.
+    doAnswer(
             invocation -> {
               List<Location> locations = invocation.getArgument(0);
               return locations.stream().map(answer).toList();
-            });
+            })
+        .when(gateway)
+        .forecast(anyList());
   }
 
   /** A cell due now, whose nearest passage is {@code need} from now. */
