@@ -1,8 +1,10 @@
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useGetTrip, prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
 import { prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
+import { prefetchGetPlaceQuery } from '@/api/endpoints/places/places'
 import { prefetchRoutesBulkChunked, prefetchTeamTags } from '@/config/prefetchHelpers'
 import type { TripDto, TripRequest, Status } from '@/api/dto'
+import { instantToWallTime, optionalWallTime } from '@/utils/wallTime'
 import type { QueryClient } from '@tanstack/react-query'
 
 /**
@@ -61,6 +63,15 @@ export function tripFormStageRouteSlugs(trip: TripDto | undefined): string[] {
 }
 
 /**
+ * The stages' start places, which `TripEditor` looks up on the first paint to name each stage's zone
+ * (docs/LEDGER_*.md API-60) — one `getPlace` per distinct place, the key `PlaceAutocomplete` uses.
+ */
+export function tripFormStagePlaceIds(trip: TripDto | undefined): string[] {
+  const ids = (trip?.stages ?? []).map((s) => s.startPlace?.id).filter((id): id is string => !!id)
+  return Array.from(new Set(ids)).sort()
+}
+
+/**
  * The trip's own route, which the edit form's details tab previews (`RoutePreview`, a single
  * `getRoute`) as soon as it is set — read off {@link tripToRequest}, the projection `EditTripPage`
  * seeds the form with. Same as the ride form's `rideFormRouteSlug`.
@@ -89,9 +100,9 @@ export async function prefetchCreateTripForm(queryClient: QueryClient, teamSlug:
  * tab previews on the first paint — the counterpart of the ride form's gap that
  * `e2e/routes-render.e2e.ts` reported on `rideEdit`.
  *
- * `TripEditor`'s two `PlaceAutocomplete` fields per stage are deliberately NOT covered: neither the
- * retired crawler nor the prefetch audit has seen them query on the first paint. Add them if and
- * when the audit names them.
+ * The same second phase primes each stage's start place ({@link tripFormStagePlaceIds}): the editor
+ * reads them on the first paint to name the stages' zones. The place *lists* of the stages'
+ * `PlaceAutocomplete` fields are still not covered: nobody has seen them query on the first paint.
  */
 export async function prefetchEditTripForm(
   queryClient: QueryClient,
@@ -110,6 +121,9 @@ export async function prefetchEditTripForm(
       geometry: false,
     }),
     routeSlug ? prefetchGetRouteQuery(queryClient, teamSlug, routeSlug) : Promise.resolve(),
+    ...tripFormStagePlaceIds(trip).map((placeId) =>
+      prefetchGetPlaceQuery(queryClient, teamSlug, placeId)
+    ),
   ])
 }
 
@@ -119,20 +133,23 @@ export async function prefetchEditTripForm(
  * `routeSlug`/`…PlaceId` references, and the server applies every field of a PUT. Spreading the DTO
  * as-is is the trap: it clears each stage's route and places — the edit form did it until it
  * projected them, and the publish/unpublish/cancel menu of the detail page did it after.
+ *
+ * Dates go back as wall times (docs/LEDGER_*.md API-60): the trip's in `TripDto.timezone`, each
+ * stage's in its own `TripStageDto.timezone` — a trip can cross zones.
  */
 export function tripToRequest(trip: TripDto): TripRequest {
   return {
     name: trip.name,
     media: trip.media,
-    dateTime: trip.dateTime,
+    dateTime: instantToWallTime(trip.dateTime, trip.timezone),
     status: trip.status,
     visibility: trip.visibility,
     routeSlug: trip.routeSlug,
-    publishAt: trip.publishAt,
+    publishAt: optionalWallTime(trip.publishAt, trip.timezone),
     stages: trip.stages.map((stage) => ({
       id: stage.id,
       name: stage.name,
-      dateTime: stage.dateTime,
+      dateTime: instantToWallTime(stage.dateTime, stage.timezone),
       averageSpeed: stage.averageSpeed,
       routeSlug: stage.route?.slug,
       startPlaceId: stage.startPlace?.id,
@@ -141,6 +158,11 @@ export function tripToRequest(trip: TripDto): TripRequest {
     })),
     tagIds: trip.tags.map((tag) => tag.id),
   }
+}
+
+/** Each stage's zone keyed by stage id, for `TripEditor`'s mentions. */
+export function tripStageTimezones(trip: TripDto): Record<string, string> {
+  return Object.fromEntries(trip.stages.map((stage) => [stage.id, stage.timezone]))
 }
 
 /**

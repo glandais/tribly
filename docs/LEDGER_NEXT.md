@@ -456,6 +456,26 @@ requête est toléré). Livré :
   (changement de lieu, de fuseau d'équipe ; remplacement de GPX qui ne touche ni le fuseau ni le
   départ).
 
+**Lot 2 (web) livré le 6 octobre 2026, contrat `10.18.0`** (mineure : un appel d'aperçu). Les
+éditeurs de sortie, de voyage et de publication saisissent et renvoient des heures murales
+(`WallDateTimePicker`, fin d'`InstantDateTimePicker`), y compris les menus publier / dépublier /
+annuler (`rideToRequest`, `tripToRequest`, `postToRequest`) ; la mention « heure de Tokyo »
+(`zoneLabel.ts`, `useZoneMention`) n'apparaît que si les décalages diffèrent ; pendant l'édition,
+`useEventTimezone` suit la chaîne du §4 et interroge `…/timezone` (délai, un appel par point
+distinct, aucun à l'ouverture d'une entité existante) ; « Ajouter une étape » = étape précédente
+J+1 sur la chaîne (`addDaysToWallTime`, qui remplace `addCalendarDays` de `WEB-71`). Réglage du
+fuseau d'équipe dans `TeamForm` (`TimezoneSelect`, villes nommées par la règle du §7), pré-rempli
+avec le fuseau du navigateur à la création ; un changement passe par une confirmation qui montre
+l'aperçu du §9, calculé par `GET /api/teams/{teamSlug}/timezone/change-preview` (admin, sans
+écriture) : `TeamTimezoneChange.plan()` est la sélection que `apply()` réécrit, les deux ne
+peuvent pas diverger. Vitest tourne en `Europe/Paris`. Tests : `wallTime.test.ts`,
+`zoneLabel.test.ts`, `useEventTimezone.test.ts`, `useZoneMention.test.tsx`,
+`TimezoneChangePreview.test.tsx`, `TeamTimezoneChangeTest` (aperçu = ce que le changement
+réécrit, 403, 400). **À ne pas défaire** : le front ne calcule jamais le fuseau d'une donnée — il
+envoie des heures murales et le backend résout ; le fuseau qu'il demande ou déduit ne sert qu'à
+l'étiquette (et au contrôle « publication dans le futur »), et l'aperçu du §9 vient du backend, pas
+d'un calcul client. Reste du lot 2 : le scénario Playwright `timezoneId: 'Asia/Tokyo'` du §11.
+
 **Divergence acceptée le temps du lot 1** : la météo, les appareils et `PublicationEndCalculator`
 lisent encore le départ d'un groupe par `RideWeatherPlans.departure()` + `legStart`, avec repli UTC
 et le parcours du premier groupe ; `start_at` suit la chaîne du §4 avec repli équipe. Pour une
@@ -469,8 +489,7 @@ instant constant, puis `start_at` et fin recalculés) que si elle en trouve.
 
 Reste :
 
-- **Lot 2** (web) : saisie en heure murale (fin d'`InstantDateTimePicker`), étiquette « heure de
-  Tokyo », appel `…/timezone` pendant l'édition, réglage du fuseau d'équipe avec l'aperçu du §9.
+- **Lot 2** (web) : le scénario Playwright du §11 (équipe à Paris, navigateur à Tokyo).
 - **Lot 3** (web, mobile) : affichage rendez-vous / horodatage, mention « chez vous », 12 h / 24 h
   du téléphone sur le mobile.
 - **Lot 4** (backend, web) : notifications, webhooks, iCal (`StageTimezones` lit le fuseau stocké),

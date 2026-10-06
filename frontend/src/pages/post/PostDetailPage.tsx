@@ -27,6 +27,7 @@ import {
   getGetPostQueryKey,
 } from '../../api/endpoints/posts/posts'
 import { usePostDetailData } from './postDetailData'
+import { postStatusRequest } from './postFormData'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { ReportTargetType, Status } from '../../api/dto'
 import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
@@ -104,7 +105,7 @@ export function PostDetailPage() {
 
   const handlePublish = () => {
     updateMutation.mutate(
-      { teamSlug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.PUBLISHED } },
+      { teamSlug: teamSlug!, postSlug: postSlug!, data: postStatusRequest(post, Status.PUBLISHED) },
       {
         onSuccess: () => {
           invalidatePosts()
@@ -116,7 +117,7 @@ export function PostDetailPage() {
 
   const handleUnpublish = () => {
     updateMutation.mutate(
-      { teamSlug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.DRAFT } },
+      { teamSlug: teamSlug!, postSlug: postSlug!, data: postStatusRequest(post, Status.DRAFT) },
       {
         onSuccess: () => {
           invalidatePosts()
@@ -129,7 +130,7 @@ export function PostDetailPage() {
 
   const handleCancel = () => {
     updateMutation.mutate(
-      { teamSlug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.CANCELLED } },
+      { teamSlug: teamSlug!, postSlug: postSlug!, data: postStatusRequest(post, Status.CANCELLED) },
       {
         onSuccess: () => {
           invalidatePosts()
@@ -142,7 +143,7 @@ export function PostDetailPage() {
 
   const handleUncancel = () => {
     updateMutation.mutate(
-      { teamSlug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.PUBLISHED } },
+      { teamSlug: teamSlug!, postSlug: postSlug!, data: postStatusRequest(post, Status.PUBLISHED) },
       {
         onSuccess: () => {
           invalidatePosts()

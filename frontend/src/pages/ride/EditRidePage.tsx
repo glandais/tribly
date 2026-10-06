@@ -108,6 +108,7 @@ export function EditRidePage() {
         team={team}
         teamSlug={teamSlug!}
         initialValues={initialValues}
+        timezone={ride.timezone}
         initialLeaders={initialLeaders}
         participantCounts={Object.fromEntries(
           ride.groups.map((group) => [group.id, group.countParticipants])

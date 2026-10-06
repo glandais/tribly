@@ -13,8 +13,8 @@ import { invalidateTeamPublications } from '@/lib/teamDashboardCache'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PostEditor } from '../../components/post/PostEditor'
 import { paths } from '@/config/paths'
-import { PostRequest } from '@/api/dto'
-import { useEditPostFormData } from './postFormData'
+import type { PostRequest } from '@/api/dto'
+import { useEditPostFormData, postToRequest } from './postFormData'
 
 export function EditPostPage() {
   const { t } = useTranslation()
@@ -81,7 +81,7 @@ export function EditPostPage() {
   }
 
   // Prepare initial values from fetched post data
-  const initialValues: PostRequest = { ...post, tagIds: post.tags.map((tag) => tag.id) }
+  const initialValues = postToRequest(post)
 
   return (
     <Container size="sm" py="xl">
@@ -93,6 +93,7 @@ export function EditPostPage() {
         team={team}
         teamSlug={teamSlug!}
         initialValues={initialValues}
+        timezone={post.timezone}
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.post(teamSlug!, postSlug!))}
         isPending={updateMutation.isPending}

@@ -79,6 +79,9 @@ export default defineConfig(({ mode }) => {
       // @testing-library/jest-dom extends a global `expect`, so it needs the globals.
       globals: true,
       setupFiles: ['./src/test/setup.ts'],
+      // A fixed zone, so a test that leans on the process zone gives the same result on every
+      // machine and in CI (docs/LEDGER_*.md API-60, plan §11). Tests about a zone pass it explicitly.
+      env: { TZ: 'Europe/Paris' },
     },
     build: {
       sourcemap: process.env.VITE_BUILD_SOURCEMAP === 'true',

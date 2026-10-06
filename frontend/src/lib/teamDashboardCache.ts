@@ -20,3 +20,23 @@ export function invalidateTeamPublications(queryClient: QueryClient, teamSlug: s
   void queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug) })
   invalidateTeamDashboard(queryClient, teamSlug)
 }
+
+/**
+ * After the team's zone changed: the backend rewrote the instants of its place-less rides, trips,
+ * stages and posts (docs/LEDGER_*.md API-60, plan §9), so everything of the team that shows a date
+ * is refetched — its own lists and details, the cross-team agenda and the calendar.
+ */
+export function invalidateTeamEventTimes(queryClient: QueryClient, teamSlug: string): void {
+  const teamPrefix = `/api/teams/${teamSlug}/`
+  void queryClient.invalidateQueries({
+    predicate: (query) => {
+      const key = query.queryKey[0]
+      return (
+        typeof key === 'string' &&
+        (key.startsWith(teamPrefix) ||
+          key.startsWith('/api/publications') ||
+          key.startsWith('/api/calendar'))
+      )
+    },
+  })
+}

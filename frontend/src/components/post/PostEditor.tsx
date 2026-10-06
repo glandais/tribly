@@ -3,7 +3,7 @@ import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
 import { TextInput, Radio, Stack, Group, Button, Text, Checkbox } from '@mantine/core'
-import { InstantDateTimePicker } from '@/components/common/InstantDateTimePicker'
+import { WallDateTimePicker } from '@/components/common/WallDateTimePicker'
 import type { TeamDetailDto } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
@@ -11,6 +11,7 @@ import { paths } from '@/config/paths'
 import { Status, PostRequest } from '@/api/dto'
 import { CreatePostBody } from '@/api/zod/posts/posts.zod'
 import { TagPicker } from '@/components/tag'
+import { wallTimeToInstant } from '@/utils/wallTime'
 
 interface PostEditorProps {
   team: TeamDetailDto
@@ -24,6 +25,11 @@ interface PostEditorProps {
   currentSlug?: string
   onSlugChange?: (newSlug: string) => Promise<void>
   canEditSlug?: boolean
+  /**
+   * The zone the API gave the post being edited (`PostDto.timezone`), which its wall times were
+   * converted in; the team's on creation — a post has no place (docs/LEDGER_*.md API-60).
+   */
+  timezone?: string
 }
 
 export function PostEditor({
@@ -38,15 +44,18 @@ export function PostEditor({
   currentSlug,
   onSlugChange,
   canEditSlug = false,
+  timezone,
 }: PostEditorProps) {
   const { t } = useTranslation()
+  const zone = timezone ?? team.timezone
 
   const postSchema = useMemo(
     () =>
       CreatePostBody.refine(
         (data) => {
           if (data.status === Status.DRAFT && data.publishAt) {
-            return new Date(data.publishAt) > new Date()
+            // A wall time of the post's zone, not the browser's (docs/LEDGER_*.md API-60).
+            return wallTimeToInstant(data.publishAt, zone) > new Date()
           }
           return true
         },
@@ -55,7 +64,7 @@ export function PostEditor({
           path: ['publishAt'],
         }
       ),
-    [t]
+    [t, zone]
   )
 
   const form = useForm<PostRequest>({
@@ -146,7 +155,7 @@ export function PostEditor({
         </Radio.Group>
 
         {status === Status.PUBLISHED && (
-          <InstantDateTimePicker
+          <WallDateTimePicker
             label={
               <>
                 {t('posts.create.dateTimeLabel')}{' '}
@@ -157,19 +166,21 @@ export function PostEditor({
             }
             description={t('posts.create.dateTimeHint')}
             value={form.values.dateTime}
-            onChange={(iso) => {
-              if (iso) form.setFieldValue('dateTime', iso)
+            onChange={(wall) => {
+              if (wall) form.setFieldValue('dateTime', wall)
             }}
+            zone={zone}
             error={form.errors.dateTime}
           />
         )}
 
         {status === Status.DRAFT && (
-          <InstantDateTimePicker
+          <WallDateTimePicker
             label={t('posts.create.publishAtLabel')}
             description={t('form.publishAtHint')}
             value={form.values.publishAt}
-            onChange={(iso) => form.setFieldValue('publishAt', iso)}
+            onChange={(wall) => form.setFieldValue('publishAt', wall)}
+            zone={zone}
             error={form.errors.publishAt}
             clearable
           />

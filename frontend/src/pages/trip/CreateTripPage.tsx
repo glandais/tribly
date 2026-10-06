@@ -13,15 +13,10 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
 import { defaultMedia } from '@/lib/apiUtils'
 import { useCreateTripFormData } from './tripFormData'
-import { nextWeekdayAt, useEffectiveTimezone } from '@/utils/dateFormat'
+import { nextWeekdayWallTime } from '@/utils/wallTime'
 
 export function CreateTripPage() {
   const { t } = useTranslation()
-  // Default dates are wall times in the effective timezone, which reads UTC on the hydration render
-  // and the visitor's real zone right after (unless they set one). The editor seeds its form once,
-  // so it is keyed on the zone: without a preference it remounts, untouched, with the default
-  // recomputed in the visitor's own zone.
-  const { timezone } = useEffectiveTimezone()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -50,11 +45,12 @@ export function CreateTripPage() {
     return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
-  // Next Saturday at 8am (trips often start on weekends)
-  const tripStartDate = nextWeekdayAt(6, 8, timezone)
+  // Next Saturday at 08:00 (trips often start on weekends), a wall time of the team's zone: the SSR
+  // server and the browser compute the same string (docs/LEDGER_*.md API-60).
+  const tripStartDate = nextWeekdayWallTime(6, 8, team.timezone)
 
   // Prepare initial values for create mode
-  const initialValues = {
+  const initialValues: TripRequest = {
     name: '',
     media: defaultMedia(),
     dateTime: tripStartDate,
@@ -67,10 +63,9 @@ export function CreateTripPage() {
         name: t('trips.create.form.stages.defaultName', { number: 1 }),
         dateTime: tripStartDate,
         routeSlug: undefined,
-        startPlace: undefined,
-        endPlace: undefined,
+        startPlaceId: undefined,
+        endPlaceId: undefined,
         media: defaultMedia(),
-        isNew: true,
       },
     ],
   }
@@ -99,7 +94,6 @@ export function CreateTripPage() {
       </Stack>
 
       <TripEditor
-        key={timezone}
         team={team}
         teamSlug={teamSlug!}
         initialValues={initialValues}

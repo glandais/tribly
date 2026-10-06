@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { formatDistanceToNow, parseISO } from 'date-fns'
-import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
+import { formatInTimeZone } from 'date-fns-tz'
 import { fr } from 'date-fns/locale/fr'
 import { enUS } from 'date-fns/locale/en-US'
 import type { Locale } from 'date-fns'
@@ -161,41 +161,6 @@ export function formatRelative(
 
   const locale = getLocale(language)
   return formatDistanceToNow(dateObj, { addSuffix: true, locale })
-}
-
-/**
- * The next `isoWeekday` (1 = Monday … 7 = Sunday, never today) at `hour`:00 on the wall clock of
- * `timeZone`, as an ISO instant — a form's default date.
- *
- * `setHours` would read the wall clock of the *process*: 08:00Z on the UTC SSR server, 06:00Z in a
- * Paris browser, two different instants, so a form seeded that way cannot hydrate once its picker
- * renders in one agreed zone. Computed in the effective timezone, both sides agree.
- */
-export function nextWeekdayAt(
-  isoWeekday: number,
-  hour: number,
-  timeZone: string,
-  now: Date = new Date()
-): string {
-  const todayWeekday = Number(formatInTimeZone(now, timeZone, 'i'))
-  const days = (isoWeekday - todayWeekday + 7) % 7 || 7
-  // Calendar arithmetic on the date alone, in UTC so no DST shift can move it.
-  const day = new Date(`${formatInTimeZone(now, timeZone, 'yyyy-MM-dd')}T00:00:00Z`)
-  day.setUTCDate(day.getUTCDate() + days)
-  const wallTime = `${day.toISOString().slice(0, 10)} ${String(hour).padStart(2, '0')}:00:00`
-  return fromZonedTime(wallTime, timeZone).toISOString()
-}
-
-/**
- * `instant` moved `days` calendar days on, at the same wall-clock time in `timeZone` — not `days ×
- * 24 h`, which lands an hour off across a daylight-saving change, nor `setDate` on a `Date`, which
- * counts in the browser's zone rather than the one the time was typed in (docs/LEDGER_*.md WEB-71).
- */
-export function addCalendarDays(instant: string, days: number, timeZone: string): string {
-  const day = new Date(`${formatInTimeZone(instant, timeZone, 'yyyy-MM-dd')}T00:00:00Z`)
-  day.setUTCDate(day.getUTCDate() + days)
-  const wallTime = `${day.toISOString().slice(0, 10)} ${formatInTimeZone(instant, timeZone, 'HH:mm:ss')}`
-  return fromZonedTime(wallTime, timeZone).toISOString()
 }
 
 /**

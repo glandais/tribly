@@ -2,13 +2,18 @@ package fr.pedalons.service.team;
 
 import static fr.pedalons.dto.error.ErrorCode.*;
 
+import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.BadRequestException;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.ConflictException;
+import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.platform.Domain;
+import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.team.TeamSlugRedirect;
 import fr.pedalons.domain.team.UserTeam;
+import fr.pedalons.domain.trip.Trip;
+import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.error.ErrorCode;
@@ -16,7 +21,10 @@ import fr.pedalons.dto.teams.request.TeamRequest;
 import fr.pedalons.dto.teams.response.MemberCountByRoleDto;
 import fr.pedalons.dto.teams.response.TeamDetailDto;
 import fr.pedalons.dto.teams.response.TeamListResponse;
+import fr.pedalons.dto.teams.response.TeamTimezoneChangeItemDto;
+import fr.pedalons.dto.teams.response.TeamTimezoneChangePreviewDto;
 import fr.pedalons.dto.teams.response.TeamTimezoneDto;
+import fr.pedalons.dto.teams.response.TimezoneChangeEntityType;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.SortDirection;
@@ -43,7 +51,9 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.time.DateTimeException;
+import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -295,6 +305,53 @@ public class TeamService {
     // Before the team's zone moves: an entity without a stored zone reads the team's.
     teamTimezoneChange.apply(team, previous, zone);
     team.setTimezone(zone.getId());
+  }
+
+  /**
+   * What {@link #changeTimezone} would rewrite for {@code timezone}, without writing anything: the
+   * settings screen shows it before the admin confirms (docs/LEDGER_*.md API-60, plan §9). Shares
+   * {@link TeamTimezoneChange#plan} with the change itself, so that the two cannot diverge.
+   */
+  @Transactional
+  @CheckAccess(entityType = EntityType.TEAM, action = ActionType.UPDATE)
+  public TeamTimezoneChangePreviewDto previewTimezoneChange(String teamSlug, String timezone) {
+    Team team = getTeam(teamSlug);
+    ZoneId from = EventTimezoneResolver.teamZone(team);
+    ZoneId to = validZone(timezone);
+    Instant now = Instant.now();
+    List<TeamEntity> plan = teamTimezoneChange.plan(team, from, to);
+    List<TeamEntity> upcoming =
+        plan.stream()
+            .filter(entity -> !entity.getDateTime().isBefore(now))
+            .sorted(Comparator.comparing(TeamEntity::getDateTime))
+            .toList();
+    return new TeamTimezoneChangePreviewDto(
+        from.getId(),
+        to.getId(),
+        upcoming.size(),
+        plan.size() - upcoming.size(),
+        upcoming.stream()
+            .limit(TeamTimezoneChangePreviewDto.MAX_ITEMS)
+            .map(TeamService::previewItem)
+            .toList());
+  }
+
+  private static TeamTimezoneChangeItemDto previewItem(TeamEntity entity) {
+    TimezoneChangeEntityType type =
+        switch (entity) {
+          case Ride ignored -> TimezoneChangeEntityType.RIDE;
+          case TripStage ignored -> TimezoneChangeEntityType.TRIP_STAGE;
+          case Trip ignored -> TimezoneChangeEntityType.TRIP;
+          default -> TimezoneChangeEntityType.POST;
+        };
+    String tripTitle = entity instanceof TripStage stage ? stage.getTrip().getName() : null;
+    return new TeamTimezoneChangeItemDto(
+        type,
+        TsidUtils.toString(entity.getId()),
+        entity.getSlug(),
+        entity.getName(),
+        tripTitle,
+        entity.getDateTime());
   }
 
   private static ZoneId validZone(String timezone) {

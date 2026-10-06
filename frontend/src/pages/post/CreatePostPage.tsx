@@ -12,6 +12,7 @@ import { defaultMedia } from '@/lib/apiUtils'
 import { paths } from '@/config/paths'
 import { PostRequest, Status } from '../../api/dto'
 import { useCreatePostFormData } from './postFormData'
+import { instantToWallTime } from '@/utils/wallTime'
 
 export function CreatePostPage() {
   const { t } = useTranslation()
@@ -48,7 +49,8 @@ export function CreatePostPage() {
   const initialValues: PostRequest = {
     name: '',
     media: defaultMedia(),
-    dateTime: new Date().toISOString(),
+    // Now, as the clock reads in the team's zone — a post's zone (docs/LEDGER_*.md API-60).
+    dateTime: instantToWallTime(new Date(), team.timezone),
     visibility: team.visibility,
     status: Status.DRAFT,
     publishAt: undefined,

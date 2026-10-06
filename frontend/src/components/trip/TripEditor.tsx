@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { useQueries } from '@tanstack/react-query'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
@@ -16,7 +17,7 @@ import {
   Badge,
   NumberInput,
 } from '@mantine/core'
-import { InstantDateTimePicker } from '@/components/common/InstantDateTimePicker'
+import { WallDateTimePicker } from '@/components/common/WallDateTimePicker'
 import { IconPlus, IconTrash, IconSettings, IconRoute as IconRouteIcon } from '@tabler/icons-react'
 import { SlugEditor } from '../common/SlugEditor'
 import { paths } from '@/config/paths'
@@ -33,7 +34,16 @@ import { Status } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
 import { CreateTripBody } from '@/api/zod/trips/trips.zod'
 import { TagPicker } from '@/components/tag'
-import { addCalendarDays, useEffectiveTimezone } from '@/utils/dateFormat'
+import { getGetPlaceQueryOptions } from '@/api/endpoints/places/places'
+import { useGetRoute } from '@/api/endpoints/routes/routes'
+import {
+  chainCandidate,
+  useLastKnown,
+  useZoneResolver,
+  zoneSource,
+  type ZoneResolution,
+} from '@/hooks/useEventTimezone'
+import { addDaysToWallTime, instantToWallTime, wallTimeToInstant } from '@/utils/wallTime'
 
 interface TripEditorProps {
   team: TeamDetailDto
@@ -47,6 +57,13 @@ interface TripEditorProps {
   currentSlug?: string
   onSlugChange?: (newSlug: string) => Promise<void>
   canEditSlug?: boolean
+  /**
+   * The zone the API gave the trip being edited (`TripDto.timezone`), which its wall times were
+   * converted in; absent on creation.
+   */
+  timezone?: string
+  /** Each edited stage's zone (`TripStageDto.timezone`), keyed by stage id. */
+  stageTimezones?: Record<string, string>
 }
 
 type Target = { type: 'stage'; index: number } | { type: 'trip' }
@@ -63,6 +80,8 @@ export function TripEditor({
   currentSlug,
   onSlugChange,
   canEditSlug = false,
+  timezone,
+  stageTimezones,
 }: TripEditorProps) {
   const { t } = useTranslation()
 
@@ -71,12 +90,16 @@ export function TripEditor({
   const [showCreateRouteModal, setShowCreateRouteModal] = useState(false)
   const [pickerTarget, setPickerTarget] = useState<Target | null>(null)
 
+  // The trip's zone, read by the validator below: useForm keeps the validator it was given first.
+  const tripZoneRef = useRef(timezone ?? team.timezone)
+
   const tripSchema = useMemo(
     () =>
       CreateTripBody.refine(
         (data) => {
           if (data.status === Status.DRAFT && data.publishAt) {
-            return new Date(data.publishAt) > new Date()
+            // A wall time of the trip's zone, not the browser's (docs/LEDGER_*.md API-60).
+            return wallTimeToInstant(data.publishAt, tripZoneRef.current) > new Date()
           }
           return true
         },
@@ -98,7 +121,6 @@ export function TripEditor({
 
   const status = form.values.status
   const dateTime = form.values.dateTime
-  const { timezone } = useEffectiveTimezone()
   const stages = form.values.stages
   const routeSlug = form.values.routeSlug
 
@@ -146,17 +168,116 @@ export function TripEditor({
     !failedStageRouteSlugs.has(slug) &&
     (isLoadingStageRoutes || isFetchingStageRoutes)
 
+  // Each stage's zone, and the trip's, for the « heure de … » mention of the date fields
+  // (docs/LEDGER_*.md API-60, plan §4). A stage: its start place, else its route's start, else the
+  // previous stage's zone, else the trip route's start, else the team. The trip: its first stage's,
+  // else its route's, else the team. Derived on every render rather than held per stage, so that
+  // reordering, inserting or removing a stage re-chains the inheritance.
+  //
+  // One place query per distinct start place (the cache PlaceAutocomplete fills), the stage routes'
+  // starts from the bulk query above, the trip route from RoutePreview's cache.
+  const stagePlaceIdsKey = Array.from(
+    new Set(stages.map((s) => s.startPlaceId).filter((id): id is string => !!id))
+  )
+    .sort()
+    .join(',')
+  const stagePlaceIds = useMemo(
+    () => (stagePlaceIdsKey ? stagePlaceIdsKey.split(',') : []),
+    [stagePlaceIdsKey]
+  )
+  const stagePlaceQueries = useQueries({
+    queries: stagePlaceIds.map((id) => getGetPlaceQueryOptions(teamSlug, id)),
+  })
+  const tripRoute = useGetRoute(teamSlug, routeSlug ?? '', { query: { enabled: !!routeSlug } })
+
+  const stageCandidates = stages.map((stage) => {
+    const placeIndex = stage.startPlaceId ? stagePlaceIds.indexOf(stage.startPlaceId) : -1
+    const place = placeIndex >= 0 ? stagePlaceQueries[placeIndex] : undefined
+    const route = stage.routeSlug ? stageRoutesBySlug.get(stage.routeSlug) : undefined
+    return chainCandidate([
+      zoneSource(stage.startPlaceId && `place:${stage.startPlaceId}`, {
+        loaded: !!place?.data,
+        point: place?.data?.geometry,
+        failed: place?.isError,
+      }),
+      zoneSource(stage.routeSlug && `route:${stage.routeSlug}`, {
+        loaded: !!route,
+        point: route?.start,
+        failed: !!stage.routeSlug && failedStageRouteSlugs.has(stage.routeSlug),
+      }),
+    ])
+  })
+  const tripRouteCandidate = chainCandidate([
+    zoneSource(routeSlug && `route:${routeSlug}`, {
+      loaded: !!tripRoute.data,
+      point: tripRoute.data?.start,
+      failed: tripRoute.isError,
+    }),
+  ])
+  // The trip route only counts when the first stage has neither place nor route.
+  const needsTripRoute = stageCandidates.length === 0 || stageCandidates[0] === null
+  // An edited trip already has its zones: each source that located a stage (or the trip) is seeded
+  // with it, so nothing is asked until the organiser picks another place or route.
+  const [zoneSeeds] = useState<Record<string, string>>(() => {
+    const seeds: Record<string, string> = {}
+    if (!timezone) return seeds
+    for (const stage of initialValues.stages) {
+      const zone = stage.id ? stageTimezones?.[stage.id] : undefined
+      const key = stage.startPlaceId
+        ? `place:${stage.startPlaceId}`
+        : stage.routeSlug && `route:${stage.routeSlug}`
+      if (zone && key) seeds[key] = zone
+    }
+    const first = initialValues.stages[0]
+    const tripRouteKey = initialValues.routeSlug && `route:${initialValues.routeSlug}`
+    if (
+      tripRouteKey &&
+      !seeds[tripRouteKey] &&
+      (!first || (!first.startPlaceId && !first.routeSlug))
+    ) {
+      seeds[tripRouteKey] = timezone
+    }
+    return seeds
+  })
+  const resolveZone = useZoneResolver(
+    teamSlug,
+    [...stageCandidates, needsTripRoute ? tripRouteCandidate : null],
+    zoneSeeds
+  )
+  const tripRouteResolution = resolveZone(tripRouteCandidate)
+  const tripRouteZone = tripRouteResolution === null ? team.timezone : tripRouteResolution
+  const stageResolutions: ZoneResolution[] = []
+  stageCandidates.forEach((candidate, index) => {
+    const own = resolveZone(candidate)
+    stageResolutions.push(
+      own !== null ? own : index > 0 ? stageResolutions[index - 1] : tripRouteZone
+    )
+  })
+  const lastStageZones = useLastKnown(
+    stageResolutions.every((zone) => zone !== undefined) ? stageResolutions.join('|') : undefined,
+    initialValues.stages
+      .map((stage) => (stage.id && stageTimezones?.[stage.id]) || timezone || team.timezone)
+      .join('|')
+  ).split('|')
+  const stageZones = stageResolutions.map(
+    (zone, index) => zone || lastStageZones[index] || team.timezone
+  )
+  const routeOnlyZone = useLastKnown(tripRouteZone, timezone ?? team.timezone)
+  const tripZone = stageZones[0] ?? routeOnlyZone
+  tripZoneRef.current = tripZone
+
   useEffect(() => {
     form.validateField('publishAt')
-  }, [status, form])
+  }, [status, tripZone, form])
 
   const handleAddStage = () => {
-    // Day n + 1 at the trip's own time of day, counted in the zone the pickers type in.
-    const newStageDate = addCalendarDays(
-      dateTime || new Date().toISOString(),
-      stages.length,
-      timezone
-    )
+    // J+n at the same wall time as the previous stage — calendar arithmetic on the string, so that
+    // neither a daylight-saving change nor the browser's zone moves it (docs/LEDGER_*.md API-60,
+    // WEB-71). The first stage starts with the trip.
+    const previous = stages[stages.length - 1]?.dateTime
+    const newStageDate = previous
+      ? addDaysToWallTime(previous, 1)
+      : dateTime || instantToWallTime(new Date(), tripZone)
 
     form.insertListItem('stages', {
       name: t('trips.create.form.stages.defaultName', { number: stages.length + 1 }),
@@ -265,7 +386,7 @@ export function TripEditor({
                 />
               </Stack>
 
-              <InstantDateTimePicker
+              <WallDateTimePicker
                 label={
                   <>
                     {t('startPlace')}{' '}
@@ -275,9 +396,10 @@ export function TripEditor({
                   </>
                 }
                 value={form.values.dateTime}
-                onChange={(iso) => {
-                  if (iso) form.setFieldValue('dateTime', iso)
+                onChange={(wall) => {
+                  if (wall) form.setFieldValue('dateTime', wall)
                 }}
+                zone={tripZone}
                 error={form.errors.dateTime}
               />
 
@@ -308,11 +430,12 @@ export function TripEditor({
               </Radio.Group>
 
               {status === Status.DRAFT && (
-                <InstantDateTimePicker
+                <WallDateTimePicker
                   label={t('trips.create.form.publishAt.label')}
                   description={t('form.publishAtHint')}
                   value={form.values.publishAt}
-                  onChange={(iso) => form.setFieldValue('publishAt', iso)}
+                  onChange={(wall) => form.setFieldValue('publishAt', wall)}
+                  zone={tripZone}
                   error={form.errors.publishAt}
                   clearable
                 />
@@ -398,12 +521,13 @@ export function TripEditor({
                       placeholder={t('trips.create.form.stages.name.placeholder')}
                       {...form.getInputProps(`stages.${index}.name`)}
                     />
-                    <InstantDateTimePicker
+                    <WallDateTimePicker
                       label={t('trips.create.form.stages.date.label')}
                       value={form.values.stages[index]?.dateTime}
-                      onChange={(iso) => {
-                        if (iso) form.setFieldValue(`stages.${index}.dateTime`, iso)
+                      onChange={(wall) => {
+                        if (wall) form.setFieldValue(`stages.${index}.dateTime`, wall)
                       }}
+                      zone={stageZones[index] ?? tripZone}
                     />
                     <NumberInput
                       label={t('trips.create.form.stages.speed.label')}

@@ -5,6 +5,7 @@ import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.teams.request.TeamRequest;
 import fr.pedalons.dto.teams.response.TeamDetailDto;
 import fr.pedalons.dto.teams.response.TeamListResponse;
+import fr.pedalons.dto.teams.response.TeamTimezoneChangePreviewDto;
 import fr.pedalons.dto.teams.response.TeamTimezoneDto;
 import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.TeamSortBy;
@@ -16,6 +17,8 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -209,6 +212,49 @@ public class TeamResource {
           @DecimalMax("180")
           @Nullable Double lon) {
     return teamService.getTimezone(teamSlug, lat, lon);
+  }
+
+  @GET
+  @Path("/{teamSlug}/timezone/change-preview")
+  @RolesAllowed("user")
+  @Operation(
+      operationId = "previewTeamTimezoneChange",
+      summary = "Preview a change of the team's zone",
+      description =
+          "What saving the team with this zone would do, without writing anything"
+              + " (docs/LEDGER_*.md API-60, plan §9): its upcoming rides, trips, stages and posts"
+              + " that no place or route locates keep their wall time in the new zone, the past"
+              + " ones keep their instant. Team admins only.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Preview computed",
+        content = @Content(schema = @Schema(implementation = TeamTimezoneChangePreviewDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Unknown zone",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not a team admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public TeamTimezoneChangePreviewDto previewTeamTimezoneChange(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "IANA zone the team would move to", required = true)
+          @QueryParam("timezone")
+          @NotBlank
+          @Size(max = 64)
+          String timezone) {
+    return teamService.previewTimezoneChange(teamSlug, timezone);
   }
 
   @PATCH

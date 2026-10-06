@@ -14,6 +14,7 @@ import '../models/team_detail_dto.dart';
 import '../models/team_list_response.dart';
 import '../models/team_request.dart';
 import '../models/team_sort_by.dart';
+import '../models/team_timezone_change_preview_dto.dart';
 import '../models/team_timezone_dto.dart';
 
 part 'teams_client.g.dart';
@@ -130,5 +131,18 @@ abstract class TeamsClient {
     @Path('teamSlug') required String teamSlug,
     @Query('lat') double? lat,
     @Query('lon') double? lon,
+  });
+
+  /// Preview a change of the team's zone.
+  ///
+  /// What saving the team with this zone would do, without writing anything (docs/LEDGER_*.md API-60, plan §9): its upcoming rides, trips, stages and posts that no place or route locates keep their wall time in the new zone, the past ones keep their instant. Team admins only.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [timezone] - IANA zone the team would move to.
+  @GET('/api/teams/{teamSlug}/timezone/change-preview')
+  Future<TeamTimezoneChangePreviewDto> previewTeamTimezoneChange({
+    @Path('teamSlug') required String teamSlug,
+    @Query('timezone') required String timezone,
   });
 }

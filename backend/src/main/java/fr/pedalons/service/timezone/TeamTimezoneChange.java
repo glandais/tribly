@@ -13,9 +13,12 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * What a change of a team's zone does to its content (docs/LEDGER_*.md API-60, plan §9): every
@@ -41,16 +44,14 @@ public class TeamTimezoneChange {
   @Inject PublicationEndCalculator publicationEndCalculator;
 
   /**
-   * Rewrites the team's place-less content, in the caller's transaction. Call it before the team's
-   * own zone is changed.
-   *
-   * @return how many entities were rewritten
+   * The team's place-less content stored in {@code from}: what {@link #apply} rewrites, in the order
+   * it rewrites it — read-only, so that the settings screen can preview the change (plan §9) with
+   * the very selection the change will use. A trip's stages come before the trip itself.
    */
-  public int apply(Team team, ZoneId from, ZoneId to) {
+  public List<TeamEntity> plan(Team team, ZoneId from, ZoneId to) {
     if (from.equals(to)) {
-      return 0;
+      return List.of();
     }
-    Instant now = Instant.now();
     // Trips whatever their stored zone: their stages may be stored in another one. A row without a
     // zone reads the team's, which is still `from` here.
     List<TeamEntity> candidates =
@@ -63,44 +64,68 @@ public class TeamTimezoneChange {
             .setParameter("teamId", team.getId())
             .setParameter("from", from.getId())
             .getResultList();
-    int rewritten = 0;
+    List<TeamEntity> plan = new ArrayList<>();
     for (TeamEntity entity : candidates) {
       switch (entity) {
         case Ride ride -> {
-          if (resolver.locateRide(ride.getStart(), ride.getRoute()).isEmpty()
-              && rewriteRide(ride, from, to, now)) {
-            publicationEndCalculator.refresh(ride);
-            rewritten++;
+          if (ride.zone().equals(from)
+              && resolver.locateRide(ride.getStart(), ride.getRoute()).isEmpty()) {
+            plan.add(ride);
           }
         }
         case Trip trip -> {
           Map<TripStage, Optional<ZoneId>> stages = resolver.locateStages(trip);
-          boolean changed = false;
           for (Map.Entry<TripStage, Optional<ZoneId>> stage : stages.entrySet()) {
-            if (stage.getValue().isEmpty() && rewrite(stage.getKey(), from, to, now)) {
-              changed = true;
-              rewritten++;
+            if (stage.getValue().isEmpty() && stage.getKey().zone().equals(from)) {
+              plan.add(stage.getKey());
             }
           }
           Optional<ZoneId> located =
               resolver.locateTrip(List.copyOf(stages.values()), trip.getRoute());
-          if (located.isEmpty() && rewrite(trip, from, to, now)) {
-            changed = true;
-            rewritten++;
-          }
-          if (changed) {
-            publicationEndCalculator.refresh(trip);
+          if (located.isEmpty() && trip.zone().equals(from)) {
+            plan.add(trip);
           }
         }
         case Post post -> {
-          if (rewrite(post, from, to, now)) {
-            rewritten++;
+          if (post.zone().equals(from)) {
+            plan.add(post);
           }
         }
         default -> {}
       }
     }
-    return rewritten;
+    return plan;
+  }
+
+  /**
+   * Rewrites the team's place-less content, in the caller's transaction. Call it before the team's
+   * own zone is changed.
+   *
+   * @return how many entities were rewritten
+   */
+  public int apply(Team team, ZoneId from, ZoneId to) {
+    List<TeamEntity> plan = plan(team, from, to);
+    Instant now = Instant.now();
+    Set<Trip> changedTrips = new LinkedHashSet<>();
+    for (TeamEntity entity : plan) {
+      switch (entity) {
+        case Ride ride -> {
+          rewriteRide(ride, from, to, now);
+          publicationEndCalculator.refresh(ride);
+        }
+        case TripStage stage -> {
+          rewrite(stage, from, to, now);
+          changedTrips.add(stage.getTrip());
+        }
+        case Trip trip -> {
+          rewrite(trip, from, to, now);
+          changedTrips.add(trip);
+        }
+        default -> rewrite(entity, from, to, now);
+      }
+    }
+    changedTrips.forEach(publicationEndCalculator::refresh);
+    return plan.size();
   }
 
   /**
@@ -108,10 +133,7 @@ public class TeamTimezoneChange {
    * or under way, the ride keeps its instant and each group's time becomes its departure's wall
    * time in the new zone — exact as long as that departure stays on the ride's local date there.
    */
-  private static boolean rewriteRide(Ride ride, ZoneId from, ZoneId to, Instant now) {
-    if (!ride.zone().equals(from)) {
-      return false;
-    }
+  private static void rewriteRide(Ride ride, ZoneId from, ZoneId to, Instant now) {
     boolean upcoming = !ride.getDateTime().isBefore(now);
     if (!upcoming) {
       for (RideGroup group : ride.getGroups()) {
@@ -123,17 +145,13 @@ public class TeamTimezoneChange {
     }
     rewrite(ride, from, to, now);
     EventTimezoneResolver.applyGroupStarts(ride, to);
-    return true;
   }
 
   /**
    * Moves an entity stored in {@code from} to {@code to}: its instants still to come at constant
-   * wall time, the past ones at constant instant. False if it is stored in another zone.
+   * wall time, the past ones at constant instant.
    */
-  private static boolean rewrite(TeamEntity entity, ZoneId from, ZoneId to, Instant now) {
-    if (!entity.zone().equals(from)) {
-      return false;
-    }
+  private static void rewrite(TeamEntity entity, ZoneId from, ZoneId to, Instant now) {
     if (!entity.getDateTime().isBefore(now)) {
       entity.setDateTime(EventTimezoneResolver.sameWallTime(entity.getDateTime(), from, to));
     }
@@ -142,6 +160,5 @@ public class TeamTimezoneChange {
       entity.setPublishAt(EventTimezoneResolver.sameWallTime(publishAt, from, to));
     }
     entity.setTimezone(to.getId());
-    return true;
   }
 }

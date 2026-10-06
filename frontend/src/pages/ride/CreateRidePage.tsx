@@ -18,7 +18,7 @@ import { RideEditor } from '../../components/ride/RideEditor'
 import { RideTemplatePickerModal } from '../../components/ridetemplate/RideTemplatePickerModal'
 import { defaultMedia } from '@/lib/apiUtils'
 import { paths } from '@/config/paths'
-import { nextWeekdayAt, useEffectiveTimezone } from '@/utils/dateFormat'
+import { nextWeekdayWallTime } from '@/utils/wallTime'
 
 export function CreateRidePage() {
   const { t } = useTranslation()
@@ -32,11 +32,6 @@ export function CreateRidePage() {
 
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [editorKey, setEditorKey] = useState(0)
-  // Default dates are wall times in the effective timezone, which reads UTC on the hydration render
-  // and the visitor's real zone right after (unless they set one). The editor seeds its form once,
-  // so it is keyed on the zone: without a preference it remounts, untouched, with the default
-  // recomputed in the visitor's own zone.
-  const { timezone } = useEffectiveTimezone()
   // « Créer depuis un modèle » on the team dashboard hands the template over as router state; the
   // mobile dashboard, which opens this page in a browser and cannot carry router state, names it in
   // the URL instead (`?template=<slug>`, mobile `TeamWebPaths.rideNewFromTemplate`), and it is loaded.
@@ -81,8 +76,9 @@ export function CreateRidePage() {
     return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
-  // Next Sunday at 8am
-  const getNextSunday = () => nextWeekdayAt(7, 8, timezone)
+  // Next Sunday at 08:00, a wall time of the team's zone: the SSR server and the browser compute the
+  // same string, so the form hydrates without remounting (docs/LEDGER_*.md API-60).
+  const getNextSunday = () => nextWeekdayWallTime(7, 8, team.timezone)
 
   // Prepare initial values - use template values if available
   const initialValues = templateValues
@@ -161,7 +157,7 @@ export function CreateRidePage() {
       </Stack>
 
       <RideEditor
-        key={`${timezone}-${editorKey}`}
+        key={editorKey}
         team={team}
         teamSlug={teamSlug!}
         initialValues={initialValues}

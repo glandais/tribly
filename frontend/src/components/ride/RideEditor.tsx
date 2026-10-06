@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
@@ -17,7 +17,8 @@ import {
   SimpleGrid,
 } from '@mantine/core'
 import { TimeInput } from '@mantine/dates'
-import { InstantDateTimePicker } from '@/components/common/InstantDateTimePicker'
+import { WallDateTimePicker } from '@/components/common/WallDateTimePicker'
+import { useZoneMention } from '@/hooks/useZoneMention'
 import { IconX } from '@tabler/icons-react'
 import { SlugEditor } from '../common/SlugEditor'
 import { ConfirmDialog } from '../common/ConfirmDialog'
@@ -36,6 +37,10 @@ import { UserAvatar } from '../common/UserAvatar'
 import { Status } from '@/api/dto'
 import { CreateRideBody } from '@/api/zod/rides/rides.zod'
 import { TagPicker } from '@/components/tag'
+import { useGetPlace } from '@/api/endpoints/places/places'
+import { useGetRoute } from '@/api/endpoints/routes/routes'
+import { chainCandidate, useLastKnown, useZoneResolver, zoneSource } from '@/hooks/useEventTimezone'
+import { wallTimeToInstant } from '@/utils/wallTime'
 
 type Target = { type: 'group'; index: number } | { type: 'ride' }
 
@@ -58,6 +63,11 @@ interface RideEditorProps {
    * group removes their registrations with it, which the organiser must know before saving.
    */
   participantCounts?: Record<string, number>
+  /**
+   * The zone the API gave the ride being edited (`RideDto.timezone`), which its wall times were
+   * converted in; absent on creation. Labels the date fields until a place or route changes.
+   */
+  timezone?: string
 }
 
 export function RideEditor({
@@ -74,6 +84,7 @@ export function RideEditor({
   canEditSlug = false,
   initialLeaders,
   participantCounts,
+  timezone,
 }: RideEditorProps) {
   const { t } = useTranslation()
   const { config, speedToDisplay, speedFromDisplay } = useUnits()
@@ -81,12 +92,16 @@ export function RideEditor({
   const [showCreateRouteModal, setShowCreateRouteModal] = useState(false)
   const [pickerTarget, setPickerTarget] = useState<Target | null>(null)
 
+  // The ride's zone, read by the validator below: useForm keeps the validator it was given first.
+  const rideZoneRef = useRef(timezone ?? team.timezone)
+
   const rideSchema = useMemo(
     () =>
       CreateRideBody.refine(
         (data) => {
           if (data.status === Status.DRAFT && data.publishAt) {
-            return new Date(data.publishAt) > new Date()
+            // A wall time of the ride's zone, not the browser's (docs/LEDGER_*.md API-60).
+            return wallTimeToInstant(data.publishAt, rideZoneRef.current) > new Date()
           }
           return true
         },
@@ -113,6 +128,43 @@ export function RideEditor({
     () => initialLeaders ?? {}
   )
   const routeSlug = form.values.routeSlug
+  const startPlaceId = form.values.startPlaceId
+
+  // The ride's zone, for the « heure de … » mention of its date fields (docs/LEDGER_*.md API-60,
+  // plan §4): its start place, else its route's start, else the team. Group routes play no part.
+  // Both lookups share their cache with PlaceAutocomplete and RoutePreview.
+  const startPlace = useGetPlace(teamSlug, startPlaceId ?? '', {
+    query: { enabled: !!startPlaceId },
+  })
+  const rideRoute = useGetRoute(teamSlug, routeSlug ?? '', { query: { enabled: !!routeSlug } })
+  const rideCandidate = chainCandidate([
+    zoneSource(startPlaceId && `place:${startPlaceId}`, {
+      loaded: !!startPlace.data,
+      point: startPlace.data?.geometry,
+      failed: startPlace.isError,
+    }),
+    zoneSource(routeSlug && `route:${routeSlug}`, {
+      loaded: !!rideRoute.data,
+      point: rideRoute.data?.start,
+      failed: rideRoute.isError,
+    }),
+  ])
+  // An edited ride already has its zone: the source that located it is seeded with it, so nothing
+  // is asked until the organiser picks another place or route.
+  const [zoneSeeds] = useState<Record<string, string>>(() => {
+    const key = initialValues.startPlaceId
+      ? `place:${initialValues.startPlaceId}`
+      : initialValues.routeSlug && `route:${initialValues.routeSlug}`
+    return timezone && key ? { [key]: timezone } : {}
+  })
+  const resolveZone = useZoneResolver(teamSlug, [rideCandidate], zoneSeeds)
+  const resolvedZone = resolveZone(rideCandidate)
+  const rideZone = useLastKnown(
+    resolvedZone === null ? team.timezone : resolvedZone,
+    timezone ?? team.timezone
+  )
+  rideZoneRef.current = rideZone
+  const groupTimesMention = useZoneMention(rideZone, form.values.dateTime)
 
   // One bulk request for every group's route preview, instead of one `getRoute` per group —
   // groups frequently share the same route. The key string is memoized on the slugs' own
@@ -160,7 +212,7 @@ export function RideEditor({
 
   useEffect(() => {
     form.validateField('publishAt')
-  }, [status, form])
+  }, [status, rideZone, form])
 
   const handleAddGroup = () => {
     form.insertListItem('groups', {
@@ -234,7 +286,7 @@ export function RideEditor({
           />
         </Stack>
 
-        <InstantDateTimePicker
+        <WallDateTimePicker
           label={
             <>
               {t('startPlace')}{' '}
@@ -244,9 +296,10 @@ export function RideEditor({
             </>
           }
           value={form.values.dateTime}
-          onChange={(iso) => {
-            if (iso) form.setFieldValue('dateTime', iso)
+          onChange={(wall) => {
+            if (wall) form.setFieldValue('dateTime', wall)
           }}
+          zone={rideZone}
           error={form.errors.dateTime}
         />
 
@@ -304,11 +357,12 @@ export function RideEditor({
         </Radio.Group>
 
         {status === Status.DRAFT && (
-          <InstantDateTimePicker
+          <WallDateTimePicker
             label={t('rides.create.form.publishAt.label')}
             description={t('form.publishAtHint')}
             value={form.values.publishAt}
-            onChange={(iso) => form.setFieldValue('publishAt', iso)}
+            onChange={(wall) => form.setFieldValue('publishAt', wall)}
+            zone={rideZone}
             error={form.errors.publishAt}
             clearable
           />
@@ -358,9 +412,17 @@ export function RideEditor({
         {/* Groups */}
         <Stack gap="xs">
           <Group justify="space-between">
-            <Text size="sm" fw={500}>
-              {t('rides.create.form.groups.label')}
-            </Text>
+            <Group gap="xs" align="baseline">
+              <Text size="sm" fw={500}>
+                {t('rides.create.form.groups.label')}
+              </Text>
+              {/* Group times are wall times of the ride's zone too (docs/LEDGER_*.md API-60). */}
+              {groupTimesMention && (
+                <Text size="xs" c="dimmed">
+                  {groupTimesMention}
+                </Text>
+              )}
+            </Group>
             <Button variant="subtle" size="xs" onClick={handleAddGroup}>
               {t('groups.add')}
             </Button>

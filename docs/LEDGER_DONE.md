@@ -943,11 +943,12 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   un jour le soir du passage à l'heure d'été. `getVisibleRange` (`components/calendar/calendarRange.ts`)
   prend le fuseau effectif et rend les minuits de ce fuseau, en comptant les jours sur des dates
   UTC ; `CalendarView` le lui passe. « Ajouter une étape » (`TripEditor.handleAddStage`) passe par
-  `addCalendarDays` (`utils/dateFormat.ts`) : J+n à la même heure murale du fuseau effectif, au
-  lieu de `setDate` dans celui du navigateur. `toDateTimeLocalValue` / `fromDateTimeLocalValue`,
+  `addCalendarDays` : J+n à la même heure murale du fuseau effectif, au lieu de `setDate` dans
+  celui du navigateur — remplacée depuis par `addDaysToWallTime` (`utils/wallTime.ts`), qui
+  compte sur la chaîne d'heure murale (`API-60`, lot 2). `toDateTimeLocalValue` / `fromDateTimeLocalValue`,
   sans appelant, sont supprimées. Couvert par `calendarRange.test.ts` (minuits de Tokyo, semaine du
   passage à l'heure d'été), `useCalendarDateRange.test.ts` (grille dans la fenêtre préchargée, à
-  Honolulu et Kiritimati), `dateFormat.test.ts` (`addCalendarDays`) ; `WeekAgenda` n'a pas de test.
+  Honolulu et Kiritimati), `wallTime.test.ts` (`addDaysToWallTime`) ; `WeekAgenda` n'a pas de test.
   **À ne pas défaire** : un jour se compte en arithmétique de calendrier, jamais en millisecondes
   ni sur un `Date` local.
 

@@ -6,6 +6,7 @@ import { prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
 import { placeAutocompleteParams } from '@/components/common/placeAutocompleteParams'
 import { prefetchRoutesBulkChunked, prefetchTeamTags } from '@/config/prefetchHelpers'
 import type { RideDto, RideRequest, Status } from '@/api/dto'
+import { instantToWallTime, optionalWallTime } from '@/utils/wallTime'
 
 /**
  * The one description of what `CreateRidePage` and `EditRidePage` read, consumed two ways: the
@@ -148,18 +149,22 @@ export async function prefetchEditRideForm(
  * `…PlaceId` — and the server applies every field of a PUT, absent ones included. Sending the DTO
  * spread as-is therefore wipes each group's leader and both places: the edit form did it until it
  * mapped them, and the publish/unpublish/cancel menu of the detail page did it after.
+ *
+ * Dates go back as wall times of the ride's own zone (`RideDto.timezone`), the form the request
+ * takes (docs/LEDGER_*.md API-60): an instant with an offset is only tolerated during the transition.
+ * A group's `time` already is a wall time of that zone.
  */
 export function rideToRequest(ride: RideDto): RideRequest {
   return {
     name: ride.name,
     media: ride.media,
-    dateTime: ride.dateTime,
+    dateTime: instantToWallTime(ride.dateTime, ride.timezone),
     status: ride.status,
     visibility: ride.visibility,
     routeSlug: ride.routeSlug,
     startPlaceId: ride.startPlace?.id,
     endPlaceId: ride.endPlace?.id,
-    publishAt: ride.publishAt,
+    publishAt: optionalWallTime(ride.publishAt, ride.timezone),
     groups: ride.groups.map((group) => ({
       id: group.id,
       name: group.name,

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { invalidateTeamDashboard } from '@/lib/teamDashboardCache'
+import { invalidateTeamDashboard, invalidateTeamEventTimes } from '@/lib/teamDashboardCache'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   TextInput,
   Select,
@@ -20,12 +20,14 @@ import {
   Divider,
   Title,
   Badge,
+  Loader,
 } from '@mantine/core'
 import {
   useCreateTeam,
   useUpdateTeam,
   getListTeamsQueryKey,
   getGetTeamQueryKey,
+  usePreviewTeamTimezoneChange,
 } from '@/api/endpoints/teams/teams'
 import { useAdminUpdateTeamAttributes } from '@/api/endpoints/admin-teams/admin-teams'
 import { SlugEditor } from '../common/SlugEditor'
@@ -35,6 +37,10 @@ import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
 import { paths } from '@/config/paths'
 import { CreateTeamBody } from '@/api/zod/teams/teams.zod'
 import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
+import { TimezoneSelect } from '../common/TimezoneSelect'
+import { ConfirmDialog } from '../common/ConfirmDialog'
+import { TimezoneChangePreview } from './TimezoneChangePreview'
+import { useBrowserTimezone } from '@/utils/timezones'
 
 const teamSchema = CreateTeamBody
 
@@ -91,7 +97,39 @@ export function TeamForm({
     validateInputOnChange: true,
   })
 
+  // A new team starts in its creator's zone (plan §2.1), set once hydrated: useForm reads its
+  // initial values only once, and the server rendering the page does not know the browser's zone.
+  // Left empty when unknown, the backend falls back to Europe/Paris (docs/LEDGER_*.md API-60).
+  const browserZone = useBrowserTimezone()
+  const { setFieldValue } = form
+  const timezoneValue = form.values.timezone
+  useEffect(() => {
+    if (create && browserZone && !timezoneValue) setFieldValue('timezone', browserZone)
+  }, [create, browserZone, timezoneValue, setFieldValue])
+
+  // A change of zone moves the team's upcoming place-less rendezvous at constant wall time (plan
+  // §9): the backend lists them, the admin confirms before saving (docs/LEDGER_*.md API-60).
+  const zoneChanged =
+    !create && !!teamSlug && !!timezoneValue && timezoneValue !== initialValues.timezone
+  const [pendingValues, setPendingValues] = useState<TeamRequest | null>(null)
+  const preview = usePreviewTeamTimezoneChange(
+    teamSlug ?? '',
+    { timezone: timezoneValue ?? '' },
+    { query: { enabled: zoneChanged, retry: false } }
+  )
+
   const handleSubmit = (values: TeamRequest) => {
+    if (zoneChanged) {
+      // A preview that failed is cached in error under the same key: ask again rather than reopen
+      // on the same error with Confirm disabled.
+      if (preview.isError && !preview.isFetching) void preview.refetch()
+      setPendingValues(values)
+      return
+    }
+    save(values)
+  }
+
+  const save = (values: TeamRequest) => {
     if (create) {
       createMutation.mutate(
         { data: values },
@@ -114,6 +152,10 @@ export function TeamForm({
           onSuccess: (team) => {
             queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
             invalidateTeamDashboard(queryClient, teamSlug)
+            // The backend rewrote the instants of the team's place-less rendezvous.
+            if (values.timezone !== initialValues.timezone) {
+              invalidateTeamEventTimes(queryClient, teamSlug)
+            }
             queryClient.invalidateQueries({ queryKey: getListTeamsQueryKey() })
             queryClient.setQueryData(getGetTeamQueryKey(team.slug), team)
             if (isPlatformAdmin && teamId) {
@@ -204,6 +246,17 @@ export function TeamForm({
           onChange={(point) => form.setFieldValue('geometry', point ?? undefined)}
           label={t('geocoder.label')}
           disabled={mutation.isPending}
+        />
+
+        <TimezoneSelect
+          label={t('teams.create.form.timezone.label')}
+          description={t('teams.create.form.timezone.hint')}
+          value={timezoneValue}
+          onChange={(zone) => {
+            if (zone) form.setFieldValue('timezone', zone)
+          }}
+          disabled={mutation.isPending}
+          error={form.errors.timezone}
         />
 
         <Checkbox
@@ -343,6 +396,33 @@ export function TeamForm({
           </Button>
         </Group>
       </Stack>
+
+      <ConfirmDialog
+        isOpen={!!pendingValues}
+        onClose={() => setPendingValues(null)}
+        onConfirm={() => {
+          if (pendingValues) save(pendingValues)
+          setPendingValues(null)
+        }}
+        title={t('teams.settings.timezoneChange.title')}
+        message={
+          preview.data ? (
+            <TimezoneChangePreview preview={preview.data} />
+          ) : preview.isError && !preview.isFetching ? (
+            <Stack gap="xs" align="flex-start">
+              <Text size="sm">{t('teams.settings.timezoneChange.error')}</Text>
+              <Button size="xs" variant="light" onClick={() => void preview.refetch()}>
+                {t('generic.retry')}
+              </Button>
+            </Stack>
+          ) : (
+            <Loader size="sm" />
+          )
+        }
+        confirmText={t('teams.settings.timezoneChange.confirm')}
+        confirmDisabled={!preview.data || preview.isFetching}
+        isLoading={mutation.isPending}
+      />
     </form>
   )
 }

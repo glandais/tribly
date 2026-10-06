@@ -1,18 +1,8 @@
-import { useSyncExternalStore } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Select } from '@mantine/core'
 import { getGetMeQueryKey, useUpdateMyPreferences } from '@/api/endpoints/users/users'
-
-const TIMEZONE_OPTIONS = Intl.supportedValuesOf('timeZone')
-
-/**
- * The browser's own zone, read only once hydrated: the server rendering the page has its own zone,
- * not the visitor's, and a field prefilled with it would not match the markup the client hydrates.
- */
-const noSubscription = () => () => {}
-const browserZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
-const noZoneOnServer = () => null
+import { TimezoneSelect } from '@/components/common/TimezoneSelect'
+import { useBrowserTimezone } from '@/utils/timezones'
 
 interface TimezonePreferenceProps {
   /** `UserDto.timezone` — null means the user never chose one, so the browser's own zone (the
@@ -24,7 +14,7 @@ export function TimezonePreference({ timezone }: TimezonePreferenceProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const mutation = useUpdateMyPreferences()
-  const fallbackZone = useSyncExternalStore(noSubscription, browserZone, noZoneOnServer)
+  const fallbackZone = useBrowserTimezone()
 
   const handleChange = (value: string | null) => {
     if (!value) return
@@ -36,14 +26,11 @@ export function TimezonePreference({ timezone }: TimezonePreferenceProps) {
   }
 
   return (
-    <Select
+    <TimezoneSelect
       label={t('profile.preferences.timezone.label')}
-      searchable
       value={timezone ?? fallbackZone}
       onChange={handleChange}
       disabled={mutation.isPending}
-      data={TIMEZONE_OPTIONS}
-      maxDropdownHeight={280}
     />
   )
 }

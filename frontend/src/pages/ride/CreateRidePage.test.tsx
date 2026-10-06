@@ -26,6 +26,7 @@ vi.mock('@/pages/ride/rideFormData', () => ({
         enableRides: true,
         enableRoutes: true,
         visibility: 'PUBLIC',
+        timezone: 'Europe/Paris',
       },
       isLoading: false,
     },

@@ -6120,6 +6120,74 @@
         "type" : "string",
         "enum" : [ "NAME", "MEMBER_COUNT" ]
       },
+      "TeamTimezoneChangeItemDto" : {
+        "description" : "An upcoming place-less event that keeps its wall time in the new zone",
+        "type" : "object",
+        "required" : [ "type", "id", "slug", "title", "dateTime" ],
+        "properties" : {
+          "type" : {
+            "description" : "Kind of event",
+            "type" : "string",
+            "$ref" : "#/components/schemas/TimezoneChangeEntityType"
+          },
+          "id" : {
+            "type" : "string",
+            "description" : "Event ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Event URL slug"
+          },
+          "title" : {
+            "type" : "string",
+            "description" : "Event title; a stage's own name"
+          },
+          "tripTitle" : {
+            "type" : "string",
+            "description" : "For a stage, the title of its trip"
+          },
+          "dateTime" : {
+            "description" : "Start, as stored today: read it in the team's current zone for the wall time it keeps",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "TeamTimezoneChangePreviewDto" : {
+        "description" : "Preview of a change of the team's zone; nothing is written",
+        "type" : "object",
+        "required" : [ "from", "to", "upcomingCount", "pastCount", "upcoming" ],
+        "properties" : {
+          "from" : {
+            "type" : "string",
+            "description" : "Team's current zone",
+            "examples" : [ "Europe/Paris" ]
+          },
+          "to" : {
+            "type" : "string",
+            "description" : "Zone asked for",
+            "examples" : [ "America/Montreal" ]
+          },
+          "upcomingCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "How many upcoming place-less events keep their wall time"
+          },
+          "pastCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "How many past place-less events keep their instant, relabelled"
+          },
+          "upcoming" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TeamTimezoneChangeItemDto"
+            },
+            "description" : "The first upcoming ones, soonest first, at most 10"
+          }
+        }
+      },
       "TeamTimezoneDto" : {
         "description" : "The zone of a point, else the team's",
         "type" : "object",
@@ -6396,6 +6464,10 @@
             "description" : "Seconds until expiry, measured at issuance. Schedule renewal on this, not on expiresAt: it is immune to a device clock that drifts."
           }
         }
+      },
+      "TimezoneChangeEntityType" : {
+        "type" : "string",
+        "enum" : [ "RIDE", "TRIP", "TRIP_STAGE", "POST" ]
       },
       "TrackDto" : {
         "type" : "object",
@@ -21178,6 +21250,88 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/timezone/change-preview" : {
+      "get" : {
+        "summary" : "Preview a change of the team's zone",
+        "description" : "What saving the team with this zone would do, without writing anything (docs/LEDGER_*.md API-60, plan §9): its upcoming rides, trips, stages and posts that no place or route locates keep their wall time in the new zone, the past ones keep their instant. Team admins only.",
+        "operationId" : "previewTeamTimezoneChange",
+        "tags" : [ "Teams" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "IANA zone the team would move to",
+          "required" : true,
+          "name" : "timezone",
+          "in" : "query",
+          "schema" : {
+            "type" : "string",
+            "pattern" : "\\S",
+            "maxLength" : 64
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Preview computed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TeamTimezoneChangePreviewDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Unknown zone",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not a team admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/teams/{teamSlug}/trips" : {
       "post" : {
         "summary" : "Create trip",
@@ -23395,7 +23549,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.17.0",
+    "version" : "10.18.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

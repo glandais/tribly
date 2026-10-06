@@ -2,6 +2,8 @@ import type { QueryClient } from '@tanstack/react-query'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useGetPost, prefetchGetPostQuery } from '@/api/endpoints/posts/posts'
 import { prefetchTeamTags } from '@/config/prefetchHelpers'
+import type { PostDto, PostRequest, Status } from '@/api/dto'
+import { instantToWallTime, optionalWallTime } from '@/utils/wallTime'
 
 /**
  * `CreatePostPage` reads the team — covered server-side by the `teamScopedPrefetch` wrapper on the
@@ -51,4 +53,30 @@ export async function prefetchEditPostForm(
     prefetchGetPostQuery(queryClient, teamSlug, postSlug),
     prefetchCreatePostForm(queryClient, teamSlug),
   ])
+}
+
+/**
+ * The `PostRequest` that rewrites `post` as it stands — named fields rather than the DTO spread,
+ * which sent the author, counters and everything else along. Dates go back as wall times of the
+ * post's zone (`PostDto.timezone`), the form the request takes (docs/LEDGER_*.md API-60).
+ */
+export function postToRequest(post: PostDto): PostRequest {
+  return {
+    name: post.name,
+    media: post.media,
+    dateTime: instantToWallTime(post.dateTime, post.timezone),
+    status: post.status,
+    visibility: post.visibility,
+    publishAt: optionalWallTime(post.publishAt, post.timezone),
+    signedAsTeam: post.signedAsTeam,
+    tagIds: post.tags.map((tag) => tag.id),
+  }
+}
+
+/**
+ * The `PostRequest` of the detail page's publish/unpublish/cancel menu: `post` with only its status
+ * changed — and no `tagIds`, which the API reads as « unchanged » (same reason as the ride's).
+ */
+export function postStatusRequest(post: PostDto, status: Status): PostRequest {
+  return { ...postToRequest(post), status, tagIds: undefined }
 }

@@ -16,7 +16,7 @@ import { invalidateTripWeather } from '@/pages/trip/tripDetailData'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
 import { TripRequest } from '@/api/dto'
-import { useEditTripFormData, tripToRequest } from './tripFormData'
+import { useEditTripFormData, tripToRequest, tripStageTimezones } from './tripFormData'
 
 export function EditTripPage() {
   const { t } = useTranslation()
@@ -92,6 +92,8 @@ export function EditTripPage() {
         team={team}
         teamSlug={teamSlug!}
         initialValues={initialValues}
+        timezone={trip.timezone}
+        stageTimezones={tripStageTimezones(trip)}
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.trip(teamSlug!, tripSlug!))}
         isPending={updateMutation.isPending}

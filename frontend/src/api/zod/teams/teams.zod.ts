@@ -16518,3 +16518,50 @@ export const GetTeamTimezoneResponse = zod
       ),
   })
   .describe("The zone of a point, else the team's")
+
+/**
+ * What saving the team with this zone would do, without writing anything (docs/LEDGER_*.md API-60, plan §9): its upcoming rides, trips, stages and posts that no place or route locates keep their wall time in the new zone, the past ones keep their instant. Team admins only.
+ * @summary Preview a change of the team's zone
+ */
+export const PreviewTeamTimezoneChangeParams = zod.object({
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const previewTeamTimezoneChangeQueryTimezoneMax = 64
+
+export const previewTeamTimezoneChangeQueryTimezoneRegExp = new RegExp('\\S')
+
+export const PreviewTeamTimezoneChangeQueryParams = zod.object({
+  timezone: zod
+    .string()
+    .max(previewTeamTimezoneChangeQueryTimezoneMax)
+    .regex(previewTeamTimezoneChangeQueryTimezoneRegExp)
+    .describe('IANA zone the team would move to'),
+})
+
+export const PreviewTeamTimezoneChangeResponse = zod
+  .object({
+    from: zod.string().describe("Team's current zone"),
+    to: zod.string().describe('Zone asked for'),
+    upcomingCount: zod.int().describe('How many upcoming place-less events keep their wall time'),
+    pastCount: zod.int().describe('How many past place-less events keep their instant, relabelled'),
+    upcoming: zod
+      .array(
+        zod
+          .object({
+            type: zod.enum(['RIDE', 'TRIP', 'TRIP_STAGE', 'POST']).describe('Kind of event'),
+            id: zod.string().describe('Event ID (TSID)'),
+            slug: zod.string().describe('Event URL slug'),
+            title: zod.string().describe("Event title; a stage's own name"),
+            tripTitle: zod.string().optional().describe('For a stage, the title of its trip'),
+            dateTime: zod.iso
+              .datetime({ offset: true })
+              .describe(
+                "Start, as stored today: read it in the team's current zone for the wall time it keeps"
+              ),
+          })
+          .describe('An upcoming place-less event that keeps its wall time in the new zone')
+      )
+      .describe('The first upcoming ones, soonest first, at most 10'),
+  })
+  .describe("Preview of a change of the team's zone; nothing is written")

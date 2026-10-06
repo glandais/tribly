@@ -363,4 +363,91 @@ class TeamTimezoneChangeTest extends AbstractResourceTest {
     assertEquals(start, dataService.getDateTime(ride.getId()));
     assertEquals("Europe/Paris", dataService.getTimezone(ride.getId()));
   }
+
+  // ─── GET …/timezone/change-preview ────────────────────────────────────────
+
+  private JsonPath preview(String user, String zone, int status) {
+    return given()
+        .auth()
+        .oauth2(getAccessToken(user))
+        .queryParam("timezone", zone)
+        .when()
+        .get("/api/teams/" + team1Slug + "/timezone/change-preview")
+        .then()
+        .statusCode(status)
+        .extract()
+        .jsonPath();
+  }
+
+  /** The preview lists what the change rewrites, and writes nothing itself. */
+  @Test
+  void preview_listsWhatTheChangeRewrites_andWritesNothing() {
+    Place paris = dataService.createPlaceAt(team1, user1, "Notre-Dame", 48.853, 2.349);
+    JsonPath placeLess = createRide("2030-06-02T09:30:00", null, List.of());
+    JsonPath located = createRide("2030-06-03T09:30:00", paris, List.of());
+    Instant past = Instant.now().minus(2, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
+    Ride pastRide = dataService.createRide(team1, user1, "Passée", "passee", past);
+    Instant day1 = Instant.parse("2030-07-01T06:00:00Z");
+    Trip trip = dataService.createTrip(team1, user1, "Voyage", day1);
+    TripStage j1 = dataService.createTripStage(user1, trip, "J1", 0, day1);
+    Post post =
+        dataService.createPost(team1, user1, "Billet", Instant.parse("2030-05-01T08:00:00Z"));
+
+    JsonPath preview = preview(USER1, "America/Montreal", 200);
+
+    assertEquals("Europe/Paris", preview.getString("from"));
+    assertEquals("America/Montreal", preview.getString("to"));
+    // The post, the place-less ride, the stage and its trip — soonest first.
+    assertEquals(4, preview.getInt("upcomingCount"));
+    assertEquals(1, preview.getInt("pastCount"));
+    assertEquals(List.of("POST", "RIDE", "TRIP_STAGE", "TRIP"), preview.getList("upcoming.type"));
+    assertEquals(
+        List.of(
+            TsidUtils.toString(post.getId()),
+            placeLess.getString("id"),
+            TsidUtils.toString(j1.getId()),
+            TsidUtils.toString(trip.getId())),
+        preview.getList("upcoming.id"));
+    assertEquals("Voyage", preview.getString("upcoming[2].tripTitle"));
+    assertEquals("2030-06-02T07:30:00Z", preview.getString("upcoming[1].dateTime"));
+    // Nothing written.
+    assertEquals("Europe/Paris", getRide(placeLess.getString("slug")).getString("timezone"));
+    assertEquals("Europe/Paris", dataService.getTimezone(pastRide.getId()));
+
+    changeTeamZone("America/Montreal");
+
+    // Exactly what was listed moved; the located ride did not.
+    assertEquals("America/Montreal", getRide(placeLess.getString("slug")).getString("timezone"));
+    assertEquals("America/Montreal", dataService.getTimezone(pastRide.getId()));
+    assertEquals("America/Montreal", dataService.getTimezone(j1.getId()));
+    assertEquals("America/Montreal", dataService.getTimezone(trip.getId()));
+    assertEquals("America/Montreal", dataService.getTimezone(post.getId()));
+    assertEquals("Europe/Paris", getRide(located.getString("slug")).getString("timezone"));
+  }
+
+  @Test
+  void preview_ofTheSameZone_isEmpty() {
+    createRide("2030-06-02T09:30:00", null, List.of());
+
+    JsonPath preview = preview(USER1, "Europe/Paris", 200);
+
+    assertEquals(0, preview.getInt("upcomingCount"));
+    assertEquals(0, preview.getInt("pastCount"));
+    assertEquals(List.of(), preview.getList("upcoming"));
+  }
+
+  @Test
+  void preview_ofAnUnknownZone_is400() {
+    assertEquals("INVALID_TIMEZONE", preview(USER1, "Mars/Olympus_Mons", 400).getString("code"));
+  }
+
+  @Test
+  void preview_byAnOrganizer_is403() {
+    preview(USER2, "America/Montreal", 403);
+  }
+
+  @Test
+  void preview_byAMember_is403() {
+    preview(USER3, "America/Montreal", 403);
+  }
 }

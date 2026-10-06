@@ -18,11 +18,13 @@ import type {
   ErrorResponse,
   GetTeamTimezoneParams,
   ListTeamsParams,
+  PreviewTeamTimezoneChangeParams,
   SlugChangeRequest,
   TeamDashboardDto,
   TeamDetailDto,
   TeamListResponse,
   TeamRequest,
+  TeamTimezoneChangePreviewDto,
   TeamTimezoneDto,
 } from '../../dto'
 
@@ -956,6 +958,174 @@ export const prefetchGetTeamTimezoneQuery = async <
   }
 ): Promise<QueryClient> => {
   const queryOptions = getGetTeamTimezoneQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
+/**
+ * What saving the team with this zone would do, without writing anything (docs/LEDGER_*.md API-60, plan §9): its upcoming rides, trips, stages and posts that no place or route locates keep their wall time in the new zone, the past ones keep their instant. Team admins only.
+ * @summary Preview a change of the team's zone
+ */
+export const previewTeamTimezoneChange = (
+  teamSlug: string,
+  params: PreviewTeamTimezoneChangeParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<TeamTimezoneChangePreviewDto>(
+    { url: `/api/teams/${teamSlug}/timezone/change-preview`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getPreviewTeamTimezoneChangeQueryKey = (
+  teamSlug: string,
+  params?: PreviewTeamTimezoneChangeParams
+) => {
+  return [`/api/teams/${teamSlug}/timezone/change-preview`, ...(params ? [params] : [])] as const
+}
+
+export const getPreviewTeamTimezoneChangeQueryOptions = <
+  TData = Awaited<ReturnType<typeof previewTeamTimezoneChange>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params: PreviewTeamTimezoneChangeParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof previewTeamTimezoneChange>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getPreviewTeamTimezoneChangeQueryKey(teamSlug, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof previewTeamTimezoneChange>>> = ({
+    signal,
+  }) => previewTeamTimezoneChange(teamSlug, params, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof previewTeamTimezoneChange>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type PreviewTeamTimezoneChangeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof previewTeamTimezoneChange>>
+>
+export type PreviewTeamTimezoneChangeQueryError = ErrorType<ErrorResponse>
+
+export function usePreviewTeamTimezoneChange<
+  TData = Awaited<ReturnType<typeof previewTeamTimezoneChange>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params: PreviewTeamTimezoneChangeParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof previewTeamTimezoneChange>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewTeamTimezoneChange>>,
+          TError,
+          Awaited<ReturnType<typeof previewTeamTimezoneChange>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreviewTeamTimezoneChange<
+  TData = Awaited<ReturnType<typeof previewTeamTimezoneChange>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params: PreviewTeamTimezoneChangeParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof previewTeamTimezoneChange>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewTeamTimezoneChange>>,
+          TError,
+          Awaited<ReturnType<typeof previewTeamTimezoneChange>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreviewTeamTimezoneChange<
+  TData = Awaited<ReturnType<typeof previewTeamTimezoneChange>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params: PreviewTeamTimezoneChangeParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof previewTeamTimezoneChange>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Preview a change of the team's zone
+ */
+
+export function usePreviewTeamTimezoneChange<
+  TData = Awaited<ReturnType<typeof previewTeamTimezoneChange>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params: PreviewTeamTimezoneChangeParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof previewTeamTimezoneChange>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getPreviewTeamTimezoneChangeQueryOptions(teamSlug, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Preview a change of the team's zone
+ */
+export const prefetchPreviewTeamTimezoneChangeQuery = async <
+  TData = Awaited<ReturnType<typeof previewTeamTimezoneChange>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params: PreviewTeamTimezoneChangeParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof previewTeamTimezoneChange>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getPreviewTeamTimezoneChangeQueryOptions(teamSlug, params, options)
 
   await queryClient.prefetchQuery(queryOptions)
 
