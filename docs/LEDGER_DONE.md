@@ -2055,6 +2055,27 @@ ETag dans `WeatherEtag`, communs aux sorties et aux voyages. Tests (lancés, ver
   Vérifié : `docker compose config`. Pas de test automatisé ; à valider par la passe e2e suivante
   et au prochain déploiement (`scripts/deploy.sh`, sans 5xx pendant le roulement).
 
+- `OPS-14` **Recette des deux rattrapages de métadonnées** (2026-10-06) — en production :
+  `SELECT count(*) FROM assets WHERE metadata_pending` vaut 0 ; le marqueur
+  `maintenance/api-49-gpx-sanitized` est dans le bucket depuis le 1er octobre 2026 (04:15 UTC),
+  à côté de celui d'`api-44` ; dernier passage `GPX sanitization backfill: 28 file sets checked, 0
+  rewritten, 0 failed`. Aucun `left as is`, `cannot be re-encoded` ni `imgproxy cannot decode`
+  dans Loki depuis le 28 septembre : aucune pièce jointe ni image à supprimer ou convertir à la
+  main. Varnish a redémarré au déploiement du 6 octobre, il porte le `pass` des réencodages. La
+  phrase du §1 sur les photos antérieures (`API-43`, `API-44`) est donc vraie. Pas de test
+  automatisé (recette sur l'hôte).
+- `OPS-28` **Rafraîchissement quotidien des données des relecteurs des stores installé**
+  (2026-10-06, scindé de `MOB-41`) — `store-demo.env`, `store-demo-accounts.json` (0600) et la
+  ligne de crontab de `pedalons` étaient en place depuis le 3 octobre, mais **le cron n'a jamais
+  tourné** : `~/logs` n'existait pas, la redirection `>> ~/logs/store-demo.log` échouait et le
+  shell ne lançait pas le script. Dossier créé, et la ligne d'[`OPERATIONS.md`](OPERATIONS.md#store-reviewers-demo-data)
+  est désormais précédée du `mkdir`. Le premier lancement a ensuite échoué comme prévu par le
+  runbook : `marketplace-tester@pedalons.fr` n'était plus membre de `vc-du-lac-d-annecy` (403 dans
+  les journaux le matin même, cause inconnue — quitter un club ne laisse pas d'événement). Remis
+  `MEMBER` par une insertion SQL dans `user_teams`, puis `seed.py --target prod --refresh` →
+  `✔ refreshed` (une inscription de plus par club, fil de commentaires des deux sorties des
+  Glières). Le check Healthchecks n'est pas créé : `OPS-30`. Pas de test automatisé.
+
 ---
 
 ## NOTIF — Notifications

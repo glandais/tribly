@@ -418,7 +418,8 @@ STORE_DEMO_PING_URL=https://hc-ping.com/<uuid>     # optional; a daily check
 
 `store-demo-accounts.json` is the `accounts.prod.local.json` a first refresh from a workstation
 writes (it resets over SSH the passwords it doesn't know, which the host cannot do to itself):
-copy it over once. Then, in `pedalons`'s crontab:
+copy it over once. Create the log directory (`mkdir -p ~/logs`): without it the redirection
+fails and cron never starts the script, silently. Then, in `pedalons`'s crontab:
 
 ```
 0 5 * * * cd /home/pedalons/prod && set -a && . /home/pedalons/.config/pedalons/store-demo.env && set +a && python3 mobile/screenshots/seed.py --target prod --refresh >> /home/pedalons/logs/store-demo.log 2>&1

@@ -565,31 +565,21 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
 - [ ] `OPS-5` **`AdDto` ne porte aucun champ de contact** — le `grep` et le script Python du §5.3 du
       document d'API. Le jour où ils remontent quelque chose, le relais a été contourné et une
       adresse personnelle est publiée à toute une équipe, irrévocablement.
-- [ ] `OPS-29` **Météo des sorties en production (S)** — après le premier déploiement de `API-74` :
-      `Migrating schema … to version 61` ; quelques minutes plus tard, des lignes dans
-      `weather_cells` avec `fetched_at` récent et `attempts = 0`, et aucun
-      `Weather: Open-Meteo request … failed` ni `Open-Meteo circuit open` dans les journaux ; une
-      sortie publiée à J+2 montre sa météo sur le web et l'app. Prod et staging sortent par la même
-      adresse IP, donc partagent le quota du plan gratuit : régler les budgets de staging
-      (ou `WEATHER_ENABLED=false`), voir [OPERATIONS](OPERATIONS.md#ride-weather-open-meteo). **À
-      trancher par le propriétaire** : l'offre gratuite d'Open-Meteo est réservée à un usage non
+- [ ] `OPS-29` **Météo des sorties en production : ce qui reste (S)** — la recette technique est
+      faite le 6 octobre 2026 sur `de205e4d` : V61 passée (`Migrating schema "public" to version
+      "61 - weather cache"`), 20 cellules en prod et 3 en staging, `fetched_at` de moins de trois
+      heures, toutes à `attempts = 0`, aucun `Open-Meteo request … failed`, `circuit open` ni
+      `call budget` dans Loki. Restent : **voir** la météo d'une sortie à J+2 sur le web et l'app
+      (les sorties à venir sont en visibilité `TEAM`, non vérifiées sans session) ; régler les
+      budgets de staging, dont le `.env` n'a aucune clé `OPEN_METEO_*` ni `WEATHER_*` — prod et
+      staging sortent par la même adresse IP et, à leurs défauts, atteignent ensemble les 10 000
+      appels par jour du plan gratuit (voir [OPERATIONS](OPERATIONS.md#ride-weather-open-meteo)).
+      **À trancher par le propriétaire** : l'offre gratuite d'Open-Meteo est réservée à un usage non
       commercial ; si Pédalons ne s'y range pas, un plan payant ne demande que `OPEN_METEO_URL` et
       `OPEN_METEO_API_KEY`.
 
 ### Exploitation
 
-- [ ] `OPS-14` **Recette des deux rattrapages de métadonnées après le déploiement** —
-      `AssetMetadataBackfillScheduler` (toutes les 5 min) vide `assets.metadata_pending` (V47) ;
-      `GpxSanitizationBackfill` (4 h 15) écrit `maintenance/api-49-gpx-sanitized` après une passe
-      sans échec. Vérifier `SELECT count(*) FROM assets WHERE metadata_pending` à zéro, le journal
-      « GPX sanitization backfill: N file sets checked, M rewritten, 0 failed » et le marqueur dans
-      le bucket ; les pièces jointes GPX/FIT illisibles (`API-49`, `API-55`) sont laissées telles
-      quelles avec un WARN « Track attachment … left as is » : décider de les supprimer. Les TIFF/HEIF déjà stockés sont convertis en JPEG par le rattrapage ; restent les
-      JPEG 2000 et les images qu'imgproxy ne sait pas lire (journal WARN « cannot be re-encoded »
-      ou « imgproxy cannot decode », résultat `UNREADABLE`) : décider de les supprimer ou de les
-      convertir à la main. Redémarrer varnish pour qu'il charge le `pass` des réencodages
-      (`services/varnish/varnish.vcl`). Tant que le compte n'est pas à zéro, la phrase du §1 sur les photos antérieures n'est vraie
-      qu'en devenir (`API-43`, `API-44`).
 - [ ] `OPS-19` **Passer PostgreSQL 17 → 18** — dependabot l'a proposé (PR #338, fermée le
       29 septembre 2026 avec `ignore this major version`) en ne changeant que l'image de
       `docker-compose.yml`, ce qui empêcherait la prod de redémarrer : les fichiers d'un cluster 17
@@ -640,15 +630,11 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       sauvegarde, puis à chaque changement d'extrait OSM. Rien ne dit que c'est fait, et les données
       tileserver, nommées comme « à reconstruire à la main », ne sont couvertes par aucune
       procédure. Source : [`OPERATIONS.md`](OPERATIONS.md#cold-backup-of-the-shared-stack).
-- [ ] `OPS-28` **Installer le rafraîchissement quotidien des données des relecteurs des stores**
-      (scindé de `MOB-41`) — le script existe, rien ne le lance encore : tant que ce n'est pas fait,
-      le compte `marketplace-tester@pedalons.fr` perd ses inscriptions et sa sortie commentée trois
-      semaines après la dernière reconstruction. Lancer une fois
-      `seed.py --target prod --refresh` depuis un poste (il réinitialise par SSH les mots de passe
-      des comptes de démo que `accounts.prod.local.json` ne connaît pas — le fichier manque sur ce
-      poste), copier le fichier sur l'hôte, écrire `~/.config/pedalons/store-demo.env`, créer le
-      check Healthchecks et la ligne de crontab de `pedalons`
-      ([`OPERATIONS.md`](OPERATIONS.md#store-reviewers-demo-data)). Taille : XS.
+- [ ] `OPS-30` **Check Healthchecks du rafraîchissement des données des relecteurs des stores**
+      (scindé de `OPS-28`) — `~/.config/pedalons/store-demo.env` n'a pas de `STORE_DEMO_PING_URL` :
+      le cron tourne sans que personne ne voie qu'il échoue, et il a échoué sans bruit du 3 au
+      6 octobre 2026. Créer le check (quotidien, 05:00 Europe/Paris, avec une marge) et ajouter son
+      URL au fichier ([`OPERATIONS.md`](OPERATIONS.md#store-reviewers-demo-data)). Taille : XS.
 
 ---
 
