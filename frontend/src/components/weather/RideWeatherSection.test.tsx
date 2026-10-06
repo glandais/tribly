@@ -31,6 +31,8 @@ const ride = (overrides: Partial<RideDto> = {}): RideDto =>
   ({
     status: Status.PUBLISHED,
     finished: false,
+    // A 6:40 meeting: the forecast's own hour (conditions.time) is the round 7:00.
+    dateTime: '2026-10-08T06:40:00Z',
     registeredGroupId: 'g2',
     groups: [
       { id: 'g1', name: 'Rapide' },
@@ -97,7 +99,6 @@ const okWeather: RideWeatherDto = {
 function renderSection(props: {
   ride?: RideDto
   weather?: RideWeatherDto
-  isError?: boolean
   canEdit?: boolean
   onRetry?: () => void
 }) {
@@ -107,7 +108,6 @@ function renderSection(props: {
         ride={props.ride ?? ride()}
         weather={props.weather}
         isLoading={false}
-        isError={props.isError ?? false}
         isFetching={false}
         onRetry={props.onRetry ?? (() => {})}
         canEdit={props.canEdit ?? false}
@@ -131,15 +131,38 @@ describe('RideWeatherSection', () => {
     )
   })
 
+  it("titles the departure with the ride's own time, not the forecast's round hour", () => {
+    renderSection({ weather: okWeather })
+    expect(plain(document.body.textContent)).toMatch(/Au départ · \d{1,2}:40/)
+  })
+
+  it('says the day of an update that was not today', () => {
+    renderSection({ weather: { ...okWeather, fetchedAt: new Date().toISOString() } })
+    expect(plain(document.body.textContent)).toMatch(/Mise à jour à \d{1,2}:\d{2}/)
+    cleanup()
+    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString()
+    renderSection({ weather: { ...okWeather, status: WeatherStatus.STALE, fetchedAt: twoDaysAgo } })
+    expect(plain(document.body.textContent)).toMatch(
+      /Mise à jour le \d{1,2} \S+ \d{4} à \d{1,2}:\d{2}/
+    )
+  })
+
+  it('lets the keyboard reach the forecast points: the strip is a focusable, named region', () => {
+    renderSection({ weather: okWeather })
+    const strip = screen.getByRole('region', { name: 'Prévisions le long du parcours' })
+    expect(strip.getAttribute('tabindex')).toBe('0')
+    expect(strip.querySelectorAll('li')).toHaveLength(2)
+  })
+
   it('switches group', () => {
     renderSection({ weather: okWeather })
     fireEvent.click(screen.getByText('Rapide'))
     expect(plain(document.body.textContent)).not.toContain('vitesse par défaut')
   })
 
-  it('offers to retry when the forecast is unavailable, or the read failed', () => {
+  it('offers to retry when there is no forecast to show — a failed read included', () => {
     const onRetry = vi.fn()
-    renderSection({ isError: true, onRetry })
+    renderSection({ weather: undefined, onRetry })
     fireEvent.click(screen.getByRole('button', { name: 'Réessayer' }))
     expect(onRetry).toHaveBeenCalled()
   })

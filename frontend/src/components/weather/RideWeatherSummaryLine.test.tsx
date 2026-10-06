@@ -52,8 +52,32 @@ describe('RideWeatherSummaryLine', () => {
     const text = plain(line.textContent)
     expect(text).toContain('8 → 14 °C')
     expect(text).toContain('SO 18 km/h')
-    expect(text).toMatch(/Pluie dès \d{1,2}:\d{2}/)
+    expect(text).toMatch(/Averses dès \d{1,2}:\d{2}/)
     expect(screen.getByRole('img', { name: 'Averses' })).toBeTruthy()
+  })
+
+  it('names the rain badge after what falls, its probability in the tooltip', () => {
+    renderLine({ ...okSummary, rainAlert: { ...okSummary.rainAlert!, condition: 'SNOW' } })
+    const badge = screen.getByTitle('Probabilité de pluie : 70 %')
+    expect(plain(badge.textContent)).toMatch(/^Neige dès \d{1,2}:\d{2}$/)
+    cleanup()
+    renderLine({ ...okSummary, rainAlert: { ...okSummary.rainAlert!, condition: 'THUNDERSTORM' } })
+    expect(plain(screen.getByTestId('ride-weather-summary').textContent)).toMatch(/Orage dès/)
+  })
+
+  it('falls back to « Pluie » when the hour does not precipitate, or is unknown here', () => {
+    // The alert is raised on probability alone: « Couvert dès 10:00 » would make no sense.
+    renderLine({ ...okSummary, rainAlert: { ...okSummary.rainAlert!, condition: 'OVERCAST' } })
+    expect(plain(screen.getByTestId('ride-weather-summary').textContent)).toMatch(/Pluie dès/)
+    cleanup()
+    renderLine({
+      ...okSummary,
+      rainAlert: {
+        ...okSummary.rainAlert!,
+        condition: 'VOLCANIC_ASH' as RideWeatherSummaryDto['condition'] & string,
+      },
+    })
+    expect(plain(screen.getByTestId('ride-weather-summary').textContent)).toMatch(/Pluie dès/)
   })
 
   it('converts to °F and mph for an imperial reader', () => {
@@ -69,7 +93,7 @@ describe('RideWeatherSummaryLine', () => {
     const text = plain(screen.getByTestId('ride-weather-summary').textContent)
     expect(text).toContain('12 °C')
     expect(text).not.toContain('→')
-    expect(text).not.toContain('Pluie dès')
+    expect(text).not.toContain(' dès ')
   })
 
   it('says when the forecast opens, seven days before', () => {

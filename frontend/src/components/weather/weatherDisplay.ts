@@ -65,6 +65,28 @@ export function isKnownCondition(condition: string | undefined): condition is We
   return !!condition && Object.prototype.hasOwnProperty.call(CONDITION_DISPLAY, condition)
 }
 
+/**
+ * The conditions that fall from the sky, the ones a rain alert can be named after. The alert is
+ * raised on probability alone (50 % or more), so the hour's condition may well be « Couvert » or
+ * one this build does not know: a card then says « Pluie », never « Couvert dès 10:00 ».
+ */
+const PRECIPITATING_CONDITIONS: ReadonlySet<string> = new Set<WeatherCondition>([
+  WeatherCondition.DRIZZLE,
+  WeatherCondition.RAIN,
+  WeatherCondition.HEAVY_RAIN,
+  WeatherCondition.FREEZING_RAIN,
+  WeatherCondition.SHOWERS,
+  WeatherCondition.SNOW,
+  WeatherCondition.THUNDERSTORM,
+])
+
+/** The condition a rain alert is worded with: its own when it precipitates, RAIN otherwise. */
+export function rainAlertCondition(condition: string | undefined): WeatherCondition {
+  return condition && PRECIPITATING_CONDITIONS.has(condition)
+    ? (condition as WeatherCondition)
+    : WeatherCondition.RAIN
+}
+
 /** The icon of a condition, by day or by night; a plain cloud for a condition not known here. */
 export function weatherIcon(condition: string | undefined, daylight = true): TablerIcon {
   const display = isKnownCondition(condition) ? CONDITION_DISPLAY[condition] : FALLBACK_DISPLAY

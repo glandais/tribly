@@ -144,13 +144,15 @@ class WeatherExposureLegend extends StatelessWidget {
                   size: 14,
                 ),
                 const SizedBox(width: 2),
-                Text(
-                  'rides.weather.exposure.${wind.name}'.tr(
-                    namedArgs: <String, String>{
-                      'distance': AppFormatters.formatDistance(meters, units),
-                    },
+                Flexible(
+                  child: Text(
+                    'rides.weather.exposure.${wind.name}'.tr(
+                      namedArgs: <String, String>{
+                        'distance': AppFormatters.formatDistance(meters, units),
+                      },
+                    ),
+                    style: t.xs,
                   ),
-                  style: t.xs,
                 ),
               ],
             ),
@@ -203,3 +205,20 @@ class WeatherWindLine extends StatelessWidget {
     );
   }
 }
+
+/// « Prévision disponible à partir du… », ou, sans date lisible, la règle
+/// des sept jours (comme le web, `rides.weather.notYetAvailableNoDate`).
+String notYetAvailableMessage(DateTime? availableFrom) => availableFrom == null
+    ? 'rides.weather.notYetAvailableNoDate'.tr()
+    : 'rides.weather.notYetAvailable'.tr(
+        namedArgs: <String, String>{
+          'date': AppFormatters.formatFullDate(availableFrom),
+        },
+      );
+
+/// Le crédit que la licence des prévisions demande (CC BY 4.0) : « Prévisions :
+/// Open-Meteo.com », en légende. L'écran « Météo du parcours » le rend en lien.
+String weatherAttributionLabel(WeatherAttributionDto attribution) =>
+    'rides.weather.attribution'.tr(
+      namedArgs: <String, String>{'name': attribution.name},
+    );

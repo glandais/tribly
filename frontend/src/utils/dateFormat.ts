@@ -133,6 +133,23 @@ export function formatTime(
 }
 
 /**
+ * Whether `date` falls on the same calendar day as `now`, on the wall clock of `timeZone` — the
+ * test that picks a bare hour (« à 18:00 ») over a full date for a recent moment.
+ */
+export function isSameDay(
+  date: Date | string | null | undefined,
+  timeZone: string = SERVER_FALLBACK_TIMEZONE,
+  now: Date = new Date()
+): boolean {
+  const dateObj = toDate(date)
+  if (!dateObj) return false
+  return (
+    formatInTimeZone(dateObj, timeZone, 'yyyy-MM-dd') ===
+    formatInTimeZone(now, timeZone, 'yyyy-MM-dd')
+  )
+}
+
+/**
  * Format relative: "il y a 2 heures" (fr) / "2 hours ago" (en)
  */
 export function formatRelative(
@@ -207,6 +224,7 @@ export function useFormattedDate() {
     formatRelative: (date: Date | string | null | undefined) => formatRelative(date, language),
     formatPattern: (date: Date | string | null | undefined, pattern: string) =>
       formatPattern(date, pattern, language, timezone),
+    isToday: (date: Date | string | null | undefined) => isSameDay(date, timezone),
     toDateTimeLocalValue: (date: Date | string | null | undefined) =>
       toDateTimeLocalValue(date, timezone),
     fromDateTimeLocalValue,

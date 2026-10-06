@@ -67,8 +67,7 @@ class RideWeatherCard extends ConsumerWidget {
     void retry() => ref.invalidate(rideWeatherProvider(rideKey));
 
     return weather.when(
-      loading: () =>
-          padded(const PdlSkeleton(height: 96, borderRadius: PdlRadii.cardAll)),
+      loading: () => _loading(padded),
       // Un échec réseau se lit comme `UNAVAILABLE` : un enrichissement ne
       // casse pas l'écran, et « Réessayer » suffit.
       error: (Object _, StackTrace _) =>
@@ -109,6 +108,30 @@ class RideWeatherCard extends ConsumerWidget {
         }
       },
     );
+  }
+
+  /// Pendant le chargement, on ne réserve que la place d'un bloc qu'on sait
+  /// devoir afficher. Le détail porte déjà la ligne de résumé
+  /// (`RideDto.weather`, la même que les listes), présente seulement pour
+  /// `OK`, `STALE` et `NOT_YET_AVAILABLE` :
+  /// - `OK`/`STALE` : la carte prévision suivra, son squelette tient sa place ;
+  /// - `NOT_YET_AVAILABLE` : la carte est déjà connue, on la rend telle quelle ;
+  /// - pas de résumé (brouillon, `NO_LOCATION`, rien en cache, statut
+  ///   inconnu) : rien, comme le web. Le bloc qui apparaît ensuite (bandeau
+  ///   aux organisateurs, « indisponible ») ne fait sauter l'écran qu'une fois,
+  ///   et le cas le plus courant — un membre, sans lieu — pas du tout.
+  Widget _loading(Widget Function(Widget) padded) {
+    final RideWeatherSummaryDto? summary = ride.weather;
+    if (summary == null) return const SizedBox.shrink();
+    return switch (WeatherStatus.fromJson(summary.status)) {
+      WeatherStatus.ok || WeatherStatus.stale => padded(
+        const PdlSkeleton(height: 96, borderRadius: PdlRadii.cardAll),
+      ),
+      WeatherStatus.notYetAvailable => padded(
+        _NotYetAvailableCard(availableFrom: summary.availableFrom),
+      ),
+      _ => const SizedBox.shrink(),
+    };
   }
 }
 
@@ -179,16 +202,26 @@ class _ForecastCard extends ConsumerWidget {
               ],
             ),
           ],
-          Align(
-            alignment: Alignment.centerLeft,
-            child: PdlButton(
-              key: keys.ride.weatherOpenButton,
-              label: 'rides.weather.viewRoute'.tr(),
-              variant: PdlButtonVariant.text,
-              size: PdlButtonSize.sm,
-              icon: PdlIcons.chevronRight,
-              onPressed: onOpen,
-            ),
+          // Le crédit CC BY 4.0 en légende, à côté du lien vers l'écran qui le
+          // rend cliquable ; il passe dessous quand la place manque.
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: <Widget>[
+              PdlButton(
+                key: keys.ride.weatherOpenButton,
+                label: 'rides.weather.viewRoute'.tr(),
+                variant: PdlButtonVariant.text,
+                size: PdlButtonSize.sm,
+                icon: PdlIcons.chevronRight,
+                onPressed: onOpen,
+              ),
+              Text(
+                weatherAttributionLabel(weather.attribution),
+                key: keys.ride.weatherAttribution,
+                style: t.xs,
+              ),
+            ],
           ),
         ],
       ),
@@ -300,8 +333,7 @@ class _NotYetAvailableCard extends StatelessWidget {
     final DateTime? from = availableFrom == null
         ? null
         : DateTime.tryParse(availableFrom!);
-    // Sans date lisible, on ne promet rien : la carte disparaît.
-    if (from == null) return const SizedBox.shrink();
+    // Sans date lisible, la règle des sept jours, comme le web.
     return PdlCard(
       key: keys.ride.weatherNotYetAvailable,
       flat: true,
@@ -309,16 +341,7 @@ class _NotYetAvailableCard extends StatelessWidget {
         children: <Widget>[
           Icon(PdlIcons.weatherUnknown, size: 20, color: c.textDimmed),
           const SizedBox(width: PdlSpacing.chipGap),
-          Expanded(
-            child: Text(
-              'rides.weather.notYetAvailable'.tr(
-                namedArgs: <String, String>{
-                  'date': AppFormatters.formatFullDate(from),
-                },
-              ),
-              style: t.sub,
-            ),
-          ),
+          Expanded(child: Text(notYetAvailableMessage(from), style: t.sub)),
         ],
       ),
     );

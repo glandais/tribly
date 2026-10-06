@@ -276,8 +276,8 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       la maquette (canevas « Intégration météo »). À recaler sur elle : place du bloc (entre
       l'en-tête et la carte), choix du groupe (`SegmentedControl` puis `Select` au-delà de 4),
       frise horizontale des points, mode sombre, téléphone. À trancher avec le propriétaire : le
-      libellé « Pluie dès 10:00 » (probabilité en info-bulle seulement) et « Mise à jour à » sans
-      date quand la prévision date de la veille. Aucun e2e ne couvre la météo : la pile e2e coupe
+      libellé « Pluie dès 10:00 » / « Neige dès … » (probabilité en info-bulle seulement, la
+      maquette disait « Averse 70 % »). Aucun e2e ne couvre la météo : la pile e2e coupe
       le fournisseur, il faudrait remplir le cache par SQL.
 - [ ] `WEB-62` **`pnpm i18n:extract` réécrit tout le catalogue (S)** — lancé le 5 octobre 2026, il a
       réécrit les deux `common.json` (~2 000 lignes de diff : clés `_one`/`_many` remplies de

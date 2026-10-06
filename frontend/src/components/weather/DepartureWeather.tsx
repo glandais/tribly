@@ -1,20 +1,27 @@
 import { useTranslation } from 'react-i18next'
 import { Group, Stack, Text } from '@mantine/core'
 import { IconDroplet, IconSunrise, IconSunset, IconWind } from '@tabler/icons-react'
-import type { DepartureWeatherDto } from '@/api/dto'
+import type { DepartureWeatherDto, Instant } from '@/api/dto'
 import { useUnits } from '@/hooks/useUnits'
 import { useFormattedDate } from '@/utils/dateFormat'
 import { Stat } from '../card/common'
+import { FormattedTime } from '../common/FormattedDate'
 import { WeatherIcon } from './WeatherIcon'
 import { useWeatherLabels } from './useWeatherLabels'
 import { hasForecast } from './weatherDisplay'
 
 interface DepartureWeatherProps {
   departure: DepartureWeatherDto
+  /**
+   * The ride's own departure (`ride.dateTime`), the moment the server forecasts the meeting point
+   * for. Not `conditions.time`: that is the model's nearest round hour, and a 9:40 meeting must
+   * not read « Au départ · 10:00 ».
+   */
+  time: Instant
 }
 
 /** The meeting point at departure: sky, temperature and felt temperature, rain, wind, daylight. */
-export function DepartureWeather({ departure }: DepartureWeatherProps) {
+export function DepartureWeather({ departure, time }: DepartureWeatherProps) {
   const { t } = useTranslation()
   const { temperature, speed } = useUnits()
   const { formatTime, isGuessedTimezone } = useFormattedDate()
@@ -37,7 +44,7 @@ export function DepartureWeather({ departure }: DepartureWeatherProps) {
       <Stack gap={4} style={{ minWidth: 0 }}>
         <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
           <span suppressHydrationWarning={isGuessedTimezone}>
-            {t('rides.weather.departure.title', { time: formatTime(conditions.time) })}
+            {t('rides.weather.departure.title', { time: formatTime(time) })}
           </span>
         </Text>
         <Group gap="xs" align="baseline" wrap="wrap">
@@ -83,9 +90,7 @@ export function DepartureWeather({ departure }: DepartureWeatherProps) {
                 />
               }
             >
-              <span suppressHydrationWarning={isGuessedTimezone}>
-                {formatTime(departure.sunrise)}
-              </span>
+              <FormattedTime date={departure.sunrise} />
             </Stat>
           )}
           {departure.sunset && (
@@ -99,9 +104,7 @@ export function DepartureWeather({ departure }: DepartureWeatherProps) {
                 />
               }
             >
-              <span suppressHydrationWarning={isGuessedTimezone}>
-                {formatTime(departure.sunset)}
-              </span>
+              <FormattedTime date={departure.sunset} />
             </Stat>
           )}
         </Group>

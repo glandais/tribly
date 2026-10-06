@@ -5,6 +5,7 @@ import 'package:pedalons/api/generated/export.dart';
 import 'package:pedalons/core/preferences/user_preferences_provider.dart';
 import 'package:pedalons/core/theme/pedalons_theme.dart';
 import 'package:pedalons/features/rides/presentation/widgets/ride_weather_summary_line.dart';
+import 'package:pedalons/features/rides/presentation/widgets/ride_weather_widgets.dart';
 import 'package:pedalons/keys.dart';
 
 import '../../support/localization.dart';
@@ -115,5 +116,51 @@ void main() {
 
     await pump(tester, ok, finished: true);
     expect(find.byKey(keys.ride.weatherSummary), findsNothing);
+  });
+
+  // RULES.md : utilisable à des tailles de police accrues. Dans une `Wrap`
+  // étroite, chaque morceau doit passer à la ligne plutôt que déborder.
+  group('police ×2 sur une carte étroite', () {
+    Future<void> pumpNarrow(WidgetTester tester, Widget child) =>
+        tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              unitSystemProvider.overrideWithValue(UnitSystem.metric),
+            ],
+            child: MaterialApp(
+              theme: PedalonsTheme.build(Brightness.light),
+              home: MediaQuery(
+                data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+                child: Scaffold(
+                  body: Center(child: SizedBox(width: 120, child: child)),
+                ),
+              ),
+            ),
+          ),
+        );
+
+    testWidgets('le vent de la ligne de résumé ne déborde pas', (
+      WidgetTester tester,
+    ) async {
+      await pumpNarrow(tester, const RideWeatherSummaryLine(summary: ok));
+
+      expect(find.text('Vent NO 18\u00a0km/h'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('la légende d\'exposition ne déborde pas', (
+      WidgetTester tester,
+    ) async {
+      await pumpNarrow(
+        tester,
+        const WeatherExposureLegend(
+          exposure: WindExposureDto(head: 15000, cross: 22000, tail: 31000),
+          units: UnitSystem.metric,
+        ),
+      );
+
+      expect(find.textContaining('Travers'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 }

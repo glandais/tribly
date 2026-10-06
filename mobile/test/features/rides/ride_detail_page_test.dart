@@ -40,9 +40,13 @@ class _StubRideRepository implements RideRepository {
 
   int weatherCalls = 0;
 
+  /// Laisse la météo en vol indéfiniment, pour observer son chargement.
+  bool weatherNeverCompletes = false;
+
   @override
   Future<RideWeatherDto> getRideWeather(String teamSlug, String rideSlug) {
     weatherCalls++;
+    if (weatherNeverCompletes) return Completer<RideWeatherDto>().future;
     if (weatherError != null) {
       return Future<RideWeatherDto>.error(weatherError!);
     }
@@ -326,6 +330,71 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('la carte compacte crédite Open-Meteo (CC BY 4.0)', (
+      WidgetTester tester,
+    ) async {
+      final RideDto ride = fixtureRide();
+      await open(
+        tester,
+        ride,
+        repository: _StubRideRepository(ride, weather: ok()),
+      );
+
+      expect(find.byKey(keys.ride.weatherAttribution), findsOneWidget);
+      expect(find.text('Prévisions : Open-Meteo.com'), findsOneWidget);
+    });
+
+    group('pendant le chargement', () {
+      final Finder weatherSkeleton = find.byWidgetPredicate(
+        (Widget w) => w is PdlSkeleton && w.height == 96,
+      );
+
+      Future<void> openLoading(WidgetTester tester, RideDto ride) => open(
+        tester,
+        ride,
+        repository: _StubRideRepository(ride)..weatherNeverCompletes = true,
+      );
+
+      testWidgets('un squelette quand le résumé annonce une prévision', (
+        WidgetTester tester,
+      ) async {
+        await openLoading(
+          tester,
+          fixtureRide().copyWith(
+            weather: const RideWeatherSummaryDto(status: 'OK', temperature: 14),
+          ),
+        );
+
+        expect(weatherSkeleton, findsOneWidget);
+      });
+
+      testWidgets('NOT_YET_AVAILABLE : la carte, tout de suite', (
+        WidgetTester tester,
+      ) async {
+        await openLoading(
+          tester,
+          fixtureRide().copyWith(
+            weather: const RideWeatherSummaryDto(
+              status: 'NOT_YET_AVAILABLE',
+              availableFrom: '2099-07-22T19:30:00Z',
+            ),
+          ),
+        );
+
+        expect(weatherSkeleton, findsNothing);
+        expect(find.byKey(keys.ride.weatherNotYetAvailable), findsOneWidget);
+      });
+
+      testWidgets('sans résumé, rien : le bloc sera peut-être masqué', (
+        WidgetTester tester,
+      ) async {
+        await openLoading(tester, fixtureRide());
+
+        expect(weatherSkeleton, findsNothing);
+        expect(find.byKey(keys.ride.weatherCard), findsNothing);
+      });
+    });
+
     testWidgets('STALE se montre, et se signale', (WidgetTester tester) async {
       final RideDto ride = fixtureRide();
       await open(
@@ -407,6 +476,26 @@ void main() {
       expect(find.byKey(keys.ride.weatherNotYetAvailable), findsOneWidget);
       expect(
         find.textContaining('Prévision disponible à partir du'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('NOT_YET_AVAILABLE sans date : la règle des sept jours', (
+      WidgetTester tester,
+    ) async {
+      final RideDto ride = fixtureRide();
+      await open(
+        tester,
+        ride,
+        repository: _StubRideRepository(
+          ride,
+          weather: fixtureWeather(status: 'NOT_YET_AVAILABLE'),
+        ),
+      );
+
+      expect(find.byKey(keys.ride.weatherNotYetAvailable), findsOneWidget);
+      expect(
+        find.text('La météo sera disponible sept jours avant le départ.'),
         findsOneWidget,
       );
     });

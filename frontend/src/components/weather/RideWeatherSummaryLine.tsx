@@ -8,7 +8,7 @@ import { useFormattedDate } from '@/utils/dateFormat'
 import { formatTemperature, temperatureToDisplay } from '@/utils/unitFormat'
 import { WeatherIcon } from './WeatherIcon'
 import { useWeatherLabels } from './useWeatherLabels'
-import { showsSummary, temperatureRange } from './weatherDisplay'
+import { rainAlertCondition, showsSummary, temperatureRange } from './weatherDisplay'
 
 interface RideWeatherSummaryLineProps {
   summary: RideWeatherSummaryDto | undefined
@@ -17,7 +17,8 @@ interface RideWeatherSummaryLineProps {
 /**
  * The weather in one line on a ride's card (`PublicationCard`, `NextRideCard`): the sky at
  * departure, the temperature range min → max from departure to the last estimated arrival, the
- * wind, and a badge when rain gets likely. Before the forecast opens (seven days ahead), the date
+ * wind, and a badge when rain gets likely — named after what falls (rain, showers, snow, storm…),
+ * its probability in the tooltip. Before the forecast opens (seven days ahead), the date
  * it will. Anything else — no summary, a status this build does not know — draws nothing.
  *
  * Everything here is the server's (`RideDto.weather`, docs/plans/2026-10-05-weather.md §4): the
@@ -95,7 +96,10 @@ export function RideWeatherSummaryLine({ summary }: RideWeatherSummaryLineProps)
           })}
         >
           <span suppressHydrationWarning={isGuessedTimezone}>
-            {t('rides.weather.summary.rainAlert', { time: formatTime(summary.rainAlert.time) })}
+            {t('rides.weather.summary.rainAlert', {
+              condition: labels.condition(rainAlertCondition(summary.rainAlert.condition)),
+              time: formatTime(summary.rainAlert.time),
+            })}
           </span>
         </Badge>
       )}

@@ -38,7 +38,6 @@ interface RideWeatherSectionProps {
   /** `GET …/rides/{rideSlug}/weather`, read by `useRideDetailData` and prefetched with it. */
   weather: RideWeatherDto | undefined
   isLoading: boolean
-  isError: boolean
   isFetching: boolean
   onRetry: () => void
   /** Organisers alone hear about a ride without a place (NO_LOCATION): they can fix it. */
@@ -59,19 +58,21 @@ export function RideWeatherSection({
   ride,
   weather,
   isLoading,
-  isError,
   isFetching,
   onRetry,
   canEdit,
 }: RideWeatherSectionProps) {
   const { t } = useTranslation()
-  const { formatDate, formatTime, isGuessedTimezone } = useFormattedDate()
+  const { formatDate, formatTime, isToday, isGuessedTimezone } = useFormattedDate()
   const [selectedLeg, setSelectedLeg] = useState<string | null>(null)
 
   if (ride.finished || ride.status === Status.CANCELLED || isLoading) return null
 
-  // A failed read is the same promise as UNAVAILABLE: nothing to show yet, try again.
-  const status = isError || !weather ? WeatherStatus.UNAVAILABLE : weather.status
+  // No data — a failed read included — is the same promise as UNAVAILABLE: nothing to show yet,
+  // try again. A failed *refetch* is not: React Query v5 keeps its data beside `isError`, and the
+  // forecast already on screen stays, as the server itself serves a stale one rather than nothing.
+  // That is why this takes no `isError`.
+  const status = !weather ? WeatherStatus.UNAVAILABLE : weather.status
   if (!showsDetailBlock(status, canEdit)) return null
 
   const legs = weather && hasForecast(status) ? weather.legs : []
@@ -149,7 +150,7 @@ export function RideWeatherSection({
 
         {weather && hasForecast(status) && (
           <>
-            <DepartureWeather departure={weather.departure} />
+            <DepartureWeather departure={weather.departure} time={ride.dateTime} />
 
             {leg && (
               <>
@@ -194,7 +195,12 @@ export function RideWeatherSection({
             </Text>
             {weather.fetchedAt && (
               <Text size="xs" c="dimmed" suppressHydrationWarning={isGuessedTimezone}>
-                {t('rides.weather.updatedAt', { time: formatTime(weather.fetchedAt) })}
+                {isToday(weather.fetchedAt)
+                  ? t('rides.weather.updatedAt', { time: formatTime(weather.fetchedAt) })
+                  : t('rides.weather.updatedOn', {
+                      date: formatDate(weather.fetchedAt),
+                      time: formatTime(weather.fetchedAt),
+                    })}
               </Text>
             )}
           </Group>

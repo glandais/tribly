@@ -138,7 +138,21 @@ class RideWeatherPage extends ConsumerWidget {
 
     switch (rideWeatherViewOf(dto.status, canSeeNoLocation: canSeeNoLocation)) {
       case RideWeatherView.hidden:
-        return const <Widget>[];
+        // Le détail ne pousse l'écran que depuis une prévision ; on peut
+        // pourtant y arriver ici (pull-to-refresh après une annulation,
+        // statut d'une build plus récente) : un état neutre, jamais un écran
+        // blanc.
+        return <Widget>[
+          SliverToBoxAdapter(
+            child: PdlEmptyState(
+              key: keys.ride.weatherEmpty,
+              variant: PdlEmptyVariant.empty,
+              icon: PdlIcons.weatherUnknown,
+              title: 'rides.weather.emptyTitle'.tr(),
+              message: 'rides.weather.emptyMessage'.tr(),
+            ),
+          ),
+        ];
       case RideWeatherView.unavailable:
         return <Widget>[
           _unavailable(() => ref.invalidate(rideWeatherProvider(rideKey))),
@@ -158,18 +172,13 @@ class RideWeatherPage extends ConsumerWidget {
         final DateTime? from = dto.availableFrom == null
             ? null
             : DateTime.tryParse(dto.availableFrom!);
-        if (from == null) return const <Widget>[];
         return <Widget>[
           padded(
             PdlBanner(
               key: keys.ride.weatherNotYetAvailable,
               tone: PdlBannerTone.info,
               icon: PdlIcons.date,
-              message: 'rides.weather.notYetAvailable'.tr(
-                namedArgs: <String, String>{
-                  'date': AppFormatters.formatFullDate(from),
-                },
-              ),
+              message: notYetAvailableMessage(from),
             ),
           ),
         ];
@@ -846,9 +855,7 @@ class _Attribution extends StatelessWidget {
             style: t.xs,
           ),
         PdlButton(
-          label: 'rides.weather.attribution'.tr(
-            namedArgs: <String, String>{'name': attribution.name},
-          ),
+          label: weatherAttributionLabel(attribution),
           variant: PdlButtonVariant.text,
           size: PdlButtonSize.sm,
           icon: PdlIcons.openExternal,

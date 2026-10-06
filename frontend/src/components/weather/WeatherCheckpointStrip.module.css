@@ -1,0 +1,8 @@
+/* The strip's viewport takes the keyboard focus so arrow keys scroll it (WCAG 2.1.1): its points
+   hold nothing focusable. The ring is drawn inside, since the ScrollArea root clips overflow, in
+   the colour of the global ring (src/index.css, docs/LEDGER_*.md WEB-2). */
+.viewport:focus-visible {
+  outline: 2px solid var(--mantine-color-primary-text);
+  outline-offset: -2px;
+  border-radius: var(--mantine-radius-md);
+}

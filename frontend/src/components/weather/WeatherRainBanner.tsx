@@ -5,6 +5,7 @@ import type { WeatherRainAlertDto } from '@/api/dto'
 import { useUnits } from '@/hooks/useUnits'
 import { useFormattedDate } from '@/utils/dateFormat'
 import { useWeatherLabels } from './useWeatherLabels'
+import { rainAlertCondition } from './weatherDisplay'
 
 interface WeatherRainBannerProps {
   rainAlert: WeatherRainAlertDto | undefined
@@ -28,7 +29,7 @@ export function WeatherRainBanner({ rainAlert }: WeatherRainBannerProps) {
     )
   }
 
-  const condition = labels.condition(rainAlert.condition)
+  const condition = labels.condition(rainAlertCondition(rainAlert.condition))
   const probability = rainAlert.probability
   const time = formatTime(rainAlert.time)
   return (

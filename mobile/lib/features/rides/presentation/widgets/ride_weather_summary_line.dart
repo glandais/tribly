@@ -148,7 +148,7 @@ class RideWeatherSummaryLine extends ConsumerWidget {
                 children: <Widget>[
                   PdlWindArrow(angle: windArrowAngle(wind.direction), size: 14),
                   const SizedBox(width: 2),
-                  Text(windText, style: t.statValue),
+                  Flexible(child: Text(windText, style: t.statValue)),
                 ],
               ),
             if (rain != null)

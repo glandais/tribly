@@ -52,6 +52,13 @@ class RideDetailKeys {
   /// Le mot aux organisateurs : il manque un lieu ou un parcours.
   final weatherNoLocation = const _RideDetailKey('weatherNoLocation');
 
+  /// L'état neutre de l'écran « Météo du parcours » quand il n'y a rien à
+  /// montrer (`OUT_OF_RANGE`, `NO_LOCATION` pour un membre, statut inconnu).
+  final weatherEmpty = const _RideDetailKey('weatherEmpty');
+
+  /// Le crédit des prévisions (CC BY 4.0) de la carte météo compacte.
+  final weatherAttribution = const _RideDetailKey('weatherAttribution');
+
   /// « Prévisions pas encore disponibles le long du parcours » : étape sans
   /// prévision (`UNAVAILABLE`, `NOT_YET_AVAILABLE`, statut inconnu) ou sans point.
   final weatherLegUnavailable = const _RideDetailKey('weatherLegUnavailable');

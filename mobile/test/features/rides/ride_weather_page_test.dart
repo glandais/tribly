@@ -312,4 +312,58 @@ void main() {
     expect(find.byKey(keys.ride.weatherUnavailable), findsOneWidget);
     expect(find.byKey(keys.ride.weatherRetryButton), findsOneWidget);
   });
+
+  // Masqué au détail, mais l'écran peut y arriver (pull-to-refresh après une
+  // annulation, statut d'une build plus récente) : jamais un écran blanc.
+  // `NO_LOCATION` ici pour un non-organisateur (`_Teams` ne rend aucune équipe).
+  for (final String status in <String>[
+    'OUT_OF_RANGE',
+    'NO_LOCATION',
+    'SOMETHING_NEW',
+  ]) {
+    testWidgets('$status : un état neutre, pas un écran blanc', (
+      WidgetTester tester,
+    ) async {
+      await open(tester, fixtureWeather(status: status));
+
+      expect(find.byKey(keys.ride.weatherEmpty), findsOneWidget);
+      expect(find.text('Pas de météo pour cette sortie'), findsOneWidget);
+      expect(find.byKey(keys.ride.weatherNoLocation), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('NOT_YET_AVAILABLE donne la date d\'ouverture', (
+    WidgetTester tester,
+  ) async {
+    await open(
+      tester,
+      fixtureWeather(
+        status: 'NOT_YET_AVAILABLE',
+        availableFrom: '2099-07-22T19:30:00Z',
+      ),
+    );
+
+    expect(find.byKey(keys.ride.weatherNotYetAvailable), findsOneWidget);
+    expect(
+      find.textContaining(
+        'Prévision disponible à partir du',
+        findRichText: true,
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('NOT_YET_AVAILABLE sans date : la règle des sept jours', (
+    WidgetTester tester,
+  ) async {
+    await open(tester, fixtureWeather(status: 'NOT_YET_AVAILABLE'));
+
+    expect(find.byKey(keys.ride.weatherNotYetAvailable), findsOneWidget);
+    expect(
+      find.textContaining('sept jours avant le départ', findRichText: true),
+      findsOneWidget,
+    );
+    expect(find.byKey(keys.ride.weatherEmpty), findsNothing);
+  });
 }

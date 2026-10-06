@@ -27,6 +27,7 @@ vi.mock('@/store/authStore', () => ({
 }))
 
 import { AdCardActions, PublicationCardActions } from './CardActions'
+import { getGetRideWeatherQueryKey } from '@/api/endpoints/rides/rides'
 
 // The Menu's positioning builds a ResizeObserver with `new`, which the arrow-function mock of
 // test/setup.ts cannot be under vitest 4.
@@ -50,10 +51,10 @@ function ride(overrides: Partial<RideDto> = {}): PublicationDto {
   } as unknown as PublicationDto
 }
 
-function renderInApp(ui: React.ReactElement) {
+function renderInApp(ui: React.ReactElement, client: QueryClient = new QueryClient()) {
   render(
     <MantineProvider>
-      <QueryClientProvider client={new QueryClient()}>
+      <QueryClientProvider client={client}>
         <MemoryRouter>{ui}</MemoryRouter>
       </QueryClientProvider>
     </MantineProvider>
@@ -82,6 +83,23 @@ describe('PublicationCardActions', () => {
     await waitFor(() => expect(changeRideStatus).toHaveBeenCalledTimes(1))
     expect(changeRideStatus).toHaveBeenCalledWith('np', 'dimanche', { status: 'PUBLISHED' })
     expect(updateRide).not.toHaveBeenCalled()
+  })
+
+  it("invalidates the ride's forecast on publishing: its key is not a prefix of the ride's", async () => {
+    // A draft's cached OUT_OF_RANGE would otherwise hide the weather block once published.
+    const client = new QueryClient()
+    const invalidate = vi.spyOn(client, 'invalidateQueries')
+    renderInApp(
+      <PublicationCardActions publication={ride({ status: 'DRAFT' })} canManage />,
+      client
+    )
+    await openMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'actions.publish', hidden: true }))
+    await waitFor(() =>
+      expect(invalidate).toHaveBeenCalledWith({
+        queryKey: getGetRideWeatherQueryKey('np', 'dimanche'),
+      })
+    )
   })
 
   it('gives a member the calendar file of an upcoming ride, and nothing to manage', async () => {

@@ -47,7 +47,7 @@ public class WeatherHousekeeping {
     // A date is local to its cell: a day's margin keeps every zone's "yesterday".
     long days =
         dailyRepository.deleteBefore(LocalDate.ofInstant(hourCutoff, ZoneOffset.UTC).minusDays(1));
-    int cells = cellRepository.deleteUndemandedBefore(now.minus(CELLS_KEPT));
+    int cells = cellRepository.deleteUndemandedBefore(now.minus(CELLS_KEPT), now);
     if (hours + days + cells > 0) {
       LOG.infof(
           "Weather cache purge: %d hour(s), %d day(s), %d cell(s) deleted", hours, days, cells);

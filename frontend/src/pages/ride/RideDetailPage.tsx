@@ -509,7 +509,6 @@ export function RideDetailPage() {
           ride={ride}
           weather={weather.data}
           isLoading={weather.isLoading}
-          isError={weather.isError}
           isFetching={weather.isFetching}
           onRetry={() => void weather.refetch()}
           canEdit={canEdit}

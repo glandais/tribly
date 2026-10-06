@@ -11,6 +11,7 @@ import {
   deleteRide,
   getDownloadRideIcsQueryKey,
   getGetRideQueryKey,
+  getGetRideWeatherQueryKey,
 } from '@/api/endpoints/rides/rides'
 import {
   changeTripStatus,
@@ -59,6 +60,11 @@ export function PublicationCardActions({ publication, canManage }: PublicationCa
     queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug) })
     queryClient.invalidateQueries({ queryKey: getGetTeamDashboardQueryKey(teamSlug) })
     queryClient.invalidateQueries({ queryKey: detailKey })
+    // A ride's forecast is its own key, not a prefix match of the ride's: a draft's cached
+    // OUT_OF_RANGE would otherwise outlive its publication by the weather's staleTime.
+    if (publication.type === 'RIDE') {
+      queryClient.invalidateQueries({ queryKey: getGetRideWeatherQueryKey(teamSlug, slug) })
+    }
   }
 
   const published = () => {

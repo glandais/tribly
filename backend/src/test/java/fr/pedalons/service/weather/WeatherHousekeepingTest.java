@@ -131,6 +131,24 @@ class WeatherHousekeepingTest extends AbstractBaseTest {
   }
 
   @Test
+  void purge_shouldKeepAForgottenCell_whileAWorkerHoldsItsLease() {
+    long leased = seed(CellKey.of(45.76, 4.83), NOW.minus(Duration.ofDays(3)));
+    long expired = seed(CellKey.of(45.86, 4.83), NOW.minus(Duration.ofDays(3)));
+    QuarkusTransaction.requiringNew()
+        .run(
+            () -> {
+              cellRepository.findById(leased).setClaimedUntil(NOW.plus(Duration.ofMinutes(2)));
+              cellRepository.findById(expired).setClaimedUntil(NOW.minus(Duration.ofMinutes(1)));
+            });
+
+    housekeeping.purge(NOW);
+
+    // The worker's upsert of its rows must not hit a deleted parent; the next night drops it.
+    assertNotNull(QuarkusTransaction.requiringNew().call(() -> cellRepository.findById(leased)));
+    assertNull(QuarkusTransaction.requiringNew().call(() -> cellRepository.findById(expired)));
+  }
+
+  @Test
   void purge_twice_shouldChangeNothingTheSecondTime() {
     long id = seed(CellKey.of(45.76, 4.83), NOW.minus(Duration.ofMinutes(5)));
     housekeeping.purge(NOW);

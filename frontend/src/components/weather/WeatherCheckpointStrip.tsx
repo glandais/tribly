@@ -4,11 +4,12 @@ import { IconDroplet } from '@tabler/icons-react'
 import type { WeatherCheckpointDto } from '@/api/dto'
 import { WeatherCheckpointKind } from '@/api/dto'
 import { useUnits } from '@/hooks/useUnits'
-import { useFormattedDate } from '@/utils/dateFormat'
+import { FormattedTime } from '../common/FormattedDate'
 import { WeatherIcon } from './WeatherIcon'
 import { WindArrow } from './WindArrow'
 import { useWeatherLabels } from './useWeatherLabels'
 import { isKnownRelativeWind, relativeWindColor } from './weatherDisplay'
+import classes from './WeatherCheckpointStrip.module.css'
 
 interface WeatherCheckpointStripProps {
   checkpoints: WeatherCheckpointDto[]
@@ -18,18 +19,29 @@ interface WeatherCheckpointStripProps {
  * The forecast points of a leg, start to finish, at their estimated passages: hour, sky,
  * temperature, chance of rain, and the wind as the rider meets it there. A point carries no
  * coordinates (docs/plans/2026-10-05-weather.md §1) — only its distance along the route.
+ *
+ * The points hold nothing focusable, so the scrolling viewport itself is a named, focusable region:
+ * without it a long route's later points were out of a keyboard user's reach.
  */
 export function WeatherCheckpointStrip({ checkpoints }: WeatherCheckpointStripProps) {
   const { t } = useTranslation()
 
   return (
-    <ScrollArea type="auto" offsetScrollbars>
+    <ScrollArea
+      type="auto"
+      offsetScrollbars
+      classNames={{ viewport: classes.viewport }}
+      viewportProps={{
+        tabIndex: 0,
+        role: 'region',
+        'aria-label': t('rides.weather.checkpoints.label'),
+      }}
+    >
       <Group
         component="ol"
         gap="xs"
         wrap="nowrap"
         align="stretch"
-        aria-label={t('rides.weather.checkpoints.label')}
         m={0}
         p={0}
         style={{ listStyle: 'none' }}
@@ -45,7 +57,6 @@ export function WeatherCheckpointStrip({ checkpoints }: WeatherCheckpointStripPr
 function CheckpointCard({ checkpoint }: { checkpoint: WeatherCheckpointDto }) {
   const { t } = useTranslation()
   const { distance, temperature, speed } = useUnits()
-  const { formatTime, isGuessedTimezone } = useFormattedDate()
   const labels = useWeatherLabels()
   const weather = checkpoint.weather
 
@@ -66,8 +77,8 @@ function CheckpointCard({ checkpoint }: { checkpoint: WeatherCheckpointDto }) {
         <Text size="xs" fw={600} ta="center" lineClamp={1}>
           {place}
         </Text>
-        <Text size="xs" c="dimmed" suppressHydrationWarning={isGuessedTimezone}>
-          {formatTime(checkpoint.time)}
+        <Text size="xs" c="dimmed">
+          <FormattedTime date={checkpoint.time} />
         </Text>
         {weather ? (
           <>

@@ -212,25 +212,37 @@ public class WeatherCellRepository implements PanacheRepository<WeatherCell> {
 
   /**
    * Drops the cells nobody planned since {@code cutoff}, with their forecast rows (the foreign keys
-   * cascade; deleted here too so the purge does not depend on them).
+   * cascade; deleted here too so the purge does not depend on them). A cell a worker holds under
+   * lease is left for the next run: deleting it would make that worker's upsert of the forecast
+   * rows violate the foreign key and fail its whole batch, although the provider answered.
    */
-  public int deleteUndemandedBefore(Instant cutoff) {
+  public int deleteUndemandedBefore(Instant cutoff, Instant now) {
     Timestamp at = Timestamp.from(cutoff);
+    Timestamp current = Timestamp.from(now);
+    String purgeable =
+        "last_demand_at < :cutoff and (claimed_until is null or claimed_until < :now)";
     getEntityManager()
         .createNativeQuery(
             "delete from weather_hourly where cell_id in"
-                + " (select id from weather_cells where last_demand_at < :cutoff)")
+                + " (select id from weather_cells where "
+                + purgeable
+                + ")")
         .setParameter("cutoff", at)
+        .setParameter("now", current)
         .executeUpdate();
     getEntityManager()
         .createNativeQuery(
             "delete from weather_daily where cell_id in"
-                + " (select id from weather_cells where last_demand_at < :cutoff)")
+                + " (select id from weather_cells where "
+                + purgeable
+                + ")")
         .setParameter("cutoff", at)
+        .setParameter("now", current)
         .executeUpdate();
     return getEntityManager()
-        .createNativeQuery("delete from weather_cells where last_demand_at < :cutoff")
+        .createNativeQuery("delete from weather_cells where " + purgeable)
         .setParameter("cutoff", at)
+        .setParameter("now", current)
         .executeUpdate();
   }
 }
