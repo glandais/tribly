@@ -144,6 +144,70 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets(
+    'initialType ne fuit pas vers le fil de l\'équipe empilé dessous',
+    (WidgetTester tester) async {
+      // Lien profond froid vers /equipes/x/sorties : `ancestorsForDeepLink`
+      // empile le fil de l'équipe (même `teamSlug`, donc mêmes providers de
+      // filtre) sous le fil filtré.
+      final GlobalKey<NavigatorState> navigator = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            teamTagsProvider.overrideWith(
+              (ref, key) async => const <TagWithUsageDto>[],
+            ),
+            publicationFeedProvider.overrideWith(
+              (ref, key) => _StuckFeedNotifier(key),
+            ),
+          ],
+          child: MaterialApp(
+            navigatorKey: navigator,
+            theme: PedalonsTheme.build(Brightness.light),
+            home: const Scaffold(
+              body: PublicationFeedView(
+                teamSlug: 'velo-club',
+                emptyMessage: 'empty',
+              ),
+            ),
+          ),
+        ),
+      );
+      unawaited(
+        navigator.currentState!.push(
+          MaterialPageRoute<void>(
+            builder: (BuildContext context) => const Scaffold(
+              body: PublicationFeedView(
+                teamSlug: 'velo-club',
+                emptyMessage: 'empty',
+                initialType: PublicationType.ride,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(
+        tester.widget<FeedToolbar>(find.byType(FeedToolbar)).selectedType,
+        PublicationType.ride,
+      );
+
+      navigator.currentState!.pop();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(
+        tester.widget<FeedToolbar>(find.byType(FeedToolbar)).selectedType,
+        isNull,
+        reason: 'le fil de l\'équipe dessous est resté sur « Tout »',
+      );
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
 }
 
 /// Ne répond jamais : aucun appel HTTP, le fil reste sur ses squelettes.

@@ -62,26 +62,16 @@ class PublicationFeedView extends ConsumerStatefulWidget {
 }
 
 class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
-  /// Vrai tant que [PublicationFeedView.initialType] n'a pas été recopié dans
-  /// `publicationFeedTypeProvider`. Un provider ne se modifie pas pendant la
-  /// construction de l'arbre : la recopie attend la fin de la première frame,
-  /// et d'ici là `build` lit le type initial directement — la première page
-  /// demandée est donc déjà la bonne, sans requête « Tout » jetée.
-  bool _initialTypePending = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final PublicationType? initial = widget.initialType;
-    if (initial == null) return;
-    _initialTypePending = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      ref.read(publicationFeedTypeProvider(widget.teamSlug).notifier).state =
-          initial;
-      setState(() => _initialTypePending = false);
-    });
-  }
+  /// Vrai tant que le fil affiche [PublicationFeedView.initialType], c'est-à-
+  /// dire jusqu'au premier choix sur les chips.
+  ///
+  /// Le type initial reste **local** : `publicationFeedTypeProvider` est par
+  /// équipe, partagé par tous ses fils. L'y recopier faisait passer aussi sur
+  /// « Sorties » le fil de l'équipe empilé dessous par un lien profond froid
+  /// (`ancestorsForDeepLink` : équipes → équipe → sorties), qui y restait au
+  /// retour. Local, il sert aussi la première page déjà filtrée, sans requête
+  /// « Tout » jetée. Au premier choix, le fil rejoint l'état partagé.
+  late bool _showsInitialType = widget.initialType != null;
 
   /// Scrolls back to the top through the route's primary controller.
   ///
@@ -94,6 +84,12 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
   }
 
   void _setType(PublicationType? value) {
+    if (_showsInitialType) {
+      // L'état partagé peut déjà valoir `value` : le listener ne verrait
+      // aucun changement, la remontée se fait donc ici.
+      setState(() => _showsInitialType = false);
+      _scrollToTop();
+    }
     ref.read(publicationFeedTypeProvider(widget.teamSlug).notifier).state =
         value;
     // Un jeu de tags par type (plan des tags, D3) : des tags de sortie n'ont
@@ -120,7 +116,7 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
   Widget build(BuildContext context) {
     // Switching filter is a new result set: back to the top of the list.
     ref.listen(publicationFeedTypeProvider(widget.teamSlug), (previous, next) {
-      if (previous != next) _scrollToTop();
+      if (previous != next && !_showsInitialType) _scrollToTop();
     });
     ref.listen(publicationFeedSearchProvider(widget.teamSlug), (
       previous,
@@ -138,7 +134,7 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
     final PublicationType? storedType = ref.watch(
       publicationFeedTypeProvider(widget.teamSlug),
     );
-    final type = _initialTypePending ? widget.initialType : storedType;
+    final type = _showsInitialType ? widget.initialType : storedType;
     final search = ref.watch(publicationFeedSearchProvider(widget.teamSlug));
     // La portée n'existe que sur le fil d'accueil : un fil d'équipe *est* déjà
     // une portée.

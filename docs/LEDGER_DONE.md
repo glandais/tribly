@@ -1211,8 +1211,12 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   (corrigé après relecture, même jour). Le `GoRouter` les rend en `TeamHomePage` section `feed`,
   avec `feedType` (`PublicationFeedView.initialType`, type de départ que les chips peuvent
   changer) ; elles sont dans `internalRouteTemplates` et `_deepLinkHierarchies` (équipes → équipe).
+  Ce type initial reste **local au fil** jusqu'au premier choix sur les chips — ne pas le recopier
+  dans `publicationFeedTypeProvider`, partagé par tous les fils de l'équipe : le fil de l'équipe
+  empilé dessous par le lien profond passait aussi sur « Sorties » et y restait au retour (corrigé
+  après relecture, même jour).
   Test mobile : `team_kind_tab_links_test.dart` (lien interne, ancêtres, écran résolu, première
-  page déjà filtrée), `deep_link_hierarchy_test.dart`. Les
+  page déjà filtrée, fil du dessous resté sur « Tout »), `deep_link_hierarchy_test.dart`. Les
   routes `team-rides` et `team-trips` (`routes.config.ts`, publiques, sous `team-detail`) rendent
   `PublicationListPage` avec `kind` (`TeamRidesPage`, `TeamTripsPage`) : le même fil, le même
   `publicationListData.ts`, où `withListKind` impose le type de la route à la place de `?type=`
