@@ -15,7 +15,6 @@ import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.infrastructure.exception.NotFoundException;
-import fr.pedalons.infrastructure.timezone.TimezoneService;
 import fr.pedalons.repository.common.TeamEntityQueryBasic;
 import fr.pedalons.repository.gps.GpsServiceConnectionRepository;
 import fr.pedalons.repository.ride.RideRepository;
@@ -64,7 +63,6 @@ public class DeviceRouteService {
   @Inject RouteRepository routeRepository;
   @Inject GpsServiceConnectionRepository gpsServiceConnectionRepository;
   @Inject GpxProcessingService gpxProcessingService;
-  @Inject TimezoneService timezoneService;
 
   /** Internal record for sorting routes by distance while keeping DTO separate. */
   private record RouteWithDistance(DeviceRouteDto dto, @Nullable Double distanceFromUser) {}
@@ -195,13 +193,14 @@ public class DeviceRouteService {
 
       // Only include rides that have at least one route entry
       if (!entries.isEmpty()) {
-        Instant startInstant = computeRideStartInstant(ride);
         result.add(
             DeviceRideDto.builder()
                 .teamSlug(ride.getTeam().getSlug())
                 .rideSlug(ride.getSlug())
                 .rideName(ride.getName())
-                .startDateTime(startInstant)
+                // An absolute instant, as stored: the devices render it in their own zone
+                // (docs/LEDGER_*.md API-78). No reading at the departure's local time here.
+                .startDateTime(ride.getDateTime())
                 .entries(entries)
                 .build());
       }
@@ -223,28 +222,6 @@ public class DeviceRouteService {
         .startLat(position.getLat())
         .startLon(position.getLon())
         .build();
-  }
-
-  @Nullable
-  private Instant computeRideStartInstant(Ride ride) {
-    Route route = ride.getRoute();
-    if (route == null || route.isDeleted()) {
-      // Use first group's route for timezone
-      for (RideGroup group : ride.getGroups()) {
-        if (group.getRoute() != null && !group.getRoute().isDeleted()) {
-          route = group.getRoute();
-          break;
-        }
-      }
-    }
-    if (route == null) {
-      return null;
-    }
-    Point<G2D> start = route.getStart();
-    ZoneId zoneId =
-        timezoneService.getZoneId(start.getPosition().getLat(), start.getPosition().getLon());
-    ZonedDateTime zonedDateTime = ride.getDateTime().atZone(zoneId);
-    return zonedDateTime.toInstant();
   }
 
   private List<RouteWithDistance> getLatestRoutes(

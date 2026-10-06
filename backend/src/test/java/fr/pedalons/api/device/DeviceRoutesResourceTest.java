@@ -2,15 +2,24 @@ package fr.pedalons.api.device;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.dto.common.asset.MediaDto;
+import fr.pedalons.dto.rides.request.GroupRequest;
+import fr.pedalons.dto.rides.request.RideRequest;
 import fr.pedalons.dto.routes.request.RouteRequest;
+import fr.pedalons.enums.Status;
 import fr.pedalons.enums.SurfaceType;
 import fr.pedalons.enums.Visibility;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.ws.rs.core.MediaType;
 import java.io.File;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -86,6 +95,56 @@ class DeviceRoutesResourceTest extends AbstractResourceTest {
   @Test
   void getRoutes_withoutAuth_shouldReturn401() {
     given().when().get("/api/device/routes").then().statusCode(401);
+  }
+
+  /**
+   * The ride's start goes out as the absolute instant it is stored as: the devices parse it as UTC
+   * and render it in their own zone. The route starts in Nantes (Europe/Paris, never UTC), so any
+   * re-reading of that instant at the departure's local time would shift it by one or two hours.
+   * The group leaves later, at its own local time, and must not replace the ride's start.
+   */
+  @Test
+  void getRoutes_rideStart_isTheRideInstantUnshifted() {
+    ZoneId paris = ZoneId.of("Europe/Paris");
+    Instant rideStart =
+        LocalDate.now(paris).plusDays(2).atTime(LocalTime.of(7, 30)).atZone(paris).toInstant();
+    RideRequest request =
+        new RideRequest(
+            "Sortie appareils",
+            MediaDto.builder().markdown("Sortie").build(),
+            rideStart,
+            Status.PUBLISHED,
+            Visibility.TEAM,
+            routeSlug,
+            null,
+            null,
+            null,
+            List.of(GroupRequest.builder().name("Groupe tardif").time(LocalTime.of(9, 0)).build()));
+    String rideSlug =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .contentType("application/json")
+            .body(request)
+            .when()
+            .post("/api/teams/" + team1Slug + "/rides")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("slug");
+
+    String startDateTime =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .when()
+            .get("/api/device/routes")
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("rides.find { it.rideSlug == '" + rideSlug + "' }.startDateTime");
+
+    assertEquals(rideStart, Instant.parse(startDateTime));
   }
 
   // ==================== Download FIT ====================
