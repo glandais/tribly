@@ -23,6 +23,7 @@ import fr.pedalons.dto.rides.request.RideRequest;
 import fr.pedalons.dto.rides.response.*;
 import fr.pedalons.dto.users.response.ParticipantListResponse;
 import fr.pedalons.dto.users.response.PublicUserDto;
+import fr.pedalons.dto.weather.response.RideWeatherAnswer;
 import fr.pedalons.dto.weather.response.RideWeatherDto;
 import fr.pedalons.dto.weather.response.WeatherAttributionDto;
 import fr.pedalons.enums.ActionType;

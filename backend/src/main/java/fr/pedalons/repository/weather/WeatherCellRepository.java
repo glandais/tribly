@@ -170,7 +170,7 @@ public class WeatherCellRepository implements PanacheRepository<WeatherCell> {
               attempts = attempts + 1,
               last_error = :error,
               claimed_until = null,
-              next_refresh_at = :now + least(
+              next_refresh_at = cast(:now as timestamptz) + least(
                 make_interval(secs => :baseSeconds * power(2, least(attempts, 20))),
                 make_interval(secs => :maxSeconds)),
               updated_at = :now

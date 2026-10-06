@@ -1,6 +1,5 @@
-package fr.pedalons.service.ride;
+package fr.pedalons.dto.weather.response;
 
-import fr.pedalons.dto.weather.response.RideWeatherDto;
 import fr.pedalons.enums.WeatherStatus;
 import org.jspecify.annotations.Nullable;
 
