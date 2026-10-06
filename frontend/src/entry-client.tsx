@@ -15,6 +15,7 @@ import type { SsrAuthSnapshot } from './lib/requestContext'
 import { mapThemePreference } from './lib/theme'
 import { installConsoleCapture } from './lib/feedback/clientLog'
 import { installErrorCapture } from './lib/feedback/errorReporter'
+import { installStaleChunkReload } from './lib/staleChunk'
 import { captureInstallPrompt } from './lib/install/installStore'
 import './index.css'
 
@@ -42,6 +43,7 @@ async function bootstrap() {
   // First, so that whatever goes wrong below is in the log of a bug report.
   installConsoleCapture()
   installErrorCapture()
+  installStaleChunkReload()
   // Before anything is awaited: Chrome can fire its install prompt before React has mounted.
   captureInstallPrompt()
 

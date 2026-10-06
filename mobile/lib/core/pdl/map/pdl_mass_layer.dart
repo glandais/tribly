@@ -36,7 +36,12 @@
 // `elevation_gain`.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:maplibre/maplibre.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// Les tuiles vectorielles de parcours servies par le backend.
 abstract final class PdlMassTiles {
@@ -61,6 +66,54 @@ abstract final class PdlMassTiles {
     maxZoom: 14,
     volatile: true,
   );
+
+  /// La source telle que la plateforme courante sait la poser.
+  ///
+  /// **Android ne sait pas poser [source]** : `maplibre_android` 0.3.6 ne lit
+  /// que `VectorSource.url` (`source.url!`, un `TypeError` sur une source
+  /// définie par `tiles`) — l'écran des parcours levait à chaque ouverture
+  /// (feedback #8). On lui donne donc l'URL d'un TileJSON écrit dans le cache
+  /// de l'app, que le SDK lit par son chargeur `file://` ; le document porte la
+  /// même plage de zoom que [source]. iOS lit `tiles` correctement et garde
+  /// [source].
+  ///
+  /// À retirer quand le greffon construira un `VectorSource` sur `TileSet`
+  /// (la liaison JNI `VectorSource.new$4` existe déjà).
+  static Future<VectorSource> platformSource({
+    required String id,
+    required String tileUrlTemplate,
+  }) async {
+    if (defaultTargetPlatform != TargetPlatform.android) {
+      return source(id: id, tileUrlTemplate: tileUrlTemplate);
+    }
+    final Directory dir = await getApplicationCacheDirectory();
+    // Un fichier par gabarit, donc par jeton : le SDK ne relit jamais un
+    // document qu'il croit déjà connaître. Les précédents sont supprimés.
+    final String name =
+        'pdl-mass-${tileUrlTemplate.hashCode.toUnsigned(32).toRadixString(16)}.json';
+    final File file = File('${dir.path}/$name');
+    if (!file.existsSync()) {
+      await for (final FileSystemEntity old in dir.list()) {
+        final String oldName = old.uri.pathSegments.last;
+        if (oldName.startsWith('pdl-mass-') && oldName.endsWith('.json')) {
+          await old.delete();
+        }
+      }
+      await file.writeAsString(tileJson(tileUrlTemplate));
+    }
+    return VectorSource(id: id, url: file.uri.toString(), volatile: true);
+  }
+
+  /// Le TileJSON équivalent à [source], pour les SDK qui ne prennent qu'une URL.
+  static String tileJson(String tileUrlTemplate) => jsonEncode(<String, Object>{
+    'tilejson': '3.0.0',
+    'tiles': <String>[tileUrlTemplate],
+    'minzoom': 0,
+    'maxzoom': 14,
+    'vector_layers': <Map<String, Object>>[
+      <String, Object>{'id': sourceLayerId, 'fields': <String, String>{}},
+    ],
+  });
 
   /// La couche de tracés adossée à [source].
   static LineStyleLayer layer({

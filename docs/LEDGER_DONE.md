@@ -128,6 +128,28 @@ Corrigés le 4 octobre 2026, contrat inchangé. Les deux défauts de navigation 
   cause que `MOB-44` : `openLink` (`core/utils/link_launcher.dart`) poussait par `context.push` toute
   route interne reconnue, depuis une publication plein écran. Il passe désormais par `pushLocation`.
 
+### Erreurs remontées automatiquement — 6 octobre 2026
+
+Issues du dépôt `pedalons-feedback`, corrigées le 6 octobre 2026, contrat inchangé.
+
+- [x] `MOB-55` **La carte des parcours levait à chaque ouverture sous Android** (feedback #8) —
+  `maplibre_android` 0.3.6 ne construit un `VectorSource` que sur `url` (`source.url!`) et la
+  couche de masse est définie par `tiles` : `TypeError`, et toute la pile de couches qui suit
+  (tracés, marqueurs, réticule) n'était pas posée. Sous Android, `PdlMassTiles.platformSource`
+  écrit un TileJSON équivalent dans le cache de l'app et passe son URL `file://` ; iOS garde
+  `tiles`. Une masse qui ne se pose pas n'emporte plus le reste (`_applyMassLayer` rattrape et
+  journalise). Test : `pdl_mass_layer_test.dart` (le document TileJSON) ; la pose sur appareil
+  Android reste à constater. **À ne pas défaire** : ne pas revenir à `tiles` sous Android tant que
+  le greffon ne lit pas `VectorSource.tiles` (la liaison JNI sur `TileSet` existe, c'est
+  `style_controller.dart` qui ne l'emploie pas).
+- [x] `MOB-56` **La connexion levait quand Firebase n'avait pas démarré** (feedback #4) —
+  `main.dart` tolère l'échec de `Firebase.initializeApp()`, mais le constructeur de
+  `FirebasePushGateway` lisait `FirebaseMessaging.instance`, qui lève alors `[core/no-app]` :
+  `pushGatewayProvider` passait en erreur à chaque connexion. `_messaging` est paresseux,
+  `ensureInitialized` retente l'initialisation et, en cas d'échec, le push est simplement
+  `unsupported`. **À ne pas défaire** : rien de Firebase ne doit être lu avant
+  `ensureInitialized`.
+
 ### Couverture e2e Patrol
 
 Écrits le 29 septembre 2026 par-dessus les P0 de l'audit de couverture e2e (`WEB-26`), un test
@@ -676,6 +698,14 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   avant un commit, ce que `WEB-35` ferme aussi. À rouvrir sur une nouvelle occurrence, trace en main.
 
 ### Défauts d'interface
+
+- `WEB-66` **Un onglet ouvert avant un déploiement tombait sur l'écran d'erreur** (feedback #9,
+  2026-10-06) — les chunks paresseux de l'ancien build (`UserProfilePage-<hash>.js`) ne sont plus
+  servis après un déploiement, et la route suivante levait « Failed to fetch dynamically imported
+  module ». `lib/staleChunk.ts` recharge la page, sur `vite:preloadError` comme dans
+  `ErrorBoundary`, au plus une fois par 30 s (garde en `sessionStorage`) : si le chunk manque encore
+  après le rechargement, l'erreur s'affiche et se remonte normalement. Test :
+  `staleChunk.test.ts`. **À ne pas défaire** : la garde anti-boucle.
 
 - `WEB-59` **« Lien invalide » sur un changement d'adresse pourtant appliqué** (2026-10-04) —
   `VerifyEmailPage` confirmait le changement, puis relisait `/me` avec le jeton d'accès en mémoire.

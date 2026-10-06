@@ -883,16 +883,25 @@ class PdlMapController extends ChangeNotifier {
     await _safe(() => style.removeSource(_massSourceId));
     final String? template = _massTileUrl;
     if (template == null) return;
-    await style.addSource(
-      PdlMassTiles.source(id: _massSourceId, tileUrlTemplate: template),
-    );
-    await style.addLayer(
-      PdlMassTiles.layer(
-        id: massLayerId,
-        sourceId: _massSourceId,
-        colorHex: _massColorHex,
-      ),
-    );
+    // Un fond qui ne se pose pas ne doit pas emporter le reste de la pile :
+    // tracés, marqueurs et réticule viennent après (feedback #8).
+    try {
+      await style.addSource(
+        await PdlMassTiles.platformSource(
+          id: _massSourceId,
+          tileUrlTemplate: template,
+        ),
+      );
+      await style.addLayer(
+        PdlMassTiles.layer(
+          id: massLayerId,
+          sourceId: _massSourceId,
+          colorHex: _massColorHex,
+        ),
+      );
+    } catch (error) {
+      debugPrint('Mass layer not drawn: $error');
+    }
   }
 
   /// Pose la couche du réticule, **vide**, une fois pour toutes.

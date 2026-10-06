@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:pedalons/core/pdl/map/pdl_mass_layer.dart';
@@ -42,6 +44,17 @@ void main() {
       expect(layer.sourceLayerId, PdlMassTiles.sourceLayerId);
       expect(layer.sourceId, 'mass');
       expect(layer.paint['line-color'], '#228BE6');
+    });
+
+    /// Android ne reçoit la source que par l'URL d'un TileJSON (feedback #8) :
+    /// le document doit dire la même chose que la source d'iOS.
+    test('le TileJSON porte le gabarit verbatim et la plage de zoom', () {
+      final Map<String, Object?> doc =
+          jsonDecode(PdlMassTiles.tileJson(_template)) as Map<String, Object?>;
+
+      expect(doc['tiles'], <String>[_template]);
+      expect(doc['minzoom'], 0);
+      expect(doc['maxzoom'], 14);
     });
 
     /// Le nom de la couche est celui que `ST_AsMVT` donne côté backend : le

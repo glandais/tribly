@@ -15,6 +15,7 @@ import {
 import { IconAlertTriangle, IconMessageReport, IconXboxX } from '@tabler/icons-react'
 import { openFeedback } from '@/lib/feedback/feedbackStore'
 import { reportError, toClientError } from '@/lib/feedback/errorReporter'
+import { isStaleChunkError, reloadForStaleChunk } from '@/lib/staleChunk'
 import { useAuthStore } from '@/store/authStore'
 
 interface ErrorBoundaryProps {
@@ -45,6 +46,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // A lazy route of a build replaced by a deploy: the reload fetches the new one.
+    if (isStaleChunkError(error) && reloadForStaleChunk()) return
     console.error('ErrorBoundary caught an error:', error, errorInfo)
     reportError(error, errorInfo.componentStack ?? undefined)
     this.props.onError?.(error, errorInfo)

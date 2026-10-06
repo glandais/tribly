@@ -57,7 +57,7 @@ class FirebasePushGateway implements PushGateway {
   FirebasePushGateway({
     FirebaseMessaging? messaging,
     FlutterLocalNotificationsPlugin? local,
-  }) : _messaging = messaging ?? FirebaseMessaging.instance,
+  }) : _injectedMessaging = messaging,
        _local = local ?? FlutterLocalNotificationsPlugin();
 
   /// Le `channel_id` que `FcmClient` met dans chaque message Android. Le créer
@@ -71,8 +71,19 @@ class FirebasePushGateway implements PushGateway {
     importance: Importance.high,
   );
 
-  final FirebaseMessaging _messaging;
+  final FirebaseMessaging? _injectedMessaging;
+
+  /// Paresseux, et lu seulement quand [_supported] le permet :
+  /// `FirebaseMessaging.instance` lève `[core/no-app]` si `initializeApp` a
+  /// échoué au démarrage — ce que `main.dart` tolère —, et le lire dans le
+  /// constructeur mettait `pushGatewayProvider` en erreur à la connexion.
+  late final FirebaseMessaging _messaging =
+      _injectedMessaging ?? FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _local;
+
+  /// Faux quand Firebase n'a pas pu démarrer : plus de push sur cette
+  /// installation, mais une app qui marche.
+  bool _firebaseReady = true;
 
   final StreamController<PushMessage> _taps =
       StreamController<PushMessage>.broadcast();
@@ -85,7 +96,15 @@ class FirebasePushGateway implements PushGateway {
     if (_initialized) return;
     _initialized = true;
 
-    if (Firebase.apps.isEmpty) await Firebase.initializeApp();
+    if (_injectedMessaging == null && Firebase.apps.isEmpty) {
+      try {
+        await Firebase.initializeApp();
+      } catch (error) {
+        log('Firebase could not start, push disabled: $error', name: 'push');
+        _firebaseReady = false;
+        return;
+      }
+    }
 
     await _local.initialize(
       settings: const InitializationSettings(
@@ -210,7 +229,8 @@ class FirebasePushGateway implements PushGateway {
     );
   }
 
-  bool get _supported => Platform.isAndroid || Platform.isIOS;
+  bool get _supported =>
+      _firebaseReady && (Platform.isAndroid || Platform.isIOS);
 
   static PushMessage _toPushMessage(RemoteMessage message) {
     return PushMessage(
