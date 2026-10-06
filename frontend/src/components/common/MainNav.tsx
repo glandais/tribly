@@ -6,7 +6,8 @@ import classes from './MainNav.module.css'
 
 /**
  * The site's main navigation in the header, from `sm` up: Fil · Équipes · Calendrier · Parcours ·
- * Fonctionnalités (useMainNavItems, gated like the home section). Links to distinct URLs, hence a
+ * Fonctionnalités for a visitor, Outils GPX for a member (useMainNavItems, gated like the home
+ * section). Links to distinct URLs, hence a
  * named `nav` landmark and `aria-current="page"` — see NavButtons for why not a tablist.
  */
 export function HeaderMainNav() {

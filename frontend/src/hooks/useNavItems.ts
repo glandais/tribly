@@ -13,6 +13,7 @@ import {
   IconFileText,
   IconSparkles,
   IconLayoutDashboard,
+  IconMapSearch,
 } from '@tabler/icons-react'
 import { paths } from '@/config/paths'
 import { findMatchingRoute, getRouteById } from '@/config/routeUtils'
@@ -78,10 +79,11 @@ export function useHomeNavItems(): MainNavItem[] {
 
 /**
  * The site's main navigation, shown in the header (and the mobile drawer): the home section's
- * entries, then the features page. The breadcrumb dropdown keeps to useHomeNavItems — the features
- * page is no sibling of the feed in the route tree. The features page is for visitors only: a
+ * entries, then one last entry that depends on the session. A visitor gets the features page — a
  * member is already sold, and the home's promo card points them to what they can still connect
- * (docs/LEDGER_*.md WEB-50).
+ * (docs/LEDGER_*.md WEB-50); a member gets the GPX tools in its place, which need a session
+ * (docs/LEDGER_*.md WEB-72). The breadcrumb dropdown keeps to useHomeNavItems — neither page is a
+ * sibling of the feed in the route tree.
  */
 export function useMainNavItems(): MainNavItem[] {
   const { t } = useTranslation()
@@ -89,19 +91,24 @@ export function useMainNavItems(): MainNavItem[] {
   const { isAuthenticated } = useAuth()
 
   return useMemo(
-    () =>
+    () => [
+      ...homeItems,
       isAuthenticated
-        ? homeItems
-        : [
-            ...homeItems,
-            {
-              id: 'features',
-              routeId: 'features',
-              path: paths.features(),
-              label: t('nav.features'),
-              icon: IconSparkles,
-            },
-          ],
+        ? {
+            id: 'gpxTools',
+            routeId: 'gpx-tools',
+            path: paths.gpxTools(),
+            label: t('gpxTools.title'),
+            icon: IconMapSearch,
+          }
+        : {
+            id: 'features',
+            routeId: 'features',
+            path: paths.features(),
+            label: t('nav.features'),
+            icon: IconSparkles,
+          },
+    ],
     [homeItems, isAuthenticated, t]
   )
 }

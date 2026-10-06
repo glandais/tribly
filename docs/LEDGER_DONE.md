@@ -869,6 +869,14 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   `useMainNavItems` (`hooks/useNavItems.ts`) ne l'ajoute plus quand la session est ouverte (en-tête
   et tiroir) ; la page reste accessible par son URL et le pied de page. Test : `MainNav.test.tsx`.
 
+- `WEB-72` **« Outils GPX » passe dans l'en-tête d'un membre connecté, à la place de
+  « Fonctionnalités »** (6 octobre 2026) — les outils n'étaient atteignables que par le menu de
+  l'avatar (et le tiroir mobile). `useMainNavItems` (`hooks/useNavItems.ts`) les ajoute en dernière
+  entrée quand la session est ouverte — l'emplacement que `WEB-50` a libéré —, en-tête et tiroir ;
+  l'entrée s'allume sur toute la section (`gpx-tools` et ses sous-routes). Retirés du menu de
+  l'avatar et du tiroir (`Layout.tsx`) pour ne pas les lister deux fois. Un visiteur n'a toujours
+  que « Fonctionnalités » : les outils exigent une session. Test : `MainNav.test.tsx`.
+
 - `WEB-51` **La carte « Envoyez vos parcours vers votre compteur » de l'accueil ne s'adresse plus
   qu'à qui n'a rien branché, et mène au profil** (4 octobre 2026, relevé dans `docs/BUGS.md`) —
   `FeaturesPromoCard` s'affichait à tous les membres et menait à la page Fonctionnalités. Elle ne

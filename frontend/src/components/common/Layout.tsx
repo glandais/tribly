@@ -25,7 +25,6 @@ import {
   IconChevronRight,
   IconLogout,
   IconShield,
-  IconMapSearch,
   IconBell,
   IconMessageReport,
   IconDownload,
@@ -178,13 +177,6 @@ export function Layout() {
                       {t('notifications.title')}
                     </Menu.Item>
                     <Menu.Item
-                      leftSection={<IconMapSearch size={14} />}
-                      component={PrefetchLink}
-                      to={paths.gpxTools()}
-                    >
-                      {t('gpxTools.title')}
-                    </Menu.Item>
-                    <Menu.Item
                       leftSection={<IconMessageReport size={14} />}
                       onClick={() => openFeedback()}
                     >
@@ -306,15 +298,6 @@ export function Layout() {
                 }
               >
                 {t('notifications.title')}
-              </Button>
-              <Button
-                variant="subtle"
-                leftSection={<IconMapSearch size={16} />}
-                component={PrefetchLink}
-                to={paths.gpxTools()}
-                onClick={close}
-              >
-                {t('gpxTools.title')}
               </Button>
               {isPlatformAdmin && (
                 <Button

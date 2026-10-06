@@ -49,7 +49,7 @@ afterEach(() => {
 })
 
 describe('HeaderMainNav', () => {
-  it('lists the home section, the calendar only when signed in, the features page only when not', () => {
+  it('lists the home section, the calendar only when signed in, the features page for a visitor, the GPX tools for a member', () => {
     expect(linkNames(renderAt(paths.home()))).toEqual([
       'home.tabs.feed',
       'teams.title',
@@ -63,6 +63,7 @@ describe('HeaderMainNav', () => {
       'teams.title',
       'calendar.title',
       'nav.routes',
+      'gpxTools.title',
     ])
   })
 
@@ -80,6 +81,8 @@ describe('HeaderMainNav', () => {
     expect(current(renderAt(paths.team('les-velos')))).toEqual(['teams.title'])
     cleanup()
     expect(current(renderAt(paths.calendar()))).toEqual(['calendar.title'])
+    cleanup()
+    expect(current(renderAt(paths.gpxToolsList()))).toEqual(['gpxTools.title'])
     cleanup()
     auth.isAuthenticated = false
     expect(current(renderAt(paths.features()))).toEqual(['nav.features'])
