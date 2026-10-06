@@ -1,5 +1,6 @@
 package fr.pedalons.dto.common.asset;
 
+import fr.pedalons.dto.validation.ValidateSchema;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.jspecify.annotations.Nullable;
             + " uploaded to this team and attached to no other content, else 400"
             + " ASSET_NOT_AVAILABLE naming the asset id — the same answer whether the id is"
             + " unknown, of another team or held by another content.")
+@ValidateSchema
 public record AssetsDto(
     @Nullable @Schema(description = "Logo") @Valid AssetDto logo,
     @Schema(description = "Images", required = true) List<@Valid AssetDto> images,
