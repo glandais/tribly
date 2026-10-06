@@ -445,7 +445,7 @@ couvert » ; les tests ne tournent qu'en local (`MOB-37`).
 
 - `MOB-60` **L'équipe découpée en Agenda et Publications, comme au web** (6 octobre 2026, contrat
   inchangé — il lit `when` et `endDateTime` de la `10.15.0` et le tableau de bord public de la
-  `10.16.0`), plan [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md) §6, publié avec
+  `10.16.0`), plan [`2026-10-06-team-agenda.md`](plans/archive/2026-10-06-team-agenda.md) §6, publié avec
   `WEB-68`.
   - **Sections** (`team_sections.dart`) : `TeamSectionKind` perd `feed` et `calendar`, gagne
     `agenda` et `posts`, dans l'ordre du site — Tableau de bord, Agenda (sorties ou voyages, et les
@@ -1289,7 +1289,7 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
 
 ### Agenda et Publications
 
-Plan [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md) §4, §5 et §7.
+Plan [`2026-10-06-team-agenda.md`](plans/archive/2026-10-06-team-agenda.md) §4, §5 et §7.
 
 - `WEB-68` **Le fil d'équipe remplacé par « Agenda » (sorties et voyages) et « Publications »**
   (6 octobre 2026, sans changement de contrat d'API : lit `when` et `endDateTime` d'`API-85`,
@@ -1542,7 +1542,7 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   heure locale.
 
 - `API-85` **Aucune heure de fin : « À venir » comparait le départ à maintenant** (2026-10-06,
-  contrat `10.15.0`, plan [Agenda d'équipe](plans/2026-10-06-team-agenda.md) §3.1–3.2) — une
+  contrat `10.15.0`, plan [Agenda d'équipe](plans/archive/2026-10-06-team-agenda.md) §3.1–3.2) — une
   sortie partie depuis dix minutes ou un voyage commencé la veille sortaient de « À venir », le
   calendrier et l'ICS envoyaient `end = null`. Colonne `team_entities.end_date_time` (V63,
   nullable, index `(team_id, end_date_time)`), écrite par un seul service,
@@ -1580,7 +1580,7 @@ Le détail de chacune est dans l'historique git de ce fichier et de `LEDGER_NEXT
   aux listes, au calendrier et à l'ICS.
 
 - `API-86` **Le tableau de bord d'équipe fermé aux visiteurs** (2026-10-06, contrat `10.16.0`,
-  plan [Agenda d'équipe](plans/2026-10-06-team-agenda.md) §3.3) — `TeamDashboardService` levait
+  plan [Agenda d'équipe](plans/archive/2026-10-06-team-agenda.md) §3.3) — `TeamDashboardService` levait
   403 pour tout non-membre et la ressource exigeait une connexion, si bien qu'un visiteur n'avait
   que le fil. `TeamDashboardResource` est passée en `@PermitAll` (le 401 a quitté le contrat) et
   `getDashboard` porte `@CheckAccess(TEAM, READ)`, la règle de `GET /api/teams/{slug}` : une

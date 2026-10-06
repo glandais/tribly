@@ -196,6 +196,15 @@ navigateur), et la connexion par code e-mailé (la préférence de fuseau existe
 
 ### Liens profonds
 
+- [ ] `MOB-61` **Une ancienne adresse du fil perd sa recherche et ses tags dans l'app (S)** — reste
+      de `MOB-60`. Le site redirige `team?tab=publications&type=…&q=…&tags=…` vers l'Agenda ou les
+      Publications **en gardant** `q` et `tags` (`teamLegacyRedirects.ts`) ; l'app
+      (`resolveTeamRootSection`, `agendaTarget` dans `team_sections.dart`) ne garde que le type et
+      la période. La section s'ouvre donc sans la recherche ni les tags du lien. Lire `q` et `tags`
+      et les passer en état initial des providers de filtres de la section (`filterScope`
+      `agenda/<slug>`, `posts/<slug>`), sans les écrire dans ceux d'une autre section ; test dans
+      `team_agenda_test.dart`.
+
 - [ ] `MOB-59` **Les liens vers les pages du site sans écran dans l'app ouvrent l'app sur sa page
       d'erreur (S–M)** — relevé avec `WEB-64`. `scripts/generate-routes.mjs` (lancé par
       `pnpm generate-routes`) traduit chaque paramètre d'une route `deeplink` en `*` dans l'AASA
@@ -378,6 +387,26 @@ arbitrages, ce qui suit est ici (et les recettes des sorties, `WEB-61`, `MOB-52`
 - [ ] `API-77` **Météo sur Karoo et Garmin (M)** — `DeviceRideDto` ne porte rien ; à concevoir
       (résumé seul, ou points de passage) avec les contraintes de taille des deux apps. Les aperçus
       de lien (`og:`) ne portent **jamais** de météo.
+
+### Fin stockée d'une sortie : ce qui suit `API-85`
+
+Restes du plan [`2026-10-06-team-agenda.md`](plans/archive/2026-10-06-team-agenda.md), archivé
+le 6 octobre 2026.
+
+- [ ] `API-87` **Supprimer ou restaurer un parcours ne recalcule pas la fin des sorties qui le
+      citent (S)** — `PublicationEndCalculator` traite un parcours supprimé comme absent (départ +
+      3 h), mais seul le remplacement du GPX (`RouteService.updateRoute`) relance le calcul des
+      sorties, groupes et étapes qui le citent. Après une suppression ou une restauration, la fin
+      stockée reste l'ancienne jusqu'au prochain enregistrement de la sortie ou du voyage : une
+      sortie peut sortir trop tôt ou trop tard de « À venir ». Brancher le même recalcul sur la
+      suppression et la restauration du parcours ; test dans `PublicationEndStoredTest`.
+- [ ] `API-88` **La fenêtre du calendrier filtre sur le départ, pas sur la fin (S)** —
+      `CalendarService` (et `from`/`to` de `GET /api/calendar/events`) garde un événement dont le
+      **départ** est dans la fenêtre : un voyage commencé avant `from` (aujourd'hui − 30 jours par
+      défaut, ou le premier du mois au mobile) n'y figure pas alors qu'il dure encore, et son
+      étape du jour non plus si elle a commencé la veille. Filtrer sur
+      `fin ≥ from et départ ≤ to`, avec la fin stockée d'`API-85`. Un voyage **sans étape** reste
+      absent du calendrier et de son ICS : c'est `API-18`.
 
 ### Les chantiers d'infrastructure d'API
 
@@ -813,6 +842,7 @@ redevient une entrée de sa section sous le même identifiant.
 | `API-33` | **`GET /api/rides` et listes mono-type** | Non créées ; `/api/publications?type=RIDE` est la surface canonique | Deux surfaces = deux jeux de filtres à garder cohérents. `RideListResponse` / `TripListResponse` existent encore comme records retournés par **aucun endpoint** — les supprimer serait un MAJOR gratuit |
 | `API-34` | **`acceptTerms` obligatoire à l'inscription (contrat `4.1.0`)** | Laissé en mineure | Les builds mobiles qui n'envoient pas le champ reçoivent un 400 `VALIDATION` à l'inscription. La rupture est acceptée sans passer en `5.0.0` |
 | `API-60` | **Fuseau d'équipe (`Team.timezone`) ou dates zonées au contrat** | Écarté le 2 octobre 2026, avec le propriétaire, au profit de la préférence `UserDto.timezone` appliquée par les deux clients (`API-15`) | Les dates restent des instants UTC au contrat, rendues dans le fuseau de l'utilisateur, sinon de l'appareil. Une équipe est presque toujours mono-fuseau, et un fuseau d'équipe aurait demandé un réglage d'administration, une colonne et une seconde règle de rendu dans chaque client. À rouvrir si des voyages à l'étranger rendent l'heure locale de l'étape nécessaire : c'est alors le fuseau du **lieu de départ** (`TimezoneService`, déjà utilisé pour les compteurs) qu'il faudrait exposer, pas celui de l'équipe |
+| `API-89` | **Fin stockée pendant le déploiement à chaud** | Acceptée le 6 octobre 2026 (`API-85`) | Pendant la minute où l'ancien et le nouveau backend partagent la base, une sortie ou un voyage **modifié** par l'ancien garde sa fin précédente, non nulle, que le remplissage au démarrage (`PublicationEndBackfill`, lignes vides seulement) ne corrige pas ; seules les lignes **créées** par l'ancien profitent du repli départ + 3 h. Fenêtre d'une minute, corrigée au prochain enregistrement. À rouvrir si un déploiement long ou un retour arrière le rendait visible |
 | `API-54` | **exiftool pour retirer les métadonnées des images** | Écarté le 29 septembre 2026, après mesure sur un corpus synthétique (métadonnées marquées, pixels comparés) | exiftool (micro-service ou WASM) retire ce qu'il connaît au lieu de ne garder que ce qui est autorisé : il a laissé passer un chunk PNG privé et les octets après le trailer GIF, et refusé un WebP valide. Il ne nettoie pas les PDF, il a des CVE répétées (dont CVE-2026-7580, qui touche la 13.50) et il ajoute un conteneur. En WASM (zeroperl sur Chicory), sa sortie est identique mais il prend 17 à 19 s par image. imgproxy, écarté le même jour parce qu'il n'a pas de mode sans perte, a finalement été retenu : la perte d'un réencodage a été acceptée pour un code plus simple, qui ne laisse rien passer par construction et lit aussi HEIC, AVIF, TIFF et JPEG XL (`API-43`) |
 | `API-52` | **Durcir `ImageMetadataStripper`** | Sans objet depuis le 29 septembre 2026 | Le nettoyeur maison sans perte a été supprimé : le stockage fait réencoder chaque image par imgproxy (`API-43`), qui n'écrit que les pixels. Ne pas le réintroduire pour gagner la qualité perdue : c'est lui dont les branches gardaient par défaut ce qu'elles ne connaissaient pas |
 | `API-67` | **« Mes équipes » d'un admin de plateforme** | Comportement actuel gardé (décidé le 4 octobre 2026 avec le propriétaire) | `GET /api/teams?minRole=MEMBER` renvoie à un admin de plateforme toutes les équipes du domaine, qu'il voit donc toutes dans « Mes équipes » à l'accueil (web et mobile, `WEB-42`, `MOB-42`). Ne pas restreindre la requête à ses adhésions réelles sans rouvrir ce point |

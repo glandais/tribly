@@ -506,7 +506,7 @@ Les maquettes doivent donc puiser dans le jeu Tabler.
 | `IconArrowLeft` | Retour |
 
 **Icônes des sections d'équipe** (onglets de l'équipe, menu du fil d'Ariane ; décision du
-6 octobre 2026, ledger `BRAND-6`, plan [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md)
+6 octobre 2026, ledger `BRAND-6`, plan [`2026-10-06-team-agenda.md`](plans/archive/2026-10-06-team-agenda.md)
 §2). Ce sont les icônes des *sections* : toutes les pages perso partagent la même. Le mobile prend
 l'équivalent de chacune dans `PdlIcons`, jamais une icône Material choisie à part.
 

@@ -372,7 +372,7 @@ routes:
     mobile: true
     deeplink: true
   # The team's « Agenda » — its rides and trips, upcoming first — and its « Publications », the
-  # posts alone, newest first (docs/LEDGER_*.md WEB-68, plan docs/plans/2026-10-06-team-agenda.md
+  # posts alone, newest first (docs/LEDGER_*.md WEB-68, plan docs/plans/archive/2026-10-06-team-agenda.md
   # §5). The agenda is the ancestor of a ride's and a trip's page, the posts list of a post's:
   # `articles`, not `publications`, because it is the parent of the existing post addresses — the
   # lexicon rules the displayed text, not the URLs. `teamCalendar` above is the agenda's calendar

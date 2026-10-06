@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * When a ride or a trip is over — the one place that says it (docs/LEDGER_*.md API-85, plan {@code
- * docs/plans/2026-10-06-team-agenda.md} §3.1).
+ * docs/plans/archive/2026-10-06-team-agenda.md} §3.1).
  *
  * <ul>
  *   <li><b>Ride</b>: the latest of its groups, each one its departure ({@code RideGroup.time} read

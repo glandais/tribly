@@ -1,6 +1,8 @@
 # Agenda et Publications — la page d'équipe découpée par temporalité
 
 Écrit le 6 octobre 2026. Ledger `API-85`, `API-86`, `WEB-68`, `WEB-69`, `MOB-60`, `BRAND-6`.
+**Exécuté** le 6 octobre 2026 et archivé ; les restes sont `API-87`, `API-88`, `MOB-61` et
+`API-89` (écarté) au ledger.
 
 ## 1. Ce qui ne va pas aujourd'hui
 

@@ -509,7 +509,7 @@ export const routesConfig: RoutesConfig = [
     meta: teamDetailMeta,
   },
   // « Agenda » — the team's rides and trips, upcoming first — and « Publications », its posts,
-  // newest first (ledger WEB-68, plan docs/plans/2026-10-06-team-agenda.md). A ride's and a trip's
+  // newest first (ledger WEB-68, plan docs/plans/archive/2026-10-06-team-agenda.md). A ride's and a trip's
   // page hang under the agenda, a post's under the posts.
   {
     id: 'team-agenda',
