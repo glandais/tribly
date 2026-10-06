@@ -391,15 +391,6 @@ sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` u
       contrainte `…_check` aux valeurs de l'enum Java correspondant (`AuthTokenType`, `AssetType`,
       `service_type`, `platform_role`, `visibility`, `status`…) supprimerait cette classe de défaut.
 
-### Agenda d'équipe
-
-Plan [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md) §3.
-
-- [ ] `API-86` **Le tableau de bord d'équipe ouvert aux visiteurs, en partie publique (S)** —
-      `TeamDashboardService` répond 403 à un non-membre (`role == null`), ce qui laisse au fil la
-      seule raison d'exister. Prochaines sorties, dernières publications, nouveaux parcours, sous
-      les règles de visibilité habituelles ; relecture `security-reviewer` avant livraison.
-
 ### Météo : ce qui suit `API-74`
 
 La météo des **sorties** est livrée (`API-74`, `WEB-60`, `MOB-51`, contrat `10.9.0`), celle des
