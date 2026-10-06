@@ -182,15 +182,6 @@ navigateur), et la connexion par code e-mailé (la préférence de fuseau existe
         `profile.passkeys.enabled` / `notConfigured` / `replace`,
         `notifications.preferences.inAppAlwaysOn`.
 
-### Tableau de bord d'équipe
-
-- `MOB-54` **Adresses du site écrites à la main dans `team_web_paths.dart`** — les actions du
-  tableau de bord (`MOB-53`) ouvrent des chemins anglais du site (`/teams/{slug}/rides/new`,
-  `…/admin/members?invite=1`…) écrits à la main, hors de `contracts/routes.yaml` : un renommage de
-  route côté web les casse sans que rien ne le signale, et le navigateur intégré peut redemander la
-  connexion. Les générer depuis `routes.yaml` (`paths.generated.dart` porte déjà les routes
-  `mobile`/`deeplink`) ou y déclarer ces routes. Taille S.
-
 ---
 
 ## WEB — Site web

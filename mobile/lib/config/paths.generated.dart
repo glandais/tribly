@@ -273,12 +273,66 @@ class Paths {
     }
   }
 
+  static String teamAdminMembers(String teamSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/admin/membres';
+      default:
+        return '/teams/$teamSlug/admin/members';
+    }
+  }
+
+  static String teamAdminReports(String teamSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/admin/signalements';
+      default:
+        return '/teams/$teamSlug/admin/reports';
+    }
+  }
+
+  static String teamSettings(String teamSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/admin/parametres';
+      default:
+        return '/teams/$teamSlug/admin/settings';
+    }
+  }
+
+  static String rideNew(String teamSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/sorties/nouvelle';
+      default:
+        return '/teams/$teamSlug/rides/new';
+    }
+  }
+
   static String ride(String teamSlug, String rideSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
         return '/equipes/$teamSlug/sorties/$rideSlug';
       default:
         return '/teams/$teamSlug/rides/$rideSlug';
+    }
+  }
+
+  static String rideEdit(String teamSlug, String rideSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/sorties/$rideSlug/modifier';
+      default:
+        return '/teams/$teamSlug/rides/$rideSlug/edit';
+    }
+  }
+
+  static String rideTemplates(String teamSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/admin/modeles-sortie';
+      default:
+        return '/teams/$teamSlug/admin/ride-templates';
     }
   }
 
@@ -291,6 +345,15 @@ class Paths {
     }
   }
 
+  static String tripEdit(String teamSlug, String tripSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/voyages/$tripSlug/modifier';
+      default:
+        return '/teams/$teamSlug/trips/$tripSlug/edit';
+    }
+  }
+
   static String stage(String teamSlug, String tripSlug, String stageSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -300,12 +363,30 @@ class Paths {
     }
   }
 
+  static String postNew(String teamSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/articles/nouveau';
+      default:
+        return '/teams/$teamSlug/posts/new';
+    }
+  }
+
   static String post(String teamSlug, String postSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
         return '/equipes/$teamSlug/articles/$postSlug';
       default:
         return '/teams/$teamSlug/posts/$postSlug';
+    }
+  }
+
+  static String postEdit(String teamSlug, String postSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/articles/$postSlug/modifier';
+      default:
+        return '/teams/$teamSlug/posts/$postSlug/edit';
     }
   }
 
@@ -468,13 +549,41 @@ class PathVariants {
     'en': '/teams/$teamSlug/pages/$pageSlug',
     'fr': '/equipes/$teamSlug/pages/$pageSlug',
   };
+  static Map<String, String> teamAdminMembers(String teamSlug) => {
+    'en': '/teams/$teamSlug/admin/members',
+    'fr': '/equipes/$teamSlug/admin/membres',
+  };
+  static Map<String, String> teamAdminReports(String teamSlug) => {
+    'en': '/teams/$teamSlug/admin/reports',
+    'fr': '/equipes/$teamSlug/admin/signalements',
+  };
+  static Map<String, String> teamSettings(String teamSlug) => {
+    'en': '/teams/$teamSlug/admin/settings',
+    'fr': '/equipes/$teamSlug/admin/parametres',
+  };
+  static Map<String, String> rideNew(String teamSlug) => {
+    'en': '/teams/$teamSlug/rides/new',
+    'fr': '/equipes/$teamSlug/sorties/nouvelle',
+  };
   static Map<String, String> ride(String teamSlug, String rideSlug) => {
     'en': '/teams/$teamSlug/rides/$rideSlug',
     'fr': '/equipes/$teamSlug/sorties/$rideSlug',
   };
+  static Map<String, String> rideEdit(String teamSlug, String rideSlug) => {
+    'en': '/teams/$teamSlug/rides/$rideSlug/edit',
+    'fr': '/equipes/$teamSlug/sorties/$rideSlug/modifier',
+  };
+  static Map<String, String> rideTemplates(String teamSlug) => {
+    'en': '/teams/$teamSlug/admin/ride-templates',
+    'fr': '/equipes/$teamSlug/admin/modeles-sortie',
+  };
   static Map<String, String> trip(String teamSlug, String tripSlug) => {
     'en': '/teams/$teamSlug/trips/$tripSlug',
     'fr': '/equipes/$teamSlug/voyages/$tripSlug',
+  };
+  static Map<String, String> tripEdit(String teamSlug, String tripSlug) => {
+    'en': '/teams/$teamSlug/trips/$tripSlug/edit',
+    'fr': '/equipes/$teamSlug/voyages/$tripSlug/modifier',
   };
   static Map<String, String> stage(
     String teamSlug,
@@ -484,9 +593,17 @@ class PathVariants {
     'en': '/teams/$teamSlug/trips/$tripSlug/stages/$stageSlug',
     'fr': '/equipes/$teamSlug/voyages/$tripSlug/etapes/$stageSlug',
   };
+  static Map<String, String> postNew(String teamSlug) => {
+    'en': '/teams/$teamSlug/posts/new',
+    'fr': '/equipes/$teamSlug/articles/nouveau',
+  };
   static Map<String, String> post(String teamSlug, String postSlug) => {
     'en': '/teams/$teamSlug/posts/$postSlug',
     'fr': '/equipes/$teamSlug/articles/$postSlug',
+  };
+  static Map<String, String> postEdit(String teamSlug, String postSlug) => {
+    'en': '/teams/$teamSlug/posts/$postSlug/edit',
+    'fr': '/equipes/$teamSlug/articles/$postSlug/modifier',
   };
   static Map<String, String> routes(String teamSlug) => {
     'en': '/teams/$teamSlug/routes',
@@ -505,3 +622,18 @@ class PathVariants {
     'fr': '/equipes/$teamSlug/annonces/$adSlug',
   };
 }
+
+/// Builders of [PathVariants] for pages of the **site** the app has no screen
+/// for (`appScreen: false`): their path only serves to open them in a browser.
+const Set<String> webOnlyRouteIds = <String>{
+  'features',
+  'teamAdminMembers',
+  'teamAdminReports',
+  'teamSettings',
+  'rideNew',
+  'rideEdit',
+  'rideTemplates',
+  'tripEdit',
+  'postNew',
+  'postEdit',
+};

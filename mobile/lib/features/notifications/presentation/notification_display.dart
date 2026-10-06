@@ -117,11 +117,11 @@ extension NotificationDisplay on NotificationDto {
   /// d'écran pour elle — `null` sinon.
   ///
   /// Un signalement se décide dans la file de l'équipe, qui n'existe que sur
-  /// le web : c'est le lien même que le serveur met dans le push. Son chemin
-  /// est celui de la route `teamAdminReports`, qui n'est pas générée côté
-  /// mobile puisqu'elle est `web` seulement.
+  /// le web : c'est le lien même que le serveur met dans le push. La route
+  /// `teamAdminReports` est `appScreen: false` dans `contracts/routes.yaml` :
+  /// son chemin est généré côté mobile, sans écran derrière.
   String? webPath() => switch (subjectTypeEnum) {
-    NotificationSubjectType.report => '/teams/$teamSlug/admin/reports',
+    NotificationSubjectType.report => Paths.teamAdminReports(teamSlug),
     _ => null,
   };
 }

@@ -224,7 +224,8 @@ void main() {
     // La file n'existe que sur le web : pas de route interne, une page du
     // site — celle que le serveur met dans le push.
     expect(reported.path(), isNull);
-    expect(reported.webPath(), '/teams/gaby/admin/reports');
+    // Dans la langue de l'app (route `teamAdminReports`, MOB-54).
+    expect(reported.webPath(), '/equipes/gaby/admin/signalements');
     expect(_notification().webPath(), isNull);
   });
 

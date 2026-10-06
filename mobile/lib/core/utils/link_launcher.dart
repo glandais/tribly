@@ -103,12 +103,12 @@ final Map<String, List<String>> internalRouteTemplates = <String, List<String>>{
   'ad': PathVariants.ad(_slot, _slot).values.toList(),
 };
 
-/// Les entrées de `PathVariants` qui n'ont **pas** d'écran dans l'app : des
-/// pages du site seulement, dont le chemin n'est généré côté Dart que pour
-/// les ouvrir dans le navigateur (`openWebPage`). Un lien vers l'une d'elles
-/// part donc dehors, et c'est voulu — la pousser sur le routeur mènerait à
-/// une route inconnue.
-const Set<String> webOnlyRouteIds = <String>{'features'};
+// Les entrées de `PathVariants` qui n'ont **pas** d'écran dans l'app sont
+// absentes de la table ci-dessus : `webOnlyRouteIds`, généré depuis les routes
+// `appScreen: false` de `contracts/routes.yaml`. Des pages du site seulement,
+// dont le chemin n'existe côté Dart que pour les ouvrir dans le navigateur
+// (`openWebPage`) — un lien vers l'une d'elles part donc dehors, et c'est
+// voulu : la pousser sur le routeur mènerait à une route inconnue.
 
 /// Les motifs compilés. `final` de haut niveau : construits à la première
 /// résolution de lien, jamais à chaque tap.

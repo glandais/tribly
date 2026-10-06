@@ -55,10 +55,23 @@ function loadRoutes() {
       web: route.web !== false,
       mobile: route.mobile === true,
       mobileName: route.mobileName ?? route.id,
+      appScreen: route.appScreen !== false,
       deeplink: route.deeplink === true,
       webFallback: route.webFallback ?? null,
     }
     if (!normalized.id) throw new Error(`route is missing id: ${JSON.stringify(route)}`)
+    if (!normalized.appScreen) {
+      if (!normalized.mobile || !normalized.web) {
+        throw new Error(
+          `route ${normalized.id}: appScreen: false only applies to a web route with mobile: true`
+        )
+      }
+      if (normalized.deeplink) {
+        throw new Error(
+          `route ${normalized.id}: appScreen: false cannot be a deeplink — the app has no screen to open`
+        )
+      }
+    }
     if (!normalized.path?.[DEFAULT_LOCALE]) {
       throw new Error(`route ${normalized.id} is missing path.${DEFAULT_LOCALE}`)
     }
@@ -299,6 +312,15 @@ function generatePathsDart(routes) {
     )
   }
   lines.push('}')
+  lines.push('')
+  lines.push('/// Builders of [PathVariants] for pages of the **site** the app has no screen')
+  lines.push('/// for (`appScreen: false`): their path only serves to open them in a browser.')
+  lines.push('const Set<String> webOnlyRouteIds = <String>{')
+  for (const route of routes) {
+    if (!route.mobile || route.appScreen) continue
+    lines.push(`  '${route.mobileName}',`)
+  }
+  lines.push('};')
   lines.push('')
   return lines.join('\n')
 }

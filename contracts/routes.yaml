@@ -13,6 +13,10 @@
 #   web:        emit a builder in paths.generated.ts (default: true)
 #   mobile:     emit a builder in paths.generated.dart (default: false)
 #   mobileName: optional override for the mobile builder name (default: id)
+#   appScreen:  false for a web route with `mobile: true` the app has no screen for — the Dart
+#               builder only serves to open the page in a browser (`openWebPage`), and its name is
+#               listed in `webOnlyRouteIds` so the app's link resolver never pushes it on its
+#               router (default: true). Cannot be combined with `deeplink: true`.
 #   deeplink:   register this path in AASA + AndroidManifest (default: false)
 #   webFallback: for a deeplink with web: false, the id of the web route a browser is redirected
 #               to — the universal link reaches the web whenever the app is not installed, and
@@ -127,14 +131,15 @@ routes:
     deeplink: true
 
   # --- Features ---
-  # Marketing page, web only. `mobile: true` only emits the Dart path builder: the app's sign-in
-  # screen opens this page in a browser. No deeplink — the app has no such screen.
+  # Marketing page, web only. `mobile: true` + `appScreen: false` only emit the Dart path builder:
+  # the app's sign-in screen opens this page in a browser. No deeplink — the app has no such screen.
   - id: features
     path:
       en: /features
       fr: /fonctionnalites
     web: true
     mobile: true
+    appScreen: false
 
   # --- Legal ---
   - id: privacy
@@ -453,6 +458,8 @@ routes:
       - teamSlug
       - pageSlug
     web: true
+  # `mobile: true` + `appScreen: false` on the organizer's pages below: the app's team dashboard
+  # opens them on the site (mobile/…/team_web_paths.dart, docs/LEDGER_*.md MOB-54).
   - id: teamAdminMembers
     path:
       en: /teams/{teamSlug}/admin/members
@@ -460,6 +467,8 @@ routes:
     params:
       - teamSlug
     web: true
+    mobile: true
+    appScreen: false
   - id: teamAdminReports
     path:
       en: /teams/{teamSlug}/admin/reports
@@ -467,6 +476,8 @@ routes:
     params:
       - teamSlug
     web: true
+    mobile: true
+    appScreen: false
   - id: teamSettings
     path:
       en: /teams/{teamSlug}/admin/settings
@@ -474,8 +485,12 @@ routes:
     params:
       - teamSlug
     web: true
+    mobile: true
+    appScreen: false
 
   # --- Rides ---
+  # `mobile: true` + `appScreen: false` on the organizer's pages below: the app's team dashboard
+  # opens them on the site (mobile/…/team_web_paths.dart, docs/LEDGER_*.md MOB-54).
   - id: rideNew
     path:
       en: /teams/{teamSlug}/rides/new
@@ -483,6 +498,8 @@ routes:
     params:
       - teamSlug
     web: true
+    mobile: true
+    appScreen: false
   - id: ride
     path:
       en: /teams/{teamSlug}/rides/{rideSlug}
@@ -501,6 +518,8 @@ routes:
       - teamSlug
       - rideSlug
     web: true
+    mobile: true
+    appScreen: false
 
   # --- Ride templates ---
   - id: rideTemplates
@@ -510,6 +529,8 @@ routes:
     params:
       - teamSlug
     web: true
+    mobile: true
+    appScreen: false
   - id: rideTemplateNew
     path:
       en: /teams/{teamSlug}/admin/ride-templates/new
@@ -552,6 +573,8 @@ routes:
       - teamSlug
       - tripSlug
     web: true
+    mobile: true
+    appScreen: false
   - id: stage
     path:
       en: /teams/{teamSlug}/trips/{tripSlug}/stages/{stageSlug}
@@ -581,6 +604,8 @@ routes:
     params:
       - teamSlug
     web: true
+    mobile: true
+    appScreen: false
   - id: post
     path:
       en: /teams/{teamSlug}/posts/{postSlug}
@@ -599,6 +624,8 @@ routes:
       - teamSlug
       - postSlug
     web: true
+    mobile: true
+    appScreen: false
 
   # --- Team routes (GPX) ---
   - id: routes
