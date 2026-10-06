@@ -116,6 +116,13 @@ abstract final class PdlMetrics {
   /// Barre de places.
   static const double seatsBar = 6;
 
+  /// Hauteur de la barre de segments (`PdlSegmentBar`) : vent le long du
+  /// parcours, exposition au vent.
+  static const double segmentBar = 8;
+
+  /// Taille par défaut de la flèche de vent (`PdlWindArrow`).
+  static const double windArrow = 18;
+
   /// Rail d'étapes collant.
   static const double stageRail = 64;
 }

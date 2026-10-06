@@ -50,6 +50,20 @@ export function formatSpeed(kmh: number, unitSystem: UnitSystem): string {
   return Math.round(kmh * config.speedMultiplier).toString()
 }
 
+/**
+ * A temperature from the API (always °C) in the reader's unit system, rounded to the degree:
+ * °F for IMPERIAL. Degrees are shown whole — a forecast is not precise to the tenth.
+ */
+export function temperatureToDisplay(celsius: number, unitSystem: UnitSystem): number {
+  const value = unitSystem === 'IMPERIAL' ? (celsius * 9) / 5 + 32 : celsius
+  // `+ 0` folds -0 into 0: « -0 °C » reads as a bug.
+  return Math.round(value) + 0
+}
+
+export function formatTemperature(celsius: number, unitSystem: UnitSystem): string {
+  return temperatureToDisplay(celsius, unitSystem).toString()
+}
+
 // Round to avoid floating-point precision issues (e.g., 25.000000000000004)
 function round(value: number, decimals: number = 2): number {
   const factor = Math.pow(10, decimals)

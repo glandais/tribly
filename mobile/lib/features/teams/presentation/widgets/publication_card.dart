@@ -15,6 +15,7 @@ import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/deleted_badge.dart';
 import '../../../posts/domain/post_neighbours.dart';
+import '../../../rides/presentation/widgets/ride_weather_summary_line.dart';
 import '../../../rides/providers/participation_changes.dart';
 import '../../../tags/presentation/content_tags.dart';
 import '../../../../core/utils/push_location.dart';
@@ -103,6 +104,7 @@ class _CardShell extends StatelessWidget {
     this.social,
     this.stats = const <PdlStat>[],
     this.tags = const <TagDto>[],
+    this.footer,
   });
 
   final VoidCallback onTap;
@@ -130,6 +132,9 @@ class _CardShell extends StatelessWidget {
   /// `MOB-39`). Sous le titre : ils disent *de quoi* parle le contenu, comme
   /// l'extrait, et non *où il en est*, qui est l'affaire des badges.
   final List<TagDto> tags;
+
+  /// Une dernière ligne sous les statistiques — la météo d'une sortie.
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -216,6 +221,10 @@ class _CardShell extends StatelessWidget {
                 if (stats.isNotEmpty) ...<Widget>[
                   const SizedBox(height: PdlSpacing.cardTight),
                   PdlStatRow(stats: stats),
+                ],
+                if (footer != null) ...<Widget>[
+                  const SizedBox(height: PdlSpacing.chipGap),
+                  footer!,
                 ],
               ],
             ),
@@ -324,6 +333,18 @@ class _RideBody extends ConsumerWidget {
         people: ride.topParticipants,
         count: ride.participantCount,
       ),
+      footer:
+          RideWeatherSummaryLine.shows(
+            ride.weather,
+            finished: isPast,
+            cancelled: ride.status == 'CANCELLED',
+          )
+          ? RideWeatherSummaryLine(
+              summary: ride.weather,
+              finished: isPast,
+              cancelled: ride.status == 'CANCELLED',
+            )
+          : null,
       stats: <PdlStat>[
         if (at != null)
           PdlStat(value: AppFormatters.formatRideDate(at), icon: PdlIcons.date),

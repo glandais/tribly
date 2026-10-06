@@ -1069,6 +1069,126 @@ export const ListMyParticipationsResponse = zod
                   .describe(
                     "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
                   ),
+                weather: zod
+                  .object({
+                    status: zod
+                      .enum([
+                        'OK',
+                        'STALE',
+                        'NOT_YET_AVAILABLE',
+                        'UNAVAILABLE',
+                        'NO_LOCATION',
+                        'OUT_OF_RANGE',
+                      ])
+                      .describe('OK, STALE or NOT_YET_AVAILABLE'),
+                    availableFrom: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe(
+                        'For NOT_YET_AVAILABLE: when the forecast opens, seven days before the departure'
+                      ),
+                    weatherCode: zod.int().optional().describe('WMO code at the departure hour'),
+                    condition: zod
+                      .enum([
+                        'CLEAR',
+                        'MOSTLY_CLEAR',
+                        'PARTLY_CLOUDY',
+                        'OVERCAST',
+                        'FOG',
+                        'DRIZZLE',
+                        'RAIN',
+                        'HEAVY_RAIN',
+                        'FREEZING_RAIN',
+                        'SHOWERS',
+                        'SNOW',
+                        'THUNDERSTORM',
+                      ])
+                      .optional()
+                      .describe(
+                        'weatherCode folded into a condition, same table as WeatherConditionsDto.condition'
+                      ),
+                    daylight: zod
+                      .boolean()
+                      .optional()
+                      .describe('Whether the departure hour is between sunrise and sunset'),
+                    temperature: zod
+                      .number()
+                      .optional()
+                      .describe('Air temperature at the departure hour, °C'),
+                    temperatureMin: zod
+                      .number()
+                      .optional()
+                      .describe('Lowest temperature over the window, °C'),
+                    temperatureMax: zod
+                      .number()
+                      .optional()
+                      .describe('Highest temperature over the window, °C'),
+                    maxPrecipitationProbability: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Highest probability of precipitation over the window, %. Absent when the model gives none.'
+                      ),
+                    wind: zod
+                      .object({
+                        speed: zod.number().describe('Mean wind speed, km/h'),
+                        gusts: zod
+                          .number()
+                          .optional()
+                          .describe('Gusts, km/h. Absent when the model gives none.'),
+                        direction: zod
+                          .number()
+                          .describe(
+                            'Direction the wind comes FROM, degrees clockwise from north (0 = from the north, 90 = from the east)'
+                          ),
+                        compass: zod
+                          .enum(['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'])
+                          .describe(
+                            'direction on the eight-point rose, still the direction the wind comes FROM'
+                          ),
+                      })
+                      .optional()
+                      .describe('Wind at the departure hour'),
+                    rainAlert: zod
+                      .object({
+                        probability: zod
+                          .int()
+                          .describe('Probability of precipitation then, % (0–100)'),
+                        time: zod.iso
+                          .datetime({ offset: true })
+                          .describe('When — the passage at the checkpoint, or the hour'),
+                        distance: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            "Where, metres from the start of the leg. Absent in a ride's summary, which only knows the departure point."
+                          ),
+                        condition: zod
+                          .enum([
+                            'CLEAR',
+                            'MOSTLY_CLEAR',
+                            'PARTLY_CLOUDY',
+                            'OVERCAST',
+                            'FOG',
+                            'DRIZZLE',
+                            'RAIN',
+                            'HEAVY_RAIN',
+                            'FREEZING_RAIN',
+                            'SHOWERS',
+                            'SNOW',
+                            'THUNDERSTORM',
+                          ])
+                          .describe('The condition forecast then'),
+                      })
+                      .optional()
+                      .describe(
+                        'The first hour of the window with rain likely (50 % or more); its distance is always absent here'
+                      ),
+                  })
+                  .optional()
+                  .describe(
+                    'The weather line of a card: the meeting point, over the window from the departure to the estimated arrival of the last group. Absent when there is nothing to show — finished or cancelled ride, no place, forecast not in cache yet; present only with status OK, STALE or NOT_YET_AVAILABLE. The full forecast is getRideWeather.'
+                  ),
               })
               .describe('Ride summary data'),
             zod
@@ -3005,6 +3125,129 @@ export const GetMyProfileSummaryResponse = zod
                       )
                       .describe(
                         "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
+                      ),
+                    weather: zod
+                      .object({
+                        status: zod
+                          .enum([
+                            'OK',
+                            'STALE',
+                            'NOT_YET_AVAILABLE',
+                            'UNAVAILABLE',
+                            'NO_LOCATION',
+                            'OUT_OF_RANGE',
+                          ])
+                          .describe('OK, STALE or NOT_YET_AVAILABLE'),
+                        availableFrom: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe(
+                            'For NOT_YET_AVAILABLE: when the forecast opens, seven days before the departure'
+                          ),
+                        weatherCode: zod
+                          .int()
+                          .optional()
+                          .describe('WMO code at the departure hour'),
+                        condition: zod
+                          .enum([
+                            'CLEAR',
+                            'MOSTLY_CLEAR',
+                            'PARTLY_CLOUDY',
+                            'OVERCAST',
+                            'FOG',
+                            'DRIZZLE',
+                            'RAIN',
+                            'HEAVY_RAIN',
+                            'FREEZING_RAIN',
+                            'SHOWERS',
+                            'SNOW',
+                            'THUNDERSTORM',
+                          ])
+                          .optional()
+                          .describe(
+                            'weatherCode folded into a condition, same table as WeatherConditionsDto.condition'
+                          ),
+                        daylight: zod
+                          .boolean()
+                          .optional()
+                          .describe('Whether the departure hour is between sunrise and sunset'),
+                        temperature: zod
+                          .number()
+                          .optional()
+                          .describe('Air temperature at the departure hour, °C'),
+                        temperatureMin: zod
+                          .number()
+                          .optional()
+                          .describe('Lowest temperature over the window, °C'),
+                        temperatureMax: zod
+                          .number()
+                          .optional()
+                          .describe('Highest temperature over the window, °C'),
+                        maxPrecipitationProbability: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Highest probability of precipitation over the window, %. Absent when the model gives none.'
+                          ),
+                        wind: zod
+                          .object({
+                            speed: zod.number().describe('Mean wind speed, km/h'),
+                            gusts: zod
+                              .number()
+                              .optional()
+                              .describe('Gusts, km/h. Absent when the model gives none.'),
+                            direction: zod
+                              .number()
+                              .describe(
+                                'Direction the wind comes FROM, degrees clockwise from north (0 = from the north, 90 = from the east)'
+                              ),
+                            compass: zod
+                              .enum(['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'])
+                              .describe(
+                                'direction on the eight-point rose, still the direction the wind comes FROM'
+                              ),
+                          })
+                          .optional()
+                          .describe('Wind at the departure hour'),
+                        rainAlert: zod
+                          .object({
+                            probability: zod
+                              .int()
+                              .describe('Probability of precipitation then, % (0–100)'),
+                            time: zod.iso
+                              .datetime({ offset: true })
+                              .describe('When — the passage at the checkpoint, or the hour'),
+                            distance: zod
+                              .number()
+                              .optional()
+                              .describe(
+                                "Where, metres from the start of the leg. Absent in a ride's summary, which only knows the departure point."
+                              ),
+                            condition: zod
+                              .enum([
+                                'CLEAR',
+                                'MOSTLY_CLEAR',
+                                'PARTLY_CLOUDY',
+                                'OVERCAST',
+                                'FOG',
+                                'DRIZZLE',
+                                'RAIN',
+                                'HEAVY_RAIN',
+                                'FREEZING_RAIN',
+                                'SHOWERS',
+                                'SNOW',
+                                'THUNDERSTORM',
+                              ])
+                              .describe('The condition forecast then'),
+                          })
+                          .optional()
+                          .describe(
+                            'The first hour of the window with rain likely (50 % or more); its distance is always absent here'
+                          ),
+                      })
+                      .optional()
+                      .describe(
+                        'The weather line of a card: the meeting point, over the window from the departure to the estimated arrival of the last group. Absent when there is nothing to show — finished or cancelled ride, no place, forecast not in cache yet; present only with status OK, STALE or NOT_YET_AVAILABLE. The full forecast is getRideWeather.'
                       ),
                   })
                   .describe('Ride summary data'),

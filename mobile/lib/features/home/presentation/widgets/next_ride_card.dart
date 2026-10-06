@@ -16,6 +16,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../rides/presentation/widgets/ride_weather_summary_line.dart';
 import '../../../rides/providers/ride_detail_provider.dart';
 import '../../../routes/presentation/route_export.dart';
 import '../../providers/next_ride_leave_controller.dart';
@@ -145,6 +146,18 @@ class NextRideCard extends ConsumerWidget {
                     ..._facts(context, c, t, at),
                     const SizedBox(height: PdlSpacing.cardTight),
                     _stats(units),
+                    if (RideWeatherSummaryLine.shows(
+                      ride.weather,
+                      finished: ride.isPast,
+                      cancelled: ride.isCancelled,
+                    )) ...<Widget>[
+                      const SizedBox(height: PdlSpacing.chipGap),
+                      RideWeatherSummaryLine(
+                        summary: ride.weather,
+                        finished: ride.isPast,
+                        cancelled: ride.isCancelled,
+                      ),
+                    ],
                     if (group != null) ...<Widget>[
                       const SizedBox(height: PdlSpacing.cardTight),
                       _seats(context, c, t, group!),

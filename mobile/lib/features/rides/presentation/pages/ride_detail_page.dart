@@ -26,9 +26,11 @@ import '../../../tags/presentation/content_tags.dart';
 import '../../providers/ride_detail_provider.dart';
 import '../../providers/ride_group_selection_provider.dart';
 import '../../providers/ride_registration_controller.dart';
+import '../../providers/ride_weather_provider.dart';
 import '../widgets/ride_elevation_section.dart';
 import '../widgets/ride_groups_map.dart';
 import '../widgets/ride_groups_section.dart';
+import '../widgets/ride_weather_card.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
 import '../../../../keys.dart';
 import '../../../../core/utils/push_location.dart';
@@ -94,6 +96,18 @@ class _RideDetailContent extends ConsumerWidget {
         ref.read(selectedRideGroupProvider(rideKey).notifier).state = id;
 
     return PdlScreenScaffold(
+      // Le détail **et** la météo : la prévision vit dans son propre provider,
+      // et un rafraîchissement qui ne la reprendrait pas laisserait une carte
+      // périmée sous un détail frais.
+      onRefresh: () async {
+        ref.invalidate(rideDetailProvider(rideKey));
+        ref.invalidate(rideWeatherProvider(rideKey));
+        try {
+          await ref.read(rideDetailProvider(rideKey).future);
+        } catch (_) {
+          // L'échec se rend par l'état d'erreur de l'écran.
+        }
+      },
       appBar: PdlAppBar(
         // Pas de titre : le corps le porte déjà en 22/700, juste dessous,
         // avec sa ligne d'équipe et ses badges. Le répéter en 17 dans la
@@ -153,6 +167,15 @@ class _RideDetailContent extends ConsumerWidget {
             ),
           ),
         SliverToBoxAdapter(child: _meta(context)),
+        // La météo du départ et du groupe sélectionné, sous les faits qui
+        // décident si l'on y va (date, lieu) et avant la carte.
+        SliverToBoxAdapter(
+          child: RideWeatherCard(
+            rideKey: rideKey,
+            ride: ride,
+            selectedGroupId: selected,
+          ),
+        ),
         SliverToBoxAdapter(
           child: _mapAndProfile(context, ref, selected, select),
         ),

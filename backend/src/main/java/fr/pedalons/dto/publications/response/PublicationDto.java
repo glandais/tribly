@@ -16,6 +16,7 @@ import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
+import fr.pedalons.service.weather.RideWeatherSummaries;
 import org.eclipse.microprofile.openapi.annotations.media.DiscriminatorMapping;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -66,6 +67,8 @@ public interface PublicationDto {
    *     they are present either way.
    * @param postAuthors who wrote each post of the page the caller may know of, loaded in bulk
    * @param tags the tags of every row of the page, loaded in bulk by {@code TagLookup}
+   * @param rideWeather the weather line of every ride of the page, loaded in at most one query by
+   *     {@code RideWeatherLookup}
    */
   static PublicationDto from(
       Publication publication,
@@ -75,6 +78,7 @@ public interface PublicationDto {
       CommentCounts commentCounts,
       PostAuthors postAuthors,
       ContentTags tags,
+      RideWeatherSummaries rideWeather,
       @Nullable ListViewMode view) {
     return switch (publication) {
       case Post post -> PostDto.from(post, assetService, commentCounts, postAuthors, tags, view);
@@ -86,6 +90,7 @@ public interface PublicationDto {
               participations,
               commentCounts,
               tags,
+              rideWeather,
               view);
       case Trip trip ->
           TripDto.fromListItem(

@@ -1,7 +1,14 @@
 import { useMemo } from 'react'
 import type { QueryClient } from '@tanstack/react-query'
 import { useGetTeam, prefetchGetTeamQuery } from '@/api/endpoints/teams/teams'
-import { useGetRide, prefetchGetRideQuery, getGetRideQueryKey } from '@/api/endpoints/rides/rides'
+import {
+  useGetRide,
+  prefetchGetRideQuery,
+  getGetRideQueryKey,
+  useGetRideWeather,
+  prefetchGetRideWeatherQuery,
+  getGetRideWeatherQueryKey,
+} from '@/api/endpoints/rides/rides'
 import {
   listRideComments,
   getListRideCommentsQueryKey,
@@ -45,6 +52,25 @@ export function rideRouteSlugs(ride: RideDto | undefined): string[] {
 }
 
 /**
+ * The weather's request options, one object for the hook and the prefetch. No toast: the block
+ * says « unavailable, retry » in place, and a failing forecast must not shout over the ride.
+ */
+const WEATHER_REQUEST = { skipErrorToast: true } as const
+
+/**
+ * After the ride changes (time, groups, route, status), its forecast reads different passages:
+ * the weather is its own query key (`…/weather` is not a prefix match of the ride's), so it is
+ * invalidated explicitly, next to the ride.
+ */
+export function invalidateRideWeather(
+  queryClient: QueryClient,
+  teamSlug: string,
+  rideSlug: string
+): Promise<void> {
+  return queryClient.invalidateQueries({ queryKey: getGetRideWeatherQueryKey(teamSlug, rideSlug) })
+}
+
+/**
  * Every query `RideDetailPage` itself owns, returned as the raw query results so the page keeps
  * using `.data` / `.isLoading` / `.error` / `.refetch` directly in its `QueryStateBoundary`.
  *
@@ -55,6 +81,14 @@ export function useRideDetailData(teamSlug?: string, rideSlug?: string) {
   const team = useGetTeam(teamSlug!, { query: { enabled: !!teamSlug } })
   const ride = useGetRide(teamSlug!, rideSlug!, {
     query: { enabled: !!teamSlug && !!rideSlug },
+  })
+
+  // Independent of the ride: same slugs, so it starts with it (and is prefetched in phase 1).
+  // Fetched even for a ride that turns out finished or cancelled — the server answers
+  // OUT_OF_RANGE without reading anything, and gating on the ride would split the waterfall.
+  const weather = useGetRideWeather(teamSlug!, rideSlug!, {
+    query: { enabled: !!teamSlug && !!rideSlug },
+    request: WEATHER_REQUEST,
   })
 
   // Memoized on the slugs' own values, so the request stays stable across unrelated renders.
@@ -74,12 +108,14 @@ export function useRideDetailData(teamSlug?: string, rideSlug?: string) {
     return map
   }, [routes.data])
 
-  return { team, ride, routes, routesBySlug }
+  return { team, ride, weather, routes, routesBySlug }
 }
 
 /**
  * Server-side counterpart of {@link useRideDetailData}, in two phases: the routes bulk needs the
- * ride's groups, which only exist once the ride query has resolved into the cache.
+ * ride's groups, which only exist once the ride query has resolved into the cache. The weather
+ * only needs the slugs, so it rides in the first phase — the endpoint reads the server's cache and
+ * never calls the provider (docs/plans/2026-10-05-weather.md §1), so prefetching it is safe.
  *
  * It covers more than the hook does, on purpose: comments and GPS services are fetched by children
  * the page mounts (`CommentSection`, the export menu), not by the page itself — both conditional,
@@ -93,6 +129,7 @@ export async function prefetchRideDetail(
   await Promise.all([
     prefetchGetTeamQuery(queryClient, teamSlug),
     prefetchGetRideQuery(queryClient, teamSlug, rideSlug),
+    prefetchGetRideWeatherQuery(queryClient, teamSlug, rideSlug, { request: WEATHER_REQUEST }),
   ])
 
   const ride = queryClient.getQueryData<RideDto>(getGetRideQueryKey(teamSlug, rideSlug))

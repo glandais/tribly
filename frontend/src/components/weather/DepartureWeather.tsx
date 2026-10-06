@@ -1,0 +1,111 @@
+import { useTranslation } from 'react-i18next'
+import { Group, Stack, Text } from '@mantine/core'
+import { IconDroplet, IconSunrise, IconSunset, IconWind } from '@tabler/icons-react'
+import type { DepartureWeatherDto } from '@/api/dto'
+import { useUnits } from '@/hooks/useUnits'
+import { useFormattedDate } from '@/utils/dateFormat'
+import { Stat } from '../card/common'
+import { WeatherIcon } from './WeatherIcon'
+import { useWeatherLabels } from './useWeatherLabels'
+import { hasForecast } from './weatherDisplay'
+
+interface DepartureWeatherProps {
+  departure: DepartureWeatherDto
+}
+
+/** The meeting point at departure: sky, temperature and felt temperature, rain, wind, daylight. */
+export function DepartureWeather({ departure }: DepartureWeatherProps) {
+  const { t } = useTranslation()
+  const { temperature, speed } = useUnits()
+  const { formatTime, isGuessedTimezone } = useFormattedDate()
+  const labels = useWeatherLabels()
+  const conditions = departure.conditions
+
+  if (!hasForecast(departure.status) || !conditions) {
+    return (
+      <Text size="sm" c="dimmed">
+        {t('rides.weather.departure.unavailable')}
+      </Text>
+    )
+  }
+
+  const wind = conditions.wind
+
+  return (
+    <Group gap="md" align="flex-start" wrap="nowrap">
+      <WeatherIcon condition={conditions.condition} daylight={conditions.daylight} size={44} />
+      <Stack gap={4} style={{ minWidth: 0 }}>
+        <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
+          <span suppressHydrationWarning={isGuessedTimezone}>
+            {t('rides.weather.departure.title', { time: formatTime(conditions.time) })}
+          </span>
+        </Text>
+        <Group gap="xs" align="baseline" wrap="wrap">
+          <Text size="xl" fw={700}>
+            {temperature(conditions.temperature)}
+          </Text>
+          <Text size="sm">{labels.condition(conditions.condition)}</Text>
+          <Text size="sm" c="dimmed">
+            {t('rides.weather.feelsLike', {
+              temperature: temperature(conditions.apparentTemperature),
+            })}
+          </Text>
+        </Group>
+        <Group gap="md" wrap="wrap">
+          {conditions.precipitationProbability !== undefined && (
+            <Stat icon={<IconDroplet size={16} aria-hidden />}>
+              {conditions.precipitation > 0
+                ? t('rides.weather.precipitationWithAmount', {
+                    probability: conditions.precipitationProbability,
+                    amount: conditions.precipitation.toFixed(1),
+                  })
+                : t('rides.weather.precipitation', {
+                    probability: conditions.precipitationProbability,
+                  })}
+            </Stat>
+          )}
+          <Stat icon={<IconWind size={16} aria-hidden />}>
+            {wind.gusts !== undefined
+              ? t('rides.weather.wind.withGusts', {
+                  wind: labels.wind(wind),
+                  gusts: speed(wind.gusts),
+                })
+              : labels.wind(wind)}
+          </Stat>
+          {departure.sunrise && (
+            <Stat
+              icon={
+                <IconSunrise
+                  size={16}
+                  role="img"
+                  aria-label={t('rides.weather.sunrise')}
+                  title={t('rides.weather.sunrise')}
+                />
+              }
+            >
+              <span suppressHydrationWarning={isGuessedTimezone}>
+                {formatTime(departure.sunrise)}
+              </span>
+            </Stat>
+          )}
+          {departure.sunset && (
+            <Stat
+              icon={
+                <IconSunset
+                  size={16}
+                  role="img"
+                  aria-label={t('rides.weather.sunset')}
+                  title={t('rides.weather.sunset')}
+                />
+              }
+            >
+              <span suppressHydrationWarning={isGuessedTimezone}>
+                {formatTime(departure.sunset)}
+              </span>
+            </Stat>
+          )}
+        </Group>
+      </Stack>
+    </Group>
+  )
+}

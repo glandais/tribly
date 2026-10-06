@@ -54,10 +54,12 @@ export 'pdl_price_block.dart';
 export 'pdl_range_filter.dart';
 export 'pdl_refresh.dart';
 export 'pdl_scope_selector.dart';
+export 'pdl_segment_bar.dart';
 export 'pdl_skeleton_card.dart';
 export 'pdl_stat_cell_row.dart';
 export 'pdl_team_line.dart';
 export 'pdl_thumb.dart';
+export 'pdl_wind_arrow.dart';
 
 // ── Vague C — coquilles d'écran ─────────────────────────────────────────────
 export 'pdl_action_bar.dart';

@@ -82,4 +82,20 @@ void main() {
       expect(unknown.labelKey, UnitSystem.metric.labelKey);
     });
   });
+
+  group('température', () {
+    test('les °C de l’API se rendent en °C ou en °F', () {
+      expect(UnitSystem.metric.temperature(14.4), closeTo(14.4, 1e-9));
+      expect(UnitSystem.imperial.temperature(0), closeTo(32, 1e-9));
+      expect(UnitSystem.imperial.temperature(100), closeTo(212, 1e-9));
+      expect(UnitSystem.imperial.temperature(-40), closeTo(-40, 1e-9));
+      expect(UnitSystem.metric.temperatureSymbol, '°C');
+      expect(UnitSystem.imperial.temperatureSymbol, '°F');
+    });
+
+    test(r'$unknown se rend en °C', () {
+      expect(UnitSystem.$unknown.temperature(14), 14);
+      expect(UnitSystem.$unknown.temperatureSymbol, '°C');
+    });
+  });
 }

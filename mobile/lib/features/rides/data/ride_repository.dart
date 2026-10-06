@@ -21,6 +21,17 @@ class RideRepository {
     return _ridesClient.getRide(teamSlug: teamSlug, rideSlug: rideSlug);
   }
 
+  /// La météo d'une sortie : au départ, puis le long du parcours de chaque
+  /// groupe.
+  ///
+  /// Toujours 200 dès que la sortie est lisible : l'état est dans
+  /// `RideWeatherDto.status`, et un 404 signifie que la sortie ne l'est pas.
+  /// Le serveur ne lit que son cache, jamais le fournisseur : l'appel est
+  /// donc bon marché, et le recharger ne « force » aucune prévision.
+  Future<RideWeatherDto> getRideWeather(String teamSlug, String rideSlug) {
+    return _ridesClient.getRideWeather(teamSlug: teamSlug, rideSlug: rideSlug);
+  }
+
   /// Rejoindre un groupe.
   Future<RideParticipationDto> joinGroup(
     String teamSlug,

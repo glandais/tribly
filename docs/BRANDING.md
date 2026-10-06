@@ -297,6 +297,11 @@ Ce que la table ne dit pas d'elle-même :
   au web (et en trait de rappel au mobile) n'est plus une famille de badge : sa famille est `gray`,
   comme `DRAFT`, `MEMBER` et `TEAM`.
 - **Une valeur inconnue** d'un client en retard sur le contrat se rend en `gray`.
+- **Le vent relatif** (`RelativeWind`, météo des sorties) : `TAIL` teal, `CROSS` gray, `HEAD`
+  orange, en doux. La couleur n'y porte **jamais seule** : barre d'exposition et points de passage
+  la doublent toujours du libellé (« Vent de face », « de travers », « dans le dos ») et d'une
+  flèche orientée. Les **conditions météo** (soleil, pluie…) n'ont pas de couleur : leur icône prend
+  celle du texte. Leur en donner une passerait par le YAML, jamais par une table dans un client.
 - **Les états dérivés côté client** — « Inscrit » (indigo), « Terminée » (gris foncé), « Supprimé »
   (rouge **en aplat**, pour se distinguer de `CANCELLED`) — ne sont portés par aucune énumération :
   ils restent hors du YAML (`PdlDerivedTones` au mobile, `DeletedBadge` au web).
@@ -647,6 +652,8 @@ aucune formule enthousiaste (« Génial ! », « C'est parti ! » sont hors marq
 | Hilliness | **relief** (Plat / Vallonné / Montagneux) | « difficulté » |
 | Climb | **montée** ; section **Cols et montées** | « ascension » |
 | Member | **membre** | « utilisateur » dans un contexte d'équipe |
+| Headwind / crosswind / tailwind | **vent de face** / **de travers** / **dans le dos** (court : Face, Travers, Dos) | « vent contraire », « vent latéral » |
+| Stale forecast | **prévision ancienne** | « météo périmée », « obsolète » |
 
 ### 8.3 Règles d'écriture
 

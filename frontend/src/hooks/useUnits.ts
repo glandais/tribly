@@ -5,6 +5,7 @@ import {
   formatDistance,
   formatElevation,
   formatSpeed,
+  formatTemperature,
   getUnitConfig,
   speedToDisplay as speedToDisplayFn,
   speedFromDisplay as speedFromDisplayFn,
@@ -45,6 +46,17 @@ export function useUnits() {
       const key = isImperial ? 'speed_imperial' : 'speed'
       return t(key satisfies 'speed' | 'speed_imperial', {
         speed: formatSpeed(kmh, unitSystem),
+      })
+    },
+    [t, unitSystem, isImperial]
+  )
+
+  /** « 12 °C » / « 54 °F » — the API always speaks °C. */
+  const temperature = useCallback(
+    (celsius: number) => {
+      const key = isImperial ? 'temperature_imperial' : 'temperature'
+      return t(key satisfies 'temperature' | 'temperature_imperial', {
+        temperature: formatTemperature(celsius, unitSystem),
       })
     },
     [t, unitSystem, isImperial]
@@ -114,6 +126,7 @@ export function useUnits() {
     distance,
     elevation,
     speed,
+    temperature,
     distanceUnit,
     elevationUnit,
     // Raw formatters for special cases (charts, inputs)

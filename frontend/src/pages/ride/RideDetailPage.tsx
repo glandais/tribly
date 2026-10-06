@@ -40,7 +40,7 @@ import {
   getGetRideQueryKey,
 } from '../../api/endpoints/rides/rides'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
-import { useRideDetailData } from './rideDetailData'
+import { invalidateRideWeather, useRideDetailData } from './rideDetailData'
 import { rideStatusRequest } from './rideFormData'
 import { ReportTargetType, Status } from '@/api/dto'
 import type { RideDto } from '@/api/dto'
@@ -71,6 +71,7 @@ import { ErrorBoundary } from '../../components/common/ErrorBoundary'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { STATUS_COLORS } from '@/lib/badgeColors.generated'
 import { TagList } from '@/components/tag'
+import { RideWeatherSection } from '@/components/weather'
 
 export function RideDetailPage() {
   const { t } = useTranslation()
@@ -89,6 +90,7 @@ export function RideDetailPage() {
   const {
     team: { data: team, isLoading: isLoadingTeam },
     ride: { data: ride, isLoading: isLoadingRide, error, refetch },
+    weather,
     routesBySlug: groupRoutesBySlug,
   } = useRideDetailData(teamSlug, rideSlug)
 
@@ -163,6 +165,13 @@ export function RideDetailPage() {
 
   const formattedDate = <FormattedDateTime date={ride.dateTime} />
 
+  // The ride, the feed it shows in, and its forecast (its own query key, not a prefix of the ride's).
+  const invalidateRideQueries = () => {
+    queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
+    queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+    void invalidateRideWeather(queryClient, teamSlug!, rideSlug!)
+  }
+
   const handlePublish = () => {
     updateMutation.mutate(
       {
@@ -172,8 +181,7 @@ export function RideDetailPage() {
       },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateRideQueries()
           notifications.show({ message: t('rides.notifications.published'), color: 'green' })
         },
       }
@@ -189,8 +197,7 @@ export function RideDetailPage() {
       },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateRideQueries()
           notifications.show({ message: t('rides.notifications.unpublished'), color: 'green' })
         },
       }
@@ -207,8 +214,7 @@ export function RideDetailPage() {
       },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateRideQueries()
           notifications.show({ message: t('rides.notifications.cancelled'), color: 'green' })
         },
       }
@@ -225,8 +231,7 @@ export function RideDetailPage() {
       },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateRideQueries()
           notifications.show({ message: t('rides.notifications.uncancelled'), color: 'green' })
         },
       }
@@ -255,8 +260,7 @@ export function RideDetailPage() {
       { teamSlug: teamSlug!, rideSlug: rideSlug! },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateRideQueries()
           notifications.show({ message: t('rides.notifications.restored'), color: 'green' })
         },
       }
@@ -498,6 +502,19 @@ export function RideDetailPage() {
         {/* The team tags, every one of them (cards show the first three). */}
         <TagList tags={ride.tags} mt="md" />
       </Paper>
+
+      {/* Weather: the meeting point, then one group's route (the reader's own by default) */}
+      <ErrorBoundary variant="inline">
+        <RideWeatherSection
+          ride={ride}
+          weather={weather.data}
+          isLoading={weather.isLoading}
+          isError={weather.isError}
+          isFetching={weather.isFetching}
+          onRetry={() => void weather.refetch()}
+          canEdit={canEdit}
+        />
+      </ErrorBoundary>
 
       {/* Map and Groups */}
       <SimpleGrid

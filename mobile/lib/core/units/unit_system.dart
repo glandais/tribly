@@ -33,6 +33,13 @@ abstract final class UnitSymbols {
   static const String kilometerPerHour = 'km/h';
   static const String milePerHour = 'mph';
   static const String percent = '%';
+  static const String celsius = '°C';
+  static const String fahrenheit = '°F';
+
+  /// Hauteur de précipitation. Elle ne se convertit pas : le plan météo
+  /// (`docs/plans/2026-10-05-weather.md` §1) ne convertit que les
+  /// températures et les vitesses.
+  static const String millimeter = 'mm';
 }
 
 /// Conversions dérivées de [UnitSystem], l'énumération générée depuis le
@@ -66,6 +73,14 @@ extension UnitSystemConversion on UnitSystem {
 
   String get speedSymbol =>
       isImperial ? UnitSymbols.milePerHour : UnitSymbols.kilometerPerHour;
+
+  /// Température : degrés Celsius → Celsius ou Fahrenheit. L'API parle
+  /// toujours en °C (prévisions météo).
+  double temperature(num celsius) =>
+      isImperial ? celsius * 9 / 5 + 32 : celsius.toDouble();
+
+  String get temperatureSymbol =>
+      isImperial ? UnitSymbols.fahrenheit : UnitSymbols.celsius;
 
   /// Chemin inverse, pour les rares endroits qui saisissent dans l'unité
   /// affichée et doivent rendre des mètres à l'API.

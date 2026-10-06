@@ -10,6 +10,7 @@ import '../models/participant_list_response.dart';
 import '../models/ride_dto.dart';
 import '../models/ride_participation_dto.dart';
 import '../models/ride_request.dart';
+import '../models/ride_weather_dto.dart';
 import '../models/slug_change_request.dart';
 import '../models/status_change_request.dart';
 
@@ -185,6 +186,19 @@ abstract class RidesClient {
   /// [teamSlug] - Team URL slug.
   @POST('/api/teams/{teamSlug}/rides/{rideSlug}/undelete')
   Future<RideDto> undeleteRide({
+    @Path('rideSlug') required String rideSlug,
+    @Path('teamSlug') required String teamSlug,
+  });
+
+  /// Get ride weather.
+  ///
+  /// The forecast for the ride: at the meeting point when it leaves, then along each group's route at its estimated passages (group speed, else 25 km/h). Read from the server's cache only — the forecast is refreshed in the background, never on request. Readable by whoever may read the ride, and then always 200: the state is in status. Cache-Control: private, no-cache with an ETag (revalidate with If-None-Match, 304 when unchanged); no-store when status is UNAVAILABLE.
+  ///
+  /// [rideSlug] - Ride URL slug.
+  ///
+  /// [teamSlug] - Team URL slug.
+  @GET('/api/teams/{teamSlug}/rides/{rideSlug}/weather')
+  Future<RideWeatherDto> getRideWeather({
     @Path('rideSlug') required String rideSlug,
     @Path('teamSlug') required String teamSlug,
   });

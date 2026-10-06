@@ -34,6 +34,42 @@ class RideDetailKeys {
   /// Le bouton du bandeau d'exclusivité : quitter l'autre groupe, puis entrer.
   final switchGroupButton = const _RideDetailKey('switchGroupButton');
 
+  /// La carte météo compacte du détail.
+  final weatherCard = const _RideDetailKey('weatherCard');
+
+  /// « Voir la météo du parcours » de la carte météo.
+  final weatherOpenButton = const _RideDetailKey('weatherOpenButton');
+
+  /// « Météo indisponible » (statut `UNAVAILABLE`, ou échec de l'appel).
+  final weatherUnavailable = const _RideDetailKey('weatherUnavailable');
+
+  /// « Réessayer » de la météo indisponible.
+  final weatherRetryButton = const _RideDetailKey('weatherRetryButton');
+
+  /// « Prévision disponible à partir du… ».
+  final weatherNotYetAvailable = const _RideDetailKey('weatherNotYetAvailable');
+
+  /// Le mot aux organisateurs : il manque un lieu ou un parcours.
+  final weatherNoLocation = const _RideDetailKey('weatherNoLocation');
+
+  /// « Prévisions pas encore disponibles le long du parcours » : étape sans
+  /// prévision (`UNAVAILABLE`, `NOT_YET_AVAILABLE`, statut inconnu) ou sans point.
+  final weatherLegUnavailable = const _RideDetailKey('weatherLegUnavailable');
+
+  /// La ligne de résumé météo d'une carte de sortie.
+  final weatherSummary = const _RideDetailKey('weatherSummary');
+
+  /// La marque « Prévision ancienne » (`STALE`) de la ligne de résumé météo.
+  final weatherSummaryStale = const _RideDetailKey('weatherSummaryStale');
+
+  /// Un point de passage de la frise de l'écran « Météo du parcours ».
+  ValueKey<String> weatherCheckpoint(int index) =>
+      _RideDetailKey('weatherCheckpoint_$index');
+
+  /// La puce d'un groupe dans le sélecteur de l'écran « Météo du parcours ».
+  ValueKey<String> weatherGroupChip(String groupId) =>
+      _RideDetailKey('weatherGroupChip_$groupId');
+
   ValueKey<String> group(String groupId) => _RideDetailKey('group_$groupId');
 
   ValueKey<String> groupLeader(String groupId) =>

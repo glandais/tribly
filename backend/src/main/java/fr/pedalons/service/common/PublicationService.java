@@ -34,6 +34,8 @@ import fr.pedalons.service.tag.TagLookup;
 import fr.pedalons.service.tag.TagService;
 import fr.pedalons.service.team.TeamService;
 import fr.pedalons.service.team.request.MinRole;
+import fr.pedalons.service.weather.RideWeatherLookup;
+import fr.pedalons.service.weather.RideWeatherSummaries;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
@@ -66,6 +68,8 @@ public class PublicationService {
   @Inject PostAuthorLookup postAuthorLookup;
 
   @Inject TagLookup tagLookup;
+
+  @Inject RideWeatherLookup rideWeatherLookup;
 
   @Inject TagService tagService;
 
@@ -503,6 +507,10 @@ public class PublicationService {
     // One more for the tags of every row (docs/LEDGER_*.md API-59), none for an empty page.
     ContentTags tags =
         tagLookup.forContents(publications.items().stream().map(Publication::getId).toList());
+    // At most one more for the weather line of every ride on the page, none when no ride of the
+    // page leaves within the forecast horizon. Read from the cache only, never the provider.
+    RideWeatherSummaries rideWeather =
+        rideWeatherLookup.forRides(itemsOfType(publications.items(), Ride.class));
     List<PublicationDto> dtos =
         publications.items().stream()
             .map(
@@ -515,6 +523,7 @@ public class PublicationService {
                         commentCounts,
                         postAuthors,
                         tags,
+                        rideWeather,
                         view))
             .toList();
     return new PublicationListResponse(dtos, publications.total(), query.page(), query.size());

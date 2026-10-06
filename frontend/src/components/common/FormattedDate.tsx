@@ -20,3 +20,8 @@ export function FormattedDateTime({ date }: FormattedDateProps) {
   const { formatDateTime, isGuessedTimezone } = useFormattedDate()
   return <span suppressHydrationWarning={isGuessedTimezone}>{formatDateTime(date)}</span>
 }
+
+export function FormattedTime({ date }: FormattedDateProps) {
+  const { formatTime, isGuessedTimezone } = useFormattedDate()
+  return <span suppressHydrationWarning={isGuessedTimezone}>{formatTime(date)}</span>
+}

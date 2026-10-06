@@ -127,6 +127,44 @@ class AppFormatters {
   ]) =>
       withUnit(formatNumber(units.speed(kilometersPerHour)), units.speedSymbol);
 
+  /// Température, au degré près : « 14 °C », « 57 °F ».
+  ///
+  /// L'entrée est en **°C**, comme les prévisions du contrat. L'arrondi se
+  /// fait avant le formatage, ce qui évite le « -0 °C » d'un -0,3 arrondi.
+  static String formatTemperature(
+    num celsius, [
+    UnitSystem units = UnitSystem.metric,
+  ]) => withUnit(
+    formatNumber(units.temperature(celsius).round()),
+    units.temperatureSymbol,
+  );
+
+  /// Plage de températures : « 12–18 °C », ou une seule valeur quand les
+  /// deux bornes s'arrondissent au même degré.
+  static String formatTemperatureRange(
+    num minCelsius,
+    num maxCelsius, [
+    UnitSystem units = UnitSystem.metric,
+  ]) {
+    final int low = units.temperature(minCelsius).round();
+    final int high = units.temperature(maxCelsius).round();
+    if (low == high) return formatTemperature(minCelsius, units);
+    return withUnit(
+      '${formatNumber(low)}–${formatNumber(high)}',
+      units.temperatureSymbol,
+    );
+  }
+
+  /// Hauteur de précipitation, au dixième de millimètre : « 0,4 mm ».
+  static String formatPrecipitation(num millimeters) => withUnit(
+    formatNumber(millimeters, fractionDigits: 1),
+    UnitSymbols.millimeter,
+  );
+
+  /// Pourcentage entier : « 60 % ».
+  static String formatPercent(num percent) =>
+      withUnit(formatNumber(percent.round()), UnitSymbols.percent);
+
   /// Pente, au dixième de point près : « 6,5 % ». Sans conversion : un
   /// pourcentage est un rapport, il ne dépend pas du système d'unités.
   static String formatGrade(num percent) =>

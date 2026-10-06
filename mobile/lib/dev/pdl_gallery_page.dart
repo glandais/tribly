@@ -1300,6 +1300,40 @@ class _GalleryBodyState extends State<_GalleryBody> {
           ],
         ),
 
+        // ── Météo : flèche de vent, barre de segments ─────────────────────
+        _Block(
+          title: 'PdlWindArrow · PdlSegmentBar — le vent',
+          children: <Widget>[
+            const _Caption('flèche : 0 dos · 90 travers · 180 face · 225'),
+            Row(
+              children: <Widget>[
+                PdlWindArrow(angle: 0, color: c.accentTeal),
+                const SizedBox(width: 16),
+                PdlWindArrow(angle: 90, color: c.neutral),
+                const SizedBox(width: 16),
+                PdlWindArrow(angle: 180, color: c.accentOrange),
+                const SizedBox(width: 16),
+                const PdlWindArrow(angle: 225, size: 28),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const _Caption('vent le long du parcours'),
+            PdlSegmentBar(
+              semanticLabel: 'Face 12 km, travers 30 km, dos 24 km',
+              entries: <PdlSegmentBarEntry>[
+                PdlSegmentBarEntry(extent: 15000, color: c.accentTeal),
+                PdlSegmentBarEntry(extent: 15000, color: c.neutral),
+                PdlSegmentBarEntry(extent: 12000, color: c.accentOrange),
+                PdlSegmentBarEntry(extent: 15000, color: c.neutral),
+                PdlSegmentBarEntry(extent: 9000, color: c.accentTeal),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const _Caption('vide'),
+            const PdlSegmentBar(entries: <PdlSegmentBarEntry>[]),
+          ],
+        ),
+
         // ── B21 ───────────────────────────────────────────────────────────
         _Block(
           title: 'B21 · PdlSkeletonCard — 5 squelettes, pas 2',

@@ -1,6 +1,6 @@
 # Conditions d'utilisation
 
-**Dernière mise à jour : 29 septembre 2026**
+**Dernière mise à jour : 5 octobre 2026**
 
 ## 1. Acceptation des conditions
 
@@ -71,6 +71,8 @@ Le service Pedalons, son code source, son design et ses fonctionnalités sont pr
 ### Cartes et données géographiques
 
 Les cartes, la recherche de lieux, le calcul d'itinéraires et les données d'altitude s'appuient sur des données de tiers : © les contributeurs d'OpenStreetMap (licence ODbL), qui couvre aussi les résultats du calcul d'itinéraires et de la recherche de lieux, ainsi que CyclOSM, VersaTiles, IGN / Géoplateforme, Esri et ses sources, les données d'altitude Mapterhorn, et Michelin. Les images de carte, les résultats de recherche de lieux et les données d'altitude sont fournis en l'état, sans garantie d'exactitude ni d'exhaustivité.
+
+Les prévisions météo des sorties viennent d'Open-Meteo.com (licence CC BY 4.0). Ce sont des prévisions, fournies en l'état : elles peuvent être fausses ou dépassées, et ne dispensent pas de vérifier les conditions avant de partir.
 
 ## 8. Limitation de responsabilité
 

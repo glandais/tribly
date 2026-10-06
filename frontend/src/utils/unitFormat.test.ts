@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatFileSize } from './unitFormat'
+import { formatFileSize, formatTemperature, temperatureToDisplay } from './unitFormat'
 
 // Intl separates value and unit with a no-break space; compare on plain spaces.
 const plain = (s: string) => s.replace(/[  ]/g, ' ')
@@ -19,5 +19,22 @@ describe('formatFileSize', () => {
   it('moves to the next unit rather than showing 1000', () => {
     expect(formatFileSize(999_700, 'en')).toBe('1 MB')
     expect(formatFileSize(15_300_000, 'en')).toBe('15 MB')
+  })
+})
+
+describe('temperatureToDisplay', () => {
+  it('keeps °C for a metric reader, rounded to the degree', () => {
+    expect(temperatureToDisplay(14.4, 'METRIC')).toBe(14)
+    expect(temperatureToDisplay(14.5, 'METRIC')).toBe(15)
+  })
+
+  it('converts to °F for an imperial reader', () => {
+    expect(temperatureToDisplay(0, 'IMPERIAL')).toBe(32)
+    expect(temperatureToDisplay(100, 'IMPERIAL')).toBe(212)
+    expect(temperatureToDisplay(-40, 'IMPERIAL')).toBe(-40)
+  })
+
+  it('never writes minus zero', () => {
+    expect(formatTemperature(-0.3, 'METRIC')).toBe('0')
   })
 })

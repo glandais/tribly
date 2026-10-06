@@ -92,4 +92,18 @@ public class RideRepository implements TeamEntityRepository<Ride, TeamEntityQuer
         from,
         to);
   }
+
+  /**
+   * The rides the weather planner prepares a forecast for: published, not deleted, leaving within
+   * {@code [from, to]}. Across every domain on purpose — the weather cache is global (see {@code
+   * fr.pedalons.domain.weather}) and this feeds no response.
+   */
+  public List<Ride> findForWeather(Instant from, Instant to) {
+    return list(
+        "from Ride r where r.status = ?1 and r.deleted = false and r.team.deleted = false"
+            + " and r.dateTime >= ?2 and r.dateTime <= ?3",
+        Status.PUBLISHED,
+        from,
+        to);
+  }
 }

@@ -6,70 +6,72 @@ part of 'publication_dto.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-PublicationDtoRide _$PublicationDtoRideFromJson(Map<String, dynamic> json) =>
-    PublicationDtoRide(
-      full: json['full'] as bool,
-      id: json['id'] as String,
-      slug: json['slug'] as String,
-      name: json['name'] as String,
-      media: MediaDto.fromJson(json['media'] as Map<String, dynamic>),
-      groupSummaries: (json['groupSummaries'] as List<dynamic>)
-          .map((e) => RideGroupSummaryDto.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      dateTime: json['dateTime'] as String,
-      status: json['status'] as String,
-      finished: json['finished'] as bool,
-      visibility: json['visibility'] as String,
-      team: TeamPublicationDto.fromJson(json['team'] as Map<String, dynamic>),
-      participantCount: (json['participantCount'] as num).toInt(),
-      groupCount: (json['groupCount'] as num).toInt(),
-      groups: (json['groups'] as List<dynamic>)
-          .map((e) => RideGroupDto.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      tags: (json['tags'] as List<dynamic>)
-          .map((e) => TagDto.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      topParticipants: (json['topParticipants'] as List<dynamic>)
-          .map((e) => PublicUserDto.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      deleted: json['deleted'] as bool,
-      registered: json['registered'] as bool,
-      createdAt: json['createdAt'] as String?,
-      surfaceType: json['surfaceType'] as String?,
-      startPlace: json['startPlace'] == null
-          ? null
-          : PlaceDetailDto.fromJson(json['startPlace'] as Map<String, dynamic>),
-      routeSlug: json['routeSlug'] as String?,
-      publishAt: json['publishAt'] as String?,
-      thumbnailLightUrl: json['thumbnailLightUrl'] as String?,
-      thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
-      thumbnailUrl: json['thumbnailUrl'] as String?,
-      excerpt: json['excerpt'] as String?,
-      distance: (json['distance'] as num?)?.toDouble(),
-      registeredGroupId: json['registeredGroupId'] as String?,
-      registeredGroup: json['registeredGroup'] == null
-          ? null
-          : RideGroupDto.fromJson(
-              json['registeredGroup'] as Map<String, dynamic>,
-            ),
-      elevationGain: (json['elevationGain'] as num?)?.toDouble(),
-      maxParticipants: (json['maxParticipants'] as num?)?.toInt(),
-      commentCount: (json['commentCount'] as num?)?.toInt(),
-      endPlace: json['endPlace'] == null
-          ? null
-          : PlaceDetailDto.fromJson(json['endPlace'] as Map<String, dynamic>),
-      $type: json['type'] as String?,
-    );
+PublicationDtoRide _$PublicationDtoRideFromJson(
+  Map<String, dynamic> json,
+) => PublicationDtoRide(
+  tags: (json['tags'] as List<dynamic>)
+      .map((e) => TagDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  id: json['id'] as String,
+  slug: json['slug'] as String,
+  name: json['name'] as String,
+  media: MediaDto.fromJson(json['media'] as Map<String, dynamic>),
+  topParticipants: (json['topParticipants'] as List<dynamic>)
+      .map((e) => PublicUserDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  dateTime: json['dateTime'] as String,
+  status: json['status'] as String,
+  finished: json['finished'] as bool,
+  visibility: json['visibility'] as String,
+  team: TeamPublicationDto.fromJson(json['team'] as Map<String, dynamic>),
+  participantCount: (json['participantCount'] as num).toInt(),
+  groupCount: (json['groupCount'] as num).toInt(),
+  groups: (json['groups'] as List<dynamic>)
+      .map((e) => RideGroupDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  groupSummaries: (json['groupSummaries'] as List<dynamic>)
+      .map((e) => RideGroupSummaryDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  deleted: json['deleted'] as bool,
+  registered: json['registered'] as bool,
+  full: json['full'] as bool,
+  routeSlug: json['routeSlug'] as String?,
+  surfaceType: json['surfaceType'] as String?,
+  startPlace: json['startPlace'] == null
+      ? null
+      : PlaceDetailDto.fromJson(json['startPlace'] as Map<String, dynamic>),
+  endPlace: json['endPlace'] == null
+      ? null
+      : PlaceDetailDto.fromJson(json['endPlace'] as Map<String, dynamic>),
+  weather: json['weather'] == null
+      ? null
+      : RideWeatherSummaryDto.fromJson(json['weather'] as Map<String, dynamic>),
+  thumbnailLightUrl: json['thumbnailLightUrl'] as String?,
+  thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
+  thumbnailUrl: json['thumbnailUrl'] as String?,
+  createdAt: json['createdAt'] as String?,
+  publishAt: json['publishAt'] as String?,
+  registeredGroupId: json['registeredGroupId'] as String?,
+  registeredGroup: json['registeredGroup'] == null
+      ? null
+      : RideGroupDto.fromJson(json['registeredGroup'] as Map<String, dynamic>),
+  distance: (json['distance'] as num?)?.toDouble(),
+  maxParticipants: (json['maxParticipants'] as num?)?.toInt(),
+  commentCount: (json['commentCount'] as num?)?.toInt(),
+  elevationGain: (json['elevationGain'] as num?)?.toDouble(),
+  excerpt: json['excerpt'] as String?,
+  $type: json['type'] as String?,
+);
 
 Map<String, dynamic> _$PublicationDtoRideToJson(
   PublicationDtoRide instance,
 ) => <String, dynamic>{
-  'full': instance.full,
+  'tags': instance.tags.map((e) => e.toJson()).toList(),
   'id': instance.id,
   'slug': instance.slug,
   'name': instance.name,
   'media': instance.media.toJson(),
-  'groupSummaries': instance.groupSummaries.map((e) => e.toJson()).toList(),
+  'topParticipants': instance.topParticipants.map((e) => e.toJson()).toList(),
   'dateTime': instance.dateTime,
   'status': instance.status,
   'finished': instance.finished,
@@ -78,26 +80,27 @@ Map<String, dynamic> _$PublicationDtoRideToJson(
   'participantCount': instance.participantCount,
   'groupCount': instance.groupCount,
   'groups': instance.groups.map((e) => e.toJson()).toList(),
-  'tags': instance.tags.map((e) => e.toJson()).toList(),
-  'topParticipants': instance.topParticipants.map((e) => e.toJson()).toList(),
+  'groupSummaries': instance.groupSummaries.map((e) => e.toJson()).toList(),
   'deleted': instance.deleted,
   'registered': instance.registered,
-  'createdAt': instance.createdAt,
+  'full': instance.full,
+  'routeSlug': instance.routeSlug,
   'surfaceType': instance.surfaceType,
   'startPlace': instance.startPlace?.toJson(),
-  'routeSlug': instance.routeSlug,
-  'publishAt': instance.publishAt,
+  'endPlace': instance.endPlace?.toJson(),
+  'weather': instance.weather?.toJson(),
   'thumbnailLightUrl': instance.thumbnailLightUrl,
   'thumbnailDarkUrl': instance.thumbnailDarkUrl,
   'thumbnailUrl': instance.thumbnailUrl,
-  'excerpt': instance.excerpt,
-  'distance': instance.distance,
+  'createdAt': instance.createdAt,
+  'publishAt': instance.publishAt,
   'registeredGroupId': instance.registeredGroupId,
   'registeredGroup': instance.registeredGroup?.toJson(),
-  'elevationGain': instance.elevationGain,
+  'distance': instance.distance,
   'maxParticipants': instance.maxParticipants,
   'commentCount': instance.commentCount,
-  'endPlace': instance.endPlace?.toJson(),
+  'elevationGain': instance.elevationGain,
+  'excerpt': instance.excerpt,
   'type': instance.$type,
 };
 

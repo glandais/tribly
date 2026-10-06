@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated: September 30, 2026**
+**Last updated: October 5, 2026**
 
 This privacy policy describes how Pedalons ("we", "our", "us") collects, uses, and protects your personal data when you use our platform (website, mobile app, GPS device extensions).
 
@@ -250,6 +250,8 @@ Map images are downloaded by your device directly from the provider of the map b
 
 Place search (team location, meeting places, classified ads; when signed in), by contrast, goes through our server, which queries Nominatim on your behalf: Nominatim receives only the search text and your display language, never your IP address or your identity. Results are kept in our server's memory for up to 24 hours.
 
+Ride weather forecasts are requested from Open-Meteo by our server, in the background and never while you browse: Open-Meteo receives only the centre of a cell of about 5 km around the start and the route's points (never the exact meeting place), sometimes an altitude rounded to 100 m, and our server's IP address — never your identity, account or IP address.
+
 - **VersaTiles (tiles.versatiles.org)**
   - *Role*: Vector map background (default style), map fonts and sprites
   - *Data Involved*: IP address, map area viewed
@@ -268,6 +270,9 @@ Place search (team location, meeting places, classified ads; when signed in), by
 - **OpenStreetMap Nominatim (nominatim.openstreetmap.org)**
   - *Role*: Place search, queried by our server
   - *Data Involved*: The text you type and your display language; never your IP address or identity
+- **Open-Meteo (api.open-meteo.com)**
+  - *Role*: Ride weather forecasts, queried by our server
+  - *Data Involved*: Coordinates of the centre of cells of about 5 km, rounded altitude, our server's IP address; never your IP address or identity
 - **Esri (server.arcgisonline.com, United States)**
   - *Role*: "Satellite (ESRI)" map background
   - *Data Involved*: IP address, map area viewed

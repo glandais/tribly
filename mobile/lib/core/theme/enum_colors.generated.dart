@@ -11,6 +11,7 @@ import '../../api/generated/models/status.dart';
 import '../../api/generated/models/team_role.dart';
 import '../../api/generated/models/surface_type.dart';
 import '../../api/generated/models/visibility.dart';
+import '../../api/generated/models/relative_wind.dart';
 import '../../api/generated/models/climb_category.dart';
 import 'enum_colors.dart';
 import 'pdl_colors.dart';
@@ -81,6 +82,17 @@ extension VisibilityTone on Visibility {
     Visibility.publicUnlisted => PdlFamily.orange,
     Visibility.public => PdlFamily.blue,
     Visibility.$unknown => PdlFamily.gray,
+  };
+
+  PdlTone tone(PdlColors c) => family.soft(c);
+}
+
+extension RelativeWindTone on RelativeWind {
+  PdlFamily get family => switch (this) {
+    RelativeWind.head => PdlFamily.orange,
+    RelativeWind.cross => PdlFamily.gray,
+    RelativeWind.tail => PdlFamily.teal,
+    RelativeWind.$unknown => PdlFamily.gray,
   };
 
   PdlTone tone(PdlColors c) => family.soft(c);

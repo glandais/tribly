@@ -86,6 +86,36 @@ abstract final class PdlIcons {
   static const IconData surfaceMixed = Icons.alt_route;
   static const IconData wind = Icons.air;
 
+  // ── Météo ──────────────────────────────────────────────────────────────
+  // Une icône par `WeatherCondition` du contrat, de jour et de nuit quand la
+  // différence se voit ; [weatherUnknown] est le repli de toute valeur que
+  // cette version de l'app ne connaît pas.
+  static const IconData weatherClearDay = Icons.light_mode_outlined;
+  static const IconData weatherClearNight = Icons.dark_mode_outlined;
+  static const IconData weatherPartlyCloudyDay = Icons.filter_drama_outlined;
+  static const IconData weatherPartlyCloudyNight = Icons.nights_stay_outlined;
+  static const IconData weatherOvercast = Icons.cloud_outlined;
+  static const IconData weatherFog = Icons.foggy;
+  static const IconData weatherDrizzle = Icons.grain;
+  static const IconData weatherRain = Icons.water_drop_outlined;
+  static const IconData weatherHeavyRain = Icons.umbrella_outlined;
+  static const IconData weatherFreezingRain = Icons.severe_cold;
+  static const IconData weatherShowers = Icons.umbrella_outlined;
+  static const IconData weatherSnow = Icons.ac_unit;
+  static const IconData weatherThunderstorm = Icons.thunderstorm_outlined;
+  static const IconData weatherUnknown = Icons.cloud_outlined;
+
+  /// Prévision ancienne (`STALE`) sur la ligne météo des cartes — l'icône
+  /// « historique » du web (`IconHistory`).
+  static const IconData weatherStale = Icons.history;
+  static const IconData temperature = Icons.thermostat;
+  static const IconData precipitation = Icons.water_drop_outlined;
+  static const IconData sunrise = Icons.wb_twilight;
+  static const IconData sunset = Icons.nights_stay_outlined;
+
+  /// La flèche de vent : pointe vers le haut, l'appelant la tourne.
+  static const IconData windArrow = Icons.navigation;
+
   // ── Carte ──────────────────────────────────────────────────────────────
   static const IconData map = Icons.map_outlined;
   static const IconData list = Icons.view_list_outlined;

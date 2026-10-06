@@ -9,7 +9,7 @@ portage web livré à trois tâches près, et tenu à jour depuis (dernière rel
 Rien ici ne bloque quoi que ce soit. C'est la propriété qui compte : la v2 est livrable en l'état,
 et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de réparer une panne.
 
-**Contrat d'API au 6 octobre 2026 : `10.8.0`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au 6 octobre 2026 : `10.9.0`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
 
@@ -117,6 +117,13 @@ données en prod), `MOB-15` pas faite, et le 500 du contact vendeur (`MOB-47`).
       jour — `blurToolbar` est une constante fixe à 12, aucune branche conditionnelle) serait **un
       seul jeton** à faire tomber à 0 (`PdlMotion.blurToolbar`, surface opaque), aucun écran à
       rouvrir.
+- [ ] `MOB-52` **Météo des sorties : recette sur appareil (S)** — `MOB-51` est vérifié par
+      `flutter analyze` et les tests de widgets seulement, et sa mise en page n'a pas été comparée
+      à la maquette (canevas « Intégration météo ») : carte compacte sous le bloc date et lieu,
+      ordre de l'écran « Météo du parcours », clair et sombre, text scaling, pull-to-refresh du
+      détail (nouveau). À trancher avec le propriétaire : garder la ligne « Météo dès le … »
+      (`NOT_YET_AVAILABLE`) sur les cartes du fil, qui ajoute une ligne à toutes les sorties à plus
+      de 7 jours (`RideWeatherSummaryLine.shows`).
 
 ### Couverture e2e Patrol — ce que les tests ne couvrent pas encore
 
@@ -264,6 +271,22 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
         Profil › Confidentialité ou Profil › Mon compte ; l'e-mail `ad-contact` nomme le réglage
         sans lien (il faudrait passer l'URL absolue de `/profile/privacy` au gabarit).
 
+- [ ] `WEB-61` **Météo des sorties : recette navigateur (S)** — `WEB-60` n'est vérifié que par
+      typecheck, lint, i18n:lint, vitest et le build ; la disposition a été déduite du plan, sans
+      la maquette (canevas « Intégration météo »). À recaler sur elle : place du bloc (entre
+      l'en-tête et la carte), choix du groupe (`SegmentedControl` puis `Select` au-delà de 4),
+      frise horizontale des points, mode sombre, téléphone. À trancher avec le propriétaire : le
+      libellé « Pluie dès 10:00 » (probabilité en info-bulle seulement) et « Mise à jour à » sans
+      date quand la prévision date de la veille. Aucun e2e ne couvre la météo : la pile e2e coupe
+      le fournisseur, il faudrait remplir le cache par SQL.
+- [ ] `WEB-62` **`pnpm i18n:extract` réécrit tout le catalogue (S)** — lancé le 5 octobre 2026, il a
+      réécrit les deux `common.json` (~2 000 lignes de diff : clés `_one`/`_many` remplies de
+      `___MISSING_TRANSLATION___`, réordonnancement). Les clés météo ont été insérées à la main.
+      Régler la configuration d'i18next-cli (pluriels, ordre) pour qu'une extraction n'ajoute que
+      les clés nouvelles. Au passage : le mock partagé de `ResizeObserver` (`src/test/setup.ts`)
+      est une fonction fléchée, que `new` refuse avec `ScrollArea` et `SegmentedControl` de
+      Mantine — `RideWeatherSection.test.tsx` le remplace localement par `vi.stubGlobal`.
+
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
 L'audit ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md), `WEB-26`) est exécuté : P0, P1
@@ -318,6 +341,33 @@ sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` u
       Un test qui applique `db/migration` sur une base PostGIS vierge (TestContainers) et compare chaque
       contrainte `…_check` aux valeurs de l'enum Java correspondant (`AuthTokenType`, `AssetType`,
       `service_type`, `platform_role`, `visibility`, `status`…) supprimerait cette classe de défaut.
+
+### Météo : ce qui suit `API-74`
+
+La météo des **sorties** est livrée (`API-74`, `WEB-60`, `MOB-51`, contrat `10.9.0`) ; le plan
+[`2026-10-05-weather.md`](plans/2026-10-05-weather.md) reste ouvert pour ce qui suit.
+
+- [ ] `API-75` **Lancer les tests backend de la météo (S)** — écrits le 5 octobre 2026, compilés
+      (`mvn -DskipTests test-compile`, checkstyle propre), **jamais lancés** (`OPS-2`) :
+      `cd backend && mvn test -Dtest='CellKeyTest,RouteSampleLookupTest,RideWeatherCalculatorTest,WeatherRefreshPolicyTest,OpenMeteoGatewayTest,OpenMeteoClientTest,OpenMeteoCircuitBreakerTest,OpenMeteoGatewayHttpTest,WeatherCacheTest,WeatherFetchWorkerTest,WeatherPlannerTest,WeatherHousekeepingTest,RideWeatherResourceTest,PublicationQueryCountTest,ArchitectureTest'`,
+      puis la suite complète (`RideDto.from` et `PublicationDto.from` ont gagné un paramètre
+      obligatoire). Le SQL natif a seulement été essayé à la main sur un PostGIS jetable (V61,
+      upsert `NULLS NOT DISTINCT`, backoff, fenêtre de la liste). Un échec de
+      `PublicationQueryCountTest` se corrige dans `RideWeatherLookup`, jamais en desserrant le test.
+- [ ] `API-76` **Météo des voyages (M)** — `GET /api/teams/{teamSlug}/trips/{tripSlug}/weather`
+      rendant une `WeatherLegDto` par étape (statut propre, fuseau du départ de chaque étape,
+      25 km/h par défaut), et le résumé de la prochaine étape dans `TripDto`, sur les mêmes briques
+      (cache, `RideWeatherCalculator`, schémas génériques) ; puis les deux clients. À vérifier
+      d'abord : ce que porte vraiment `TripStage.dateTime` (heure de départ réelle ou date seule).
+      Détail au §6 du plan.
+- [ ] `API-77` **Météo sur Karoo et Garmin (M)** — `DeviceRideDto` ne porte rien ; à concevoir
+      (résumé seul, ou points de passage) avec les contraintes de taille des deux apps. Les aperçus
+      de lien (`og:`) ne portent **jamais** de météo.
+- [ ] `API-78` **`DeviceRouteService.computeRideStartInstant` ne convertit rien (S)** — repéré
+      pendant la météo : `instant.atZone(z).toInstant()` rend le même instant, si bien que l'heure
+      de départ envoyée aux appareils ignore le fuseau du lieu de départ qu'elle va chercher.
+      Décider ce que l'appareil attend (instant UTC de `ride.dateTime`, ou heure du groupe lue à
+      l'heure locale comme `RideWeatherPlans`), corriger et couvrir d'un test.
 
 ### Les chantiers d'infrastructure d'API
 
@@ -519,6 +569,16 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
 - [ ] `OPS-5` **`AdDto` ne porte aucun champ de contact** — le `grep` et le script Python du §5.3 du
       document d'API. Le jour où ils remontent quelque chose, le relais a été contourné et une
       adresse personnelle est publiée à toute une équipe, irrévocablement.
+- [ ] `OPS-29` **Météo des sorties en production (S)** — après le premier déploiement de `API-74` :
+      `Migrating schema … to version 61` ; quelques minutes plus tard, des lignes dans
+      `weather_cells` avec `fetched_at` récent et `attempts = 0`, et aucun
+      `Weather: Open-Meteo request … failed` ni `Open-Meteo circuit open` dans les journaux ; une
+      sortie publiée à J+2 montre sa météo sur le web et l'app. Prod et staging sortent par la même
+      adresse IP, donc partagent le quota du plan gratuit : régler les budgets de staging
+      (ou `WEATHER_ENABLED=false`), voir [OPERATIONS](OPERATIONS.md#ride-weather-open-meteo). **À
+      trancher par le propriétaire** : l'offre gratuite d'Open-Meteo est réservée à un usage non
+      commercial ; si Pédalons ne s'y range pas, un plan payant ne demande que `OPEN_METEO_URL` et
+      `OPEN_METEO_API_KEY`.
 
 ### Exploitation
 
@@ -692,7 +752,15 @@ En service en staging ; la mise en production attend biketeam
 
 ## BRAND — Charte
 
-Rien d'ouvert : le code couleur métier a une source unique depuis `BRAND-2`.
+Le code couleur métier a une source unique depuis `BRAND-2` ; reste un défaut d'outillage.
+
+- [ ] `BRAND-5` **Un nouvel enum coloré demande deux passes de `regenerate.sh` (S)** —
+      `scripts/generate-brand-colors.mjs` importe le modèle Dart généré de chaque enum
+      (`mobile/lib/api/generated/models/<enum>.dart`) et échoue s'il manque ; or `pnpm check`
+      (frontend) le lance avant que `mobile/check.sh` ne génère le client mobile. Constaté avec
+      `RelativeWind` (`BRAND-4`) : il a fallu générer le client mobile à la main avant de relancer.
+      Générer les deux clients avant `generate-brand-colors`, ou ne vérifier le Dart que s'il
+      existe.
 
 ---
 

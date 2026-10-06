@@ -562,7 +562,90 @@
       "generic": "Cannot join {group}.",
       "leaveAndJoin": "Leave {group}"
     },
-    "cancelledMessage": "This ride will not take place. No registration is possible."
+    "cancelledMessage": "This ride will not take place. No registration is possible.",
+    "weather": {
+      "title": "Weather",
+      "atDeparture": "Weather at the start",
+      "routeTitle": "Route weather",
+      "viewRoute": "See the route weather",
+      "condition": {
+        "clear": "Clear sky",
+        "mostlyClear": "Mostly clear",
+        "partlyCloudy": "Partly cloudy",
+        "overcast": "Overcast",
+        "fog": "Fog",
+        "drizzle": "Drizzle",
+        "rain": "Rain",
+        "heavyRain": "Heavy rain",
+        "freezingRain": "Freezing rain",
+        "showers": "Showers",
+        "snow": "Snow",
+        "thunderstorm": "Thunderstorm",
+        "unknown": "Cloudy"
+      },
+      "relativeWind": {
+        "head": "Headwind",
+        "cross": "Crosswind",
+        "tail": "Tailwind"
+      },
+      "relativeWindShort": {
+        "head": "Head",
+        "cross": "Cross",
+        "tail": "Tail"
+      },
+      "compass": {
+        "n": "N",
+        "ne": "NE",
+        "e": "E",
+        "se": "SE",
+        "s": "S",
+        "sw": "SW",
+        "w": "W",
+        "nw": "NW"
+      },
+      "wind": "Wind {speed}",
+      "windFrom": "Wind {compass} {speed}",
+      "gusts": "gusts {speed}",
+      "feelsLike": "Feels like {temperature}",
+      "rainChance": "Rain {probability}",
+      "precipitation": "{amount} of precipitation",
+      "stale": "Old forecast",
+      "staleMessage": "The forecast couldn't be refreshed since {time}.",
+      "updatedAt": "Forecast from {time}",
+      "notYetAvailable": "Forecast available from {date}.",
+      "summaryAvailableFrom": "Weather from {date}",
+      "unavailableTitle": "Weather unavailable for now.",
+      "unavailableMessage": "The forecast hasn't arrived yet, try again in a few minutes.",
+      "noLocation": "Add a start place or a route to show this ride's weather. Only organisers see this message.",
+      "legNoRoute": "This group has no route: the weather is only given at the start.",
+      "legUnavailable": "The forecast along the route is not available yet.",
+      "sunrise": "Sunrise {time}",
+      "sunset": "Sunset {time}",
+      "legTimes": "Start {start} · estimated arrival {arrival}",
+      "legSpeed": "Passages estimated at {speed}",
+      "legSpeedDefault": "Passages estimated at {speed}, the default speed: the group sets none",
+      "rainAlert": "Rain likely ({probability}) around {time}.",
+      "rainAlertAt": "Rain likely ({probability}) around {time}, at {distance}.",
+      "rainAlertShort": "Rain {probability} around {time}",
+      "exposureTitle": "Wind exposure",
+      "exposure": {
+        "head": "Head {distance}",
+        "cross": "Cross {distance}",
+        "tail": "Tail {distance}"
+      },
+      "segmentsTitle": "The wind along the route",
+      "segmentsSemantics": "Wind along the route: {summary}",
+      "timelineTitle": "Checkpoints",
+      "checkpointKind": {
+        "start": "Start",
+        "enRoute": "En route",
+        "finish": "Finish"
+      },
+      "checkpointNoWeather": "No forecast here yet",
+      "prevailingWind": "Prevailing wind: {wind}",
+      "group": "Group",
+      "attribution": "Forecast: {name}"
+    }
   },
   "posts": {
     "title": "Posts",

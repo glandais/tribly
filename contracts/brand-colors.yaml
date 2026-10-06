@@ -41,6 +41,11 @@ enums:
   Visibility:
     style: soft
     values: { PUBLIC: blue, PUBLIC_UNLISTED: orange, TEAM: gray }
+  # Le vent tel que le cycliste le prend sur un tronçon (météo des sorties).
+  # Toujours doublé du libellé et de la flèche : la couleur ne porte jamais seule.
+  RelativeWind:
+    style: soft
+    values: { TAIL: teal, CROSS: gray, HEAD: orange }
   ClimbCategory:
     style: filled
     values: { HC: grape, CAT1: red, CAT2: orange, CAT3: yellow, CAT4: green }

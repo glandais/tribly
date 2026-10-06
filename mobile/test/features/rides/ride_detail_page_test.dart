@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pedalons/api/generated/export.dart';
@@ -9,8 +10,10 @@ import 'package:pedalons/core/preferences/user_preferences_provider.dart';
 import 'package:pedalons/core/theme/pedalons_theme.dart';
 import 'package:pedalons/features/rides/data/ride_repository.dart';
 import 'package:pedalons/features/rides/presentation/pages/ride_detail_page.dart';
+import 'package:pedalons/features/rides/presentation/pages/ride_weather_page.dart';
 import 'package:pedalons/features/rides/presentation/widgets/ride_group_card.dart';
 import 'package:pedalons/features/teams/data/team_repository.dart';
+import 'package:pedalons/keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../support/localization.dart';
@@ -25,15 +28,35 @@ import 'ride_fixtures.dart';
 /// n'est pas membre. C'est exactement là que la v1 se trompait : elle
 /// proposait « Participer » sur une sortie déjà courue.
 class _StubRideRepository implements RideRepository {
-  _StubRideRepository(this.ride, {this.neverCompletes = false});
+  _StubRideRepository(this.ride, {this.neverCompletes = false, this.weather});
 
   final RideDto ride;
+
+  /// La météo servie ; `null` sert `OUT_OF_RANGE`, qui ne rend rien.
+  RideWeatherDto? weather;
+
+  /// L'erreur que `getRideWeather` lève au lieu de répondre.
+  Object? weatherError;
+
+  int weatherCalls = 0;
+
+  @override
+  Future<RideWeatherDto> getRideWeather(String teamSlug, String rideSlug) {
+    weatherCalls++;
+    if (weatherError != null) {
+      return Future<RideWeatherDto>.error(weatherError!);
+    }
+    return Future<RideWeatherDto>.value(weather ?? fixtureWeather());
+  }
 
   /// Laisse le détail en vol indéfiniment, pour observer l'état de chargement.
   final bool neverCompletes;
 
+  int rideCalls = 0;
+
   @override
   Future<RideDto> getRide(String teamSlug, String rideSlug) {
+    rideCalls++;
     if (neverCompletes) return Completer<RideDto>().future;
     return Future<RideDto>.value(ride);
   }
@@ -47,18 +70,20 @@ class _StubRideRepository implements RideRepository {
 }
 
 class _StubTeamRepository implements TeamRepository {
-  _StubTeamRepository({required this.member});
+  _StubTeamRepository({required this.member, this.role});
 
   final bool member;
+  final String? role;
 
   @override
   Future<List<TeamDetailDto>> getMyTeams() async => member
       ? <TeamDetailDto>[
-          const TeamDetailDto(
+          TeamDetailDto(
+            role: role,
             id: 't1',
             slug: 'n-peloton',
             name: 'N-Peloton',
-            about: MediaDto(
+            about: const MediaDto(
               markdown: '',
               assets: AssetsDto(
                 images: <AssetDto>[],
@@ -108,15 +133,20 @@ void main() {
     required bool member,
     Brightness? brightness,
     bool loading = false,
+    _StubRideRepository? repository,
+    String? role,
   }) {
     return ProviderScope(
+      // Pas de nouvel essai : une erreur se lit tout de suite, comme avec la
+      // politique de l'app sur un 4xx (`providerRetry`).
+      retry: (int _, Object _) => null,
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         rideRepositoryProvider.overrideWithValue(
-          _StubRideRepository(ride, neverCompletes: loading),
+          repository ?? _StubRideRepository(ride, neverCompletes: loading),
         ),
         teamRepositoryProvider.overrideWithValue(
-          _StubTeamRepository(member: member),
+          _StubTeamRepository(member: member, role: role),
         ),
       ],
       child: MaterialApp(
@@ -131,8 +161,18 @@ void main() {
     RideDto ride, {
     bool member = true,
     Brightness brightness = Brightness.light,
+    _StubRideRepository? repository,
+    String? role,
   }) async {
-    await tester.pumpWidget(app(ride, member: member, brightness: brightness));
+    await tester.pumpWidget(
+      app(
+        ride,
+        member: member,
+        brightness: brightness,
+        repository: repository,
+        role: role,
+      ),
+    );
     // Trois paliers asynchrones s'enchaînent : le chargement des traductions,
     // le détail, puis l'appartenance à l'équipe. Chacun demande un tour de
     // boucle d'événements ; `pumpAndSettle` est exclu, le scintillement des
@@ -249,4 +289,227 @@ void main() {
       expect(find.text('Groupes'), findsOneWidget);
     });
   }
+
+  group('météo', () {
+    RideWeatherDto ok({String status = 'OK'}) => fixtureWeather(
+      status: status,
+      departure: fixtureConditions(),
+      fetchedAt: '2099-07-29T17:00:00Z',
+      legs: <WeatherLegDto>[
+        fixtureLeg(
+          rainAlert: const WeatherRainAlertDto(
+            probability: 70,
+            time: '2099-07-29T20:05:00Z',
+            condition: 'RAIN',
+            distance: 15000,
+          ),
+        ),
+      ],
+    );
+
+    testWidgets('la carte compacte dit le départ, le vent et la pluie', (
+      WidgetTester tester,
+    ) async {
+      final RideDto ride = fixtureRide();
+      await open(
+        tester,
+        ride,
+        repository: _StubRideRepository(ride, weather: ok()),
+      );
+
+      expect(find.byKey(keys.ride.weatherCard), findsOneWidget);
+      expect(find.text('14\u00a0°C'), findsOneWidget);
+      expect(find.text('Partiellement nuageux'), findsOneWidget);
+      expect(find.byType(PdlSegmentBar), findsOneWidget);
+      expect(find.textContaining('Pluie probable (70\u00a0%)'), findsOneWidget);
+      expect(find.text('Prévision ancienne'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('STALE se montre, et se signale', (WidgetTester tester) async {
+      final RideDto ride = fixtureRide();
+      await open(
+        tester,
+        ride,
+        repository: _StubRideRepository(ride, weather: ok(status: 'STALE')),
+      );
+
+      expect(find.byKey(keys.ride.weatherCard), findsOneWidget);
+      expect(find.text('PRÉVISION ANCIENNE'), findsOneWidget);
+    });
+
+    testWidgets('« Voir la météo du parcours » pousse l\'écran', (
+      WidgetTester tester,
+    ) async {
+      final RideDto ride = fixtureRide();
+      await open(
+        tester,
+        ride,
+        repository: _StubRideRepository(ride, weather: ok()),
+      );
+
+      await tester.tap(find.byKey(keys.ride.weatherOpenButton));
+      for (int i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.byType(RideWeatherPage), findsOneWidget);
+      expect(find.text('Météo du parcours'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('UNAVAILABLE propose de réessayer, et réessaie', (
+      WidgetTester tester,
+    ) async {
+      final RideDto ride = fixtureRide();
+      final _StubRideRepository repository = _StubRideRepository(
+        ride,
+        weather: fixtureWeather(status: 'UNAVAILABLE'),
+      );
+      await open(tester, ride, repository: repository);
+
+      expect(find.byKey(keys.ride.weatherUnavailable), findsOneWidget);
+      final int before = repository.weatherCalls;
+      await tester.tap(find.byKey(keys.ride.weatherRetryButton));
+      await tester.pump();
+      await tester.pump();
+      expect(repository.weatherCalls, before + 1);
+    });
+
+    testWidgets('un échec de l\'appel se lit comme UNAVAILABLE', (
+      WidgetTester tester,
+    ) async {
+      final RideDto ride = fixtureRide();
+      final _StubRideRepository repository = _StubRideRepository(ride)
+        ..weatherError = Exception('réseau');
+      await open(tester, ride, repository: repository);
+
+      expect(find.byKey(keys.ride.weatherUnavailable), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('NOT_YET_AVAILABLE donne la date d\'ouverture', (
+      WidgetTester tester,
+    ) async {
+      final RideDto ride = fixtureRide();
+      await open(
+        tester,
+        ride,
+        repository: _StubRideRepository(
+          ride,
+          weather: fixtureWeather(
+            status: 'NOT_YET_AVAILABLE',
+            availableFrom: '2099-07-22T19:30:00Z',
+          ),
+        ),
+      );
+
+      expect(find.byKey(keys.ride.weatherNotYetAvailable), findsOneWidget);
+      expect(
+        find.textContaining('Prévision disponible à partir du'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('NO_LOCATION : rien pour un membre', (
+      WidgetTester tester,
+    ) async {
+      final RideDto ride = fixtureRide();
+      await open(
+        tester,
+        ride,
+        role: 'MEMBER',
+        repository: _StubRideRepository(
+          ride,
+          weather: fixtureWeather(status: 'NO_LOCATION'),
+        ),
+      );
+
+      expect(find.byKey(keys.ride.weatherNoLocation), findsNothing);
+    });
+
+    testWidgets('NO_LOCATION : un mot pour l\'organisateur', (
+      WidgetTester tester,
+    ) async {
+      final RideDto ride = fixtureRide();
+      await open(
+        tester,
+        ride,
+        role: 'ORGANIZER',
+        repository: _StubRideRepository(
+          ride,
+          weather: fixtureWeather(status: 'NO_LOCATION'),
+        ),
+      );
+
+      expect(find.byKey(keys.ride.weatherNoLocation), findsOneWidget);
+    });
+
+    testWidgets('un statut inconnu ne rend rien', (WidgetTester tester) async {
+      final RideDto ride = fixtureRide();
+      await open(
+        tester,
+        ride,
+        repository: _StubRideRepository(
+          ride,
+          weather: fixtureWeather(status: 'SOMETHING_NEW'),
+        ),
+      );
+
+      expect(find.byKey(keys.ride.weatherCard), findsNothing);
+      expect(find.byKey(keys.ride.weatherUnavailable), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('une sortie terminée ne demande même pas la météo', (
+      WidgetTester tester,
+    ) async {
+      final RideDto ride = fixtureRide(dateTime: '2020-01-01T08:00:00Z');
+      final _StubRideRepository repository = _StubRideRepository(
+        ride,
+        weather: ok(),
+      );
+      await open(tester, ride, repository: repository);
+
+      expect(find.byKey(keys.ride.weatherCard), findsNothing);
+      expect(repository.weatherCalls, 0);
+    });
+
+    testWidgets('le pull-to-refresh reprend aussi la météo', (
+      WidgetTester tester,
+    ) async {
+      final RideDto ride = fixtureRide();
+      final _StubRideRepository repository = _StubRideRepository(
+        ride,
+        weather: ok(),
+      );
+      // `PdlRefresh` attend sa secousse avant de rafraîchir : sans réponse du
+      // canal de la plateforme, elle n'arrive jamais.
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            SystemChannels.platform,
+            (MethodCall _) async => null,
+          );
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, null),
+      );
+      await open(tester, ride, repository: repository);
+      final int before = repository.weatherCalls;
+
+      // Le geste lui-même est l'affaire de `pdl_refresh_test.dart` ; ici, ce
+      // qu'il déclenche.
+      unawaited(
+        tester
+            .state<RefreshIndicatorState>(find.byType(RefreshIndicator))
+            .show(),
+      );
+      for (int i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(repository.rideCalls, greaterThan(1));
+      expect(repository.weatherCalls, greaterThan(before));
+    });
+  });
 }

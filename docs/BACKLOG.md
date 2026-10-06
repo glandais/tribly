@@ -128,7 +128,10 @@ Validated interest required before prioritization.
 - [X] Wahoo Cloud upload (cloud-only — no companion app, the ELEMNT syncs from the account)
 - [X] Garmin GPS (iq store) app (route download for current ride)
 - [X] Karoo app (route download)
-- [ ] Weather for ride/trip
+- [X] Weather for rides (October 2026, API 10.9.0) — Open-Meteo forecast on the ride page, the
+      cards and the mobile "route weather" screen: departure, checkpoints, wind along the route,
+      rain alert. Ledger `API-74`, `WEB-60`, `MOB-51`
+- [ ] Weather for trips (one forecast per stage) — ledger `API-76`; on Karoo/Garmin — `API-77`
 
 ### Mobile
 - [X] Mobile application (iOS/Android) — Flutter app with auth, teams, rides, routes, calendar

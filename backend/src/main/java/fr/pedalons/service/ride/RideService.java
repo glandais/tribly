@@ -3,6 +3,8 @@ package fr.pedalons.service.ride;
 import static fr.pedalons.dto.error.ErrorCode.ALREADY_REGISTERED;
 import static fr.pedalons.dto.error.ErrorCode.NOT_REGISTERED;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.ConflictException;
@@ -21,11 +23,15 @@ import fr.pedalons.dto.rides.request.RideRequest;
 import fr.pedalons.dto.rides.response.*;
 import fr.pedalons.dto.users.response.ParticipantListResponse;
 import fr.pedalons.dto.users.response.PublicUserDto;
+import fr.pedalons.dto.weather.response.RideWeatherDto;
+import fr.pedalons.dto.weather.response.WeatherAttributionDto;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.enums.WeatherStatus;
 import fr.pedalons.infrastructure.exception.NotFoundException;
+import fr.pedalons.infrastructure.openmeteo.OpenMeteoGateway;
 import fr.pedalons.repository.common.BaseRepository;
 import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.ride.RideGroupRepository;
@@ -46,9 +52,13 @@ import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.tag.TagLookup;
 import fr.pedalons.service.tag.TagService;
 import fr.pedalons.service.thumbnail.ThumbnailService;
+import fr.pedalons.service.weather.RideWeatherLookup;
+import fr.pedalons.service.weather.RideWeatherService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -88,6 +98,12 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
   @Inject TagLookup tagLookup;
 
+  @Inject RideWeatherLookup rideWeatherLookup;
+
+  @Inject RideWeatherService rideWeatherService;
+
+  @Inject ObjectMapper objectMapper;
+
   /** How long a ride edit waits before notifying — the window in which further edits fold in. */
   @ConfigProperty(name = "pedalons.notifications.update-delay-seconds", defaultValue = "300")
   int updateDelaySeconds;
@@ -115,7 +131,43 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
         thumbnailLookup.forTeamEntities(groupRouteIds),
         participantPreviewLookup.forRideGroups(
             entity.getGroups().stream().map(RideGroup::getId).toList()),
-        tagLookup.forContent(entity.getId()));
+        tagLookup.forContent(entity.getId()),
+        // The same card line as the lists, so a ride reads alike in both; none for a ride outside
+        // the forecast window, at most one query otherwise.
+        rideWeatherLookup.forRides(List.of(entity)));
+  }
+
+  /**
+   * The ride's weather for its detail page, read from the cache only: never a call to the
+   * provider, never a write — a web SSR may prefetch it like any read. Readable by whoever may read
+   * the ride; always an answer once it is readable, its state in {@code status}.
+   */
+  @CheckAccess(entityType = EntityType.RIDE, action = ActionType.READ)
+  public RideWeatherAnswer getWeather(String teamSlug, String rideSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    Ride ride = findBySlug(team, rideSlug);
+    RideWeatherDto body =
+        RideWeatherDto.from(
+            rideWeatherService.forRide(ride),
+            new WeatherAttributionDto(
+                OpenMeteoGateway.ATTRIBUTION_NAME, OpenMeteoGateway.ATTRIBUTION_URL));
+    return new RideWeatherAnswer(
+        body, body.status() == WeatherStatus.UNAVAILABLE ? null : weatherEtag(body));
+  }
+
+  /**
+   * A digest of the body rather than « ride version + fetchedAt »: a group's time, speed or route
+   * changes the passages without touching the ride's version, and the clock alone turns a forecast
+   * {@code STALE}. Hashing what is sent catches all of it, and is the same on every instance.
+   */
+  private String weatherEtag(RideWeatherDto body) {
+    try {
+      byte[] digest =
+          MessageDigest.getInstance("SHA-256").digest(objectMapper.writeValueAsBytes(body));
+      return HexFormat.of().formatHex(digest, 0, 16);
+    } catch (JsonProcessingException | NoSuchAlgorithmException e) {
+      throw new IllegalStateException("Cannot digest a ride's weather", e);
+    }
   }
 
   /**

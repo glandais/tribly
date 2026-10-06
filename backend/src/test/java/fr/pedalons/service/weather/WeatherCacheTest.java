@@ -1,0 +1,284 @@
+package fr.pedalons.service.weather;
+
+import static org.geolatte.geom.builder.DSL.g;
+import static org.geolatte.geom.builder.DSL.point;
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import fr.pedalons.api.AbstractResourceTest;
+import fr.pedalons.domain.place.Place;
+import fr.pedalons.domain.ride.Ride;
+import fr.pedalons.domain.route.GpxTrack.TrackPoint;
+import fr.pedalons.domain.route.Route;
+import fr.pedalons.domain.weather.WeatherCell;
+import fr.pedalons.enums.Visibility;
+import fr.pedalons.enums.WeatherStatus;
+import fr.pedalons.infrastructure.openmeteo.OpenMeteoCircuitBreaker;
+import fr.pedalons.infrastructure.openmeteo.OpenMeteoException;
+import fr.pedalons.infrastructure.openmeteo.OpenMeteoForecast;
+import fr.pedalons.infrastructure.openmeteo.OpenMeteoGateway;
+import fr.pedalons.infrastructure.openmeteo.OpenMeteoGateway.Location;
+import fr.pedalons.repository.place.PlaceRepository;
+import fr.pedalons.repository.ride.RideRepository;
+import fr.pedalons.repository.weather.WeatherCellRepository;
+import fr.pedalons.repository.weather.WeatherHourlyRepository;
+import io.quarkus.narayana.jta.QuarkusTransaction;
+import io.quarkus.test.InjectMock;
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+/**
+ * The weather cache end to end, the provider mocked: planning a ride's cells, fetching them,
+ * reading them back for the detail and the list — and what a provider failure leaves behind.
+ */
+@QuarkusTest
+class WeatherCacheTest extends AbstractResourceTest {
+
+  @InjectMock OpenMeteoGateway gateway;
+  @InjectMock OpenMeteoCircuitBreaker breaker;
+
+  @Inject WeatherPlanner planner;
+  @Inject WeatherFetchWorker worker;
+  @Inject WeatherHousekeeping housekeeping;
+  @Inject RideWeatherService rideWeatherService;
+  @Inject RideWeatherLookup rideWeatherLookup;
+  @Inject WeatherCellRepository cellRepository;
+  @Inject WeatherHourlyRepository hourlyRepository;
+  @Inject RideRepository rideRepository;
+  @Inject PlaceRepository placeRepository;
+
+  private Ride ride;
+
+  @Override
+  @BeforeEach
+  public void setUp() {
+    super.setUp();
+    when(breaker.isClosed(any())).thenReturn(true);
+    when(breaker.remainingBudget(any())).thenReturn(1_000);
+    when(gateway.forecast(anyList()))
+        .thenAnswer(
+            invocation -> {
+              List<Location> locations = invocation.getArgument(0);
+              return locations.stream().map(WeatherCacheTest::forecast).toList();
+            });
+
+    // Tomorrow, 30 km due north from Lyon, meeting point at the start.
+    Instant tomorrow = Instant.now().plus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.HOURS);
+    Route route =
+        dataService.createRouteWithTracks(
+            team1, user1, "Vers le nord", Visibility.PUBLIC, List.of(northbound(30)));
+    ride = dataService.createRide(team1, user1, "Sortie", "sortie", tomorrow);
+    QuarkusTransaction.requiringNew()
+        .run(
+            () -> {
+              Place place = new Place(user1, team1, "Bellecour", true, true);
+              place.setGeometry(point(WGS84, g(4.8320, 45.7578)));
+              placeRepository.persist(place);
+              Ride managed = rideRepository.findById(ride.getId());
+              managed.setStart(place);
+              managed.setRoute(rideRepository.getEntityManager().find(Route.class, route.getId()));
+            });
+  }
+
+  private static List<TrackPoint> northbound(double km) {
+    List<TrackPoint> points = new ArrayList<>();
+    for (int i = 0; i <= km * 10; i++) {
+      double d = i * 100.0;
+      points.add(new TrackPoint(45.7578 + d / 111_195, 4.8320, 170 + i * 0.1, d));
+    }
+    return points;
+  }
+
+  /** 48 hours of mild weather with a northerly, from two hours ago. */
+  private static OpenMeteoForecast forecast(Location location) {
+    Instant start = Instant.now().truncatedTo(ChronoUnit.HOURS).minus(Duration.ofHours(2));
+    List<OpenMeteoForecast.Hour> hours = new ArrayList<>();
+    for (int h = 0; h < 48; h++) {
+      hours.add(
+          new OpenMeteoForecast.Hour(
+              start.plus(Duration.ofHours(h)), 15, 14, 10, 0, 2, 20, 0, 35.0));
+    }
+    LocalDate today = LocalDate.now(ZoneOffset.UTC);
+    List<OpenMeteoForecast.Day> days = new ArrayList<>();
+    for (int d = -1; d < 3; d++) {
+      LocalDate date = today.plusDays(d);
+      days.add(
+          new OpenMeteoForecast.Day(
+              date,
+              date.atTime(5, 0).toInstant(ZoneOffset.UTC),
+              date.atTime(18, 0).toInstant(ZoneOffset.UTC)));
+    }
+    return new OpenMeteoForecast(
+        location.latitude(),
+        location.longitude(),
+        location.elevation(),
+        "Europe/Paris",
+        hours,
+        days);
+  }
+
+  private List<WeatherCell> cells() {
+    return QuarkusTransaction.requiringNew().call(() -> cellRepository.listAll());
+  }
+
+  @Test
+  void plan_shouldUpsertOneCellPerPlace_evenWithoutElevation() {
+    int planned = planner.plan(Instant.now());
+    int again = planner.plan(Instant.now());
+
+    // The departure (no band) and the three route samples — the start sample shares the
+    // departure's 5 km cell but not its (null) elevation band.
+    assertEquals(planned, again);
+    List<WeatherCell> cells = cells();
+    assertEquals(planned, cells.size());
+    assertEquals(1, cells.stream().filter(c -> c.getEleBand() == null).count());
+    assertTrue(cells.stream().allMatch(c -> c.getFetchedAt() == null));
+  }
+
+  @Test
+  void fetchDue_shouldStoreEveryCellAndServeTheDetailAndTheList() {
+    planner.plan(Instant.now());
+
+    int stored = worker.fetchDue();
+
+    assertEquals(cells().size(), stored);
+    assertTrue(cells().stream().allMatch(c -> c.getFetchedAt() != null && c.getAttempts() == 0));
+    assertTrue(cells().stream().allMatch(c -> c.getNextRefreshAt().isAfter(Instant.now())));
+
+    RideWeather weather =
+        QuarkusTransaction.requiringNew()
+            .call(() -> rideWeatherService.forRide(rideRepository.findById(ride.getId())));
+    assertEquals(WeatherStatus.OK, weather.status());
+    assertEquals(WeatherStatus.OK, weather.departure().status());
+    assertNotNull(weather.departure().conditions());
+    assertEquals(1, weather.legs().size());
+    WeatherLeg leg = weather.legs().getFirst();
+    assertNull(leg.groupId());
+    assertTrue(leg.speedIsDefault());
+    assertEquals(3, leg.checkpoints().size()); // 0, 15, 30 km
+    assertTrue(leg.checkpoints().stream().allMatch(c -> c.weather() != null));
+    assertEquals(30_000, leg.windExposure().head(), 1); // due north into a northerly
+
+    RideWeatherSummaries summaries =
+        QuarkusTransaction.requiringNew()
+            .call(
+                () -> {
+                  List<Ride> rides = List.of(rideRepository.findById(ride.getId()));
+                  return rideWeatherLookup.forRides(rides);
+                });
+    RideWeatherSummary summary = summaries.forRide(ride.getId());
+    assertNotNull(summary);
+    assertEquals(WeatherStatus.OK, summary.status());
+    assertEquals(15, summary.temperature());
+  }
+
+  @Test
+  void forRides_shouldCostOneStatementForAPage() {
+    planner.plan(Instant.now());
+    worker.fetchDue();
+
+    long statements =
+        QuarkusTransaction.requiringNew()
+            .call(
+                () -> {
+                  List<Ride> rides = List.of(rideRepository.findById(ride.getId()));
+                  return queryStats.measure(
+                      "weather summaries [1 ride]", () -> rideWeatherLookup.forRides(rides));
+                });
+
+    assertEquals(1, statements);
+  }
+
+  @Test
+  void forRides_withNoRideInTheWindow_shouldCostNothing() {
+    Ride far =
+        dataService.createRide(
+            team1, user1, "Loin", "loin", Instant.now().plus(10, ChronoUnit.DAYS));
+
+    long[] statements = new long[1];
+    RideWeatherSummaries summaries =
+        QuarkusTransaction.requiringNew()
+            .call(
+                () -> {
+                  List<Ride> rides = List.of(rideRepository.findById(far.getId()));
+                  RideWeatherSummaries[] out = new RideWeatherSummaries[1];
+                  statements[0] =
+                      queryStats.measure(
+                          "weather summaries [far ride]",
+                          () -> out[0] = rideWeatherLookup.forRides(rides));
+                  return out[0];
+                });
+
+    assertEquals(0, statements[0]);
+    // No place, no route: nothing to promise either.
+    assertNull(summaries.forRide(far.getId()));
+  }
+
+  @Test
+  void fetchDue_whenTheProviderFails_shouldBackOffAndKeepTheCache() {
+    planner.plan(Instant.now());
+    worker.fetchDue();
+    Instant firstFetch = cells().getFirst().getFetchedAt();
+    QuarkusTransaction.requiringNew()
+        .run(() -> cellRepository.update("nextRefreshAt = ?1", Instant.now().minusSeconds(1)));
+    doThrow(new OpenMeteoException("Open-Meteo answered 502", false))
+        .when(gateway)
+        .forecast(anyList());
+
+    int stored = worker.fetchDue();
+
+    assertEquals(0, stored);
+    for (WeatherCell cell : cells()) {
+      assertEquals(1, cell.getAttempts());
+      assertNotNull(cell.getLastError());
+      assertNotNull(cell.getFetchedAt()); // the forecast is still there, served STALE later
+      assertTrue(cell.getNextRefreshAt().isAfter(Instant.now().plus(Duration.ofMinutes(4))));
+      assertNull(cell.getClaimedUntil());
+    }
+    assertNotNull(firstFetch);
+    verify(breaker, never()).recordRateLimited(any());
+  }
+
+  @Test
+  void fetchDue_whenRateLimited_shouldWaitForTheNextFullHour() {
+    planner.plan(Instant.now());
+    doThrow(new OpenMeteoException("429", true)).when(gateway).forecast(anyList());
+
+    worker.fetchDue();
+
+    Instant nextHour = Instant.now().truncatedTo(ChronoUnit.HOURS).plus(1, ChronoUnit.HOURS);
+    assertTrue(cells().stream().allMatch(c -> !c.getNextRefreshAt().isBefore(nextHour)));
+    verify(breaker, atLeastOnce()).recordRateLimited(any());
+  }
+
+  @Test
+  void purge_shouldDropPastHoursAndForgottenCells() {
+    planner.plan(Instant.now());
+    worker.fetchDue();
+
+    // Two days and a bit later, nobody planned anything since.
+    housekeeping.purge(Instant.now().plus(Duration.ofDays(3)));
+
+    assertTrue(cells().isEmpty());
+    assertEquals(0, QuarkusTransaction.requiringNew().call(() -> hourlyRepository.count()));
+  }
+}

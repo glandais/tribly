@@ -1476,6 +1476,10 @@
           }
         }
       },
+      "CompassPoint" : {
+        "type" : "string",
+        "enum" : [ "N", "NE", "E", "SE", "S", "SW", "W", "NW" ]
+      },
       "CompleteRequest" : {
         "description" : "Complete device authorization request",
         "type" : "object",
@@ -1693,6 +1697,38 @@
           "userCode" : {
             "type" : "string",
             "description" : "User code from device display"
+          }
+        }
+      },
+      "DepartureWeatherDto" : {
+        "description" : "The weather at the meeting point when the ride leaves",
+        "type" : "object",
+        "required" : [ "status" ],
+        "properties" : {
+          "status" : {
+            "description" : "State of the departure forecast. conditions is present for OK and STALE only.",
+            "type" : "string",
+            "$ref" : "#/components/schemas/WeatherStatus"
+          },
+          "conditions" : {
+            "description" : "The forecast of the departure hour, for OK and STALE",
+            "type" : "object",
+            "$ref" : "#/components/schemas/WeatherConditionsDto"
+          },
+          "sunrise" : {
+            "description" : "Sunrise at the meeting point, on the departure's local date",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "sunset" : {
+            "description" : "Sunset at the meeting point, on the departure's local date",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "fetchedAt" : {
+            "description" : "When the forecast of the meeting point was last fetched",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
           }
         }
       },
@@ -3907,6 +3943,10 @@
           }
         }
       },
+      "RelativeWind" : {
+        "type" : "string",
+        "enum" : [ "HEAD", "CROSS", "TAIL" ]
+      },
       "RentalPeriod" : {
         "type" : "string",
         "enum" : [ "DAY", "WEEK", "MONTH" ]
@@ -4167,6 +4207,11 @@
               "$ref" : "#/components/schemas/TagDto"
             },
             "description" : "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
+          },
+          "weather" : {
+            "description" : "The weather line of a card: the meeting point, over the window from the departure to the estimated arrival of the last group. Absent when there is nothing to show — finished or cancelled ride, no place, forecast not in cache yet; present only with status OK, STALE or NOT_YET_AVAILABLE. The full forecast is getRideWeather.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/RideWeatherSummaryDto"
           }
         }
       },
@@ -4629,6 +4674,106 @@
               "type" : "string"
             },
             "description" : "IDs (TSID) of the team's RIDE tags the template carries (copied onto the rides created from it), replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update."
+          }
+        }
+      },
+      "RideWeatherDto" : {
+        "description" : "A ride's weather, for its detail page: the meeting point at departure, then one leg per group. Read from the server's cache only — the forecast is refreshed in the background, never on request.",
+        "type" : "object",
+        "required" : [ "status", "departure", "legs", "attribution" ],
+        "properties" : {
+          "status" : {
+            "description" : "Overall state. OK and STALE (shown, flagged as old) carry the forecast; NOT_YET_AVAILABLE comes with availableFrom; UNAVAILABLE (nothing in cache yet, or the provider failing) offers to retry; NO_LOCATION is worth a word to the organisers only; OUT_OF_RANGE (finished, cancelled) shows nothing.",
+            "type" : "string",
+            "$ref" : "#/components/schemas/WeatherStatus"
+          },
+          "availableFrom" : {
+            "description" : "For NOT_YET_AVAILABLE: when the forecast opens, seven days before the departure",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "fetchedAt" : {
+            "description" : "The oldest fetch among the forecasts read",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "departure" : {
+            "description" : "The meeting point at departure",
+            "type" : "object",
+            "$ref" : "#/components/schemas/DepartureWeatherDto"
+          },
+          "legs" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/WeatherLegDto"
+            },
+            "description" : "One per group, in group order; a single one without groupId for a ride without groups. Empty for OUT_OF_RANGE, NO_LOCATION and NOT_YET_AVAILABLE."
+          },
+          "attribution" : {
+            "description" : "The credit the forecast's licence asks for",
+            "type" : "object",
+            "$ref" : "#/components/schemas/WeatherAttributionDto"
+          }
+        }
+      },
+      "RideWeatherSummaryDto" : {
+        "type" : "object",
+        "description" : "A ride's weather on a card, at the meeting point, over the window from the departure to the estimated arrival of the last group. Only OK, STALE and NOT_YET_AVAILABLE are ever sent; for NOT_YET_AVAILABLE only status and availableFrom are set.",
+        "required" : [ "status" ],
+        "properties" : {
+          "status" : {
+            "description" : "OK, STALE or NOT_YET_AVAILABLE",
+            "type" : "string",
+            "$ref" : "#/components/schemas/WeatherStatus"
+          },
+          "availableFrom" : {
+            "description" : "For NOT_YET_AVAILABLE: when the forecast opens, seven days before the departure",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "weatherCode" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "WMO code at the departure hour"
+          },
+          "condition" : {
+            "description" : "weatherCode folded into a condition, same table as WeatherConditionsDto.condition",
+            "type" : "string",
+            "$ref" : "#/components/schemas/WeatherCondition"
+          },
+          "daylight" : {
+            "type" : "boolean",
+            "description" : "Whether the departure hour is between sunrise and sunset"
+          },
+          "temperature" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Air temperature at the departure hour, °C"
+          },
+          "temperatureMin" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Lowest temperature over the window, °C"
+          },
+          "temperatureMax" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Highest temperature over the window, °C"
+          },
+          "maxPrecipitationProbability" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Highest probability of precipitation over the window, %. Absent when the model gives none."
+          },
+          "wind" : {
+            "description" : "Wind at the departure hour",
+            "type" : "object",
+            "$ref" : "#/components/schemas/WindDto"
+          },
+          "rainAlert" : {
+            "description" : "The first hour of the window with rain likely (50 % or more); its distance is always absent here",
+            "type" : "object",
+            "$ref" : "#/components/schemas/WeatherRainAlertDto"
           }
         }
       },
@@ -6855,6 +7000,237 @@
           }
         }
       },
+      "WeatherAttributionDto" : {
+        "type" : "object",
+        "description" : "Who the forecast comes from. Its licence (CC BY 4.0) asks every display to credit it: show the name, linked to the url.",
+        "required" : [ "name", "url" ],
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Name to display, e.g. \"Open-Meteo.com\""
+          },
+          "url" : {
+            "type" : "string",
+            "description" : "Link of the credit"
+          }
+        }
+      },
+      "WeatherCheckpointDto" : {
+        "type" : "object",
+        "description" : "A forecast point along a leg, about every 15 km plus the finish. Deliberately carries no coordinates: place it by distance on the route geometry the client may read.",
+        "required" : [ "index", "kind", "distance", "time" ],
+        "properties" : {
+          "index" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Position of the point on the leg, 0 for the start"
+          },
+          "kind" : {
+            "description" : "Where the point stands on the leg",
+            "type" : "string",
+            "$ref" : "#/components/schemas/WeatherCheckpointKind"
+          },
+          "distance" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Distance from the start of the leg's route, metres"
+          },
+          "elevation" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Elevation of the point, metres, from the track"
+          },
+          "time" : {
+            "description" : "Estimated passage, from the leg's start time and speed",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "weather" : {
+            "description" : "The forecast at the passage. Absent when nothing is in cache for that place yet.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/WeatherConditionsDto"
+          },
+          "relativeWind" : {
+            "description" : "How the rider meets the wind on the stretch that starts here (for the finish, the stretch that ends here). Absent without weather.",
+            "type" : "string",
+            "$ref" : "#/components/schemas/RelativeWind"
+          },
+          "headwind" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Mean head component of the wind on that stretch, km/h, signed: positive against the rider, negative behind"
+          },
+          "relativeWindAngle" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Direction the wind blows TOWARDS, relative to the direction of travel, degrees clockwise: 0 = from behind (pushing), 90 = from the left, 180 = in the face. Draw the arrow pointing forward, then rotate it by this angle."
+          }
+        }
+      },
+      "WeatherCheckpointKind" : {
+        "type" : "string",
+        "enum" : [ "START", "EN_ROUTE", "FINISH" ]
+      },
+      "WeatherCondition" : {
+        "type" : "string",
+        "enum" : [ "CLEAR", "MOSTLY_CLEAR", "PARTLY_CLOUDY", "OVERCAST", "FOG", "DRIZZLE", "RAIN", "HEAVY_RAIN", "FREEZING_RAIN", "SHOWERS", "SNOW", "THUNDERSTORM" ]
+      },
+      "WeatherConditionsDto" : {
+        "type" : "object",
+        "description" : "The forecast of one hour at one place",
+        "required" : [ "time", "weatherCode", "condition", "daylight", "temperature", "apparentTemperature", "precipitation", "wind" ],
+        "properties" : {
+          "time" : {
+            "description" : "The forecast hour used: the one nearest the moment asked about",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "weatherCode" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "WMO weather interpretation code, as the model gives it. condition is its folding; a client reads condition, this is for the curious."
+          },
+          "condition" : {
+            "description" : "weatherCode folded into what a rider decides on. WMO code → condition: 0 CLEAR; 1 MOSTLY_CLEAR; 2 PARTLY_CLOUDY; 3 OVERCAST; 45, 48 FOG; 51, 53, 55 DRIZZLE; 56, 57, 66, 67 FREEZING_RAIN; 61, 63 RAIN; 65 HEAVY_RAIN; 71, 73, 75, 77, 85, 86 SNOW; 80, 81, 82 SHOWERS; 95, 96, 99 THUNDERSTORM; any other OVERCAST. A client meeting a value it does not know shows a plain cloud.",
+            "type" : "string",
+            "$ref" : "#/components/schemas/WeatherCondition"
+          },
+          "daylight" : {
+            "type" : "boolean",
+            "description" : "Whether time falls between sunrise and sunset at that place — picks the day or night icon"
+          },
+          "temperature" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Air temperature at 2 m, °C"
+          },
+          "apparentTemperature" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Felt temperature (wind chill, humidity), °C"
+          },
+          "precipitationProbability" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Probability of precipitation, % (0–100). Absent when the model gives none."
+          },
+          "precipitation" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Precipitation over the hour (rain, showers, snow), mm"
+          },
+          "wind" : {
+            "description" : "Wind of that hour",
+            "type" : "object",
+            "$ref" : "#/components/schemas/WindDto"
+          }
+        }
+      },
+      "WeatherLegDto" : {
+        "type" : "object",
+        "description" : "The weather along one ridden route: a group of a ride (a stage of a trip, later). Passages are estimated from startTime at averageSpeed.",
+        "properties" : {
+          "groupId" : {
+            "type" : "string",
+            "description" : "The ride group (TSID). Absent for a ride without groups: the leg rides the ride's own route."
+          },
+          "status" : {
+            "description" : "State of this leg's forecast. NO_LOCATION when the leg has no route to sample: then no checkpoint, no segment.",
+            "type" : "string",
+            "$ref" : "#/components/schemas/WeatherStatus"
+          },
+          "startTime" : {
+            "description" : "When the leg leaves",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "averageSpeed" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Speed used for the passages, km/h"
+          },
+          "speedIsDefault" : {
+            "type" : "boolean",
+            "description" : "Whether averageSpeed is the 25 km/h default, the group having none — to be said on screen"
+          },
+          "distance" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Length of the leg's route, metres"
+          },
+          "arrivalTime" : {
+            "description" : "Estimated arrival",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "fetchedAt" : {
+            "description" : "The oldest fetch among the forecasts this leg reads",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "checkpoints" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/WeatherCheckpointDto"
+            },
+            "description" : "Forecast points, start to finish"
+          },
+          "segments" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/WindSegmentDto"
+            },
+            "description" : "The wind stretch by stretch, from one checkpoint to the next"
+          },
+          "windExposure" : {
+            "description" : "Distance ridden against, across and with the wind",
+            "type" : "object",
+            "$ref" : "#/components/schemas/WindExposureDto"
+          },
+          "prevailingWind" : {
+            "description" : "The leg's dominant wind: circular mean of the directions, mean speed, highest gust",
+            "type" : "object",
+            "$ref" : "#/components/schemas/WindDto"
+          },
+          "rainAlert" : {
+            "description" : "The first checkpoint where rain becomes likely, if any",
+            "type" : "object",
+            "$ref" : "#/components/schemas/WeatherRainAlertDto"
+          }
+        },
+        "required" : [ "status", "startTime", "averageSpeed", "speedIsDefault", "distance", "arrivalTime", "checkpoints", "segments", "windExposure" ]
+      },
+      "WeatherRainAlertDto" : {
+        "type" : "object",
+        "description" : "The first moment rain becomes likely: a probability of 50 % or more",
+        "required" : [ "probability", "time", "condition" ],
+        "properties" : {
+          "probability" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Probability of precipitation then, % (0–100)"
+          },
+          "time" : {
+            "description" : "When — the passage at the checkpoint, or the hour",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "distance" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Where, metres from the start of the leg. Absent in a ride's summary, which only knows the departure point."
+          },
+          "condition" : {
+            "description" : "The condition forecast then",
+            "type" : "string",
+            "$ref" : "#/components/schemas/WeatherCondition"
+          }
+        }
+      },
+      "WeatherStatus" : {
+        "type" : "string",
+        "enum" : [ "OK", "STALE", "NOT_YET_AVAILABLE", "UNAVAILABLE", "NO_LOCATION", "OUT_OF_RANGE" ]
+      },
       "WebPushConfigDto" : {
         "type" : "object",
         "description" : "Firebase web configuration, for push notifications in the browser",
@@ -6885,6 +7261,82 @@
       "WindDirection" : {
         "type" : "string",
         "enum" : [ "NORTH", "NORTH_EAST", "EAST", "SOUTH_EAST", "SOUTH", "SOUTH_WEST", "WEST", "NORTH_WEST" ]
+      },
+      "WindDto" : {
+        "type" : "object",
+        "description" : "Wind at a place and an hour, 10 m above ground",
+        "required" : [ "speed", "direction", "compass" ],
+        "properties" : {
+          "speed" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Mean wind speed, km/h"
+          },
+          "gusts" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Gusts, km/h. Absent when the model gives none."
+          },
+          "direction" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Direction the wind comes FROM, degrees clockwise from north (0 = from the north, 90 = from the east)"
+          },
+          "compass" : {
+            "description" : "direction on the eight-point rose, still the direction the wind comes FROM",
+            "type" : "string",
+            "$ref" : "#/components/schemas/CompassPoint"
+          }
+        }
+      },
+      "WindExposureDto" : {
+        "type" : "object",
+        "description" : "How much of a leg rides against, across and with the wind, metres. All zero when no stretch has weather.",
+        "required" : [ "head", "cross", "tail" ],
+        "properties" : {
+          "head" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Metres with a HEAD wind"
+          },
+          "cross" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Metres with a CROSS wind"
+          },
+          "tail" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Metres with a TAIL wind"
+          }
+        }
+      },
+      "WindSegmentDto" : {
+        "type" : "object",
+        "description" : "The wind on the stretch between two checkpoints, as the rider meets it",
+        "required" : [ "fromDistance", "toDistance", "relativeWind", "headwind" ],
+        "properties" : {
+          "fromDistance" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Start of the stretch, metres from the start of the leg"
+          },
+          "toDistance" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "End of the stretch, metres from the start of the leg"
+          },
+          "relativeWind" : {
+            "description" : "HEAD when the head component exceeds half the wind speed, TAIL below minus half, CROSS otherwise. Always shown with its label and an arrow, not by colour alone.",
+            "type" : "string",
+            "$ref" : "#/components/schemas/RelativeWind"
+          },
+          "headwind" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Mean head component, km/h, signed: positive against the rider"
+          }
+        }
       }
     },
     "securitySchemes" : {
@@ -18354,6 +18806,56 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/rides/{rideSlug}/weather" : {
+      "get" : {
+        "summary" : "Get ride weather",
+        "description" : "The forecast for the ride: at the meeting point when it leaves, then along each group's route at its estimated passages (group speed, else 25 km/h). Read from the server's cache only — the forecast is refreshed in the background, never on request. Readable by whoever may read the ride, and then always 200: the state is in status. Cache-Control: private, no-cache with an ETag (revalidate with If-None-Match, 304 when unchanged); no-store when status is UNAVAILABLE.",
+        "operationId" : "getRideWeather",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Ride weather, in whatever state it is",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RideWeatherDto"
+                }
+              }
+            }
+          },
+          "304" : {
+            "description" : "Unchanged since the ETag sent"
+          },
+          "404" : {
+            "description" : "Team or ride not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/teams/{teamSlug}/routes" : {
       "get" : {
         "summary" : "List routes",
@@ -22551,7 +23053,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.8.0",
+    "version" : "10.9.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

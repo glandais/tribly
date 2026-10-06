@@ -49,6 +49,27 @@ final teamMembershipProvider = Provider.family<bool?, String>((
       );
 });
 
+/// Mon rôle dans [teamSlug], lu dans « Mes équipes » — aucun appel de plus.
+///
+/// `null` quand je n'en suis pas membre, ou tant que la liste n'est pas là (ou
+/// a échoué). Une valeur que cette version de l'app ne connaît pas rend
+/// [TeamRole.$unknown] : l'appelant qui réserve quelque chose aux
+/// organisateurs ne l'ouvre donc qu'à `ORGANIZER` et `ADMIN` explicites.
+final teamRoleProvider = Provider.family<TeamRole?, String>((
+  Ref ref,
+  String teamSlug,
+) {
+  final List<TeamDetailDto>? teams = ref.watch(myTeamsProvider).value;
+  if (teams == null) return null;
+  for (final TeamDetailDto team in teams) {
+    if (team.slug == teamSlug) {
+      final String? role = team.role;
+      return role == null ? null : TeamRole.fromJson(role);
+    }
+  }
+  return null;
+});
+
 /// Les invitations en attente adressées à l'utilisateur, affichées en tête de
 /// « Mes équipes ».
 ///

@@ -562,7 +562,90 @@
       "generic": "Inscription impossible à {group}.",
       "leaveAndJoin": "Quitter {group}"
     },
-    "cancelledMessage": "Cette sortie n'aura pas lieu. Aucune inscription n'est possible."
+    "cancelledMessage": "Cette sortie n'aura pas lieu. Aucune inscription n'est possible.",
+    "weather": {
+      "title": "Météo",
+      "atDeparture": "Météo au départ",
+      "routeTitle": "Météo du parcours",
+      "viewRoute": "Voir la météo du parcours",
+      "condition": {
+        "clear": "Ciel dégagé",
+        "mostlyClear": "Plutôt dégagé",
+        "partlyCloudy": "Partiellement nuageux",
+        "overcast": "Couvert",
+        "fog": "Brouillard",
+        "drizzle": "Bruine",
+        "rain": "Pluie",
+        "heavyRain": "Forte pluie",
+        "freezingRain": "Pluie verglaçante",
+        "showers": "Averses",
+        "snow": "Neige",
+        "thunderstorm": "Orage",
+        "unknown": "Nuageux"
+      },
+      "relativeWind": {
+        "head": "Vent de face",
+        "cross": "Vent de travers",
+        "tail": "Vent dans le dos"
+      },
+      "relativeWindShort": {
+        "head": "Face",
+        "cross": "Travers",
+        "tail": "Dos"
+      },
+      "compass": {
+        "n": "N",
+        "ne": "NE",
+        "e": "E",
+        "se": "SE",
+        "s": "S",
+        "sw": "SO",
+        "w": "O",
+        "nw": "NO"
+      },
+      "wind": "Vent {speed}",
+      "windFrom": "Vent {compass} {speed}",
+      "gusts": "rafales {speed}",
+      "feelsLike": "Ressenti {temperature}",
+      "rainChance": "Pluie {probability}",
+      "precipitation": "{amount} de précipitations",
+      "stale": "Prévision ancienne",
+      "staleMessage": "La prévision n'a pas pu être rafraîchie depuis {time}.",
+      "updatedAt": "Prévision de {time}",
+      "notYetAvailable": "Prévision disponible à partir du {date}.",
+      "summaryAvailableFrom": "Météo dès le {date}",
+      "unavailableTitle": "Météo indisponible pour le moment.",
+      "unavailableMessage": "La prévision n'est pas encore arrivée, réessayez dans quelques minutes.",
+      "noLocation": "Ajoutez un lieu de départ ou un parcours pour afficher la météo de cette sortie. Message visible des organisateurs seulement.",
+      "legNoRoute": "Ce groupe n'a pas de parcours : la météo n'est donnée qu'au départ.",
+      "legUnavailable": "Les prévisions le long du parcours ne sont pas encore disponibles.",
+      "sunrise": "Lever du soleil {time}",
+      "sunset": "Coucher du soleil {time}",
+      "legTimes": "Départ {start} · arrivée estimée {arrival}",
+      "legSpeed": "Passages estimés à {speed}",
+      "legSpeedDefault": "Passages estimés à {speed}, vitesse par défaut : le groupe n'en indique pas",
+      "rainAlert": "Pluie probable ({probability}) vers {time}.",
+      "rainAlertAt": "Pluie probable ({probability}) vers {time}, à {distance}.",
+      "rainAlertShort": "Pluie {probability} vers {time}",
+      "exposureTitle": "Exposition au vent",
+      "exposure": {
+        "head": "Face {distance}",
+        "cross": "Travers {distance}",
+        "tail": "Dos {distance}"
+      },
+      "segmentsTitle": "Le vent le long du parcours",
+      "segmentsSemantics": "Vent le long du parcours : {summary}",
+      "timelineTitle": "Points de passage",
+      "checkpointKind": {
+        "start": "Départ",
+        "enRoute": "En route",
+        "finish": "Arrivée"
+      },
+      "checkpointNoWeather": "Prévision pas encore disponible ici",
+      "prevailingWind": "Vent dominant : {wind}",
+      "group": "Groupe",
+      "attribution": "Prévisions : {name}"
+    }
   },
   "posts": {
     "title": "Publications",

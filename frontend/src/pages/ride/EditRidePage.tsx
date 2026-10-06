@@ -12,6 +12,7 @@ import {
 } from '../../api/endpoints/rides/rides'
 import { useEditRideFormData, rideToRequest } from '@/pages/ride/rideFormData'
 import { invalidateTeamPublications } from '@/lib/teamDashboardCache'
+import { invalidateRideWeather } from '@/pages/ride/rideDetailData'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideEditor } from '../../components/ride/RideEditor'
 import { paths } from '@/config/paths'
@@ -65,6 +66,8 @@ export function EditRidePage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           invalidateTeamPublications(queryClient, teamSlug!)
+          // Time, groups, speeds or route may have moved: the passages read other hours.
+          void invalidateRideWeather(queryClient, teamSlug!, rideSlug!)
           notifications.show({ message: i18next.t('rides.notifications.updated'), color: 'green' })
           navigate(paths.ride(teamSlug!, rideSlug!))
         },

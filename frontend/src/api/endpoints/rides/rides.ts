@@ -21,6 +21,7 @@ import type {
   RideDto,
   RideParticipationDto,
   RideRequest,
+  RideWeatherDto,
   SlugChangeRequest,
   StatusChangeRequest,
 } from '../../dto'
@@ -1217,4 +1218,154 @@ export const useUndeleteRide = <TError = ErrorType<ErrorResponse>, TContext = un
   TContext
 > => {
   return useMutation(getUndeleteRideMutationOptions(options), queryClient)
+}
+/**
+ * The forecast for the ride: at the meeting point when it leaves, then along each group's route at its estimated passages (group speed, else 25 km/h). Read from the server's cache only — the forecast is refreshed in the background, never on request. Readable by whoever may read the ride, and then always 200: the state is in status. Cache-Control: private, no-cache with an ETag (revalidate with If-None-Match, 304 when unchanged); no-store when status is UNAVAILABLE.
+ * @summary Get ride weather
+ */
+export const getRideWeather = (
+  teamSlug: string,
+  rideSlug: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<RideWeatherDto>(
+    { url: `/api/teams/${teamSlug}/rides/${rideSlug}/weather`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getGetRideWeatherQueryKey = (teamSlug: string, rideSlug: string) => {
+  return [`/api/teams/${teamSlug}/rides/${rideSlug}/weather`] as const
+}
+
+export const getGetRideWeatherQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRideWeather>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRideWeather>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetRideWeatherQueryKey(teamSlug, rideSlug)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRideWeather>>> = ({ signal }) =>
+    getRideWeather(teamSlug, rideSlug, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      teamSlug !== null && teamSlug !== undefined && rideSlug !== null && rideSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getRideWeather>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type GetRideWeatherQueryResult = NonNullable<Awaited<ReturnType<typeof getRideWeather>>>
+export type GetRideWeatherQueryError = ErrorType<void | ErrorResponse>
+
+export function useGetRideWeather<
+  TData = Awaited<ReturnType<typeof getRideWeather>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRideWeather>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRideWeather>>,
+          TError,
+          Awaited<ReturnType<typeof getRideWeather>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRideWeather<
+  TData = Awaited<ReturnType<typeof getRideWeather>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRideWeather>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRideWeather>>,
+          TError,
+          Awaited<ReturnType<typeof getRideWeather>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRideWeather<
+  TData = Awaited<ReturnType<typeof getRideWeather>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRideWeather>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get ride weather
+ */
+
+export function useGetRideWeather<
+  TData = Awaited<ReturnType<typeof getRideWeather>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  rideSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRideWeather>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetRideWeatherQueryOptions(teamSlug, rideSlug, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get ride weather
+ */
+export const prefetchGetRideWeatherQuery = async <
+  TData = Awaited<ReturnType<typeof getRideWeather>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  rideSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRideWeather>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetRideWeatherQueryOptions(teamSlug, rideSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }

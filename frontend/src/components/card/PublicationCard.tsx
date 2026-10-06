@@ -25,6 +25,7 @@ import { paths } from '@/config/paths'
 import { PublicationCardProgress } from './PublicationCardProgress'
 import { RouteThumbnail } from '../route/RouteThumbnail'
 import { TagList } from '../tag/TagList'
+import { RideWeatherSummaryLine } from '../weather/RideWeatherSummaryLine'
 import type { PublicationDto, RideDto, TripDto } from '@/api/dto'
 
 interface PublicationCardProps {
@@ -247,7 +248,13 @@ export function PublicationCard({ publication, showTeam, actions }: PublicationC
           </Group>
         )}
 
-        <Box mt="auto">{renderStats()}</Box>
+        <Box mt="auto">
+          {renderStats()}
+          {/* The server sends it only within the forecast window, or with its opening date. */}
+          {publication.type === 'RIDE' && (
+            <RideWeatherSummaryLine summary={(publication as RideDto).weather} />
+          )}
+        </Box>
       </CardContent>
     </Card>
   )

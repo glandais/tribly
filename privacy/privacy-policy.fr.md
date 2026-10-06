@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-**Dernière mise à jour : 30 septembre 2026**
+**Dernière mise à jour : 5 octobre 2026**
 
 La présente politique de confidentialité décrit la manière dont Pedalons (« nous », « notre », « nos ») collecte, utilise et protège vos données personnelles lorsque vous utilisez notre plateforme (site web, application mobile, extensions pour appareils GPS).
 
@@ -250,6 +250,8 @@ Les images de carte sont téléchargées par votre appareil directement auprès 
 
 La recherche de lieux (lieu de l'équipe, lieux de rendez-vous, petites annonces ; une fois connecté) passe au contraire par notre serveur, qui interroge Nominatim en votre nom : Nominatim ne reçoit que le texte saisi et votre langue d'affichage, jamais votre adresse IP ni votre identité. Les résultats sont gardés en mémoire sur notre serveur 24 heures au maximum.
 
+Les prévisions météo des sorties sont demandées à Open-Meteo par notre serveur, en tâche de fond et jamais pendant votre visite : Open-Meteo ne reçoit que le centre d'une maille d'environ 5 km autour du départ et des points du parcours (jamais le lieu de rendez-vous exact), parfois une altitude arrondie à 100 m, et l'adresse IP de notre serveur — jamais votre identité, votre compte ni votre adresse IP.
+
 - **VersaTiles (tiles.versatiles.org)**
   - *Rôle* : Fond de carte vectoriel (style par défaut), polices et sprites de carte
   - *Données concernées* : Adresse IP, zone de carte affichée
@@ -268,6 +270,9 @@ La recherche de lieux (lieu de l'équipe, lieux de rendez-vous, petites annonces
 - **OpenStreetMap Nominatim (nominatim.openstreetmap.org)**
   - *Rôle* : Recherche de lieux, interrogée par notre serveur
   - *Données concernées* : Le texte que vous saisissez et votre langue d'affichage ; jamais votre adresse IP ni votre identité
+- **Open-Meteo (api.open-meteo.com)**
+  - *Rôle* : Prévisions météo des sorties, interrogé par notre serveur
+  - *Données concernées* : Coordonnées du centre de mailles d'environ 5 km, altitude arrondie, adresse IP de notre serveur ; jamais votre adresse IP ni votre identité
 - **Esri (server.arcgisonline.com, États-Unis)**
   - *Rôle* : Fond « Satellite (ESRI) »
   - *Données concernées* : Adresse IP, zone de carte affichée

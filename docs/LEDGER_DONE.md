@@ -348,6 +348,32 @@ couvert » ; les tests ne tournent qu'en local (`MOB-37`).
   d'une sous-page passe par `pushLocation` (`MOB-44`), qui reprend la pile du lien profond quand on
   part d'une page plein écran (`test/core/utils/push_location_test.dart`).
 
+### Météo des sorties
+
+- `MOB-51` **Météo des sorties au mobile** (5 octobre 2026, contrat `10.9.0`, `API-74`).
+  `RideRepository.getRideWeather` et `rideWeatherProvider` (`FutureProvider.autoDispose.family` par
+  `RideKey`) nourrissent une carte compacte sous le bloc date et lieu du détail (groupe =
+  `selectedRideGroupProvider`) et l'écran « Météo du parcours » (`ride_weather_page.dart`, poussé
+  par `Navigator.push`, sans route au contrat) : sélecteur de groupe, départ avec lever et coucher
+  du soleil, étape (heures, vitesse et mention de la vitesse par défaut, vent dominant, alerte
+  pluie), exposition au vent (`PdlSegmentBar`), frise des points avec `PdlWindArrow` teintée par
+  `RelativeWind` et doublée d'un badge, attribution Open-Meteo.com. Une étape qui n'est ni `OK` ni
+  `STALE`, ou sans point, n'affiche qu'un bandeau `rides.weather.legUnavailable`. Le détail a gagné
+  un pull-to-refresh, qui recharge aussi la météo. `RideWeatherSummaryLine` est dans
+  `PublicationCard` (fil et fil d'équipe) et `NextRideCard`, avec une icône discrète pour `STALE`.
+  °C/°F dans `unit_system.dart`, `AppFormatters.formatTemperature` (sans « -0 »),
+  `formatTemperatureRange`, `formatPrecipitation`, `formatPercent`. Tests :
+  `ride_weather_display_test`, `ride_weather_page_test`, `ride_weather_summary_line_test`,
+  `ride_card_weather_test`, `pdl_weather_widgets_test`, les cas météo de `ride_detail_page_test`,
+  `unit_system_test`, `formatters_test`. **À ne pas défaire** : une seule table de rendu
+  (`features/rides/domain/ride_weather_display.dart`), qui passe chaque enum reçu par le `fromJson`
+  généré et omet une valeur inconnue ; `NO_LOCATION` n'est montré qu'aux organisateurs,
+  administrateurs d'équipe et de la plateforme (`canSeeWeatherNoLocation`) ; aucun appel pour une
+  sortie terminée ou annulée ; `PdlWindArrow` et `PdlSegmentBar` restent génériques (aucun DTO,
+  aucune traduction dans `core/pdl`) ; les précipitations restent en mm même en impérial ; pas de
+  teinte par condition (voir `WEB-60`). `RideCard`, d'avant la v2 et sans écran qui l'utilise, n'a
+  pas reçu la ligne de résumé.
+
 ---
 
 ### Tableau de bord d'équipe
@@ -1059,6 +1085,28 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   **À ne pas défaire** : un seul endroit définit les entrées de navigation ; le nom affiché près de
   l'avatar reste visible à partir de `md` car l'e2e desktop trouve le menu du compte par ce nom.
 
+- `WEB-60` **Météo des sorties au web** (5 octobre 2026, contrat `10.9.0`, `API-74`). Le détail
+  d'une sortie lit `getRideWeather` dans `useRideDetailData`, préfetché en phase 1 de
+  `prefetchRideDetail` (même clé, `skipErrorToast`), et montre `RideWeatherSection` sous un
+  `ErrorBoundary variant="inline"`, entre l'en-tête et la carte : météo au départ (lever et coucher
+  du soleil compris), choix du groupe (celui de l'inscrit, sinon le premier ; `SegmentedControl`
+  jusqu'à 4 groupes, `Select` au-delà), frise des points, bandeau pluie, barre d'exposition au vent
+  dans les couleurs générées `RELATIVE_WIND_COLORS`, mention de la vitesse par défaut, attribution
+  Open-Meteo.com en lien. `STALE` porte un badge « Prévision ancienne », `NOT_YET_AVAILABLE` la date
+  d'ouverture, `UNAVAILABLE` (ou une lecture en échec) un « Réessayer » ; `NO_LOCATION` n'apparaît
+  qu'avec `canEdit`. `RideWeatherSummaryLine` est dans `PublicationCard` (sorties) et `NextRideCard`.
+  Température dans `unitFormat.ts` / `useUnits` (°F en impérial, jamais « -0 »), `formatTime` et
+  `FormattedTime`. `invalidateRideWeather` est appelé après chaque action sur la sortie et après
+  `EditRidePage` (sa clé ne commence pas par celle de la sortie). Tests : `weatherDisplay.test.ts`,
+  `RideWeatherSummaryLine.test.tsx`, `RideWeatherSection.test.tsx`, cas de température de
+  `unitFormat.test.ts`. **À ne pas défaire** : une seule table `weatherDisplay.ts` (condition ×
+  jour/nuit → icône Tabler, repli `IconCloud`) ; les icônes de condition n'ont **pas de teinte**
+  (elles prennent la couleur du texte, comme au mobile) : une teinte passerait par
+  `contracts/brand-colors.yaml`, jamais par une table locale ; le vent relatif est toujours doublé du
+  libellé et de la flèche ; le client ne calcule rien d'autre que l'affichage ; le bloc est masqué
+  pour une sortie terminée ou annulée et pour un statut inconnu ; la requête part quand même (le
+  serveur répond `OUT_OF_RANGE` sans rien lire), pour garder la clé du préfetch.
+
 ---
 
 ### Tableau de bord d'équipe
@@ -1691,6 +1739,74 @@ champ dédié (décidé le 5 octobre 2026 avec le propriétaire). Le test de co�
 les publications par un compte non mesuré : la liste cache à l'appelant ce qu'il a signalé, et ses
 sections resteraient vides.
 
+### `API-74` Météo des sorties : cache Open-Meteo et `getRideWeather` (contrat `10.9.0`)
+
+Livré le 5 octobre 2026 (10.8.0 → 10.9.0, mineur, ajouts seulement), d'après le plan
+[`2026-10-05-weather.md`](plans/2026-10-05-weather.md), qui garde les arbitrages détaillés. Le
+backend tient un **cache global** en Postgres (`V61__weather_cache.sql` : `weather_cells`,
+`weather_hourly`, `weather_daily`, tables nouvelles seulement) rempli en tâche de fond depuis l'API
+forecast d'Open-Meteo : `WeatherPlanner` (toutes les 5 min, sans HTTP) déduit des sorties PUBLISHED
+de `[now, now+7 j]` les mailles nécessaires (~5 km, `CellKey`, bande d'altitude de 100 m) et leur
+passage le plus proche ; `WeatherFetchWorker` (toutes les minutes) les réserve
+(`for update skip locked` + bail `claimed_until`) et les récupère par lots de 100 lieux, au centre de
+la maille ; TTL de 1 h, 3 h ou 6 h selon la distance du passage (`WeatherRefreshPolicy`), backoff
+`min(5 min·2^attempts, 1 h)`, 429 jusqu'à l'heure pleine suivante, coupe-circuit et budgets par jour
+UTC, heure et minute glissantes (`OpenMeteoCircuitBreaker`) ; `WeatherHousekeeping` purge la nuit.
+Une cellule n'est réservée que si le planificateur l'a demandée depuis moins de 20 min et que son
+passage est à venir : une orpheline n'est plus jamais récupérée, seulement purgée.
+
+`GET /api/teams/{teamSlug}/rides/{rideSlug}/weather` (`getRideWeather`, `@CheckAccess(RIDE, READ)`)
+rend un `RideWeatherDto` : météo au départ (`DepartureWeatherDto`), une `WeatherLegDto` par groupe
+(heure de départ du groupe lue à l'heure locale du point de départ, vitesse du groupe ou **25 km/h**
+avec `speedIsDefault`, points tous les 15 km et l'arrivée, vent relatif segment par segment, exposition
+en mètres, vent dominant, alerte pluie ≥ 50 %) et l'attribution Open-Meteo.com (CC BY 4.0). Toujours
+200 hors 404, l'état dans `status` (`OK`, `STALE`, `NOT_YET_AVAILABLE` + `availableFrom`,
+`UNAVAILABLE`, `NO_LOCATION`, `OUT_OF_RANGE`) ; `Cache-Control: private, no-cache` et ETag faible,
+`no-store` sans ETag pour `UNAVAILABLE`. Les listes portent un résumé `RideDto.weather`
+(`RideWeatherSummaryDto`, min → max sur la fenêtre départ → dernière arrivée estimée), chargé par
+`RideWeatherLookup.forRides` dans `PublicationService.list` et `RideService.toDto`. Les enums
+`WeatherStatus`, `WeatherCondition` (table WMO dans la description du schéma), `RelativeWind`,
+`CompassPoint` et `WeatherCheckpointKind` sont dans `fr.pedalons.enums`. Tests **écrits, pas encore
+lancés** (`API-75`) : purs — `CellKeyTest`, `RouteSampleLookupTest`, `RideWeatherCalculatorTest`
+(changements d'heure, vitesse par défaut, aller-retour), `WeatherRefreshPolicyTest`,
+`OpenMeteoGatewayTest`, `OpenMeteoClientTest`, `OpenMeteoCircuitBreakerTest` ; `@QuarkusTest` —
+`WeatherCacheTest`, `WeatherPlannerTest`, `WeatherFetchWorkerTest`, `WeatherHousekeepingTest`,
+`OpenMeteoGatewayHttpTest` (vrai client sur un serveur local qui répond 429), `RideWeatherResourceTest`
+(dont `weather_withAForecast_isOk_andCarriesNoCoordinate`) et
+`PublicationQueryCountTest.listTeamRides_inTheForecastWindow_weatherCostsAPageNotARow`.
+
+**À ne pas défaire** :
+
+- **Cache global, sans `domainId`** : une ligne n'est fonction que de (maille, heure), et n'est lue
+  qu'en partant d'une sortie que l'appelant a le droit de lire. C'est l'exception explicite à
+  « toutes les requêtes filtrent par domainId », écrite dans la javadoc de `domain/weather` ; deux
+  domaines au même départ partagent une cellule (`WeatherPlannerTest`).
+- **Aucune coordonnée dans les DTO météo** : une sortie PUBLIC peut pointer sur un parcours TEAM.
+  Les points se placent côté client par `distance` sur la géométrie lisible ; le fournisseur n'est
+  interrogé qu'au centre de la maille, jamais au lieu de rendez-vous.
+- **Tous les calculs côté serveur** (`RideWeatherCalculator`, fonctions pures) : heures de passage,
+  échantillons, vent relatif, exposition, alerte pluie, rose des vents. Les clients n'affichent,
+  ne traduisent et ne convertissent que les unités.
+- **Jamais d'appel à Open-Meteo ni d'écriture en base pendant une requête HTTP** : la lecture ne
+  touche que le cache, ce qui permet au SSR web de la préfetcher sans risque.
+- La liste coûte **0 requête** si aucune sortie de la page n'est dans la fenêtre, **1** sinon
+  (`WeatherHourlyRepository.findRideWindowHours`, tout en SQL natif) ; ne pas charger les groupes
+  par ligne. Dans ce chemin l'heure locale d'un groupe se lit dans le fuseau rendu par Open-Meteo
+  pour la maille (pas `TimezoneService`) : écart accepté en limite de fuseau.
+- L'ETag est un condensé SHA-256 du corps (calculé dans `RideService`, rendu par
+  `RideWeatherAnswer`), pas « version + `fetchedAt` » : modifier un groupe ne change pas la
+  `version` de la sortie, et un passage en `STALE` non plus.
+- Le client REST `open-meteo` a `disable-default-mapper=true`, et `OpenMeteoGateway` relit une
+  `WebApplicationException` comme la réponse qu'elle porte : sinon un 429 passe pour un échec
+  ordinaire. La clé (`OPEN_METEO_API_KEY`) part en paramètre de requête : l'URL n'est jamais
+  journalisée.
+- Une sortie partie, annulée ou en brouillon est `OUT_OF_RANGE` (fenêtre du planificateur alignée
+  sur `[now, now+7 j]`) ; une étape sans parcours est `NO_LOCATION` sans compter dans le statut
+  global ; une étape dont certains points manquent est `STALE`. Un échantillon à 5 km pile de
+  l'arrivée est omis. À rouvrir ensemble si la lecture sert un jour les sorties en cours.
+- Sur échec, rien n'est supprimé : on sert le cache périmé (`STALE` au-delà de deux intervalles de
+  rafraîchissement).
+
 ## OPS — Exploitation, déploiement, recette du backend
 
 - `OPS-11` **`BACKUP_KEEP` retiré de `.env.example`** (2026-09-30) — le modèle de
@@ -2110,6 +2226,14 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
   valeurs inconnues en gris) ; au web, `pnpm typecheck` vérifie chaque table générée par
   `satisfies Record<Enum, BadgeFamily>`. **Ne pas** réintroduire de table de couleurs locale dans
   un composant, ni éditer les deux fichiers générés : on édite le YAML et on régénère.
+
+- `BRAND-4` **Vent relatif au code couleur métier** (2026-10-05, contrat `10.9.0`) —
+  `RelativeWind` est entré dans [`contracts/brand-colors.yaml`](../contracts/brand-colors.yaml),
+  style `soft` : `TAIL` teal, `CROSS` gray, `HEAD` orange ; les deux tables générées sont
+  régénérées et lues par la barre d'exposition et les flèches de vent des deux clients (`WEB-60`,
+  `MOB-51`). **À ne pas défaire** : la couleur n'est jamais seule, toujours doublée du libellé et de
+  la flèche ; les conditions météo (`WeatherCondition`) n'ont pas de couleur — si on leur en donne,
+  c'est ici, dans le YAML, jamais dans une table d'un client.
 
 ---
 

@@ -209,6 +209,66 @@ void main() {
     });
   });
 
+  group('formatTemperature', () {
+    String n(String s) => s.replaceAll(' ', String.fromCharCode(nbsp));
+
+    test('au degré près, en °C ou en °F', () {
+      expect(
+        withLocale(
+          'fr',
+          fr,
+          () => AppFormatters.formatTemperature(14.4, UnitSystem.metric),
+        ),
+        n('14 °C'),
+      );
+      expect(
+        withLocale(
+          'en',
+          en,
+          () => AppFormatters.formatTemperature(14.4, UnitSystem.imperial),
+        ),
+        n('58 °F'),
+      );
+    });
+
+    test('pas de « -0 °C »', () {
+      expect(
+        withLocale('fr', fr, () => AppFormatters.formatTemperature(-0.3)),
+        n('0 °C'),
+      );
+    });
+
+    test('une plage, ou une seule valeur si les bornes se confondent', () {
+      expect(
+        withLocale(
+          'fr',
+          fr,
+          () => AppFormatters.formatTemperatureRange(11.6, 18.2),
+        ),
+        n('12–18 °C'),
+      );
+      expect(
+        withLocale(
+          'fr',
+          fr,
+          () => AppFormatters.formatTemperatureRange(12.2, 11.8),
+        ),
+        n('12 °C'),
+      );
+    });
+
+    test('précipitations et pourcentage', () {
+      expect(
+        withLocale('fr', fr, () => AppFormatters.formatPrecipitation(0.4)),
+        n('0,4 mm'),
+      );
+      expect(
+        withLocale('fr', fr, () => AppFormatters.formatPercent(60)),
+        n('60 %'),
+      );
+    });
+  });
+
   group('formatGrade', () {
     test('une pente ne se convertit pas : c’est un rapport', () {
       expect(

@@ -1,9 +1,14 @@
 package fr.pedalons.api.publications;
 
 import static io.restassured.RestAssured.given;
+import static org.geolatte.geom.builder.DSL.g;
+import static org.geolatte.geom.builder.DSL.point;
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.pedalons.api.AbstractQueryCountTest;
+import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
@@ -13,10 +18,22 @@ import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.repository.place.PlaceRepository;
+import fr.pedalons.repository.ride.RideRepository;
+import fr.pedalons.repository.weather.WeatherCellRepository;
+import fr.pedalons.repository.weather.WeatherDailyRepository;
+import fr.pedalons.repository.weather.WeatherHourlyRepository;
+import fr.pedalons.service.weather.CellKey;
+import fr.pedalons.service.weather.WeatherTestFixtures;
 import fr.pedalons.util.QueryStats;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +41,12 @@ import org.junit.jupiter.api.Test;
 /** Database-cost budget for the publication list endpoints. See {@link AbstractQueryCountTest}. */
 @QuarkusTest
 class PublicationQueryCountTest extends AbstractQueryCountTest {
+
+  @Inject PlaceRepository placeRepository;
+  @Inject RideRepository rideRepository;
+  @Inject WeatherCellRepository weatherCellRepository;
+  @Inject WeatherHourlyRepository weatherHourlyRepository;
+  @Inject WeatherDailyRepository weatherDailyRepository;
 
   @Override
   @BeforeEach
@@ -38,8 +61,12 @@ class PublicationQueryCountTest extends AbstractQueryCountTest {
    * pass while the endpoint stayed quadratic.
    */
   private void seedRides(int count) {
-    Instant base = Instant.now().plus(7, ChronoUnit.DAYS);
+    seedRides(count, Instant.now().plus(7, ChronoUnit.DAYS));
+  }
+
+  private List<Ride> seedRides(int count, Instant base) {
     List<User> participants = List.of(user1, user2, user3, user4, user5);
+    List<Ride> rides = new ArrayList<>(count);
     for (int i = 0; i < count; i++) {
       Ride ride =
           dataService.createRide(
@@ -56,7 +83,41 @@ class PublicationQueryCountTest extends AbstractQueryCountTest {
           dataService.createParticipation(group, participant);
         }
       }
+      rides.add(ride);
     }
+    return rides;
+  }
+
+  /**
+   * Gives every ride the same meeting point and fills its forecast cell, so the weather line of
+   * each card is actually computed — an empty cache would let a per-row read go unnoticed.
+   */
+  private void locateWithForecast(List<Ride> rides) {
+    Instant now = Instant.now();
+    QuarkusTransaction.requiringNew()
+        .run(
+            () -> {
+              Place place = new Place(user1, team1, "Bellecour", true, true);
+              place.setGeometry(
+                  point(WGS84, g(WeatherTestFixtures.LYON_LON, WeatherTestFixtures.LYON_LAT)));
+              placeRepository.persist(place);
+              for (Ride ride : rides) {
+                rideRepository.findById(ride.getId()).setStart(place);
+              }
+              Instant firstHour = now.truncatedTo(ChronoUnit.HOURS).minus(2, ChronoUnit.HOURS);
+              WeatherTestFixtures.seedCell(
+                  weatherCellRepository,
+                  weatherHourlyRepository,
+                  weatherDailyRepository,
+                  CellKey.of(WeatherTestFixtures.LYON_LAT, WeatherTestFixtures.LYON_LON),
+                  now,
+                  now,
+                  WeatherTestFixtures.hours(firstHour, firstHour.plus(72, ChronoUnit.HOURS)),
+                  14,
+                  WeatherTestFixtures.dates(
+                      LocalDate.now(ZoneOffset.UTC).minusDays(1),
+                      LocalDate.now(ZoneOffset.UTC).plusDays(3)));
+            });
   }
 
   /** Trips carry stages and participations, the {@code TripDto} equivalent of groups/participants. */
@@ -127,6 +188,31 @@ class PublicationQueryCountTest extends AbstractQueryCountTest {
   void listAllPublicationsAnonymous_costDoesNotScaleWithRowCount() {
     seedRides(LARGE_PAGE);
     assertFlatQueryCount("GET /api/publications anonymous", anonymous(), "/api/publications");
+  }
+
+  /**
+   * Rides leaving tomorrow, inside the forecast horizon: the weather line of every card is read for
+   * the whole page in one query (RideWeatherLookup), never one per ride.
+   */
+  @Test
+  void listTeamRides_inTheForecastWindow_weatherCostsAPageNotARow() {
+    locateWithForecast(seedRides(LARGE_PAGE, Instant.now().plus(1, ChronoUnit.DAYS)));
+    // Not vacuous: every card of the page carries its line.
+    List<String> statuses =
+        asUser1()
+            .get()
+            .when()
+            .get("/api/teams/" + team1Slug + "/publications?type=RIDE&size=" + LARGE_PAGE)
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("publications.weather.status");
+    assertEquals(LARGE_PAGE, statuses.size());
+    assertTrue(statuses.stream().allMatch("OK"::equals), statuses.toString());
+    assertFlatQueryCount(
+        "GET /api/teams/{teamSlug}/publications?type=RIDE in forecast window",
+        asUser1(),
+        "/api/teams/" + team1Slug + "/publications?type=RIDE");
   }
 
   @Test

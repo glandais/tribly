@@ -5,6 +5,7 @@ import type { PublicUserDto } from './publicUserDto.ts'
 import type { RideDtoType } from './rideDtoType.ts'
 import type { RideGroupDto } from './rideGroupDto.ts'
 import type { RideGroupSummaryDto } from './rideGroupSummaryDto.ts'
+import type { RideWeatherSummaryDto } from './rideWeatherSummaryDto.ts'
 import type { Status } from './status.ts'
 import type { SurfaceType } from './surfaceType.ts'
 import type { TagDto } from './tagDto.ts'
@@ -84,4 +85,6 @@ export interface RideDto {
   commentCount?: number
   /** The team's RIDE tags the ride carries, sorted by label. Empty when it carries none. */
   tags: TagDto[]
+  /** The weather line of a card: the meeting point, over the window from the departure to the estimated arrival of the last group. Absent when there is nothing to show — finished or cancelled ride, no place, forecast not in cache yet; present only with status OK, STALE or NOT_YET_AVAILABLE. The full forecast is getRideWeather. */
+  weather?: RideWeatherSummaryDto
 }

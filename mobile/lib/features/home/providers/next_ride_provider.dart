@@ -101,4 +101,5 @@ RideDto rideFromListRow(PublicationDtoRide p) => RideDto(
   registeredGroup: p.registeredGroup,
   maxParticipants: p.maxParticipants,
   commentCount: p.commentCount,
+  weather: p.weather,
 );

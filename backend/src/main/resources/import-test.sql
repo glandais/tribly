@@ -7,3 +7,8 @@ CREATE TYPE route_mvt_row AS (geom geometry, slug text, name text, team_slug tex
 -- Mirrors the partial unique index of V43__biketeam_live_migration.sql: one active job per biketeam
 -- team. Hibernate cannot express a partial index, and the trigger's 409 relies on it.
 CREATE UNIQUE INDEX uk_biketeam_migrations_active ON biketeam_migrations (biketeam_team_id) WHERE status IN ('QUEUED', 'RUNNING');
+-- Mirrors V61__weather_cache.sql: the cell key is NULLS NOT DISTINCT (the departure cell has no
+-- elevation band) and the forecast rows go with their cell. Hibernate can express neither.
+CREATE UNIQUE INDEX uk_weather_cells_key ON weather_cells (lat_idx, lon_idx, ele_band) NULLS NOT DISTINCT;
+ALTER TABLE weather_hourly ADD CONSTRAINT fk_weather_hourly_cell FOREIGN KEY (cell_id) REFERENCES weather_cells ON DELETE CASCADE;
+ALTER TABLE weather_daily ADD CONSTRAINT fk_weather_daily_cell FOREIGN KEY (cell_id) REFERENCES weather_cells ON DELETE CASCADE;

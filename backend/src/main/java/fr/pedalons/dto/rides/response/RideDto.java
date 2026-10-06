@@ -17,6 +17,7 @@ import fr.pedalons.dto.tags.response.ContentTags;
 import fr.pedalons.dto.tags.response.TagDto;
 import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.validation.ValidateSchema;
+import fr.pedalons.dto.weather.response.RideWeatherSummaryDto;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.SurfaceType;
@@ -25,6 +26,7 @@ import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import fr.pedalons.service.common.ParticipantPreviewLookup.ParticipantPreview;
 import fr.pedalons.service.common.ParticipantPreviewLookup.PreviewedParticipant;
+import fr.pedalons.service.weather.RideWeatherSummaries;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -218,6 +220,15 @@ public class RideDto implements PublicationDto {
       required = true)
   final List<TagDto> tags;
 
+  @Nullable
+  @Schema(
+      description =
+          "The weather line of a card: the meeting point, over the window from the departure to"
+              + " the estimated arrival of the last group. Absent when there is nothing to show —"
+              + " finished or cancelled ride, no place, forecast not in cache yet; present only"
+              + " with status OK, STALE or NOT_YET_AVAILABLE. The full forecast is getRideWeather.")
+  final RideWeatherSummaryDto weather;
+
   public RideDto(
       TeamPublicationDto team,
       String id,
@@ -251,7 +262,8 @@ public class RideDto implements PublicationDto {
       boolean full,
       @Nullable Integer maxParticipants,
       @Nullable Integer commentCount,
-      List<TagDto> tags) {
+      List<TagDto> tags,
+      @Nullable RideWeatherSummaryDto weather) {
     super();
     this.team = team;
     this.id = id;
@@ -288,6 +300,7 @@ public class RideDto implements PublicationDto {
     this.maxParticipants = maxParticipants;
     this.commentCount = commentCount;
     this.tags = tags;
+    this.weather = weather;
   }
 
   /**
@@ -303,6 +316,8 @@ public class RideDto implements PublicationDto {
    * @param participations the current user's registrations for this whole page, resolved in one
    *     query by {@code ParticipationLookup} — never one lookup per row
    * @param tags the tags of this whole page, resolved in one query by {@code TagLookup}
+   * @param weather the weather lines of this whole page, resolved in at most one query by {@code
+   *     RideWeatherLookup}
    * @param view {@link ListViewMode#COMPACT} leaves the markdown body and the asset inventory out of the
    *     row; {@code excerpt} and {@code thumbnailUrl} carry what it renders instead
    */
@@ -313,6 +328,7 @@ public class RideDto implements PublicationDto {
       UserParticipations participations,
       CommentCounts commentCounts,
       ContentTags tags,
+      RideWeatherSummaries weather,
       @Nullable ListViewMode view) {
     return build(
         ride,
@@ -329,6 +345,7 @@ public class RideDto implements PublicationDto {
         summary.maxParticipants(),
         commentCounts.forEntity(ride.getId()),
         tags.forContent(ride.getId()),
+        weather,
         view);
   }
 
@@ -340,6 +357,7 @@ public class RideDto implements PublicationDto {
    *     avatars all come from it: walking {@code group.getParticipations()} here would hydrate every
    *     registration of the ride (docs/LEDGER_*.md API-12).
    * @param tags the ride's tags, from {@code TagLookup}
+   * @param weather the ride's weather line, from {@code RideWeatherLookup}
    */
   public static RideDto from(
       Ride ride,
@@ -348,7 +366,8 @@ public class RideDto implements PublicationDto {
       CommentCounts commentCounts,
       Map<Long, ThemedThumbnail> routeThumbnails,
       Map<Long, ParticipantPreview> groupParticipants,
-      List<TagDto> tags) {
+      List<TagDto> tags,
+      RideWeatherSummaries weather) {
     Long registeredGroupId = participations.registeredGroupId(ride.getId());
     List<RideGroup> groups =
         ride.getGroups().stream().sorted(Comparator.comparing(RideGroup::getSortOrder)).toList();
@@ -424,6 +443,7 @@ public class RideDto implements PublicationDto {
         maxParticipants,
         commentCounts.forEntity(ride.getId()),
         tags,
+        weather,
         ListViewMode.FULL);
   }
 
@@ -447,6 +467,7 @@ public class RideDto implements PublicationDto {
       @Nullable Integer maxParticipants,
       @Nullable Integer commentCount,
       List<TagDto> tags,
+      RideWeatherSummaries weather,
       @Nullable ListViewMode view) {
     Place startPlace = ride.getStart();
     Place endPlace = ride.getEnd();
@@ -508,6 +529,7 @@ public class RideDto implements PublicationDto {
         full,
         maxParticipants,
         commentCount,
-        tags);
+        tags,
+        RideWeatherSummaryDto.fromNullable(weather.forRide(ride.getId())));
   }
 }

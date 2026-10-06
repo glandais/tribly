@@ -37,6 +37,12 @@ class _FakeRideRepository implements RideRepository {
   void serve(RideDto ride) => _ride = ride;
 
   @override
+  Future<RideWeatherDto> getRideWeather(
+    String teamSlug,
+    String rideSlug,
+  ) async => fixtureWeather();
+
+  @override
   Future<RideDto> getRide(String teamSlug, String rideSlug) async => _ride;
 
   @override

@@ -35,6 +35,7 @@ import { useGpsConnections } from '@/hooks/useGpsConnections'
 import { useResolvedColorScheme } from '@/hooks/useResolvedColorScheme'
 import { useFormattedDate } from '@/utils/dateFormat'
 import { FormattedDateTime } from '../common/FormattedDate'
+import { RideWeatherSummaryLine } from '../weather/RideWeatherSummaryLine'
 
 interface NextRideCardProps {
   ride: RideDto
@@ -146,6 +147,7 @@ export function NextRideCard({ ride, headingId }: NextRideCardProps) {
               <FormattedDateTime date={ride.dateTime} />
             </Stat>
             {ride.startPlace && <Stat icon={<IconMapPin size={16} />}>{ride.startPlace.name}</Stat>}
+            <RideWeatherSummaryLine summary={ride.weather} />
             <Stat icon={<IconUsers size={16} />}>
               {group
                 ? t('home.nextRide.groupParticipants', {

@@ -118,6 +118,21 @@ export function formatPattern(
 }
 
 /**
+ * Format the time of day alone: "09:00" (fr) / "9:00 AM" (en) — the passages of a ride, the hour
+ * a forecast was fetched.
+ */
+export function formatTime(
+  date: Date | string | null | undefined,
+  language: string = 'fr',
+  timeZone: string = SERVER_FALLBACK_TIMEZONE
+): string {
+  const dateObj = toDate(date)
+  if (!dateObj) return ''
+
+  return formatInTimeZone(dateObj, timeZone, 'p', { locale: getLocale(language) })
+}
+
+/**
  * Format relative: "il y a 2 heures" (fr) / "2 hours ago" (en)
  */
 export function formatRelative(
@@ -188,6 +203,7 @@ export function useFormattedDate() {
     formatDate: (date: Date | string | null | undefined) => formatDate(date, language, timezone),
     formatDateTime: (date: Date | string | null | undefined) =>
       formatDateTime(date, language, timezone),
+    formatTime: (date: Date | string | null | undefined) => formatTime(date, language, timezone),
     formatRelative: (date: Date | string | null | undefined) => formatRelative(date, language),
     formatPattern: (date: Date | string | null | undefined, pattern: string) =>
       formatPattern(date, pattern, language, timezone),

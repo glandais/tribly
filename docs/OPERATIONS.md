@@ -345,6 +345,43 @@ on the production host on 29 September 2026 (ledger `OPS-6`). The short TTL of t
 what makes any line written before that inert, and the reason that TTL must never be raised to
 hours.
 
+### Ride weather (Open-Meteo)
+
+Each backend keeps its own forecast cache from Open-Meteo, in its own database (`weather_cells`,
+`weather_hourly`, `weather_daily`, migration V61): a planner (every 5 min) lists the ~5 km cells the
+published rides of the next 7 days need, a worker (every minute) refreshes the due ones, and a
+nightly job (03:40) purges the old hours and the cells nobody asked for in 2 days. The API **only
+reads that cache** — no request ever waits on Open-Meteo, and a provider outage shows the last
+forecast flagged as old, never an error. Design and decisions: ledger `API-74`.
+
+All optional, in `.env` (commented in `.env.example`):
+
+| Key | Default | What it does |
+|---|---|---|
+| `OPEN_METEO_URL` | `https://api.open-meteo.com` | The free endpoint. A commercial plan is its own host (`https://customer-api.open-meteo.com`) |
+| `OPEN_METEO_API_KEY` | empty | Sent only when set. It travels as a query parameter, so nothing logs the request URL |
+| `OPEN_METEO_DAILY_CALL_BUDGET` | `5000` | Locations asked for per UTC day, by **this** backend (free plan: 10 000) |
+| `OPEN_METEO_HOURLY_CALL_BUDGET` | `4500` | The same per sliding hour (free plan: 5 000) |
+| `OPEN_METEO_PER_MINUTE_CALL_BUDGET` | `500` | The same per sliding minute (free plan: 600) |
+| `WEATHER_ENABLED` | `true` | `false` stops every call to the provider; what is cached is still shown until it ages out |
+
+The budgets are counted **in memory, per backend**: they reset on restart, and two backends add
+up. Open-Meteo counts per egress address, and **prod and staging leave this host by the same
+one**: together at their defaults they reach the free plan's 10 000 a day. Give staging smaller
+budgets (or `WEATHER_ENABLED=false` when nobody looks at it); the free plan is also for
+non-commercial use only — a paid plan is `OPEN_METEO_URL` + `OPEN_METEO_API_KEY` and higher
+budgets, no code change.
+
+What to look for in the backend logs: `Open-Meteo circuit open for 10 min` (three failures in a
+row, or a `429`: refreshes wait for the next full hour), `daily Open-Meteo call budget spent`
+(paused until 00:00 UTC), `Weather: Open-Meteo request for N cell(s) failed`. In the database,
+a healthy cache has recent `fetched_at` and `attempts = 0`:
+
+```bash
+docker exec "$(docker ps -qf name=${ENV_NAME}_postgres)" sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
+  "select count(*), max(fetched_at), max(attempts), max(last_error) from weather_cells"'
+```
+
 ### Seeding the shared Valhalla data
 
 `~/shared/data/valhalla` is ~17 GB and takes hours to build from the `.osm.pbf`. On first start the
