@@ -194,6 +194,31 @@ navigateur), et la connexion par code e-mailé (la préférence de fuseau existe
       d'échange court et à usage unique, émis par l'API pour la session de l'app et consommé par
       le site (changement de contrat), ou à défaut le dire dans l'app avant d'ouvrir la page.
 
+### Liens profonds
+
+- [ ] `MOB-59` **Les liens vers les pages du site sans écran dans l'app ouvrent l'app sur sa page
+      d'erreur (S–M)** — relevé avec `WEB-64`. `scripts/generate-routes.mjs` (lancé par
+      `pnpm generate-routes`) traduit chaque paramètre d'une route `deeplink` en `*` dans l'AASA
+      (`frontend/public/.well-known/apple-app-site-association`) et en `.*` dans les
+      `android:pathPattern` du manifeste (`mobile/android/app/src/main/AndroidManifest.xml`) ; or
+      les deux jokers traversent les `/`. La seule route `/equipes/{teamSlug}` donne donc
+      `/equipes/*` et `/equipes/.*`, qui captent **tout** le sous-arbre de l'équipe, y compris les
+      pages `appScreen: false` : administration, création ou modification de sortie, de voyage,
+      d'article, de parcours, d'annonce, cartes… Le système ouvre l'app, aucune route du
+      `GoRouter` ne correspond, et c'est l'`errorBuilder` de `mobile/lib/config/router.dart` qui
+      s'affiche (« page introuvable ») au lieu de la page du site ; le commentaire au-dessus
+      d'`openWebPage` (`mobile/lib/core/utils/link_launcher.dart`) le reconnaît. Deux pistes,
+      cumulables : (1) à la source, faire générer par le script des motifs exacts — dans l'AASA,
+      une exclusion `"NOT /equipes/*/…"` par route `appScreen: false` placée avant les motifs
+      larges (l'ordre compte), ou le format `components` avec `exclude` ; côté Android,
+      `android:pathAdvancedPattern` (`[^/]+`, API 31+) à la place de `pathPattern`, les versions
+      antérieures gardant le motif large ; (2) en filet, faire de l'`errorBuilder` un renvoi : un
+      chemin qui correspond à une route `webOnlyRouteIds` de `routes.yaml` part au navigateur
+      (`openWebPage`) et la pile revient où elle était, la page d'erreur restant pour les chemins
+      réellement inconnus. (2) seul suffit à supprimer la dégradation visible ; (1) évite en plus
+      l'aller-retour par l'app. Test : un test Dart qui confronte les motifs générés aux routes
+      `appScreen: false` de `routes.yaml`, et un test widget de l'`errorBuilder`.
+
 ---
 
 ## WEB — Site web
