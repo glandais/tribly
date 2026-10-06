@@ -328,6 +328,20 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       est une fonction fléchée, que `new` refuse avec `ScrollArea` et `SegmentedControl` de
       Mantine — `RideWeatherSection.test.tsx` le remplace localement par `vi.stubGlobal`.
 
+- [ ] `WEB-70` **Dates des métadonnées SEO et `og:` en UTC (S)** — `formatDate` de
+      `frontend/src/config/routeMeta.ts` appelle `Intl.DateTimeFormat` sans `timeZone`, rendu par
+      le serveur Node en UTC : une sortie à 00:30 heure de Paris est annoncée la veille dans le titre
+      et l'aperçu de lien (sortie, voyage). En attendant le fuseau de l'entité (`API-60`), formater
+      en `Europe/Paris`.
+- [ ] `WEB-71` **Calculs de jours hors du fuseau effectif (S)** — trois endroits comptent les jours
+      dans le fuseau du processus plutôt que dans `useEffectiveTimezone` :
+      `components/home/WeekAgenda.tsx` (`now + i × 24 h` : le jour d'un changement d'heure peut
+      sauter un jour), `components/calendar/calendarRange.ts` (`dayjs(date)` sans `.tz` : bornes
+      décalées quand `user.timezone` diffère du navigateur), `components/trip/TripEditor.tsx`
+      `handleAddStage` (`setDate(+n)` dans le fuseau du navigateur). Au passage,
+      `toDateTimeLocalValue` / `fromDateTimeLocalValue` (`utils/dateFormat.ts`) n'ont pas
+      d'appelant hors du hook qui les expose.
+
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
 L'audit ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md), `WEB-26`) est exécuté : P0, P1
@@ -407,6 +421,43 @@ le 6 octobre 2026.
       étape du jour non plus si elle a commencé la veille. Filtrer sur
       `fin ≥ from et départ ≤ to`, avec la fin stockée d'`API-85`. Un voyage **sans étape** reste
       absent du calendrier et de son ICS : c'est `API-18`.
+
+### `API-60` Fuseau horaire des événements (L, backend + web + mobile)
+
+Une heure de départ est saisie dans le fuseau de celui qui la tape, affichée dans le fuseau de celui
+qui la lit, sans jamais nommer ni l'un ni l'autre ; l'heure d'un groupe (`LocalTime`) n'en a aucun.
+Consulter la sortie de son équipe parisienne depuis Tokyo affiche 16:30 pour la sortie et 09:30 pour
+son groupe ; préparer une étape au Japon depuis Paris oblige à convertir de tête. Le plan
+[`2026-10-06-event-timezones.md`](plans/2026-10-06-event-timezones.md) donne un fuseau obligatoire à
+l'équipe (`Europe/Paris` à la migration), stocke sur chaque entité son *fuseau de saisie* résolu par
+le backend (lieu de départ → parcours → étape précédente → équipe), fait passer
+`ride_groups.time` en instant, saisit en heure murale et affiche les rendez-vous dans le fuseau de
+l'entité avec une mention quand il diffère de celui du lecteur. Les instants restent la vérité
+stockée, la fin stockée d'`API-85` comprise. Contrat en deux versions (ancien format de requête
+toléré une version).
+**Rouvert le 6 octobre 2026** : écarté le 2 octobre au profit de la préférence `UserDto.timezone`
+(`API-15`), avec pour condition de réouverture « des voyages à l'étranger qui rendent l'heure locale
+de l'étape nécessaire » — c'est le cas qui a déclenché l'audit. Le fuseau résolu est bien celui du
+lieu de départ, comme la note d'alors le demandait ; celui de l'équipe n'est que le repli.
+**Pas commencé** ; plan validé le 6 octobre 2026 (décisions au §12).
+
+- [ ] `API-90` **iCal : les dates des étapes « journée entière » sont calculées en UTC (S)** —
+      `IcsGenerationService.ICS_DATE_FORMAT` (`withZone(UTC)`) formate le `DTSTART` des événements
+      `allDay` (étapes) et le `DTEND` d'`allDayEnd` (`API-85`) : une étape qui part avant 02:00
+      heure de Paris commence la veille dans l'agenda, une qui finit après 22:00 (UTC+2) y perd son
+      dernier jour. `X-WR-TIMEZONE:Europe/Paris` est en dur. Corrigeable avant `API-60` avec le
+      fuseau du lieu de départ de l'étape (`TimezoneService`), repli Paris.
+- [ ] `API-91` **`from` / `to` malformés donnent une 500 (S)** — déclarés `string` sans format dans le
+      contrat et lus par `Instant.parse` (`CalendarResource`, `TeamCalendarResource`,
+      `PublicationResource`, `TeamPublicationResource`, `AdResource`, `UserResource`) ; une
+      `DateTimeParseException` n'est pas une `IllegalArgumentException`, `GlobalExceptionMapper` ne
+      la traite pas en 400. Typer les paramètres `Instant` (`format: date-time`) ou mapper l'exception.
+- [ ] `API-92` **Mail d'export : date en heure de Paris et au format français pour tout le monde
+      (S)** — `UserExportEmailService.EXPIRY_FORMAT` (`dd/MM/yyyy HH:mm`, `Europe/Paris`) ignore le
+      fuseau et la langue du destinataire ; formater comme `NotificationTexts` (fuseau de
+      l'utilisateur, motif par langue). Au passage, les `@Scheduled(cron = …)` n'ont pas de
+      `timeZone` et suivent celui de la JVM, non configuré (UTC dans le conteneur) : le dire dans
+      chaque cron, ou fixer `timeZone`.
 
 ### Les chantiers d'infrastructure d'API
 
@@ -841,7 +892,6 @@ redevient une entrée de sa section sous le même identifiant.
 | `API-32` | **Champ de contact libre sur une annonce** | Écarté au profit du relais e-mail | C'était la solution la moins chère, et elle publie une donnée personnelle **irrévocablement** à toute l'équipe (jusqu'à 1 999 personnes) : ce qui a été lu ne se dépublie pas. Retirer le champ plus tard ne répare rien |
 | `API-33` | **`GET /api/rides` et listes mono-type** | Non créées ; `/api/publications?type=RIDE` est la surface canonique | Deux surfaces = deux jeux de filtres à garder cohérents. `RideListResponse` / `TripListResponse` existent encore comme records retournés par **aucun endpoint** — les supprimer serait un MAJOR gratuit |
 | `API-34` | **`acceptTerms` obligatoire à l'inscription (contrat `4.1.0`)** | Laissé en mineure | Les builds mobiles qui n'envoient pas le champ reçoivent un 400 `VALIDATION` à l'inscription. La rupture est acceptée sans passer en `5.0.0` |
-| `API-60` | **Fuseau d'équipe (`Team.timezone`) ou dates zonées au contrat** | Écarté le 2 octobre 2026, avec le propriétaire, au profit de la préférence `UserDto.timezone` appliquée par les deux clients (`API-15`) | Les dates restent des instants UTC au contrat, rendues dans le fuseau de l'utilisateur, sinon de l'appareil. Une équipe est presque toujours mono-fuseau, et un fuseau d'équipe aurait demandé un réglage d'administration, une colonne et une seconde règle de rendu dans chaque client. À rouvrir si des voyages à l'étranger rendent l'heure locale de l'étape nécessaire : c'est alors le fuseau du **lieu de départ** (`TimezoneService`, déjà utilisé pour les compteurs) qu'il faudrait exposer, pas celui de l'équipe |
 | `API-89` | **Fin stockée pendant le déploiement à chaud** | Acceptée le 6 octobre 2026 (`API-85`) | Pendant la minute où l'ancien et le nouveau backend partagent la base, une sortie ou un voyage **modifié** par l'ancien garde sa fin précédente, non nulle, que le remplissage au démarrage (`PublicationEndBackfill`, lignes vides seulement) ne corrige pas ; seules les lignes **créées** par l'ancien profitent du repli départ + 3 h. Fenêtre d'une minute, corrigée au prochain enregistrement. À rouvrir si un déploiement long ou un retour arrière le rendait visible |
 | `API-54` | **exiftool pour retirer les métadonnées des images** | Écarté le 29 septembre 2026, après mesure sur un corpus synthétique (métadonnées marquées, pixels comparés) | exiftool (micro-service ou WASM) retire ce qu'il connaît au lieu de ne garder que ce qui est autorisé : il a laissé passer un chunk PNG privé et les octets après le trailer GIF, et refusé un WebP valide. Il ne nettoie pas les PDF, il a des CVE répétées (dont CVE-2026-7580, qui touche la 13.50) et il ajoute un conteneur. En WASM (zeroperl sur Chicory), sa sortie est identique mais il prend 17 à 19 s par image. imgproxy, écarté le même jour parce qu'il n'a pas de mode sans perte, a finalement été retenu : la perte d'un réencodage a été acceptée pour un code plus simple, qui ne laisse rien passer par construction et lit aussi HEIC, AVIF, TIFF et JPEG XL (`API-43`) |
 | `API-52` | **Durcir `ImageMetadataStripper`** | Sans objet depuis le 29 septembre 2026 | Le nettoyeur maison sans perte a été supprimé : le stockage fait réencoder chaque image par imgproxy (`API-43`), qui n'écrit que les pixels. Ne pas le réintroduire pour gagner la qualité perdue : c'est lui dont les branches gardaient par défaut ce qu'elles ne connaissaient pas |
