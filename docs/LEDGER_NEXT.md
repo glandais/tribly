@@ -194,6 +194,13 @@ navigateur), et la connexion par code e-mailé (la préférence de fuseau existe
       d'échange court et à usage unique, émis par l'API pour la session de l'app et consommé par
       le site (changement de contrat), ou à défaut le dire dans l'app avant d'ouvrir la page.
 
+- [ ] `MOB-60` **L'équipe découpée en Agenda et Publications, comme au web (M)** — plan
+      [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md) §6. `TeamSectionKind` perd `feed` et `calendar`, gagne `agenda` (filtres « À venir /
+      Je participe / Passées » que le fil d'équipe mobile n'a pas du tout, bascule Liste /
+      Calendrier) et `posts` ; le tableau de bord devient la racine pour tous (`API-86`) ;
+      `teamRides`, `teamTrips`, `teamCalendar` et `?tab=publications` routés vers la bonne section.
+      Publié en même temps que `WEB-68`.
+
 ### Liens profonds
 
 - [ ] `MOB-59` **Les liens vers les pages du site sans écran dans l'app ouvrent l'app sur sa page
@@ -319,6 +326,23 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       est une fonction fléchée, que `new` refuse avec `ScrollArea` et `SegmentedControl` de
       Mantine — `RideWeatherSection.test.tsx` le remplace localement par `vi.stubGlobal`.
 
+### Agenda et Publications
+
+Plan [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md).
+
+- [ ] `WEB-68` **Le fil d'équipe remplacé par « Agenda » (sorties et voyages) et « Publications »
+      (M)** — le fil mélange deux temporalités : « À venir » y trie du plus lointain au plus proche,
+      « Je participe » ne borne pas la date, et ces filtres s'appliquent à des publications pour
+      qui ils ne veulent rien dire (`PublicationListPage`, `publicationScopeToParams`). Routes
+      `teamAgenda` et `teamPosts`, redirections des anciennes adresses (`?tab=publications`,
+      `teamRides`, `teamTrips`), tableau de bord à la racine pour tous. Défait en partie `WEB-64`.
+      Dépend de `API-85` et `API-86`.
+- [ ] `WEB-69` **Un seul sélecteur de vue pour Parcours et Agenda (S–M)** — `RouteViewToggle`
+      (« Liste / Carte », change de page, ligne du titre) et `RouteDensityToggle` (« Vignettes /
+      Compact », au-dessus des résultats) répondent à la même question à deux endroits. Un
+      composant `ListViewSwitch` : Vignettes · Lignes · Carte, et Vignettes · Lignes · Calendrier
+      pour l'Agenda. Plan §4.
+
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
 L'audit ([archivé](plans/archive/2026-09-27-e2e-coverage-audit.md), `WEB-26`) est exécuté : P0, P1
@@ -366,6 +390,22 @@ sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` u
       Un test qui applique `db/migration` sur une base PostGIS vierge (TestContainers) et compare chaque
       contrainte `…_check` aux valeurs de l'enum Java correspondant (`AuthTokenType`, `AssetType`,
       `service_type`, `platform_role`, `visibility`, `status`…) supprimerait cette classe de défaut.
+
+### Agenda d'équipe
+
+Plan [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md) §3.
+
+- [ ] `API-85` **Une heure de fin stockée pour les sorties et les voyages, et un filtre
+      `when=UPCOMING|PAST` trié par le serveur (M)** — aucune fin n'existe : « À venir » compare
+      le départ à maintenant (`TeamEntityRepository`, filtre `from`), si bien qu'une sortie en cours
+      ou un voyage commencé disparaît, et le calendrier comme l'ICS envoient `end = null`. Colonne
+      `end_date_time` calculée par un seul service (groupes, vitesses, distances ; durée par défaut
+      sinon), recalculée à chaque point d'entrée listé au plan, remplie au démarrage, lue avec
+      `coalesce` pour le déploiement à chaud ; `endDateTime` au contrat (version mineure).
+- [ ] `API-86` **Le tableau de bord d'équipe ouvert aux visiteurs, en partie publique (S)** —
+      `TeamDashboardService` répond 403 à un non-membre (`role == null`), ce qui laisse au fil la
+      seule raison d'exister. Prochaines sorties, dernières publications, nouveaux parcours, sous
+      les règles de visibilité habituelles ; relecture `security-reviewer` avant livraison.
 
 ### Météo : ce qui suit `API-74`
 
@@ -732,7 +772,13 @@ En service en staging ; la mise en production attend biketeam
 
 ## BRAND — Charte
 
-Le code couleur métier a une source unique depuis `BRAND-2` ; rien d'ouvert.
+Le code couleur métier a une source unique depuis `BRAND-2`.
+
+- [ ] `BRAND-6` **Les icônes des sections d'équipe suivent la charte, les mêmes sur les deux clients
+      (S)** — le web montre `IconNews`, `IconMap2`, `IconTags` où la charte (§6) dit `IconArticle`,
+      `IconRoute`, `IconTag`, et le mobile prend d'autres icônes Material (`team_sections.dart`).
+      Table section → icône au plan [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md) §2, et « Agenda » ajouté au lexique (§8). Livré avec
+      `WEB-68` et `MOB-60`.
 
 ---
 
