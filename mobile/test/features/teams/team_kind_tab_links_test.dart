@@ -208,6 +208,63 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
     },
   );
+
+  testWidgets(
+    'choisir un tag sur le fil filtré rejoint l\'état partagé, type compris',
+    (WidgetTester tester) async {
+      // Les tags sont partagés par équipe : écrits seuls, des tags de sortie
+      // se colleraient au type « Voyages » du fil empilé dessous.
+      final ProviderContainer container = ProviderContainer(
+        overrides: [
+          teamTagsProvider.overrideWith(
+            (ref, key) async => const <TagWithUsageDto>[],
+          ),
+          publicationFeedProvider.overrideWith(
+            (ref, key) => _StuckFeedNotifier(key),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(publicationFeedTypeProvider('velo-club').notifier).state =
+          PublicationType.trip;
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: PedalonsTheme.build(Brightness.light),
+            home: const Scaffold(
+              body: PublicationFeedView(
+                teamSlug: 'velo-club',
+                emptyMessage: 'empty',
+                initialType: PublicationType.ride,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      tester.widget<FeedToolbar>(find.byType(FeedToolbar)).onTagsChanged!(
+        <String>['tag-sortie'],
+      );
+      await tester.pump();
+
+      expect(
+        container.read(publicationFeedTypeProvider('velo-club')),
+        PublicationType.ride,
+      );
+      expect(container.read(publicationFeedTagsProvider('velo-club')), <String>[
+        'tag-sortie',
+      ]);
+      expect(
+        tester.widget<FeedToolbar>(find.byType(FeedToolbar)).selectedType,
+        PublicationType.ride,
+      );
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
 }
 
 /// Ne répond jamais : aucun appel HTTP, le fil reste sur ses squelettes.

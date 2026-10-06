@@ -98,6 +98,15 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
   }
 
   void _setTags(List<String> value) {
+    if (_showsInitialType) {
+      // Les tags sont partagés par équipe : les y écrire sans le type les
+      // collerait au type du fil empilé dessous (tags de sortie sur une liste
+      // de voyages, vide au retour). Choisir un tag rejoint donc l'état
+      // partagé, type initial compris.
+      setState(() => _showsInitialType = false);
+      ref.read(publicationFeedTypeProvider(widget.teamSlug).notifier).state =
+          widget.initialType;
+    }
     ref.read(publicationFeedTagsProvider(widget.teamSlug).notifier).state =
         value;
   }
