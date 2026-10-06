@@ -370,6 +370,7 @@ class ApiClient {
      * Parse a DeviceRideDto with its entries.
      */
     private function parseRideDto(raw as Lang.Dictionary) as Lang.Dictionary {
+        var rideStart = raw.get("startDateTime");
         var entries = [];
         var rawEntries = raw.get("entries");
         if (rawEntries != null && rawEntries instanceof Lang.Array) {
@@ -377,7 +378,11 @@ class ApiClient {
                 var rawEntry = rawEntries[i];
                 if (rawEntry instanceof Lang.Dictionary) {
                     var entryDict = rawEntry as Lang.Dictionary;
+                    // Each entry (one group) carries its group's start, absent from an
+                    // older backend: fall back on the ride's (docs/LEDGER_*.md API-84).
+                    var entryStart = entryDict.get("startDateTime");
                     entries.add({
+                        "startDateTime" => entryStart != null ? entryStart : rideStart,
                         "routeSlug" => entryDict.get("routeSlug"),
                         "routeName" => entryDict.get("routeName"),
                         "groupName" => entryDict.get("groupName"),
@@ -393,7 +398,7 @@ class ApiClient {
             "teamSlug" => raw.get("teamSlug"),
             "rideSlug" => raw.get("rideSlug"),
             "rideName" => raw.get("rideName"),
-            "startDateTime" => raw.get("startDateTime"),
+            "startDateTime" => rideStart,
             "entries" => entries,
         };
     }

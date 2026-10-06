@@ -378,13 +378,6 @@ arbitrages, ce qui suit est ici (et les recettes des sorties, `WEB-61`, `MOB-52`
 - [ ] `API-77` **Météo sur Karoo et Garmin (M)** — `DeviceRideDto` ne porte rien ; à concevoir
       (résumé seul, ou points de passage) avec les contraintes de taille des deux apps. Les aperçus
       de lien (`og:`) ne portent **jamais** de météo.
-- [ ] `API-84` **Les appareils n'ont que l'heure de la sortie, pas celle du groupe (S)** — reste de
-      `API-78` : `DeviceRideDto.startDateTime` est l'instant de la sortie, une seule heure pour toutes
-      ses entrées ; Garmin (`RouteDetailView`) l'affiche aussi sous le parcours d'un groupe qui part
-      plus tard. Ajouter un `startDateTime` par `DeviceRideEntryDto`, calculé par
-      `RideWeatherCalculator.legStart` (l'heure du groupe lue au fuseau du lieu de départ, sur la date
-      locale de la sortie — la règle de `RideWeatherPlans`), puis l'afficher dans `karoo/` et
-      `garmin-app/`. Changement de contrat mineur.
 
 ### Les chantiers d'infrastructure d'API
 

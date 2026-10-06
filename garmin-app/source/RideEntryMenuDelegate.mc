@@ -26,7 +26,7 @@ class RideEntryMenuDelegate extends WatchUi.Menu2InputDelegate {
                 "routeName" => entry.get("routeName"),
                 "rideName" => _ride.get("rideName"),
                 "groupName" => entry.get("groupName"),
-                "startDateTime" => _ride.get("startDateTime"),
+                "startDateTime" => entry.get("startDateTime"),
                 "distance" => entry.get("distance"),
                 "elevationGain" => entry.get("elevationGain"),
                 "startLat" => entry.get("startLat"),

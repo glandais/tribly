@@ -53,7 +53,13 @@ data class DeviceRide(
     @SerialName("rideName") val rideName: String,
     @SerialName("startDateTime") val startDateTime: String? = null,
     @SerialName("entries") val entries: List<DeviceRideEntry>,
-)
+) {
+    /**
+     * When [entry] starts: its group's start (docs/LEDGER_*.md API-84), or the ride's start for a
+     * server that predates it.
+     */
+    fun startOf(entry: DeviceRideEntry): String? = entry.startDateTime ?: startDateTime
+}
 
 @Serializable
 data class DeviceRideEntry(
@@ -64,6 +70,8 @@ data class DeviceRideEntry(
     @SerialName("elevationGain") val elevationGain: Float,
     @SerialName("startLat") val startLat: Double? = null,
     @SerialName("startLon") val startLon: Double? = null,
+    // The group's start time as a UTC instant (API-84); absent from servers before 10.14.0.
+    @SerialName("startDateTime") val startDateTime: String? = null,
 )
 
 @Serializable

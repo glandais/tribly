@@ -109,6 +109,8 @@ sealed class NavState {
         val routeName: String,
         val distance: Float,
         val elevationGain: Float,
+        // Start of the ride entry's group (null for a standalone route).
+        val startDateTime: String? = null,
     ) : NavState()
 }
 
@@ -338,6 +340,7 @@ private fun MainScreen(
                                     routeName = entry.routeName,
                                     distance = entry.distance,
                                     elevationGain = entry.elevationGain,
+                                    startDateTime = ride.startOf(entry),
                                 )
                             )
                         } else {
@@ -355,6 +358,7 @@ private fun MainScreen(
                                 routeName = entry.routeName,
                                 distance = entry.distance,
                                 elevationGain = entry.elevationGain,
+                                startDateTime = state.ride.startOf(entry),
                             )
                         )
                     }
@@ -628,6 +632,7 @@ private fun NavigationContent(
                                 routeName = entry.routeName,
                                 distance = entry.distance,
                                 elevationGain = entry.elevationGain,
+                                startDateTime = ride.startOf(entry),
                             )
                         )
                     } else {
@@ -651,6 +656,7 @@ private fun NavigationContent(
                             routeName = entry.routeName,
                             distance = entry.distance,
                             elevationGain = entry.elevationGain,
+                            startDateTime = navState.ride.startOf(entry),
                         )
                     )
                 },
@@ -1037,6 +1043,14 @@ private fun RideEntriesScreen(
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
+                                val startStr = formatDateTime(context, ride.startOf(entry))
+                                if (startStr != null) {
+                                    Text(
+                                        text = startStr,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Text(
                                         text = formatDistance(context, entry.distance, userProfile),
@@ -1240,6 +1254,15 @@ private fun RouteDetailScreen(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    val startStr = formatDateTime(context, detail.startDateTime)
+                    if (startStr != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = startStr,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     Spacer(modifier = Modifier.height(16.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text(
