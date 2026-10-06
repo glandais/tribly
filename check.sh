@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Full local gate, mirroring .github/workflows/ci.yml: clean mobile, regenerate the API contract
+# Full local gate, mirroring .github/workflows/ci.yml: regenerate the API contract, clean mobile
 # and its generated clients, format every module, then lint/analyze/build each of them. Backend
 # tests are the slowest step and are skipped by default — pass --backend-tests to run them too.
 # Each module also has its own check.sh for running that module's gate standalone.
@@ -21,11 +21,13 @@ done
 
 step() { echo "==> $1"; }
 
-step "mobile: clean"
-(cd "$ROOT/mobile" && bash clean.sh)
-
 step "backend: build + lint (also regenerates contracts/openapi.yaml)"
 (cd "$ROOT/backend" && bash check.sh)
+
+# After the backend (fresh contract) and before the frontend: clean.sh regenerates the mobile client,
+# whose Freezed enums generate-brand-colors reads (docs/LEDGER_*.md BRAND-5).
+step "mobile: clean"
+(cd "$ROOT/mobile" && bash clean.sh)
 
 step "frontend: install + generate + format + typecheck + lint + build + test"
 (cd "$ROOT/frontend" && bash check.sh)

@@ -39,7 +39,15 @@ const lowerFirst = (name) => name[0].toLowerCase() + name.slice(1)
 /** API value → Dart identifier, read from the Freezed enum so naming quirks never matter. */
 function dartEnumIdentifiers(enumName) {
   const file = path.join(outputs.dartModels, `${snake(enumName)}.dart`)
-  const source = readFileSync(file, 'utf8')
+  let source
+  try {
+    source = readFileSync(file, 'utf8')
+  } catch {
+    throw new Error(
+      `${path.relative(repoRoot, file)} is missing: generate the mobile client first ` +
+        '(regenerate.sh and check.sh do it before pnpm check — docs/LEDGER_*.md BRAND-5)',
+    )
+  }
   const ids = new Map()
   for (const m of source.matchAll(/@JsonValue\('([^']+)'\)\s*\n\s*(\w+)\(/g)) ids.set(m[1], m[2])
   if (ids.size === 0) throw new Error(`${file}: no @JsonValue found`)

@@ -734,15 +734,7 @@ En service en staging ; la mise en production attend biketeam
 
 ## BRAND — Charte
 
-Le code couleur métier a une source unique depuis `BRAND-2` ; reste un défaut d'outillage.
-
-- [ ] `BRAND-5` **Un nouvel enum coloré demande deux passes de `regenerate.sh` (S)** —
-      `scripts/generate-brand-colors.mjs` importe le modèle Dart généré de chaque enum
-      (`mobile/lib/api/generated/models/<enum>.dart`) et échoue s'il manque ; or `pnpm check`
-      (frontend) le lance avant que `mobile/check.sh` ne génère le client mobile. Constaté avec
-      `RelativeWind` (`BRAND-4`) : il a fallu générer le client mobile à la main avant de relancer.
-      Générer les deux clients avant `generate-brand-colors`, ou ne vérifier le Dart que s'il
-      existe.
+Le code couleur métier a une source unique depuis `BRAND-2` ; rien d'ouvert.
 
 ---
 
