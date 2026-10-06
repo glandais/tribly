@@ -78,8 +78,8 @@ class PublicationWhenFilterTest extends AbstractResourceTest {
         .get("/api/teams/" + team1Slug + "/publications")
         .then()
         .statusCode(200)
-        .body("items.id", contains(id(trip), id(longUnderWay), id(underWay), id(future)))
-        .body("items[0].endDateTime", notNullValue());
+        .body("publications.id", contains(id(trip), id(longUnderWay), id(underWay), id(future)))
+        .body("publications[0].endDateTime", notNullValue());
   }
 
   @Test
@@ -92,7 +92,7 @@ class PublicationWhenFilterTest extends AbstractResourceTest {
         .get("/api/teams/" + team1Slug + "/publications")
         .then()
         .statusCode(200)
-        .body("items.id", contains(id(overEarly), id(over)));
+        .body("publications.id", contains(id(overEarly), id(over)));
   }
 
   @Test
@@ -106,7 +106,7 @@ class PublicationWhenFilterTest extends AbstractResourceTest {
         .get("/api/teams/" + team1Slug + "/publications")
         .then()
         .statusCode(200)
-        .body("items.id", contains(id(future), id(underWay), id(longUnderWay), id(trip)));
+        .body("publications.id", contains(id(future), id(underWay), id(longUnderWay), id(trip)));
   }
 
   @Test
@@ -125,7 +125,7 @@ class PublicationWhenFilterTest extends AbstractResourceTest {
         .get("/api/teams/" + team1Slug + "/publications")
         .then()
         .statusCode(200)
-        .body("items.id", contains(id(underWay)));
+        .body("publications.id", contains(id(underWay)));
   }
 
   @Test
@@ -138,7 +138,7 @@ class PublicationWhenFilterTest extends AbstractResourceTest {
         .get("/api/publications")
         .then()
         .statusCode(200)
-        .body("items.id", contains(id(overEarly), id(over)));
+        .body("publications.id", contains(id(overEarly), id(over)));
 
     given()
         .auth()
