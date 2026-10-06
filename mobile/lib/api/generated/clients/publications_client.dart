@@ -11,6 +11,7 @@ import '../models/list_view_mode.dart';
 import '../models/min_role.dart';
 import '../models/publication_list_response.dart';
 import '../models/publication_type.dart';
+import '../models/publication_when.dart';
 import '../models/sort_direction.dart';
 import '../models/status.dart';
 
@@ -36,7 +37,7 @@ abstract class PublicationsClient {
   ///
   /// [size] - Page size.
   ///
-  /// [sortDir] - Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones.
+  /// [sortDir] - Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones. Given, it overrides the order set by when.
   ///
   /// [status] - Only publications with this status. Narrows the visibility rules, never widens them.
   ///
@@ -45,6 +46,8 @@ abstract class PublicationsClient {
   /// [type] - Types.
   ///
   /// [view] - How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets trimmed to the logo, the first image and the themed thumbnails — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. The markdown body, the attachments, the GPX and FIT files and every image past the first are dropped. Omitted, or FULL, is the previous behaviour, byte for byte.
+  ///
+  /// [when] - Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.
   @GET('/api/publications')
   Future<PublicationListResponse> listAllPublications({
     @Query('page') int? page = 0,
@@ -58,6 +61,7 @@ abstract class PublicationsClient {
     @Query('to') String? to,
     @Query('type') PublicationType? type,
     @Query('view') ListViewMode? view,
+    @Query('when') PublicationWhen? whenField,
   });
 
   /// Count all publications.
@@ -77,6 +81,8 @@ abstract class PublicationsClient {
   /// [to] - End date filter (ISO format).
   ///
   /// [type] - Types.
+  ///
+  /// [when] - Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.
   @GET('/api/publications/count')
   Future<CountResponse> countAllPublications({
     @Query('participating') bool? participating = false,
@@ -86,6 +92,7 @@ abstract class PublicationsClient {
     @Query('status') Status? status,
     @Query('to') String? to,
     @Query('type') PublicationType? type,
+    @Query('when') PublicationWhen? whenField,
   });
 
   /// List publications.
@@ -104,7 +111,7 @@ abstract class PublicationsClient {
   ///
   /// [size] - Page size.
   ///
-  /// [sortDir] - Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones.
+  /// [sortDir] - Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones. Given, it overrides the order set by when.
   ///
   /// [status] - Only publications with this status. Narrows the visibility rules, never widens them.
   ///
@@ -115,6 +122,8 @@ abstract class PublicationsClient {
   /// [type] - Type.
   ///
   /// [view] - How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets trimmed to the logo, the first image and the themed thumbnails — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. The markdown body, the attachments, the GPX and FIT files and every image past the first are dropped. Omitted, or FULL, is the previous behaviour, byte for byte.
+  ///
+  /// [when] - Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.
   ///
   /// [withFullGroup] - Only the rides with at least one group at capacity (maxParticipants reached). Every other type of publication is left out.
   ///
@@ -135,6 +144,7 @@ abstract class PublicationsClient {
     @Query('to') String? to,
     @Query('type') PublicationType? type,
     @Query('view') ListViewMode? view,
+    @Query('when') PublicationWhen? whenField,
   });
 
   /// Count publications.
@@ -157,6 +167,8 @@ abstract class PublicationsClient {
   ///
   /// [type] - Type.
   ///
+  /// [when] - Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.
+  ///
   /// [withFullGroup] - Only the rides with at least one group at capacity (maxParticipants reached). Every other type of publication is left out.
   ///
   /// [withoutRoute] - Only the rides routed nowhere: neither the ride nor any of its groups has a route. Every other type of publication is left out.
@@ -172,5 +184,6 @@ abstract class PublicationsClient {
     @Query('tags') List<String>? tags,
     @Query('to') String? to,
     @Query('type') PublicationType? type,
+    @Query('when') PublicationWhen? whenField,
   });
 }

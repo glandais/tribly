@@ -48,7 +48,7 @@ abstract class CalendarEventDto with _$CalendarEventDto {
     /// Whether the ride or stage is over, computed by the server when the response is built: its end (or its start, when it has no end) has passed. Independent of status.
     required bool finished,
 
-    /// Event end date/time
+    /// Event end date/time: the end the server computes for a ride (its latest group at its pace, 3 hours when nothing tells) or for a trip stage (its route at its pace, likewise) — the same as RideDto.endDateTime. On an all-day stage it is still that instant: the stage occupies every day up to it.
     String? end,
 
     /// Parent trip slug (for stages only)

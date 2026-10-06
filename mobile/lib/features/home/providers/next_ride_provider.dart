@@ -74,6 +74,7 @@ RideDto rideFromListRow(PublicationDtoRide p) => RideDto(
   name: p.name,
   media: p.media,
   dateTime: p.dateTime,
+  endDateTime: p.endDateTime,
   status: p.status,
   finished: p.finished,
   visibility: p.visibility,

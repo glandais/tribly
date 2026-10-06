@@ -19,6 +19,7 @@ _RideDto _$RideDtoFromJson(Map<String, dynamic> json) => _RideDto(
       .map((e) => RideGroupSummaryDto.fromJson(e as Map<String, dynamic>))
       .toList(),
   dateTime: json['dateTime'] as String,
+  endDateTime: json['endDateTime'] as String,
   status: json['status'] as String,
   finished: json['finished'] as bool,
   visibility: json['visibility'] as String,
@@ -70,6 +71,7 @@ Map<String, dynamic> _$RideDtoToJson(_RideDto instance) => <String, dynamic>{
   'media': instance.media.toJson(),
   'groupSummaries': instance.groupSummaries.map((e) => e.toJson()).toList(),
   'dateTime': instance.dateTime,
+  'endDateTime': instance.endDateTime,
   'status': instance.status,
   'finished': instance.finished,
   'visibility': instance.visibility,

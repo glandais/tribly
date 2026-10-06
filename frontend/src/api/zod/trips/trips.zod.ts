@@ -698,6 +698,11 @@ export const CreateTripResponse = zod
       .describe(
         'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
       ),
+    endDateTime: zod.iso
+      .datetime({ offset: true })
+      .describe(
+        "When the trip is over, computed by the server: the end of its latest stage — its departure plus its route's length at its average speed, or plus 3 hours when the stage has no speed or no route — or dateTime plus 3 hours for a trip with no stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     finished: zod
       .boolean()
@@ -2112,6 +2117,11 @@ export const UpdateTripResponse = zod
       .describe(
         'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
       ),
+    endDateTime: zod.iso
+      .datetime({ offset: true })
+      .describe(
+        "When the trip is over, computed by the server: the end of its latest stage — its departure plus its route's length at its average speed, or plus 3 hours when the stage has no speed or no route — or dateTime plus 3 hours for a trip with no stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     finished: zod
       .boolean()
@@ -3071,6 +3081,11 @@ export const GetTripResponse = zod
       .optional()
       .describe(
         'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+      ),
+    endDateTime: zod.iso
+      .datetime({ offset: true })
+      .describe(
+        "When the trip is over, computed by the server: the end of its latest stage — its departure plus its route's length at its average speed, or plus 3 hours when the stage has no speed or no route — or dateTime plus 3 hours for a trip with no stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
       ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     finished: zod
@@ -4137,6 +4152,11 @@ export const ChangeTripSlugResponse = zod
       .describe(
         'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
       ),
+    endDateTime: zod.iso
+      .datetime({ offset: true })
+      .describe(
+        "When the trip is over, computed by the server: the end of its latest stage — its departure plus its route's length at its average speed, or plus 3 hours when the stage has no speed or no route — or dateTime plus 3 hours for a trip with no stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     finished: zod
       .boolean()
@@ -5103,6 +5123,11 @@ export const ChangeTripStatusResponse = zod
       .describe(
         'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
       ),
+    endDateTime: zod.iso
+      .datetime({ offset: true })
+      .describe(
+        "When the trip is over, computed by the server: the end of its latest stage — its departure plus its route's length at its average speed, or plus 3 hours when the stage has no speed or no route — or dateTime plus 3 hours for a trip with no stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     finished: zod
       .boolean()
@@ -6062,6 +6087,11 @@ export const UndeleteTripResponse = zod
       .optional()
       .describe(
         'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+      ),
+    endDateTime: zod.iso
+      .datetime({ offset: true })
+      .describe(
+        "When the trip is over, computed by the server: the end of its latest stage — its departure plus its route's length at its average speed, or plus 3 hours when the stage has no speed or no route — or dateTime plus 3 hours for a trip with no stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
       ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     finished: zod

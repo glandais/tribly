@@ -22,6 +22,7 @@ import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import fr.pedalons.service.common.ParticipantPreviewLookup.ParticipantPreview;
+import fr.pedalons.service.publication.PublicationEndCalculator;
 import fr.pedalons.service.weather.RideWeatherSummaries;
 import java.time.Instant;
 import java.util.Comparator;
@@ -74,6 +75,16 @@ public class TripDto implements PublicationDto {
           "Date of the last stage — the day the trip ends. Null when the trip has no stage, in"
               + " which case it lasts a day and dateTime is both ends.")
   final Instant endDate;
+
+  @Schema(
+      description =
+          "When the trip is over, computed by the server: the end of its latest stage — its"
+              + " departure plus its route's length at its average speed, or plus 3 hours when the"
+              + " stage has no speed or no route — or dateTime plus 3 hours for a trip with no"
+              + " stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar"
+              + " read.",
+      required = true)
+  final Instant endDateTime;
 
   @Schema(description = "Publication status", required = true)
   final Status status;
@@ -189,6 +200,7 @@ public class TripDto implements PublicationDto {
       @Nullable String excerpt,
       Instant dateTime,
       @Nullable Instant endDate,
+      Instant endDateTime,
       Status status,
       Visibility visibility,
       @Nullable Instant publishAt,
@@ -217,6 +229,7 @@ public class TripDto implements PublicationDto {
     this.excerpt = excerpt;
     this.dateTime = dateTime;
     this.endDate = endDate;
+    this.endDateTime = endDateTime;
     this.status = status;
     // docs/LEDGER_*.md API-16: the one rule the clients used to derive each on its own.
     this.finished = (endDate != null ? endDate : dateTime).isBefore(Instant.now());
@@ -424,6 +437,7 @@ public class TripDto implements PublicationDto {
         MarkdownExcerpt.of(trip.getMarkdown()),
         trip.getDateTime(),
         endDate,
+        PublicationEndCalculator.effectiveEnd(trip),
         trip.getStatus(),
         trip.getVisibility(),
         trip.getPublishAt(),

@@ -23,6 +23,11 @@ import org.jspecify.annotations.Nullable;
  *     of its groups. Drops every other type of publication.
  * @param withFullGroup keep only the rides with at least one group at capacity. Drops every other
  *     type of publication.
+ * @param notEndedAt keep only the rides and trips not over at this instant — their end, stored or
+ *     else {@code dateTime} plus {@code PublicationEndCalculator.DEFAULT_DURATION}, is at or after it
+ *     (docs/LEDGER_*.md API-85). Drops every other type of publication.
+ * @param endedBefore keep only the rides and trips over at this instant, by the same end. Drops
+ *     every other type of publication.
  */
 @Builder
 public record PublicationQuery(
@@ -36,6 +41,8 @@ public record PublicationQuery(
     @Nullable String search,
     @Nullable Instant from,
     @Nullable Instant to,
+    @Nullable Instant notEndedAt,
+    @Nullable Instant endedBefore,
     @Nullable MinRole minRole,
     @Nullable Status status,
     @Nullable Set<Long> tagIds,

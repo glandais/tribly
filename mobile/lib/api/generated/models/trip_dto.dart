@@ -44,6 +44,9 @@ abstract class TripDto with _$TripDto {
     /// Trip start date/time
     required String dateTime,
 
+    /// When the trip is over, computed by the server: the end of its latest stage — its departure plus its route's length at its average speed, or plus 3 hours when the stage has no speed or no route — or dateTime plus 3 hours for a trip with no stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read.
+    required String endDateTime,
+
     /// Publication status
     required String status,
 

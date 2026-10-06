@@ -219,6 +219,7 @@ PublicationDtoRide _asListRow(RideDto r) => PublicationDtoRide(
   name: r.name,
   media: r.media,
   dateTime: r.dateTime,
+  endDateTime: r.endDateTime,
   status: r.status,
   visibility: r.visibility,
   participantCount: r.participantCount,

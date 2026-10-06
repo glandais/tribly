@@ -29,7 +29,7 @@ export const ListAllPublicationsQueryParams = zod.object({
     .enum(['ASC', 'DESC'])
     .optional()
     .describe(
-      'Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones.'
+      'Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones. Given, it overrides the order set by when.'
     ),
   status: zod
     .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
@@ -44,6 +44,12 @@ export const ListAllPublicationsQueryParams = zod.object({
     .optional()
     .describe(
       "How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets trimmed to the logo, the first image and the themed thumbnails — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. The markdown body, the attachments, the GPX and FIT files and every image past the first are dropped. Omitted, or FULL, is the previous behaviour, byte for byte."
+    ),
+  when: zod
+    .enum(['UPCOMING', 'PAST'])
+    .optional()
+    .describe(
+      'Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.'
     ),
 })
 
@@ -290,6 +296,11 @@ export const ListAllPublicationsResponse = zod
                     "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                   ),
                 dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                endDateTime: zod.iso
+                  .datetime({ offset: true })
+                  .describe(
+                    "When the ride is over, computed by the server: the latest of its groups, each one its departure plus its route's length at its average speed — or plus 3 hours when the group has no speed or no route, and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+                  ),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
@@ -1281,6 +1292,11 @@ export const ListAllPublicationsResponse = zod
                   .describe(
                     'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
                   ),
+                endDateTime: zod.iso
+                  .datetime({ offset: true })
+                  .describe(
+                    "When the trip is over, computed by the server: the end of its latest stage — its departure plus its route's length at its average speed, or plus 3 hours when the stage has no speed or no route — or dateTime plus 3 hours for a trip with no stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+                  ),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
@@ -2139,6 +2155,12 @@ export const CountAllPublicationsQueryParams = zod.object({
     ),
   to: zod.string().optional().describe('End date filter (ISO format)'),
   type: zod.enum(['RIDE', 'POST', 'TRIP']).optional().describe('Types'),
+  when: zod
+    .enum(['UPCOMING', 'PAST'])
+    .optional()
+    .describe(
+      'Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.'
+    ),
 })
 
 export const CountAllPublicationsResponse = zod
@@ -2176,7 +2198,7 @@ export const ListPublicationsQueryParams = zod.object({
     .enum(['ASC', 'DESC'])
     .optional()
     .describe(
-      'Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones.'
+      'Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones. Given, it overrides the order set by when.'
     ),
   status: zod
     .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
@@ -2197,6 +2219,12 @@ export const ListPublicationsQueryParams = zod.object({
     .optional()
     .describe(
       "How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets trimmed to the logo, the first image and the themed thumbnails — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. The markdown body, the attachments, the GPX and FIT files and every image past the first are dropped. Omitted, or FULL, is the previous behaviour, byte for byte."
+    ),
+  when: zod
+    .enum(['UPCOMING', 'PAST'])
+    .optional()
+    .describe(
+      'Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.'
     ),
   withFullGroup: zod
     .boolean()
@@ -2455,6 +2483,11 @@ export const ListPublicationsResponse = zod
                     "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                   ),
                 dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                endDateTime: zod.iso
+                  .datetime({ offset: true })
+                  .describe(
+                    "When the ride is over, computed by the server: the latest of its groups, each one its departure plus its route's length at its average speed — or plus 3 hours when the group has no speed or no route, and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+                  ),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
@@ -3446,6 +3479,11 @@ export const ListPublicationsResponse = zod
                   .describe(
                     'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
                   ),
+                endDateTime: zod.iso
+                  .datetime({ offset: true })
+                  .describe(
+                    "When the trip is over, computed by the server: the end of its latest stage — its departure plus its route's length at its average speed, or plus 3 hours when the stage has no speed or no route — or dateTime plus 3 hours for a trip with no stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+                  ),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
@@ -4310,6 +4348,12 @@ export const CountPublicationsQueryParams = zod.object({
     ),
   to: zod.string().optional().describe('End date filter (ISO format)'),
   type: zod.enum(['RIDE', 'POST', 'TRIP']).optional().describe('Type'),
+  when: zod
+    .enum(['UPCOMING', 'PAST'])
+    .optional()
+    .describe(
+      'Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.'
+    ),
   withFullGroup: zod
     .boolean()
     .default(countPublicationsQueryWithFullGroupDefault)

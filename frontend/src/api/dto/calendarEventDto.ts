@@ -12,7 +12,7 @@ export interface CalendarEventDto {
   title: string
   /** Event start date/time */
   start: Instant
-  /** Event end date/time */
+  /** Event end date/time: the end the server computes for a ride (its latest group at its pace, 3 hours when nothing tells) or for a trip stage (its route at its pace, likewise) — the same as RideDto.endDateTime. On an all-day stage it is still that instant: the stage occupies every day up to it. */
   end?: Instant
   /** Is all-day event */
   allDay: boolean

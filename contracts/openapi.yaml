@@ -1061,7 +1061,11 @@ components:
           type: string
           $ref: "#/components/schemas/Instant"
         end:
-          description: Event end date/time
+          description: "Event end date/time: the end the server computes for a ride\
+            \ (its latest group at its pace, 3 hours when nothing tells) or for a\
+            \ trip stage (its route at its pace, likewise) — the same as RideDto.endDateTime.\
+            \ On an all-day stage it is still that instant: the stage occupies every\
+            \ day up to it."
           type: string
           $ref: "#/components/schemas/Instant"
         allDay:
@@ -3865,6 +3869,11 @@ components:
       - RIDE
       - POST
       - TRIP
+    PublicationWhen:
+      type: string
+      enum:
+      - UPCOMING
+      - PAST
     PushDeviceRegistration:
       description: A device to receive push notifications on
       type: object
@@ -4050,6 +4059,7 @@ components:
       - name
       - media
       - dateTime
+      - endDateTime
       - status
       - finished
       - visibility
@@ -4092,6 +4102,14 @@ components:
             \ without the body being sent at all — see the 'view' parameter."
         dateTime:
           description: Publication date/time
+          type: string
+          $ref: "#/components/schemas/Instant"
+        endDateTime:
+          description: "When the ride is over, computed by the server: the latest\
+            \ of its groups, each one its departure plus its route's length at its\
+            \ average speed — or plus 3 hours when the group has no speed or no route,\
+            \ and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST)\
+            \ and the calendar read."
           type: string
           $ref: "#/components/schemas/Instant"
         status:
@@ -6324,6 +6342,7 @@ components:
       - name
       - media
       - dateTime
+      - endDateTime
       - status
       - finished
       - visibility
@@ -6370,6 +6389,14 @@ components:
           description: "Date of the last stage — the day the trip ends. Null when\
             \ the trip has no stage, in which case it lasts a day and dateTime is\
             \ both ends."
+          type: string
+          $ref: "#/components/schemas/Instant"
+        endDateTime:
+          description: "When the trip is over, computed by the server: the end of\
+            \ its latest stage — its departure plus its route's length at its average\
+            \ speed, or plus 3 hours when the stage has no speed or no route — or\
+            \ dateTime plus 3 hours for a trip with no stage. What the upcoming and\
+            \ past lists (when=UPCOMING|PAST) and the calendar read."
           type: string
           $ref: "#/components/schemas/Instant"
         status:
@@ -10773,7 +10800,8 @@ paths:
           default: 20
       - description: "Order of the publication date. Omitted, or DESC, is newest first\
           \ (the feed); ASC is soonest first — what a window of upcoming outings needs,\
-          \ so a page keeps the nearest ones."
+          \ so a page keeps the nearest ones. Given, it overrides the order set by\
+          \ when."
         name: sortDir
         in: query
         schema:
@@ -10804,6 +10832,16 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/ListViewMode"
+      - description: "Which side of now, judged by the end of a ride or a trip rather\
+          \ than its start: UPCOMING is what is not over yet (end >= now — an outing\
+          \ under way included), PAST what is over (end < now). Keeps rides and trips\
+          \ only: a post has no end. Sets the order too — UPCOMING soonest departure\
+          \ first, PAST latest first — unless sortDir is given. With participating=true,\
+          \ UPCOMING is « Je participe ». Omitted: no such filter."
+        name: when
+        in: query
+        schema:
+          $ref: "#/components/schemas/PublicationWhen"
       responses:
         "200":
           description: Publications retrieved successfully
@@ -10860,6 +10898,16 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/PublicationType"
+      - description: "Which side of now, judged by the end of a ride or a trip rather\
+          \ than its start: UPCOMING is what is not over yet (end >= now — an outing\
+          \ under way included), PAST what is over (end < now). Keeps rides and trips\
+          \ only: a post has no end. Sets the order too — UPCOMING soonest departure\
+          \ first, PAST latest first — unless sortDir is given. With participating=true,\
+          \ UPCOMING is « Je participe ». Omitted: no such filter."
+        name: when
+        in: query
+        schema:
+          $ref: "#/components/schemas/PublicationWhen"
       responses:
         "200":
           description: Count computed successfully
@@ -14318,7 +14366,8 @@ paths:
           default: 20
       - description: "Order of the publication date. Omitted, or DESC, is newest first\
           \ (the feed); ASC is soonest first — what a window of upcoming outings needs,\
-          \ so a page keeps the nearest ones."
+          \ so a page keeps the nearest ones. Given, it overrides the order set by\
+          \ when."
         name: sortDir
         in: query
         schema:
@@ -14359,6 +14408,16 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/ListViewMode"
+      - description: "Which side of now, judged by the end of a ride or a trip rather\
+          \ than its start: UPCOMING is what is not over yet (end >= now — an outing\
+          \ under way included), PAST what is over (end < now). Keeps rides and trips\
+          \ only: a post has no end. Sets the order too — UPCOMING soonest departure\
+          \ first, PAST latest first — unless sortDir is given. With participating=true,\
+          \ UPCOMING is « Je participe ». Omitted: no such filter."
+        name: when
+        in: query
+        schema:
+          $ref: "#/components/schemas/PublicationWhen"
       - description: Only the rides with at least one group at capacity (maxParticipants
           reached). Every other type of publication is left out.
         name: withFullGroup
@@ -14445,6 +14504,16 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/PublicationType"
+      - description: "Which side of now, judged by the end of a ride or a trip rather\
+          \ than its start: UPCOMING is what is not over yet (end >= now — an outing\
+          \ under way included), PAST what is over (end < now). Keeps rides and trips\
+          \ only: a post has no end. Sets the order too — UPCOMING soonest departure\
+          \ first, PAST latest first — unless sortDir is given. With participating=true,\
+          \ UPCOMING is « Je participe ». Omitted: no such filter."
+        name: when
+        in: query
+        schema:
+          $ref: "#/components/schemas/PublicationWhen"
       - description: Only the rides with at least one group at capacity (maxParticipants
           reached). Every other type of publication is left out.
         name: withFullGroup
@@ -18666,7 +18735,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 10.14.0
+  version: 10.15.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

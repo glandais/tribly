@@ -502,6 +502,11 @@ export const CreateRideResponse = zod
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+    endDateTime: zod.iso
+      .datetime({ offset: true })
+      .describe(
+        "When the ride is over, computed by the server: the latest of its groups, each one its departure plus its route's length at its average speed — or plus 3 hours when the group has no speed or no route, and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     finished: zod
       .boolean()
@@ -1415,6 +1420,11 @@ export const UpdateRideResponse = zod
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+    endDateTime: zod.iso
+      .datetime({ offset: true })
+      .describe(
+        "When the ride is over, computed by the server: the latest of its groups, each one its departure plus its route's length at its average speed — or plus 3 hours when the group has no speed or no route, and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     finished: zod
       .boolean()
@@ -2060,6 +2070,11 @@ export const GetRideResponse = zod
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+    endDateTime: zod.iso
+      .datetime({ offset: true })
+      .describe(
+        "When the ride is over, computed by the server: the latest of its groups, each one its departure plus its route's length at its average speed — or plus 3 hours when the group has no speed or no route, and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     finished: zod
       .boolean()
@@ -2816,6 +2831,11 @@ export const ChangeRideSlugResponse = zod
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+    endDateTime: zod.iso
+      .datetime({ offset: true })
+      .describe(
+        "When the ride is over, computed by the server: the latest of its groups, each one its departure plus its route's length at its average speed — or plus 3 hours when the group has no speed or no route, and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     finished: zod
       .boolean()
@@ -3467,6 +3487,11 @@ export const ChangeRideStatusResponse = zod
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+    endDateTime: zod.iso
+      .datetime({ offset: true })
+      .describe(
+        "When the ride is over, computed by the server: the latest of its groups, each one its departure plus its route's length at its average speed — or plus 3 hours when the group has no speed or no route, and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     finished: zod
       .boolean()
@@ -4112,6 +4137,11 @@ export const UndeleteRideResponse = zod
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+    endDateTime: zod.iso
+      .datetime({ offset: true })
+      .describe(
+        "When the ride is over, computed by the server: the latest of its groups, each one its departure plus its route's length at its average speed — or plus 3 hours when the group has no speed or no route, and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     finished: zod
       .boolean()

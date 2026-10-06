@@ -1092,7 +1092,7 @@
             "$ref" : "#/components/schemas/Instant"
           },
           "end" : {
-            "description" : "Event end date/time",
+            "description" : "Event end date/time: the end the server computes for a ride (its latest group at its pace, 3 hours when nothing tells) or for a trip stage (its route at its pace, likewise) — the same as RideDto.endDateTime. On an all-day stage it is still that instant: the stage occupies every day up to it.",
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
           },
@@ -3896,6 +3896,10 @@
         "type" : "string",
         "enum" : [ "RIDE", "POST", "TRIP" ]
       },
+      "PublicationWhen" : {
+        "type" : "string",
+        "enum" : [ "UPCOMING", "PAST" ]
+      },
       "PushDeviceRegistration" : {
         "description" : "A device to receive push notifications on",
         "type" : "object",
@@ -4060,7 +4064,7 @@
       "RideDto" : {
         "description" : "Ride summary data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "finished", "visibility", "participantCount", "groupCount", "groups", "groupSummaries", "topParticipants", "deleted", "registered", "full", "tags" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "endDateTime", "status", "finished", "visibility", "participantCount", "groupCount", "groups", "groupSummaries", "topParticipants", "deleted", "registered", "full", "tags" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -4095,6 +4099,11 @@
           },
           "dateTime" : {
             "description" : "Publication date/time",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "endDateTime" : {
+            "description" : "When the ride is over, computed by the server: the latest of its groups, each one its departure plus its route's length at its average speed — or plus 3 hours when the group has no speed or no route, and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read.",
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
           },
@@ -6349,7 +6358,7 @@
       "TripDto" : {
         "description" : "Trip data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "finished", "visibility", "participantCount", "stageCount", "stages", "participants", "deleted", "registered", "tags" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "endDateTime", "status", "finished", "visibility", "participantCount", "stageCount", "stages", "participants", "deleted", "registered", "tags" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -6389,6 +6398,11 @@
           },
           "endDate" : {
             "description" : "Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "endDateTime" : {
+            "description" : "When the trip is over, computed by the server: the end of its latest stage — its departure plus its route's length at its average speed, or plus 3 hours when the stage has no speed or no route — or dateTime plus 3 hours for a trip with no stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read.",
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
           },
@@ -12223,7 +12237,7 @@
             "default" : 20
           }
         }, {
-          "description" : "Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones.",
+          "description" : "Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones. Given, it overrides the order set by when.",
           "name" : "sortDir",
           "in" : "query",
           "schema" : {
@@ -12256,6 +12270,13 @@
           "in" : "query",
           "schema" : {
             "$ref" : "#/components/schemas/ListViewMode"
+          }
+        }, {
+          "description" : "Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.",
+          "name" : "when",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/PublicationWhen"
           }
         } ],
         "responses" : {
@@ -12327,6 +12348,13 @@
           "in" : "query",
           "schema" : {
             "$ref" : "#/components/schemas/PublicationType"
+          }
+        }, {
+          "description" : "Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.",
+          "name" : "when",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/PublicationWhen"
           }
         } ],
         "responses" : {
@@ -17176,7 +17204,7 @@
             "default" : 20
           }
         }, {
-          "description" : "Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones.",
+          "description" : "Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones. Given, it overrides the order set by when.",
           "name" : "sortDir",
           "in" : "query",
           "schema" : {
@@ -17219,6 +17247,13 @@
           "in" : "query",
           "schema" : {
             "$ref" : "#/components/schemas/ListViewMode"
+          }
+        }, {
+          "description" : "Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.",
+          "name" : "when",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/PublicationWhen"
           }
         }, {
           "description" : "Only the rides with at least one group at capacity (maxParticipants reached). Every other type of publication is left out.",
@@ -17327,6 +17362,13 @@
           "in" : "query",
           "schema" : {
             "$ref" : "#/components/schemas/PublicationType"
+          }
+        }, {
+          "description" : "Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.",
+          "name" : "when",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/PublicationWhen"
           }
         }, {
           "description" : "Only the rides with at least one group at capacity (maxParticipants reached). Every other type of publication is left out.",
@@ -23204,7 +23246,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.14.0",
+    "version" : "10.15.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

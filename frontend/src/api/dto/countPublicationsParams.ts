@@ -1,4 +1,5 @@
 import type { PublicationType } from './publicationType.ts'
+import type { PublicationWhen } from './publicationWhen.ts'
 import type { Status } from './status.ts'
 
 export type CountPublicationsParams = {
@@ -30,6 +31,10 @@ export type CountPublicationsParams = {
    * Type
    */
   type?: PublicationType
+  /**
+   * Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is what is not over yet (end >= now — an outing under way included), PAST what is over (end < now). Keeps rides and trips only: a post has no end. Sets the order too — UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With participating=true, UPCOMING is « Je participe ». Omitted: no such filter.
+   */
+  when?: PublicationWhen
   /**
    * Only the rides with at least one group at capacity (maxParticipants reached). Every other type of publication is left out.
    */

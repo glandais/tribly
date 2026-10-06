@@ -33,6 +33,7 @@ class _PublicationsClient implements PublicationsClient {
     String? to,
     PublicationType? type,
     ListViewMode? view,
+    PublicationWhen? whenField,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -47,6 +48,7 @@ class _PublicationsClient implements PublicationsClient {
       r'to': to,
       r'type': type?.toJson(),
       r'view': view?.toJson(),
+      r'when': whenField?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -81,6 +83,7 @@ class _PublicationsClient implements PublicationsClient {
     Status? status,
     String? to,
     PublicationType? type,
+    PublicationWhen? whenField,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -91,6 +94,7 @@ class _PublicationsClient implements PublicationsClient {
       r'status': status?.toJson(),
       r'to': to,
       r'type': type?.toJson(),
+      r'when': whenField?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -132,6 +136,7 @@ class _PublicationsClient implements PublicationsClient {
     String? to,
     PublicationType? type,
     ListViewMode? view,
+    PublicationWhen? whenField,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -148,6 +153,7 @@ class _PublicationsClient implements PublicationsClient {
       r'to': to,
       r'type': type?.toJson(),
       r'view': view?.toJson(),
+      r'when': whenField?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -185,6 +191,7 @@ class _PublicationsClient implements PublicationsClient {
     List<String>? tags,
     String? to,
     PublicationType? type,
+    PublicationWhen? whenField,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -197,6 +204,7 @@ class _PublicationsClient implements PublicationsClient {
       r'tags': tags,
       r'to': to,
       r'type': type?.toJson(),
+      r'when': whenField?.toJson(),
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};

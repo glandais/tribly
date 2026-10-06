@@ -26,6 +26,7 @@ import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import fr.pedalons.service.common.ParticipantPreviewLookup.ParticipantPreview;
 import fr.pedalons.service.common.ParticipantPreviewLookup.PreviewedParticipant;
+import fr.pedalons.service.publication.PublicationEndCalculator;
 import fr.pedalons.service.weather.RideWeatherSummaries;
 import java.time.Instant;
 import java.util.Comparator;
@@ -74,6 +75,15 @@ public class RideDto implements PublicationDto {
 
   @Schema(description = "Publication date/time", required = true)
   final Instant dateTime;
+
+  @Schema(
+      description =
+          "When the ride is over, computed by the server: the latest of its groups, each one its"
+              + " departure plus its route's length at its average speed — or plus 3 hours when the"
+              + " group has no speed or no route, and for a ride with no group. What the upcoming"
+              + " and past lists (when=UPCOMING|PAST) and the calendar read.",
+      required = true)
+  final Instant endDateTime;
 
   @Schema(description = "Publication status", required = true)
   final Status status;
@@ -237,6 +247,7 @@ public class RideDto implements PublicationDto {
       MediaDto media,
       @Nullable String excerpt,
       Instant dateTime,
+      Instant endDateTime,
       Status status,
       Visibility visibility,
       @Nullable Instant publishAt,
@@ -272,6 +283,7 @@ public class RideDto implements PublicationDto {
     this.media = media;
     this.excerpt = excerpt;
     this.dateTime = dateTime;
+    this.endDateTime = endDateTime;
     this.status = status;
     // docs/LEDGER_*.md API-16: the one rule the clients used to derive each on its own.
     this.finished = dateTime.isBefore(Instant.now());
@@ -518,6 +530,7 @@ public class RideDto implements PublicationDto {
         MediaDto.from(ride, assetService, view),
         MarkdownExcerpt.of(ride.getMarkdown()),
         ride.getDateTime(),
+        PublicationEndCalculator.effectiveEnd(ride),
         ride.getStatus(),
         ride.getVisibility(),
         ride.getPublishAt(),

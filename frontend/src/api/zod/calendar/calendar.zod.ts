@@ -18,7 +18,12 @@ export const GetEventsResponse = zod
             id: zod.string().describe('Event ID (TSID)'),
             title: zod.string().describe('Event title'),
             start: zod.iso.datetime({ offset: true }).describe('Event start date/time'),
-            end: zod.iso.datetime({ offset: true }).optional().describe('Event end date/time'),
+            end: zod.iso
+              .datetime({ offset: true })
+              .optional()
+              .describe(
+                'Event end date/time: the end the server computes for a ride (its latest group at its pace, 3 hours when nothing tells) or for a trip stage (its route at its pace, likewise) — the same as RideDto.endDateTime. On an all-day stage it is still that instant: the stage occupies every day up to it.'
+              ),
             allDay: zod.boolean().describe('Is all-day event'),
             type: zod.enum(['RIDE', 'TRIP_STAGE']).describe('Event type'),
             teamSlug: zod.string().describe('Team slug'),
@@ -141,7 +146,12 @@ export const GetTeamEventsResponse = zod
             id: zod.string().describe('Event ID (TSID)'),
             title: zod.string().describe('Event title'),
             start: zod.iso.datetime({ offset: true }).describe('Event start date/time'),
-            end: zod.iso.datetime({ offset: true }).optional().describe('Event end date/time'),
+            end: zod.iso
+              .datetime({ offset: true })
+              .optional()
+              .describe(
+                'Event end date/time: the end the server computes for a ride (its latest group at its pace, 3 hours when nothing tells) or for a trip stage (its route at its pace, likewise) — the same as RideDto.endDateTime. On an all-day stage it is still that instant: the stage occupies every day up to it.'
+              ),
             allDay: zod.boolean().describe('Is all-day event'),
             type: zod.enum(['RIDE', 'TRIP_STAGE']).describe('Event type'),
             teamSlug: zod.string().describe('Team slug'),

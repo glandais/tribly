@@ -50,6 +50,9 @@ abstract class RideDto with _$RideDto {
     /// Publication date/time
     required String dateTime,
 
+    /// When the ride is over, computed by the server: the latest of its groups, each one its departure plus its route's length at its average speed — or plus 3 hours when the group has no speed or no route, and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read.
+    required String endDateTime,
+
     /// Publication status
     required String status,
 

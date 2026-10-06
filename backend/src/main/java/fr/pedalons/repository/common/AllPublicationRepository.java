@@ -7,6 +7,7 @@ import fr.pedalons.enums.Status;
 import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.repository.query.PedalonsQuery;
 import fr.pedalons.repository.tag.TagFilter;
+import fr.pedalons.service.publication.PublicationEndCalculator;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Instant;
 import java.util.List;
@@ -88,6 +89,32 @@ public class AllPublicationRepository
           + " and g.maxParticipants <= (select count(p.id) from RideParticipation p"
           + " where p.rideGroup.id = g.id)))";
 
+  /**
+   * The end of a ride or a trip, as every list reads it: the stored one, else the departure plus
+   * {@link PublicationEndCalculator#DEFAULT_DURATION} — the rows an older backend wrote during a
+   * start-first deploy, or not yet reached by {@code PublicationEndBackfill}. Spelt as two branches
+   * rather than a {@code coalesce} with interval arithmetic, so the bound is a plain parameter on
+   * each column ({@code :x} and {@code :x} minus the default duration) and the indexes stay usable.
+   */
+  private static String endClause(String operator, String param) {
+    return "(TYPE(te) IN (Ride, Trip) AND (te.endDateTime "
+        + operator
+        + " :"
+        + param
+        + " OR (te.endDateTime IS NULL AND te.dateTime "
+        + operator
+        + " :"
+        + param
+        + "Start)))";
+  }
+
+  private static PedalonsQuery andEnd(
+      PedalonsQuery pedalonsQuery, String operator, String param, Instant at) {
+    return pedalonsQuery.and(
+        endClause(operator, param),
+        Map.of(param, at, param + "Start", at.minus(PublicationEndCalculator.DEFAULT_DURATION)));
+  }
+
   @Override
   public PedalonsQuery andSpecific(PedalonsQuery pedalonsQuery, PublicationQuery query) {
     PublicationType publicationType = query.type();
@@ -122,6 +149,14 @@ public class AllPublicationRepository
     Set<Long> tagIds = query.tagIds();
     if (tagIds != null) {
       pedalonsQuery = TagFilter.andTaggedWithAny(pedalonsQuery, "te", tagIds);
+    }
+    Instant notEndedAt = query.notEndedAt();
+    if (notEndedAt != null) {
+      pedalonsQuery = andEnd(pedalonsQuery, ">=", "notEndedAt", notEndedAt);
+    }
+    Instant endedBefore = query.endedBefore();
+    if (endedBefore != null) {
+      pedalonsQuery = andEnd(pedalonsQuery, "<", "endedBefore", endedBefore);
     }
     if (query.ascending()) {
       // getPedalonsQuery set the default ordering before calling us; order() replaces it.

@@ -18,6 +18,7 @@ import fr.pedalons.dto.tags.response.ContentTags;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.ListViewMode;
+import fr.pedalons.enums.PublicationWhen;
 import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.TagTarget;
@@ -183,19 +184,65 @@ public class PublicationService {
       @Nullable SortDirection sortDir,
       int page,
       int size) {
+    return listAll(
+        type, search, from, to, minRole, status, participating, view, null, sortDir, page, size);
+  }
+
+  /**
+   * @param when {@link PublicationWhen#UPCOMING}: the rides and trips not over yet, soonest first;
+   *     {@link PublicationWhen#PAST}: those over, latest first; null: no such filter. Judged by the
+   *     end, not the start (docs/LEDGER_*.md API-85). Posts are never in either.
+   * @param sortDir order of {@code dateTime}; given, it overrides the order {@code when} sets
+   */
+  @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST_ALL_TEAMS)
+  public PublicationListResponse listAll(
+      @Nullable PublicationType type,
+      @Nullable String search,
+      @Nullable Instant from,
+      @Nullable Instant to,
+      @Nullable MinRole minRole,
+      @Nullable Status status,
+      boolean participating,
+      @Nullable ListViewMode view,
+      @Nullable PublicationWhen when,
+      @Nullable SortDirection sortDir,
+      int page,
+      int size) {
     return list(
-        baseQuery(page, size)
-            .type(type)
-            .search(search)
-            .from(from)
-            .to(to)
-            .minRole(minRole)
-            .status(status)
-            .participating(participating)
-            .ascending(sortDir == SortDirection.ASC)
-            .includeDeleted(false)
+        withWhen(
+                baseQuery(page, size)
+                    .type(type)
+                    .search(search)
+                    .from(from)
+                    .to(to)
+                    .minRole(minRole)
+                    .status(status)
+                    .participating(participating)
+                    .includeDeleted(false),
+                when,
+                sortDir)
             .build(),
         view);
+  }
+
+  /**
+   * What {@code when} stands for: the bound on the end, at the time of the request, and the order —
+   * soonest departure first for what is ahead, latest first for what is over. An explicit {@code
+   * sortDir} wins over that order.
+   */
+  static PublicationQuery.PublicationQueryBuilder withWhen(
+      PublicationQuery.PublicationQueryBuilder query,
+      @Nullable PublicationWhen when,
+      @Nullable SortDirection sortDir) {
+    Instant now = Instant.now();
+    if (when == PublicationWhen.UPCOMING) {
+      query.notEndedAt(now);
+    } else if (when == PublicationWhen.PAST) {
+      query.endedBefore(now);
+    }
+    boolean ascending =
+        sortDir != null ? sortDir == SortDirection.ASC : when == PublicationWhen.UPCOMING;
+    return query.ascending(ascending);
   }
 
   @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST)
@@ -293,22 +340,65 @@ public class PublicationService {
       boolean withFullGroup,
       int page,
       int size) {
+    return listTeam(
+        teamSlug,
+        type,
+        search,
+        from,
+        to,
+        status,
+        participating,
+        tags,
+        view,
+        null,
+        sortDir,
+        withoutRoute,
+        withFullGroup,
+        page,
+        size);
+  }
+
+  /**
+   * @param when as on {@link #listAll}: the rides and trips not over yet ({@link
+   *     PublicationWhen#UPCOMING}, soonest first) or over ({@link PublicationWhen#PAST}, latest
+   *     first); with {@code participating}, « Je participe »
+   * @param sortDir given, overrides the order {@code when} sets
+   */
+  @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST)
+  public PublicationListResponse listTeam(
+      String teamSlug,
+      @Nullable PublicationType type,
+      @Nullable String search,
+      @Nullable Instant from,
+      @Nullable Instant to,
+      @Nullable Status status,
+      boolean participating,
+      @Nullable List<String> tags,
+      @Nullable ListViewMode view,
+      @Nullable PublicationWhen when,
+      @Nullable SortDirection sortDir,
+      boolean withoutRoute,
+      boolean withFullGroup,
+      int page,
+      int size) {
     Team team = teamService.getTeam(teamSlug);
     boolean includeDeleted = includeDeletedService.isTeamEntityIncludeDeleted(team);
     return list(
-        baseQuery(page, size)
-            .type(type)
-            .teamIds(Set.of(team.getId()))
-            .search(search)
-            .from(from)
-            .to(to)
-            .status(status)
-            .tagIds(tagFilter(team, type, tags))
-            .participating(participating)
-            .withoutRoute(withoutRoute)
-            .withFullGroup(withFullGroup)
-            .ascending(sortDir == SortDirection.ASC)
-            .includeDeleted(includeDeleted)
+        withWhen(
+                baseQuery(page, size)
+                    .type(type)
+                    .teamIds(Set.of(team.getId()))
+                    .search(search)
+                    .from(from)
+                    .to(to)
+                    .status(status)
+                    .tagIds(tagFilter(team, type, tags))
+                    .participating(participating)
+                    .withoutRoute(withoutRoute)
+                    .withFullGroup(withFullGroup)
+                    .includeDeleted(includeDeleted),
+                when,
+                sortDir)
             .build(),
         view);
   }
@@ -344,16 +434,33 @@ public class PublicationService {
       @Nullable MinRole minRole,
       @Nullable Status status,
       boolean participating) {
+    return countAll(type, search, from, to, minRole, status, participating, null);
+  }
+
+  /** Same, with the {@code when} filter of {@link #listAll}. */
+  @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST_ALL_TEAMS)
+  public CountResponse countAll(
+      @Nullable PublicationType type,
+      @Nullable String search,
+      @Nullable Instant from,
+      @Nullable Instant to,
+      @Nullable MinRole minRole,
+      @Nullable Status status,
+      boolean participating,
+      @Nullable PublicationWhen when) {
     return count(
-        baseQuery(0, 0)
-            .type(type)
-            .search(search)
-            .from(from)
-            .to(to)
-            .minRole(minRole)
-            .status(status)
-            .participating(participating)
-            .includeDeleted(false)
+        withWhen(
+                baseQuery(0, 0)
+                    .type(type)
+                    .search(search)
+                    .from(from)
+                    .to(to)
+                    .minRole(minRole)
+                    .status(status)
+                    .participating(participating)
+                    .includeDeleted(false),
+                when,
+                null)
             .build());
   }
 
@@ -397,21 +504,52 @@ public class PublicationService {
       @Nullable List<String> tags,
       boolean withoutRoute,
       boolean withFullGroup) {
+    return countTeam(
+        teamSlug,
+        type,
+        search,
+        from,
+        to,
+        status,
+        participating,
+        tags,
+        withoutRoute,
+        withFullGroup,
+        null);
+  }
+
+  /** Same, with the {@code when} filter of {@link #listTeam}. */
+  @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST)
+  public CountResponse countTeam(
+      String teamSlug,
+      @Nullable PublicationType type,
+      @Nullable String search,
+      @Nullable Instant from,
+      @Nullable Instant to,
+      @Nullable Status status,
+      boolean participating,
+      @Nullable List<String> tags,
+      boolean withoutRoute,
+      boolean withFullGroup,
+      @Nullable PublicationWhen when) {
     Team team = teamService.getTeam(teamSlug);
     boolean includeDeleted = includeDeletedService.isTeamEntityIncludeDeleted(team);
     return count(
-        baseQuery(0, 0)
-            .type(type)
-            .teamIds(Set.of(team.getId()))
-            .search(search)
-            .from(from)
-            .to(to)
-            .status(status)
-            .tagIds(tagFilter(team, type, tags))
-            .participating(participating)
-            .withoutRoute(withoutRoute)
-            .withFullGroup(withFullGroup)
-            .includeDeleted(includeDeleted)
+        withWhen(
+                baseQuery(0, 0)
+                    .type(type)
+                    .teamIds(Set.of(team.getId()))
+                    .search(search)
+                    .from(from)
+                    .to(to)
+                    .status(status)
+                    .tagIds(tagFilter(team, type, tags))
+                    .participating(participating)
+                    .withoutRoute(withoutRoute)
+                    .withFullGroup(withFullGroup)
+                    .includeDeleted(includeDeleted),
+                when,
+                null)
             .build());
   }
 

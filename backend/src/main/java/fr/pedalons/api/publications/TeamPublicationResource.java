@@ -5,6 +5,7 @@ import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.enums.ListViewMode;
+import fr.pedalons.enums.PublicationWhen;
 import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.Status;
 import fr.pedalons.service.common.PublicationService;
@@ -92,9 +93,11 @@ public class TeamPublicationResource {
               description =
                   "Order of the publication date. Omitted, or DESC, is newest first (the feed);"
                       + " ASC is soonest first — what a window of upcoming outings needs, so a"
-                      + " page keeps the nearest ones.")
+                      + " page keeps the nearest ones. Given, it overrides the order set by when.")
           @QueryParam("sortDir")
           @Nullable SortDirection sortDir,
+      @Parameter(description = PublicationResource.WHEN_PARAM_DESCRIPTION) @QueryParam("when")
+          @Nullable PublicationWhen when,
       @Parameter(description = WITHOUT_ROUTE_PARAM_DESCRIPTION)
           @QueryParam("withoutRoute")
           @DefaultValue("false")
@@ -120,6 +123,7 @@ public class TeamPublicationResource {
             participating,
             tags,
             view,
+            when,
             sortDir,
             withoutRoute,
             withFullGroup,
@@ -183,7 +187,9 @@ public class TeamPublicationResource {
       @Parameter(description = WITH_FULL_GROUP_PARAM_DESCRIPTION)
           @QueryParam("withFullGroup")
           @DefaultValue("false")
-          boolean withFullGroup) {
+          boolean withFullGroup,
+      @Parameter(description = PublicationResource.WHEN_PARAM_DESCRIPTION) @QueryParam("when")
+          @Nullable PublicationWhen when) {
 
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
@@ -199,7 +205,8 @@ public class TeamPublicationResource {
             participating,
             tags,
             withoutRoute,
-            withFullGroup);
+            withFullGroup,
+            when);
 
     // The figure depends on who is asking — both through the visibility rules and through
     // 'participating': not shareable between users.

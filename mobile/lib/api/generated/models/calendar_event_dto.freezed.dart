@@ -27,7 +27,7 @@ mixin _$CalendarEventDto {
  String get entitySlug;/// Whether the current user is registered to this ride, or to the trip this stage belongs to. False for an anonymous caller.
  bool get registered;/// Publication status of the ride or stage
  String get status;/// Whether the ride or stage is over, computed by the server when the response is built: its end (or its start, when it has no end) has passed. Independent of status.
- bool get finished;/// Event end date/time
+ bool get finished;/// Event end date/time: the end the server computes for a ride (its latest group at its pace, 3 hours when nothing tells) or for a trip stage (its route at its pace, likewise) — the same as RideDto.endDateTime. On an all-day stage it is still that instant: the stage occupies every day up to it.
  String? get end;/// Parent trip slug (for stages only)
  String? get tripSlug;/// Name of the meeting place, null when the ride or stage has no start place
  String? get startPlaceName;/// Distance in meters of the attached route, null when there is no route
@@ -279,7 +279,7 @@ class _CalendarEventDto implements CalendarEventDto {
 @override final  String status;
 /// Whether the ride or stage is over, computed by the server when the response is built: its end (or its start, when it has no end) has passed. Independent of status.
 @override final  bool finished;
-/// Event end date/time
+/// Event end date/time: the end the server computes for a ride (its latest group at its pace, 3 hours when nothing tells) or for a trip stage (its route at its pace, likewise) — the same as RideDto.endDateTime. On an all-day stage it is still that instant: the stage occupies every day up to it.
 @override final  String? end;
 /// Parent trip slug (for stages only)
 @override final  String? tripSlug;

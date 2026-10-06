@@ -155,6 +155,7 @@ function trip(): TripDto {
     media: MEDIA,
     dateTime: '2026-10-23T06:00:00Z',
     endDate: '2026-10-25T16:00:00Z',
+    endDateTime: '2026-10-25T19:00:00Z',
     status: 'PUBLISHED',
     finished: false,
     visibility: 'TEAM',

@@ -433,6 +433,7 @@ PublicationDto _ride({
   media: kEmptyMedia,
   groupSummaries: groups,
   dateTime: '2026-10-10T06:30:00Z',
+  endDateTime: '2026-10-10T09:30:00Z',
   status: status,
   finished: false,
   visibility: 'TEAM',

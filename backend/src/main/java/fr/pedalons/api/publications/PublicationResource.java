@@ -4,6 +4,7 @@ import fr.pedalons.dto.common.CountResponse;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.enums.ListViewMode;
+import fr.pedalons.enums.PublicationWhen;
 import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.Status;
 import fr.pedalons.service.common.PublicationService;
@@ -34,6 +35,13 @@ public class PublicationResource {
   static final String PRIVATE_NO_STORE = "private, no-store";
 
   /** Shared by every list endpoint that accepts {@code view}, so they cannot describe it apart. */
+  static final String WHEN_PARAM_DESCRIPTION =
+      "Which side of now, judged by the end of a ride or a trip rather than its start: UPCOMING is"
+          + " what is not over yet (end >= now — an outing under way included), PAST what is over"
+          + " (end < now). Keeps rides and trips only: a post has no end. Sets the order too —"
+          + " UPCOMING soonest departure first, PAST latest first — unless sortDir is given. With"
+          + " participating=true, UPCOMING is « Je participe ». Omitted: no such filter.";
+
   static final String VIEW_PARAM_DESCRIPTION =
       "How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and"
           + " media.assets trimmed to the logo, the first image and the themed thumbnails — read"
@@ -87,9 +95,11 @@ public class PublicationResource {
               description =
                   "Order of the publication date. Omitted, or DESC, is newest first (the feed);"
                       + " ASC is soonest first — what a window of upcoming outings needs, so a"
-                      + " page keeps the nearest ones.")
+                      + " page keeps the nearest ones. Given, it overrides the order set by when.")
           @QueryParam("sortDir")
           @Nullable SortDirection sortDir,
+      @Parameter(description = WHEN_PARAM_DESCRIPTION) @QueryParam("when")
+          @Nullable PublicationWhen when,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
@@ -98,7 +108,18 @@ public class PublicationResource {
 
     PublicationListResponse response =
         publicationService.listAll(
-            type, search, from, to, minRole, status, participating, view, sortDir, page, size);
+            type,
+            search,
+            from,
+            to,
+            minRole,
+            status,
+            participating,
+            view,
+            when,
+            sortDir,
+            page,
+            size);
 
     // Rows carry per-user fields (registered, registeredGroupId): never let a shared cache keep
     // one user's answer for the next one.
@@ -147,13 +168,15 @@ public class PublicationResource {
                       + " zero for an anonymous visitor.")
           @QueryParam("participating")
           @DefaultValue("false")
-          boolean participating) {
+          boolean participating,
+      @Parameter(description = WHEN_PARAM_DESCRIPTION) @QueryParam("when")
+          @Nullable PublicationWhen when) {
 
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     CountResponse count =
-        publicationService.countAll(type, search, from, to, minRole, status, participating);
+        publicationService.countAll(type, search, from, to, minRole, status, participating, when);
 
     // The figure depends on who is asking — both through the visibility rules and through
     // 'participating': not shareable between users.

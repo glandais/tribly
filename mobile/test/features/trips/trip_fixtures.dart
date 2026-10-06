@@ -111,6 +111,9 @@ TripDto fixtureTrip({
     name: 'GTMC Bromance',
     media: kEmptyMedia,
     dateTime: dateTime,
+    endDateTime: DateTime.parse(
+      endDate ?? dateTime,
+    ).add(const Duration(hours: 3)).toUtc().toIso8601String(),
     endDate: endDate,
     status: status,
     // La règle du serveur (docs/LEDGER_*.md API-16) : terminé une fois la dernière étape commencée.
