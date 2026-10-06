@@ -33,6 +33,8 @@ import org.jspecify.annotations.Nullable;
       // ride
       @Index(columnList = "entity_type, deleted, team_id, date_time"),
       @Index(columnList = "entity_type, deleted, team_id, slug"),
+      // agenda: upcoming / past by end (docs/LEDGER_*.md API-85)
+      @Index(name = "idx_team_entities_team_end", columnList = "team_id, end_date_time"),
     })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "entity_type", discriminatorType = DiscriminatorType.INTEGER)
@@ -45,6 +47,16 @@ public abstract class TeamEntity extends BaseEntity {
 
   @Column(name = "date_time", nullable = false)
   protected Instant dateTime;
+
+  /**
+   * When a ride, a trip or a trip stage is over, as computed by {@code PublicationEndCalculator} —
+   * the only writer. Null for everything else, and for a row written by a backend that predates the
+   * column: readers fall back on {@code dateTime} plus {@code
+   * PublicationEndCalculator.DEFAULT_DURATION} (docs/LEDGER_*.md API-85).
+   */
+  @Nullable
+  @Column(name = "end_date_time")
+  protected Instant endDateTime;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", length = 20, nullable = false)
