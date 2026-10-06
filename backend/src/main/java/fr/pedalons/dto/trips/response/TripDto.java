@@ -20,11 +20,13 @@ import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
+import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import fr.pedalons.service.common.ParticipantPreviewLookup.ParticipantPreview;
 import fr.pedalons.service.weather.RideWeatherSummaries;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import lombok.Getter;
@@ -253,6 +255,9 @@ public class TripDto implements PublicationDto {
    * @param tags the tags of this whole page, resolved in one query by {@code TagLookup}
    * @param weather the weather lines of this whole page, resolved in at most one query by {@code
    *     TripWeatherLookup}
+   * @param thumbnails trip id → thumbnail, the trip's own else its route's, for this whole page,
+   *     resolved in one query by {@code ThumbnailLookup.forTrips} — never {@code
+   *     trip.getRoute().getAssets()} per row (docs/LEDGER_*.md API-83)
    * @param view {@link ListViewMode#COMPACT} leaves the markdown body and the asset inventory out of the
    *     row; {@code excerpt} and {@code thumbnailUrl} carry what it renders instead
    */
@@ -264,6 +269,7 @@ public class TripDto implements PublicationDto {
       CommentCounts commentCounts,
       ContentTags tags,
       RideWeatherSummaries weather,
+      Map<Long, ThemedThumbnail> thumbnails,
       @Nullable ListViewMode view) {
     return build(
         trip,
@@ -279,6 +285,7 @@ public class TripDto implements PublicationDto {
         commentCounts.forEntity(trip.getId()),
         tags.forContent(trip.getId()),
         RideWeatherSummaryDto.fromNullable(weather.forTrip(trip.getId())),
+        thumbnails.get(trip.getId()),
         view);
   }
 
@@ -331,7 +338,36 @@ public class TripDto implements PublicationDto {
         commentCounts.forEntity(trip.getId()),
         tags.forContent(trip.getId()),
         null,
+        ownOrRouteThumbnail(trip, assetService),
         ListViewMode.FULL);
+  }
+
+  /**
+   * The detail path's thumbnail: one trip, so walking its assets (which {@code MediaDto} reads
+   * anyway) is fine. Same rule as {@code ThumbnailLookup.forTrips} on the list path — the trip's
+   * own variants, else its route's.
+   */
+  private static @Nullable ThemedThumbnail ownOrRouteThumbnail(
+      Trip trip, AssetService assetService) {
+    String light = null;
+    String dark = null;
+    for (var asset : trip.getAssets()) {
+      switch (asset.getType()) {
+        case TRIP_THUMBNAIL_LIGHT -> light = assetService.getImageUrl(asset);
+        case TRIP_THUMBNAIL_DARK -> dark = assetService.getImageUrl(asset);
+        default -> {}
+      }
+    }
+    if (light == null && dark == null && trip.getRoute() != null) {
+      for (var asset : trip.getRoute().getAssets()) {
+        switch (asset.getType()) {
+          case ROUTE_THUMBNAIL_LIGHT -> light = assetService.getImageUrl(asset);
+          case ROUTE_THUMBNAIL_DARK -> dark = assetService.getImageUrl(asset);
+          default -> {}
+        }
+      }
+    }
+    return light == null && dark == null ? null : new ThemedThumbnail(light, dark);
   }
 
   /**
@@ -377,28 +413,8 @@ public class TripDto implements PublicationDto {
       @Nullable Integer commentCount,
       List<TagDto> tags,
       @Nullable RideWeatherSummaryDto weather,
+      @Nullable ThemedThumbnail thumbnail,
       @Nullable ListViewMode view) {
-    // Get thumbnail URLs from trip's own assets
-    String thumbnailLightUrl = null;
-    String thumbnailDarkUrl = null;
-    for (var asset : trip.getAssets()) {
-      switch (asset.getType()) {
-        case TRIP_THUMBNAIL_LIGHT -> thumbnailLightUrl = assetService.getImageUrl(asset);
-        case TRIP_THUMBNAIL_DARK -> thumbnailDarkUrl = assetService.getImageUrl(asset);
-        default -> {}
-      }
-    }
-    // Fallback to route thumbnail if trip has no own thumbnails
-    if (thumbnailLightUrl == null && thumbnailDarkUrl == null && trip.getRoute() != null) {
-      for (var asset : trip.getRoute().getAssets()) {
-        switch (asset.getType()) {
-          case ROUTE_THUMBNAIL_LIGHT -> thumbnailLightUrl = assetService.getImageUrl(asset);
-          case ROUTE_THUMBNAIL_DARK -> thumbnailDarkUrl = assetService.getImageUrl(asset);
-          default -> {}
-        }
-      }
-    }
-
     return new TripDto(
         TeamPublicationDto.from(trip.getTeam()),
         TsidUtils.toString(trip.getId()),
@@ -419,9 +435,9 @@ public class TripDto implements PublicationDto {
         totalElevationGain,
         stageDtos,
         participantDtos,
-        thumbnailLightUrl,
-        thumbnailDarkUrl,
-        thumbnailLightUrl != null ? thumbnailLightUrl : thumbnailDarkUrl,
+        thumbnail != null ? thumbnail.light() : null,
+        thumbnail != null ? thumbnail.dark() : null,
+        thumbnail != null ? thumbnail.collapsed() : null,
         trip.isDeleted(),
         registered,
         commentCount,

@@ -1,6 +1,9 @@
 package fr.pedalons.service.asset;
 
+import fr.pedalons.domain.common.Publication;
 import fr.pedalons.domain.ride.Ride;
+import fr.pedalons.domain.route.Route;
+import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.repository.asset.AssetRepository;
 import fr.pedalons.repository.asset.AssetRepository.ThumbnailRow;
 import fr.pedalons.service.security.PedalonsQueryContext;
@@ -12,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -91,29 +95,51 @@ public class ThumbnailLookup {
    * @return ride id → its thumbnail; a ride with none, neither its own nor its route's, is absent
    */
   public Map<Long, ThemedThumbnail> forRides(List<Ride> rides) {
-    if (rides.isEmpty()) {
+    return ownElseRoute(rides, Ride::getRoute);
+  }
+
+  /**
+   * The thumbnail each trip shows on a list row, in one query for the whole page: the trip's own,
+   * else its route's — the same fallback {@code TripDto} applies on the detail path. The trip and
+   * route asset collections are never walked (docs/LEDGER_*.md API-83).
+   *
+   * @return trip id → its thumbnail; a trip with none, neither its own nor its route's, is absent
+   */
+  public Map<Long, ThemedThumbnail> forTrips(List<Trip> trips) {
+    return ownElseRoute(trips, Trip::getRoute);
+  }
+
+  /**
+   * One query for the publications and their routes, then each publication's own thumbnail, else
+   * its route's. {@code route} must be an eager to-one, already loaded with the publication, so that
+   * reading its id costs nothing — {@code Ride.route} and {@code Trip.route} are.
+   */
+  private <P extends Publication> Map<Long, ThemedThumbnail> ownElseRoute(
+      List<P> publications, Function<P, @Nullable Route> route) {
+    if (publications.isEmpty()) {
       return Map.of();
     }
     Set<Long> ids = new HashSet<>();
-    for (Ride ride : rides) {
-      ids.add(ride.getId());
-      // Ride.route is an eager to-one, already loaded with the ride: reading its id costs nothing.
-      if (ride.getRoute() != null) {
-        ids.add(ride.getRoute().getId());
+    for (P publication : publications) {
+      ids.add(publication.getId());
+      Route r = route.apply(publication);
+      if (r != null) {
+        ids.add(r.getId());
       }
     }
     Map<Long, ThemedThumbnail> byEntity = forTeamEntities(ids);
-    Map<Long, ThemedThumbnail> byRide = new HashMap<>();
-    for (Ride ride : rides) {
-      ThemedThumbnail thumbnail = byEntity.get(ride.getId());
-      if (thumbnail == null && ride.getRoute() != null) {
-        thumbnail = byEntity.get(ride.getRoute().getId());
+    Map<Long, ThemedThumbnail> byPublication = new HashMap<>();
+    for (P publication : publications) {
+      ThemedThumbnail thumbnail = byEntity.get(publication.getId());
+      Route r = route.apply(publication);
+      if (thumbnail == null && r != null) {
+        thumbnail = byEntity.get(r.getId());
       }
       if (thumbnail != null) {
-        byRide.put(ride.getId(), thumbnail);
+        byPublication.put(publication.getId(), thumbnail);
       }
     }
-    return byRide;
+    return byPublication;
   }
 
   private static Set<Long> union(Set<Long> a, Set<Long> b) {

@@ -75,6 +75,8 @@ public interface PublicationDto {
    *     in at most one query by {@code TripWeatherLookup}
    * @param rideThumbnails the thumbnail of every ride of the page, its own else its route's,
    *     loaded in one query by {@code ThumbnailLookup.forRides}
+   * @param tripThumbnails the thumbnail of every trip of the page, its own else its route's,
+   *     loaded in one query by {@code ThumbnailLookup.forTrips}
    */
   static PublicationDto from(
       Publication publication,
@@ -87,6 +89,7 @@ public interface PublicationDto {
       RideWeatherSummaries rideWeather,
       RideWeatherSummaries tripWeather,
       Map<Long, ThemedThumbnail> rideThumbnails,
+      Map<Long, ThemedThumbnail> tripThumbnails,
       @Nullable ListViewMode view) {
     return switch (publication) {
       case Post post -> PostDto.from(post, assetService, commentCounts, postAuthors, tags, view);
@@ -110,6 +113,7 @@ public interface PublicationDto {
               commentCounts,
               tags,
               tripWeather,
+              tripThumbnails,
               view);
       default -> throw new IllegalStateException("Invalid Publication object");
     };

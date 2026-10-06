@@ -448,15 +448,6 @@ ceux du plan (`API-1`, l'URL de tuile authentifiable, est livré).
 | `API-19` | `GET /api/search?q&types=&limit` unifié | — | Plus aucune recherche transverse : `GET /api/users/search` a été **supprimé** en `3.0.0` (`API-39`). La seule recherche de personnes est celle du trombinoscope d'une équipe |
 | `API-20` | Pagination du calendrier | 22 | Fenêtre fixe −30 j / +180 j, non paginée |
 
-- `API-83` **Miniatures des lignes de voyage hors `ThumbnailLookup`** — reste de `API-80` :
-  `TripDto.build` parcourt encore `trip.getAssets()`, puis `trip.getRoute().getAssets()` en repli,
-  pour chaque ligne de liste (`TripDto.fromListItem`). Même remède que pour les sorties : une
-  variante `ThumbnailLookup.forTrips` résolue une fois par page dans `PublicationService.list`, et
-  un cas dans `PublicationQueryCountTest`. Le gain réel reste borné tant que `MediaDto` lit
-  l'inventaire d'assets de chaque ligne : sorties, voyages et parcours partagent le rôle de
-  collection `TeamEntity.assets`, que le batch fetch de Hibernate peut initialiser ensemble.
-  Taille S.
-
 Le meneur de groupe (`API-41`, livré en 1.5.0) et l'URL de tuile (`API-1`) sont dans
 [`LEDGER_DONE.md`](LEDGER_DONE.md). Les **gabarits de sortie n'ont volontairement pas de meneur** —
 décision produit : `RideTemplateGroupRequest` reste sans champ.

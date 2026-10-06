@@ -526,6 +526,10 @@ public class PublicationService {
     // API-80), none for a page without rides.
     Map<Long, ThemedThumbnail> rideThumbnails =
         thumbnailLookup.forRides(itemsOfType(publications.items(), Ride.class));
+    // And one for the trips, their own else their route's (docs/LEDGER_*.md API-83), none for a
+    // page without trips.
+    Map<Long, ThemedThumbnail> tripThumbnails =
+        thumbnailLookup.forTrips(itemsOfType(publications.items(), Trip.class));
     List<PublicationDto> dtos =
         publications.items().stream()
             .map(
@@ -541,6 +545,7 @@ public class PublicationService {
                         rideWeather,
                         tripWeather,
                         rideThumbnails,
+                        tripThumbnails,
                         view))
             .toList();
     return new PublicationListResponse(dtos, publications.total(), query.page(), query.size());

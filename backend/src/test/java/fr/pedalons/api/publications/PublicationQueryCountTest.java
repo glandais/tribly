@@ -379,6 +379,83 @@ class PublicationQueryCountTest extends AbstractQueryCountTest {
         "/api/teams/" + team1Slug + "/publications?type=TRIP");
   }
 
+  /**
+   * docs/LEDGER_*.md API-83: every trip sits on a route of its own carrying both themed thumbnails,
+   * and one trip in three has its own light thumbnail too. The row's picture is the trip's own, else
+   * its route's — resolved for the whole page by {@code ThumbnailLookup.forTrips}, never by walking
+   * {@code trip.getRoute().getAssets()} per row.
+   *
+   * <p>Only statements are budgeted, as for rides: {@code MediaDto} still reads each trip's own
+   * asset inventory, and the {@code TeamEntity.assets} collection role is shared with the routes.
+   */
+  @Test
+  void listTeamTrips_routeThumbnails_costAPageNotARow() {
+    Instant base = Instant.now().plus(7, ChronoUnit.DAYS);
+    Map<String, String> expectedThumbnailByTripId = new HashMap<>();
+    for (int i = 0; i < LARGE_PAGE; i++) {
+      Trip trip =
+          dataService.createTrip(
+              team1, user1, "Routed Trip " + i, base.plusSeconds(i), Visibility.PUBLIC);
+      Route route = dataService.createRoute(team1, user1, "Routed trip route " + i);
+      Asset routeLight =
+          dataService.attachAsset(route, user1, AssetType.ROUTE_THUMBNAIL_LIGHT, "light.png");
+      dataService.attachAsset(route, user1, AssetType.ROUTE_THUMBNAIL_DARK, "dark.png");
+      dataService.setTripRoute(trip, route);
+      Asset expected = routeLight;
+      if (i % 3 == 0) {
+        expected = dataService.attachAsset(trip, user1, AssetType.TRIP_THUMBNAIL_LIGHT, "own.png");
+      }
+      expectedThumbnailByTripId.put(
+          TsidUtils.toString(trip.getId()), TsidUtils.toString(expected.getId()));
+    }
+
+    // Not vacuous: every row carries a picture, the trip's own when it has one, else its route's.
+    List<Map<String, Object>> rows =
+        asUser1()
+            .get()
+            .when()
+            .get("/api/teams/" + team1Slug + "/publications?type=TRIP&size=" + LARGE_PAGE)
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("publications");
+    assertEquals(LARGE_PAGE, rows.size());
+    for (Map<String, Object> row : rows) {
+      String thumbnailUrl = (String) row.get("thumbnailUrl");
+      String expectedAssetId = expectedThumbnailByTripId.get((String) row.get("id"));
+      assertTrue(
+          thumbnailUrl != null && thumbnailUrl.contains("/" + expectedAssetId + "/"),
+          () -> row.get("slug") + " expected asset " + expectedAssetId + ", got " + thumbnailUrl);
+    }
+
+    String path = "/api/teams/" + team1Slug + "/publications?type=TRIP&size=";
+    QueryStats.Counters small =
+        queryStats.measureAll(
+            "GET /api/teams/{teamSlug}/publications?type=TRIP routed [" + SMALL_PAGE + " rows]",
+            () -> asUser1().get().when().get(path + SMALL_PAGE).then().statusCode(200));
+    QueryStats.Counters large =
+        queryStats.measureAll(
+            "GET /api/teams/{teamSlug}/publications?type=TRIP routed [" + LARGE_PAGE + " rows]",
+            () -> asUser1().get().when().get(path + LARGE_PAGE).then().statusCode(200));
+    long growth = large.statements() - small.statements();
+    assertTrue(
+        growth <= MAX_STATEMENT_GROWTH,
+        () ->
+            "N+1 on the trip row thumbnails: "
+                + SMALL_PAGE
+                + " rows cost "
+                + small.statements()
+                + " SQL statements, "
+                + LARGE_PAGE
+                + " rows cost "
+                + large.statements()
+                + " (+"
+                + growth
+                + ", budget +"
+                + MAX_STATEMENT_GROWTH
+                + ")");
+  }
+
   @Test
   void listTeamTrips_costDoesNotScaleWithRowCount() {
     seedTrips(LARGE_PAGE);
