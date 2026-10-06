@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import { Container, Stack, Title } from '@mantine/core'
 import { useCreatePost } from '../../api/endpoints/posts/posts'
-import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
+import { invalidateTeamPublications } from '@/lib/teamDashboardCache'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PostEditor } from '../../components/post/PostEditor'
 import { defaultMedia } from '@/lib/apiUtils'
@@ -64,7 +64,7 @@ export function CreatePostPage() {
       },
       {
         onSuccess: (post) => {
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateTeamPublications(queryClient, teamSlug!)
           notifications.show({ message: t('posts.notifications.created'), color: 'green' })
           navigate(paths.post(teamSlug!, post.slug))
         },

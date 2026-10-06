@@ -45,7 +45,7 @@ const FIRST_PAGE = 'Revenir à la première page'
 const COUNT = PAGE_SIZE + 1
 
 interface Journey {
-  /** The list, without a query string. */
+  /** The list, with the query string it needs whatever the page (the team feed's `tab`), if any. */
   path: string
   /** The list endpoint the page reads (a pathname). */
   endpoint: string
@@ -72,9 +72,11 @@ async function openCard(page: Page, name: string) {
 async function paginate(page: Page, journey: Journey) {
   const { path, endpoint, first, second, empty, query = {} } = journey
   const main = page.getByRole('main')
+  /** The list with `param` added to its query string. */
+  const withParam = (param: string) => `${path}${path.includes('?') ? '&' : '?'}${param}`
 
   await test.step('?p=1 is server-rendered as page 2, and not read again once hydrated', async () => {
-    const { markup, reads } = await openServerRendered(page, `${path}?p=1`, endpoint)
+    const { markup, reads } = await openServerRendered(page, withParam('p=1'), endpoint)
     expectInMarkup(markup, [second], [first])
     expect(readsOf(reads), 'list reads sent by the browser after the server render').toEqual([])
     await expect(entry(page, second)).toBeVisible()
@@ -105,7 +107,7 @@ async function paginate(page: Page, journey: Journey) {
   })
 
   await test.step('?p=abc is the first page', async () => {
-    const { markup, reads } = await openServerRendered(page, `${path}?p=abc`, endpoint)
+    const { markup, reads } = await openServerRendered(page, withParam('p=abc'), endpoint)
     expectInMarkup(markup, [first], [second])
     expect(readsOf(reads), 'list reads sent by the browser after the server render').toEqual([])
     await expect(entry(page, first)).toBeVisible()
@@ -115,7 +117,7 @@ async function paginate(page: Page, journey: Journey) {
   // Regression (b08d3f90): OutOfRangeState — before, `?p=99` showed the absolute empty state
   // (« Aucune équipe n'a encore été créée… »), wrong and with no way out.
   await test.step('?p=99 says the page does not exist, and leads back to page 1', async () => {
-    const { markup, reads } = await openServerRendered(page, `${path}?p=99`, endpoint)
+    const { markup, reads } = await openServerRendered(page, withParam('p=99'), endpoint)
     // The markup as React escapes it: an apostrophe is `&#x27;`.
     const escaped = (text: string) => text.replaceAll("'", '&#x27;')
     expectInMarkup(markup, [escaped(OUT_OF_RANGE), FIRST_PAGE], [first, second, escaped(empty)])
@@ -175,9 +177,12 @@ test('team feed: page 2 from the server, back to it, p=abc, p=99', async ({ page
   )
 
   await signIn(context, owner)
+  // The owner is a member: the team's own URL opens on the dashboard, the feed is its
+  // « Publications » tab, which the pagination keeps in the URL.
   await paginate(page, {
-    path: `/equipes/${team.slug}`,
+    path: `/equipes/${team.slug}?tab=publications`,
     endpoint,
+    query: { tab: 'publications' },
     ...heads,
     empty: 'Aucune activité pour le moment',
     open: openCard,

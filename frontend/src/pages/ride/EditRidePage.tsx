@@ -11,7 +11,7 @@ import {
   getGetRideQueryKey,
 } from '../../api/endpoints/rides/rides'
 import { useEditRideFormData, rideToRequest } from '@/pages/ride/rideFormData'
-import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
+import { invalidateTeamPublications } from '@/lib/teamDashboardCache'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideEditor } from '../../components/ride/RideEditor'
 import { paths } from '@/config/paths'
@@ -64,7 +64,7 @@ export function EditRidePage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateTeamPublications(queryClient, teamSlug!)
           notifications.show({ message: i18next.t('rides.notifications.updated'), color: 'green' })
           navigate(paths.ride(teamSlug!, rideSlug!))
         },
@@ -77,7 +77,7 @@ export function EditRidePage() {
       { teamSlug: teamSlug!, rideSlug: rideSlug!, data: { slug: newSlug } },
       {
         onSuccess: (updatedRide) => {
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateTeamPublications(queryClient, teamSlug!)
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           navigate(paths.rideEdit(teamSlug!, updatedRide.slug), { replace: true })
         },

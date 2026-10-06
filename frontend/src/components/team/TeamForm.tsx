@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { invalidateTeamDashboard } from '@/lib/teamDashboardCache'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
@@ -112,6 +113,7 @@ export function TeamForm({
         {
           onSuccess: (team) => {
             queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
+            invalidateTeamDashboard(queryClient, teamSlug)
             queryClient.invalidateQueries({ queryKey: getListTeamsQueryKey() })
             queryClient.setQueryData(getGetTeamQueryKey(team.slug), team)
             if (isPlatformAdmin && teamId) {
@@ -123,6 +125,7 @@ export function TeamForm({
                 {
                   onSuccess: () => {
                     queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(team.slug) })
+                    invalidateTeamDashboard(queryClient, team.slug)
                     notifications.show({
                       message: i18next.t('teams.notifications.updated'),
                       color: 'green',

@@ -19,6 +19,10 @@ import org.jspecify.annotations.Nullable;
  * @param tagIds keep only the publications carrying at least one of these tags (plan D6). Set by
  *     a team's dedicated list only — the rides, the posts or the trips of one team — never by the
  *     mixed feed nor by a cross-team list (plan D7, D13). Null or empty: no filter.
+ * @param withoutRoute keep only the rides with no route at all: none on the ride itself, none on any
+ *     of its groups. Drops every other type of publication.
+ * @param withFullGroup keep only the rides with at least one group at capacity. Drops every other
+ *     type of publication.
  */
 @Builder
 public record PublicationQuery(
@@ -36,6 +40,8 @@ public record PublicationQuery(
     @Nullable Status status,
     @Nullable Set<Long> tagIds,
     boolean participating,
+    boolean withoutRoute,
+    boolean withFullGroup,
     boolean ascending,
     int page,
     int size,

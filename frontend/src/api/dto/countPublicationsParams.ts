@@ -30,4 +30,12 @@ export type CountPublicationsParams = {
    * Type
    */
   type?: PublicationType
+  /**
+   * Only the rides with at least one group at capacity (maxParticipants reached). Every other type of publication is left out.
+   */
+  withFullGroup?: boolean
+  /**
+   * Only the rides routed nowhere: neither the ride nor any of its groups has a route. Every other type of publication is left out.
+   */
+  withoutRoute?: boolean
 }

@@ -11,7 +11,9 @@ import 'public_user_dto.dart';
 import 'publication_dto.dart';
 import 'publication_type.dart';
 import 'ride_group_dto.dart';
+import 'ride_group_summary_dto.dart';
 import 'status.dart';
+import 'surface_type.dart';
 import 'tag_dto.dart';
 import 'team_publication_dto.dart';
 import 'visibility.dart';
@@ -23,8 +25,8 @@ part 'ride_dto.g.dart';
 @Freezed()
 abstract class RideDto with _$RideDto {
   const factory RideDto({
-    /// Type
-    required String type,
+    /// Every group of the ride in sort order, as a card shows it: name, pace, start time and fill (countParticipants against maxParticipants). Filled on list rows too, where groups is empty — a card draws its per-group fill bars without opening the ride. Carries no leader nor participants: those are on groups, in the detail.
+    required List<RideGroupSummaryDto> groupSummaries,
 
     /// Team
     required TeamPublicationDto team,
@@ -53,6 +55,9 @@ abstract class RideDto with _$RideDto {
     /// Visibility level
     required String visibility,
 
+    /// Type
+    required String type,
+
     /// Number of participants
     required int participantCount,
 
@@ -62,38 +67,35 @@ abstract class RideDto with _$RideDto {
     /// Ride groups
     required List<RideGroupDto> groups,
 
-    /// Preview of first participants (max 5)
-    required List<PublicUserDto> topParticipants,
-
-    /// Whether the ride is soft-deleted
-    required bool deleted,
-
     /// Whether the current user is registered in one of this ride's groups. False if anonymous.
     required bool registered,
 
     /// Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.
     required bool full,
 
+    /// Whether the ride is soft-deleted
+    required bool deleted,
+
+    /// Preview of first participants (max 5)
+    required List<PublicUserDto> topParticipants,
+
     /// The team's RIDE tags the ride carries, sorted by label. Empty when it carries none.
     required List<TagDto> tags,
 
-    /// Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter.
-    String? excerpt,
+    /// Total elevation gain in meters, from the same route as distance. Null when no route is set anywhere.
+    double? elevationGain,
 
-    /// Publication timestamp
-    String? publishAt,
-
-    /// Creation timestamp
-    String? createdAt,
-
-    /// Route slug
-    String? routeSlug,
+    /// Surface type, from the same route as distance. Null when no route is set anywhere.
+    String? surfaceType,
 
     /// Start place
     PlaceDetailDto? startPlace,
 
-    /// End place
-    PlaceDetailDto? endPlace,
+    /// Distance in meters of the ride's route — or, when the ride itself has none, of the route of its first group (in sort order) that has one. Null when no route is set anywhere.
+    double? distance,
+
+    /// Creation timestamp
+    String? createdAt,
 
     /// Thumbnail URL (light)
     String? thumbnailLightUrl,
@@ -104,17 +106,29 @@ abstract class RideDto with _$RideDto {
     /// The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.
     String? thumbnailUrl,
 
+    /// Route slug
+    String? routeSlug,
+
+    /// Publication timestamp
+    String? publishAt,
+
     /// ID (TSID) of the group the current user joined, null if not registered
     String? registeredGroupId,
 
     /// The group the current user joined, in full — the same object as the matching entry of groups. Null if not registered or anonymous. Set on list rows too, where groups is empty: a client rendering "my next ride" needs no second request for its group. Its leader is the group's own, null when none was designated.
     RideGroupDto? registeredGroup,
 
+    /// Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter.
+    String? excerpt,
+
     /// Capacity of the whole ride: the sum of its groups' maxParticipants, to render participantCount against it ("12/40"). Null when the ride has no group, or when at least one group has no maxParticipants — the ride then has no overall limit, and is never full. Set on list rows too, where groups is empty.
     int? maxParticipants,
 
     /// Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.
     int? commentCount,
+
+    /// End place
+    PlaceDetailDto? endPlace,
   }) = _RideDto;
 
   factory RideDto.fromJson(Map<String, Object?> json) =>

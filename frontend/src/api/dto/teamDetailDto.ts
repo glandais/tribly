@@ -1,5 +1,6 @@
 import type { Instant } from './instant.ts'
 import type { MediaDto } from './mediaDto.ts'
+import type { MemberCountByRoleDto } from './memberCountByRoleDto.ts'
 import type { TeamDetailDtoGeometry } from './teamDetailDtoGeometry.ts'
 import type { TeamPageSummaryDto } from './teamPageSummaryDto.ts'
 import type { TeamRole } from './teamRole.ts'
@@ -57,6 +58,8 @@ export interface TeamDetailDto {
   upcomingTripCount: number
   /** Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled. */
   recentPostCount: number
+  /** Members per role. Only for the team's administrators (platform admins included): null for everyone else, and in the team listings. */
+  memberCountByRole?: MemberCountByRoleDto
   /** Current user's role (null if not a member) */
   role?: TeamRole
   /** Team creation timestamp */

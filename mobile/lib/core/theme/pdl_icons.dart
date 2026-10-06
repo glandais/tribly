@@ -66,6 +66,7 @@ abstract final class PdlIcons {
   static const IconData page = Icons.description_outlined;
   static const IconData tag = Icons.label_outline;
   static const IconData feed = Icons.dynamic_feed_outlined;
+  static const IconData dashboard = Icons.dashboard_outlined;
   static const IconData comment = Icons.mode_comment_outlined;
   static const IconData attachment = Icons.attach_file;
   static const IconData gpx = Icons.download_outlined;
@@ -128,6 +129,10 @@ abstract final class PdlIcons {
 
   // ── Modération ─────────────────────────────────────────────────────────
   static const IconData report = Icons.outlined_flag;
+
+  // ── Administration d'équipe ────────────────────────────────────────────
+  static const IconData webhook = Icons.webhook_outlined;
+  static const IconData template = Icons.content_copy_outlined;
 
   // ── Retours ────────────────────────────────────────────────────────────
   static const IconData bug = Icons.bug_report_outlined;

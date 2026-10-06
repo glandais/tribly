@@ -5,6 +5,8 @@ import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.PedalonsPage;
+import fr.pedalons.enums.MemberSortBy;
+import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.repository.common.BaseRepository;
 import fr.pedalons.repository.query.OrClause;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class UserTeamRepository implements BaseRepository<UserTeam> {
@@ -50,6 +53,23 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
    */
   public PedalonsPage<UserTeam> findByTeam(
       Long teamId, int page, int size, String search, TeamRole role, boolean searchEmail) {
+    return findByTeam(teamId, page, size, search, role, searchEmail, null, null);
+  }
+
+  /**
+   * @param sortBy null keeps the previous, unspecified order; otherwise the membership id ends the
+   *     key so pages never overlap
+   * @param sortDir null is descending — newest first for {@link MemberSortBy#JOINED_AT}
+   */
+  public PedalonsPage<UserTeam> findByTeam(
+      Long teamId,
+      int page,
+      int size,
+      @Nullable String search,
+      @Nullable TeamRole role,
+      boolean searchEmail,
+      @Nullable MemberSortBy sortBy,
+      @Nullable SortDirection sortDir) {
     PedalonsQuery pedalonsQuery =
         new PedalonsQuery()
             .and("team.id = :teamId", Map.of("teamId", teamId))
@@ -72,6 +92,10 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
     }
     if (role != null) {
       pedalonsQuery.and("role = :role", Map.of("role", role));
+    }
+    if (sortBy != null) {
+      String dir = (sortDir != null ? sortDir : SortDirection.DESC).name().toLowerCase();
+      pedalonsQuery.order(sortBy.getField() + " " + dir + ", id " + dir);
     }
     return getPage(pedalonsQuery, page, size);
   }

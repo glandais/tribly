@@ -26,6 +26,7 @@ import {
   getListAdsQueryKey,
 } from '@/api/endpoints/ads/ads'
 import { deleteRoute } from '@/api/endpoints/routes/routes'
+import { getGetTeamDashboardQueryKey } from '@/api/endpoints/teams/teams'
 import type { AdDto, PublicationDto, RideDto, RouteDto, TripDto } from '@/api/dto'
 
 /*
@@ -56,6 +57,7 @@ export function PublicationCardActions({ publication, canManage }: PublicationCa
 
   const refresh = (detailKey: readonly unknown[]) => {
     queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug) })
+    queryClient.invalidateQueries({ queryKey: getGetTeamDashboardQueryKey(teamSlug) })
     queryClient.invalidateQueries({ queryKey: detailKey })
   }
 

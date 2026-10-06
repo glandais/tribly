@@ -3,12 +3,39 @@ import 'package:flutter/material.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/locale_context.dart';
 import '../../../../config/paths.generated.dart';
+import '../../../../core/theme/pdl_icons.dart';
 
 /// The sections a team can show. The router names one per route, which is what
 /// lets the chip row highlight the right one without re-parsing the URL.
-enum TeamSectionKind { feed, calendar, routes, ads, members, about }
+enum TeamSectionKind { dashboard, feed, calendar, routes, ads, members, about }
 
-/// One section of a team — Feed, Calendar, Routes, Ads, Members, About.
+/// Le paramètre de requête qui, sous l'adresse d'une équipe, demande le fil
+/// plutôt que le tableau de bord.
+///
+/// Le tableau de bord est la section **par défaut d'un membre**, à l'adresse
+/// même de l'équipe : c'est l'écran qu'ouvrent la carte de « Mes équipes » et
+/// un lien partagé. Le fil n'a pas d'adresse à lui au contrat des routes
+/// (`contracts/routes.yaml`) ; il garde donc celle de l'équipe, suivie de
+/// `?tab=publications` — la même adresse que l'onglet « Publications » du site
+/// (`TEAM_FEED_TAB`, `frontend/src/pages/team/teamHomeData.ts`), pour qu'un lien
+/// web ouvert dans l'app par lien profond tombe sur le fil. Un visiteur, qui
+/// n'a pas de tableau de bord, voit le fil sous les deux formes.
+const String kTeamTabParam = 'tab';
+const String kTeamTabFeed = 'publications';
+
+/// La section à rendre sous l'adresse nue d'une équipe : le tableau de bord
+/// pour un membre, le fil pour tout autre visiteur — et le fil pour tous quand
+/// l'adresse le demande.
+TeamSectionKind resolveTeamRootSection({
+  required TeamSectionKind requested,
+  required String? role,
+}) {
+  if (requested != TeamSectionKind.dashboard) return requested;
+  return role == null ? TeamSectionKind.feed : TeamSectionKind.dashboard;
+}
+
+/// One section of a team — Dashboard, Feed, Calendar, Routes, Ads, Members,
+/// About.
 ///
 /// Sections used to be the destinations of a second `NavigationBar` stacked
 /// under the app one (`TeamShell`). They are now **content**: a chip row
@@ -40,8 +67,11 @@ class TeamSection {
 /// The sections visible for [team], given its feature switches and the current
 /// user's membership.
 ///
-/// Order is the reading order of the chip row. Members and Ads are members-only;
-/// Feed and About are always there, so the row is never empty.
+/// Order is the reading order of the chip row. Dashboard, Members and Ads are
+/// members-only; Feed and About are always there, so the row is never empty.
+///
+/// For a member the dashboard takes the team's own address, and the feed moves
+/// to `?tab=publications` — see [kTeamTabParam].
 List<TeamSection> buildTeamSections(TeamDetailDto team) {
   final isMember = team.role != null;
   // Organisers and admins read the roster whatever the team decided; everyone
@@ -55,11 +85,27 @@ List<TeamSection> buildTeamSections(TeamDetailDto team) {
           team.enableMemberDirectory);
   final slug = team.slug;
 
+  final Map<String, String> teamPaths = PathVariants.team(slug);
+
   return [
-    // Feed — always visible.
+    // Dashboard — members only, at the team's own address.
+    if (isMember)
+      TeamSection(
+        kind: TeamSectionKind.dashboard,
+        paths: teamPaths,
+        icon: PdlIcons.dashboard,
+        label: 'teams.tabs.dashboard',
+      ),
+    // Feed — always visible. Behind `?tab=publications` once the dashboard holds the
+    // team's address.
     TeamSection(
       kind: TeamSectionKind.feed,
-      paths: PathVariants.team(slug),
+      paths: isMember
+          ? <String, String>{
+              for (final MapEntry<String, String> e in teamPaths.entries)
+                e.key: '${e.value}?$kTeamTabParam=$kTeamTabFeed',
+            }
+          : teamPaths,
       icon: Icons.dynamic_feed_outlined,
       label: 'teams.tabs.feed',
     ),

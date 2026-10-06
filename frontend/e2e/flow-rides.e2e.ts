@@ -73,7 +73,7 @@ const main = (page: Page) => page.getByRole('main')
 
 /** The team feed, loaded: its heading is there before any presence or absence check. */
 async function openFeed(page: Page, teamSlug: string) {
-  await page.goto(`/equipes/${teamSlug}`)
+  await page.goto(`/equipes/${teamSlug}?tab=publications`)
   await expect(
     main(page).getByRole('heading', { name: "Fil d'actualités", level: 2 })
   ).toBeVisible()
@@ -283,7 +283,7 @@ test.describe('ride journey', () => {
         confirm.getByText('Êtes-vous sûr de vouloir supprimer cette sortie ?')
       ).toBeVisible()
       await confirm.getByRole('button', { name: 'Supprimer' }).click()
-      await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}$`))
+      await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}\\?tab=publications$`))
       await expect(
         main(page).getByRole('heading', { name: "Fil d'actualités", level: 2 })
       ).toBeVisible()

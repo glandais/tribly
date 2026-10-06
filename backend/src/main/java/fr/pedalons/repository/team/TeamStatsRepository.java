@@ -1,6 +1,7 @@
 package fr.pedalons.repository.team;
 
 import fr.pedalons.domain.common.TeamEntity;
+import fr.pedalons.enums.TeamRole;
 import fr.pedalons.repository.common.TeamEntityQueryBasic;
 import fr.pedalons.repository.common.TeamEntityQueryInterface;
 import fr.pedalons.repository.common.TeamEntityRepository;
@@ -18,6 +19,7 @@ import jakarta.persistence.TypedQuery;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,6 +144,27 @@ public class TeamStatsRepository {
       }
     }
     return stats;
+  }
+
+  /**
+   * How many members the team has per role: one {@code GROUP BY} query. Counts every membership,
+   * like the {@code memberCount} sub-select of {@code TeamRepository}, so the three figures add up
+   * to it. A role nobody holds is absent from the map.
+   */
+  public Map<TeamRole, Long> countMembersByRole(Long teamId) {
+    List<Object[]> rows =
+        entityManager
+            .createQuery(
+                "select ut.role, count(ut.id) from UserTeam ut where ut.team.id = :teamId"
+                    + " group by ut.role",
+                Object[].class)
+            .setParameter("teamId", teamId)
+            .getResultList();
+    Map<TeamRole, Long> counts = new EnumMap<>(TeamRole.class);
+    for (Object[] row : rows) {
+      counts.put((TeamRole) row[0], ((Number) row[1]).longValue());
+    }
+    return counts;
   }
 
   /**

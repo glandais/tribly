@@ -103,6 +103,21 @@ export function formatDateTime(
 }
 
 /**
+ * Format with a date-fns pattern ("EEE", "d", "MMM", "HH:mm"…) in the given language and timezone:
+ * the pieces of a date a layout draws separately (the day box of a calendar row).
+ */
+export function formatPattern(
+  date: Date | string | null | undefined,
+  pattern: string,
+  language: string = 'fr',
+  timeZone: string = SERVER_FALLBACK_TIMEZONE
+): string {
+  const dateObj = toDate(date)
+  if (!dateObj) return ''
+  return formatInTimeZone(dateObj, timeZone, pattern, { locale: getLocale(language) })
+}
+
+/**
  * Format relative: "il y a 2 heures" (fr) / "2 hours ago" (en)
  */
 export function formatRelative(
@@ -174,6 +189,8 @@ export function useFormattedDate() {
     formatDateTime: (date: Date | string | null | undefined) =>
       formatDateTime(date, language, timezone),
     formatRelative: (date: Date | string | null | undefined) => formatRelative(date, language),
+    formatPattern: (date: Date | string | null | undefined, pattern: string) =>
+      formatPattern(date, pattern, language, timezone),
     toDateTimeLocalValue: (date: Date | string | null | undefined) =>
       toDateTimeLocalValue(date, timezone),
     fromDateTimeLocalValue,

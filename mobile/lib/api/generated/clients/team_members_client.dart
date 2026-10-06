@@ -9,6 +9,8 @@ import 'package:retrofit/error_logger.dart';
 import '../models/add_member_request.dart';
 import '../models/member_dto.dart';
 import '../models/member_list_response.dart';
+import '../models/member_sort_by.dart';
+import '../models/sort_direction.dart';
 import '../models/team_role.dart';
 import '../models/update_member_role_request.dart';
 
@@ -31,11 +33,17 @@ abstract class TeamMembersClient {
   /// [search] - Search by display name. Also matches the e-mail address, for administrators only.
   ///
   /// [size] - Page size.
+  ///
+  /// [sortBy] - Order of the list. JOINED_AT is the join date, then the membership id; only for a caller who gets the join dates (an administrator, or anyone once the directory is open): 403 otherwise. Omitted, the order is unspecified.
+  ///
+  /// [sortDir] - Direction of sortBy. Omitted is DESC — newest first.
   @GET('/api/teams/{teamSlug}/members')
   Future<MemberListResponse> getMembers({
     @Path('teamSlug') required String teamSlug,
     @Query('role') TeamRole? role,
     @Query('search') String? search,
+    @Query('sortBy') MemberSortBy? sortBy,
+    @Query('sortDir') SortDirection? sortDir,
     @Query('page') int? page = 0,
     @Query('size') int? size = 50,
   });

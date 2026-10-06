@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { invalidateTeamDashboard } from '@/lib/teamDashboardCache'
 import { useNavigate } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
@@ -26,9 +27,13 @@ interface TeamLayoutProps {
   /** Tab identifier: 'publications', 'routes', 'about', or a page slug for dynamic pages */
   currentTab: string
   children: React.ReactNode
+  /** Under the name: the dashboard puts the reader's role and the member count there. */
+  meta?: React.ReactNode
+  /** Before the header's own buttons: the dashboard's shortcuts (calendar, create). */
+  actions?: React.ReactNode
 }
 
-export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
+export function TeamLayout({ team, currentTab, children, meta, actions }: TeamLayoutProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -55,6 +60,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(team.slug) })
           queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(team.slug) })
+          invalidateTeamDashboard(queryClient, team.slug)
         },
       }
     )
@@ -67,6 +73,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(team.slug) })
           queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(team.slug) })
+          invalidateTeamDashboard(queryClient, team.slug)
           navigate(paths.teams())
         },
       }
@@ -92,6 +99,8 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
             </Group>
 
             <Group gap="sm">
+              {actions}
+
               {canJoin && (
                 <Button onClick={handleJoin} loading={joinMutation.isPending}>
                   {joinMutation.isPending
@@ -115,6 +124,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
               <ShareButton title={team.name} />
             </Group>
           </Group>
+          {meta}
         </Box>
       </Group>
 

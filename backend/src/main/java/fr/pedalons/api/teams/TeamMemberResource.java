@@ -6,6 +6,8 @@ import fr.pedalons.dto.teams.request.AddMemberRequest;
 import fr.pedalons.dto.teams.request.UpdateMemberRoleRequest;
 import fr.pedalons.dto.teams.response.MemberDto;
 import fr.pedalons.dto.teams.response.MemberListResponse;
+import fr.pedalons.enums.MemberSortBy;
+import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.service.team.TeamMembershipService;
 import jakarta.annotation.security.RolesAllowed;
@@ -77,10 +79,20 @@ public class TeamMemberResource {
                   "Filter by role. Only for a caller who gets the roles (an administrator, or"
                       + " anyone once the directory is open): 403 otherwise.")
           @QueryParam("role")
-          @Nullable TeamRole role) {
+          @Nullable TeamRole role,
+      @Parameter(
+              description =
+                  "Order of the list. JOINED_AT is the join date, then the membership id; only for"
+                      + " a caller who gets the join dates (an administrator, or anyone once the"
+                      + " directory is open): 403 otherwise. Omitted, the order is unspecified.")
+          @QueryParam("sortBy")
+          @Nullable MemberSortBy sortBy,
+      @Parameter(description = "Direction of sortBy. Omitted is DESC — newest first.")
+          @QueryParam("sortDir")
+          @Nullable SortDirection sortDir) {
 
     MemberListResponse members =
-        membershipService.getTeamMembers(teamSlug, page, size, search, role);
+        membershipService.getTeamMembers(teamSlug, page, size, search, role, sortBy, sortDir);
     return Response.ok(members).build();
   }
 

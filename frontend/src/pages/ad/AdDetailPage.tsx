@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { invalidateTeamDashboard } from '@/lib/teamDashboardCache'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
@@ -148,6 +149,7 @@ export function AdDetailPage() {
 
   const invalidateAds = () => {
     queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
+    invalidateTeamDashboard(queryClient, teamSlug!)
     queryClient.invalidateQueries({ queryKey: getGetAdQueryKey(teamSlug!, adSlug!) })
   }
 
@@ -182,6 +184,7 @@ export function AdDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
+          invalidateTeamDashboard(queryClient, teamSlug!)
           notifications.show({ message: i18next.t('ads.notifications.deleted'), color: 'green' })
           setShowDeleteConfirm(false)
           navigate(paths.ads(teamSlug!))

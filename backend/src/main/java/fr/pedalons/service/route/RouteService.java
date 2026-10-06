@@ -27,6 +27,7 @@ import fr.pedalons.dto.routes.response.TrackDto;
 import fr.pedalons.dto.tags.response.ContentTags;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
+import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.TagTarget;
 import fr.pedalons.enums.WindDirection;
 import fr.pedalons.repository.asset.AssetRepository;
@@ -427,6 +428,22 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
         params,
         isIncludeDeleted(team),
         tagFilter(team, params));
+  }
+
+  /**
+   * The team's latest routes for its dashboard, compact rows, deleted ones left out whatever the
+   * caller's role — unlike {@link #getRoutes}, which shows an administrator the deleted ones too.
+   *
+   * <p>No {@code @CheckAccess}: the dashboard has already established that the caller belongs to
+   * the team; the visibility rules of the query still apply row by row.
+   */
+  public RouteListResponse listTeamSection(Team team, int size) {
+    return getRoutesWithTeamIds(
+        Set.of(team.getId()),
+        pedalonsContext.getUserNullable(),
+        RouteSearchParams.builder().page(0).size(size).view(ListViewMode.COMPACT).build(),
+        false,
+        null);
   }
 
   /**

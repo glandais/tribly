@@ -11,6 +11,7 @@ import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.teams.request.TeamRequest;
+import fr.pedalons.dto.teams.response.MemberCountByRoleDto;
 import fr.pedalons.dto.teams.response.TeamDetailDto;
 import fr.pedalons.dto.teams.response.TeamListResponse;
 import fr.pedalons.enums.ActionType;
@@ -211,7 +212,15 @@ public class TeamService {
     Team team = getTeam(teamSlug);
     TeamAndRole teamAndRole = getTeamAndRole(team.getId());
     TeamStats stats = loadStats(List.of(team.getId())).getOrDefault(team.getId(), TeamStats.EMPTY);
-    return TeamDetailDto.from(teamAndRole, assetService, isPlatformAdmin(), stats);
+    boolean platformAdmin = isPlatformAdmin();
+    // The split per role is the administration panel's: one more query, for administrators only.
+    boolean admin =
+        platformAdmin || (teamAndRole.teamRole() != null && teamAndRole.teamRole().isAdmin());
+    MemberCountByRoleDto memberCountByRole =
+        admin
+            ? MemberCountByRoleDto.from(teamStatsRepository.countMembersByRole(team.getId()))
+            : null;
+    return TeamDetailDto.from(teamAndRole, assetService, platformAdmin, stats, memberCountByRole);
   }
 
   /**

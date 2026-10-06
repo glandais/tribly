@@ -39,6 +39,7 @@ import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
@@ -241,6 +242,46 @@ public class PublicationService {
       @Nullable ListViewMode view,
       int page,
       int size) {
+    return listTeam(
+        teamSlug,
+        type,
+        search,
+        from,
+        to,
+        status,
+        participating,
+        tags,
+        view,
+        null,
+        false,
+        false,
+        page,
+        size);
+  }
+
+  /**
+   * @param sortDir order of {@code dateTime}, as on {@link #listAll}: {@code null} or {@link
+   *     SortDirection#DESC} is newest first, {@link SortDirection#ASC} soonest first
+   * @param withoutRoute only the rides routed nowhere — neither the ride nor any of its groups has a
+   *     route
+   * @param withFullGroup only the rides with at least one group at capacity
+   */
+  @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST)
+  public PublicationListResponse listTeam(
+      String teamSlug,
+      @Nullable PublicationType type,
+      @Nullable String search,
+      @Nullable Instant from,
+      @Nullable Instant to,
+      @Nullable Status status,
+      boolean participating,
+      @Nullable List<String> tags,
+      @Nullable ListViewMode view,
+      @Nullable SortDirection sortDir,
+      boolean withoutRoute,
+      boolean withFullGroup,
+      int page,
+      int size) {
     Team team = teamService.getTeam(teamSlug);
     boolean includeDeleted = includeDeletedService.isTeamEntityIncludeDeleted(team);
     return list(
@@ -253,9 +294,33 @@ public class PublicationService {
             .status(status)
             .tagIds(tagFilter(team, type, tags))
             .participating(participating)
+            .withoutRoute(withoutRoute)
+            .withFullGroup(withFullGroup)
+            .ascending(sortDir == SortDirection.ASC)
             .includeDeleted(includeDeleted)
             .build(),
         view);
+  }
+
+  /**
+   * One section of a team's dashboard: a short page of the team's publications, compact rows,
+   * deleted ones left out whatever the caller's role — unlike {@link #listTeam}, which shows an
+   * administrator the deleted ones too.
+   *
+   * <p>No {@code @CheckAccess}: the dashboard has already established that the caller belongs to
+   * the team, and the visibility rules of the query still apply row by row. Same per-page lookups as
+   * every list, so the cost of a section does not depend on its rows.
+   *
+   * @param filters narrows the base query (type, window, status, order…); domain, team, caller and
+   *     paging are set here
+   */
+  public PublicationListResponse listTeamSection(
+      Team team, int size, UnaryOperator<PublicationQuery.PublicationQueryBuilder> filters) {
+    return list(
+        filters
+            .apply(baseQuery(0, size).teamIds(Set.of(team.getId())).includeDeleted(false))
+            .build(),
+        ListViewMode.COMPACT);
   }
 
   /** How many publications {@link #listAll} would list, without listing them. */
@@ -305,6 +370,22 @@ public class PublicationService {
       @Nullable Status status,
       boolean participating,
       @Nullable List<String> tags) {
+    return countTeam(teamSlug, type, search, from, to, status, participating, tags, false, false);
+  }
+
+  /** Same, with the {@code withoutRoute} and {@code withFullGroup} filters of {@link #listTeam}. */
+  @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST)
+  public CountResponse countTeam(
+      String teamSlug,
+      @Nullable PublicationType type,
+      @Nullable String search,
+      @Nullable Instant from,
+      @Nullable Instant to,
+      @Nullable Status status,
+      boolean participating,
+      @Nullable List<String> tags,
+      boolean withoutRoute,
+      boolean withFullGroup) {
     Team team = teamService.getTeam(teamSlug);
     boolean includeDeleted = includeDeletedService.isTeamEntityIncludeDeleted(team);
     return count(
@@ -317,6 +398,8 @@ public class PublicationService {
             .status(status)
             .tagIds(tagFilter(team, type, tags))
             .participating(participating)
+            .withoutRoute(withoutRoute)
+            .withFullGroup(withFullGroup)
             .includeDeleted(includeDeleted)
             .build());
   }

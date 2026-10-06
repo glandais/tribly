@@ -18,6 +18,7 @@ import type {
   ErrorResponse,
   ListTeamsParams,
   SlugChangeRequest,
+  TeamDashboardDto,
   TeamDetailDto,
   TeamListResponse,
   TeamRequest,
@@ -576,6 +577,149 @@ export const useDeleteTeam = <TError = ErrorType<ErrorResponse>, TContext = unkn
 > => {
   return useMutation(getDeleteTeamMutationOptions(options), queryClient)
 }
+/**
+ * Everything a member's « Tableau de bord » shows, in one call, graded by the caller's role: the member sections for everyone, the organizer block for organizers and administrators, the admin block for administrators. Each section is a short page of the matching list, and is null when the team has disabled its module. The teams switcher, the unread notification count and the calendar token are not part of it.
+ * @summary Get the team dashboard
+ */
+export const getTeamDashboard = (
+  teamSlug: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<TeamDashboardDto>(
+    { url: `/api/teams/${teamSlug}/dashboard`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getGetTeamDashboardQueryKey = (teamSlug: string) => {
+  return [`/api/teams/${teamSlug}/dashboard`] as const
+}
+
+export const getGetTeamDashboardQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTeamDashboard>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamDashboard>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetTeamDashboardQueryKey(teamSlug)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getTeamDashboard>>> = ({ signal }) =>
+    getTeamDashboard(teamSlug, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getTeamDashboard>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type GetTeamDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getTeamDashboard>>>
+export type GetTeamDashboardQueryError = ErrorType<ErrorResponse>
+
+export function useGetTeamDashboard<
+  TData = Awaited<ReturnType<typeof getTeamDashboard>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamDashboard>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTeamDashboard>>,
+          TError,
+          Awaited<ReturnType<typeof getTeamDashboard>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTeamDashboard<
+  TData = Awaited<ReturnType<typeof getTeamDashboard>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamDashboard>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTeamDashboard>>,
+          TError,
+          Awaited<ReturnType<typeof getTeamDashboard>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTeamDashboard<
+  TData = Awaited<ReturnType<typeof getTeamDashboard>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamDashboard>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get the team dashboard
+ */
+
+export function useGetTeamDashboard<
+  TData = Awaited<ReturnType<typeof getTeamDashboard>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamDashboard>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetTeamDashboardQueryOptions(teamSlug, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Get the team dashboard
+ */
+export const prefetchGetTeamDashboardQuery = async <
+  TData = Awaited<ReturnType<typeof getTeamDashboard>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamDashboard>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetTeamDashboardQueryOptions(teamSlug, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
+}
+
 /**
  * Change team URL slug. Requires ADMIN role.
  * @summary Change team slug

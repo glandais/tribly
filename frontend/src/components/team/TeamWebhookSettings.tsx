@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { invalidateTeamDashboard } from '@/lib/teamDashboardCache'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
@@ -115,6 +116,7 @@ function WebhookForm({ teamSlug, webhook }: { teamSlug: string; webhook: TeamWeb
       {
         onSuccess: (saved) => {
           queryClient.setQueryData(queryKey, saved)
+          invalidateTeamDashboard(queryClient, teamSlug)
           setUrl('')
           setTestResult(null)
           notifications.show({ message: t('teams.settings.webhook.saved'), color: 'green' })
@@ -131,6 +133,7 @@ function WebhookForm({ teamSlug, webhook }: { teamSlug: string; webhook: TeamWeb
         onSuccess: (result) => {
           setTestResult(result)
           queryClient.invalidateQueries({ queryKey })
+          invalidateTeamDashboard(queryClient, teamSlug)
         },
       }
     )
@@ -144,6 +147,7 @@ function WebhookForm({ teamSlug, webhook }: { teamSlug: string; webhook: TeamWeb
           setShowDeleteConfirm(false)
           setTestResult(null)
           queryClient.invalidateQueries({ queryKey })
+          invalidateTeamDashboard(queryClient, teamSlug)
           notifications.show({ message: t('teams.settings.webhook.removed'), color: 'green' })
         },
       }

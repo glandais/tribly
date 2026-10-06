@@ -31,7 +31,7 @@ test.describe('team page at 1440×900', () => {
     const team = await newTeam(owner, unique('Budget vertical'))
     await signIn(context, owner)
 
-    await page.goto(`/equipes/${team.slug}`)
+    await page.goto(`/equipes/${team.slug}?tab=publications`)
     await expect(
       page.getByRole('heading', { level: 1, name: team.name }),
       'precondition: the team page is rendered'

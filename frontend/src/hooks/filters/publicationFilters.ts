@@ -81,7 +81,15 @@ export function publicationApiParams(
  * to one kind of content (D3), and the mixed feed has no tag filter (D13) — the API ignores `tags`
  * without `type`, and {@link teamPublicationApiParams} does not even send it.
  */
-export const teamPublicationFiltersSchema = publicationFiltersSchema.extend({ tags: tagIdsField })
+export const teamPublicationFiltersSchema = publicationFiltersSchema.extend({
+  tags: tagIdsField,
+  /**
+   * `?tab=publications`: the feed itself, for a member whose team page opens on the dashboard
+   * (`pages/team/teamHomeData.ts`). Held in the schema so that changing a filter, which rewrites
+   * the whole query string, keeps the visitor on the feed. Never sent to the API.
+   */
+  tab: z.enum(['publications']).optional().catch(undefined),
+})
 
 export type TeamPublicationFilters = z.infer<typeof teamPublicationFiltersSchema>
 

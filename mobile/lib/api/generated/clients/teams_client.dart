@@ -9,6 +9,7 @@ import 'package:retrofit/error_logger.dart';
 import '../models/min_role.dart';
 import '../models/slug_change_request.dart';
 import '../models/sort_direction.dart';
+import '../models/team_dashboard_dto.dart';
 import '../models/team_detail_dto.dart';
 import '../models/team_list_response.dart';
 import '../models/team_request.dart';
@@ -88,6 +89,16 @@ abstract class TeamsClient {
   /// [teamSlug] - Team URL slug.
   @DELETE('/api/teams/{teamSlug}')
   Future<void> deleteTeam({
+    @Path('teamSlug') required String teamSlug,
+  });
+
+  /// Get the team dashboard.
+  ///
+  /// Everything a member's « Tableau de bord » shows, in one call, graded by the caller's role: the member sections for everyone, the organizer block for organizers and administrators, the admin block for administrators. Each section is a short page of the matching list, and is null when the team has disabled its module. The teams switcher, the unread notification count and the calendar token are not part of it.
+  ///
+  /// [teamSlug] - Team URL slug.
+  @GET('/api/teams/{teamSlug}/dashboard')
+  Future<TeamDashboardDto> getTeamDashboard({
     @Path('teamSlug') required String teamSlug,
   });
 

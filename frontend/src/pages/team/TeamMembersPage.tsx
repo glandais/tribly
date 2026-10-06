@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
-import { useParams, Navigate } from 'react-router-dom'
+import { invalidateTeamDashboard } from '@/lib/teamDashboardCache'
+import { useParams, Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -47,7 +48,16 @@ export function TeamMembersPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const [showAddMember, setShowAddMember] = useState(false)
+  // « Inviter » on the team dashboard lands here with the dialog open: router state on the web
+  // (`OPEN_INVITE_STATE`), `?invite=1` from the mobile dashboard, which opens the site in a browser
+  // (mobile `TeamWebPaths.adminMembersInvite`).
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
+  const [showAddMember, setShowAddMember] = useState(
+    () =>
+      !!(location.state as { openInvite?: boolean } | null)?.openInvite ||
+      searchParams.get('invite') === '1'
+  )
   const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.MEMBER)
   const [inviteEmail, setInviteEmail] = useState('')
 
@@ -121,6 +131,7 @@ export function TeamMembersPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(teamSlug) })
+          invalidateTeamDashboard(queryClient, teamSlug)
         },
       }
     )
@@ -134,6 +145,7 @@ export function TeamMembersPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
           queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(teamSlug) })
+          invalidateTeamDashboard(queryClient, teamSlug)
           notifications.show({
             message: i18next.t('teams.notifications.memberRemoved'),
             color: 'green',
@@ -219,7 +231,7 @@ export function TeamMembersPage() {
 
         {/* Invite by e-mail */}
         <Modal
-          opened={showAddMember}
+          opened={showAddMember && !!team.addMemberAllowed}
           onClose={closeInviteModal}
           title={t('teams.invitations.invite')}
           size="md"

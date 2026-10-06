@@ -70,6 +70,24 @@ public class AllPublicationRepository
           + "or exists (select 1 from TripParticipation tp "
           + "where tp.trip.id = te.id and tp.user.id = :participatingUserId))";
 
+  /**
+   * A ride routed nowhere: neither the ride nor any of its groups points at a route. Subqueries on
+   * {@code Ride} rather than a path through {@code te}, whose static type is the {@code Publication}
+   * root and carries no {@code route}.
+   */
+  private static final String WITHOUT_ROUTE_CLAUSE =
+      "(TYPE(te) = Ride"
+          + " and not exists (select 1 from Ride r where r.id = te.id and r.route is not null)"
+          + " and not exists (select 1 from RideGroup g where g.ride.id = te.id"
+          + " and g.route is not null))";
+
+  /** A ride with at least one capped group whose registrations have reached the cap. */
+  private static final String WITH_FULL_GROUP_CLAUSE =
+      "(TYPE(te) = Ride and exists (select 1 from RideGroup g where g.ride.id = te.id"
+          + " and g.maxParticipants is not null"
+          + " and g.maxParticipants <= (select count(p.id) from RideParticipation p"
+          + " where p.rideGroup.id = g.id)))";
+
   @Override
   public PedalonsQuery andSpecific(PedalonsQuery pedalonsQuery, PublicationQuery query) {
     PublicationType publicationType = query.type();
@@ -94,6 +112,12 @@ public class AllPublicationRepository
         pedalonsQuery =
             pedalonsQuery.and(PARTICIPATING_CLAUSE, Map.of("participatingUserId", userId));
       }
+    }
+    if (query.withoutRoute()) {
+      pedalonsQuery = pedalonsQuery.and(WITHOUT_ROUTE_CLAUSE, Map.of());
+    }
+    if (query.withFullGroup()) {
+      pedalonsQuery = pedalonsQuery.and(WITH_FULL_GROUP_CLAUSE, Map.of());
     }
     Set<Long> tagIds = query.tagIds();
     if (tagIds != null) {

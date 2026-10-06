@@ -20,6 +20,7 @@ import '../widgets/team_header.dart';
 import '../widgets/team_sections.dart';
 import '../widgets/team_sections_bar.dart';
 import 'team_about_page.dart';
+import 'team_dashboard_page.dart';
 import 'team_feed_page.dart';
 import 'team_members_page.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
@@ -166,12 +167,29 @@ class _TeamSectionScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<TeamSection> sections = buildTeamSections(team);
+    // L'adresse nue d'une équipe demande le tableau de bord ; un visiteur qui
+    // n'en est pas membre n'en a pas, et y voit le fil.
+    final TeamSectionKind section = resolveTeamRootSection(
+      requested: this.section,
+      role: team.role,
+    );
 
-    // Les deux sections qui sont **une liste de slivers** portent l'en-tête
-    // interpolé : il se rétracte de 112 à 56 px sous le doigt. Les quatre
-    // autres possèdent leur propre défileur et reçoivent l'en-tête déjà
+    // Les sections qui sont **une liste de slivers** portent l'en-tête
+    // interpolé : il se rétracte de 112 à 56 px sous le doigt. Les autres
+    // possèdent leur propre défileur et reçoivent l'en-tête déjà
     // rétracté — voir [TeamHeaderSliver].
     return switch (section) {
+      TeamSectionKind.dashboard => _TeamChrome(
+        header: null,
+        body: TeamDashboardPage(
+          team: team,
+          leadingSlivers: <Widget>[
+            TeamHeaderSliver(team: team),
+            SliverToBoxAdapter(child: _MembershipBanner(team: team)),
+          ],
+          toolbar: TeamSectionsToolbar(sections: sections, current: section),
+        ),
+      ),
       TeamSectionKind.feed => _TeamChrome(
         header: null,
         body: TeamFeedPage(

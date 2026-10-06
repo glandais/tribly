@@ -6,6 +6,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'instant.dart';
 import 'media_dto.dart';
+import 'member_count_by_role_dto.dart';
 import 'team_detail_dto_geometry.dart';
 import 'team_page_summary_dto.dart';
 import 'team_role.dart';
@@ -92,6 +93,9 @@ abstract class TeamDetailDto with _$TeamDetailDto {
 
     /// Additional team pages
     List<TeamPageSummaryDto>? pages,
+
+    /// Members per role. Only for the team's administrators (platform admins included): null for everyone else, and in the team listings.
+    MemberCountByRoleDto? memberCountByRole,
 
     /// Current user's role (null if not a member)
     String? role,

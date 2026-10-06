@@ -56,6 +56,12 @@ const ridePathOnPin = () => `/sorties/${ride.slug}`
  */
 const homeWithRide = () => `/?q=${encodeURIComponent(ride.name)}`
 
+/**
+ * The same feed for a member of the team, whose home opens on the dashboard: the feed is its
+ * `?tab=publications`.
+ */
+const memberFeedWithRide = () => `/?tab=publications&q=${encodeURIComponent(ride.name)}`
+
 /** The hrefs of every link of `main` — the page's own content. */
 const mainHrefs = (page: Page) =>
   page
@@ -184,7 +190,7 @@ test.describe('signed in', () => {
   }) => {
     // An alias shares its domain's users: the localhost session is a session here too.
     await signInOn(context, PINNED_HOST, await roleSession('admin'))
-    await page.goto(`${origin}${homeWithRide()}`)
+    await page.goto(`${origin}${memberFeedWithRide()}`)
     await pageHydrated(page)
 
     // Client-side navigation, so the links below are the client's, not the server's.

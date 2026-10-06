@@ -182,7 +182,8 @@
   "surfaces": {
     "road": "Road",
     "gravel": "Gravel",
-    "mtb": "MTB"
+    "mtb": "MTB",
+    "mixed": "Mixed"
   },
   "home": {
     "greeting": "Hello, {name}!",
@@ -259,6 +260,7 @@
     "membersLabel": "Members",
     "about": "About",
     "tabs": {
+      "dashboard": "Dashboard",
       "feed": "Feed",
       "calendar": "Calendar",
       "routes": "Routes",
@@ -347,6 +349,163 @@
     },
     "stats": {
       "upcomingRides": "upcoming rides"
+    },
+    "dashboard": {
+      "role": {
+        "MEMBER": "Member",
+        "ORGANIZER": "Organiser",
+        "ADMIN": "Administrator"
+      },
+      "subscribeCalendar": "Subscribe to the calendar",
+      "createRide": "Create a ride",
+      "newPost": "New post",
+      "loadError": "Dashboard unavailable",
+      "refreshed": "Dashboard up to date",
+      "edit": "Edit",
+      "register": "Register",
+      "viewTrip": "View trip",
+      "todo": {
+        "title": "To handle",
+        "hint": "Visible to organisers and administrators",
+        "drafts": {
+          "zero": "Drafts",
+          "one": "Draft",
+          "other": "Drafts"
+        },
+        "draftsAction": "Resume",
+        "withoutRoute": {
+          "zero": "Rides without a route",
+          "one": "Ride without a route",
+          "other": "Rides without a route"
+        },
+        "withoutRouteAction": "Add a route",
+        "fullGroup": {
+          "zero": "Rides with a full group",
+          "one": "Ride with a full group",
+          "other": "Rides with a full group"
+        },
+        "fullGroupLine": {
+          "zero": "{group} of \"{ride}\", {count} registered out of {max}",
+          "one": "{group} of \"{ride}\", {count} registered out of {max}",
+          "other": "{group} of \"{ride}\", {count} registered out of {max}"
+        },
+        "fullGroupAction": "View groups",
+        "reports": {
+          "zero": "Reports",
+          "one": "Report",
+          "other": "Reports"
+        },
+        "reportsAction": "Review",
+        "reportTarget": {
+          "COMMENT": "Reported comment",
+          "POST": "Reported post",
+          "AD": "Reported ad",
+          "RIDE": "Reported ride",
+          "TRIP": "Reported trip",
+          "ROUTE": "Reported route",
+          "MEMBER": "Reported member"
+        },
+        "nothing": "Nothing pending",
+        "more": {
+          "zero": "",
+          "one": "and {} more",
+          "other": "and {} more"
+        }
+      },
+      "myUpcoming": {
+        "title": "Your upcoming rides",
+        "empty": "You are not registered for any upcoming ride in this team."
+      },
+      "upcomingRides": {
+        "title": "Upcoming rides",
+        "empty": "No ride is planned for now.",
+        "noRoute": "No route attached",
+        "registeredCount": {
+          "zero": "Nobody registered",
+          "one": "{} registered",
+          "other": "{} registered"
+        },
+        "groupFill": {
+          "zero": "{} registered out of {max}",
+          "one": "{} registered out of {max}",
+          "other": "{} registered out of {max}"
+        }
+      },
+      "latestPosts": {
+        "title": "Latest posts",
+        "empty": "No post for now."
+      },
+      "newRoutes": {
+        "title": "New routes",
+        "empty": "No route is available for now."
+      },
+      "latestAds": {
+        "title": "Ads",
+        "empty": "No ad for now.",
+        "sector": "Area {place}"
+      },
+      "templates": {
+        "title": "Create from a template",
+        "empty": "No ride template.",
+        "manage": "Manage templates"
+      },
+      "admin": {
+        "title": "Administration",
+        "roles": {
+          "admins": {
+            "zero": "No administrator",
+            "one": "{} administrator",
+            "other": "{} administrators"
+          },
+          "organizers": {
+            "zero": "No organiser",
+            "one": "{} organiser",
+            "other": "{} organisers"
+          },
+          "members": {
+            "zero": "No member",
+            "one": "{} member",
+            "other": "{} members"
+          }
+        },
+        "roleSplit": "Members by role",
+        "newestMembers": "New members",
+        "noNewMembers": "No member yet.",
+        "features": "Features",
+        "feature": {
+          "rides": "Rides",
+          "routes": "Routes",
+          "trips": "Trips",
+          "posts": "Posts",
+          "ads": "Ads",
+          "directory": "Member directory"
+        },
+        "noFeature": "No feature enabled",
+        "webhook": {
+          "title": "{kind} webhook",
+          "notConfigured": "No webhook configured",
+          "kind": {
+            "SLACK": "Slack",
+            "DISCORD": "Discord",
+            "MATTERMOST": "Mattermost",
+            "GENERIC": "Generic"
+          },
+          "enabled": "Active",
+          "disabled": "Inactive",
+          "lastAttempt": "Last delivery on {date}",
+          "never": "No delivery yet",
+          "status": {
+            "PENDING": "Pending",
+            "SENDING": "Sending...",
+            "SENT": "Sent",
+            "SKIPPED": "Skipped",
+            "FAILED": "Failed"
+          }
+        },
+        "invite": "Invite",
+        "manageMembers": "Manage members",
+        "settings": "Team settings"
+      }
     }
   },
   "rides": {

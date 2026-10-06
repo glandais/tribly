@@ -350,6 +350,21 @@ couvert » ; les tests ne tournent qu'en local (`MOB-37`).
 
 ---
 
+### Tableau de bord d'équipe
+
+- `MOB-53` **Tableau de bord d'équipe, parité avec le web** (6 octobre 2026, **API 10.8.0**,
+  `API-79`, `WEB-63`). Pour un membre, l'adresse de l'équipe ouvre le tableau de bord
+  (`team_dashboard_page.dart`, `widgets/dashboard/`, `teamDashboardProvider`) ; le fil est à
+  `?tab=publications`, comme au web, pour que les liens du site ouvrent la même vue. Mêmes sections
+  et mêmes variations par rôle qu'au web, modes clair et sombre, sans débordement à 320 px. Les
+  actions d'édition, de modération et d'administration ouvrent le site dans le navigateur intégré
+  (`team_web_paths.dart`), l'app n'ayant pas ces écrans (`MOB-24`). Tests :
+  `team_dashboard_test.dart`, `team_web_paths_test.dart` ; suite complète verte (809 tests) avant
+  les dernières retouches, `test/features/teams` (55) après. **À ne pas défaire** : les blocs
+  organisateur et admin ne s'affichent que si l'API les envoie, l'écran ne déduit pas le rôle ;
+  `notifyParticipationChanged` invalide `teamDashboardProvider` ; « Inviter » n'apparaît qu'avec
+  `team.addMemberAllowed` ; la barre de remplissage d'un groupe est lue comme une seule phrase.
+
 ## WEB — Site web
 
 ### La recette web, automatisée
@@ -1046,6 +1061,28 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
 
 ---
 
+### Tableau de bord d'équipe
+
+- `WEB-63` **Tableau de bord d'équipe selon le rôle** (6 octobre 2026, **API 10.8.0**, `API-79`).
+  Pour un membre connecté, `/equipes/{slug}` ouvre le tableau de bord (`TeamDashboardPage`,
+  composants `components/team/dashboard/`) ; visiteurs et non-membres gardent le fil, que les membres
+  trouvent à `?tab=publications` (`teamFeedPath`, `showsTeamDashboard` dans
+  `pages/team/teamHomeData.ts`, `tab` gardé par les filtres du fil). Membre : prochaines sorties
+  (envoi vers l'appareil), sorties à venir avec remplissage par groupe, publications, parcours,
+  annonces (« Prix à négocier », secteur en texte). Organisateur et admin : « Créer une sortie »,
+  « Nouvelle publication », bande « À traiter » (brouillons, sans parcours, groupe complet,
+  signalements), « Modifier », « Créer depuis un modèle ». Admin : panneau Administration (rôles,
+  nouveaux membres, fonctionnalités, webhook, « Inviter »), onglet « Membres ». Sous `sm`, les
+  actions d'en-tête passent en icônes avec `aria-label`. `CreateRidePage` lit `?template=` et
+  `TeamMembersPage` `?invite=1` (adresses utilisées par le mobile). Tests : `TeamDashboard.test.tsx`,
+  `useTeamNavItems.test.tsx`, `CreateRidePage.test.tsx` ; e2e `team-dashboard.e2e.ts` (trois rôles,
+  non-membre, fil à `?tab=publications`) et `list-filters`, `pagination`, `pinned-host`,
+  `flow-posts` adaptés ; `routes-render` de la route `team` vert. **À ne pas défaire** : toute
+  mutation qui change ce que montre le tableau de bord l'invalide (`lib/teamDashboardCache.ts`,
+  `routeCacheInvalidation`, `moderationCacheInvalidation`) ; `prefetchTeamHome` s'arrête quand
+  l'équipe n'a pas pu être lue — sinon le fil la relit et une 404 est demandée deux fois
+  (`error-states.e2e.ts`) ; pas de route nouvelle dans `contracts/routes.yaml`.
+
 ## API — Contrat d'API et backend
 
 ### Reprises immédiates
@@ -1621,6 +1658,38 @@ doublon. Le compteur « à venir » est borné par `Instant.now()`, l'onglet web
   (3128 tests, 0 échec). Le budget d'entités de `ProfileSummaryQueryCountTest` (3 par ligne ajoutée,
   plus 8) a tenu sans ajustement. **À ne pas défaire** : si Hibernate charge un jour plus
   d'entités, on ajuste le budget, jamais en réintroduisant une requête par ligne.
+
+### `API-79` Tableau de bord d'équipe en un appel (contrat `10.8.0`)
+
+Livré le 6 octobre 2026 (10.7.0 → 10.8.0, mineur, rétrocompatible) : `GET
+/api/teams/{teamSlug}/dashboard` (`getTeamDashboard`, `@RolesAllowed("user")`, `Cache-Control:
+private, no-store` ; 401 anonyme, 403 non-membre, 404 équipe inconnue) rend un `TeamDashboardDto` :
+`team` (le `TeamDetailDto` de `GET /api/teams/{slug}`), `role`, les sections membre `myUpcoming`
+(sorties et voyages à venir où l'appelant est inscrit, du plus proche au plus lointain, 3),
+`upcomingRides` (sorties publiées à venir, 3), `latestPosts`, `newRoutes`, `latestAds` (3 chacune,
+`null` quand le module est coupé), un bloc `organizer` (brouillons, sorties sans parcours, sorties
+avec un groupe complet, signalements ouverts, modèles de sortie ; 5 chacun) et un bloc `admin`
+(3 nouveaux membres, webhook), `null` en dessous du rôle requis. Un admin de plateforme non membre
+reçoit le tableau ADMIN. Briques ajoutées pour le servir, utilisables seules : `sortDir` sur
+`GET /api/teams/{slug}/publications` (pas sur `/count`, qu'un ordre ne change pas) ; filtres
+`withoutRoute` (ni parcours sur la sortie ni sur aucun groupe) et `withFullGroup` sur la liste et le
+compteur ; `RideDto.groupSummaries` (`RideGroupSummaryDto`, remplis aussi sur les lignes de liste,
+sans meneur ni participants) et `distance` / `elevationGain` / `surfaceType` du parcours de la
+sortie, sinon du premier groupe qui en a un ; `TeamDetailDto.memberCountByRole` (admin d'équipe ou
+de plateforme, `null` sinon et dans les listes) ; `sortBy=JOINED_AT` + `sortDir` sur les membres
+(départage par id). Tests : `TeamDashboardResourceTest` (14), `TeamDashboardQueryCountTest` (ADMIN,
+ORGANIZER, MEMBER), `TeamPublicationFiltersResourceTest`, `RideListGroupSummariesTest`,
+`TeamMemberCountByRoleResourceTest`, `TeamMemberSortResourceTest` — verts dans la suite complète
+du 5 octobre 2026 (2 088 tests, 0 échec). **À ne pas défaire** : chaque section est une page bornée
+construite par les services existants, avec leurs lookups par page — jamais une requête par ligne ;
+les effectifs par groupe sortent de la requête groupée de `RideSummaryRepository.loadGroupCounts`,
+les mesures du parcours de la même requête de résumé ; le sélecteur d'équipes, le compteur de
+non-lues et le jeton de calendrier restent **hors** de l'agrégat (partagés avec le reste de
+l'application) ; `upcomingRides` et les tuiles organisateur ne montrent que du PUBLISHED, alors que
+`myUpcoming` garde une sortie annulée où l'on est inscrit ; « Prix à négocier » = `price` nul, sans
+champ dédié (décidé le 5 octobre 2026 avec le propriétaire). Le test de coût du membre fait signaler
+les publications par un compte non mesuré : la liste cache à l'appelant ce qu'il a signalé, et ses
+sections resteraient vides.
 
 ## OPS — Exploitation, déploiement, recette du backend
 

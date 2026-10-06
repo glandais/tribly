@@ -60,3 +60,43 @@ class TeamPageKeys {
   /// La recherche de la section « Membres ».
   final membersSearchField = const _TeamPageKey('membersSearchField');
 }
+
+class _TeamDashboardKey extends ValueKey<String> {
+  const _TeamDashboardKey(String value) : super('teamDashboard_$value');
+}
+
+/// Le tableau de bord d'une équipe : une clé par section, pour qu'un test dise
+/// ce qu'un rôle voit sans dépendre d'un libellé.
+class TeamDashboardKeys {
+  final summary = const _TeamDashboardKey('summary');
+  final calendarButton = const _TeamDashboardKey('calendarButton');
+  final createRideButton = const _TeamDashboardKey('createRideButton');
+  final newPostButton = const _TeamDashboardKey('newPostButton');
+  final loadError = const _TeamDashboardKey('loadError');
+
+  final todo = const _TeamDashboardKey('todo');
+  final todoDrafts = const _TeamDashboardKey('todoDrafts');
+  final todoWithoutRoute = const _TeamDashboardKey('todoWithoutRoute');
+  final todoFullGroup = const _TeamDashboardKey('todoFullGroup');
+  final todoReports = const _TeamDashboardKey('todoReports');
+
+  final myUpcoming = const _TeamDashboardKey('myUpcoming');
+  final upcomingRides = const _TeamDashboardKey('upcomingRides');
+  final latestPosts = const _TeamDashboardKey('latestPosts');
+  final newRoutes = const _TeamDashboardKey('newRoutes');
+  final latestAds = const _TeamDashboardKey('latestAds');
+  final templates = const _TeamDashboardKey('templates');
+  final admin = const _TeamDashboardKey('admin');
+
+  /// La carte d'une sortie à venir, par son slug.
+  ValueKey<String> rideCard(String rideSlug) =>
+      _TeamDashboardKey('rideCard_$rideSlug');
+
+  /// « Modifier », sur la carte d'une sortie à venir.
+  ValueKey<String> rideEditButton(String rideSlug) =>
+      _TeamDashboardKey('rideEdit_$rideSlug');
+
+  /// La ligne d'une de « Vos prochaines sorties », par son slug.
+  ValueKey<String> myUpcomingRow(String slug) =>
+      _TeamDashboardKey('myUpcoming_$slug');
+}

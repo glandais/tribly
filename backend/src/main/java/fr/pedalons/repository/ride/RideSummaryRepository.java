@@ -1,11 +1,14 @@
 package fr.pedalons.repository.ride;
 
 import fr.pedalons.common.TsidUtils;
+import fr.pedalons.dto.rides.response.RideGroupSummaryDto;
 import fr.pedalons.dto.rides.response.RideListSummary;
 import fr.pedalons.dto.users.response.PublicUserDto;
+import fr.pedalons.enums.SurfaceType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -50,10 +53,15 @@ public class RideSummaryRepository {
     Map<Long, Boolean> full = new HashMap<>();
     // Sum of the capacities; a ride with one uncapped group has no overall limit, marked by -1.
     Map<Long, Integer> capacity = new HashMap<>();
-    for (Object[] row : loadGroupCounts(rideIds)) {
+    Map<Long, List<RideGroupSummaryDto>> groups = new HashMap<>();
+    Map<Long, RideListSummary.RouteMetrics> firstGroupRoute = new HashMap<>();
+    // Rows come in (ride, sortOrder) order: the first routed group met is the first in sort order.
+    for (Object[] row : loadGroupRows(rideIds)) {
       Long rideId = (Long) row[0];
+      Long groupId = (Long) row[1];
       Integer maxParticipants = (Integer) row[2];
       int participants = ((Number) row[3]).intValue();
+      String routeSlug = (String) row[8];
 
       int[] rideCounts = counts.computeIfAbsent(rideId, k -> new int[2]);
       rideCounts[0]++;
@@ -66,6 +74,29 @@ public class RideSummaryRepository {
           rideId,
           maxParticipants != null ? maxParticipants : -1,
           RideSummaryRepository::addCapacity);
+
+      Float distance = routeSlug != null ? (Float) row[9] : null;
+      Float elevationGain = routeSlug != null ? (Float) row[10] : null;
+      groups
+          .computeIfAbsent(rideId, k -> new ArrayList<>())
+          .add(
+              new RideGroupSummaryDto(
+                  TsidUtils.toString(groupId),
+                  (String) row[4],
+                  (LocalTime) row[5],
+                  (Float) row[6],
+                  participants,
+                  maxParticipants,
+                  groupFull,
+                  routeSlug,
+                  distance,
+                  elevationGain,
+                  (Integer) row[7]));
+      if (routeSlug != null) {
+        firstGroupRoute.putIfAbsent(
+            rideId,
+            new RideListSummary.RouteMetrics(distance, elevationGain, (SurfaceType) row[11]));
+      }
     }
 
     Map<Long, RideListSummary> summaries = new HashMap<>();
@@ -78,7 +109,9 @@ public class RideSummaryRepository {
                     rideCounts[1],
                     full.getOrDefault(rideId, false),
                     toMaxParticipants(capacity.get(rideId)),
-                    topParticipants.getOrDefault(rideId, List.of()))));
+                    topParticipants.getOrDefault(rideId, List.of()),
+                    List.copyOf(groups.getOrDefault(rideId, List.of())),
+                    firstGroupRoute.get(rideId))));
     return summaries;
   }
 
@@ -91,22 +124,27 @@ public class RideSummaryRepository {
   }
 
   /**
-   * One row per group: {@code (rideId, groupId, maxParticipants, participantCount)}. The left join
-   * keeps groups with no participants.
+   * One row per group, in {@code (ride, sortOrder)} order: {@code (rideId, groupId,
+   * maxParticipants, participantCount, name, time, averageSpeed, sortOrder, routeSlug, distance,
+   * elevationGain, surfaceType)} — the route columns null when the group has none.
    *
-   * <p>Grouping by group rather than by ride is what makes {@code full} and {@code maxParticipants}
-   * computable: capacity is a
-   * per-group property, so a per-ride aggregate cannot express "every group is at capacity" without
-   * a second pass. Rides have a handful of groups, so the extra rows are free — and it is still one
-   * query for the whole page.
+   * <p>One row per group rather than per ride is what makes {@code full} and {@code
+   * maxParticipants} computable: capacity is a per-group property, so a per-ride aggregate cannot
+   * express "every group is at capacity" without a second pass. It is also what the per-group
+   * summaries of a list row need. Rides have a handful of groups, so the extra rows are free — and
+   * it is still one query for the whole page. The count is a correlated scalar subquery, so no
+   * {@code GROUP BY} has to list every selected column.
    */
-  private List<Object[]> loadGroupCounts(Collection<Long> rideIds) {
+  private List<Object[]> loadGroupRows(Collection<Long> rideIds) {
     return entityManager
         .createQuery(
-            "select g.ride.id, g.id, g.maxParticipants, count(p.id) "
-                + "from RideGroup g left join g.participations p "
-                + "where g.ride.id in (:rideIds) "
-                + "group by g.ride.id, g.id, g.maxParticipants",
+            "select g.ride.id, g.id, g.maxParticipants,"
+                + " (select count(p.id) from RideParticipation p where p.rideGroup.id = g.id),"
+                + " g.name, g.time, g.averageSpeed, g.sortOrder,"
+                + " r.slug, r.distance, r.elevationGain, r.surfaceType"
+                + " from RideGroup g left join g.route r"
+                + " where g.ride.id in (:rideIds)"
+                + " order by g.ride.id, g.sortOrder, g.id",
             Object[].class)
         .setParameter("rideIds", rideIds)
         .getResultList();

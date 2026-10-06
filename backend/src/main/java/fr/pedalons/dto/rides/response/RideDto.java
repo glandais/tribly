@@ -5,6 +5,7 @@ import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
+import fr.pedalons.domain.route.Route;
 import fr.pedalons.dto.comments.response.CommentCounts;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.places.response.PlaceDetailDto;
@@ -18,6 +19,7 @@ import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.Status;
+import fr.pedalons.enums.SurfaceType;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
@@ -28,6 +30,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import lombok.Getter;
@@ -104,6 +107,36 @@ public class RideDto implements PublicationDto {
 
   @Schema(description = "Ride groups", required = true)
   final List<RideGroupDto> groups;
+
+  @Schema(
+      description =
+          "Every group of the ride in sort order, as a card shows it: name, pace, start time and"
+              + " fill (countParticipants against maxParticipants). Filled on list rows too, where"
+              + " groups is empty — a card draws its per-group fill bars without opening the ride."
+              + " Carries no leader nor participants: those are on groups, in the detail.",
+      required = true)
+  final List<RideGroupSummaryDto> groupSummaries;
+
+  @Nullable
+  @Schema(
+      description =
+          "Distance in meters of the ride's route — or, when the ride itself has none, of the"
+              + " route of its first group (in sort order) that has one. Null when no route is set"
+              + " anywhere.")
+  final Float distance;
+
+  @Nullable
+  @Schema(
+      description =
+          "Total elevation gain in meters, from the same route as distance. Null when no route is"
+              + " set anywhere.")
+  final Float elevationGain;
+
+  @Nullable
+  @Schema(
+      description =
+          "Surface type, from the same route as distance. Null when no route is set anywhere.")
+  final SurfaceType surfaceType;
 
   @Nullable
   @Schema(description = "Start place")
@@ -201,6 +234,10 @@ public class RideDto implements PublicationDto {
       int participantCount,
       int groupCount,
       List<RideGroupDto> groups,
+      List<RideGroupSummaryDto> groupSummaries,
+      @Nullable Float distance,
+      @Nullable Float elevationGain,
+      @Nullable SurfaceType surfaceType,
       @Nullable PlaceDetailDto startPlace,
       @Nullable PlaceDetailDto endPlace,
       List<PublicUserDto> topParticipants,
@@ -233,6 +270,10 @@ public class RideDto implements PublicationDto {
     this.participantCount = participantCount;
     this.groupCount = groupCount;
     this.groups = groups;
+    this.groupSummaries = groupSummaries;
+    this.distance = distance;
+    this.elevationGain = elevationGain;
+    this.surfaceType = surfaceType;
     this.startPlace = startPlace;
     this.endPlace = endPlace;
     this.topParticipants = topParticipants;
@@ -276,6 +317,8 @@ public class RideDto implements PublicationDto {
     return build(
         ride,
         List.of(),
+        summary.groups(),
+        summary.firstGroupRoute(),
         summary.groupCount(),
         summary.participantCount(),
         summary.topParticipants(),
@@ -357,9 +400,20 @@ public class RideDto implements PublicationDto {
     RideGroupDto registeredGroup =
         groupDtos.stream().filter(RideGroupDto::registered).findFirst().orElse(null);
 
+    // Same fallback as the list row: the first group in sort order that has a route.
+    RideListSummary.RouteMetrics firstGroupRoute =
+        groups.stream()
+            .map(RideGroup::getRoute)
+            .filter(Objects::nonNull)
+            .findFirst()
+            .map(RideDto::metricsOf)
+            .orElse(null);
+
     return build(
         ride,
         groupDtos,
+        groupDtos.stream().map(RideGroupSummaryDto::from).toList(),
+        firstGroupRoute,
         groups.size(),
         participantCount,
         topParticipants,
@@ -373,9 +427,16 @@ public class RideDto implements PublicationDto {
         ListViewMode.FULL);
   }
 
+  private static RideListSummary.RouteMetrics metricsOf(Route route) {
+    return new RideListSummary.RouteMetrics(
+        route.getDistance(), route.getElevationGain(), route.getSurfaceType());
+  }
+
   private static RideDto build(
       Ride ride,
       List<RideGroupDto> groupDtos,
+      List<RideGroupSummaryDto> groupSummaries,
+      RideListSummary.@Nullable RouteMetrics firstGroupRoute,
       int groupCount,
       int participantCount,
       List<PublicUserDto> topParticipants,
@@ -389,6 +450,9 @@ public class RideDto implements PublicationDto {
       @Nullable ListViewMode view) {
     Place startPlace = ride.getStart();
     Place endPlace = ride.getEnd();
+    // Ride.route is an eager to-one, already loaded with the ride: the metrics cost no query.
+    RideListSummary.RouteMetrics metrics =
+        ride.getRoute() != null ? metricsOf(ride.getRoute()) : firstGroupRoute;
 
     // Get thumbnail URLs from ride's own assets
     String thumbnailLightUrl = null;
@@ -427,6 +491,10 @@ public class RideDto implements PublicationDto {
         participantCount,
         groupCount,
         groupDtos,
+        groupSummaries,
+        metrics != null ? metrics.distance() : null,
+        metrics != null ? metrics.elevationGain() : null,
+        metrics != null ? metrics.surfaceType() : null,
         startPlace != null ? PlaceDetailDto.from(startPlace) : null,
         endPlace != null ? PlaceDetailDto.from(endPlace) : null,
         topParticipants,

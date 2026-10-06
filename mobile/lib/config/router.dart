@@ -447,10 +447,15 @@ GoRoute _teamTree(String locale) {
 
   return GoRoute(
     path: teamBase,
+    // L'adresse nue d'une équipe : le tableau de bord pour un membre, le fil
+    // sinon — `TeamHomePage` tranche une fois l'équipe arrivée. `?tab=publications`
+    // demande le fil à tous (voir `kTeamTabParam`).
     pageBuilder: (context, state) => NoTransitionPage(
       child: TeamHomePage(
         teamSlug: state.pathParameters['teamSlug']!,
-        section: TeamSectionKind.feed,
+        section: state.uri.queryParameters[kTeamTabParam] == kTeamTabFeed
+            ? TeamSectionKind.feed
+            : TeamSectionKind.dashboard,
       ),
     ),
     routes: [

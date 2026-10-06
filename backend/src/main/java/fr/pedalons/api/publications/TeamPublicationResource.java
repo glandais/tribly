@@ -5,6 +5,7 @@ import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.publications.response.PublicationListResponse;
 import fr.pedalons.dto.publications.response.PublicationType;
 import fr.pedalons.enums.ListViewMode;
+import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.Status;
 import fr.pedalons.service.common.PublicationService;
 import jakarta.annotation.security.PermitAll;
@@ -37,6 +38,14 @@ public class TeamPublicationResource {
           + " of kind 'type', comma-separated or repeated. Honoured with a 'type' only: the mixed"
           + " feed has no tag filter and ignores it. Unknown ids are ignored; a filter left with no"
           + " known id filters nothing.";
+
+  static final String WITHOUT_ROUTE_PARAM_DESCRIPTION =
+      "Only the rides routed nowhere: neither the ride nor any of its groups has a route. Every"
+          + " other type of publication is left out.";
+
+  static final String WITH_FULL_GROUP_PARAM_DESCRIPTION =
+      "Only the rides with at least one group at capacity (maxParticipants reached). Every other"
+          + " type of publication is left out.";
 
   @GET
   @PermitAll
@@ -79,6 +88,21 @@ public class TeamPublicationResource {
           @Nullable List<String> tags,
       @Parameter(description = PublicationResource.VIEW_PARAM_DESCRIPTION) @QueryParam("view")
           @Nullable ListViewMode view,
+      @Parameter(
+              description =
+                  "Order of the publication date. Omitted, or DESC, is newest first (the feed);"
+                      + " ASC is soonest first — what a window of upcoming outings needs, so a"
+                      + " page keeps the nearest ones.")
+          @QueryParam("sortDir")
+          @Nullable SortDirection sortDir,
+      @Parameter(description = WITHOUT_ROUTE_PARAM_DESCRIPTION)
+          @QueryParam("withoutRoute")
+          @DefaultValue("false")
+          boolean withoutRoute,
+      @Parameter(description = WITH_FULL_GROUP_PARAM_DESCRIPTION)
+          @QueryParam("withFullGroup")
+          @DefaultValue("false")
+          boolean withFullGroup,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
@@ -87,7 +111,20 @@ public class TeamPublicationResource {
 
     PublicationListResponse publications =
         publicationService.listTeam(
-            teamSlug, type, search, from, to, status, participating, tags, view, page, size);
+            teamSlug,
+            type,
+            search,
+            from,
+            to,
+            status,
+            participating,
+            tags,
+            view,
+            sortDir,
+            withoutRoute,
+            withFullGroup,
+            page,
+            size);
 
     // Rows carry per-user fields (registered, registeredGroupId): not shareable between users.
     return Response.ok(publications)
@@ -138,13 +175,31 @@ public class TeamPublicationResource {
           @DefaultValue("false")
           boolean participating,
       @Parameter(description = TAGS_PARAM_DESCRIPTION) @QueryParam("tags")
-          @Nullable List<String> tags) {
+          @Nullable List<String> tags,
+      @Parameter(description = WITHOUT_ROUTE_PARAM_DESCRIPTION)
+          @QueryParam("withoutRoute")
+          @DefaultValue("false")
+          boolean withoutRoute,
+      @Parameter(description = WITH_FULL_GROUP_PARAM_DESCRIPTION)
+          @QueryParam("withFullGroup")
+          @DefaultValue("false")
+          boolean withFullGroup) {
 
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     CountResponse count =
-        publicationService.countTeam(teamSlug, type, search, from, to, status, participating, tags);
+        publicationService.countTeam(
+            teamSlug,
+            type,
+            search,
+            from,
+            to,
+            status,
+            participating,
+            tags,
+            withoutRoute,
+            withFullGroup);
 
     // The figure depends on who is asking — both through the visibility rules and through
     // 'participating': not shareable between users.

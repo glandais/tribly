@@ -70,9 +70,11 @@ test.describe('publication feeds', () => {
     const main = page.getByRole('main')
     const typeSelect = page.getByRole('combobox', { name: 'Type', exact: true })
 
+    // The owner is a member: the team's own URL opens on the dashboard, the feed is its
+    // « Publications » tab — kept through every filter change below.
     const { markup, reads } = await openServerRendered(
       page,
-      `/equipes/${team.slug}?type=ride`,
+      `/equipes/${team.slug}?tab=publications&type=ride`,
       `/api/teams/${team.slug}/publications`
     )
     expectInMarkup(markup, [ride], [post])
@@ -82,17 +84,17 @@ test.describe('publication feeds', () => {
     await expect(typeSelect).toHaveValue('Sorties')
 
     await pick(page, typeSelect, 'Publications')
-    await expectQuery(page, { type: 'post' })
+    await expectQuery(page, { tab: 'publications', type: 'post' })
     await expect(entityCard(main, post)).toBeVisible()
     await expect(entityCard(main, ride)).toHaveCount(0)
 
     // The post is two days old: nothing upcoming is a post — the filtered dead end.
     await segment(page, 'Portée du fil', 'À venir')
-    await expectQuery(page, { type: 'post', w: 'upcoming' })
+    await expectQuery(page, { tab: 'publications', type: 'post', w: 'upcoming' })
     await expect(main.getByText('Aucun résultat ne correspond à votre recherche.')).toBeVisible()
 
     await main.getByRole('button', { name: 'Effacer les filtres' }).click()
-    await expectQuery(page, {})
+    await expectQuery(page, { tab: 'publications' })
     await expect(entityCard(main, ride)).toBeVisible()
     await expect(entityCard(main, post)).toBeVisible()
     await expect(typeSelect).toHaveValue('Tous')

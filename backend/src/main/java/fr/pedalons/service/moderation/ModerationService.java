@@ -14,6 +14,7 @@ import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.dashboard.response.TeamDashboardReportsDto;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.moderation.request.ModerationDecisionRequest;
 import fr.pedalons.dto.moderation.response.ModerationItemDto;
@@ -83,6 +84,20 @@ public class ModerationService {
     Team team = teamService.getTeam(teamSlug);
     User moderator = requireTeamModerator(team);
     return queue(team.getId(), excludedTarget(moderator), status, false);
+  }
+
+  /**
+   * The reports tile of the team's dashboard: how many targets of the open queue wait, and the
+   * latest report — two queries, whatever the size of the queue, where {@link #teamQueue} loads it
+   * all. Same exclusion as the queue: a moderator is never told about a report on themselves.
+   */
+  public TeamDashboardReportsDto teamOpenSummary(Team team) {
+    User moderator = requireTeamModerator(team);
+    Long excluded = excludedTarget(moderator);
+    Long domainId = pedalonsContext.getDomainId();
+    return TeamDashboardReportsDto.from(
+        reportRepository.countOpenTargets(domainId, team.getId(), excluded),
+        reportRepository.findLatestOpen(domainId, team.getId(), excluded).orElse(null));
   }
 
   /** Decides about one target of the team's queue. */

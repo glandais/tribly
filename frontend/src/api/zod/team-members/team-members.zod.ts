@@ -24,6 +24,16 @@ export const GetMembersQueryParams = zod.object({
     .optional()
     .describe('Search by display name. Also matches the e-mail address, for administrators only.'),
   size: zod.int().default(getMembersQuerySizeDefault).describe('Page size'),
+  sortBy: zod
+    .enum(['JOINED_AT'])
+    .optional()
+    .describe(
+      'Order of the list. JOINED_AT is the join date, then the membership id; only for a caller who gets the join dates (an administrator, or anyone once the directory is open): 403 otherwise. Omitted, the order is unspecified.'
+    ),
+  sortDir: zod
+    .enum(['ASC', 'DESC'])
+    .optional()
+    .describe('Direction of sortBy. Omitted is DESC — newest first.'),
 })
 
 export const GetMembersResponse = zod

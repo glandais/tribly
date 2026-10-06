@@ -44,6 +44,12 @@ class TeamRepository {
     return _teamsClient.getTeam(teamSlug: slug);
   }
 
+  /// Le tableau de bord de l'équipe : toutes ses sections, filtrées par le
+  /// rôle de l'appelant, en **un seul appel** (`GET …/dashboard`).
+  Future<TeamDashboardDto> getDashboard(String slug) {
+    return _teamsClient.getTeamDashboard(teamSlug: slug);
+  }
+
   /// Join a team
   Future<MemberDto> joinTeam(String slug) {
     return _teamMembersClient.joinTeam(teamSlug: slug);

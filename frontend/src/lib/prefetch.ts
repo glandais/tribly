@@ -23,7 +23,7 @@ export type PrefetchLinkMode = 'intent' | 'viewport' | 'render' | 'none'
 
 /**
  * Chunks already requested, keyed by the page component itself rather than by name: two routes can
- * share one page (`PublicationListPage`), and they share its chunk too. A failed load is dropped
+ * share one page, and they share its chunk too. A failed load is dropped
  * from the set so a later hover retries.
  */
 const preloadedChunks = new WeakSet<object>()
@@ -122,7 +122,7 @@ export function prefetchUrl(
 export function prefetchCommonRoutes(): void {
   const commonPages: PageKey[] = [
     'TeamListPage',
-    'PublicationListPage',
+    'TeamHomePage',
     'RideDetailPage',
     'RouteDetailPage',
     'PostDetailPage',

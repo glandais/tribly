@@ -21,6 +21,8 @@ const MODERATED_LIST_KEYS: readonly RegExp[] = [
   /^\/api\/users\/me\/participations$/,
   // A team's publications, ads, routes and calendar.
   /^\/api\/teams\/[^/]+\/(publications|classifieds|routes|calendar\/events)(\/count|\/bounds)?$/,
+  // A team dashboard: its sections are short pages of those same lists, plus the open-report tile.
+  /^\/api\/teams\/[^/]+\/dashboard$/,
   // Every comment thread (top-level pages and expanded replies share this prefix).
   /^\/api\/teams\/[^/]+\/(rides|posts|trips|routes)\/[^/]+\/comments$/,
 ]

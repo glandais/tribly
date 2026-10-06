@@ -106,6 +106,12 @@ public record TeamDetailDto(
                     + " posts are disabled.",
             required = true)
         long recentPostCount,
+    @Nullable
+        @Schema(
+            description =
+                "Members per role. Only for the team's administrators (platform admins included):"
+                    + " null for everyone else, and in the team listings.")
+        MemberCountByRoleDto memberCountByRole,
     @Nullable @Schema(description = "Current user's role (null if not a member)") TeamRole role,
     @Schema(description = "Team creation timestamp", required = true) Instant createdAt,
     @Nullable
@@ -124,6 +130,19 @@ public record TeamDetailDto(
    */
   public static TeamDetailDto from(
       TeamAndRole teamAndRole, AssetService assetService, boolean platformAdmin, TeamStats stats) {
+    return from(teamAndRole, assetService, platformAdmin, stats, null);
+  }
+
+  /**
+   * @param memberCountByRole the split of the members per role, loaded only for an administrator;
+   *     null leaves it out
+   */
+  public static TeamDetailDto from(
+      TeamAndRole teamAndRole,
+      AssetService assetService,
+      boolean platformAdmin,
+      TeamStats stats,
+      @Nullable MemberCountByRoleDto memberCountByRole) {
     Team team = teamAndRole.team();
     List<TeamPageSummaryDto> pages =
         team.getAdditionalPages().stream()
@@ -159,6 +178,7 @@ public record TeamDetailDto(
         stats.routeCount(),
         stats.upcomingTripCount(),
         stats.recentPostCount(),
+        memberCountByRole,
         platformAdmin ? TeamRole.ADMIN : teamAndRole.teamRole(),
         team.getCreatedAt(),
         team.getGeometry());

@@ -31,6 +31,7 @@ class Keys {
   final teams = TeamsPageKeys();
   final teamsDiscover = TeamsDiscoverKeys();
   final team = TeamPageKeys();
+  final teamDashboard = TeamDashboardKeys();
   final ride = RideDetailKeys();
   final participants = ParticipantsSheetKeys();
   final ad = AdDetailKeys();

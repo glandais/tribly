@@ -2647,9 +2647,31 @@
           }
         }
       },
-      "MemberDto" : {
-        "description" : "Team member information",
+      "MemberCountByRoleDto" : {
         "type" : "object",
+        "description" : "Number of members of the team per role. The three figures add up to the team's memberCount.",
+        "required" : [ "admins", "organizers", "members" ],
+        "properties" : {
+          "admins" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Members with the ADMIN role"
+          },
+          "organizers" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Members with the ORGANIZER role"
+          },
+          "members" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Members with the MEMBER role"
+          }
+        }
+      },
+      "MemberDto" : {
+        "type" : "object",
+        "description" : "Team member information",
         "required" : [ "team", "id", "user" ],
         "properties" : {
           "team" : {
@@ -2679,8 +2701,8 @@
         }
       },
       "MemberListResponse" : {
-        "description" : "Paginated member list response",
         "type" : "object",
+        "description" : "Paginated member list response",
         "required" : [ "members", "total", "page", "size" ],
         "properties" : {
           "members" : {
@@ -2706,6 +2728,10 @@
             "description" : "Page size"
           }
         }
+      },
+      "MemberSortBy" : {
+        "type" : "string",
+        "enum" : [ "JOINED_AT" ]
       },
       "MessageResponse" : {
         "description" : "Simple message response",
@@ -3748,6 +3774,7 @@
         }
       },
       "PublicationDto" : {
+        "type" : "object",
         "oneOf" : [ {
           "$ref" : "#/components/schemas/RideDto"
         }, {
@@ -3764,7 +3791,6 @@
             "TRIP" : "#/components/schemas/TripDto"
           }
         },
-        "type" : "object",
         "properties" : {
           "type" : {
             "$ref" : "#/components/schemas/PublicationType"
@@ -3778,8 +3804,8 @@
         }
       },
       "PublicationListResponse" : {
-        "description" : "Paginated publication list response",
         "type" : "object",
+        "description" : "Paginated publication list response",
         "required" : [ "publications", "total", "page", "size" ],
         "properties" : {
           "publications" : {
@@ -3970,7 +3996,7 @@
       "RideDto" : {
         "description" : "Ride summary data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "finished", "visibility", "participantCount", "groupCount", "groups", "topParticipants", "deleted", "registered", "full", "tags" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "finished", "visibility", "participantCount", "groupCount", "groups", "groupSummaries", "topParticipants", "deleted", "registered", "full", "tags" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -4052,6 +4078,28 @@
               "$ref" : "#/components/schemas/RideGroupDto"
             },
             "description" : "Ride groups"
+          },
+          "groupSummaries" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RideGroupSummaryDto"
+            },
+            "description" : "Every group of the ride in sort order, as a card shows it: name, pace, start time and fill (countParticipants against maxParticipants). Filled on list rows too, where groups is empty — a card draws its per-group fill bars without opening the ride. Carries no leader nor participants: those are on groups, in the detail."
+          },
+          "distance" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Distance in meters of the ride's route — or, when the ride itself has none, of the route of its first group (in sort order) that has one. Null when no route is set anywhere."
+          },
+          "elevationGain" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Total elevation gain in meters, from the same route as distance. Null when no route is set anywhere."
+          },
+          "surfaceType" : {
+            "description" : "Surface type, from the same route as distance. Null when no route is set anywhere.",
+            "type" : "string",
+            "$ref" : "#/components/schemas/SurfaceType"
           },
           "startPlace" : {
             "description" : "Start place",
@@ -4206,6 +4254,64 @@
           }
         }
       },
+      "RideGroupSummaryDto" : {
+        "type" : "object",
+        "description" : "One group of a ride, as a list row shows it: name, pace and fill. Same figures as the matching entry of the detail's groups, without the participants nor the leader.",
+        "required" : [ "id", "name", "countParticipants", "full", "sortOrder" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Group ID (TSID)"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Group name"
+          },
+          "time" : {
+            "description" : "Start time of the group, when it differs from the ride's",
+            "type" : "string",
+            "$ref" : "#/components/schemas/LocalTime"
+          },
+          "averageSpeed" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Average speed in km/h"
+          },
+          "countParticipants" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Current number of participants"
+          },
+          "maxParticipants" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Maximum participants, null when the group is uncapped"
+          },
+          "full" : {
+            "type" : "boolean",
+            "description" : "Whether the group has reached maxParticipants. False when maxParticipants is not set."
+          },
+          "routeSlug" : {
+            "type" : "string",
+            "description" : "Slug of the group route, if it has one"
+          },
+          "distance" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Distance in meters of the group route, if it has one"
+          },
+          "elevationGain" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Total elevation gain in meters of the group route, if it has one"
+          },
+          "sortOrder" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Sort order"
+          }
+        }
+      },
       "RideListResponse" : {
         "description" : "Paginated ride list response",
         "type" : "object",
@@ -4322,8 +4428,8 @@
         }
       },
       "RideTemplateDto" : {
-        "description" : "Ride template response",
         "type" : "object",
+        "description" : "Ride template response",
         "required" : [ "team", "id", "slug", "name", "markdown", "visibility", "status", "createdAt", "updatedAt", "groupCount", "groups", "tags" ],
         "properties" : {
           "team" : {
@@ -4455,8 +4561,8 @@
         "required" : [ "name" ]
       },
       "RideTemplateListResponse" : {
-        "description" : "Paginated ride template list response",
         "type" : "object",
+        "description" : "Paginated ride template list response",
         "required" : [ "templates", "total", "page", "size" ],
         "properties" : {
           "templates" : {
@@ -4728,8 +4834,8 @@
         }
       },
       "RouteListResponse" : {
-        "description" : "Paginated route list response",
         "type" : "object",
+        "description" : "Paginated route list response",
         "required" : [ "routes", "total", "page", "size" ],
         "properties" : {
           "routes" : {
@@ -5178,9 +5284,141 @@
           }
         }
       },
-      "TeamDetailDto" : {
-        "description" : "Detailed team information",
+      "TeamDashboardAdminDto" : {
+        "description" : "The administration panel of a team dashboard. The split of the members per role is team.memberCountByRole, the enabled modules the team's enable* flags.",
         "type" : "object",
+        "required" : [ "newestMembers", "webhook" ],
+        "properties" : {
+          "newestMembers" : {
+            "description" : "The newest members, latest joined first (at most 3), with role and joinedAt. total is the member count.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MemberListResponse"
+          },
+          "webhook" : {
+            "description" : "The team's webhook: configured, kind, enabled, lastStatus, lastAttemptAt. The URL only comes masked.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/TeamWebhookDto"
+          }
+        }
+      },
+      "TeamDashboardDto" : {
+        "description" : "A team's dashboard for one of its members. Each section is a short page (at most 5 rows) of the matching list, compact rows, deleted content left out; its total is what the full list holds. A section is null when its module is disabled for the team. The organizer block is null for a MEMBER, the admin block null below ADMIN.",
+        "type" : "object",
+        "required" : [ "team", "role" ],
+        "properties" : {
+          "team" : {
+            "description" : "The team, as GET /api/teams/{teamSlug} returns it — header, feature flags, memberCount; memberCountByRole is filled for an administrator.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/TeamDetailDto"
+          },
+          "role" : {
+            "description" : "The caller's role in the team, the one the sections were built for. ADMIN for a platform admin.",
+            "type" : "string",
+            "$ref" : "#/components/schemas/TeamRole"
+          },
+          "myUpcoming" : {
+            "description" : "« Vos prochaines sorties »: the team's rides and trips starting from now that the caller is registered to, soonest first (at most 3). A ride row's registeredGroup is the group joined, with its pace. Null when both rides and trips are disabled.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/PublicationListResponse"
+          },
+          "upcomingRides" : {
+            "description" : "« Sorties à venir »: the team's published rides starting from now, soonest first (at most 3). Each row carries groupSummaries (fill per group), distance, elevationGain, surfaceType, registered and commentCount. Null when rides are disabled.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/PublicationListResponse"
+          },
+          "latestPosts" : {
+            "description" : "« Dernières publications »: the team's latest published posts, newest first (at most 3). Null when posts are disabled.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/PublicationListResponse"
+          },
+          "newRoutes" : {
+            "description" : "« Nouveaux parcours »: the team's latest routes, newest first (at most 3). Null when routes are disabled.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/RouteListResponse"
+          },
+          "latestAds" : {
+            "description" : "« Annonces »: the team's latest ads, newest first (at most 3). A null price reads « Prix à négocier »; the place is locationDescription, a sector — never a pin. Null when ads are disabled.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/AdListResponse"
+          },
+          "organizer" : {
+            "description" : "What organizers and administrators see on top. Null for a MEMBER.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/TeamDashboardOrganizerDto"
+          },
+          "admin" : {
+            "description" : "The administration panel. Null below ADMIN.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/TeamDashboardAdminDto"
+          }
+        }
+      },
+      "TeamDashboardOrganizerDto" : {
+        "type" : "object",
+        "description" : "The organizer part of a team dashboard: the « À traiter » tiles and the ride templates. Each list is a short page (at most 5 rows); its total is the tile's figure.",
+        "required" : [ "drafts", "reports" ],
+        "properties" : {
+          "drafts" : {
+            "description" : "The team's drafts (rides, posts, trips), newest first. total is the number of drafts, the rows their names.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/PublicationListResponse"
+          },
+          "ridesWithoutRoute" : {
+            "description" : "Published rides starting from now routed nowhere — neither the ride nor any of its groups has a route — soonest first. Same rows as GET …/publications?type=RIDE&withoutRoute=true. Null when rides are disabled.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/PublicationListResponse"
+          },
+          "ridesWithFullGroup" : {
+            "description" : "Published rides starting from now with at least one group at capacity, soonest first. Same rows as GET …/publications?type=RIDE&withFullGroup=true. Null when rides are disabled.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/PublicationListResponse"
+          },
+          "reports" : {
+            "description" : "The open reports of the team's moderation queue",
+            "type" : "object",
+            "$ref" : "#/components/schemas/TeamDashboardReportsDto"
+          },
+          "rideTemplates" : {
+            "description" : "« Créer depuis un modèle »: the team's ride templates (at most 5), each with its groupCount. Null when rides are disabled.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/RideTemplateListResponse"
+          }
+        }
+      },
+      "TeamDashboardReportsDto" : {
+        "type" : "object",
+        "description" : "The reports tile of a team dashboard. The full queue is GET /api/teams/{teamSlug}/reports?status=OPEN; reporters are never named.",
+        "required" : [ "openCount" ],
+        "properties" : {
+          "openCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Reported targets waiting for a decision — the number of items of the open queue"
+          },
+          "latestReason" : {
+            "description" : "Reason of the most recent open report, null when none",
+            "type" : "string",
+            "$ref" : "#/components/schemas/ReportReason"
+          },
+          "latestTargetType" : {
+            "description" : "What the most recent open report is about, null when none",
+            "type" : "string",
+            "$ref" : "#/components/schemas/ReportTargetType"
+          },
+          "latestExcerpt" : {
+            "type" : "string",
+            "description" : "The reported text as it was when the most recent open report was filed, null when none"
+          },
+          "latestReportedAt" : {
+            "description" : "When the most recent open report was filed, null when none",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "TeamDetailDto" : {
+        "type" : "object",
+        "description" : "Detailed team information",
         "required" : [ "id", "name", "slug", "about", "visibility", "enableTrips", "enableAds", "enablePosts", "enableRides", "enableRoutes", "enableMemberDirectory", "postsAsTeamByDefault", "visibilityEditable", "joinable", "addMemberAllowed", "enableRoutePlanner", "memberCount", "upcomingRideCount", "routeCount", "upcomingTripCount", "recentPostCount", "createdAt" ],
         "properties" : {
           "id" : {
@@ -5289,6 +5527,11 @@
             "type" : "integer",
             "format" : "int64",
             "description" : "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
+          },
+          "memberCountByRole" : {
+            "description" : "Members per role. Only for the team's administrators (platform admins included): null for everyone else, and in the team listings.",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MemberCountByRoleDto"
           },
           "role" : {
             "description" : "Current user's role (null if not a member)",
@@ -5494,8 +5737,8 @@
         }
       },
       "TeamPageSummaryDto" : {
-        "description" : "Team page summary for listings",
         "type" : "object",
+        "description" : "Team page summary for listings",
         "required" : [ "id", "title", "slug", "visibility", "order", "deleted" ],
         "properties" : {
           "id" : {
@@ -5645,8 +5888,8 @@
         "enum" : [ "NAME", "MEMBER_COUNT" ]
       },
       "TeamWebhookDto" : {
-        "description" : "The team's outgoing webhook",
         "type" : "object",
+        "description" : "The team's outgoing webhook",
         "required" : [ "configured", "enabled" ],
         "properties" : {
           "configured" : {
@@ -13853,6 +14096,68 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/dashboard" : {
+      "get" : {
+        "summary" : "Get the team dashboard",
+        "description" : "Everything a member's « Tableau de bord » shows, in one call, graded by the caller's role: the member sections for everyone, the organizer block for organizers and administrators, the admin block for administrators. Each section is a short page of the matching list, and is null when the team has disabled its module. The teams switcher, the unread notification count and the calendar token are not part of it.",
+        "operationId" : "getTeamDashboard",
+        "tags" : [ "Teams" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Dashboard built",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TeamDashboardDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "The caller is not a member of the team",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/teams/{teamSlug}/invitations" : {
       "get" : {
         "summary" : "List a team's invitations",
@@ -14176,6 +14481,20 @@
             "type" : "integer",
             "format" : "int32",
             "default" : 50
+          }
+        }, {
+          "description" : "Order of the list. JOINED_AT is the join date, then the membership id; only for a caller who gets the join dates (an administrator, or anyone once the directory is open): 403 otherwise. Omitted, the order is unspecified.",
+          "name" : "sortBy",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/MemberSortBy"
+          }
+        }, {
+          "description" : "Direction of sortBy. Omitted is DESC — newest first.",
+          "name" : "sortDir",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/SortDirection"
           }
         } ],
         "responses" : {
@@ -16304,6 +16623,13 @@
             "default" : 20
           }
         }, {
+          "description" : "Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones.",
+          "name" : "sortDir",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/SortDirection"
+          }
+        }, {
           "description" : "Only publications with this status. Narrows the visibility rules, never widens them.",
           "name" : "status",
           "in" : "query",
@@ -16340,6 +16666,22 @@
           "in" : "query",
           "schema" : {
             "$ref" : "#/components/schemas/ListViewMode"
+          }
+        }, {
+          "description" : "Only the rides with at least one group at capacity (maxParticipants reached). Every other type of publication is left out.",
+          "name" : "withFullGroup",
+          "in" : "query",
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        }, {
+          "description" : "Only the rides routed nowhere: neither the ride nor any of its groups has a route. Every other type of publication is left out.",
+          "name" : "withoutRoute",
+          "in" : "query",
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
           }
         } ],
         "responses" : {
@@ -16432,6 +16774,22 @@
           "in" : "query",
           "schema" : {
             "$ref" : "#/components/schemas/PublicationType"
+          }
+        }, {
+          "description" : "Only the rides with at least one group at capacity (maxParticipants reached). Every other type of publication is left out.",
+          "name" : "withFullGroup",
+          "in" : "query",
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        }, {
+          "description" : "Only the rides routed nowhere: neither the ride nor any of its groups has a route. Every other type of publication is left out.",
+          "name" : "withoutRoute",
+          "in" : "query",
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
           }
         } ],
         "responses" : {
@@ -22193,7 +22551,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.7.0",
+    "version" : "10.8.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

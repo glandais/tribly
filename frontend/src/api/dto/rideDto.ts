@@ -4,7 +4,9 @@ import type { PlaceDetailDto } from './placeDetailDto.ts'
 import type { PublicUserDto } from './publicUserDto.ts'
 import type { RideDtoType } from './rideDtoType.ts'
 import type { RideGroupDto } from './rideGroupDto.ts'
+import type { RideGroupSummaryDto } from './rideGroupSummaryDto.ts'
 import type { Status } from './status.ts'
+import type { SurfaceType } from './surfaceType.ts'
 import type { TagDto } from './tagDto.ts'
 import type { TeamPublicationDto } from './teamPublicationDto.ts'
 import type { Visibility } from './visibility.ts'
@@ -46,6 +48,14 @@ export interface RideDto {
   groupCount: number
   /** Ride groups */
   groups: RideGroupDto[]
+  /** Every group of the ride in sort order, as a card shows it: name, pace, start time and fill (countParticipants against maxParticipants). Filled on list rows too, where groups is empty — a card draws its per-group fill bars without opening the ride. Carries no leader nor participants: those are on groups, in the detail. */
+  groupSummaries: RideGroupSummaryDto[]
+  /** Distance in meters of the ride's route — or, when the ride itself has none, of the route of its first group (in sort order) that has one. Null when no route is set anywhere. */
+  distance?: number
+  /** Total elevation gain in meters, from the same route as distance. Null when no route is set anywhere. */
+  elevationGain?: number
+  /** Surface type, from the same route as distance. Null when no route is set anywhere. */
+  surfaceType?: SurfaceType
   /** Start place */
   startPlace?: PlaceDetailDto
   /** End place */

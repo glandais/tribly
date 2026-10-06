@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { useParams, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -9,7 +9,8 @@ import { IconCopy } from '@tabler/icons-react'
 import { Container, Stack, Group, Title, Text, Button } from '@mantine/core'
 import { useCreateRideFormData } from '@/pages/ride/rideFormData'
 import { useCreateRide } from '../../api/endpoints/rides/rides'
-import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
+import { useGetTemplate } from '../../api/endpoints/ride-templates/ride-templates'
+import { invalidateTeamPublications } from '@/lib/teamDashboardCache'
 import { Status } from '@/api/dto'
 import type { RideRequest, RideTemplateDto } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -36,11 +37,33 @@ export function CreateRidePage() {
   // so it is keyed on the zone: without a preference it remounts, untouched, with the default
   // recomputed in the visitor's own zone.
   const { timezone } = useEffectiveTimezone()
-  const [templateValues, setTemplateValues] = useState<RideTemplateDto | null>(null)
+  // « Créer depuis un modèle » on the team dashboard hands the template over as router state; the
+  // mobile dashboard, which opens this page in a browser and cannot carry router state, names it in
+  // the URL instead (`?template=<slug>`, mobile `TeamWebPaths.rideNewFromTemplate`), and it is loaded.
+  const location = useLocation()
+  const stateTemplate = (location.state as { template?: RideTemplateDto } | null)?.template
+  const [searchParams] = useSearchParams()
+  const urlTemplateSlug = stateTemplate ? null : searchParams.get('template')
+  const urlTemplate = useGetTemplate(teamSlug!, urlTemplateSlug ?? '', {
+    query: { enabled: !!teamSlug && !!urlTemplateSlug, retry: false },
+  })
+  const [templateValues, setTemplateValues] = useState<RideTemplateDto | null>(() =>
+    stateTemplate ? templateForNewRide(stateTemplate) : null
+  )
+  // The URL's template is applied once, when it arrives; a template picked afterwards wins.
+  const [urlTemplateApplied, setUrlTemplateApplied] = useState(false)
+  if (urlTemplate.data && !urlTemplateApplied) {
+    setUrlTemplateApplied(true)
+    if (!templateValues) {
+      setTemplateValues(templateForNewRide(urlTemplate.data))
+    }
+  }
 
   useCanonicalPath(team ? paths.rideNew(team.slug) : undefined)
 
-  if (isLoadingTeam) {
+  // An empty form the template then fills would race the first keystrokes: wait for it. A template
+  // that cannot be read (deleted, renamed) leaves the plain form.
+  if (isLoadingTeam || (!!urlTemplateSlug && urlTemplate.isLoading)) {
     return <LoadingPage message={t('loading')} />
   }
 
@@ -96,14 +119,7 @@ export function CreateRidePage() {
       }
 
   const handleTemplateSelect = (template: RideTemplateDto) => {
-    setTemplateValues({
-      ...template,
-      groups: template.groups.map((g) => ({
-        ...g,
-        routeSlug: undefined,
-        isNew: true,
-      })),
-    })
+    setTemplateValues(templateForNewRide(template))
     setEditorKey((prev) => prev + 1)
     setShowTemplateModal(false)
   }
@@ -120,7 +136,7 @@ export function CreateRidePage() {
       },
       {
         onSuccess: (ride) => {
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateTeamPublications(queryClient, teamSlug!)
           notifications.show({ message: i18next.t('rides.notifications.created'), color: 'green' })
           navigate(paths.ride(teamSlug!, ride.slug))
         },
@@ -163,4 +179,16 @@ export function CreateRidePage() {
       />
     </Container>
   )
+}
+
+/** A template's values as a new ride starts from them: the groups are new, and routed nowhere. */
+function templateForNewRide(template: RideTemplateDto): RideTemplateDto {
+  return {
+    ...template,
+    groups: template.groups.map((g) => ({
+      ...g,
+      routeSlug: undefined,
+      isNew: true,
+    })),
+  }
 }

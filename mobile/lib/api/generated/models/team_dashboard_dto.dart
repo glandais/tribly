@@ -1,0 +1,52 @@
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, unused_import, invalid_annotation_target, unnecessary_import
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import 'ad_list_response.dart';
+import 'publication_list_response.dart';
+import 'route_list_response.dart';
+import 'team_dashboard_admin_dto.dart';
+import 'team_dashboard_organizer_dto.dart';
+import 'team_detail_dto.dart';
+import 'team_role.dart';
+
+part 'team_dashboard_dto.freezed.dart';
+part 'team_dashboard_dto.g.dart';
+
+/// A team's dashboard for one of its members. Each section is a short page (at most 5 rows) of the matching list, compact rows, deleted content left out; its total is what the full list holds. A section is null when its module is disabled for the team. The organizer block is null for a MEMBER, the admin block null below ADMIN.
+@Freezed()
+abstract class TeamDashboardDto with _$TeamDashboardDto {
+  const factory TeamDashboardDto({
+    /// The team, as GET /api/teams/{teamSlug} returns it — header, feature flags, memberCount; memberCountByRole is filled for an administrator.
+    required TeamDetailDto team,
+
+    /// The caller's role in the team, the one the sections were built for. ADMIN for a platform admin.
+    required String role,
+
+    /// « Vos prochaines sorties »: the team's rides and trips starting from now that the caller is registered to, soonest first (at most 3). A ride row's registeredGroup is the group joined, with its pace. Null when both rides and trips are disabled.
+    PublicationListResponse? myUpcoming,
+
+    /// « Sorties à venir »: the team's published rides starting from now, soonest first (at most 3). Each row carries groupSummaries (fill per group), distance, elevationGain, surfaceType, registered and commentCount. Null when rides are disabled.
+    PublicationListResponse? upcomingRides,
+
+    /// « Dernières publications »: the team's latest published posts, newest first (at most 3). Null when posts are disabled.
+    PublicationListResponse? latestPosts,
+
+    /// « Nouveaux parcours »: the team's latest routes, newest first (at most 3). Null when routes are disabled.
+    RouteListResponse? newRoutes,
+
+    /// « Annonces »: the team's latest ads, newest first (at most 3). A null price reads « Prix à négocier »; the place is locationDescription, a sector — never a pin. Null when ads are disabled.
+    AdListResponse? latestAds,
+
+    /// What organizers and administrators see on top. Null for a MEMBER.
+    TeamDashboardOrganizerDto? organizer,
+
+    /// The administration panel. Null below ADMIN.
+    TeamDashboardAdminDto? admin,
+  }) = _TeamDashboardDto;
+
+  factory TeamDashboardDto.fromJson(Map<String, Object?> json) =>
+      _$TeamDashboardDtoFromJson(json);
+}

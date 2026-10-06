@@ -317,6 +317,16 @@ export const ListTeamsResponse = zod
               .describe(
                 "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
               ),
+            memberCountByRole: zod
+              .object({
+                admins: zod.int().describe('Members with the ADMIN role'),
+                organizers: zod.int().describe('Members with the ORGANIZER role'),
+                members: zod.int().describe('Members with the MEMBER role'),
+              })
+              .optional()
+              .describe(
+                "Members per role. Only for the team's administrators (platform admins included): null for everyone else, and in the team listings."
+              ),
             role: zod
               .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
               .optional()
@@ -856,6 +866,16 @@ export const CreateTeamResponse = zod
       .describe(
         "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
       ),
+    memberCountByRole: zod
+      .object({
+        admins: zod.int().describe('Members with the ADMIN role'),
+        organizers: zod.int().describe('Members with the ORGANIZER role'),
+        members: zod.int().describe('Members with the MEMBER role'),
+      })
+      .optional()
+      .describe(
+        "Members per role. Only for the team's administrators (platform admins included): null for everyone else, and in the team listings."
+      ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
       .optional()
@@ -1392,6 +1412,16 @@ export const UpdateTeamResponse = zod
       .describe(
         "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
       ),
+    memberCountByRole: zod
+      .object({
+        admins: zod.int().describe('Members with the ADMIN role'),
+        organizers: zod.int().describe('Members with the ORGANIZER role'),
+        members: zod.int().describe('Members with the MEMBER role'),
+      })
+      .optional()
+      .describe(
+        "Members per role. Only for the team's administrators (platform admins included): null for everyone else, and in the team listings."
+      ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
       .optional()
@@ -1693,6 +1723,16 @@ export const GetTeamResponse = zod
       .describe(
         "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
       ),
+    memberCountByRole: zod
+      .object({
+        admins: zod.int().describe('Members with the ADMIN role'),
+        organizers: zod.int().describe('Members with the ORGANIZER role'),
+        members: zod.int().describe('Members with the MEMBER role'),
+      })
+      .optional()
+      .describe(
+        "Members per role. Only for the team's administrators (platform admins included): null for everyone else, and in the team listings."
+      ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
       .optional()
@@ -1717,6 +1757,12533 @@ export const DeleteTeamParams = zod.object({
 })
 
 export const DeleteTeamResponse = zod.void()
+
+/**
+ * Everything a member's « Tableau de bord » shows, in one call, graded by the caller's role: the member sections for everyone, the organizer block for organizers and administrators, the admin block for administrators. Each section is a short page of the matching list, and is null when the team has disabled its module. The teams switcher, the unread notification count and the calendar token are not part of it.
+ * @summary Get the team dashboard
+ */
+export const GetTeamDashboardParams = zod.object({
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const getTeamDashboardResponseTeamAboutMarkdownMax = 100000
+
+export const getTeamDashboardResponseMyUpcomingPublicationsItemOneMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseMyUpcomingPublicationsItemTwoMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseMyUpcomingPublicationsItemThreeMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseMyUpcomingPublicationsItemThreeStagesItemRouteMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseMyUpcomingPublicationsItemThreeStagesItemMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseUpcomingRidesPublicationsItemOneMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseUpcomingRidesPublicationsItemTwoMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseUpcomingRidesPublicationsItemThreeMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseUpcomingRidesPublicationsItemThreeStagesItemRouteMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseUpcomingRidesPublicationsItemThreeStagesItemMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseLatestPostsPublicationsItemOneMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseLatestPostsPublicationsItemTwoMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseLatestPostsPublicationsItemThreeMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseLatestPostsPublicationsItemThreeStagesItemRouteMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseLatestPostsPublicationsItemThreeStagesItemMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseNewRoutesRoutesItemMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseLatestAdsAdsItemMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerDraftsPublicationsItemOneMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerDraftsPublicationsItemTwoMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerDraftsPublicationsItemThreeMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerDraftsPublicationsItemThreeStagesItemRouteMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerDraftsPublicationsItemThreeStagesItemMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerRidesWithoutRoutePublicationsItemOneMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerRidesWithoutRoutePublicationsItemTwoMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerRidesWithoutRoutePublicationsItemThreeMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerRidesWithoutRoutePublicationsItemThreeStagesItemRouteMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerRidesWithoutRoutePublicationsItemThreeStagesItemMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerRidesWithFullGroupPublicationsItemOneMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerRidesWithFullGroupPublicationsItemTwoMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerRidesWithFullGroupPublicationsItemThreeMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerRidesWithFullGroupPublicationsItemThreeStagesItemRouteMediaMarkdownMax = 100000
+
+export const getTeamDashboardResponseOrganizerRidesWithFullGroupPublicationsItemThreeStagesItemMediaMarkdownMax = 100000
+
+export const GetTeamDashboardResponse = zod
+  .object({
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        about: zod
+          .object({
+            markdown: zod
+              .string()
+              .max(getTeamDashboardResponseTeamAboutMarkdownMax)
+              .describe('Markdown'),
+            assets: zod
+              .object({
+                logo: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.int().optional(),
+                        height: zod.int().optional(),
+                      })
+                      .optional()
+                      .describe('image dimensions'),
+                    size: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                      ),
+                  })
+                  .optional()
+                  .describe('Logo'),
+                images: zod
+                  .array(
+                    zod.object({
+                      id: zod.string().describe('ID (TSID)'),
+                      fileName: zod.string().describe('Filename'),
+                      contentType: zod.string().describe('Content-Type'),
+                      url: zod.string().describe('url'),
+                      imageUrl: zod.string().optional().describe('image template url'),
+                      imageDimensions: zod
+                        .object({
+                          width: zod.int().optional(),
+                          height: zod.int().optional(),
+                        })
+                        .optional()
+                        .describe('image dimensions'),
+                      size: zod
+                        .int()
+                        .optional()
+                        .describe(
+                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                        ),
+                    })
+                  )
+                  .describe('Images'),
+                attachments: zod
+                  .array(
+                    zod.object({
+                      id: zod.string().describe('ID (TSID)'),
+                      fileName: zod.string().describe('Filename'),
+                      contentType: zod.string().describe('Content-Type'),
+                      url: zod.string().describe('url'),
+                      imageUrl: zod.string().optional().describe('image template url'),
+                      imageDimensions: zod
+                        .object({
+                          width: zod.int().optional(),
+                          height: zod.int().optional(),
+                        })
+                        .optional()
+                        .describe('image dimensions'),
+                      size: zod
+                        .int()
+                        .optional()
+                        .describe(
+                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                        ),
+                    })
+                  )
+                  .describe('Attachments'),
+                originalGpx: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.int().optional(),
+                        height: zod.int().optional(),
+                      })
+                      .optional()
+                      .describe('image dimensions'),
+                    size: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                      ),
+                  })
+                  .optional()
+                  .describe('Original GPX'),
+                gpx: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.int().optional(),
+                        height: zod.int().optional(),
+                      })
+                      .optional()
+                      .describe('image dimensions'),
+                    size: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                      ),
+                  })
+                  .optional()
+                  .describe('GPX'),
+                fit: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.int().optional(),
+                        height: zod.int().optional(),
+                      })
+                      .optional()
+                      .describe('image dimensions'),
+                    size: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                      ),
+                  })
+                  .optional()
+                  .describe('FIT'),
+                thumbnailLight: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.int().optional(),
+                        height: zod.int().optional(),
+                      })
+                      .optional()
+                      .describe('image dimensions'),
+                    size: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                      ),
+                  })
+                  .optional()
+                  .describe('Light thumbnail'),
+                thumbnailDark: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.int().optional(),
+                        height: zod.int().optional(),
+                      })
+                      .optional()
+                      .describe('image dimensions'),
+                    size: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                      ),
+                  })
+                  .optional()
+                  .describe('Dark thumbnail'),
+              })
+              .describe('Assets'),
+          })
+          .describe('About page content'),
+        excerpt: zod
+          .string()
+          .optional()
+          .describe(
+            'Plain-text opening of the about page, flattened and cut on a word boundary at about 200 characters. Null when the about page holds no text. Lets a team card render its two lines without parsing the markdown client-side.'
+          ),
+        logoUrl: zod
+          .string()
+          .optional()
+          .describe(
+            "URL template of the team's logo, when it has one. Same picture as about.assets.logo, hoisted so a card does not have to walk the asset inventory to find it."
+          ),
+        pages: zod
+          .array(
+            zod
+              .object({
+                id: zod.string().describe('Page ID (TSID)'),
+                title: zod.string().describe('Page title'),
+                slug: zod.string().describe('Page URL slug'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Visibility level'),
+                order: zod.int().describe('Page order'),
+                deleted: zod.boolean().describe('Whether the page is soft-deleted'),
+              })
+              .describe('Team page summary for listings')
+          )
+          .optional()
+          .describe('Additional team pages'),
+        visibility: zod
+          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+          .describe('Whether the team is public'),
+        enableTrips: zod.boolean().describe('Trips enabled'),
+        enableAds: zod.boolean().describe('Ads enabled'),
+        enablePosts: zod.boolean().describe('Posts enabled'),
+        enableRides: zod.boolean().describe('Rides enabled'),
+        enableRoutes: zod.boolean().describe('Routes enabled'),
+        enableMemberDirectory: zod
+          .boolean()
+          .describe(
+            "Whether the member directory is readable by every member and not just by administrators. Clients use it to decide whether to offer the directory at all: an entry that always leads to a 403 is worse than no entry. Organisers see the directory whatever its value, but only get each member's role and join date when it is true."
+          ),
+        postsAsTeamByDefault: zod
+          .boolean()
+          .describe(
+            "Whether a new post starts signed by the team rather than by its author — the initial value of the editor's « on behalf of the team » box."
+          ),
+        visibilityEditable: zod.boolean().describe('Whether visibility is editable by team admins'),
+        joinable: zod.boolean().describe('Whether any domain user can join this team'),
+        addMemberAllowed: zod.boolean().describe('Whether team admins can add members'),
+        enableRoutePlanner: zod
+          .boolean()
+          .describe(
+            'Whether the interactive route planner is open to this team. Unlike enableRoutes it never hides the routes section: when false the track can still be imported or replaced from a GPX file, only drawing is closed. Platform-admin only.'
+          ),
+        memberCount: zod.int().describe('Number of team members'),
+        upcomingRideCount: zod
+          .int()
+          .describe(
+            'Rides of this team dated in the future that the caller may open. Follows the same visibility rules as the ride listing, so it never announces more than the caller can actually see.'
+          ),
+        routeCount: zod
+          .int()
+          .describe(
+            'Routes of this team the caller may open, under the same visibility rules as the route listing.'
+          ),
+        upcomingTripCount: zod
+          .int()
+          .describe(
+            'Trips of this team starting in the future that the caller may open, under the same visibility rules as the trip listing. 0 when trips are disabled.'
+          ),
+        recentPostCount: zod
+          .int()
+          .describe(
+            "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
+          ),
+        memberCountByRole: zod
+          .object({
+            admins: zod.int().describe('Members with the ADMIN role'),
+            organizers: zod.int().describe('Members with the ORGANIZER role'),
+            members: zod.int().describe('Members with the MEMBER role'),
+          })
+          .optional()
+          .describe(
+            "Members per role. Only for the team's administrators (platform admins included): null for everyone else, and in the team listings."
+          ),
+        role: zod
+          .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+          .optional()
+          .describe("Current user's role (null if not a member)"),
+        createdAt: zod.iso.datetime({ offset: true }).describe('Team creation timestamp'),
+        geometry: zod
+          .object({
+            type: zod.enum(['Point']),
+            coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+          })
+          .optional()
+          .describe('Team location coordinates [longitude, latitude]'),
+      })
+      .describe(
+        'The team, as GET /api/teams/{teamSlug} returns it — header, feature flags, memberCount; memberCountByRole is filled for an administrator.'
+      ),
+    role: zod
+      .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+      .describe(
+        "The caller's role in the team, the one the sections were built for. ADMIN for a platform admin."
+      ),
+    myUpcoming: zod
+      .object({
+        publications: zod
+          .array(
+            zod
+              .union([
+                zod
+                  .object({
+                    type: zod.enum(['RIDE']),
+                    team: zod
+                      .object({
+                        id: zod.string().describe('Team ID (TSID)'),
+                        name: zod.string().describe('Team name'),
+                        slug: zod.string().describe('Team URL slug'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Whether the team is public'),
+                        logoUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                          ),
+                      })
+                      .describe('Team'),
+                    id: zod.string().describe('Publication ID (TSID)'),
+                    slug: zod.string().describe('Publication URL slug'),
+                    name: zod.string().describe('Publication name'),
+                    media: zod
+                      .object({
+                        markdown: zod
+                          .string()
+                          .max(
+                            getTeamDashboardResponseMyUpcomingPublicationsItemOneMediaMarkdownMax
+                          )
+                          .describe('Markdown'),
+                        assets: zod
+                          .object({
+                            logo: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Logo'),
+                            images: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Images'),
+                            attachments: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Attachments'),
+                            originalGpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Original GPX'),
+                            gpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('GPX'),
+                            fit: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('FIT'),
+                            thumbnailLight: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Light thumbnail'),
+                            thumbnailDark: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Dark thumbnail'),
+                          })
+                          .describe('Assets'),
+                      })
+                      .describe('Publication media'),
+                    excerpt: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                      ),
+                    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    status: zod
+                      .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                      .describe('Publication status'),
+                    finished: zod
+                      .boolean()
+                      .describe(
+                        'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+                      ),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Visibility level'),
+                    publishAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Publication timestamp'),
+                    createdAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Creation timestamp'),
+                    routeSlug: zod.string().optional().describe('Route slug'),
+                    participantCount: zod.int().describe('Number of participants'),
+                    groupCount: zod.int().describe('Number of groups'),
+                    groups: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Group ID (TSID)'),
+                            name: zod.string().describe('Group name'),
+                            time: zod.string().optional(),
+                            routeSlug: zod.string().optional().describe('Route slug'),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                            maxParticipants: zod.int().optional().describe('Maximum participants'),
+                            countParticipants: zod.int().describe('Current number of participants'),
+                            participants: zod
+                              .array(
+                                zod
+                                  .object({
+                                    id: zod.string().describe('User ID (TSID)'),
+                                    displayName: zod.string().describe('User display name'),
+                                    avatarUrl: zod.string().optional().describe('User avatar URL'),
+                                  })
+                                  .describe('Public user information (limited fields)')
+                              )
+                              .describe(
+                                'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                              ),
+                            sortOrder: zod.int().describe('Sort order'),
+                            registered: zod
+                              .boolean()
+                              .describe(
+                                'Whether the current user is registered in THIS group. False if anonymous.'
+                              ),
+                            full: zod
+                              .boolean()
+                              .describe(
+                                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                              ),
+                            distance: zod
+                              .number()
+                              .optional()
+                              .describe('Distance in meters of the group route, if it has one'),
+                            elevationGain: zod
+                              .number()
+                              .optional()
+                              .describe(
+                                'Total elevation gain in meters of the group route, if it has one'
+                              ),
+                            leader: zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .optional()
+                              .describe(
+                                "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                              ),
+                            thumbnailLightUrl: zod
+                              .string()
+                              .optional()
+                              .describe('Thumbnail URL (light) of the group route, if it has one'),
+                            thumbnailDarkUrl: zod
+                              .string()
+                              .optional()
+                              .describe('Thumbnail URL (dark) of the group route, if it has one'),
+                            thumbnailUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                              ),
+                          })
+                          .describe('Ride group information')
+                      )
+                      .describe('Ride groups'),
+                    groupSummaries: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Group ID (TSID)'),
+                            name: zod.string().describe('Group name'),
+                            time: zod
+                              .string()
+                              .optional()
+                              .describe("Start time of the group, when it differs from the ride's"),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                            countParticipants: zod.int().describe('Current number of participants'),
+                            maxParticipants: zod
+                              .int()
+                              .optional()
+                              .describe('Maximum participants, null when the group is uncapped'),
+                            full: zod
+                              .boolean()
+                              .describe(
+                                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                              ),
+                            routeSlug: zod
+                              .string()
+                              .optional()
+                              .describe('Slug of the group route, if it has one'),
+                            distance: zod
+                              .number()
+                              .optional()
+                              .describe('Distance in meters of the group route, if it has one'),
+                            elevationGain: zod
+                              .number()
+                              .optional()
+                              .describe(
+                                'Total elevation gain in meters of the group route, if it has one'
+                              ),
+                            sortOrder: zod.int().describe('Sort order'),
+                          })
+                          .describe(
+                            "One group of a ride, as a list row shows it: name, pace and fill. Same figures as the matching entry of the detail's groups, without the participants nor the leader."
+                          )
+                      )
+                      .describe(
+                        'Every group of the ride in sort order, as a card shows it: name, pace, start time and fill (countParticipants against maxParticipants). Filled on list rows too, where groups is empty — a card draws its per-group fill bars without opening the ride. Carries no leader nor participants: those are on groups, in the detail.'
+                      ),
+                    distance: zod
+                      .number()
+                      .optional()
+                      .describe(
+                        "Distance in meters of the ride's route — or, when the ride itself has none, of the route of its first group (in sort order) that has one. Null when no route is set anywhere."
+                      ),
+                    elevationGain: zod
+                      .number()
+                      .optional()
+                      .describe(
+                        'Total elevation gain in meters, from the same route as distance. Null when no route is set anywhere.'
+                      ),
+                    surfaceType: zod
+                      .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                      .optional()
+                      .describe(
+                        'Surface type, from the same route as distance. Null when no route is set anywhere.'
+                      ),
+                    startPlace: zod
+                      .object({
+                        id: zod.string().describe('Place ID (TSID)'),
+                        name: zod.string(),
+                        address: zod.string().optional(),
+                        link: zod.string().optional(),
+                        startPlace: zod.boolean(),
+                        endPlace: zod.boolean(),
+                        geometry: zod
+                          .object({
+                            type: zod.enum(['Point']),
+                            coordinates: zod
+                              .array(zod.number())
+                              .describe('Coordinates [longitude, latitude]'),
+                          })
+                          .optional()
+                          .describe('Location coordinates [longitude, latitude]'),
+                      })
+                      .optional()
+                      .describe('Start place'),
+                    endPlace: zod
+                      .object({
+                        id: zod.string().describe('Place ID (TSID)'),
+                        name: zod.string(),
+                        address: zod.string().optional(),
+                        link: zod.string().optional(),
+                        startPlace: zod.boolean(),
+                        endPlace: zod.boolean(),
+                        geometry: zod
+                          .object({
+                            type: zod.enum(['Point']),
+                            coordinates: zod
+                              .array(zod.number())
+                              .describe('Coordinates [longitude, latitude]'),
+                          })
+                          .optional()
+                          .describe('Location coordinates [longitude, latitude]'),
+                      })
+                      .optional()
+                      .describe('End place'),
+                    topParticipants: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .describe('Public user information (limited fields)')
+                      )
+                      .describe('Preview of first participants (max 5)'),
+                    thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
+                    thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                    thumbnailUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+                      ),
+                    deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
+                    registered: zod
+                      .boolean()
+                      .describe(
+                        "Whether the current user is registered in one of this ride's groups. False if anonymous."
+                      ),
+                    registeredGroupId: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'ID (TSID) of the group the current user joined, null if not registered'
+                      ),
+                    registeredGroup: zod
+                      .object({
+                        id: zod.string().describe('Group ID (TSID)'),
+                        name: zod.string().describe('Group name'),
+                        time: zod.string().optional(),
+                        routeSlug: zod.string().optional().describe('Route slug'),
+                        averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                        maxParticipants: zod.int().optional().describe('Maximum participants'),
+                        countParticipants: zod.int().describe('Current number of participants'),
+                        participants: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .describe('Public user information (limited fields)')
+                          )
+                          .describe(
+                            'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                          ),
+                        sortOrder: zod.int().describe('Sort order'),
+                        registered: zod
+                          .boolean()
+                          .describe(
+                            'Whether the current user is registered in THIS group. False if anonymous.'
+                          ),
+                        full: zod
+                          .boolean()
+                          .describe(
+                            'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                          ),
+                        distance: zod
+                          .number()
+                          .optional()
+                          .describe('Distance in meters of the group route, if it has one'),
+                        elevationGain: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Total elevation gain in meters of the group route, if it has one'
+                          ),
+                        leader: zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .optional()
+                          .describe(
+                            "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                          ),
+                        thumbnailLightUrl: zod
+                          .string()
+                          .optional()
+                          .describe('Thumbnail URL (light) of the group route, if it has one'),
+                        thumbnailDarkUrl: zod
+                          .string()
+                          .optional()
+                          .describe('Thumbnail URL (dark) of the group route, if it has one'),
+                        thumbnailUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                          ),
+                      })
+                      .optional()
+                      .describe(
+                        'The group the current user joined, in full — the same object as the matching entry of groups. Null if not registered or anonymous. Set on list rows too, where groups is empty: a client rendering "my next ride" needs no second request for its group. Its leader is the group\'s own, null when none was designated.'
+                      ),
+                    full: zod
+                      .boolean()
+                      .describe(
+                        'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
+                      ),
+                    maxParticipants: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Capacity of the whole ride: the sum of its groups\' maxParticipants, to render participantCount against it ("12/40"). Null when the ride has no group, or when at least one group has no maxParticipants — the ride then has no overall limit, and is never full. Set on list rows too, where groups is empty.'
+                      ),
+                    commentCount: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+                      ),
+                    tags: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Tag ID (TSID)'),
+                            label: zod.string().describe('Label, at most 32 characters'),
+                            color: zod
+                              .enum([
+                                'INDIGO',
+                                'BLUE',
+                                'GREEN',
+                                'RED',
+                                'YELLOW',
+                                'ORANGE',
+                                'GRAPE',
+                                'TEAL',
+                                'GRAY',
+                              ])
+                              .describe('Colour family'),
+                          })
+                          .describe('A team tag on a content')
+                      )
+                      .describe(
+                        "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
+                      ),
+                  })
+                  .describe('Ride summary data'),
+                zod
+                  .object({
+                    type: zod.enum(['POST']),
+                    team: zod
+                      .object({
+                        id: zod.string().describe('Team ID (TSID)'),
+                        name: zod.string().describe('Team name'),
+                        slug: zod.string().describe('Team URL slug'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Whether the team is public'),
+                        logoUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                          ),
+                      })
+                      .describe('Team'),
+                    id: zod.string().describe('Publication ID (TSID)'),
+                    slug: zod.string().describe('Publication URL slug'),
+                    name: zod.string().describe('Publication name'),
+                    media: zod
+                      .object({
+                        markdown: zod
+                          .string()
+                          .max(
+                            getTeamDashboardResponseMyUpcomingPublicationsItemTwoMediaMarkdownMax
+                          )
+                          .describe('Markdown'),
+                        assets: zod
+                          .object({
+                            logo: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Logo'),
+                            images: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Images'),
+                            attachments: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Attachments'),
+                            originalGpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Original GPX'),
+                            gpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('GPX'),
+                            fit: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('FIT'),
+                            thumbnailLight: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Light thumbnail'),
+                            thumbnailDark: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Dark thumbnail'),
+                          })
+                          .describe('Assets'),
+                      })
+                      .describe('Publication media'),
+                    excerpt: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                      ),
+                    thumbnailUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
+                      ),
+                    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    status: zod
+                      .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                      .describe('Publication status'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Visibility level'),
+                    publishAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Publication timestamp'),
+                    createdAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Creation timestamp'),
+                    deleted: zod.boolean().describe('Whether the post is soft-deleted'),
+                    commentCount: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+                      ),
+                    signedAsTeam: zod
+                      .boolean()
+                      .describe(
+                        'Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.'
+                      ),
+                    createdBy: zod
+                      .object({
+                        id: zod.string().describe('User ID (TSID)'),
+                        displayName: zod.string().describe('User display name'),
+                        avatarUrl: zod.string().optional().describe('User avatar URL'),
+                      })
+                      .optional()
+                      .describe(
+                        'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+                      ),
+                    tags: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Tag ID (TSID)'),
+                            label: zod.string().describe('Label, at most 32 characters'),
+                            color: zod
+                              .enum([
+                                'INDIGO',
+                                'BLUE',
+                                'GREEN',
+                                'RED',
+                                'YELLOW',
+                                'ORANGE',
+                                'GRAPE',
+                                'TEAL',
+                                'GRAY',
+                              ])
+                              .describe('Colour family'),
+                          })
+                          .describe('A team tag on a content')
+                      )
+                      .describe(
+                        "The team's POST tags the post carries, sorted by label. Empty when it carries none."
+                      ),
+                  })
+                  .describe('Post summary data'),
+                zod
+                  .object({
+                    type: zod.enum(['TRIP']),
+                    team: zod
+                      .object({
+                        id: zod.string().describe('Team ID (TSID)'),
+                        name: zod.string().describe('Team name'),
+                        slug: zod.string().describe('Team URL slug'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Whether the team is public'),
+                        logoUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                          ),
+                      })
+                      .describe('Team'),
+                    id: zod.string().describe('Publication ID (TSID)'),
+                    slug: zod.string().describe('Publication URL slug'),
+                    name: zod.string().describe('Publication name'),
+                    media: zod
+                      .object({
+                        markdown: zod
+                          .string()
+                          .max(
+                            getTeamDashboardResponseMyUpcomingPublicationsItemThreeMediaMarkdownMax
+                          )
+                          .describe('Markdown'),
+                        assets: zod
+                          .object({
+                            logo: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Logo'),
+                            images: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Images'),
+                            attachments: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Attachments'),
+                            originalGpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Original GPX'),
+                            gpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('GPX'),
+                            fit: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('FIT'),
+                            thumbnailLight: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Light thumbnail'),
+                            thumbnailDark: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Dark thumbnail'),
+                          })
+                          .describe('Assets'),
+                      })
+                      .describe('Publication media'),
+                    excerpt: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                      ),
+                    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+                    endDate: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe(
+                        'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+                      ),
+                    status: zod
+                      .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                      .describe('Publication status'),
+                    finished: zod
+                      .boolean()
+                      .describe(
+                        'Whether the trip is over, computed by the server when the response is built: its last stage (endDate, or dateTime when there is none) has started. Independent of status — a past cancelled trip is both CANCELLED and finished.'
+                      ),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Visibility level'),
+                    publishAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Publication timestamp'),
+                    createdAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Creation timestamp'),
+                    routeSlug: zod.string().optional().describe('Route slug'),
+                    participantCount: zod.int().describe('Number of participants'),
+                    stageCount: zod.int().describe('Number of stages'),
+                    totalDistance: zod
+                      .number()
+                      .optional()
+                      .describe(
+                        'Distance in metres over every stage that has a route. Null when no stage has one — an unrouted trip has no distance, which is not the same as a distance of zero.'
+                      ),
+                    totalElevationGain: zod
+                      .number()
+                      .optional()
+                      .describe(
+                        'Elevation gain in metres over every stage that has a route. Null when no stage has one.'
+                      ),
+                    stages: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Stage ID (TSID)'),
+                            slug: zod.string().describe('Stage slug'),
+                            name: zod.string().describe('Stage name'),
+                            dateTime: zod.iso
+                              .datetime({ offset: true })
+                              .describe('Stage date/time'),
+                            route: zod
+                              .object({
+                                id: zod.string().describe('Route ID (TSID)'),
+                                slug: zod.string().describe('Route slug'),
+                                team: zod
+                                  .object({
+                                    id: zod.string().describe('Team ID (TSID)'),
+                                    name: zod.string().describe('Team name'),
+                                    slug: zod.string().describe('Team URL slug'),
+                                    visibility: zod
+                                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                                      .describe('Whether the team is public'),
+                                    logoUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe(
+                                        "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                                      ),
+                                  })
+                                  .describe('Team'),
+                                name: zod.string().describe('Route name'),
+                                media: zod
+                                  .object({
+                                    markdown: zod
+                                      .string()
+                                      .max(
+                                        getTeamDashboardResponseMyUpcomingPublicationsItemThreeStagesItemRouteMediaMarkdownMax
+                                      )
+                                      .describe('Markdown'),
+                                    assets: zod
+                                      .object({
+                                        logo: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Logo'),
+                                        images: zod
+                                          .array(
+                                            zod.object({
+                                              id: zod.string().describe('ID (TSID)'),
+                                              fileName: zod.string().describe('Filename'),
+                                              contentType: zod.string().describe('Content-Type'),
+                                              url: zod.string().describe('url'),
+                                              imageUrl: zod
+                                                .string()
+                                                .optional()
+                                                .describe('image template url'),
+                                              imageDimensions: zod
+                                                .object({
+                                                  width: zod.int().optional(),
+                                                  height: zod.int().optional(),
+                                                })
+                                                .optional()
+                                                .describe('image dimensions'),
+                                              size: zod
+                                                .int()
+                                                .optional()
+                                                .describe(
+                                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                ),
+                                            })
+                                          )
+                                          .describe('Images'),
+                                        attachments: zod
+                                          .array(
+                                            zod.object({
+                                              id: zod.string().describe('ID (TSID)'),
+                                              fileName: zod.string().describe('Filename'),
+                                              contentType: zod.string().describe('Content-Type'),
+                                              url: zod.string().describe('url'),
+                                              imageUrl: zod
+                                                .string()
+                                                .optional()
+                                                .describe('image template url'),
+                                              imageDimensions: zod
+                                                .object({
+                                                  width: zod.int().optional(),
+                                                  height: zod.int().optional(),
+                                                })
+                                                .optional()
+                                                .describe('image dimensions'),
+                                              size: zod
+                                                .int()
+                                                .optional()
+                                                .describe(
+                                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                ),
+                                            })
+                                          )
+                                          .describe('Attachments'),
+                                        originalGpx: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Original GPX'),
+                                        gpx: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('GPX'),
+                                        fit: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('FIT'),
+                                        thumbnailLight: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Light thumbnail'),
+                                        thumbnailDark: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Dark thumbnail'),
+                                      })
+                                      .describe('Assets'),
+                                  })
+                                  .describe('Route description'),
+                                excerpt: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                                  ),
+                                thumbnailUrl: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+                                  ),
+                                distance: zod.number().describe('Distance in meters'),
+                                elevationGain: zod
+                                  .number()
+                                  .describe('Total elevation gain in meters'),
+                                elevationLoss: zod
+                                  .number()
+                                  .describe('Total elevation loss in meters'),
+                                surfaceType: zod
+                                  .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                                  .describe('Surface type'),
+                                visibility: zod
+                                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                                  .describe('Whether the route is public'),
+                                createdAt: zod.iso
+                                  .datetime({ offset: true })
+                                  .describe('Creation timestamp'),
+                                deleted: zod
+                                  .boolean()
+                                  .describe('Whether the route is soft-deleted'),
+                                commentCount: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+                                  ),
+                                tags: zod
+                                  .array(
+                                    zod
+                                      .object({
+                                        id: zod.string().describe('Tag ID (TSID)'),
+                                        label: zod
+                                          .string()
+                                          .describe('Label, at most 32 characters'),
+                                        color: zod
+                                          .enum([
+                                            'INDIGO',
+                                            'BLUE',
+                                            'GREEN',
+                                            'RED',
+                                            'YELLOW',
+                                            'ORANGE',
+                                            'GRAPE',
+                                            'TEAL',
+                                            'GRAY',
+                                          ])
+                                          .describe('Colour family'),
+                                      })
+                                      .describe('A team tag on a content')
+                                  )
+                                  .describe(
+                                    "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+                                  ),
+                              })
+                              .optional()
+                              .describe('Route'),
+                            startPlace: zod
+                              .object({
+                                id: zod.string().describe('Place ID (TSID)'),
+                                name: zod.string(),
+                                address: zod.string().optional(),
+                                link: zod.string().optional(),
+                                startPlace: zod.boolean(),
+                                endPlace: zod.boolean(),
+                                geometry: zod
+                                  .object({
+                                    type: zod.enum(['Point']),
+                                    coordinates: zod
+                                      .array(zod.number())
+                                      .describe('Coordinates [longitude, latitude]'),
+                                  })
+                                  .optional()
+                                  .describe('Location coordinates [longitude, latitude]'),
+                              })
+                              .optional()
+                              .describe('Start place'),
+                            endPlace: zod
+                              .object({
+                                id: zod.string().describe('Place ID (TSID)'),
+                                name: zod.string(),
+                                address: zod.string().optional(),
+                                link: zod.string().optional(),
+                                startPlace: zod.boolean(),
+                                endPlace: zod.boolean(),
+                                geometry: zod
+                                  .object({
+                                    type: zod.enum(['Point']),
+                                    coordinates: zod
+                                      .array(zod.number())
+                                      .describe('Coordinates [longitude, latitude]'),
+                                  })
+                                  .optional()
+                                  .describe('Location coordinates [longitude, latitude]'),
+                              })
+                              .optional()
+                              .describe('End place'),
+                            media: zod
+                              .object({
+                                markdown: zod
+                                  .string()
+                                  .max(
+                                    getTeamDashboardResponseMyUpcomingPublicationsItemThreeStagesItemMediaMarkdownMax
+                                  )
+                                  .describe('Markdown'),
+                                assets: zod
+                                  .object({
+                                    logo: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('Logo'),
+                                    images: zod
+                                      .array(
+                                        zod.object({
+                                          id: zod.string().describe('ID (TSID)'),
+                                          fileName: zod.string().describe('Filename'),
+                                          contentType: zod.string().describe('Content-Type'),
+                                          url: zod.string().describe('url'),
+                                          imageUrl: zod
+                                            .string()
+                                            .optional()
+                                            .describe('image template url'),
+                                          imageDimensions: zod
+                                            .object({
+                                              width: zod.int().optional(),
+                                              height: zod.int().optional(),
+                                            })
+                                            .optional()
+                                            .describe('image dimensions'),
+                                          size: zod
+                                            .int()
+                                            .optional()
+                                            .describe(
+                                              'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                            ),
+                                        })
+                                      )
+                                      .describe('Images'),
+                                    attachments: zod
+                                      .array(
+                                        zod.object({
+                                          id: zod.string().describe('ID (TSID)'),
+                                          fileName: zod.string().describe('Filename'),
+                                          contentType: zod.string().describe('Content-Type'),
+                                          url: zod.string().describe('url'),
+                                          imageUrl: zod
+                                            .string()
+                                            .optional()
+                                            .describe('image template url'),
+                                          imageDimensions: zod
+                                            .object({
+                                              width: zod.int().optional(),
+                                              height: zod.int().optional(),
+                                            })
+                                            .optional()
+                                            .describe('image dimensions'),
+                                          size: zod
+                                            .int()
+                                            .optional()
+                                            .describe(
+                                              'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                            ),
+                                        })
+                                      )
+                                      .describe('Attachments'),
+                                    originalGpx: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('Original GPX'),
+                                    gpx: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('GPX'),
+                                    fit: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('FIT'),
+                                    thumbnailLight: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('Light thumbnail'),
+                                    thumbnailDark: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('Dark thumbnail'),
+                                  })
+                                  .describe('Assets'),
+                              })
+                              .describe('Stage media'),
+                            sortOrder: zod.int().describe('Sort order'),
+                            stageIndex: zod
+                              .int()
+                              .describe(
+                                "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
+                              ),
+                            stageCount: zod
+                              .int()
+                              .describe(
+                                "How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."
+                              ),
+                            commentCount: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                "Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount."
+                              ),
+                          })
+                          .describe('Trip stage information')
+                      )
+                      .describe('Trip stages'),
+                    participants: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .describe('Public user information (limited fields)')
+                      )
+                      .describe(
+                        'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+                      ),
+                    thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
+                    thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                    thumbnailUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+                      ),
+                    deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
+                    registered: zod
+                      .boolean()
+                      .describe(
+                        'Whether the current user is registered for this trip. False if anonymous.'
+                      ),
+                    commentCount: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
+                      ),
+                    tags: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Tag ID (TSID)'),
+                            label: zod.string().describe('Label, at most 32 characters'),
+                            color: zod
+                              .enum([
+                                'INDIGO',
+                                'BLUE',
+                                'GREEN',
+                                'RED',
+                                'YELLOW',
+                                'ORANGE',
+                                'GRAPE',
+                                'TEAL',
+                                'GRAY',
+                              ])
+                              .describe('Colour family'),
+                          })
+                          .describe('A team tag on a content')
+                      )
+                      .describe(
+                        "The team's TRIP tags the trip carries, sorted by label. Empty when it carries none."
+                      ),
+                  })
+                  .describe('Trip data'),
+              ])
+              .and(
+                zod.object({
+                  type: zod.enum(['RIDE', 'POST', 'TRIP']).optional(),
+                  visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).optional(),
+                  name: zod.string().optional(),
+                })
+              )
+              .describe('Publication data')
+          )
+          .describe('List of publications'),
+        total: zod.int().describe('Total number of publications'),
+        page: zod.int().describe('Current page number'),
+        size: zod.int().describe('Page size'),
+      })
+      .optional()
+      .describe(
+        "« Vos prochaines sorties »: the team's rides and trips starting from now that the caller is registered to, soonest first (at most 3). A ride row's registeredGroup is the group joined, with its pace. Null when both rides and trips are disabled."
+      ),
+    upcomingRides: zod
+      .object({
+        publications: zod
+          .array(
+            zod
+              .union([
+                zod
+                  .object({
+                    type: zod.enum(['RIDE']),
+                    team: zod
+                      .object({
+                        id: zod.string().describe('Team ID (TSID)'),
+                        name: zod.string().describe('Team name'),
+                        slug: zod.string().describe('Team URL slug'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Whether the team is public'),
+                        logoUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                          ),
+                      })
+                      .describe('Team'),
+                    id: zod.string().describe('Publication ID (TSID)'),
+                    slug: zod.string().describe('Publication URL slug'),
+                    name: zod.string().describe('Publication name'),
+                    media: zod
+                      .object({
+                        markdown: zod
+                          .string()
+                          .max(
+                            getTeamDashboardResponseUpcomingRidesPublicationsItemOneMediaMarkdownMax
+                          )
+                          .describe('Markdown'),
+                        assets: zod
+                          .object({
+                            logo: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Logo'),
+                            images: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Images'),
+                            attachments: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Attachments'),
+                            originalGpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Original GPX'),
+                            gpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('GPX'),
+                            fit: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('FIT'),
+                            thumbnailLight: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Light thumbnail'),
+                            thumbnailDark: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Dark thumbnail'),
+                          })
+                          .describe('Assets'),
+                      })
+                      .describe('Publication media'),
+                    excerpt: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                      ),
+                    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    status: zod
+                      .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                      .describe('Publication status'),
+                    finished: zod
+                      .boolean()
+                      .describe(
+                        'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+                      ),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Visibility level'),
+                    publishAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Publication timestamp'),
+                    createdAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Creation timestamp'),
+                    routeSlug: zod.string().optional().describe('Route slug'),
+                    participantCount: zod.int().describe('Number of participants'),
+                    groupCount: zod.int().describe('Number of groups'),
+                    groups: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Group ID (TSID)'),
+                            name: zod.string().describe('Group name'),
+                            time: zod.string().optional(),
+                            routeSlug: zod.string().optional().describe('Route slug'),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                            maxParticipants: zod.int().optional().describe('Maximum participants'),
+                            countParticipants: zod.int().describe('Current number of participants'),
+                            participants: zod
+                              .array(
+                                zod
+                                  .object({
+                                    id: zod.string().describe('User ID (TSID)'),
+                                    displayName: zod.string().describe('User display name'),
+                                    avatarUrl: zod.string().optional().describe('User avatar URL'),
+                                  })
+                                  .describe('Public user information (limited fields)')
+                              )
+                              .describe(
+                                'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                              ),
+                            sortOrder: zod.int().describe('Sort order'),
+                            registered: zod
+                              .boolean()
+                              .describe(
+                                'Whether the current user is registered in THIS group. False if anonymous.'
+                              ),
+                            full: zod
+                              .boolean()
+                              .describe(
+                                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                              ),
+                            distance: zod
+                              .number()
+                              .optional()
+                              .describe('Distance in meters of the group route, if it has one'),
+                            elevationGain: zod
+                              .number()
+                              .optional()
+                              .describe(
+                                'Total elevation gain in meters of the group route, if it has one'
+                              ),
+                            leader: zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .optional()
+                              .describe(
+                                "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                              ),
+                            thumbnailLightUrl: zod
+                              .string()
+                              .optional()
+                              .describe('Thumbnail URL (light) of the group route, if it has one'),
+                            thumbnailDarkUrl: zod
+                              .string()
+                              .optional()
+                              .describe('Thumbnail URL (dark) of the group route, if it has one'),
+                            thumbnailUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                              ),
+                          })
+                          .describe('Ride group information')
+                      )
+                      .describe('Ride groups'),
+                    groupSummaries: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Group ID (TSID)'),
+                            name: zod.string().describe('Group name'),
+                            time: zod
+                              .string()
+                              .optional()
+                              .describe("Start time of the group, when it differs from the ride's"),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                            countParticipants: zod.int().describe('Current number of participants'),
+                            maxParticipants: zod
+                              .int()
+                              .optional()
+                              .describe('Maximum participants, null when the group is uncapped'),
+                            full: zod
+                              .boolean()
+                              .describe(
+                                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                              ),
+                            routeSlug: zod
+                              .string()
+                              .optional()
+                              .describe('Slug of the group route, if it has one'),
+                            distance: zod
+                              .number()
+                              .optional()
+                              .describe('Distance in meters of the group route, if it has one'),
+                            elevationGain: zod
+                              .number()
+                              .optional()
+                              .describe(
+                                'Total elevation gain in meters of the group route, if it has one'
+                              ),
+                            sortOrder: zod.int().describe('Sort order'),
+                          })
+                          .describe(
+                            "One group of a ride, as a list row shows it: name, pace and fill. Same figures as the matching entry of the detail's groups, without the participants nor the leader."
+                          )
+                      )
+                      .describe(
+                        'Every group of the ride in sort order, as a card shows it: name, pace, start time and fill (countParticipants against maxParticipants). Filled on list rows too, where groups is empty — a card draws its per-group fill bars without opening the ride. Carries no leader nor participants: those are on groups, in the detail.'
+                      ),
+                    distance: zod
+                      .number()
+                      .optional()
+                      .describe(
+                        "Distance in meters of the ride's route — or, when the ride itself has none, of the route of its first group (in sort order) that has one. Null when no route is set anywhere."
+                      ),
+                    elevationGain: zod
+                      .number()
+                      .optional()
+                      .describe(
+                        'Total elevation gain in meters, from the same route as distance. Null when no route is set anywhere.'
+                      ),
+                    surfaceType: zod
+                      .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                      .optional()
+                      .describe(
+                        'Surface type, from the same route as distance. Null when no route is set anywhere.'
+                      ),
+                    startPlace: zod
+                      .object({
+                        id: zod.string().describe('Place ID (TSID)'),
+                        name: zod.string(),
+                        address: zod.string().optional(),
+                        link: zod.string().optional(),
+                        startPlace: zod.boolean(),
+                        endPlace: zod.boolean(),
+                        geometry: zod
+                          .object({
+                            type: zod.enum(['Point']),
+                            coordinates: zod
+                              .array(zod.number())
+                              .describe('Coordinates [longitude, latitude]'),
+                          })
+                          .optional()
+                          .describe('Location coordinates [longitude, latitude]'),
+                      })
+                      .optional()
+                      .describe('Start place'),
+                    endPlace: zod
+                      .object({
+                        id: zod.string().describe('Place ID (TSID)'),
+                        name: zod.string(),
+                        address: zod.string().optional(),
+                        link: zod.string().optional(),
+                        startPlace: zod.boolean(),
+                        endPlace: zod.boolean(),
+                        geometry: zod
+                          .object({
+                            type: zod.enum(['Point']),
+                            coordinates: zod
+                              .array(zod.number())
+                              .describe('Coordinates [longitude, latitude]'),
+                          })
+                          .optional()
+                          .describe('Location coordinates [longitude, latitude]'),
+                      })
+                      .optional()
+                      .describe('End place'),
+                    topParticipants: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .describe('Public user information (limited fields)')
+                      )
+                      .describe('Preview of first participants (max 5)'),
+                    thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
+                    thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                    thumbnailUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+                      ),
+                    deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
+                    registered: zod
+                      .boolean()
+                      .describe(
+                        "Whether the current user is registered in one of this ride's groups. False if anonymous."
+                      ),
+                    registeredGroupId: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'ID (TSID) of the group the current user joined, null if not registered'
+                      ),
+                    registeredGroup: zod
+                      .object({
+                        id: zod.string().describe('Group ID (TSID)'),
+                        name: zod.string().describe('Group name'),
+                        time: zod.string().optional(),
+                        routeSlug: zod.string().optional().describe('Route slug'),
+                        averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                        maxParticipants: zod.int().optional().describe('Maximum participants'),
+                        countParticipants: zod.int().describe('Current number of participants'),
+                        participants: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .describe('Public user information (limited fields)')
+                          )
+                          .describe(
+                            'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                          ),
+                        sortOrder: zod.int().describe('Sort order'),
+                        registered: zod
+                          .boolean()
+                          .describe(
+                            'Whether the current user is registered in THIS group. False if anonymous.'
+                          ),
+                        full: zod
+                          .boolean()
+                          .describe(
+                            'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                          ),
+                        distance: zod
+                          .number()
+                          .optional()
+                          .describe('Distance in meters of the group route, if it has one'),
+                        elevationGain: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Total elevation gain in meters of the group route, if it has one'
+                          ),
+                        leader: zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .optional()
+                          .describe(
+                            "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                          ),
+                        thumbnailLightUrl: zod
+                          .string()
+                          .optional()
+                          .describe('Thumbnail URL (light) of the group route, if it has one'),
+                        thumbnailDarkUrl: zod
+                          .string()
+                          .optional()
+                          .describe('Thumbnail URL (dark) of the group route, if it has one'),
+                        thumbnailUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                          ),
+                      })
+                      .optional()
+                      .describe(
+                        'The group the current user joined, in full — the same object as the matching entry of groups. Null if not registered or anonymous. Set on list rows too, where groups is empty: a client rendering "my next ride" needs no second request for its group. Its leader is the group\'s own, null when none was designated.'
+                      ),
+                    full: zod
+                      .boolean()
+                      .describe(
+                        'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
+                      ),
+                    maxParticipants: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Capacity of the whole ride: the sum of its groups\' maxParticipants, to render participantCount against it ("12/40"). Null when the ride has no group, or when at least one group has no maxParticipants — the ride then has no overall limit, and is never full. Set on list rows too, where groups is empty.'
+                      ),
+                    commentCount: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+                      ),
+                    tags: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Tag ID (TSID)'),
+                            label: zod.string().describe('Label, at most 32 characters'),
+                            color: zod
+                              .enum([
+                                'INDIGO',
+                                'BLUE',
+                                'GREEN',
+                                'RED',
+                                'YELLOW',
+                                'ORANGE',
+                                'GRAPE',
+                                'TEAL',
+                                'GRAY',
+                              ])
+                              .describe('Colour family'),
+                          })
+                          .describe('A team tag on a content')
+                      )
+                      .describe(
+                        "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
+                      ),
+                  })
+                  .describe('Ride summary data'),
+                zod
+                  .object({
+                    type: zod.enum(['POST']),
+                    team: zod
+                      .object({
+                        id: zod.string().describe('Team ID (TSID)'),
+                        name: zod.string().describe('Team name'),
+                        slug: zod.string().describe('Team URL slug'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Whether the team is public'),
+                        logoUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                          ),
+                      })
+                      .describe('Team'),
+                    id: zod.string().describe('Publication ID (TSID)'),
+                    slug: zod.string().describe('Publication URL slug'),
+                    name: zod.string().describe('Publication name'),
+                    media: zod
+                      .object({
+                        markdown: zod
+                          .string()
+                          .max(
+                            getTeamDashboardResponseUpcomingRidesPublicationsItemTwoMediaMarkdownMax
+                          )
+                          .describe('Markdown'),
+                        assets: zod
+                          .object({
+                            logo: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Logo'),
+                            images: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Images'),
+                            attachments: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Attachments'),
+                            originalGpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Original GPX'),
+                            gpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('GPX'),
+                            fit: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('FIT'),
+                            thumbnailLight: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Light thumbnail'),
+                            thumbnailDark: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Dark thumbnail'),
+                          })
+                          .describe('Assets'),
+                      })
+                      .describe('Publication media'),
+                    excerpt: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                      ),
+                    thumbnailUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
+                      ),
+                    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    status: zod
+                      .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                      .describe('Publication status'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Visibility level'),
+                    publishAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Publication timestamp'),
+                    createdAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Creation timestamp'),
+                    deleted: zod.boolean().describe('Whether the post is soft-deleted'),
+                    commentCount: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+                      ),
+                    signedAsTeam: zod
+                      .boolean()
+                      .describe(
+                        'Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.'
+                      ),
+                    createdBy: zod
+                      .object({
+                        id: zod.string().describe('User ID (TSID)'),
+                        displayName: zod.string().describe('User display name'),
+                        avatarUrl: zod.string().optional().describe('User avatar URL'),
+                      })
+                      .optional()
+                      .describe(
+                        'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+                      ),
+                    tags: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Tag ID (TSID)'),
+                            label: zod.string().describe('Label, at most 32 characters'),
+                            color: zod
+                              .enum([
+                                'INDIGO',
+                                'BLUE',
+                                'GREEN',
+                                'RED',
+                                'YELLOW',
+                                'ORANGE',
+                                'GRAPE',
+                                'TEAL',
+                                'GRAY',
+                              ])
+                              .describe('Colour family'),
+                          })
+                          .describe('A team tag on a content')
+                      )
+                      .describe(
+                        "The team's POST tags the post carries, sorted by label. Empty when it carries none."
+                      ),
+                  })
+                  .describe('Post summary data'),
+                zod
+                  .object({
+                    type: zod.enum(['TRIP']),
+                    team: zod
+                      .object({
+                        id: zod.string().describe('Team ID (TSID)'),
+                        name: zod.string().describe('Team name'),
+                        slug: zod.string().describe('Team URL slug'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Whether the team is public'),
+                        logoUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                          ),
+                      })
+                      .describe('Team'),
+                    id: zod.string().describe('Publication ID (TSID)'),
+                    slug: zod.string().describe('Publication URL slug'),
+                    name: zod.string().describe('Publication name'),
+                    media: zod
+                      .object({
+                        markdown: zod
+                          .string()
+                          .max(
+                            getTeamDashboardResponseUpcomingRidesPublicationsItemThreeMediaMarkdownMax
+                          )
+                          .describe('Markdown'),
+                        assets: zod
+                          .object({
+                            logo: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Logo'),
+                            images: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Images'),
+                            attachments: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Attachments'),
+                            originalGpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Original GPX'),
+                            gpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('GPX'),
+                            fit: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('FIT'),
+                            thumbnailLight: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Light thumbnail'),
+                            thumbnailDark: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Dark thumbnail'),
+                          })
+                          .describe('Assets'),
+                      })
+                      .describe('Publication media'),
+                    excerpt: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                      ),
+                    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+                    endDate: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe(
+                        'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+                      ),
+                    status: zod
+                      .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                      .describe('Publication status'),
+                    finished: zod
+                      .boolean()
+                      .describe(
+                        'Whether the trip is over, computed by the server when the response is built: its last stage (endDate, or dateTime when there is none) has started. Independent of status — a past cancelled trip is both CANCELLED and finished.'
+                      ),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Visibility level'),
+                    publishAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Publication timestamp'),
+                    createdAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Creation timestamp'),
+                    routeSlug: zod.string().optional().describe('Route slug'),
+                    participantCount: zod.int().describe('Number of participants'),
+                    stageCount: zod.int().describe('Number of stages'),
+                    totalDistance: zod
+                      .number()
+                      .optional()
+                      .describe(
+                        'Distance in metres over every stage that has a route. Null when no stage has one — an unrouted trip has no distance, which is not the same as a distance of zero.'
+                      ),
+                    totalElevationGain: zod
+                      .number()
+                      .optional()
+                      .describe(
+                        'Elevation gain in metres over every stage that has a route. Null when no stage has one.'
+                      ),
+                    stages: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Stage ID (TSID)'),
+                            slug: zod.string().describe('Stage slug'),
+                            name: zod.string().describe('Stage name'),
+                            dateTime: zod.iso
+                              .datetime({ offset: true })
+                              .describe('Stage date/time'),
+                            route: zod
+                              .object({
+                                id: zod.string().describe('Route ID (TSID)'),
+                                slug: zod.string().describe('Route slug'),
+                                team: zod
+                                  .object({
+                                    id: zod.string().describe('Team ID (TSID)'),
+                                    name: zod.string().describe('Team name'),
+                                    slug: zod.string().describe('Team URL slug'),
+                                    visibility: zod
+                                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                                      .describe('Whether the team is public'),
+                                    logoUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe(
+                                        "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                                      ),
+                                  })
+                                  .describe('Team'),
+                                name: zod.string().describe('Route name'),
+                                media: zod
+                                  .object({
+                                    markdown: zod
+                                      .string()
+                                      .max(
+                                        getTeamDashboardResponseUpcomingRidesPublicationsItemThreeStagesItemRouteMediaMarkdownMax
+                                      )
+                                      .describe('Markdown'),
+                                    assets: zod
+                                      .object({
+                                        logo: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Logo'),
+                                        images: zod
+                                          .array(
+                                            zod.object({
+                                              id: zod.string().describe('ID (TSID)'),
+                                              fileName: zod.string().describe('Filename'),
+                                              contentType: zod.string().describe('Content-Type'),
+                                              url: zod.string().describe('url'),
+                                              imageUrl: zod
+                                                .string()
+                                                .optional()
+                                                .describe('image template url'),
+                                              imageDimensions: zod
+                                                .object({
+                                                  width: zod.int().optional(),
+                                                  height: zod.int().optional(),
+                                                })
+                                                .optional()
+                                                .describe('image dimensions'),
+                                              size: zod
+                                                .int()
+                                                .optional()
+                                                .describe(
+                                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                ),
+                                            })
+                                          )
+                                          .describe('Images'),
+                                        attachments: zod
+                                          .array(
+                                            zod.object({
+                                              id: zod.string().describe('ID (TSID)'),
+                                              fileName: zod.string().describe('Filename'),
+                                              contentType: zod.string().describe('Content-Type'),
+                                              url: zod.string().describe('url'),
+                                              imageUrl: zod
+                                                .string()
+                                                .optional()
+                                                .describe('image template url'),
+                                              imageDimensions: zod
+                                                .object({
+                                                  width: zod.int().optional(),
+                                                  height: zod.int().optional(),
+                                                })
+                                                .optional()
+                                                .describe('image dimensions'),
+                                              size: zod
+                                                .int()
+                                                .optional()
+                                                .describe(
+                                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                ),
+                                            })
+                                          )
+                                          .describe('Attachments'),
+                                        originalGpx: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Original GPX'),
+                                        gpx: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('GPX'),
+                                        fit: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('FIT'),
+                                        thumbnailLight: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Light thumbnail'),
+                                        thumbnailDark: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Dark thumbnail'),
+                                      })
+                                      .describe('Assets'),
+                                  })
+                                  .describe('Route description'),
+                                excerpt: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                                  ),
+                                thumbnailUrl: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+                                  ),
+                                distance: zod.number().describe('Distance in meters'),
+                                elevationGain: zod
+                                  .number()
+                                  .describe('Total elevation gain in meters'),
+                                elevationLoss: zod
+                                  .number()
+                                  .describe('Total elevation loss in meters'),
+                                surfaceType: zod
+                                  .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                                  .describe('Surface type'),
+                                visibility: zod
+                                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                                  .describe('Whether the route is public'),
+                                createdAt: zod.iso
+                                  .datetime({ offset: true })
+                                  .describe('Creation timestamp'),
+                                deleted: zod
+                                  .boolean()
+                                  .describe('Whether the route is soft-deleted'),
+                                commentCount: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+                                  ),
+                                tags: zod
+                                  .array(
+                                    zod
+                                      .object({
+                                        id: zod.string().describe('Tag ID (TSID)'),
+                                        label: zod
+                                          .string()
+                                          .describe('Label, at most 32 characters'),
+                                        color: zod
+                                          .enum([
+                                            'INDIGO',
+                                            'BLUE',
+                                            'GREEN',
+                                            'RED',
+                                            'YELLOW',
+                                            'ORANGE',
+                                            'GRAPE',
+                                            'TEAL',
+                                            'GRAY',
+                                          ])
+                                          .describe('Colour family'),
+                                      })
+                                      .describe('A team tag on a content')
+                                  )
+                                  .describe(
+                                    "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+                                  ),
+                              })
+                              .optional()
+                              .describe('Route'),
+                            startPlace: zod
+                              .object({
+                                id: zod.string().describe('Place ID (TSID)'),
+                                name: zod.string(),
+                                address: zod.string().optional(),
+                                link: zod.string().optional(),
+                                startPlace: zod.boolean(),
+                                endPlace: zod.boolean(),
+                                geometry: zod
+                                  .object({
+                                    type: zod.enum(['Point']),
+                                    coordinates: zod
+                                      .array(zod.number())
+                                      .describe('Coordinates [longitude, latitude]'),
+                                  })
+                                  .optional()
+                                  .describe('Location coordinates [longitude, latitude]'),
+                              })
+                              .optional()
+                              .describe('Start place'),
+                            endPlace: zod
+                              .object({
+                                id: zod.string().describe('Place ID (TSID)'),
+                                name: zod.string(),
+                                address: zod.string().optional(),
+                                link: zod.string().optional(),
+                                startPlace: zod.boolean(),
+                                endPlace: zod.boolean(),
+                                geometry: zod
+                                  .object({
+                                    type: zod.enum(['Point']),
+                                    coordinates: zod
+                                      .array(zod.number())
+                                      .describe('Coordinates [longitude, latitude]'),
+                                  })
+                                  .optional()
+                                  .describe('Location coordinates [longitude, latitude]'),
+                              })
+                              .optional()
+                              .describe('End place'),
+                            media: zod
+                              .object({
+                                markdown: zod
+                                  .string()
+                                  .max(
+                                    getTeamDashboardResponseUpcomingRidesPublicationsItemThreeStagesItemMediaMarkdownMax
+                                  )
+                                  .describe('Markdown'),
+                                assets: zod
+                                  .object({
+                                    logo: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('Logo'),
+                                    images: zod
+                                      .array(
+                                        zod.object({
+                                          id: zod.string().describe('ID (TSID)'),
+                                          fileName: zod.string().describe('Filename'),
+                                          contentType: zod.string().describe('Content-Type'),
+                                          url: zod.string().describe('url'),
+                                          imageUrl: zod
+                                            .string()
+                                            .optional()
+                                            .describe('image template url'),
+                                          imageDimensions: zod
+                                            .object({
+                                              width: zod.int().optional(),
+                                              height: zod.int().optional(),
+                                            })
+                                            .optional()
+                                            .describe('image dimensions'),
+                                          size: zod
+                                            .int()
+                                            .optional()
+                                            .describe(
+                                              'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                            ),
+                                        })
+                                      )
+                                      .describe('Images'),
+                                    attachments: zod
+                                      .array(
+                                        zod.object({
+                                          id: zod.string().describe('ID (TSID)'),
+                                          fileName: zod.string().describe('Filename'),
+                                          contentType: zod.string().describe('Content-Type'),
+                                          url: zod.string().describe('url'),
+                                          imageUrl: zod
+                                            .string()
+                                            .optional()
+                                            .describe('image template url'),
+                                          imageDimensions: zod
+                                            .object({
+                                              width: zod.int().optional(),
+                                              height: zod.int().optional(),
+                                            })
+                                            .optional()
+                                            .describe('image dimensions'),
+                                          size: zod
+                                            .int()
+                                            .optional()
+                                            .describe(
+                                              'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                            ),
+                                        })
+                                      )
+                                      .describe('Attachments'),
+                                    originalGpx: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('Original GPX'),
+                                    gpx: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('GPX'),
+                                    fit: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('FIT'),
+                                    thumbnailLight: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('Light thumbnail'),
+                                    thumbnailDark: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('Dark thumbnail'),
+                                  })
+                                  .describe('Assets'),
+                              })
+                              .describe('Stage media'),
+                            sortOrder: zod.int().describe('Sort order'),
+                            stageIndex: zod
+                              .int()
+                              .describe(
+                                "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
+                              ),
+                            stageCount: zod
+                              .int()
+                              .describe(
+                                "How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."
+                              ),
+                            commentCount: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                "Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount."
+                              ),
+                          })
+                          .describe('Trip stage information')
+                      )
+                      .describe('Trip stages'),
+                    participants: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .describe('Public user information (limited fields)')
+                      )
+                      .describe(
+                        'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+                      ),
+                    thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
+                    thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                    thumbnailUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+                      ),
+                    deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
+                    registered: zod
+                      .boolean()
+                      .describe(
+                        'Whether the current user is registered for this trip. False if anonymous.'
+                      ),
+                    commentCount: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
+                      ),
+                    tags: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Tag ID (TSID)'),
+                            label: zod.string().describe('Label, at most 32 characters'),
+                            color: zod
+                              .enum([
+                                'INDIGO',
+                                'BLUE',
+                                'GREEN',
+                                'RED',
+                                'YELLOW',
+                                'ORANGE',
+                                'GRAPE',
+                                'TEAL',
+                                'GRAY',
+                              ])
+                              .describe('Colour family'),
+                          })
+                          .describe('A team tag on a content')
+                      )
+                      .describe(
+                        "The team's TRIP tags the trip carries, sorted by label. Empty when it carries none."
+                      ),
+                  })
+                  .describe('Trip data'),
+              ])
+              .and(
+                zod.object({
+                  type: zod.enum(['RIDE', 'POST', 'TRIP']).optional(),
+                  visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).optional(),
+                  name: zod.string().optional(),
+                })
+              )
+              .describe('Publication data')
+          )
+          .describe('List of publications'),
+        total: zod.int().describe('Total number of publications'),
+        page: zod.int().describe('Current page number'),
+        size: zod.int().describe('Page size'),
+      })
+      .optional()
+      .describe(
+        "« Sorties à venir »: the team's published rides starting from now, soonest first (at most 3). Each row carries groupSummaries (fill per group), distance, elevationGain, surfaceType, registered and commentCount. Null when rides are disabled."
+      ),
+    latestPosts: zod
+      .object({
+        publications: zod
+          .array(
+            zod
+              .union([
+                zod
+                  .object({
+                    type: zod.enum(['RIDE']),
+                    team: zod
+                      .object({
+                        id: zod.string().describe('Team ID (TSID)'),
+                        name: zod.string().describe('Team name'),
+                        slug: zod.string().describe('Team URL slug'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Whether the team is public'),
+                        logoUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                          ),
+                      })
+                      .describe('Team'),
+                    id: zod.string().describe('Publication ID (TSID)'),
+                    slug: zod.string().describe('Publication URL slug'),
+                    name: zod.string().describe('Publication name'),
+                    media: zod
+                      .object({
+                        markdown: zod
+                          .string()
+                          .max(
+                            getTeamDashboardResponseLatestPostsPublicationsItemOneMediaMarkdownMax
+                          )
+                          .describe('Markdown'),
+                        assets: zod
+                          .object({
+                            logo: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Logo'),
+                            images: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Images'),
+                            attachments: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Attachments'),
+                            originalGpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Original GPX'),
+                            gpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('GPX'),
+                            fit: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('FIT'),
+                            thumbnailLight: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Light thumbnail'),
+                            thumbnailDark: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Dark thumbnail'),
+                          })
+                          .describe('Assets'),
+                      })
+                      .describe('Publication media'),
+                    excerpt: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                      ),
+                    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    status: zod
+                      .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                      .describe('Publication status'),
+                    finished: zod
+                      .boolean()
+                      .describe(
+                        'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+                      ),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Visibility level'),
+                    publishAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Publication timestamp'),
+                    createdAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Creation timestamp'),
+                    routeSlug: zod.string().optional().describe('Route slug'),
+                    participantCount: zod.int().describe('Number of participants'),
+                    groupCount: zod.int().describe('Number of groups'),
+                    groups: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Group ID (TSID)'),
+                            name: zod.string().describe('Group name'),
+                            time: zod.string().optional(),
+                            routeSlug: zod.string().optional().describe('Route slug'),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                            maxParticipants: zod.int().optional().describe('Maximum participants'),
+                            countParticipants: zod.int().describe('Current number of participants'),
+                            participants: zod
+                              .array(
+                                zod
+                                  .object({
+                                    id: zod.string().describe('User ID (TSID)'),
+                                    displayName: zod.string().describe('User display name'),
+                                    avatarUrl: zod.string().optional().describe('User avatar URL'),
+                                  })
+                                  .describe('Public user information (limited fields)')
+                              )
+                              .describe(
+                                'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                              ),
+                            sortOrder: zod.int().describe('Sort order'),
+                            registered: zod
+                              .boolean()
+                              .describe(
+                                'Whether the current user is registered in THIS group. False if anonymous.'
+                              ),
+                            full: zod
+                              .boolean()
+                              .describe(
+                                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                              ),
+                            distance: zod
+                              .number()
+                              .optional()
+                              .describe('Distance in meters of the group route, if it has one'),
+                            elevationGain: zod
+                              .number()
+                              .optional()
+                              .describe(
+                                'Total elevation gain in meters of the group route, if it has one'
+                              ),
+                            leader: zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .optional()
+                              .describe(
+                                "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                              ),
+                            thumbnailLightUrl: zod
+                              .string()
+                              .optional()
+                              .describe('Thumbnail URL (light) of the group route, if it has one'),
+                            thumbnailDarkUrl: zod
+                              .string()
+                              .optional()
+                              .describe('Thumbnail URL (dark) of the group route, if it has one'),
+                            thumbnailUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                              ),
+                          })
+                          .describe('Ride group information')
+                      )
+                      .describe('Ride groups'),
+                    groupSummaries: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Group ID (TSID)'),
+                            name: zod.string().describe('Group name'),
+                            time: zod
+                              .string()
+                              .optional()
+                              .describe("Start time of the group, when it differs from the ride's"),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                            countParticipants: zod.int().describe('Current number of participants'),
+                            maxParticipants: zod
+                              .int()
+                              .optional()
+                              .describe('Maximum participants, null when the group is uncapped'),
+                            full: zod
+                              .boolean()
+                              .describe(
+                                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                              ),
+                            routeSlug: zod
+                              .string()
+                              .optional()
+                              .describe('Slug of the group route, if it has one'),
+                            distance: zod
+                              .number()
+                              .optional()
+                              .describe('Distance in meters of the group route, if it has one'),
+                            elevationGain: zod
+                              .number()
+                              .optional()
+                              .describe(
+                                'Total elevation gain in meters of the group route, if it has one'
+                              ),
+                            sortOrder: zod.int().describe('Sort order'),
+                          })
+                          .describe(
+                            "One group of a ride, as a list row shows it: name, pace and fill. Same figures as the matching entry of the detail's groups, without the participants nor the leader."
+                          )
+                      )
+                      .describe(
+                        'Every group of the ride in sort order, as a card shows it: name, pace, start time and fill (countParticipants against maxParticipants). Filled on list rows too, where groups is empty — a card draws its per-group fill bars without opening the ride. Carries no leader nor participants: those are on groups, in the detail.'
+                      ),
+                    distance: zod
+                      .number()
+                      .optional()
+                      .describe(
+                        "Distance in meters of the ride's route — or, when the ride itself has none, of the route of its first group (in sort order) that has one. Null when no route is set anywhere."
+                      ),
+                    elevationGain: zod
+                      .number()
+                      .optional()
+                      .describe(
+                        'Total elevation gain in meters, from the same route as distance. Null when no route is set anywhere.'
+                      ),
+                    surfaceType: zod
+                      .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                      .optional()
+                      .describe(
+                        'Surface type, from the same route as distance. Null when no route is set anywhere.'
+                      ),
+                    startPlace: zod
+                      .object({
+                        id: zod.string().describe('Place ID (TSID)'),
+                        name: zod.string(),
+                        address: zod.string().optional(),
+                        link: zod.string().optional(),
+                        startPlace: zod.boolean(),
+                        endPlace: zod.boolean(),
+                        geometry: zod
+                          .object({
+                            type: zod.enum(['Point']),
+                            coordinates: zod
+                              .array(zod.number())
+                              .describe('Coordinates [longitude, latitude]'),
+                          })
+                          .optional()
+                          .describe('Location coordinates [longitude, latitude]'),
+                      })
+                      .optional()
+                      .describe('Start place'),
+                    endPlace: zod
+                      .object({
+                        id: zod.string().describe('Place ID (TSID)'),
+                        name: zod.string(),
+                        address: zod.string().optional(),
+                        link: zod.string().optional(),
+                        startPlace: zod.boolean(),
+                        endPlace: zod.boolean(),
+                        geometry: zod
+                          .object({
+                            type: zod.enum(['Point']),
+                            coordinates: zod
+                              .array(zod.number())
+                              .describe('Coordinates [longitude, latitude]'),
+                          })
+                          .optional()
+                          .describe('Location coordinates [longitude, latitude]'),
+                      })
+                      .optional()
+                      .describe('End place'),
+                    topParticipants: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .describe('Public user information (limited fields)')
+                      )
+                      .describe('Preview of first participants (max 5)'),
+                    thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
+                    thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                    thumbnailUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+                      ),
+                    deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
+                    registered: zod
+                      .boolean()
+                      .describe(
+                        "Whether the current user is registered in one of this ride's groups. False if anonymous."
+                      ),
+                    registeredGroupId: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'ID (TSID) of the group the current user joined, null if not registered'
+                      ),
+                    registeredGroup: zod
+                      .object({
+                        id: zod.string().describe('Group ID (TSID)'),
+                        name: zod.string().describe('Group name'),
+                        time: zod.string().optional(),
+                        routeSlug: zod.string().optional().describe('Route slug'),
+                        averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                        maxParticipants: zod.int().optional().describe('Maximum participants'),
+                        countParticipants: zod.int().describe('Current number of participants'),
+                        participants: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .describe('Public user information (limited fields)')
+                          )
+                          .describe(
+                            'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                          ),
+                        sortOrder: zod.int().describe('Sort order'),
+                        registered: zod
+                          .boolean()
+                          .describe(
+                            'Whether the current user is registered in THIS group. False if anonymous.'
+                          ),
+                        full: zod
+                          .boolean()
+                          .describe(
+                            'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                          ),
+                        distance: zod
+                          .number()
+                          .optional()
+                          .describe('Distance in meters of the group route, if it has one'),
+                        elevationGain: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Total elevation gain in meters of the group route, if it has one'
+                          ),
+                        leader: zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .optional()
+                          .describe(
+                            "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                          ),
+                        thumbnailLightUrl: zod
+                          .string()
+                          .optional()
+                          .describe('Thumbnail URL (light) of the group route, if it has one'),
+                        thumbnailDarkUrl: zod
+                          .string()
+                          .optional()
+                          .describe('Thumbnail URL (dark) of the group route, if it has one'),
+                        thumbnailUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                          ),
+                      })
+                      .optional()
+                      .describe(
+                        'The group the current user joined, in full — the same object as the matching entry of groups. Null if not registered or anonymous. Set on list rows too, where groups is empty: a client rendering "my next ride" needs no second request for its group. Its leader is the group\'s own, null when none was designated.'
+                      ),
+                    full: zod
+                      .boolean()
+                      .describe(
+                        'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
+                      ),
+                    maxParticipants: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Capacity of the whole ride: the sum of its groups\' maxParticipants, to render participantCount against it ("12/40"). Null when the ride has no group, or when at least one group has no maxParticipants — the ride then has no overall limit, and is never full. Set on list rows too, where groups is empty.'
+                      ),
+                    commentCount: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+                      ),
+                    tags: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Tag ID (TSID)'),
+                            label: zod.string().describe('Label, at most 32 characters'),
+                            color: zod
+                              .enum([
+                                'INDIGO',
+                                'BLUE',
+                                'GREEN',
+                                'RED',
+                                'YELLOW',
+                                'ORANGE',
+                                'GRAPE',
+                                'TEAL',
+                                'GRAY',
+                              ])
+                              .describe('Colour family'),
+                          })
+                          .describe('A team tag on a content')
+                      )
+                      .describe(
+                        "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
+                      ),
+                  })
+                  .describe('Ride summary data'),
+                zod
+                  .object({
+                    type: zod.enum(['POST']),
+                    team: zod
+                      .object({
+                        id: zod.string().describe('Team ID (TSID)'),
+                        name: zod.string().describe('Team name'),
+                        slug: zod.string().describe('Team URL slug'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Whether the team is public'),
+                        logoUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                          ),
+                      })
+                      .describe('Team'),
+                    id: zod.string().describe('Publication ID (TSID)'),
+                    slug: zod.string().describe('Publication URL slug'),
+                    name: zod.string().describe('Publication name'),
+                    media: zod
+                      .object({
+                        markdown: zod
+                          .string()
+                          .max(
+                            getTeamDashboardResponseLatestPostsPublicationsItemTwoMediaMarkdownMax
+                          )
+                          .describe('Markdown'),
+                        assets: zod
+                          .object({
+                            logo: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Logo'),
+                            images: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Images'),
+                            attachments: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Attachments'),
+                            originalGpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Original GPX'),
+                            gpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('GPX'),
+                            fit: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('FIT'),
+                            thumbnailLight: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Light thumbnail'),
+                            thumbnailDark: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Dark thumbnail'),
+                          })
+                          .describe('Assets'),
+                      })
+                      .describe('Publication media'),
+                    excerpt: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                      ),
+                    thumbnailUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
+                      ),
+                    dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    status: zod
+                      .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                      .describe('Publication status'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Visibility level'),
+                    publishAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Publication timestamp'),
+                    createdAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Creation timestamp'),
+                    deleted: zod.boolean().describe('Whether the post is soft-deleted'),
+                    commentCount: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+                      ),
+                    signedAsTeam: zod
+                      .boolean()
+                      .describe(
+                        'Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.'
+                      ),
+                    createdBy: zod
+                      .object({
+                        id: zod.string().describe('User ID (TSID)'),
+                        displayName: zod.string().describe('User display name'),
+                        avatarUrl: zod.string().optional().describe('User avatar URL'),
+                      })
+                      .optional()
+                      .describe(
+                        'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+                      ),
+                    tags: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Tag ID (TSID)'),
+                            label: zod.string().describe('Label, at most 32 characters'),
+                            color: zod
+                              .enum([
+                                'INDIGO',
+                                'BLUE',
+                                'GREEN',
+                                'RED',
+                                'YELLOW',
+                                'ORANGE',
+                                'GRAPE',
+                                'TEAL',
+                                'GRAY',
+                              ])
+                              .describe('Colour family'),
+                          })
+                          .describe('A team tag on a content')
+                      )
+                      .describe(
+                        "The team's POST tags the post carries, sorted by label. Empty when it carries none."
+                      ),
+                  })
+                  .describe('Post summary data'),
+                zod
+                  .object({
+                    type: zod.enum(['TRIP']),
+                    team: zod
+                      .object({
+                        id: zod.string().describe('Team ID (TSID)'),
+                        name: zod.string().describe('Team name'),
+                        slug: zod.string().describe('Team URL slug'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Whether the team is public'),
+                        logoUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                          ),
+                      })
+                      .describe('Team'),
+                    id: zod.string().describe('Publication ID (TSID)'),
+                    slug: zod.string().describe('Publication URL slug'),
+                    name: zod.string().describe('Publication name'),
+                    media: zod
+                      .object({
+                        markdown: zod
+                          .string()
+                          .max(
+                            getTeamDashboardResponseLatestPostsPublicationsItemThreeMediaMarkdownMax
+                          )
+                          .describe('Markdown'),
+                        assets: zod
+                          .object({
+                            logo: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Logo'),
+                            images: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Images'),
+                            attachments: zod
+                              .array(
+                                zod.object({
+                                  id: zod.string().describe('ID (TSID)'),
+                                  fileName: zod.string().describe('Filename'),
+                                  contentType: zod.string().describe('Content-Type'),
+                                  url: zod.string().describe('url'),
+                                  imageUrl: zod.string().optional().describe('image template url'),
+                                  imageDimensions: zod
+                                    .object({
+                                      width: zod.int().optional(),
+                                      height: zod.int().optional(),
+                                    })
+                                    .optional()
+                                    .describe('image dimensions'),
+                                  size: zod
+                                    .int()
+                                    .optional()
+                                    .describe(
+                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                    ),
+                                })
+                              )
+                              .describe('Attachments'),
+                            originalGpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Original GPX'),
+                            gpx: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('GPX'),
+                            fit: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('FIT'),
+                            thumbnailLight: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Light thumbnail'),
+                            thumbnailDark: zod
+                              .object({
+                                id: zod.string().describe('ID (TSID)'),
+                                fileName: zod.string().describe('Filename'),
+                                contentType: zod.string().describe('Content-Type'),
+                                url: zod.string().describe('url'),
+                                imageUrl: zod.string().optional().describe('image template url'),
+                                imageDimensions: zod
+                                  .object({
+                                    width: zod.int().optional(),
+                                    height: zod.int().optional(),
+                                  })
+                                  .optional()
+                                  .describe('image dimensions'),
+                                size: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                  ),
+                              })
+                              .optional()
+                              .describe('Dark thumbnail'),
+                          })
+                          .describe('Assets'),
+                      })
+                      .describe('Publication media'),
+                    excerpt: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                      ),
+                    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+                    endDate: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe(
+                        'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+                      ),
+                    status: zod
+                      .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                      .describe('Publication status'),
+                    finished: zod
+                      .boolean()
+                      .describe(
+                        'Whether the trip is over, computed by the server when the response is built: its last stage (endDate, or dateTime when there is none) has started. Independent of status — a past cancelled trip is both CANCELLED and finished.'
+                      ),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Visibility level'),
+                    publishAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Publication timestamp'),
+                    createdAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('Creation timestamp'),
+                    routeSlug: zod.string().optional().describe('Route slug'),
+                    participantCount: zod.int().describe('Number of participants'),
+                    stageCount: zod.int().describe('Number of stages'),
+                    totalDistance: zod
+                      .number()
+                      .optional()
+                      .describe(
+                        'Distance in metres over every stage that has a route. Null when no stage has one — an unrouted trip has no distance, which is not the same as a distance of zero.'
+                      ),
+                    totalElevationGain: zod
+                      .number()
+                      .optional()
+                      .describe(
+                        'Elevation gain in metres over every stage that has a route. Null when no stage has one.'
+                      ),
+                    stages: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Stage ID (TSID)'),
+                            slug: zod.string().describe('Stage slug'),
+                            name: zod.string().describe('Stage name'),
+                            dateTime: zod.iso
+                              .datetime({ offset: true })
+                              .describe('Stage date/time'),
+                            route: zod
+                              .object({
+                                id: zod.string().describe('Route ID (TSID)'),
+                                slug: zod.string().describe('Route slug'),
+                                team: zod
+                                  .object({
+                                    id: zod.string().describe('Team ID (TSID)'),
+                                    name: zod.string().describe('Team name'),
+                                    slug: zod.string().describe('Team URL slug'),
+                                    visibility: zod
+                                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                                      .describe('Whether the team is public'),
+                                    logoUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe(
+                                        "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                                      ),
+                                  })
+                                  .describe('Team'),
+                                name: zod.string().describe('Route name'),
+                                media: zod
+                                  .object({
+                                    markdown: zod
+                                      .string()
+                                      .max(
+                                        getTeamDashboardResponseLatestPostsPublicationsItemThreeStagesItemRouteMediaMarkdownMax
+                                      )
+                                      .describe('Markdown'),
+                                    assets: zod
+                                      .object({
+                                        logo: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Logo'),
+                                        images: zod
+                                          .array(
+                                            zod.object({
+                                              id: zod.string().describe('ID (TSID)'),
+                                              fileName: zod.string().describe('Filename'),
+                                              contentType: zod.string().describe('Content-Type'),
+                                              url: zod.string().describe('url'),
+                                              imageUrl: zod
+                                                .string()
+                                                .optional()
+                                                .describe('image template url'),
+                                              imageDimensions: zod
+                                                .object({
+                                                  width: zod.int().optional(),
+                                                  height: zod.int().optional(),
+                                                })
+                                                .optional()
+                                                .describe('image dimensions'),
+                                              size: zod
+                                                .int()
+                                                .optional()
+                                                .describe(
+                                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                ),
+                                            })
+                                          )
+                                          .describe('Images'),
+                                        attachments: zod
+                                          .array(
+                                            zod.object({
+                                              id: zod.string().describe('ID (TSID)'),
+                                              fileName: zod.string().describe('Filename'),
+                                              contentType: zod.string().describe('Content-Type'),
+                                              url: zod.string().describe('url'),
+                                              imageUrl: zod
+                                                .string()
+                                                .optional()
+                                                .describe('image template url'),
+                                              imageDimensions: zod
+                                                .object({
+                                                  width: zod.int().optional(),
+                                                  height: zod.int().optional(),
+                                                })
+                                                .optional()
+                                                .describe('image dimensions'),
+                                              size: zod
+                                                .int()
+                                                .optional()
+                                                .describe(
+                                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                ),
+                                            })
+                                          )
+                                          .describe('Attachments'),
+                                        originalGpx: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Original GPX'),
+                                        gpx: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('GPX'),
+                                        fit: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('FIT'),
+                                        thumbnailLight: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Light thumbnail'),
+                                        thumbnailDark: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Dark thumbnail'),
+                                      })
+                                      .describe('Assets'),
+                                  })
+                                  .describe('Route description'),
+                                excerpt: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                                  ),
+                                thumbnailUrl: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+                                  ),
+                                distance: zod.number().describe('Distance in meters'),
+                                elevationGain: zod
+                                  .number()
+                                  .describe('Total elevation gain in meters'),
+                                elevationLoss: zod
+                                  .number()
+                                  .describe('Total elevation loss in meters'),
+                                surfaceType: zod
+                                  .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                                  .describe('Surface type'),
+                                visibility: zod
+                                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                                  .describe('Whether the route is public'),
+                                createdAt: zod.iso
+                                  .datetime({ offset: true })
+                                  .describe('Creation timestamp'),
+                                deleted: zod
+                                  .boolean()
+                                  .describe('Whether the route is soft-deleted'),
+                                commentCount: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+                                  ),
+                                tags: zod
+                                  .array(
+                                    zod
+                                      .object({
+                                        id: zod.string().describe('Tag ID (TSID)'),
+                                        label: zod
+                                          .string()
+                                          .describe('Label, at most 32 characters'),
+                                        color: zod
+                                          .enum([
+                                            'INDIGO',
+                                            'BLUE',
+                                            'GREEN',
+                                            'RED',
+                                            'YELLOW',
+                                            'ORANGE',
+                                            'GRAPE',
+                                            'TEAL',
+                                            'GRAY',
+                                          ])
+                                          .describe('Colour family'),
+                                      })
+                                      .describe('A team tag on a content')
+                                  )
+                                  .describe(
+                                    "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+                                  ),
+                              })
+                              .optional()
+                              .describe('Route'),
+                            startPlace: zod
+                              .object({
+                                id: zod.string().describe('Place ID (TSID)'),
+                                name: zod.string(),
+                                address: zod.string().optional(),
+                                link: zod.string().optional(),
+                                startPlace: zod.boolean(),
+                                endPlace: zod.boolean(),
+                                geometry: zod
+                                  .object({
+                                    type: zod.enum(['Point']),
+                                    coordinates: zod
+                                      .array(zod.number())
+                                      .describe('Coordinates [longitude, latitude]'),
+                                  })
+                                  .optional()
+                                  .describe('Location coordinates [longitude, latitude]'),
+                              })
+                              .optional()
+                              .describe('Start place'),
+                            endPlace: zod
+                              .object({
+                                id: zod.string().describe('Place ID (TSID)'),
+                                name: zod.string(),
+                                address: zod.string().optional(),
+                                link: zod.string().optional(),
+                                startPlace: zod.boolean(),
+                                endPlace: zod.boolean(),
+                                geometry: zod
+                                  .object({
+                                    type: zod.enum(['Point']),
+                                    coordinates: zod
+                                      .array(zod.number())
+                                      .describe('Coordinates [longitude, latitude]'),
+                                  })
+                                  .optional()
+                                  .describe('Location coordinates [longitude, latitude]'),
+                              })
+                              .optional()
+                              .describe('End place'),
+                            media: zod
+                              .object({
+                                markdown: zod
+                                  .string()
+                                  .max(
+                                    getTeamDashboardResponseLatestPostsPublicationsItemThreeStagesItemMediaMarkdownMax
+                                  )
+                                  .describe('Markdown'),
+                                assets: zod
+                                  .object({
+                                    logo: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('Logo'),
+                                    images: zod
+                                      .array(
+                                        zod.object({
+                                          id: zod.string().describe('ID (TSID)'),
+                                          fileName: zod.string().describe('Filename'),
+                                          contentType: zod.string().describe('Content-Type'),
+                                          url: zod.string().describe('url'),
+                                          imageUrl: zod
+                                            .string()
+                                            .optional()
+                                            .describe('image template url'),
+                                          imageDimensions: zod
+                                            .object({
+                                              width: zod.int().optional(),
+                                              height: zod.int().optional(),
+                                            })
+                                            .optional()
+                                            .describe('image dimensions'),
+                                          size: zod
+                                            .int()
+                                            .optional()
+                                            .describe(
+                                              'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                            ),
+                                        })
+                                      )
+                                      .describe('Images'),
+                                    attachments: zod
+                                      .array(
+                                        zod.object({
+                                          id: zod.string().describe('ID (TSID)'),
+                                          fileName: zod.string().describe('Filename'),
+                                          contentType: zod.string().describe('Content-Type'),
+                                          url: zod.string().describe('url'),
+                                          imageUrl: zod
+                                            .string()
+                                            .optional()
+                                            .describe('image template url'),
+                                          imageDimensions: zod
+                                            .object({
+                                              width: zod.int().optional(),
+                                              height: zod.int().optional(),
+                                            })
+                                            .optional()
+                                            .describe('image dimensions'),
+                                          size: zod
+                                            .int()
+                                            .optional()
+                                            .describe(
+                                              'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                            ),
+                                        })
+                                      )
+                                      .describe('Attachments'),
+                                    originalGpx: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('Original GPX'),
+                                    gpx: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('GPX'),
+                                    fit: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('FIT'),
+                                    thumbnailLight: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('Light thumbnail'),
+                                    thumbnailDark: zod
+                                      .object({
+                                        id: zod.string().describe('ID (TSID)'),
+                                        fileName: zod.string().describe('Filename'),
+                                        contentType: zod.string().describe('Content-Type'),
+                                        url: zod.string().describe('url'),
+                                        imageUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('image template url'),
+                                        imageDimensions: zod
+                                          .object({
+                                            width: zod.int().optional(),
+                                            height: zod.int().optional(),
+                                          })
+                                          .optional()
+                                          .describe('image dimensions'),
+                                        size: zod
+                                          .int()
+                                          .optional()
+                                          .describe(
+                                            'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                          ),
+                                      })
+                                      .optional()
+                                      .describe('Dark thumbnail'),
+                                  })
+                                  .describe('Assets'),
+                              })
+                              .describe('Stage media'),
+                            sortOrder: zod.int().describe('Sort order'),
+                            stageIndex: zod
+                              .int()
+                              .describe(
+                                "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
+                              ),
+                            stageCount: zod
+                              .int()
+                              .describe(
+                                "How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."
+                              ),
+                            commentCount: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                "Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount."
+                              ),
+                          })
+                          .describe('Trip stage information')
+                      )
+                      .describe('Trip stages'),
+                    participants: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .describe('Public user information (limited fields)')
+                      )
+                      .describe(
+                        'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+                      ),
+                    thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
+                    thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                    thumbnailUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+                      ),
+                    deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
+                    registered: zod
+                      .boolean()
+                      .describe(
+                        'Whether the current user is registered for this trip. False if anonymous.'
+                      ),
+                    commentCount: zod
+                      .int()
+                      .optional()
+                      .describe(
+                        'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
+                      ),
+                    tags: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Tag ID (TSID)'),
+                            label: zod.string().describe('Label, at most 32 characters'),
+                            color: zod
+                              .enum([
+                                'INDIGO',
+                                'BLUE',
+                                'GREEN',
+                                'RED',
+                                'YELLOW',
+                                'ORANGE',
+                                'GRAPE',
+                                'TEAL',
+                                'GRAY',
+                              ])
+                              .describe('Colour family'),
+                          })
+                          .describe('A team tag on a content')
+                      )
+                      .describe(
+                        "The team's TRIP tags the trip carries, sorted by label. Empty when it carries none."
+                      ),
+                  })
+                  .describe('Trip data'),
+              ])
+              .and(
+                zod.object({
+                  type: zod.enum(['RIDE', 'POST', 'TRIP']).optional(),
+                  visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).optional(),
+                  name: zod.string().optional(),
+                })
+              )
+              .describe('Publication data')
+          )
+          .describe('List of publications'),
+        total: zod.int().describe('Total number of publications'),
+        page: zod.int().describe('Current page number'),
+        size: zod.int().describe('Page size'),
+      })
+      .optional()
+      .describe(
+        "« Dernières publications »: the team's latest published posts, newest first (at most 3). Null when posts are disabled."
+      ),
+    newRoutes: zod
+      .object({
+        routes: zod
+          .array(
+            zod
+              .object({
+                id: zod.string().describe('Route ID (TSID)'),
+                slug: zod.string().describe('Route slug'),
+                team: zod
+                  .object({
+                    id: zod.string().describe('Team ID (TSID)'),
+                    name: zod.string().describe('Team name'),
+                    slug: zod.string().describe('Team URL slug'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Whether the team is public'),
+                    logoUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                      ),
+                  })
+                  .describe('Team'),
+                name: zod.string().describe('Route name'),
+                media: zod
+                  .object({
+                    markdown: zod
+                      .string()
+                      .max(getTeamDashboardResponseNewRoutesRoutesItemMediaMarkdownMax)
+                      .describe('Markdown'),
+                    assets: zod
+                      .object({
+                        logo: zod
+                          .object({
+                            id: zod.string().describe('ID (TSID)'),
+                            fileName: zod.string().describe('Filename'),
+                            contentType: zod.string().describe('Content-Type'),
+                            url: zod.string().describe('url'),
+                            imageUrl: zod.string().optional().describe('image template url'),
+                            imageDimensions: zod
+                              .object({
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
+                              })
+                              .optional()
+                              .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
+                          })
+                          .optional()
+                          .describe('Logo'),
+                        images: zod
+                          .array(
+                            zod.object({
+                              id: zod.string().describe('ID (TSID)'),
+                              fileName: zod.string().describe('Filename'),
+                              contentType: zod.string().describe('Content-Type'),
+                              url: zod.string().describe('url'),
+                              imageUrl: zod.string().optional().describe('image template url'),
+                              imageDimensions: zod
+                                .object({
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
+                                })
+                                .optional()
+                                .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
+                            })
+                          )
+                          .describe('Images'),
+                        attachments: zod
+                          .array(
+                            zod.object({
+                              id: zod.string().describe('ID (TSID)'),
+                              fileName: zod.string().describe('Filename'),
+                              contentType: zod.string().describe('Content-Type'),
+                              url: zod.string().describe('url'),
+                              imageUrl: zod.string().optional().describe('image template url'),
+                              imageDimensions: zod
+                                .object({
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
+                                })
+                                .optional()
+                                .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
+                            })
+                          )
+                          .describe('Attachments'),
+                        originalGpx: zod
+                          .object({
+                            id: zod.string().describe('ID (TSID)'),
+                            fileName: zod.string().describe('Filename'),
+                            contentType: zod.string().describe('Content-Type'),
+                            url: zod.string().describe('url'),
+                            imageUrl: zod.string().optional().describe('image template url'),
+                            imageDimensions: zod
+                              .object({
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
+                              })
+                              .optional()
+                              .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
+                          })
+                          .optional()
+                          .describe('Original GPX'),
+                        gpx: zod
+                          .object({
+                            id: zod.string().describe('ID (TSID)'),
+                            fileName: zod.string().describe('Filename'),
+                            contentType: zod.string().describe('Content-Type'),
+                            url: zod.string().describe('url'),
+                            imageUrl: zod.string().optional().describe('image template url'),
+                            imageDimensions: zod
+                              .object({
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
+                              })
+                              .optional()
+                              .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
+                          })
+                          .optional()
+                          .describe('GPX'),
+                        fit: zod
+                          .object({
+                            id: zod.string().describe('ID (TSID)'),
+                            fileName: zod.string().describe('Filename'),
+                            contentType: zod.string().describe('Content-Type'),
+                            url: zod.string().describe('url'),
+                            imageUrl: zod.string().optional().describe('image template url'),
+                            imageDimensions: zod
+                              .object({
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
+                              })
+                              .optional()
+                              .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
+                          })
+                          .optional()
+                          .describe('FIT'),
+                        thumbnailLight: zod
+                          .object({
+                            id: zod.string().describe('ID (TSID)'),
+                            fileName: zod.string().describe('Filename'),
+                            contentType: zod.string().describe('Content-Type'),
+                            url: zod.string().describe('url'),
+                            imageUrl: zod.string().optional().describe('image template url'),
+                            imageDimensions: zod
+                              .object({
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
+                              })
+                              .optional()
+                              .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
+                          })
+                          .optional()
+                          .describe('Light thumbnail'),
+                        thumbnailDark: zod
+                          .object({
+                            id: zod.string().describe('ID (TSID)'),
+                            fileName: zod.string().describe('Filename'),
+                            contentType: zod.string().describe('Content-Type'),
+                            url: zod.string().describe('url'),
+                            imageUrl: zod.string().optional().describe('image template url'),
+                            imageDimensions: zod
+                              .object({
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
+                              })
+                              .optional()
+                              .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
+                          })
+                          .optional()
+                          .describe('Dark thumbnail'),
+                      })
+                      .describe('Assets'),
+                  })
+                  .describe('Route description'),
+                excerpt: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                  ),
+                thumbnailUrl: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+                  ),
+                distance: zod.number().describe('Distance in meters'),
+                elevationGain: zod.number().describe('Total elevation gain in meters'),
+                elevationLoss: zod.number().describe('Total elevation loss in meters'),
+                surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']).describe('Surface type'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Whether the route is public'),
+                createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+                deleted: zod.boolean().describe('Whether the route is soft-deleted'),
+                commentCount: zod
+                  .int()
+                  .optional()
+                  .describe(
+                    'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+                  ),
+                tags: zod
+                  .array(
+                    zod
+                      .object({
+                        id: zod.string().describe('Tag ID (TSID)'),
+                        label: zod.string().describe('Label, at most 32 characters'),
+                        color: zod
+                          .enum([
+                            'INDIGO',
+                            'BLUE',
+                            'GREEN',
+                            'RED',
+                            'YELLOW',
+                            'ORANGE',
+                            'GRAPE',
+                            'TEAL',
+                            'GRAY',
+                          ])
+                          .describe('Colour family'),
+                      })
+                      .describe('A team tag on a content')
+                  )
+                  .describe(
+                    "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+                  ),
+              })
+              .describe('Route summary data')
+          )
+          .describe('List of routes'),
+        total: zod.int().describe('Total number of routes'),
+        page: zod.int().describe('Current page number'),
+        size: zod.int().describe('Page size'),
+      })
+      .optional()
+      .describe(
+        "« Nouveaux parcours »: the team's latest routes, newest first (at most 3). Null when routes are disabled."
+      ),
+    latestAds: zod
+      .object({
+        ads: zod
+          .array(
+            zod
+              .object({
+                team: zod
+                  .object({
+                    id: zod.string().describe('Team ID (TSID)'),
+                    name: zod.string().describe('Team name'),
+                    slug: zod.string().describe('Team URL slug'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Whether the team is public'),
+                    logoUrl: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                      ),
+                  })
+                  .describe('Team'),
+                id: zod.string().describe('Ad ID (TSID)'),
+                slug: zod.string().describe('Ad URL slug'),
+                name: zod.string().describe('Ad name'),
+                media: zod
+                  .object({
+                    markdown: zod
+                      .string()
+                      .max(getTeamDashboardResponseLatestAdsAdsItemMediaMarkdownMax)
+                      .describe('Markdown'),
+                    assets: zod
+                      .object({
+                        logo: zod
+                          .object({
+                            id: zod.string().describe('ID (TSID)'),
+                            fileName: zod.string().describe('Filename'),
+                            contentType: zod.string().describe('Content-Type'),
+                            url: zod.string().describe('url'),
+                            imageUrl: zod.string().optional().describe('image template url'),
+                            imageDimensions: zod
+                              .object({
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
+                              })
+                              .optional()
+                              .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
+                          })
+                          .optional()
+                          .describe('Logo'),
+                        images: zod
+                          .array(
+                            zod.object({
+                              id: zod.string().describe('ID (TSID)'),
+                              fileName: zod.string().describe('Filename'),
+                              contentType: zod.string().describe('Content-Type'),
+                              url: zod.string().describe('url'),
+                              imageUrl: zod.string().optional().describe('image template url'),
+                              imageDimensions: zod
+                                .object({
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
+                                })
+                                .optional()
+                                .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
+                            })
+                          )
+                          .describe('Images'),
+                        attachments: zod
+                          .array(
+                            zod.object({
+                              id: zod.string().describe('ID (TSID)'),
+                              fileName: zod.string().describe('Filename'),
+                              contentType: zod.string().describe('Content-Type'),
+                              url: zod.string().describe('url'),
+                              imageUrl: zod.string().optional().describe('image template url'),
+                              imageDimensions: zod
+                                .object({
+                                  width: zod.int().optional(),
+                                  height: zod.int().optional(),
+                                })
+                                .optional()
+                                .describe('image dimensions'),
+                              size: zod
+                                .int()
+                                .optional()
+                                .describe(
+                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                ),
+                            })
+                          )
+                          .describe('Attachments'),
+                        originalGpx: zod
+                          .object({
+                            id: zod.string().describe('ID (TSID)'),
+                            fileName: zod.string().describe('Filename'),
+                            contentType: zod.string().describe('Content-Type'),
+                            url: zod.string().describe('url'),
+                            imageUrl: zod.string().optional().describe('image template url'),
+                            imageDimensions: zod
+                              .object({
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
+                              })
+                              .optional()
+                              .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
+                          })
+                          .optional()
+                          .describe('Original GPX'),
+                        gpx: zod
+                          .object({
+                            id: zod.string().describe('ID (TSID)'),
+                            fileName: zod.string().describe('Filename'),
+                            contentType: zod.string().describe('Content-Type'),
+                            url: zod.string().describe('url'),
+                            imageUrl: zod.string().optional().describe('image template url'),
+                            imageDimensions: zod
+                              .object({
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
+                              })
+                              .optional()
+                              .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
+                          })
+                          .optional()
+                          .describe('GPX'),
+                        fit: zod
+                          .object({
+                            id: zod.string().describe('ID (TSID)'),
+                            fileName: zod.string().describe('Filename'),
+                            contentType: zod.string().describe('Content-Type'),
+                            url: zod.string().describe('url'),
+                            imageUrl: zod.string().optional().describe('image template url'),
+                            imageDimensions: zod
+                              .object({
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
+                              })
+                              .optional()
+                              .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
+                          })
+                          .optional()
+                          .describe('FIT'),
+                        thumbnailLight: zod
+                          .object({
+                            id: zod.string().describe('ID (TSID)'),
+                            fileName: zod.string().describe('Filename'),
+                            contentType: zod.string().describe('Content-Type'),
+                            url: zod.string().describe('url'),
+                            imageUrl: zod.string().optional().describe('image template url'),
+                            imageDimensions: zod
+                              .object({
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
+                              })
+                              .optional()
+                              .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
+                          })
+                          .optional()
+                          .describe('Light thumbnail'),
+                        thumbnailDark: zod
+                          .object({
+                            id: zod.string().describe('ID (TSID)'),
+                            fileName: zod.string().describe('Filename'),
+                            contentType: zod.string().describe('Content-Type'),
+                            url: zod.string().describe('url'),
+                            imageUrl: zod.string().optional().describe('image template url'),
+                            imageDimensions: zod
+                              .object({
+                                width: zod.int().optional(),
+                                height: zod.int().optional(),
+                              })
+                              .optional()
+                              .describe('image dimensions'),
+                            size: zod
+                              .int()
+                              .optional()
+                              .describe(
+                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                              ),
+                          })
+                          .optional()
+                          .describe('Dark thumbnail'),
+                      })
+                      .describe('Assets'),
+                  })
+                  .describe('Ad media'),
+                excerpt: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                  ),
+                thumbnailUrl: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "URL template of the ad's first picture, the one a card shows. Saves a compact row from carrying media.assets just to find it."
+                  ),
+                images: zod
+                  .array(zod.string())
+                  .describe(
+                    "URL templates of every picture on the ad, in editor order — the gallery. Present whatever the 'view', so a compact row can show a carousel without pulling media.assets. The first entry is the same picture as 'thumbnailUrl'."
+                  ),
+                status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ad status'),
+                visibility: zod
+                  .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                  .describe('Visibility level'),
+                adType: zod.enum(['SALE', 'RENTAL', 'WANTED']).describe('Ad type'),
+                price: zod.number().optional().describe('Price'),
+                rentalPeriod: zod
+                  .enum(['DAY', 'WEEK', 'MONTH'])
+                  .optional()
+                  .describe(
+                    "Period the price applies to, for a rental — render as 'price / period'. Null for a sale, and for a rental whose period has not been set."
+                  ),
+                locationDescription: zod.string().optional().describe('Location description'),
+                locationGeometry: zod
+                  .object({
+                    type: zod.enum(['Point']),
+                    coordinates: zod
+                      .array(zod.number())
+                      .describe('Coordinates [longitude, latitude]'),
+                  })
+                  .optional()
+                  .describe(
+                    "Approximate location of the ad, deliberately blurred: the point is the centre of a fixed cell about 1 km across, not the seller's address. Enough to tell a nearby ad from a distant one, and the same value on every read so repeated calls cannot be averaged back to the exact position. Null when the ad has no location. The exact point stays on AdEditDto, and only for the seller: the team's admins get this blurred point there too. Proximity filters measure from this blurred point too, never from the exact one."
+                  ),
+                createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+                updatedAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+                createdById: zod.string().describe('Creator ID (TSID)'),
+                createdByDisplayName: zod
+                  .string()
+                  .describe(
+                    'Display name of the member who posted the ad. The only thing about them this DTO carries: there is no contact channel on an Ad, and inventing one (an email, a phone number) is a product decision, not a serialisation one.'
+                  ),
+                deleted: zod.boolean().describe('Whether the ad is soft-deleted'),
+                tags: zod
+                  .array(
+                    zod
+                      .object({
+                        id: zod.string().describe('Tag ID (TSID)'),
+                        label: zod.string().describe('Label, at most 32 characters'),
+                        color: zod
+                          .enum([
+                            'INDIGO',
+                            'BLUE',
+                            'GREEN',
+                            'RED',
+                            'YELLOW',
+                            'ORANGE',
+                            'GRAPE',
+                            'TEAL',
+                            'GRAY',
+                          ])
+                          .describe('Colour family'),
+                      })
+                      .describe('A team tag on a content')
+                  )
+                  .describe(
+                    "The team's AD tags the ad carries, sorted by label. Empty when it carries none."
+                  ),
+              })
+              .describe('Ad data')
+          )
+          .describe('List of ads'),
+        total: zod.int().describe('Total number of ads'),
+        page: zod.int().describe('Current page number'),
+        size: zod.int().describe('Page size'),
+      })
+      .optional()
+      .describe(
+        "« Annonces »: the team's latest ads, newest first (at most 3). A null price reads « Prix à négocier »; the place is locationDescription, a sector — never a pin. Null when ads are disabled."
+      ),
+    organizer: zod
+      .object({
+        drafts: zod
+          .object({
+            publications: zod
+              .array(
+                zod
+                  .union([
+                    zod
+                      .object({
+                        type: zod.enum(['RIDE']),
+                        team: zod
+                          .object({
+                            id: zod.string().describe('Team ID (TSID)'),
+                            name: zod.string().describe('Team name'),
+                            slug: zod.string().describe('Team URL slug'),
+                            visibility: zod
+                              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                              .describe('Whether the team is public'),
+                            logoUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                              ),
+                          })
+                          .describe('Team'),
+                        id: zod.string().describe('Publication ID (TSID)'),
+                        slug: zod.string().describe('Publication URL slug'),
+                        name: zod.string().describe('Publication name'),
+                        media: zod
+                          .object({
+                            markdown: zod
+                              .string()
+                              .max(
+                                getTeamDashboardResponseOrganizerDraftsPublicationsItemOneMediaMarkdownMax
+                              )
+                              .describe('Markdown'),
+                            assets: zod
+                              .object({
+                                logo: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Logo'),
+                                images: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Images'),
+                                attachments: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Attachments'),
+                                originalGpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Original GPX'),
+                                gpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('GPX'),
+                                fit: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('FIT'),
+                                thumbnailLight: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Light thumbnail'),
+                                thumbnailDark: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Dark thumbnail'),
+                              })
+                              .describe('Assets'),
+                          })
+                          .describe('Publication media'),
+                        excerpt: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                          ),
+                        dateTime: zod.iso
+                          .datetime({ offset: true })
+                          .describe('Publication date/time'),
+                        status: zod
+                          .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                          .describe('Publication status'),
+                        finished: zod
+                          .boolean()
+                          .describe(
+                            'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+                          ),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Visibility level'),
+                        publishAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Publication timestamp'),
+                        createdAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Creation timestamp'),
+                        routeSlug: zod.string().optional().describe('Route slug'),
+                        participantCount: zod.int().describe('Number of participants'),
+                        groupCount: zod.int().describe('Number of groups'),
+                        groups: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Group ID (TSID)'),
+                                name: zod.string().describe('Group name'),
+                                time: zod.string().optional(),
+                                routeSlug: zod.string().optional().describe('Route slug'),
+                                averageSpeed: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Average speed in km/h'),
+                                maxParticipants: zod
+                                  .int()
+                                  .optional()
+                                  .describe('Maximum participants'),
+                                countParticipants: zod
+                                  .int()
+                                  .describe('Current number of participants'),
+                                participants: zod
+                                  .array(
+                                    zod
+                                      .object({
+                                        id: zod.string().describe('User ID (TSID)'),
+                                        displayName: zod.string().describe('User display name'),
+                                        avatarUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('User avatar URL'),
+                                      })
+                                      .describe('Public user information (limited fields)')
+                                  )
+                                  .describe(
+                                    'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                                  ),
+                                sortOrder: zod.int().describe('Sort order'),
+                                registered: zod
+                                  .boolean()
+                                  .describe(
+                                    'Whether the current user is registered in THIS group. False if anonymous.'
+                                  ),
+                                full: zod
+                                  .boolean()
+                                  .describe(
+                                    'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                                  ),
+                                distance: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Distance in meters of the group route, if it has one'),
+                                elevationGain: zod
+                                  .number()
+                                  .optional()
+                                  .describe(
+                                    'Total elevation gain in meters of the group route, if it has one'
+                                  ),
+                                leader: zod
+                                  .object({
+                                    id: zod.string().describe('User ID (TSID)'),
+                                    displayName: zod.string().describe('User display name'),
+                                    avatarUrl: zod.string().optional().describe('User avatar URL'),
+                                  })
+                                  .optional()
+                                  .describe(
+                                    "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                                  ),
+                                thumbnailLightUrl: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    'Thumbnail URL (light) of the group route, if it has one'
+                                  ),
+                                thumbnailDarkUrl: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    'Thumbnail URL (dark) of the group route, if it has one'
+                                  ),
+                                thumbnailUrl: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                                  ),
+                              })
+                              .describe('Ride group information')
+                          )
+                          .describe('Ride groups'),
+                        groupSummaries: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Group ID (TSID)'),
+                                name: zod.string().describe('Group name'),
+                                time: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "Start time of the group, when it differs from the ride's"
+                                  ),
+                                averageSpeed: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Average speed in km/h'),
+                                countParticipants: zod
+                                  .int()
+                                  .describe('Current number of participants'),
+                                maxParticipants: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Maximum participants, null when the group is uncapped'
+                                  ),
+                                full: zod
+                                  .boolean()
+                                  .describe(
+                                    'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                                  ),
+                                routeSlug: zod
+                                  .string()
+                                  .optional()
+                                  .describe('Slug of the group route, if it has one'),
+                                distance: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Distance in meters of the group route, if it has one'),
+                                elevationGain: zod
+                                  .number()
+                                  .optional()
+                                  .describe(
+                                    'Total elevation gain in meters of the group route, if it has one'
+                                  ),
+                                sortOrder: zod.int().describe('Sort order'),
+                              })
+                              .describe(
+                                "One group of a ride, as a list row shows it: name, pace and fill. Same figures as the matching entry of the detail's groups, without the participants nor the leader."
+                              )
+                          )
+                          .describe(
+                            'Every group of the ride in sort order, as a card shows it: name, pace, start time and fill (countParticipants against maxParticipants). Filled on list rows too, where groups is empty — a card draws its per-group fill bars without opening the ride. Carries no leader nor participants: those are on groups, in the detail.'
+                          ),
+                        distance: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            "Distance in meters of the ride's route — or, when the ride itself has none, of the route of its first group (in sort order) that has one. Null when no route is set anywhere."
+                          ),
+                        elevationGain: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Total elevation gain in meters, from the same route as distance. Null when no route is set anywhere.'
+                          ),
+                        surfaceType: zod
+                          .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                          .optional()
+                          .describe(
+                            'Surface type, from the same route as distance. Null when no route is set anywhere.'
+                          ),
+                        startPlace: zod
+                          .object({
+                            id: zod.string().describe('Place ID (TSID)'),
+                            name: zod.string(),
+                            address: zod.string().optional(),
+                            link: zod.string().optional(),
+                            startPlace: zod.boolean(),
+                            endPlace: zod.boolean(),
+                            geometry: zod
+                              .object({
+                                type: zod.enum(['Point']),
+                                coordinates: zod
+                                  .array(zod.number())
+                                  .describe('Coordinates [longitude, latitude]'),
+                              })
+                              .optional()
+                              .describe('Location coordinates [longitude, latitude]'),
+                          })
+                          .optional()
+                          .describe('Start place'),
+                        endPlace: zod
+                          .object({
+                            id: zod.string().describe('Place ID (TSID)'),
+                            name: zod.string(),
+                            address: zod.string().optional(),
+                            link: zod.string().optional(),
+                            startPlace: zod.boolean(),
+                            endPlace: zod.boolean(),
+                            geometry: zod
+                              .object({
+                                type: zod.enum(['Point']),
+                                coordinates: zod
+                                  .array(zod.number())
+                                  .describe('Coordinates [longitude, latitude]'),
+                              })
+                              .optional()
+                              .describe('Location coordinates [longitude, latitude]'),
+                          })
+                          .optional()
+                          .describe('End place'),
+                        topParticipants: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .describe('Public user information (limited fields)')
+                          )
+                          .describe('Preview of first participants (max 5)'),
+                        thumbnailLightUrl: zod
+                          .string()
+                          .optional()
+                          .describe('Thumbnail URL (light)'),
+                        thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                        thumbnailUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+                          ),
+                        deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
+                        registered: zod
+                          .boolean()
+                          .describe(
+                            "Whether the current user is registered in one of this ride's groups. False if anonymous."
+                          ),
+                        registeredGroupId: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            'ID (TSID) of the group the current user joined, null if not registered'
+                          ),
+                        registeredGroup: zod
+                          .object({
+                            id: zod.string().describe('Group ID (TSID)'),
+                            name: zod.string().describe('Group name'),
+                            time: zod.string().optional(),
+                            routeSlug: zod.string().optional().describe('Route slug'),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                            maxParticipants: zod.int().optional().describe('Maximum participants'),
+                            countParticipants: zod.int().describe('Current number of participants'),
+                            participants: zod
+                              .array(
+                                zod
+                                  .object({
+                                    id: zod.string().describe('User ID (TSID)'),
+                                    displayName: zod.string().describe('User display name'),
+                                    avatarUrl: zod.string().optional().describe('User avatar URL'),
+                                  })
+                                  .describe('Public user information (limited fields)')
+                              )
+                              .describe(
+                                'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                              ),
+                            sortOrder: zod.int().describe('Sort order'),
+                            registered: zod
+                              .boolean()
+                              .describe(
+                                'Whether the current user is registered in THIS group. False if anonymous.'
+                              ),
+                            full: zod
+                              .boolean()
+                              .describe(
+                                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                              ),
+                            distance: zod
+                              .number()
+                              .optional()
+                              .describe('Distance in meters of the group route, if it has one'),
+                            elevationGain: zod
+                              .number()
+                              .optional()
+                              .describe(
+                                'Total elevation gain in meters of the group route, if it has one'
+                              ),
+                            leader: zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .optional()
+                              .describe(
+                                "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                              ),
+                            thumbnailLightUrl: zod
+                              .string()
+                              .optional()
+                              .describe('Thumbnail URL (light) of the group route, if it has one'),
+                            thumbnailDarkUrl: zod
+                              .string()
+                              .optional()
+                              .describe('Thumbnail URL (dark) of the group route, if it has one'),
+                            thumbnailUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                              ),
+                          })
+                          .optional()
+                          .describe(
+                            'The group the current user joined, in full — the same object as the matching entry of groups. Null if not registered or anonymous. Set on list rows too, where groups is empty: a client rendering "my next ride" needs no second request for its group. Its leader is the group\'s own, null when none was designated.'
+                          ),
+                        full: zod
+                          .boolean()
+                          .describe(
+                            'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
+                          ),
+                        maxParticipants: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Capacity of the whole ride: the sum of its groups\' maxParticipants, to render participantCount against it ("12/40"). Null when the ride has no group, or when at least one group has no maxParticipants — the ride then has no overall limit, and is never full. Set on list rows too, where groups is empty.'
+                          ),
+                        commentCount: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+                          ),
+                        tags: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Tag ID (TSID)'),
+                                label: zod.string().describe('Label, at most 32 characters'),
+                                color: zod
+                                  .enum([
+                                    'INDIGO',
+                                    'BLUE',
+                                    'GREEN',
+                                    'RED',
+                                    'YELLOW',
+                                    'ORANGE',
+                                    'GRAPE',
+                                    'TEAL',
+                                    'GRAY',
+                                  ])
+                                  .describe('Colour family'),
+                              })
+                              .describe('A team tag on a content')
+                          )
+                          .describe(
+                            "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
+                          ),
+                      })
+                      .describe('Ride summary data'),
+                    zod
+                      .object({
+                        type: zod.enum(['POST']),
+                        team: zod
+                          .object({
+                            id: zod.string().describe('Team ID (TSID)'),
+                            name: zod.string().describe('Team name'),
+                            slug: zod.string().describe('Team URL slug'),
+                            visibility: zod
+                              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                              .describe('Whether the team is public'),
+                            logoUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                              ),
+                          })
+                          .describe('Team'),
+                        id: zod.string().describe('Publication ID (TSID)'),
+                        slug: zod.string().describe('Publication URL slug'),
+                        name: zod.string().describe('Publication name'),
+                        media: zod
+                          .object({
+                            markdown: zod
+                              .string()
+                              .max(
+                                getTeamDashboardResponseOrganizerDraftsPublicationsItemTwoMediaMarkdownMax
+                              )
+                              .describe('Markdown'),
+                            assets: zod
+                              .object({
+                                logo: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Logo'),
+                                images: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Images'),
+                                attachments: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Attachments'),
+                                originalGpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Original GPX'),
+                                gpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('GPX'),
+                                fit: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('FIT'),
+                                thumbnailLight: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Light thumbnail'),
+                                thumbnailDark: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Dark thumbnail'),
+                              })
+                              .describe('Assets'),
+                          })
+                          .describe('Publication media'),
+                        excerpt: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                          ),
+                        thumbnailUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
+                          ),
+                        dateTime: zod.iso
+                          .datetime({ offset: true })
+                          .describe('Publication date/time'),
+                        status: zod
+                          .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                          .describe('Publication status'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Visibility level'),
+                        publishAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Publication timestamp'),
+                        createdAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Creation timestamp'),
+                        deleted: zod.boolean().describe('Whether the post is soft-deleted'),
+                        commentCount: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+                          ),
+                        signedAsTeam: zod
+                          .boolean()
+                          .describe(
+                            'Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.'
+                          ),
+                        createdBy: zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .optional()
+                          .describe(
+                            'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+                          ),
+                        tags: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Tag ID (TSID)'),
+                                label: zod.string().describe('Label, at most 32 characters'),
+                                color: zod
+                                  .enum([
+                                    'INDIGO',
+                                    'BLUE',
+                                    'GREEN',
+                                    'RED',
+                                    'YELLOW',
+                                    'ORANGE',
+                                    'GRAPE',
+                                    'TEAL',
+                                    'GRAY',
+                                  ])
+                                  .describe('Colour family'),
+                              })
+                              .describe('A team tag on a content')
+                          )
+                          .describe(
+                            "The team's POST tags the post carries, sorted by label. Empty when it carries none."
+                          ),
+                      })
+                      .describe('Post summary data'),
+                    zod
+                      .object({
+                        type: zod.enum(['TRIP']),
+                        team: zod
+                          .object({
+                            id: zod.string().describe('Team ID (TSID)'),
+                            name: zod.string().describe('Team name'),
+                            slug: zod.string().describe('Team URL slug'),
+                            visibility: zod
+                              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                              .describe('Whether the team is public'),
+                            logoUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                              ),
+                          })
+                          .describe('Team'),
+                        id: zod.string().describe('Publication ID (TSID)'),
+                        slug: zod.string().describe('Publication URL slug'),
+                        name: zod.string().describe('Publication name'),
+                        media: zod
+                          .object({
+                            markdown: zod
+                              .string()
+                              .max(
+                                getTeamDashboardResponseOrganizerDraftsPublicationsItemThreeMediaMarkdownMax
+                              )
+                              .describe('Markdown'),
+                            assets: zod
+                              .object({
+                                logo: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Logo'),
+                                images: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Images'),
+                                attachments: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Attachments'),
+                                originalGpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Original GPX'),
+                                gpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('GPX'),
+                                fit: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('FIT'),
+                                thumbnailLight: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Light thumbnail'),
+                                thumbnailDark: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Dark thumbnail'),
+                              })
+                              .describe('Assets'),
+                          })
+                          .describe('Publication media'),
+                        excerpt: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                          ),
+                        dateTime: zod.iso
+                          .datetime({ offset: true })
+                          .describe('Trip start date/time'),
+                        endDate: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe(
+                            'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+                          ),
+                        status: zod
+                          .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                          .describe('Publication status'),
+                        finished: zod
+                          .boolean()
+                          .describe(
+                            'Whether the trip is over, computed by the server when the response is built: its last stage (endDate, or dateTime when there is none) has started. Independent of status — a past cancelled trip is both CANCELLED and finished.'
+                          ),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Visibility level'),
+                        publishAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Publication timestamp'),
+                        createdAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Creation timestamp'),
+                        routeSlug: zod.string().optional().describe('Route slug'),
+                        participantCount: zod.int().describe('Number of participants'),
+                        stageCount: zod.int().describe('Number of stages'),
+                        totalDistance: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Distance in metres over every stage that has a route. Null when no stage has one — an unrouted trip has no distance, which is not the same as a distance of zero.'
+                          ),
+                        totalElevationGain: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Elevation gain in metres over every stage that has a route. Null when no stage has one.'
+                          ),
+                        stages: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Stage ID (TSID)'),
+                                slug: zod.string().describe('Stage slug'),
+                                name: zod.string().describe('Stage name'),
+                                dateTime: zod.iso
+                                  .datetime({ offset: true })
+                                  .describe('Stage date/time'),
+                                route: zod
+                                  .object({
+                                    id: zod.string().describe('Route ID (TSID)'),
+                                    slug: zod.string().describe('Route slug'),
+                                    team: zod
+                                      .object({
+                                        id: zod.string().describe('Team ID (TSID)'),
+                                        name: zod.string().describe('Team name'),
+                                        slug: zod.string().describe('Team URL slug'),
+                                        visibility: zod
+                                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                                          .describe('Whether the team is public'),
+                                        logoUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe(
+                                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                                          ),
+                                      })
+                                      .describe('Team'),
+                                    name: zod.string().describe('Route name'),
+                                    media: zod
+                                      .object({
+                                        markdown: zod
+                                          .string()
+                                          .max(
+                                            getTeamDashboardResponseOrganizerDraftsPublicationsItemThreeStagesItemRouteMediaMarkdownMax
+                                          )
+                                          .describe('Markdown'),
+                                        assets: zod
+                                          .object({
+                                            logo: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('Logo'),
+                                            images: zod
+                                              .array(
+                                                zod.object({
+                                                  id: zod.string().describe('ID (TSID)'),
+                                                  fileName: zod.string().describe('Filename'),
+                                                  contentType: zod
+                                                    .string()
+                                                    .describe('Content-Type'),
+                                                  url: zod.string().describe('url'),
+                                                  imageUrl: zod
+                                                    .string()
+                                                    .optional()
+                                                    .describe('image template url'),
+                                                  imageDimensions: zod
+                                                    .object({
+                                                      width: zod.int().optional(),
+                                                      height: zod.int().optional(),
+                                                    })
+                                                    .optional()
+                                                    .describe('image dimensions'),
+                                                  size: zod
+                                                    .int()
+                                                    .optional()
+                                                    .describe(
+                                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                    ),
+                                                })
+                                              )
+                                              .describe('Images'),
+                                            attachments: zod
+                                              .array(
+                                                zod.object({
+                                                  id: zod.string().describe('ID (TSID)'),
+                                                  fileName: zod.string().describe('Filename'),
+                                                  contentType: zod
+                                                    .string()
+                                                    .describe('Content-Type'),
+                                                  url: zod.string().describe('url'),
+                                                  imageUrl: zod
+                                                    .string()
+                                                    .optional()
+                                                    .describe('image template url'),
+                                                  imageDimensions: zod
+                                                    .object({
+                                                      width: zod.int().optional(),
+                                                      height: zod.int().optional(),
+                                                    })
+                                                    .optional()
+                                                    .describe('image dimensions'),
+                                                  size: zod
+                                                    .int()
+                                                    .optional()
+                                                    .describe(
+                                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                    ),
+                                                })
+                                              )
+                                              .describe('Attachments'),
+                                            originalGpx: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('Original GPX'),
+                                            gpx: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('GPX'),
+                                            fit: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('FIT'),
+                                            thumbnailLight: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('Light thumbnail'),
+                                            thumbnailDark: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('Dark thumbnail'),
+                                          })
+                                          .describe('Assets'),
+                                      })
+                                      .describe('Route description'),
+                                    excerpt: zod
+                                      .string()
+                                      .optional()
+                                      .describe(
+                                        "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                                      ),
+                                    thumbnailUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe(
+                                        "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+                                      ),
+                                    distance: zod.number().describe('Distance in meters'),
+                                    elevationGain: zod
+                                      .number()
+                                      .describe('Total elevation gain in meters'),
+                                    elevationLoss: zod
+                                      .number()
+                                      .describe('Total elevation loss in meters'),
+                                    surfaceType: zod
+                                      .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                                      .describe('Surface type'),
+                                    visibility: zod
+                                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                                      .describe('Whether the route is public'),
+                                    createdAt: zod.iso
+                                      .datetime({ offset: true })
+                                      .describe('Creation timestamp'),
+                                    deleted: zod
+                                      .boolean()
+                                      .describe('Whether the route is soft-deleted'),
+                                    commentCount: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+                                      ),
+                                    tags: zod
+                                      .array(
+                                        zod
+                                          .object({
+                                            id: zod.string().describe('Tag ID (TSID)'),
+                                            label: zod
+                                              .string()
+                                              .describe('Label, at most 32 characters'),
+                                            color: zod
+                                              .enum([
+                                                'INDIGO',
+                                                'BLUE',
+                                                'GREEN',
+                                                'RED',
+                                                'YELLOW',
+                                                'ORANGE',
+                                                'GRAPE',
+                                                'TEAL',
+                                                'GRAY',
+                                              ])
+                                              .describe('Colour family'),
+                                          })
+                                          .describe('A team tag on a content')
+                                      )
+                                      .describe(
+                                        "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Route'),
+                                startPlace: zod
+                                  .object({
+                                    id: zod.string().describe('Place ID (TSID)'),
+                                    name: zod.string(),
+                                    address: zod.string().optional(),
+                                    link: zod.string().optional(),
+                                    startPlace: zod.boolean(),
+                                    endPlace: zod.boolean(),
+                                    geometry: zod
+                                      .object({
+                                        type: zod.enum(['Point']),
+                                        coordinates: zod
+                                          .array(zod.number())
+                                          .describe('Coordinates [longitude, latitude]'),
+                                      })
+                                      .optional()
+                                      .describe('Location coordinates [longitude, latitude]'),
+                                  })
+                                  .optional()
+                                  .describe('Start place'),
+                                endPlace: zod
+                                  .object({
+                                    id: zod.string().describe('Place ID (TSID)'),
+                                    name: zod.string(),
+                                    address: zod.string().optional(),
+                                    link: zod.string().optional(),
+                                    startPlace: zod.boolean(),
+                                    endPlace: zod.boolean(),
+                                    geometry: zod
+                                      .object({
+                                        type: zod.enum(['Point']),
+                                        coordinates: zod
+                                          .array(zod.number())
+                                          .describe('Coordinates [longitude, latitude]'),
+                                      })
+                                      .optional()
+                                      .describe('Location coordinates [longitude, latitude]'),
+                                  })
+                                  .optional()
+                                  .describe('End place'),
+                                media: zod
+                                  .object({
+                                    markdown: zod
+                                      .string()
+                                      .max(
+                                        getTeamDashboardResponseOrganizerDraftsPublicationsItemThreeStagesItemMediaMarkdownMax
+                                      )
+                                      .describe('Markdown'),
+                                    assets: zod
+                                      .object({
+                                        logo: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Logo'),
+                                        images: zod
+                                          .array(
+                                            zod.object({
+                                              id: zod.string().describe('ID (TSID)'),
+                                              fileName: zod.string().describe('Filename'),
+                                              contentType: zod.string().describe('Content-Type'),
+                                              url: zod.string().describe('url'),
+                                              imageUrl: zod
+                                                .string()
+                                                .optional()
+                                                .describe('image template url'),
+                                              imageDimensions: zod
+                                                .object({
+                                                  width: zod.int().optional(),
+                                                  height: zod.int().optional(),
+                                                })
+                                                .optional()
+                                                .describe('image dimensions'),
+                                              size: zod
+                                                .int()
+                                                .optional()
+                                                .describe(
+                                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                ),
+                                            })
+                                          )
+                                          .describe('Images'),
+                                        attachments: zod
+                                          .array(
+                                            zod.object({
+                                              id: zod.string().describe('ID (TSID)'),
+                                              fileName: zod.string().describe('Filename'),
+                                              contentType: zod.string().describe('Content-Type'),
+                                              url: zod.string().describe('url'),
+                                              imageUrl: zod
+                                                .string()
+                                                .optional()
+                                                .describe('image template url'),
+                                              imageDimensions: zod
+                                                .object({
+                                                  width: zod.int().optional(),
+                                                  height: zod.int().optional(),
+                                                })
+                                                .optional()
+                                                .describe('image dimensions'),
+                                              size: zod
+                                                .int()
+                                                .optional()
+                                                .describe(
+                                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                ),
+                                            })
+                                          )
+                                          .describe('Attachments'),
+                                        originalGpx: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Original GPX'),
+                                        gpx: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('GPX'),
+                                        fit: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('FIT'),
+                                        thumbnailLight: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Light thumbnail'),
+                                        thumbnailDark: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Dark thumbnail'),
+                                      })
+                                      .describe('Assets'),
+                                  })
+                                  .describe('Stage media'),
+                                sortOrder: zod.int().describe('Sort order'),
+                                stageIndex: zod
+                                  .int()
+                                  .describe(
+                                    "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
+                                  ),
+                                stageCount: zod
+                                  .int()
+                                  .describe(
+                                    "How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."
+                                  ),
+                                commentCount: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    "Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount."
+                                  ),
+                              })
+                              .describe('Trip stage information')
+                          )
+                          .describe('Trip stages'),
+                        participants: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .describe('Public user information (limited fields)')
+                          )
+                          .describe(
+                            'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+                          ),
+                        thumbnailLightUrl: zod
+                          .string()
+                          .optional()
+                          .describe('Thumbnail URL (light)'),
+                        thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                        thumbnailUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+                          ),
+                        deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
+                        registered: zod
+                          .boolean()
+                          .describe(
+                            'Whether the current user is registered for this trip. False if anonymous.'
+                          ),
+                        commentCount: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
+                          ),
+                        tags: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Tag ID (TSID)'),
+                                label: zod.string().describe('Label, at most 32 characters'),
+                                color: zod
+                                  .enum([
+                                    'INDIGO',
+                                    'BLUE',
+                                    'GREEN',
+                                    'RED',
+                                    'YELLOW',
+                                    'ORANGE',
+                                    'GRAPE',
+                                    'TEAL',
+                                    'GRAY',
+                                  ])
+                                  .describe('Colour family'),
+                              })
+                              .describe('A team tag on a content')
+                          )
+                          .describe(
+                            "The team's TRIP tags the trip carries, sorted by label. Empty when it carries none."
+                          ),
+                      })
+                      .describe('Trip data'),
+                  ])
+                  .and(
+                    zod.object({
+                      type: zod.enum(['RIDE', 'POST', 'TRIP']).optional(),
+                      visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).optional(),
+                      name: zod.string().optional(),
+                    })
+                  )
+                  .describe('Publication data')
+              )
+              .describe('List of publications'),
+            total: zod.int().describe('Total number of publications'),
+            page: zod.int().describe('Current page number'),
+            size: zod.int().describe('Page size'),
+          })
+          .describe(
+            "The team's drafts (rides, posts, trips), newest first. total is the number of drafts, the rows their names."
+          ),
+        ridesWithoutRoute: zod
+          .object({
+            publications: zod
+              .array(
+                zod
+                  .union([
+                    zod
+                      .object({
+                        type: zod.enum(['RIDE']),
+                        team: zod
+                          .object({
+                            id: zod.string().describe('Team ID (TSID)'),
+                            name: zod.string().describe('Team name'),
+                            slug: zod.string().describe('Team URL slug'),
+                            visibility: zod
+                              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                              .describe('Whether the team is public'),
+                            logoUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                              ),
+                          })
+                          .describe('Team'),
+                        id: zod.string().describe('Publication ID (TSID)'),
+                        slug: zod.string().describe('Publication URL slug'),
+                        name: zod.string().describe('Publication name'),
+                        media: zod
+                          .object({
+                            markdown: zod
+                              .string()
+                              .max(
+                                getTeamDashboardResponseOrganizerRidesWithoutRoutePublicationsItemOneMediaMarkdownMax
+                              )
+                              .describe('Markdown'),
+                            assets: zod
+                              .object({
+                                logo: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Logo'),
+                                images: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Images'),
+                                attachments: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Attachments'),
+                                originalGpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Original GPX'),
+                                gpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('GPX'),
+                                fit: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('FIT'),
+                                thumbnailLight: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Light thumbnail'),
+                                thumbnailDark: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Dark thumbnail'),
+                              })
+                              .describe('Assets'),
+                          })
+                          .describe('Publication media'),
+                        excerpt: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                          ),
+                        dateTime: zod.iso
+                          .datetime({ offset: true })
+                          .describe('Publication date/time'),
+                        status: zod
+                          .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                          .describe('Publication status'),
+                        finished: zod
+                          .boolean()
+                          .describe(
+                            'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+                          ),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Visibility level'),
+                        publishAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Publication timestamp'),
+                        createdAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Creation timestamp'),
+                        routeSlug: zod.string().optional().describe('Route slug'),
+                        participantCount: zod.int().describe('Number of participants'),
+                        groupCount: zod.int().describe('Number of groups'),
+                        groups: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Group ID (TSID)'),
+                                name: zod.string().describe('Group name'),
+                                time: zod.string().optional(),
+                                routeSlug: zod.string().optional().describe('Route slug'),
+                                averageSpeed: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Average speed in km/h'),
+                                maxParticipants: zod
+                                  .int()
+                                  .optional()
+                                  .describe('Maximum participants'),
+                                countParticipants: zod
+                                  .int()
+                                  .describe('Current number of participants'),
+                                participants: zod
+                                  .array(
+                                    zod
+                                      .object({
+                                        id: zod.string().describe('User ID (TSID)'),
+                                        displayName: zod.string().describe('User display name'),
+                                        avatarUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('User avatar URL'),
+                                      })
+                                      .describe('Public user information (limited fields)')
+                                  )
+                                  .describe(
+                                    'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                                  ),
+                                sortOrder: zod.int().describe('Sort order'),
+                                registered: zod
+                                  .boolean()
+                                  .describe(
+                                    'Whether the current user is registered in THIS group. False if anonymous.'
+                                  ),
+                                full: zod
+                                  .boolean()
+                                  .describe(
+                                    'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                                  ),
+                                distance: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Distance in meters of the group route, if it has one'),
+                                elevationGain: zod
+                                  .number()
+                                  .optional()
+                                  .describe(
+                                    'Total elevation gain in meters of the group route, if it has one'
+                                  ),
+                                leader: zod
+                                  .object({
+                                    id: zod.string().describe('User ID (TSID)'),
+                                    displayName: zod.string().describe('User display name'),
+                                    avatarUrl: zod.string().optional().describe('User avatar URL'),
+                                  })
+                                  .optional()
+                                  .describe(
+                                    "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                                  ),
+                                thumbnailLightUrl: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    'Thumbnail URL (light) of the group route, if it has one'
+                                  ),
+                                thumbnailDarkUrl: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    'Thumbnail URL (dark) of the group route, if it has one'
+                                  ),
+                                thumbnailUrl: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                                  ),
+                              })
+                              .describe('Ride group information')
+                          )
+                          .describe('Ride groups'),
+                        groupSummaries: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Group ID (TSID)'),
+                                name: zod.string().describe('Group name'),
+                                time: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "Start time of the group, when it differs from the ride's"
+                                  ),
+                                averageSpeed: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Average speed in km/h'),
+                                countParticipants: zod
+                                  .int()
+                                  .describe('Current number of participants'),
+                                maxParticipants: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Maximum participants, null when the group is uncapped'
+                                  ),
+                                full: zod
+                                  .boolean()
+                                  .describe(
+                                    'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                                  ),
+                                routeSlug: zod
+                                  .string()
+                                  .optional()
+                                  .describe('Slug of the group route, if it has one'),
+                                distance: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Distance in meters of the group route, if it has one'),
+                                elevationGain: zod
+                                  .number()
+                                  .optional()
+                                  .describe(
+                                    'Total elevation gain in meters of the group route, if it has one'
+                                  ),
+                                sortOrder: zod.int().describe('Sort order'),
+                              })
+                              .describe(
+                                "One group of a ride, as a list row shows it: name, pace and fill. Same figures as the matching entry of the detail's groups, without the participants nor the leader."
+                              )
+                          )
+                          .describe(
+                            'Every group of the ride in sort order, as a card shows it: name, pace, start time and fill (countParticipants against maxParticipants). Filled on list rows too, where groups is empty — a card draws its per-group fill bars without opening the ride. Carries no leader nor participants: those are on groups, in the detail.'
+                          ),
+                        distance: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            "Distance in meters of the ride's route — or, when the ride itself has none, of the route of its first group (in sort order) that has one. Null when no route is set anywhere."
+                          ),
+                        elevationGain: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Total elevation gain in meters, from the same route as distance. Null when no route is set anywhere.'
+                          ),
+                        surfaceType: zod
+                          .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                          .optional()
+                          .describe(
+                            'Surface type, from the same route as distance. Null when no route is set anywhere.'
+                          ),
+                        startPlace: zod
+                          .object({
+                            id: zod.string().describe('Place ID (TSID)'),
+                            name: zod.string(),
+                            address: zod.string().optional(),
+                            link: zod.string().optional(),
+                            startPlace: zod.boolean(),
+                            endPlace: zod.boolean(),
+                            geometry: zod
+                              .object({
+                                type: zod.enum(['Point']),
+                                coordinates: zod
+                                  .array(zod.number())
+                                  .describe('Coordinates [longitude, latitude]'),
+                              })
+                              .optional()
+                              .describe('Location coordinates [longitude, latitude]'),
+                          })
+                          .optional()
+                          .describe('Start place'),
+                        endPlace: zod
+                          .object({
+                            id: zod.string().describe('Place ID (TSID)'),
+                            name: zod.string(),
+                            address: zod.string().optional(),
+                            link: zod.string().optional(),
+                            startPlace: zod.boolean(),
+                            endPlace: zod.boolean(),
+                            geometry: zod
+                              .object({
+                                type: zod.enum(['Point']),
+                                coordinates: zod
+                                  .array(zod.number())
+                                  .describe('Coordinates [longitude, latitude]'),
+                              })
+                              .optional()
+                              .describe('Location coordinates [longitude, latitude]'),
+                          })
+                          .optional()
+                          .describe('End place'),
+                        topParticipants: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .describe('Public user information (limited fields)')
+                          )
+                          .describe('Preview of first participants (max 5)'),
+                        thumbnailLightUrl: zod
+                          .string()
+                          .optional()
+                          .describe('Thumbnail URL (light)'),
+                        thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                        thumbnailUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+                          ),
+                        deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
+                        registered: zod
+                          .boolean()
+                          .describe(
+                            "Whether the current user is registered in one of this ride's groups. False if anonymous."
+                          ),
+                        registeredGroupId: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            'ID (TSID) of the group the current user joined, null if not registered'
+                          ),
+                        registeredGroup: zod
+                          .object({
+                            id: zod.string().describe('Group ID (TSID)'),
+                            name: zod.string().describe('Group name'),
+                            time: zod.string().optional(),
+                            routeSlug: zod.string().optional().describe('Route slug'),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                            maxParticipants: zod.int().optional().describe('Maximum participants'),
+                            countParticipants: zod.int().describe('Current number of participants'),
+                            participants: zod
+                              .array(
+                                zod
+                                  .object({
+                                    id: zod.string().describe('User ID (TSID)'),
+                                    displayName: zod.string().describe('User display name'),
+                                    avatarUrl: zod.string().optional().describe('User avatar URL'),
+                                  })
+                                  .describe('Public user information (limited fields)')
+                              )
+                              .describe(
+                                'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                              ),
+                            sortOrder: zod.int().describe('Sort order'),
+                            registered: zod
+                              .boolean()
+                              .describe(
+                                'Whether the current user is registered in THIS group. False if anonymous.'
+                              ),
+                            full: zod
+                              .boolean()
+                              .describe(
+                                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                              ),
+                            distance: zod
+                              .number()
+                              .optional()
+                              .describe('Distance in meters of the group route, if it has one'),
+                            elevationGain: zod
+                              .number()
+                              .optional()
+                              .describe(
+                                'Total elevation gain in meters of the group route, if it has one'
+                              ),
+                            leader: zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .optional()
+                              .describe(
+                                "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                              ),
+                            thumbnailLightUrl: zod
+                              .string()
+                              .optional()
+                              .describe('Thumbnail URL (light) of the group route, if it has one'),
+                            thumbnailDarkUrl: zod
+                              .string()
+                              .optional()
+                              .describe('Thumbnail URL (dark) of the group route, if it has one'),
+                            thumbnailUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                              ),
+                          })
+                          .optional()
+                          .describe(
+                            'The group the current user joined, in full — the same object as the matching entry of groups. Null if not registered or anonymous. Set on list rows too, where groups is empty: a client rendering "my next ride" needs no second request for its group. Its leader is the group\'s own, null when none was designated.'
+                          ),
+                        full: zod
+                          .boolean()
+                          .describe(
+                            'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
+                          ),
+                        maxParticipants: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Capacity of the whole ride: the sum of its groups\' maxParticipants, to render participantCount against it ("12/40"). Null when the ride has no group, or when at least one group has no maxParticipants — the ride then has no overall limit, and is never full. Set on list rows too, where groups is empty.'
+                          ),
+                        commentCount: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+                          ),
+                        tags: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Tag ID (TSID)'),
+                                label: zod.string().describe('Label, at most 32 characters'),
+                                color: zod
+                                  .enum([
+                                    'INDIGO',
+                                    'BLUE',
+                                    'GREEN',
+                                    'RED',
+                                    'YELLOW',
+                                    'ORANGE',
+                                    'GRAPE',
+                                    'TEAL',
+                                    'GRAY',
+                                  ])
+                                  .describe('Colour family'),
+                              })
+                              .describe('A team tag on a content')
+                          )
+                          .describe(
+                            "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
+                          ),
+                      })
+                      .describe('Ride summary data'),
+                    zod
+                      .object({
+                        type: zod.enum(['POST']),
+                        team: zod
+                          .object({
+                            id: zod.string().describe('Team ID (TSID)'),
+                            name: zod.string().describe('Team name'),
+                            slug: zod.string().describe('Team URL slug'),
+                            visibility: zod
+                              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                              .describe('Whether the team is public'),
+                            logoUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                              ),
+                          })
+                          .describe('Team'),
+                        id: zod.string().describe('Publication ID (TSID)'),
+                        slug: zod.string().describe('Publication URL slug'),
+                        name: zod.string().describe('Publication name'),
+                        media: zod
+                          .object({
+                            markdown: zod
+                              .string()
+                              .max(
+                                getTeamDashboardResponseOrganizerRidesWithoutRoutePublicationsItemTwoMediaMarkdownMax
+                              )
+                              .describe('Markdown'),
+                            assets: zod
+                              .object({
+                                logo: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Logo'),
+                                images: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Images'),
+                                attachments: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Attachments'),
+                                originalGpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Original GPX'),
+                                gpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('GPX'),
+                                fit: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('FIT'),
+                                thumbnailLight: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Light thumbnail'),
+                                thumbnailDark: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Dark thumbnail'),
+                              })
+                              .describe('Assets'),
+                          })
+                          .describe('Publication media'),
+                        excerpt: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                          ),
+                        thumbnailUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
+                          ),
+                        dateTime: zod.iso
+                          .datetime({ offset: true })
+                          .describe('Publication date/time'),
+                        status: zod
+                          .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                          .describe('Publication status'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Visibility level'),
+                        publishAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Publication timestamp'),
+                        createdAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Creation timestamp'),
+                        deleted: zod.boolean().describe('Whether the post is soft-deleted'),
+                        commentCount: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+                          ),
+                        signedAsTeam: zod
+                          .boolean()
+                          .describe(
+                            'Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.'
+                          ),
+                        createdBy: zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .optional()
+                          .describe(
+                            'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+                          ),
+                        tags: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Tag ID (TSID)'),
+                                label: zod.string().describe('Label, at most 32 characters'),
+                                color: zod
+                                  .enum([
+                                    'INDIGO',
+                                    'BLUE',
+                                    'GREEN',
+                                    'RED',
+                                    'YELLOW',
+                                    'ORANGE',
+                                    'GRAPE',
+                                    'TEAL',
+                                    'GRAY',
+                                  ])
+                                  .describe('Colour family'),
+                              })
+                              .describe('A team tag on a content')
+                          )
+                          .describe(
+                            "The team's POST tags the post carries, sorted by label. Empty when it carries none."
+                          ),
+                      })
+                      .describe('Post summary data'),
+                    zod
+                      .object({
+                        type: zod.enum(['TRIP']),
+                        team: zod
+                          .object({
+                            id: zod.string().describe('Team ID (TSID)'),
+                            name: zod.string().describe('Team name'),
+                            slug: zod.string().describe('Team URL slug'),
+                            visibility: zod
+                              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                              .describe('Whether the team is public'),
+                            logoUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                              ),
+                          })
+                          .describe('Team'),
+                        id: zod.string().describe('Publication ID (TSID)'),
+                        slug: zod.string().describe('Publication URL slug'),
+                        name: zod.string().describe('Publication name'),
+                        media: zod
+                          .object({
+                            markdown: zod
+                              .string()
+                              .max(
+                                getTeamDashboardResponseOrganizerRidesWithoutRoutePublicationsItemThreeMediaMarkdownMax
+                              )
+                              .describe('Markdown'),
+                            assets: zod
+                              .object({
+                                logo: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Logo'),
+                                images: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Images'),
+                                attachments: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Attachments'),
+                                originalGpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Original GPX'),
+                                gpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('GPX'),
+                                fit: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('FIT'),
+                                thumbnailLight: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Light thumbnail'),
+                                thumbnailDark: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Dark thumbnail'),
+                              })
+                              .describe('Assets'),
+                          })
+                          .describe('Publication media'),
+                        excerpt: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                          ),
+                        dateTime: zod.iso
+                          .datetime({ offset: true })
+                          .describe('Trip start date/time'),
+                        endDate: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe(
+                            'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+                          ),
+                        status: zod
+                          .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                          .describe('Publication status'),
+                        finished: zod
+                          .boolean()
+                          .describe(
+                            'Whether the trip is over, computed by the server when the response is built: its last stage (endDate, or dateTime when there is none) has started. Independent of status — a past cancelled trip is both CANCELLED and finished.'
+                          ),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Visibility level'),
+                        publishAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Publication timestamp'),
+                        createdAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Creation timestamp'),
+                        routeSlug: zod.string().optional().describe('Route slug'),
+                        participantCount: zod.int().describe('Number of participants'),
+                        stageCount: zod.int().describe('Number of stages'),
+                        totalDistance: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Distance in metres over every stage that has a route. Null when no stage has one — an unrouted trip has no distance, which is not the same as a distance of zero.'
+                          ),
+                        totalElevationGain: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Elevation gain in metres over every stage that has a route. Null when no stage has one.'
+                          ),
+                        stages: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Stage ID (TSID)'),
+                                slug: zod.string().describe('Stage slug'),
+                                name: zod.string().describe('Stage name'),
+                                dateTime: zod.iso
+                                  .datetime({ offset: true })
+                                  .describe('Stage date/time'),
+                                route: zod
+                                  .object({
+                                    id: zod.string().describe('Route ID (TSID)'),
+                                    slug: zod.string().describe('Route slug'),
+                                    team: zod
+                                      .object({
+                                        id: zod.string().describe('Team ID (TSID)'),
+                                        name: zod.string().describe('Team name'),
+                                        slug: zod.string().describe('Team URL slug'),
+                                        visibility: zod
+                                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                                          .describe('Whether the team is public'),
+                                        logoUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe(
+                                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                                          ),
+                                      })
+                                      .describe('Team'),
+                                    name: zod.string().describe('Route name'),
+                                    media: zod
+                                      .object({
+                                        markdown: zod
+                                          .string()
+                                          .max(
+                                            getTeamDashboardResponseOrganizerRidesWithoutRoutePublicationsItemThreeStagesItemRouteMediaMarkdownMax
+                                          )
+                                          .describe('Markdown'),
+                                        assets: zod
+                                          .object({
+                                            logo: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('Logo'),
+                                            images: zod
+                                              .array(
+                                                zod.object({
+                                                  id: zod.string().describe('ID (TSID)'),
+                                                  fileName: zod.string().describe('Filename'),
+                                                  contentType: zod
+                                                    .string()
+                                                    .describe('Content-Type'),
+                                                  url: zod.string().describe('url'),
+                                                  imageUrl: zod
+                                                    .string()
+                                                    .optional()
+                                                    .describe('image template url'),
+                                                  imageDimensions: zod
+                                                    .object({
+                                                      width: zod.int().optional(),
+                                                      height: zod.int().optional(),
+                                                    })
+                                                    .optional()
+                                                    .describe('image dimensions'),
+                                                  size: zod
+                                                    .int()
+                                                    .optional()
+                                                    .describe(
+                                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                    ),
+                                                })
+                                              )
+                                              .describe('Images'),
+                                            attachments: zod
+                                              .array(
+                                                zod.object({
+                                                  id: zod.string().describe('ID (TSID)'),
+                                                  fileName: zod.string().describe('Filename'),
+                                                  contentType: zod
+                                                    .string()
+                                                    .describe('Content-Type'),
+                                                  url: zod.string().describe('url'),
+                                                  imageUrl: zod
+                                                    .string()
+                                                    .optional()
+                                                    .describe('image template url'),
+                                                  imageDimensions: zod
+                                                    .object({
+                                                      width: zod.int().optional(),
+                                                      height: zod.int().optional(),
+                                                    })
+                                                    .optional()
+                                                    .describe('image dimensions'),
+                                                  size: zod
+                                                    .int()
+                                                    .optional()
+                                                    .describe(
+                                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                    ),
+                                                })
+                                              )
+                                              .describe('Attachments'),
+                                            originalGpx: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('Original GPX'),
+                                            gpx: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('GPX'),
+                                            fit: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('FIT'),
+                                            thumbnailLight: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('Light thumbnail'),
+                                            thumbnailDark: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('Dark thumbnail'),
+                                          })
+                                          .describe('Assets'),
+                                      })
+                                      .describe('Route description'),
+                                    excerpt: zod
+                                      .string()
+                                      .optional()
+                                      .describe(
+                                        "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                                      ),
+                                    thumbnailUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe(
+                                        "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+                                      ),
+                                    distance: zod.number().describe('Distance in meters'),
+                                    elevationGain: zod
+                                      .number()
+                                      .describe('Total elevation gain in meters'),
+                                    elevationLoss: zod
+                                      .number()
+                                      .describe('Total elevation loss in meters'),
+                                    surfaceType: zod
+                                      .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                                      .describe('Surface type'),
+                                    visibility: zod
+                                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                                      .describe('Whether the route is public'),
+                                    createdAt: zod.iso
+                                      .datetime({ offset: true })
+                                      .describe('Creation timestamp'),
+                                    deleted: zod
+                                      .boolean()
+                                      .describe('Whether the route is soft-deleted'),
+                                    commentCount: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+                                      ),
+                                    tags: zod
+                                      .array(
+                                        zod
+                                          .object({
+                                            id: zod.string().describe('Tag ID (TSID)'),
+                                            label: zod
+                                              .string()
+                                              .describe('Label, at most 32 characters'),
+                                            color: zod
+                                              .enum([
+                                                'INDIGO',
+                                                'BLUE',
+                                                'GREEN',
+                                                'RED',
+                                                'YELLOW',
+                                                'ORANGE',
+                                                'GRAPE',
+                                                'TEAL',
+                                                'GRAY',
+                                              ])
+                                              .describe('Colour family'),
+                                          })
+                                          .describe('A team tag on a content')
+                                      )
+                                      .describe(
+                                        "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Route'),
+                                startPlace: zod
+                                  .object({
+                                    id: zod.string().describe('Place ID (TSID)'),
+                                    name: zod.string(),
+                                    address: zod.string().optional(),
+                                    link: zod.string().optional(),
+                                    startPlace: zod.boolean(),
+                                    endPlace: zod.boolean(),
+                                    geometry: zod
+                                      .object({
+                                        type: zod.enum(['Point']),
+                                        coordinates: zod
+                                          .array(zod.number())
+                                          .describe('Coordinates [longitude, latitude]'),
+                                      })
+                                      .optional()
+                                      .describe('Location coordinates [longitude, latitude]'),
+                                  })
+                                  .optional()
+                                  .describe('Start place'),
+                                endPlace: zod
+                                  .object({
+                                    id: zod.string().describe('Place ID (TSID)'),
+                                    name: zod.string(),
+                                    address: zod.string().optional(),
+                                    link: zod.string().optional(),
+                                    startPlace: zod.boolean(),
+                                    endPlace: zod.boolean(),
+                                    geometry: zod
+                                      .object({
+                                        type: zod.enum(['Point']),
+                                        coordinates: zod
+                                          .array(zod.number())
+                                          .describe('Coordinates [longitude, latitude]'),
+                                      })
+                                      .optional()
+                                      .describe('Location coordinates [longitude, latitude]'),
+                                  })
+                                  .optional()
+                                  .describe('End place'),
+                                media: zod
+                                  .object({
+                                    markdown: zod
+                                      .string()
+                                      .max(
+                                        getTeamDashboardResponseOrganizerRidesWithoutRoutePublicationsItemThreeStagesItemMediaMarkdownMax
+                                      )
+                                      .describe('Markdown'),
+                                    assets: zod
+                                      .object({
+                                        logo: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Logo'),
+                                        images: zod
+                                          .array(
+                                            zod.object({
+                                              id: zod.string().describe('ID (TSID)'),
+                                              fileName: zod.string().describe('Filename'),
+                                              contentType: zod.string().describe('Content-Type'),
+                                              url: zod.string().describe('url'),
+                                              imageUrl: zod
+                                                .string()
+                                                .optional()
+                                                .describe('image template url'),
+                                              imageDimensions: zod
+                                                .object({
+                                                  width: zod.int().optional(),
+                                                  height: zod.int().optional(),
+                                                })
+                                                .optional()
+                                                .describe('image dimensions'),
+                                              size: zod
+                                                .int()
+                                                .optional()
+                                                .describe(
+                                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                ),
+                                            })
+                                          )
+                                          .describe('Images'),
+                                        attachments: zod
+                                          .array(
+                                            zod.object({
+                                              id: zod.string().describe('ID (TSID)'),
+                                              fileName: zod.string().describe('Filename'),
+                                              contentType: zod.string().describe('Content-Type'),
+                                              url: zod.string().describe('url'),
+                                              imageUrl: zod
+                                                .string()
+                                                .optional()
+                                                .describe('image template url'),
+                                              imageDimensions: zod
+                                                .object({
+                                                  width: zod.int().optional(),
+                                                  height: zod.int().optional(),
+                                                })
+                                                .optional()
+                                                .describe('image dimensions'),
+                                              size: zod
+                                                .int()
+                                                .optional()
+                                                .describe(
+                                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                ),
+                                            })
+                                          )
+                                          .describe('Attachments'),
+                                        originalGpx: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Original GPX'),
+                                        gpx: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('GPX'),
+                                        fit: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('FIT'),
+                                        thumbnailLight: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Light thumbnail'),
+                                        thumbnailDark: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Dark thumbnail'),
+                                      })
+                                      .describe('Assets'),
+                                  })
+                                  .describe('Stage media'),
+                                sortOrder: zod.int().describe('Sort order'),
+                                stageIndex: zod
+                                  .int()
+                                  .describe(
+                                    "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
+                                  ),
+                                stageCount: zod
+                                  .int()
+                                  .describe(
+                                    "How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."
+                                  ),
+                                commentCount: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    "Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount."
+                                  ),
+                              })
+                              .describe('Trip stage information')
+                          )
+                          .describe('Trip stages'),
+                        participants: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .describe('Public user information (limited fields)')
+                          )
+                          .describe(
+                            'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+                          ),
+                        thumbnailLightUrl: zod
+                          .string()
+                          .optional()
+                          .describe('Thumbnail URL (light)'),
+                        thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                        thumbnailUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+                          ),
+                        deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
+                        registered: zod
+                          .boolean()
+                          .describe(
+                            'Whether the current user is registered for this trip. False if anonymous.'
+                          ),
+                        commentCount: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
+                          ),
+                        tags: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Tag ID (TSID)'),
+                                label: zod.string().describe('Label, at most 32 characters'),
+                                color: zod
+                                  .enum([
+                                    'INDIGO',
+                                    'BLUE',
+                                    'GREEN',
+                                    'RED',
+                                    'YELLOW',
+                                    'ORANGE',
+                                    'GRAPE',
+                                    'TEAL',
+                                    'GRAY',
+                                  ])
+                                  .describe('Colour family'),
+                              })
+                              .describe('A team tag on a content')
+                          )
+                          .describe(
+                            "The team's TRIP tags the trip carries, sorted by label. Empty when it carries none."
+                          ),
+                      })
+                      .describe('Trip data'),
+                  ])
+                  .and(
+                    zod.object({
+                      type: zod.enum(['RIDE', 'POST', 'TRIP']).optional(),
+                      visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).optional(),
+                      name: zod.string().optional(),
+                    })
+                  )
+                  .describe('Publication data')
+              )
+              .describe('List of publications'),
+            total: zod.int().describe('Total number of publications'),
+            page: zod.int().describe('Current page number'),
+            size: zod.int().describe('Page size'),
+          })
+          .optional()
+          .describe(
+            'Published rides starting from now routed nowhere — neither the ride nor any of its groups has a route — soonest first. Same rows as GET …/publications?type=RIDE&withoutRoute=true. Null when rides are disabled.'
+          ),
+        ridesWithFullGroup: zod
+          .object({
+            publications: zod
+              .array(
+                zod
+                  .union([
+                    zod
+                      .object({
+                        type: zod.enum(['RIDE']),
+                        team: zod
+                          .object({
+                            id: zod.string().describe('Team ID (TSID)'),
+                            name: zod.string().describe('Team name'),
+                            slug: zod.string().describe('Team URL slug'),
+                            visibility: zod
+                              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                              .describe('Whether the team is public'),
+                            logoUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                              ),
+                          })
+                          .describe('Team'),
+                        id: zod.string().describe('Publication ID (TSID)'),
+                        slug: zod.string().describe('Publication URL slug'),
+                        name: zod.string().describe('Publication name'),
+                        media: zod
+                          .object({
+                            markdown: zod
+                              .string()
+                              .max(
+                                getTeamDashboardResponseOrganizerRidesWithFullGroupPublicationsItemOneMediaMarkdownMax
+                              )
+                              .describe('Markdown'),
+                            assets: zod
+                              .object({
+                                logo: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Logo'),
+                                images: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Images'),
+                                attachments: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Attachments'),
+                                originalGpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Original GPX'),
+                                gpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('GPX'),
+                                fit: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('FIT'),
+                                thumbnailLight: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Light thumbnail'),
+                                thumbnailDark: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Dark thumbnail'),
+                              })
+                              .describe('Assets'),
+                          })
+                          .describe('Publication media'),
+                        excerpt: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                          ),
+                        dateTime: zod.iso
+                          .datetime({ offset: true })
+                          .describe('Publication date/time'),
+                        status: zod
+                          .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                          .describe('Publication status'),
+                        finished: zod
+                          .boolean()
+                          .describe(
+                            'Whether the ride is over, computed by the server when the response is built: its start time has passed. Independent of status — a past cancelled ride is both CANCELLED and finished.'
+                          ),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Visibility level'),
+                        publishAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Publication timestamp'),
+                        createdAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Creation timestamp'),
+                        routeSlug: zod.string().optional().describe('Route slug'),
+                        participantCount: zod.int().describe('Number of participants'),
+                        groupCount: zod.int().describe('Number of groups'),
+                        groups: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Group ID (TSID)'),
+                                name: zod.string().describe('Group name'),
+                                time: zod.string().optional(),
+                                routeSlug: zod.string().optional().describe('Route slug'),
+                                averageSpeed: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Average speed in km/h'),
+                                maxParticipants: zod
+                                  .int()
+                                  .optional()
+                                  .describe('Maximum participants'),
+                                countParticipants: zod
+                                  .int()
+                                  .describe('Current number of participants'),
+                                participants: zod
+                                  .array(
+                                    zod
+                                      .object({
+                                        id: zod.string().describe('User ID (TSID)'),
+                                        displayName: zod.string().describe('User display name'),
+                                        avatarUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe('User avatar URL'),
+                                      })
+                                      .describe('Public user information (limited fields)')
+                                  )
+                                  .describe(
+                                    'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                                  ),
+                                sortOrder: zod.int().describe('Sort order'),
+                                registered: zod
+                                  .boolean()
+                                  .describe(
+                                    'Whether the current user is registered in THIS group. False if anonymous.'
+                                  ),
+                                full: zod
+                                  .boolean()
+                                  .describe(
+                                    'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                                  ),
+                                distance: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Distance in meters of the group route, if it has one'),
+                                elevationGain: zod
+                                  .number()
+                                  .optional()
+                                  .describe(
+                                    'Total elevation gain in meters of the group route, if it has one'
+                                  ),
+                                leader: zod
+                                  .object({
+                                    id: zod.string().describe('User ID (TSID)'),
+                                    displayName: zod.string().describe('User display name'),
+                                    avatarUrl: zod.string().optional().describe('User avatar URL'),
+                                  })
+                                  .optional()
+                                  .describe(
+                                    "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                                  ),
+                                thumbnailLightUrl: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    'Thumbnail URL (light) of the group route, if it has one'
+                                  ),
+                                thumbnailDarkUrl: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    'Thumbnail URL (dark) of the group route, if it has one'
+                                  ),
+                                thumbnailUrl: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                                  ),
+                              })
+                              .describe('Ride group information')
+                          )
+                          .describe('Ride groups'),
+                        groupSummaries: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Group ID (TSID)'),
+                                name: zod.string().describe('Group name'),
+                                time: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "Start time of the group, when it differs from the ride's"
+                                  ),
+                                averageSpeed: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Average speed in km/h'),
+                                countParticipants: zod
+                                  .int()
+                                  .describe('Current number of participants'),
+                                maxParticipants: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    'Maximum participants, null when the group is uncapped'
+                                  ),
+                                full: zod
+                                  .boolean()
+                                  .describe(
+                                    'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                                  ),
+                                routeSlug: zod
+                                  .string()
+                                  .optional()
+                                  .describe('Slug of the group route, if it has one'),
+                                distance: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Distance in meters of the group route, if it has one'),
+                                elevationGain: zod
+                                  .number()
+                                  .optional()
+                                  .describe(
+                                    'Total elevation gain in meters of the group route, if it has one'
+                                  ),
+                                sortOrder: zod.int().describe('Sort order'),
+                              })
+                              .describe(
+                                "One group of a ride, as a list row shows it: name, pace and fill. Same figures as the matching entry of the detail's groups, without the participants nor the leader."
+                              )
+                          )
+                          .describe(
+                            'Every group of the ride in sort order, as a card shows it: name, pace, start time and fill (countParticipants against maxParticipants). Filled on list rows too, where groups is empty — a card draws its per-group fill bars without opening the ride. Carries no leader nor participants: those are on groups, in the detail.'
+                          ),
+                        distance: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            "Distance in meters of the ride's route — or, when the ride itself has none, of the route of its first group (in sort order) that has one. Null when no route is set anywhere."
+                          ),
+                        elevationGain: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Total elevation gain in meters, from the same route as distance. Null when no route is set anywhere.'
+                          ),
+                        surfaceType: zod
+                          .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                          .optional()
+                          .describe(
+                            'Surface type, from the same route as distance. Null when no route is set anywhere.'
+                          ),
+                        startPlace: zod
+                          .object({
+                            id: zod.string().describe('Place ID (TSID)'),
+                            name: zod.string(),
+                            address: zod.string().optional(),
+                            link: zod.string().optional(),
+                            startPlace: zod.boolean(),
+                            endPlace: zod.boolean(),
+                            geometry: zod
+                              .object({
+                                type: zod.enum(['Point']),
+                                coordinates: zod
+                                  .array(zod.number())
+                                  .describe('Coordinates [longitude, latitude]'),
+                              })
+                              .optional()
+                              .describe('Location coordinates [longitude, latitude]'),
+                          })
+                          .optional()
+                          .describe('Start place'),
+                        endPlace: zod
+                          .object({
+                            id: zod.string().describe('Place ID (TSID)'),
+                            name: zod.string(),
+                            address: zod.string().optional(),
+                            link: zod.string().optional(),
+                            startPlace: zod.boolean(),
+                            endPlace: zod.boolean(),
+                            geometry: zod
+                              .object({
+                                type: zod.enum(['Point']),
+                                coordinates: zod
+                                  .array(zod.number())
+                                  .describe('Coordinates [longitude, latitude]'),
+                              })
+                              .optional()
+                              .describe('Location coordinates [longitude, latitude]'),
+                          })
+                          .optional()
+                          .describe('End place'),
+                        topParticipants: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .describe('Public user information (limited fields)')
+                          )
+                          .describe('Preview of first participants (max 5)'),
+                        thumbnailLightUrl: zod
+                          .string()
+                          .optional()
+                          .describe('Thumbnail URL (light)'),
+                        thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                        thumbnailUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+                          ),
+                        deleted: zod.boolean().describe('Whether the ride is soft-deleted'),
+                        registered: zod
+                          .boolean()
+                          .describe(
+                            "Whether the current user is registered in one of this ride's groups. False if anonymous."
+                          ),
+                        registeredGroupId: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            'ID (TSID) of the group the current user joined, null if not registered'
+                          ),
+                        registeredGroup: zod
+                          .object({
+                            id: zod.string().describe('Group ID (TSID)'),
+                            name: zod.string().describe('Group name'),
+                            time: zod.string().optional(),
+                            routeSlug: zod.string().optional().describe('Route slug'),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                            maxParticipants: zod.int().optional().describe('Maximum participants'),
+                            countParticipants: zod.int().describe('Current number of participants'),
+                            participants: zod
+                              .array(
+                                zod
+                                  .object({
+                                    id: zod.string().describe('User ID (TSID)'),
+                                    displayName: zod.string().describe('User display name'),
+                                    avatarUrl: zod.string().optional().describe('User avatar URL'),
+                                  })
+                                  .describe('Public user information (limited fields)')
+                              )
+                              .describe(
+                                'The first participants of the group (at most 8), earliest registrations first — enough to draw avatars. countParticipants is the total; the whole list is paginated and searched by GET …/rides/{rideSlug}/participants?groupId=.'
+                              ),
+                            sortOrder: zod.int().describe('Sort order'),
+                            registered: zod
+                              .boolean()
+                              .describe(
+                                'Whether the current user is registered in THIS group. False if anonymous.'
+                              ),
+                            full: zod
+                              .boolean()
+                              .describe(
+                                'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                              ),
+                            distance: zod
+                              .number()
+                              .optional()
+                              .describe('Distance in meters of the group route, if it has one'),
+                            elevationGain: zod
+                              .number()
+                              .optional()
+                              .describe(
+                                'Total elevation gain in meters of the group route, if it has one'
+                              ),
+                            leader: zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .optional()
+                              .describe(
+                                "The member who leads this group, when one is designated. Null means no leader was designated — render nothing rather than falling back on the ride's creator, who is the same person on every group of the ride."
+                              ),
+                            thumbnailLightUrl: zod
+                              .string()
+                              .optional()
+                              .describe('Thumbnail URL (light) of the group route, if it has one'),
+                            thumbnailDarkUrl: zod
+                              .string()
+                              .optional()
+                              .describe('Thumbnail URL (dark) of the group route, if it has one'),
+                            thumbnailUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "The one thumbnail of the group route to show when the client does not theme its cards: the light variant if there is one, else the dark one. Null when the group has no route or its route has no thumbnail — the ride's own thumbnail is then the one to fall back on."
+                              ),
+                          })
+                          .optional()
+                          .describe(
+                            'The group the current user joined, in full — the same object as the matching entry of groups. Null if not registered or anonymous. Set on list rows too, where groups is empty: a client rendering "my next ride" needs no second request for its group. Its leader is the group\'s own, null when none was designated.'
+                          ),
+                        full: zod
+                          .boolean()
+                          .describe(
+                            'Whether every group of the ride has reached its capacity. False when the ride has no group, or when at least one group has no maxParticipants.'
+                          ),
+                        maxParticipants: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Capacity of the whole ride: the sum of its groups\' maxParticipants, to render participantCount against it ("12/40"). Null when the ride has no group, or when at least one group has no maxParticipants — the ride then has no overall limit, and is never full. Set on list rows too, where groups is empty.'
+                          ),
+                        commentCount: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Number of comments, replies included. Absent when the caller may not read the comments of this ride — comments are members-only, so an outsider is told nothing, not even zero.'
+                          ),
+                        tags: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Tag ID (TSID)'),
+                                label: zod.string().describe('Label, at most 32 characters'),
+                                color: zod
+                                  .enum([
+                                    'INDIGO',
+                                    'BLUE',
+                                    'GREEN',
+                                    'RED',
+                                    'YELLOW',
+                                    'ORANGE',
+                                    'GRAPE',
+                                    'TEAL',
+                                    'GRAY',
+                                  ])
+                                  .describe('Colour family'),
+                              })
+                              .describe('A team tag on a content')
+                          )
+                          .describe(
+                            "The team's RIDE tags the ride carries, sorted by label. Empty when it carries none."
+                          ),
+                      })
+                      .describe('Ride summary data'),
+                    zod
+                      .object({
+                        type: zod.enum(['POST']),
+                        team: zod
+                          .object({
+                            id: zod.string().describe('Team ID (TSID)'),
+                            name: zod.string().describe('Team name'),
+                            slug: zod.string().describe('Team URL slug'),
+                            visibility: zod
+                              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                              .describe('Whether the team is public'),
+                            logoUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                              ),
+                          })
+                          .describe('Team'),
+                        id: zod.string().describe('Publication ID (TSID)'),
+                        slug: zod.string().describe('Publication URL slug'),
+                        name: zod.string().describe('Publication name'),
+                        media: zod
+                          .object({
+                            markdown: zod
+                              .string()
+                              .max(
+                                getTeamDashboardResponseOrganizerRidesWithFullGroupPublicationsItemTwoMediaMarkdownMax
+                              )
+                              .describe('Markdown'),
+                            assets: zod
+                              .object({
+                                logo: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Logo'),
+                                images: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Images'),
+                                attachments: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Attachments'),
+                                originalGpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Original GPX'),
+                                gpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('GPX'),
+                                fit: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('FIT'),
+                                thumbnailLight: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Light thumbnail'),
+                                thumbnailDark: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Dark thumbnail'),
+                              })
+                              .describe('Assets'),
+                          })
+                          .describe('Publication media'),
+                        excerpt: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                          ),
+                        thumbnailUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
+                          ),
+                        dateTime: zod.iso
+                          .datetime({ offset: true })
+                          .describe('Publication date/time'),
+                        status: zod
+                          .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                          .describe('Publication status'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Visibility level'),
+                        publishAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Publication timestamp'),
+                        createdAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Creation timestamp'),
+                        deleted: zod.boolean().describe('Whether the post is soft-deleted'),
+                        commentCount: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Number of comments, replies included. Absent when the caller may not read the comments of this post — comments are members-only, so an outsider is told nothing, not even zero.'
+                          ),
+                        signedAsTeam: zod
+                          .boolean()
+                          .describe(
+                            'Whether the post is signed by the team rather than by its author. Readers are then not told who wrote it: createdBy is absent unless the caller administers the team or wrote the post.'
+                          ),
+                        createdBy: zod
+                          .object({
+                            id: zod.string().describe('User ID (TSID)'),
+                            displayName: zod.string().describe('User display name'),
+                            avatarUrl: zod.string().optional().describe('User avatar URL'),
+                          })
+                          .optional()
+                          .describe(
+                            'Who wrote the post. Absent when the post is signed by the team (signedAsTeam) and the caller neither administers the team nor wrote it — render the team instead.'
+                          ),
+                        tags: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Tag ID (TSID)'),
+                                label: zod.string().describe('Label, at most 32 characters'),
+                                color: zod
+                                  .enum([
+                                    'INDIGO',
+                                    'BLUE',
+                                    'GREEN',
+                                    'RED',
+                                    'YELLOW',
+                                    'ORANGE',
+                                    'GRAPE',
+                                    'TEAL',
+                                    'GRAY',
+                                  ])
+                                  .describe('Colour family'),
+                              })
+                              .describe('A team tag on a content')
+                          )
+                          .describe(
+                            "The team's POST tags the post carries, sorted by label. Empty when it carries none."
+                          ),
+                      })
+                      .describe('Post summary data'),
+                    zod
+                      .object({
+                        type: zod.enum(['TRIP']),
+                        team: zod
+                          .object({
+                            id: zod.string().describe('Team ID (TSID)'),
+                            name: zod.string().describe('Team name'),
+                            slug: zod.string().describe('Team URL slug'),
+                            visibility: zod
+                              .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                              .describe('Whether the team is public'),
+                            logoUrl: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                              ),
+                          })
+                          .describe('Team'),
+                        id: zod.string().describe('Publication ID (TSID)'),
+                        slug: zod.string().describe('Publication URL slug'),
+                        name: zod.string().describe('Publication name'),
+                        media: zod
+                          .object({
+                            markdown: zod
+                              .string()
+                              .max(
+                                getTeamDashboardResponseOrganizerRidesWithFullGroupPublicationsItemThreeMediaMarkdownMax
+                              )
+                              .describe('Markdown'),
+                            assets: zod
+                              .object({
+                                logo: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Logo'),
+                                images: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Images'),
+                                attachments: zod
+                                  .array(
+                                    zod.object({
+                                      id: zod.string().describe('ID (TSID)'),
+                                      fileName: zod.string().describe('Filename'),
+                                      contentType: zod.string().describe('Content-Type'),
+                                      url: zod.string().describe('url'),
+                                      imageUrl: zod
+                                        .string()
+                                        .optional()
+                                        .describe('image template url'),
+                                      imageDimensions: zod
+                                        .object({
+                                          width: zod.int().optional(),
+                                          height: zod.int().optional(),
+                                        })
+                                        .optional()
+                                        .describe('image dimensions'),
+                                      size: zod
+                                        .int()
+                                        .optional()
+                                        .describe(
+                                          'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                        ),
+                                    })
+                                  )
+                                  .describe('Attachments'),
+                                originalGpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Original GPX'),
+                                gpx: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('GPX'),
+                                fit: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('FIT'),
+                                thumbnailLight: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Light thumbnail'),
+                                thumbnailDark: zod
+                                  .object({
+                                    id: zod.string().describe('ID (TSID)'),
+                                    fileName: zod.string().describe('Filename'),
+                                    contentType: zod.string().describe('Content-Type'),
+                                    url: zod.string().describe('url'),
+                                    imageUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe('image template url'),
+                                    imageDimensions: zod
+                                      .object({
+                                        width: zod.int().optional(),
+                                        height: zod.int().optional(),
+                                      })
+                                      .optional()
+                                      .describe('image dimensions'),
+                                    size: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Dark thumbnail'),
+                              })
+                              .describe('Assets'),
+                          })
+                          .describe('Publication media'),
+                        excerpt: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
+                          ),
+                        dateTime: zod.iso
+                          .datetime({ offset: true })
+                          .describe('Trip start date/time'),
+                        endDate: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe(
+                            'Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends.'
+                          ),
+                        status: zod
+                          .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                          .describe('Publication status'),
+                        finished: zod
+                          .boolean()
+                          .describe(
+                            'Whether the trip is over, computed by the server when the response is built: its last stage (endDate, or dateTime when there is none) has started. Independent of status — a past cancelled trip is both CANCELLED and finished.'
+                          ),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Visibility level'),
+                        publishAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Publication timestamp'),
+                        createdAt: zod.iso
+                          .datetime({ offset: true })
+                          .optional()
+                          .describe('Creation timestamp'),
+                        routeSlug: zod.string().optional().describe('Route slug'),
+                        participantCount: zod.int().describe('Number of participants'),
+                        stageCount: zod.int().describe('Number of stages'),
+                        totalDistance: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Distance in metres over every stage that has a route. Null when no stage has one — an unrouted trip has no distance, which is not the same as a distance of zero.'
+                          ),
+                        totalElevationGain: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Elevation gain in metres over every stage that has a route. Null when no stage has one.'
+                          ),
+                        stages: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Stage ID (TSID)'),
+                                slug: zod.string().describe('Stage slug'),
+                                name: zod.string().describe('Stage name'),
+                                dateTime: zod.iso
+                                  .datetime({ offset: true })
+                                  .describe('Stage date/time'),
+                                route: zod
+                                  .object({
+                                    id: zod.string().describe('Route ID (TSID)'),
+                                    slug: zod.string().describe('Route slug'),
+                                    team: zod
+                                      .object({
+                                        id: zod.string().describe('Team ID (TSID)'),
+                                        name: zod.string().describe('Team name'),
+                                        slug: zod.string().describe('Team URL slug'),
+                                        visibility: zod
+                                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                                          .describe('Whether the team is public'),
+                                        logoUrl: zod
+                                          .string()
+                                          .optional()
+                                          .describe(
+                                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                                          ),
+                                      })
+                                      .describe('Team'),
+                                    name: zod.string().describe('Route name'),
+                                    media: zod
+                                      .object({
+                                        markdown: zod
+                                          .string()
+                                          .max(
+                                            getTeamDashboardResponseOrganizerRidesWithFullGroupPublicationsItemThreeStagesItemRouteMediaMarkdownMax
+                                          )
+                                          .describe('Markdown'),
+                                        assets: zod
+                                          .object({
+                                            logo: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('Logo'),
+                                            images: zod
+                                              .array(
+                                                zod.object({
+                                                  id: zod.string().describe('ID (TSID)'),
+                                                  fileName: zod.string().describe('Filename'),
+                                                  contentType: zod
+                                                    .string()
+                                                    .describe('Content-Type'),
+                                                  url: zod.string().describe('url'),
+                                                  imageUrl: zod
+                                                    .string()
+                                                    .optional()
+                                                    .describe('image template url'),
+                                                  imageDimensions: zod
+                                                    .object({
+                                                      width: zod.int().optional(),
+                                                      height: zod.int().optional(),
+                                                    })
+                                                    .optional()
+                                                    .describe('image dimensions'),
+                                                  size: zod
+                                                    .int()
+                                                    .optional()
+                                                    .describe(
+                                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                    ),
+                                                })
+                                              )
+                                              .describe('Images'),
+                                            attachments: zod
+                                              .array(
+                                                zod.object({
+                                                  id: zod.string().describe('ID (TSID)'),
+                                                  fileName: zod.string().describe('Filename'),
+                                                  contentType: zod
+                                                    .string()
+                                                    .describe('Content-Type'),
+                                                  url: zod.string().describe('url'),
+                                                  imageUrl: zod
+                                                    .string()
+                                                    .optional()
+                                                    .describe('image template url'),
+                                                  imageDimensions: zod
+                                                    .object({
+                                                      width: zod.int().optional(),
+                                                      height: zod.int().optional(),
+                                                    })
+                                                    .optional()
+                                                    .describe('image dimensions'),
+                                                  size: zod
+                                                    .int()
+                                                    .optional()
+                                                    .describe(
+                                                      'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                    ),
+                                                })
+                                              )
+                                              .describe('Attachments'),
+                                            originalGpx: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('Original GPX'),
+                                            gpx: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('GPX'),
+                                            fit: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('FIT'),
+                                            thumbnailLight: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('Light thumbnail'),
+                                            thumbnailDark: zod
+                                              .object({
+                                                id: zod.string().describe('ID (TSID)'),
+                                                fileName: zod.string().describe('Filename'),
+                                                contentType: zod.string().describe('Content-Type'),
+                                                url: zod.string().describe('url'),
+                                                imageUrl: zod
+                                                  .string()
+                                                  .optional()
+                                                  .describe('image template url'),
+                                                imageDimensions: zod
+                                                  .object({
+                                                    width: zod.int().optional(),
+                                                    height: zod.int().optional(),
+                                                  })
+                                                  .optional()
+                                                  .describe('image dimensions'),
+                                                size: zod
+                                                  .int()
+                                                  .optional()
+                                                  .describe(
+                                                    'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                  ),
+                                              })
+                                              .optional()
+                                              .describe('Dark thumbnail'),
+                                          })
+                                          .describe('Assets'),
+                                      })
+                                      .describe('Route description'),
+                                    excerpt: zod
+                                      .string()
+                                      .optional()
+                                      .describe(
+                                        "Plain-text opening of the description, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the description holds no text. Lets a list row render its two lines without the description being sent at all — see the 'view' parameter."
+                                      ),
+                                    thumbnailUrl: zod
+                                      .string()
+                                      .optional()
+                                      .describe(
+                                        "URL template of the route's thumbnail, light variant if there is one, else dark. Saves a compact row from carrying media.assets just to find the map preview."
+                                      ),
+                                    distance: zod.number().describe('Distance in meters'),
+                                    elevationGain: zod
+                                      .number()
+                                      .describe('Total elevation gain in meters'),
+                                    elevationLoss: zod
+                                      .number()
+                                      .describe('Total elevation loss in meters'),
+                                    surfaceType: zod
+                                      .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                                      .describe('Surface type'),
+                                    visibility: zod
+                                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                                      .describe('Whether the route is public'),
+                                    createdAt: zod.iso
+                                      .datetime({ offset: true })
+                                      .describe('Creation timestamp'),
+                                    deleted: zod
+                                      .boolean()
+                                      .describe('Whether the route is soft-deleted'),
+                                    commentCount: zod
+                                      .int()
+                                      .optional()
+                                      .describe(
+                                        'Number of comments, replies included. Absent when the caller may not read the comments of this route — comments are members-only, so an outsider is told nothing, not even zero.'
+                                      ),
+                                    tags: zod
+                                      .array(
+                                        zod
+                                          .object({
+                                            id: zod.string().describe('Tag ID (TSID)'),
+                                            label: zod
+                                              .string()
+                                              .describe('Label, at most 32 characters'),
+                                            color: zod
+                                              .enum([
+                                                'INDIGO',
+                                                'BLUE',
+                                                'GREEN',
+                                                'RED',
+                                                'YELLOW',
+                                                'ORANGE',
+                                                'GRAPE',
+                                                'TEAL',
+                                                'GRAY',
+                                              ])
+                                              .describe('Colour family'),
+                                          })
+                                          .describe('A team tag on a content')
+                                      )
+                                      .describe(
+                                        "The team's ROUTE tags the route carries, sorted by label. Empty when it carries none."
+                                      ),
+                                  })
+                                  .optional()
+                                  .describe('Route'),
+                                startPlace: zod
+                                  .object({
+                                    id: zod.string().describe('Place ID (TSID)'),
+                                    name: zod.string(),
+                                    address: zod.string().optional(),
+                                    link: zod.string().optional(),
+                                    startPlace: zod.boolean(),
+                                    endPlace: zod.boolean(),
+                                    geometry: zod
+                                      .object({
+                                        type: zod.enum(['Point']),
+                                        coordinates: zod
+                                          .array(zod.number())
+                                          .describe('Coordinates [longitude, latitude]'),
+                                      })
+                                      .optional()
+                                      .describe('Location coordinates [longitude, latitude]'),
+                                  })
+                                  .optional()
+                                  .describe('Start place'),
+                                endPlace: zod
+                                  .object({
+                                    id: zod.string().describe('Place ID (TSID)'),
+                                    name: zod.string(),
+                                    address: zod.string().optional(),
+                                    link: zod.string().optional(),
+                                    startPlace: zod.boolean(),
+                                    endPlace: zod.boolean(),
+                                    geometry: zod
+                                      .object({
+                                        type: zod.enum(['Point']),
+                                        coordinates: zod
+                                          .array(zod.number())
+                                          .describe('Coordinates [longitude, latitude]'),
+                                      })
+                                      .optional()
+                                      .describe('Location coordinates [longitude, latitude]'),
+                                  })
+                                  .optional()
+                                  .describe('End place'),
+                                media: zod
+                                  .object({
+                                    markdown: zod
+                                      .string()
+                                      .max(
+                                        getTeamDashboardResponseOrganizerRidesWithFullGroupPublicationsItemThreeStagesItemMediaMarkdownMax
+                                      )
+                                      .describe('Markdown'),
+                                    assets: zod
+                                      .object({
+                                        logo: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Logo'),
+                                        images: zod
+                                          .array(
+                                            zod.object({
+                                              id: zod.string().describe('ID (TSID)'),
+                                              fileName: zod.string().describe('Filename'),
+                                              contentType: zod.string().describe('Content-Type'),
+                                              url: zod.string().describe('url'),
+                                              imageUrl: zod
+                                                .string()
+                                                .optional()
+                                                .describe('image template url'),
+                                              imageDimensions: zod
+                                                .object({
+                                                  width: zod.int().optional(),
+                                                  height: zod.int().optional(),
+                                                })
+                                                .optional()
+                                                .describe('image dimensions'),
+                                              size: zod
+                                                .int()
+                                                .optional()
+                                                .describe(
+                                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                ),
+                                            })
+                                          )
+                                          .describe('Images'),
+                                        attachments: zod
+                                          .array(
+                                            zod.object({
+                                              id: zod.string().describe('ID (TSID)'),
+                                              fileName: zod.string().describe('Filename'),
+                                              contentType: zod.string().describe('Content-Type'),
+                                              url: zod.string().describe('url'),
+                                              imageUrl: zod
+                                                .string()
+                                                .optional()
+                                                .describe('image template url'),
+                                              imageDimensions: zod
+                                                .object({
+                                                  width: zod.int().optional(),
+                                                  height: zod.int().optional(),
+                                                })
+                                                .optional()
+                                                .describe('image dimensions'),
+                                              size: zod
+                                                .int()
+                                                .optional()
+                                                .describe(
+                                                  'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                                ),
+                                            })
+                                          )
+                                          .describe('Attachments'),
+                                        originalGpx: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Original GPX'),
+                                        gpx: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('GPX'),
+                                        fit: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('FIT'),
+                                        thumbnailLight: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Light thumbnail'),
+                                        thumbnailDark: zod
+                                          .object({
+                                            id: zod.string().describe('ID (TSID)'),
+                                            fileName: zod.string().describe('Filename'),
+                                            contentType: zod.string().describe('Content-Type'),
+                                            url: zod.string().describe('url'),
+                                            imageUrl: zod
+                                              .string()
+                                              .optional()
+                                              .describe('image template url'),
+                                            imageDimensions: zod
+                                              .object({
+                                                width: zod.int().optional(),
+                                                height: zod.int().optional(),
+                                              })
+                                              .optional()
+                                              .describe('image dimensions'),
+                                            size: zod
+                                              .int()
+                                              .optional()
+                                              .describe(
+                                                'Size in bytes of the file a download returns (an image as re-encoded on upload); null while not yet known. Ignored in requests.'
+                                              ),
+                                          })
+                                          .optional()
+                                          .describe('Dark thumbnail'),
+                                      })
+                                      .describe('Assets'),
+                                  })
+                                  .describe('Stage media'),
+                                sortOrder: zod.int().describe('Sort order'),
+                                stageIndex: zod
+                                  .int()
+                                  .describe(
+                                    "Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print."
+                                  ),
+                                stageCount: zod
+                                  .int()
+                                  .describe(
+                                    "How many live stages the trip has — the '/ 5' of 'Day 2 / 5'."
+                                  ),
+                                commentCount: zod
+                                  .int()
+                                  .optional()
+                                  .describe(
+                                    "Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount."
+                                  ),
+                              })
+                              .describe('Trip stage information')
+                          )
+                          .describe('Trip stages'),
+                        participants: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('User ID (TSID)'),
+                                displayName: zod.string().describe('User display name'),
+                                avatarUrl: zod.string().optional().describe('User avatar URL'),
+                              })
+                              .describe('Public user information (limited fields)')
+                          )
+                          .describe(
+                            'The first participants of the trip (at most 8), earliest registrations first — enough to draw avatars; empty on a list row. participantCount is the total; the whole list is paginated and searched by GET …/trips/{tripSlug}/participants.'
+                          ),
+                        thumbnailLightUrl: zod
+                          .string()
+                          .optional()
+                          .describe('Thumbnail URL (light)'),
+                        thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
+                        thumbnailUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            'The one thumbnail to show when the client does not theme its cards: the light variant if there is one, else the dark one. Saves a compact row from carrying media.assets just to find a picture.'
+                          ),
+                        deleted: zod.boolean().describe('Whether the trip is soft-deleted'),
+                        registered: zod
+                          .boolean()
+                          .describe(
+                            'Whether the current user is registered for this trip. False if anonymous.'
+                          ),
+                        commentCount: zod
+                          .int()
+                          .optional()
+                          .describe(
+                            'Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.'
+                          ),
+                        tags: zod
+                          .array(
+                            zod
+                              .object({
+                                id: zod.string().describe('Tag ID (TSID)'),
+                                label: zod.string().describe('Label, at most 32 characters'),
+                                color: zod
+                                  .enum([
+                                    'INDIGO',
+                                    'BLUE',
+                                    'GREEN',
+                                    'RED',
+                                    'YELLOW',
+                                    'ORANGE',
+                                    'GRAPE',
+                                    'TEAL',
+                                    'GRAY',
+                                  ])
+                                  .describe('Colour family'),
+                              })
+                              .describe('A team tag on a content')
+                          )
+                          .describe(
+                            "The team's TRIP tags the trip carries, sorted by label. Empty when it carries none."
+                          ),
+                      })
+                      .describe('Trip data'),
+                  ])
+                  .and(
+                    zod.object({
+                      type: zod.enum(['RIDE', 'POST', 'TRIP']).optional(),
+                      visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).optional(),
+                      name: zod.string().optional(),
+                    })
+                  )
+                  .describe('Publication data')
+              )
+              .describe('List of publications'),
+            total: zod.int().describe('Total number of publications'),
+            page: zod.int().describe('Current page number'),
+            size: zod.int().describe('Page size'),
+          })
+          .optional()
+          .describe(
+            'Published rides starting from now with at least one group at capacity, soonest first. Same rows as GET …/publications?type=RIDE&withFullGroup=true. Null when rides are disabled.'
+          ),
+        reports: zod
+          .object({
+            openCount: zod
+              .int()
+              .describe(
+                'Reported targets waiting for a decision — the number of items of the open queue'
+              ),
+            latestReason: zod
+              .enum([
+                'SPAM',
+                'HARASSMENT',
+                'HATE',
+                'SEXUAL',
+                'VIOLENCE',
+                'ILLEGAL',
+                'INAPPROPRIATE_IMAGE',
+                'OTHER',
+              ])
+              .optional()
+              .describe('Reason of the most recent open report, null when none'),
+            latestTargetType: zod
+              .enum(['COMMENT', 'POST', 'AD', 'RIDE', 'TRIP', 'ROUTE', 'MEMBER'])
+              .optional()
+              .describe('What the most recent open report is about, null when none'),
+            latestExcerpt: zod
+              .string()
+              .optional()
+              .describe(
+                'The reported text as it was when the most recent open report was filed, null when none'
+              ),
+            latestReportedAt: zod.iso
+              .datetime({ offset: true })
+              .optional()
+              .describe('When the most recent open report was filed, null when none'),
+          })
+          .describe("The open reports of the team's moderation queue"),
+        rideTemplates: zod
+          .object({
+            templates: zod
+              .array(
+                zod
+                  .object({
+                    team: zod
+                      .object({
+                        id: zod.string().describe('Team ID (TSID)'),
+                        name: zod.string().describe('Team name'),
+                        slug: zod.string().describe('Team URL slug'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Whether the team is public'),
+                        logoUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                          ),
+                      })
+                      .describe('Team'),
+                    id: zod.string().describe('Template ID (TSID)'),
+                    slug: zod.string().describe('Template slug'),
+                    name: zod.string().describe('Template name'),
+                    markdown: zod.string().describe('Template description (markdown)'),
+                    visibility: zod
+                      .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                      .describe('Visibility level'),
+                    status: zod
+                      .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
+                      .describe('Default status'),
+                    createdAt: zod.iso.datetime({ offset: true }).describe('Creation timestamp'),
+                    updatedAt: zod.iso.datetime({ offset: true }).describe('Last update timestamp'),
+                    groupCount: zod.int().describe('Number of groups'),
+                    groups: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Group ID (TSID)'),
+                            name: zod.string().describe('Group name'),
+                            time: zod.string().optional(),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                            maxParticipants: zod.int().optional().describe('Maximum participants'),
+                            sortOrder: zod.int().describe('Sort order'),
+                          })
+                          .describe('Ride template group information')
+                      )
+                      .describe('Template groups'),
+                    tags: zod
+                      .array(
+                        zod
+                          .object({
+                            id: zod.string().describe('Tag ID (TSID)'),
+                            label: zod.string().describe('Label, at most 32 characters'),
+                            color: zod
+                              .enum([
+                                'INDIGO',
+                                'BLUE',
+                                'GREEN',
+                                'RED',
+                                'YELLOW',
+                                'ORANGE',
+                                'GRAPE',
+                                'TEAL',
+                                'GRAY',
+                              ])
+                              .describe('Colour family'),
+                          })
+                          .describe('A team tag on a content')
+                      )
+                      .describe(
+                        "The team's RIDE tags of the template, sorted by label. Copied onto a ride created from it: a client prefills the ride's tagIds with them, editable before and after."
+                      ),
+                  })
+                  .describe('Ride template response')
+              )
+              .describe('List of templates'),
+            total: zod.int().describe('Total number of templates'),
+            page: zod.int().describe('Current page number'),
+            size: zod.int().describe('Page size'),
+          })
+          .optional()
+          .describe(
+            "« Créer depuis un modèle »: the team's ride templates (at most 5), each with its groupCount. Null when rides are disabled."
+          ),
+      })
+      .optional()
+      .describe('What organizers and administrators see on top. Null for a MEMBER.'),
+    admin: zod
+      .object({
+        newestMembers: zod
+          .object({
+            members: zod
+              .array(
+                zod
+                  .object({
+                    team: zod
+                      .object({
+                        id: zod.string().describe('Team ID (TSID)'),
+                        name: zod.string().describe('Team name'),
+                        slug: zod.string().describe('Team URL slug'),
+                        visibility: zod
+                          .enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC'])
+                          .describe('Whether the team is public'),
+                        logoUrl: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "URL template of the team's logo (with a {size} placeholder), when it has one. Same value as TeamDetailDto.logoUrl, so a publication can show its team's logo without loading the team."
+                          ),
+                      })
+                      .describe('Team'),
+                    id: zod.string().describe('Membership ID (TSID)'),
+                    user: zod
+                      .object({
+                        id: zod.string().describe('User ID (TSID)'),
+                        displayName: zod.string().describe('User display name'),
+                        avatarUrl: zod.string().optional().describe('User avatar URL'),
+                      })
+                      .describe('User'),
+                    role: zod
+                      .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
+                      .optional()
+                      .describe(
+                        'Member role. Null when the caller is not entitled to it: an organiser reading the roster of a team that has not opened its member directory gets the names and nothing else.'
+                      ),
+                    joinedAt: zod.iso
+                      .datetime({ offset: true })
+                      .optional()
+                      .describe('When the user joined the team'),
+                  })
+                  .describe('Team member information')
+              )
+              .describe('List of members'),
+            total: zod.int().describe('Total number of members'),
+            page: zod.int().describe('Current page number'),
+            size: zod.int().describe('Page size'),
+          })
+          .describe(
+            'The newest members, latest joined first (at most 3), with role and joinedAt. total is the member count.'
+          ),
+        webhook: zod
+          .object({
+            configured: zod.boolean().describe('Whether the team has a webhook at all'),
+            maskedUrl: zod
+              .string()
+              .optional()
+              .describe('The URL, masked: scheme, host and the last characters only'),
+            kind: zod
+              .enum(['SLACK', 'DISCORD', 'MATTERMOST', 'GENERIC'])
+              .optional()
+              .describe('Message format, read from the URL'),
+            language: zod.string().optional().describe('Language the messages are written in'),
+            enabled: zod.boolean().describe('Whether announcements are posted'),
+            lastStatus: zod
+              .enum(['PENDING', 'SENDING', 'SENT', 'SKIPPED', 'FAILED'])
+              .optional()
+              .describe('Outcome of the latest attempt'),
+            lastError: zod
+              .string()
+              .optional()
+              .describe('Why the latest attempt failed, when it did'),
+            lastAttemptAt: zod.iso
+              .datetime({ offset: true })
+              .optional()
+              .describe('When the latest attempt was made'),
+          })
+          .describe(
+            "The team's webhook: configured, kind, enabled, lastStatus, lastAttemptAt. The URL only comes masked."
+          ),
+      })
+      .optional()
+      .describe('The administration panel. Null below ADMIN.'),
+  })
+  .describe(
+    "A team's dashboard for one of its members. Each section is a short page (at most 5 rows) of the matching list, compact rows, deleted content left out; its total is what the full list holds. A section is null when its module is disabled for the team. The organizer block is null for a MEMBER, the admin block null below ADMIN."
+  )
 
 /**
  * Change team URL slug. Requires ADMIN role.
@@ -2017,6 +14584,16 @@ export const ChangeTeamSlugResponse = zod
       .int()
       .describe(
         "Published posts of this team dated within the last 7 days (and not in the future) that the caller may open, under the same visibility rules as the post listing. Feeds the activity line of a member's team card. 0 when posts are disabled."
+      ),
+    memberCountByRole: zod
+      .object({
+        admins: zod.int().describe('Members with the ADMIN role'),
+        organizers: zod.int().describe('Members with the ORGANIZER role'),
+        members: zod.int().describe('Members with the MEMBER role'),
+      })
+      .optional()
+      .describe(
+        "Members per role. Only for the team's administrators (platform admins included): null for everyone else, and in the team listings."
       ),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])

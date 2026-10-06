@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { invalidateTeamDashboard } from '@/lib/teamDashboardCache'
 import { Navigate, useParams } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
@@ -83,6 +84,7 @@ export function RideTemplateListPage() {
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListTemplatesQueryKey(teamSlug) })
+            invalidateTeamDashboard(queryClient, teamSlug)
             notifications.show({
               message: t('rideTemplates.notifications.deleted'),
               color: 'green',

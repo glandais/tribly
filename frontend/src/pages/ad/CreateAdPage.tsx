@@ -1,4 +1,5 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { invalidateTeamDashboard } from '@/lib/teamDashboardCache'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
@@ -68,6 +69,7 @@ export function CreateAdPage() {
       {
         onSuccess: (ad) => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
+          invalidateTeamDashboard(queryClient, teamSlug!)
           notifications.show({ message: i18next.t('ads.notifications.created'), color: 'green' })
           navigate(paths.ad(teamSlug!, ad.slug))
         },

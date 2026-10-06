@@ -211,6 +211,46 @@ public class ContentReportRepository implements PanacheRepository<ContentReport>
   }
 
   /**
+   * How many targets of a queue wait for a decision — the number of items {@link #findOpen} groups
+   * into, without loading a single report. Report targets are TSIDs, unique across target types,
+   * so counting the distinct ids counts the items of a team's queue.
+   */
+  public long countOpenTargets(Long domainId, Long teamId, @Nullable Long excludedTargetUserId) {
+    StringBuilder hql =
+        new StringBuilder(
+            "select count(distinct r.targetId) from ContentReport r where r.domain.id = :domainId"
+                + " and r.team.id = :teamId and r.status = :open");
+    if (excludedTargetUserId != null) {
+      hql.append(" and r.targetUser.id <> :excluded");
+    }
+    TypedQuery<Long> query =
+        getEntityManager()
+            .createQuery(hql.toString(), Long.class)
+            .setParameter("domainId", domainId)
+            .setParameter("teamId", teamId)
+            .setParameter("open", ReportStatus.OPEN);
+    if (excludedTargetUserId != null) {
+      query.setParameter("excluded", excludedTargetUserId);
+    }
+    return query.getSingleResult();
+  }
+
+  /** The most recent open report of a team's queue, if any: one query, one row. */
+  public Optional<ContentReport> findLatestOpen(
+      Long domainId, Long teamId, @Nullable Long excludedTargetUserId) {
+    return query(
+            " and r.status = :open",
+            " order by r.createdAt desc, r.id desc",
+            domainId,
+            teamId,
+            excludedTargetUserId)
+        .setParameter("open", ReportStatus.OPEN)
+        .setMaxResults(1)
+        .getResultStream()
+        .findFirst();
+  }
+
+  /**
    * The {@code limit} most recently decided targets of a queue, then every decided report of those
    * targets: two queries, however many reports each target gathered.
    */

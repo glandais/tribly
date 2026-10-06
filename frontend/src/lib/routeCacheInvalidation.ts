@@ -4,10 +4,11 @@ import {
   getListRoutesQueryKey,
   getGetRoutesBulkQueryKey,
 } from '@/api/endpoints/routes/routes'
+import { invalidateTeamDashboard } from '@/lib/teamDashboardCache'
 
 /**
  * Invalidates every cached view of a team's routes that a route mutation (create, update, delete,
- * undelete, slug change, GPX upload) can have changed: the routes list, the single-route detail
+ * undelete, slug change, GPX upload) can have changed: the routes list, the team dashboard, the single-route detail
  * (when the mutation targets one route — pass its *previous* slug on a slug change), and every
  * `/routes/bulk` query for the team.
  *
@@ -32,4 +33,6 @@ export function invalidateRouteQueries(
   }
   queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug) })
   queryClient.invalidateQueries({ queryKey: getGetRoutesBulkQueryKey(teamSlug) })
+  // « Nouveaux parcours » and the rides-without-a-route tile.
+  invalidateTeamDashboard(queryClient, teamSlug)
 }

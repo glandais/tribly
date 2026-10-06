@@ -63,7 +63,7 @@ async function tripTeamWithMember(label: string) {
 
 /** The team feed, loaded — its publication count shown — before any presence or absence check. */
 async function openFeed(page: Page, teamSlug: string) {
-  await page.goto(`/equipes/${teamSlug}`)
+  await page.goto(`/equipes/${teamSlug}?tab=publications`)
   const main = page.getByRole('main')
   await expect(main.getByRole('heading', { name: "Fil d'actualités", level: 2 })).toBeVisible()
   await expect(main.getByText(/^\d+ publications?$/)).toBeVisible()
@@ -328,7 +328,7 @@ test('a team admin edits a stage, deletes the other one, then deletes the trip',
   await expect(confirm).toContainText('Êtes-vous sûr de vouloir supprimer ce voyage ?')
   await confirm.getByRole('button', { name: 'Supprimer' }).click()
   await expect(toasts(page).filter({ hasText: 'Voyage supprimé avec succès' })).toBeVisible()
-  await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}$`))
+  await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}\\?tab=publications$`))
 
   // Soft-deleted: gone for the members, still readable (and restorable) by the team's admins.
   expect(await fetchTrip(member, team.slug, trip.slug)).toBeNull()

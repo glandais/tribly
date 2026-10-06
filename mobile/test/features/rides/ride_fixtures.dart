@@ -68,6 +68,7 @@ RideDto fixtureRide({
     participantCount: 40,
     groupCount: gs.length,
     groups: gs,
+    groupSummaries: const [],
     topParticipants: const <PublicUserDto>[],
     deleted: false,
     registered: registered,

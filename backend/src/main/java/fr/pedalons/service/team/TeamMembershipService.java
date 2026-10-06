@@ -11,6 +11,8 @@ import fr.pedalons.dto.teams.response.MemberDto;
 import fr.pedalons.dto.teams.response.MemberListResponse;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
+import fr.pedalons.enums.MemberSortBy;
+import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.infrastructure.exception.*;
 import fr.pedalons.repository.team.UserTeamRepository;
@@ -23,6 +25,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class TeamMembershipService {
@@ -57,6 +60,26 @@ public class TeamMembershipService {
   @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.LIST)
   public MemberListResponse getTeamMembers(
       String teamSlug, int page, int size, String search, TeamRole role) {
+    return getTeamMembers(teamSlug, page, size, search, role, null, null);
+  }
+
+  /**
+   * Same, ordered.
+   *
+   * @param sortBy {@link MemberSortBy#JOINED_AT} is refused (403) to a caller who does not get the
+   *     join dates, for the reason the role filter is: the order would hand them back. Null keeps the
+   *     unspecified order of before.
+   * @param sortDir null is descending
+   */
+  @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.LIST)
+  public MemberListResponse getTeamMembers(
+      String teamSlug,
+      int page,
+      int size,
+      @Nullable String search,
+      @Nullable TeamRole role,
+      @Nullable MemberSortBy sortBy,
+      @Nullable SortDirection sortDir) {
     Team team = teamService.getTeam(teamSlug);
     // A platform admin never reaches the access checker (SecurityVerifier short-circuits it), so
     // the "is this caller an admin" question has to be asked again here rather than inferred from
@@ -68,12 +91,13 @@ public class TeamMembershipService {
     // Filtering on a role the response hides would hand it back all the same, one query per role.
     // Refused like every other thing this caller may not do, rather than ignored: an ignored filter
     // reads as an answer. docs/LEDGER_*.md SEC-18.
-    if (role != null && !full) {
+    if ((role != null || sortBy == MemberSortBy.JOINED_AT) && !full) {
       throw new ForbiddenException();
     }
 
     PedalonsPage<UserTeam> members =
-        userTeamRepository.findByTeam(team.getId(), page, size, search, role, admin);
+        userTeamRepository.findByTeam(
+            team.getId(), page, size, search, role, admin, sortBy, sortDir);
     List<MemberDto> dtos = members.items().stream().map(m -> MemberDto.from(m, full)).toList();
     return new MemberListResponse(dtos, members.total(), page, size);
   }

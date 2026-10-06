@@ -25,6 +25,8 @@ class _TeamMembersClient implements TeamMembersClient {
     required String teamSlug,
     TeamRole? role,
     String? search,
+    MemberSortBy? sortBy,
+    SortDirection? sortDir,
     int? page = 0,
     int? size = 50,
   }) async {
@@ -32,6 +34,8 @@ class _TeamMembersClient implements TeamMembersClient {
     final queryParameters = <String, dynamic>{
       r'role': role?.toJson(),
       r'search': search,
+      r'sortBy': sortBy?.toJson(),
+      r'sortDir': sortDir?.toJson(),
       r'page': page,
       r'size': size,
     };

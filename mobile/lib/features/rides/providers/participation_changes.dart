@@ -8,6 +8,7 @@ import '../../home/providers/next_ride_provider.dart';
 import '../../home/providers/week_events_provider.dart';
 import '../../profile/providers/participations_provider.dart';
 import '../../profile/providers/profile_summary_provider.dart';
+import '../../teams/providers/team_dashboard_provider.dart';
 
 /// **Le** point où l'app dit « une de mes participations vient de changer ».
 ///
@@ -63,6 +64,12 @@ void notifyParticipationChanged(
 
   // Calendrier : chaque événement porte `registered`.
   ref.invalidate(calendarMonthProvider);
+
+  // Tableau de bord d'équipe : il reste monté sous la fiche de la sortie, donc
+  // jamais libéré. « Vos prochaines sorties » est une liste que seul le serveur
+  // sait remplir — une inscription doit y apparaître, une désinscription en
+  // sortir —, d'où un rechargement plutôt que [registrationOverridesProvider].
+  ref.invalidate(teamDashboardProvider);
 }
 
 /// Ce que l'app sait de mes inscriptions **depuis** le chargement des listes,

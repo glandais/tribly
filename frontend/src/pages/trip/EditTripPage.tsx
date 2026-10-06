@@ -11,7 +11,7 @@ import {
   useChangeTripSlug,
   getGetTripQueryKey,
 } from '../../api/endpoints/trips/trips'
-import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
+import { invalidateTeamPublications } from '@/lib/teamDashboardCache'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
 import { TripRequest } from '@/api/dto'
@@ -55,7 +55,7 @@ export function EditTripPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateTeamPublications(queryClient, teamSlug!)
           notifications.show({ message: i18next.t('trips.notifications.updated'), color: 'green' })
           navigate(paths.trip(teamSlug!, tripSlug!))
         },
@@ -68,7 +68,7 @@ export function EditTripPage() {
       { teamSlug: teamSlug!, tripSlug: tripSlug!, data: { slug: newSlug } },
       {
         onSuccess: (updatedTrip) => {
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateTeamPublications(queryClient, teamSlug!)
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
           navigate(paths.tripEdit(teamSlug!, updatedTrip.slug), { replace: true })
         },

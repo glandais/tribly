@@ -1,4 +1,5 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { invalidateTeamDashboard } from '@/lib/teamDashboardCache'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -65,6 +66,7 @@ export function EditRideTemplatePage() {
             queryKey: getGetTemplateQueryKey(teamSlug!, templateSlug!),
           })
           queryClient.invalidateQueries({ queryKey: getListTemplatesQueryKey(teamSlug!) })
+          invalidateTeamDashboard(queryClient, teamSlug!)
           notifications.show({ message: t('rideTemplates.notifications.updated'), color: 'green' })
         },
       }

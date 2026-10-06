@@ -10,8 +10,10 @@ import {
   IconInfoCircle,
   IconFileText,
   IconSparkles,
+  IconLayoutDashboard,
 } from '@tabler/icons-react'
 import { paths } from '@/config/paths'
+import { teamFeedPath } from '@/pages/team/teamHomeData'
 import { findMatchingRoute, getRouteById } from '@/config/routeUtils'
 import { isSingleTeam } from '@/config/appConfig'
 import { useAuth } from './useAuth'
@@ -140,9 +142,21 @@ export function useTeamNavItems(team: TeamDetailDto | undefined): NavButtonItem[
 
     const isMember = !!team.role
     const baseTabs: NavButtonItem[] = [
+      // A member's team page opens on the dashboard; the feed moves to `?tab=publications`
+      // (pages/team/teamHomeData.ts). A visitor keeps the feed at the team's own URL.
+      ...(isMember
+        ? [
+            {
+              id: 'dashboard',
+              path: paths.team(team.slug),
+              label: t('teams.dashboard.title'),
+              icon: IconLayoutDashboard,
+            },
+          ]
+        : []),
       {
         id: 'publications',
-        path: paths.team(team.slug),
+        path: isMember ? teamFeedPath(team.slug) : paths.team(team.slug),
         label: t('teams.publications.list.title'),
         icon: IconNews,
       },
@@ -182,6 +196,17 @@ export function useTeamNavItems(team: TeamDetailDto | undefined): NavButtonItem[
         label: t('teams.detail.tabs.about'),
         icon: IconInfoCircle,
       },
+      // An administrator always reads the directory (API-39), so it earns a tab of its own.
+      ...(team.role === 'ADMIN'
+        ? [
+            {
+              id: 'members',
+              path: paths.teamMembers(team.slug),
+              label: t('teams.detail.members.title'),
+              icon: IconUsers,
+            },
+          ]
+        : []),
     ]
 
     // Add dynamic pages - filter by visibility (PUBLIC pages or member can see TEAM pages)

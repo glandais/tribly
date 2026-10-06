@@ -104,6 +104,8 @@ abstract class PublicationsClient {
   ///
   /// [size] - Page size.
   ///
+  /// [sortDir] - Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones.
+  ///
   /// [status] - Only publications with this status. Narrows the visibility rules, never widens them.
   ///
   /// [tags] - Only the publications carrying at least one of these tags — ids (TSID) of the team's tags of kind 'type', comma-separated or repeated. Honoured with a 'type' only: the mixed feed has no tag filter and ignores it. Unknown ids are ignored; a filter left with no known id filters nothing.
@@ -113,14 +115,21 @@ abstract class PublicationsClient {
   /// [type] - Type.
   ///
   /// [view] - How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets trimmed to the logo, the first image and the themed thumbnails — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. The markdown body, the attachments, the GPX and FIT files and every image past the first are dropped. Omitted, or FULL, is the previous behaviour, byte for byte.
+  ///
+  /// [withFullGroup] - Only the rides with at least one group at capacity (maxParticipants reached). Every other type of publication is left out.
+  ///
+  /// [withoutRoute] - Only the rides routed nowhere: neither the ride nor any of its groups has a route. Every other type of publication is left out.
   @GET('/api/teams/{teamSlug}/publications')
   Future<PublicationListResponse> listPublications({
     @Path('teamSlug') required String teamSlug,
     @Query('page') int? page = 0,
     @Query('participating') bool? participating = false,
     @Query('size') int? size = 20,
+    @Query('withFullGroup') bool? withFullGroup = false,
+    @Query('withoutRoute') bool? withoutRoute = false,
     @Query('from') String? from,
     @Query('search') String? search,
+    @Query('sortDir') SortDirection? sortDir,
     @Query('status') Status? status,
     @Query('tags') List<String>? tags,
     @Query('to') String? to,
@@ -147,10 +156,16 @@ abstract class PublicationsClient {
   /// [to] - End date filter (ISO format).
   ///
   /// [type] - Type.
+  ///
+  /// [withFullGroup] - Only the rides with at least one group at capacity (maxParticipants reached). Every other type of publication is left out.
+  ///
+  /// [withoutRoute] - Only the rides routed nowhere: neither the ride nor any of its groups has a route. Every other type of publication is left out.
   @GET('/api/teams/{teamSlug}/publications/count')
   Future<CountResponse> countPublications({
     @Path('teamSlug') required String teamSlug,
     @Query('participating') bool? participating = false,
+    @Query('withFullGroup') bool? withFullGroup = false,
+    @Query('withoutRoute') bool? withoutRoute = false,
     @Query('from') String? from,
     @Query('search') String? search,
     @Query('status') Status? status,

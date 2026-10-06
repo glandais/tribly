@@ -9,7 +9,7 @@ portage web livré à trois tâches près, et tenu à jour depuis (dernière rel
 Rien ici ne bloque quoi que ce soit. C'est la propriété qui compte : la v2 est livrable en l'état,
 et chaque ligne ci-dessous supprime une dégradation nommée plutôt que de réparer une panne.
 
-**Contrat d'API au 4 octobre 2026 : `10.7.0`.** Toute évolution d'API listée ici demande un bump de
+**Contrat d'API au 6 octobre 2026 : `10.8.0`.** Toute évolution d'API listée ici demande un bump de
 `pedalons.api.version` dans `backend/src/main/resources/application.properties`, puis la
 régénération des deux clients (compétence `contract-first-api`).
 
@@ -172,6 +172,15 @@ navigateur), et la connexion par code e-mailé (la préférence de fuseau existe
         `profile.passkeys.enabled` / `notConfigured` / `replace`,
         `notifications.preferences.inAppAlwaysOn`.
 
+### Tableau de bord d'équipe
+
+- `MOB-54` **Adresses du site écrites à la main dans `team_web_paths.dart`** — les actions du
+  tableau de bord (`MOB-53`) ouvrent des chemins anglais du site (`/teams/{slug}/rides/new`,
+  `…/admin/members?invite=1`…) écrits à la main, hors de `contracts/routes.yaml` : un renommage de
+  route côté web les casse sans que rien ne le signale, et le navigateur intégré peut redemander la
+  connexion. Les générer depuis `routes.yaml` (`paths.generated.dart` porte déjà les routes
+  `mobile`/`deeplink`) ou y déclarer ces routes. Taille S.
+
 ---
 
 ## WEB — Site web
@@ -277,6 +286,13 @@ notifications n'a pas de test e2e : c'est `NOTIF-4`.
     défaut, Annuler) ; signalement puis redirection.
   - Transverse : navigation mobile (tiroir, entrée Admin selon le rôle, fil d'Ariane « Plus ») ;
     restauration du défilement au retour.
+
+### Tableau de bord d'équipe
+
+- `WEB-64` **Onglets « Sorties » et « Voyages » de la maquette** — la maquette du tableau de bord
+  (`WEB-63`) les place dans la barre de l'équipe ; ils n'ont pas été ajoutés faute de route dans
+  `contracts/routes.yaml` (le fil filtré `?tab=publications&type=ride` en tient lieu). À trancher :
+  deux routes de liste par type, ou rester sur le fil filtré.
 
 ---
 
@@ -391,6 +407,12 @@ ceux du plan (`API-1`, l'URL de tuile authentifiable, est livré).
 | `API-18` | Voyage comme événement multi-jour au calendrier (`CalendarEventType`) | 22 | Les étapes y sont, le voyage en tant qu'objet non |
 | `API-19` | `GET /api/search?q&types=&limit` unifié | — | Plus aucune recherche transverse : `GET /api/users/search` a été **supprimé** en `3.0.0` (`API-39`). La seule recherche de personnes est celle du trombinoscope d'une équipe |
 | `API-20` | Pagination du calendrier | 22 | Fenêtre fixe −30 j / +180 j, non paginée |
+
+- `API-80` **Miniatures des lignes de sortie hors `ThumbnailLookup`** — `RideDto` (construction
+  d'une ligne de liste) parcourt `ride.getAssets()`, puis `ride.getRoute().getAssets()` en repli,
+  à la demande : une collection chargée par ligne, que seul `fetch.batch-size=32` regroupe. Relevé
+  pendant `API-79`, antérieur à lui. Passer par `ThumbnailLookup` comme les autres lignes, et le
+  vérifier par un `…QueryCountTest`. Taille S.
 
 Le meneur de groupe (`API-41`, livré en 1.5.0) et l'URL de tuile (`API-1`) sont dans
 [`LEDGER_DONE.md`](LEDGER_DONE.md). Les **gabarits de sortie n'ont volontairement pas de meneur** —
@@ -757,6 +779,7 @@ redevient une entrée de sa section sous le même identifiant.
 | `WEB-44` | **Passkey en tête du formulaire de connexion** | Ordre actuel gardé (décidé le 4 octobre 2026 avec le propriétaire) | `LoginForm` (`WEB-42`) garde email et mot de passe en tête, puis « ou », puis la passkey et le code par e-mail. Le bouton passkey n'apparaît qu'après hydratation (`browserSupportsWebAuthn`) : en tête, il décalerait le haut de l'accueil rendu côté serveur |
 | `WEB-54` | **Calendrier rendu côté serveur dans le mauvais fuseau, sans préférence `timezone`** | Accepté tel quel (décidé le 4 octobre 2026, à la dissolution de `frontend/docs/SSR-BUGS.md`) | Sans préférence `timezone`, le serveur ne connaît pas le fuseau du visiteur et rend en UTC : une sortie à 00 h 30, heure de Paris, s'affiche dans la case de la **veille**, puis change de case au rendu qui suit l'hydratation, avec le vrai fuseau (`useEffectiveTimezone`, `getServerSnapshot` en UTC ; `CalendarView`). Ce n'est pas une erreur d'hydratation : le rendu d'hydratation lit UTC des deux côtés, et le mois de la grille est calé sur `hourAlignedNow()` dans le même fuseau. Régler une préférence `timezone` supprime l'effet. Seule autre issue : ne pas rendre la grille côté serveur quand le fuseau est deviné, ce qui perd tout l'intérêt de son préchargement |
 | `WEB-58` | **Redirection des anciennes adresses du profil** (`/profil#notifications`, `/profil#gps`, `/profil/participations`) | Non (4 octobre 2026, refonte du profil `WEB-55` / `MOB-48`) | Le site n'est pas encore en service : aucun lien extérieur ne les cite. Les liens internes (e-mails `NotificationLinks.PREFERENCES_PATH`, `FeaturesPromoCard`, aide, politique) visent les nouvelles routes `/profil/<sujet>`. À rouvrir seulement si une de ces adresses a été publiée |
+| `WEB-65` | **Tableau de bord pour un admin de plateforme non membre** | Non : il voit le fil (décidé le 5 octobre 2026 avec le propriétaire, « les non-membres gardent la page publique ») | L'API (`API-79`) lui rendrait le tableau ADMIN, mais le web (`showsTeamDashboard`) et le mobile ne l'affichent qu'à un membre. Ne pas aligner un client seul |
 | `WEB-8` | **Scroll infini côté web** | Non porté | Incompatible avec la règle structurante du frontend (filtres et pagination dans la query string, donc toute vue partageable). `usePaginatedQuery` précharge déjà la page suivante **et** la précédente |
 | `WEB-9` | **Gabarits tactiles portés au web** | Non portés | Feuilles à crans, barre d'onglets basse, app bar interpolée, chips en remplacement des `Select` : ils résolvent une contrainte que le desktop n'a pas, et produiraient des composants hors Mantine |
 | `WEB-10` | **Minimum de 44 px sur les boutons web** | Règle **tactile** uniquement | Le web descend à 36 px au-dessus de 768 px. Ne pas prendre `pedalons.css` pour une spécification web |

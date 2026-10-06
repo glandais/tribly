@@ -40,7 +40,7 @@ const REPORT_MESSAGE = 'Propos déplacés envers un membre du club.'
 
 /** The team feed, loaded — `visible` is on it, so an absence check that follows is meaningful. */
 async function openFeed(page: Page, teamSlug: string, visible: string) {
-  await page.goto(`/equipes/${teamSlug}`)
+  await page.goto(`/equipes/${teamSlug}?tab=publications`)
   await expect(entityCard(page.getByRole('main'), visible)).toBeVisible()
 }
 

@@ -5,11 +5,13 @@ import {
 } from '@/api/endpoints/publications/publications'
 import { getListMyParticipationsQueryKey } from '@/api/endpoints/users/users'
 import { getGetEventsQueryKey, getGetTeamEventsQueryKey } from '@/api/endpoints/calendar/calendar'
+import { getGetTeamDashboardQueryKey } from '@/api/endpoints/teams/teams'
 
 /**
  * Everything that shows whether the user rides, after they joined or left a ride — wherever they
  * did it from. The feeds carry the « Inscrit » badge and the « Je participe » filter, the home page
- * « Ma prochaine sortie », the calendars their registration. Left out, each stayed stale until a
+ * « Ma prochaine sortie », the team dashboard « Vos prochaines sorties » and the fill of each group,
+ * the calendars their registration. Left out, each stayed stale until a
  * reload: leaving from the home card kept the badge on the feed right below it.
  */
 export function invalidateRideRegistration(queryClient: QueryClient, teamSlug: string): void {
@@ -18,4 +20,5 @@ export function invalidateRideRegistration(queryClient: QueryClient, teamSlug: s
   void queryClient.invalidateQueries({ queryKey: getListMyParticipationsQueryKey() })
   void queryClient.invalidateQueries({ queryKey: getGetEventsQueryKey() })
   void queryClient.invalidateQueries({ queryKey: getGetTeamEventsQueryKey(teamSlug) })
+  void queryClient.invalidateQueries({ queryKey: getGetTeamDashboardQueryKey(teamSlug) })
 }

@@ -56,7 +56,7 @@ import { prefetchRideTemplateList } from '@/pages/ridetemplate/rideTemplateListD
 import { prefetchCreateRideForm, prefetchEditRideForm } from '@/pages/ride/rideFormData'
 import { prefetchHomeFeed } from '@/pages/home/homeFeedData'
 import { prefetchTeamList } from '@/pages/team/teamListData'
-import { prefetchPublicationList } from '@/pages/publication/publicationListData'
+import { prefetchTeamHome } from '@/pages/team/teamHomeData'
 import { prefetchAdList } from '@/pages/ad/adListData'
 import { prefetchAllRouteList, prefetchAllRoutesMap } from '@/pages/route/allRouteListData'
 import {
@@ -489,16 +489,16 @@ export const routesConfig: RoutesConfig = [
   {
     id: 'team-detail',
     paths: pathVariants.team(':teamSlug'),
-    component: pages.PublicationListPage,
+    component: pages.TeamHomePage,
     auth: 'public',
     parentId: 'teams',
     navGroup: 'team',
     breadcrumb: { type: 'dynamic', entity: 'team' },
-    // PublicationListPage reads the team plus its first two, unfiltered publications pages.
-    // Matches PublicationListPage's query key exactly (including `view`) — a mismatch here (e.g.
-    // a missing `view`) makes the real query miss the SSR cache and refetch after hydration.
-    prefetch: (queryClient, params, url) =>
-      prefetchPublicationList(queryClient, params.teamSlug!, url),
+    // TeamHomePage shows a member the dashboard and anyone else (or a member on
+    // `?tab=publications`) the feed: the prefetch resolves the team first, then fills the branch
+    // that will render — see pages/team/teamHomeData.ts. The feed's keys still come from
+    // publicationListData.ts (including `view`), so they match PublicationListPage's exactly.
+    prefetch: (queryClient, params, url) => prefetchTeamHome(queryClient, params.teamSlug!, url),
     meta: teamDetailMeta,
   },
   {

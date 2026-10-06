@@ -385,6 +385,68 @@ export const ListAllPublicationsResponse = zod
                       .describe('Ride group information')
                   )
                   .describe('Ride groups'),
+                groupSummaries: zod
+                  .array(
+                    zod
+                      .object({
+                        id: zod.string().describe('Group ID (TSID)'),
+                        name: zod.string().describe('Group name'),
+                        time: zod
+                          .string()
+                          .optional()
+                          .describe("Start time of the group, when it differs from the ride's"),
+                        averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                        countParticipants: zod.int().describe('Current number of participants'),
+                        maxParticipants: zod
+                          .int()
+                          .optional()
+                          .describe('Maximum participants, null when the group is uncapped'),
+                        full: zod
+                          .boolean()
+                          .describe(
+                            'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                          ),
+                        routeSlug: zod
+                          .string()
+                          .optional()
+                          .describe('Slug of the group route, if it has one'),
+                        distance: zod
+                          .number()
+                          .optional()
+                          .describe('Distance in meters of the group route, if it has one'),
+                        elevationGain: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Total elevation gain in meters of the group route, if it has one'
+                          ),
+                        sortOrder: zod.int().describe('Sort order'),
+                      })
+                      .describe(
+                        "One group of a ride, as a list row shows it: name, pace and fill. Same figures as the matching entry of the detail's groups, without the participants nor the leader."
+                      )
+                  )
+                  .describe(
+                    'Every group of the ride in sort order, as a card shows it: name, pace, start time and fill (countParticipants against maxParticipants). Filled on list rows too, where groups is empty — a card draws its per-group fill bars without opening the ride. Carries no leader nor participants: those are on groups, in the detail.'
+                  ),
+                distance: zod
+                  .number()
+                  .optional()
+                  .describe(
+                    "Distance in meters of the ride's route — or, when the ride itself has none, of the route of its first group (in sort order) that has one. Null when no route is set anywhere."
+                  ),
+                elevationGain: zod
+                  .number()
+                  .optional()
+                  .describe(
+                    'Total elevation gain in meters, from the same route as distance. Null when no route is set anywhere.'
+                  ),
+                surfaceType: zod
+                  .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                  .optional()
+                  .describe(
+                    'Surface type, from the same route as distance. Null when no route is set anywhere.'
+                  ),
                 startPlace: zod
                   .object({
                     id: zod.string().describe('Place ID (TSID)'),
@@ -1855,6 +1917,8 @@ export const ListPublicationsParams = zod.object({
 export const listPublicationsQueryPageDefault = 0
 export const listPublicationsQueryParticipatingDefault = false
 export const listPublicationsQuerySizeDefault = 20
+export const listPublicationsQueryWithFullGroupDefault = false
+export const listPublicationsQueryWithoutRouteDefault = false
 
 export const ListPublicationsQueryParams = zod.object({
   from: zod.string().optional().describe('Start date filter (ISO format)'),
@@ -1867,6 +1931,12 @@ export const ListPublicationsQueryParams = zod.object({
     ),
   search: zod.string().optional().describe('Search by name/markdown'),
   size: zod.int().default(listPublicationsQuerySizeDefault).describe('Page size'),
+  sortDir: zod
+    .enum(['ASC', 'DESC'])
+    .optional()
+    .describe(
+      'Order of the publication date. Omitted, or DESC, is newest first (the feed); ASC is soonest first — what a window of upcoming outings needs, so a page keeps the nearest ones.'
+    ),
   status: zod
     .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
     .optional()
@@ -1886,6 +1956,18 @@ export const ListPublicationsQueryParams = zod.object({
     .optional()
     .describe(
       "How much of each row to send. COMPACT (case-insensitive) returns media.markdown empty and media.assets trimmed to the logo, the first image and the themed thumbnails — read 'excerpt' and 'thumbnailUrl' instead, both of which are present either way. The markdown body, the attachments, the GPX and FIT files and every image past the first are dropped. Omitted, or FULL, is the previous behaviour, byte for byte."
+    ),
+  withFullGroup: zod
+    .boolean()
+    .default(listPublicationsQueryWithFullGroupDefault)
+    .describe(
+      'Only the rides with at least one group at capacity (maxParticipants reached). Every other type of publication is left out.'
+    ),
+  withoutRoute: zod
+    .boolean()
+    .default(listPublicationsQueryWithoutRouteDefault)
+    .describe(
+      'Only the rides routed nowhere: neither the ride nor any of its groups has a route. Every other type of publication is left out.'
     ),
 })
 
@@ -2227,6 +2309,68 @@ export const ListPublicationsResponse = zod
                       .describe('Ride group information')
                   )
                   .describe('Ride groups'),
+                groupSummaries: zod
+                  .array(
+                    zod
+                      .object({
+                        id: zod.string().describe('Group ID (TSID)'),
+                        name: zod.string().describe('Group name'),
+                        time: zod
+                          .string()
+                          .optional()
+                          .describe("Start time of the group, when it differs from the ride's"),
+                        averageSpeed: zod.number().optional().describe('Average speed in km/h'),
+                        countParticipants: zod.int().describe('Current number of participants'),
+                        maxParticipants: zod
+                          .int()
+                          .optional()
+                          .describe('Maximum participants, null when the group is uncapped'),
+                        full: zod
+                          .boolean()
+                          .describe(
+                            'Whether the group has reached maxParticipants. False when maxParticipants is not set.'
+                          ),
+                        routeSlug: zod
+                          .string()
+                          .optional()
+                          .describe('Slug of the group route, if it has one'),
+                        distance: zod
+                          .number()
+                          .optional()
+                          .describe('Distance in meters of the group route, if it has one'),
+                        elevationGain: zod
+                          .number()
+                          .optional()
+                          .describe(
+                            'Total elevation gain in meters of the group route, if it has one'
+                          ),
+                        sortOrder: zod.int().describe('Sort order'),
+                      })
+                      .describe(
+                        "One group of a ride, as a list row shows it: name, pace and fill. Same figures as the matching entry of the detail's groups, without the participants nor the leader."
+                      )
+                  )
+                  .describe(
+                    'Every group of the ride in sort order, as a card shows it: name, pace, start time and fill (countParticipants against maxParticipants). Filled on list rows too, where groups is empty — a card draws its per-group fill bars without opening the ride. Carries no leader nor participants: those are on groups, in the detail.'
+                  ),
+                distance: zod
+                  .number()
+                  .optional()
+                  .describe(
+                    "Distance in meters of the ride's route — or, when the ride itself has none, of the route of its first group (in sort order) that has one. Null when no route is set anywhere."
+                  ),
+                elevationGain: zod
+                  .number()
+                  .optional()
+                  .describe(
+                    'Total elevation gain in meters, from the same route as distance. Null when no route is set anywhere.'
+                  ),
+                surfaceType: zod
+                  .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
+                  .optional()
+                  .describe(
+                    'Surface type, from the same route as distance. Null when no route is set anywhere.'
+                  ),
                 startPlace: zod
                   .object({
                     id: zod.string().describe('Place ID (TSID)'),
@@ -3658,6 +3802,8 @@ export const CountPublicationsParams = zod.object({
 })
 
 export const countPublicationsQueryParticipatingDefault = false
+export const countPublicationsQueryWithFullGroupDefault = false
+export const countPublicationsQueryWithoutRouteDefault = false
 
 export const CountPublicationsQueryParams = zod.object({
   from: zod.string().optional().describe('Start date filter (ISO format)'),
@@ -3682,6 +3828,18 @@ export const CountPublicationsQueryParams = zod.object({
     ),
   to: zod.string().optional().describe('End date filter (ISO format)'),
   type: zod.enum(['RIDE', 'POST', 'TRIP']).optional().describe('Type'),
+  withFullGroup: zod
+    .boolean()
+    .default(countPublicationsQueryWithFullGroupDefault)
+    .describe(
+      'Only the rides with at least one group at capacity (maxParticipants reached). Every other type of publication is left out.'
+    ),
+  withoutRoute: zod
+    .boolean()
+    .default(countPublicationsQueryWithoutRouteDefault)
+    .describe(
+      'Only the rides routed nowhere: neither the ride nor any of its groups has a route. Every other type of publication is left out.'
+    ),
 })
 
 export const CountPublicationsResponse = zod

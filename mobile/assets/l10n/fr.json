@@ -182,7 +182,8 @@
   "surfaces": {
     "road": "Route",
     "gravel": "Gravel",
-    "mtb": "VTT"
+    "mtb": "VTT",
+    "mixed": "Mixte"
   },
   "home": {
     "greeting": "Bonjour, {name}!",
@@ -259,6 +260,7 @@
     "membersLabel": "Membres",
     "about": "À propos",
     "tabs": {
+      "dashboard": "Tableau de bord",
       "feed": "Fil",
       "calendar": "Calendrier",
       "routes": "Parcours",
@@ -347,6 +349,163 @@
     },
     "stats": {
       "upcomingRides": "sorties à venir"
+    },
+    "dashboard": {
+      "role": {
+        "MEMBER": "Membre",
+        "ORGANIZER": "Organisateur",
+        "ADMIN": "Administrateur"
+      },
+      "subscribeCalendar": "S'abonner au calendrier",
+      "createRide": "Créer une sortie",
+      "newPost": "Nouvelle publication",
+      "loadError": "Tableau de bord indisponible",
+      "refreshed": "Tableau de bord à jour",
+      "edit": "Modifier",
+      "register": "S'inscrire",
+      "viewTrip": "Voir le voyage",
+      "todo": {
+        "title": "À traiter",
+        "hint": "Visible des organisateurs et des administrateurs",
+        "drafts": {
+          "zero": "Brouillon",
+          "one": "Brouillon",
+          "other": "Brouillons"
+        },
+        "draftsAction": "Reprendre",
+        "withoutRoute": {
+          "zero": "Sortie sans parcours",
+          "one": "Sortie sans parcours",
+          "other": "Sorties sans parcours"
+        },
+        "withoutRouteAction": "Ajouter un parcours",
+        "fullGroup": {
+          "zero": "Sortie avec un groupe complet",
+          "one": "Sortie avec un groupe complet",
+          "other": "Sorties avec un groupe complet"
+        },
+        "fullGroupLine": {
+          "zero": "{group} de « {ride} », {count} inscrit sur {max}",
+          "one": "{group} de « {ride} », {count} inscrit sur {max}",
+          "other": "{group} de « {ride} », {count} inscrits sur {max}"
+        },
+        "fullGroupAction": "Voir les groupes",
+        "reports": {
+          "zero": "Signalement",
+          "one": "Signalement",
+          "other": "Signalements"
+        },
+        "reportsAction": "Examiner",
+        "reportTarget": {
+          "COMMENT": "Commentaire signalé",
+          "POST": "Publication signalée",
+          "AD": "Annonce signalée",
+          "RIDE": "Sortie signalée",
+          "TRIP": "Voyage signalé",
+          "ROUTE": "Parcours signalé",
+          "MEMBER": "Membre signalé"
+        },
+        "nothing": "Rien en attente",
+        "more": {
+          "zero": "",
+          "one": "et {} autre",
+          "other": "et {} autres"
+        }
+      },
+      "myUpcoming": {
+        "title": "Vos prochaines sorties",
+        "empty": "Vous n'êtes inscrit à aucune sortie à venir dans cette équipe."
+      },
+      "upcomingRides": {
+        "title": "Sorties à venir",
+        "empty": "Aucune sortie n'est prévue pour le moment.",
+        "noRoute": "Aucun parcours associé",
+        "registeredCount": {
+          "zero": "Aucun inscrit",
+          "one": "{} inscrit",
+          "other": "{} inscrits"
+        },
+        "groupFill": {
+          "zero": "{} inscrit sur {max}",
+          "one": "{} inscrit sur {max}",
+          "other": "{} inscrits sur {max}"
+        }
+      },
+      "latestPosts": {
+        "title": "Dernières publications",
+        "empty": "Aucune publication pour le moment."
+      },
+      "newRoutes": {
+        "title": "Nouveaux parcours",
+        "empty": "Aucun parcours n'est disponible pour le moment."
+      },
+      "latestAds": {
+        "title": "Annonces",
+        "empty": "Aucune annonce pour le moment.",
+        "sector": "Secteur {place}"
+      },
+      "templates": {
+        "title": "Créer depuis un modèle",
+        "empty": "Aucun modèle de sortie.",
+        "manage": "Gérer les modèles"
+      },
+      "admin": {
+        "title": "Administration",
+        "roles": {
+          "admins": {
+            "zero": "Aucun administrateur",
+            "one": "{} administrateur",
+            "other": "{} administrateurs"
+          },
+          "organizers": {
+            "zero": "Aucun organisateur",
+            "one": "{} organisateur",
+            "other": "{} organisateurs"
+          },
+          "members": {
+            "zero": "Aucun membre",
+            "one": "{} membre",
+            "other": "{} membres"
+          }
+        },
+        "roleSplit": "Répartition des membres par rôle",
+        "newestMembers": "Nouveaux membres",
+        "noNewMembers": "Aucun membre pour le moment.",
+        "features": "Fonctionnalités",
+        "feature": {
+          "rides": "Sorties",
+          "routes": "Parcours",
+          "trips": "Voyages",
+          "posts": "Publications",
+          "ads": "Annonces",
+          "directory": "Annuaire des membres"
+        },
+        "noFeature": "Aucune fonctionnalité activée",
+        "webhook": {
+          "title": "Webhook {kind}",
+          "notConfigured": "Aucun webhook configuré",
+          "kind": {
+            "SLACK": "Slack",
+            "DISCORD": "Discord",
+            "MATTERMOST": "Mattermost",
+            "GENERIC": "générique"
+          },
+          "enabled": "Actif",
+          "disabled": "Inactif",
+          "lastAttempt": "Dernier envoi le {date}",
+          "never": "Aucun envoi pour le moment",
+          "status": {
+            "PENDING": "En attente",
+            "SENDING": "Envoi...",
+            "SENT": "Envoyé",
+            "SKIPPED": "Ignoré",
+            "FAILED": "Échec"
+          }
+        },
+        "invite": "Inviter",
+        "manageMembers": "Gérer les membres",
+        "settings": "Paramètres de l'équipe"
+      }
     }
   },
   "rides": {

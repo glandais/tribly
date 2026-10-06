@@ -1,4 +1,5 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { invalidateTeamDashboard } from '@/lib/teamDashboardCache'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -65,6 +66,7 @@ export function EditAdPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
+          invalidateTeamDashboard(queryClient, teamSlug!)
           queryClient.invalidateQueries({ queryKey: getGetAdQueryKey(teamSlug!, adSlug!) })
           queryClient.invalidateQueries({ queryKey: getGetAdEditQueryKey(teamSlug!, adSlug!) })
           notifications.show({ message: i18next.t('ads.notifications.updated'), color: 'green' })
@@ -80,6 +82,7 @@ export function EditAdPage() {
       {
         onSuccess: (updatedAd) => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
+          invalidateTeamDashboard(queryClient, teamSlug!)
           queryClient.invalidateQueries({ queryKey: getGetAdQueryKey(teamSlug!, adSlug!) })
           queryClient.invalidateQueries({ queryKey: getGetAdEditQueryKey(teamSlug!, adSlug!) })
           // Navigate to the new slug URL

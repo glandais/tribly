@@ -9,7 +9,7 @@ import {
   useChangePostSlug,
   getGetPostQueryKey,
 } from '../../api/endpoints/posts/posts'
-import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
+import { invalidateTeamPublications } from '@/lib/teamDashboardCache'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PostEditor } from '../../components/post/PostEditor'
 import { paths } from '@/config/paths'
@@ -58,7 +58,7 @@ export function EditPostPage() {
       },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateTeamPublications(queryClient, teamSlug!)
           queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(teamSlug!, postSlug!) })
           notifications.show({ message: t('posts.notifications.updated'), color: 'green' })
           navigate(paths.post(teamSlug!, postSlug!))
@@ -72,7 +72,7 @@ export function EditPostPage() {
       { teamSlug: teamSlug!, postSlug: postSlug!, data: { slug: newSlug } },
       {
         onSuccess: (updatedPost) => {
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateTeamPublications(queryClient, teamSlug!)
           queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(teamSlug!, postSlug!) })
           navigate(paths.postEdit(teamSlug!, updatedPost.slug), { replace: true })
         },

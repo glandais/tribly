@@ -7,7 +7,7 @@ import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { Container, Stack, Title, Text } from '@mantine/core'
 import { useCreateTrip } from '../../api/endpoints/trips/trips'
-import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
+import { invalidateTeamPublications } from '@/lib/teamDashboardCache'
 import { Status, TripRequest } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
@@ -83,7 +83,7 @@ export function CreateTripPage() {
       },
       {
         onSuccess: (trip) => {
-          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
+          invalidateTeamPublications(queryClient, teamSlug!)
           notifications.show({ message: i18next.t('trips.notifications.created'), color: 'green' })
           navigate(paths.trip(teamSlug!, trip.slug))
         },

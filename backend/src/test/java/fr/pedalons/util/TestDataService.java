@@ -299,6 +299,23 @@ public class TestDataService {
     managed.setEnablePosts(enablePosts);
   }
 
+  /** Every module flag at once — what the dashboard hides a section for. */
+  @Transactional
+  public void setTeamFeatureFlags(
+      Team team,
+      boolean enableRides,
+      boolean enableRoutes,
+      boolean enableTrips,
+      boolean enablePosts,
+      boolean enableAds) {
+    Team managed = teamRepository.findById(team.getId());
+    managed.setEnableRides(enableRides);
+    managed.setEnableRoutes(enableRoutes);
+    managed.setEnableTrips(enableTrips);
+    managed.setEnablePosts(enablePosts);
+    managed.setEnableAds(enableAds);
+  }
+
   @Transactional
   public void setTeamEnableRoutePlanner(Team team, boolean enabled) {
     Team managed = teamRepository.findById(team.getId());
@@ -708,6 +725,13 @@ public class TestDataService {
   public void deleteTeam(Team team) {
     team.setDeleted(true);
     teamRepository.getEntityManager().merge(team);
+  }
+
+  /** Takes a member out of a team, on the managed membership. */
+  @Transactional
+  public void removeMember(User user, Team team) {
+    userTeamRepository.delete(
+        userTeamRepository.findByUserAndTeam(user.getId(), team.getId()).orElseThrow());
   }
 
   @Transactional
@@ -1528,6 +1552,11 @@ public class TestDataService {
             "excerpt");
     contentReportRepository.persistAndFlush(report);
     return report;
+  }
+
+  @Transactional
+  public void deleteAllReports() {
+    contentReportRepository.deleteAll();
   }
 
   @Transactional

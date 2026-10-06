@@ -35,6 +35,11 @@ _TeamDetailDto _$TeamDetailDtoFromJson(Map<String, dynamic> json) =>
       pages: (json['pages'] as List<dynamic>?)
           ?.map((e) => TeamPageSummaryDto.fromJson(e as Map<String, dynamic>))
           .toList(),
+      memberCountByRole: json['memberCountByRole'] == null
+          ? null
+          : MemberCountByRoleDto.fromJson(
+              json['memberCountByRole'] as Map<String, dynamic>,
+            ),
       role: json['role'] as String?,
       geometry: json['geometry'] == null
           ? null
@@ -70,6 +75,7 @@ Map<String, dynamic> _$TeamDetailDtoToJson(_TeamDetailDto instance) =>
       'excerpt': instance.excerpt,
       'logoUrl': instance.logoUrl,
       'pages': instance.pages?.map((e) => e.toJson()).toList(),
+      'memberCountByRole': instance.memberCountByRole?.toJson(),
       'role': instance.role,
       'geometry': instance.geometry?.toJson(),
     };

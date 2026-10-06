@@ -218,6 +218,7 @@ PublicationDtoRide _asListRow(RideDto r) => PublicationDtoRide(
   participantCount: r.participantCount,
   groupCount: r.groupCount,
   groups: const <RideGroupDto>[],
+  groupSummaries: r.groupSummaries,
   topParticipants: const <PublicUserDto>[],
   deleted: false,
   registered: r.registered,
