@@ -15,13 +15,15 @@ interface RideWeatherSummaryLineProps {
 }
 
 /**
- * The weather in one line on a ride's card (`PublicationCard`, `NextRideCard`): the sky at
+ * The weather in one line on a ride's card (`PublicationCard`, `NextRideCard`) — and on a trip's
+ * (`PublicationCard`, its next stage) or a stage's (`TripStageCard`): the sky at
  * departure, the temperature range min → max from departure to the last estimated arrival, the
  * wind, and a badge when rain gets likely — named after what falls (rain, showers, snow, storm…),
  * its probability in the tooltip. Before the forecast opens (seven days ahead), the date
  * it will. Anything else — no summary, a status this build does not know — draws nothing.
  *
- * Everything here is the server's (`RideDto.weather`, docs/plans/2026-10-05-weather.md §4): the
+ * Everything here is the server's (`RideDto.weather`, `TripDto.weather`,
+ * docs/plans/2026-10-05-weather.md §4): the
  * card only words it and converts the units.
  */
 export function RideWeatherSummaryLine({ summary }: RideWeatherSummaryLineProps) {

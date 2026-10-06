@@ -9,6 +9,7 @@ import 'media_dto.dart';
 import 'public_user_dto.dart';
 import 'publication_dto.dart';
 import 'publication_type.dart';
+import 'ride_weather_summary_dto.dart';
 import 'status.dart';
 import 'tag_dto.dart';
 import 'team_publication_dto.dart';
@@ -105,6 +106,9 @@ abstract class TripDto with _$TripDto {
 
     /// Number of comments, replies included. Absent when the caller may not read the comments of this trip — comments are members-only, so an outsider is told nothing, not even zero.
     int? commentCount,
+
+    /// The weather line of a list card: that of the trip's next leg — its first stage still to leave, else the trip itself when it has no stage — at the start of its route, over the window from its departure to its estimated arrival. Absent when there is nothing to show — trip finished, draft or cancelled, next stage without a route, forecast not in cache yet — and on the trip's own detail, which reads getTripWeather; present only with status OK, STALE or NOT_YET_AVAILABLE.
+    RideWeatherSummaryDto? weather,
   }) = _TripDto;
 
   factory TripDto.fromJson(Map<String, Object?> json) =>

@@ -250,9 +250,10 @@ export function PublicationCard({ publication, showTeam, actions }: PublicationC
 
         <Box mt="auto">
           {renderStats()}
-          {/* The server sends it only within the forecast window, or with its opening date. */}
-          {publication.type === 'RIDE' && (
-            <RideWeatherSummaryLine summary={(publication as RideDto).weather} />
+          {/* The server sends it only within the forecast window, or with its opening date; a
+              trip's is that of its next stage (docs/LEDGER_*.md API-82). */}
+          {(publication.type === 'RIDE' || publication.type === 'TRIP') && (
+            <RideWeatherSummaryLine summary={(publication as RideDto | TripDto).weather} />
           )}
         </Box>
       </CardContent>

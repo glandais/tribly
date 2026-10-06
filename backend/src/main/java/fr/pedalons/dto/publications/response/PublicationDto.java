@@ -71,6 +71,8 @@ public interface PublicationDto {
    * @param tags the tags of every row of the page, loaded in bulk by {@code TagLookup}
    * @param rideWeather the weather line of every ride of the page, loaded in at most one query by
    *     {@code RideWeatherLookup}
+   * @param tripWeather the weather line of every trip of the page, that of its next leg, loaded
+   *     in at most one query by {@code TripWeatherLookup}
    * @param rideThumbnails the thumbnail of every ride of the page, its own else its route's,
    *     loaded in one query by {@code ThumbnailLookup.forRides}
    */
@@ -83,6 +85,7 @@ public interface PublicationDto {
       PostAuthors postAuthors,
       ContentTags tags,
       RideWeatherSummaries rideWeather,
+      RideWeatherSummaries tripWeather,
       Map<Long, ThemedThumbnail> rideThumbnails,
       @Nullable ListViewMode view) {
     return switch (publication) {
@@ -106,6 +109,7 @@ public interface PublicationDto {
               participations,
               commentCounts,
               tags,
+              tripWeather,
               view);
       default -> throw new IllegalStateException("Invalid Publication object");
     };

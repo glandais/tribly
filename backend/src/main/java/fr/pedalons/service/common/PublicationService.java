@@ -38,6 +38,7 @@ import fr.pedalons.service.team.TeamService;
 import fr.pedalons.service.team.request.MinRole;
 import fr.pedalons.service.weather.RideWeatherLookup;
 import fr.pedalons.service.weather.RideWeatherSummaries;
+import fr.pedalons.service.weather.TripWeatherLookup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
@@ -73,6 +74,7 @@ public class PublicationService {
   @Inject TagLookup tagLookup;
 
   @Inject RideWeatherLookup rideWeatherLookup;
+  @Inject TripWeatherLookup tripWeatherLookup;
 
   @Inject ThumbnailLookup thumbnailLookup;
 
@@ -516,6 +518,10 @@ public class PublicationService {
     // page leaves within the forecast horizon. Read from the cache only, never the provider.
     RideWeatherSummaries rideWeather =
         rideWeatherLookup.forRides(itemsOfType(publications.items(), Ride.class));
+    // At most one more for the trips: the line of each trip's next leg, none when no trip of the
+    // page has a stage left to leave (docs/LEDGER_*.md API-82).
+    RideWeatherSummaries tripWeather =
+        tripWeatherLookup.forTrips(itemsOfType(publications.items(), Trip.class), summaries::trip);
     // One more for the thumbnail of every ride, its own else its route's (docs/LEDGER_*.md
     // API-80), none for a page without rides.
     Map<Long, ThemedThumbnail> rideThumbnails =
@@ -533,6 +539,7 @@ public class PublicationService {
                         postAuthors,
                         tags,
                         rideWeather,
+                        tripWeather,
                         rideThumbnails,
                         view))
             .toList();

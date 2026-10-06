@@ -15,11 +15,13 @@ import fr.pedalons.dto.tags.response.ContentTags;
 import fr.pedalons.dto.tags.response.TagDto;
 import fr.pedalons.dto.users.response.PublicUserDto;
 import fr.pedalons.dto.validation.ValidateSchema;
+import fr.pedalons.dto.weather.response.RideWeatherSummaryDto;
 import fr.pedalons.enums.ListViewMode;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.service.asset.AssetService;
 import fr.pedalons.service.common.ParticipantPreviewLookup.ParticipantPreview;
+import fr.pedalons.service.weather.RideWeatherSummaries;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -165,6 +167,17 @@ public class TripDto implements PublicationDto {
       required = true)
   final List<TagDto> tags;
 
+  @Nullable
+  @Schema(
+      description =
+          "The weather line of a list card: that of the trip's next leg — its first stage still to"
+              + " leave, else the trip itself when it has no stage — at the start of its route,"
+              + " over the window from its departure to its estimated arrival. Absent when there is"
+              + " nothing to show — trip finished, draft or cancelled, next stage without a route,"
+              + " forecast not in cache yet — and on the trip's own detail, which reads"
+              + " getTripWeather; present only with status OK, STALE or NOT_YET_AVAILABLE.")
+  final RideWeatherSummaryDto weather;
+
   public TripDto(
       TeamPublicationDto team,
       String id,
@@ -191,7 +204,8 @@ public class TripDto implements PublicationDto {
       boolean deleted,
       boolean registered,
       @Nullable Integer commentCount,
-      List<TagDto> tags) {
+      List<TagDto> tags,
+      @Nullable RideWeatherSummaryDto weather) {
     super();
     this.team = team;
     this.id = id;
@@ -221,6 +235,7 @@ public class TripDto implements PublicationDto {
     this.registered = registered;
     this.commentCount = commentCount;
     this.tags = tags;
+    this.weather = weather;
   }
 
   /**
@@ -236,6 +251,8 @@ public class TripDto implements PublicationDto {
    * @param participations the current user's registrations for this whole page, resolved in one
    *     query by {@code ParticipationLookup} — never one lookup per row
    * @param tags the tags of this whole page, resolved in one query by {@code TagLookup}
+   * @param weather the weather lines of this whole page, resolved in at most one query by {@code
+   *     TripWeatherLookup}
    * @param view {@link ListViewMode#COMPACT} leaves the markdown body and the asset inventory out of the
    *     row; {@code excerpt} and {@code thumbnailUrl} carry what it renders instead
    */
@@ -246,6 +263,7 @@ public class TripDto implements PublicationDto {
       UserParticipations participations,
       CommentCounts commentCounts,
       ContentTags tags,
+      RideWeatherSummaries weather,
       @Nullable ListViewMode view) {
     return build(
         trip,
@@ -260,6 +278,7 @@ public class TripDto implements PublicationDto {
         participations.isRegisteredToTrip(trip.getId()),
         commentCounts.forEntity(trip.getId()),
         tags.forContent(trip.getId()),
+        RideWeatherSummaryDto.fromNullable(weather.forTrip(trip.getId())),
         view);
   }
 
@@ -311,6 +330,7 @@ public class TripDto implements PublicationDto {
         participations.isRegisteredToTrip(trip.getId()),
         commentCounts.forEntity(trip.getId()),
         tags.forContent(trip.getId()),
+        null,
         ListViewMode.FULL);
   }
 
@@ -356,6 +376,7 @@ public class TripDto implements PublicationDto {
       boolean registered,
       @Nullable Integer commentCount,
       List<TagDto> tags,
+      @Nullable RideWeatherSummaryDto weather,
       @Nullable ListViewMode view) {
     // Get thumbnail URLs from trip's own assets
     String thumbnailLightUrl = null;
@@ -404,6 +425,7 @@ public class TripDto implements PublicationDto {
         trip.isDeleted(),
         registered,
         commentCount,
-        tags);
+        tags,
+        weather);
   }
 }

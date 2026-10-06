@@ -248,6 +248,148 @@ public class WeatherHourlyRepository
     return hours;
   }
 
+  /**
+   * One trip's next leg for the list summary, and one hour of its departure cell within it.
+   *
+   * @param arrival the estimated arrival of that leg
+   * @param fetchedAt when the departure cell was last fetched; null when it never was
+   * @param hour null on the single row of a leg beyond {@code horizonEnd} or without a cached hour
+   */
+  public record TripLegHour(
+      long tripId,
+      Instant departure,
+      Instant arrival,
+      @Nullable Instant fetchedAt,
+      @Nullable WeatherHourRow hour) {}
+
+  /**
+   * The list path of trips (docs/LEDGER_*.md API-82): for each trip of a page, its next leg — the
+   * first live stage leaving at or after {@code now} (by date, then rank), else the trip itself when
+   * it has no live stage — and the hours of that leg's departure cell from its start to its
+   * estimated arrival, in <b>one</b> query whatever the page size. The stages are never loaded.
+   *
+   * <p>Everything {@code TripWeatherPlans} and {@code RouteSampleLookup} work out from the entities
+   * is spelled here in SQL, so the list and the detail read the same cell:
+   *
+   * <ul>
+   *   <li>the departure point is the first point of the leg's route's first non-empty track (by
+   *       id) — deleted routes skipped; a leg without one returns no row, as the detail says {@code
+   *       NO_LOCATION};
+   *   <li>its cell, by {@code cellLatIdxSql} / {@code cellLonIdxSql}, <b>with</b> the elevation band
+   *       of that point ({@code floor(ele / band + 0.5) * band}), none when the whole track has no
+   *       altitude — the cell the planner fetched for the stage's first sample;
+   *   <li>its arrival: the start plus the route's distance at the stage's average speed, else
+   *       {@code defaultSpeed}.
+   * </ul>
+   *
+   * <p>A leg leaving after {@code horizonEnd} returns one row with no hour, so the caller can say
+   * {@code NOT_YET_AVAILABLE}; so does a leg whose cell has no cached hour in its window.
+   *
+   * @param slack how far outside the window an hour is still read
+   */
+  public List<TripLegHour> findTripNextLegHours(
+      Collection<Long> tripIds,
+      Instant now,
+      Instant horizonEnd,
+      String cellLatIdxSql,
+      String cellLonIdxSql,
+      int elevationBand,
+      double defaultSpeed,
+      java.time.Duration slack) {
+    if (tripIds.isEmpty()) {
+      return List.of();
+    }
+    String point = "st_makepoint(cast(p.p0->>'lng' as float8), cast(p.p0->>'lat' as float8))";
+    String latIdx = cellLatIdxSql.replace("?1", point);
+    String lonIdx = cellLonIdxSql.replace("?1", point);
+    String sql =
+        """
+        with t as (
+          select te.id as trip_id, te.date_time as trip_time, te.route_id as trip_route_id
+          from team_entities te
+          where te.id in (:tripIds)
+        ),
+        n as (
+          select t.trip_id, leg.departure, leg.route_id, leg.speed
+          from t
+          cross join lateral (
+            (select s.date_time as departure, s.route_id, s.average_speed as speed
+               from team_entities s
+              where s.trip_id = t.trip_id and s.deleted = false and s.date_time >= :now
+              order by s.date_time, s.sort_order, s.id
+              limit 1)
+            union all
+            (select t.trip_time, t.trip_route_id, cast(null as float4)
+              where t.trip_time >= :now
+                and not exists (select 1 from team_entities s
+                                 where s.trip_id = t.trip_id and s.deleted = false))
+          ) leg
+        ),
+        p as (
+          select n.trip_id, n.departure, n.speed, r.distance, g.track_points -> 0 as p0,
+                 g.track_points
+          from n
+          join team_entities r on r.id = n.route_id and r.deleted = false
+          cross join lateral (
+            select gt.track_points from gpx_tracks gt
+             where gt.route_id = r.id and jsonb_array_length(gt.track_points) > 0
+             order by gt.id
+             limit 1
+          ) g
+        ),
+        l as (
+          select p.trip_id, p.departure,
+                 p.departure + make_interval(secs => coalesce(p.distance, 0) * 3.6
+                   / case when p.speed > 0 then p.speed else :defaultSpeed end) as arrival,
+                 %1$s as lat_idx,
+                 %2$s as lon_idx,
+                 case
+                   when cast(p.p0->>'ele' as float8) <> 0
+                     then cast(floor(cast(p.p0->>'ele' as float8) / :band + 0.5) as integer) * :band
+                   when jsonb_path_exists(p.track_points, cast(:anyAltitude as jsonpath)) then 0
+                 end as ele_band
+          from p
+        )
+        select l.trip_id, l.departure, l.arrival, c.fetched_at, %3$s
+        from l
+        left join weather_cells c
+          on c.lat_idx = l.lat_idx and c.lon_idx = l.lon_idx
+          and c.ele_band is not distinct from l.ele_band
+        left join weather_hourly h on h.cell_id = c.id
+          and l.departure <= :horizonEnd
+          and h.time >= l.departure - make_interval(secs => :slack)
+          and h.time <= l.arrival + make_interval(secs => :slack)
+        %4$s
+        order by l.trip_id, h.time
+        """
+            .formatted(latIdx, lonIdx, HOUR_COLUMNS, DAILY_JOIN);
+    @SuppressWarnings("unchecked")
+    List<Object[]> rows =
+        getEntityManager()
+            .createNativeQuery(sql)
+            .setParameter("tripIds", tripIds)
+            .setParameter("now", Timestamp.from(now))
+            .setParameter("horizonEnd", Timestamp.from(horizonEnd))
+            .setParameter("band", elevationBand)
+            // A parameter, not a literal: the question mark of a JSON path would read as a JDBC
+            // placeholder.
+            .setParameter("anyAltitude", "$[*] ? (@.ele != 0)")
+            .setParameter("defaultSpeed", defaultSpeed)
+            .setParameter("slack", (double) slack.toSeconds())
+            .getResultList();
+    List<TripLegHour> hours = new ArrayList<>(rows.size());
+    for (Object[] row : rows) {
+      hours.add(
+          new TripLegHour(
+              ((Number) row[0]).longValue(),
+              instant(row[1]),
+              instant(row[2]),
+              nullableInstant(row[3]),
+              row[4] == null ? null : hourRow(row, 0, 4)));
+    }
+    return hours;
+  }
+
   private static WeatherHourRow hourRow(Object[] row, int ownerColumn) {
     return hourRow(row, ownerColumn, ownerColumn + 1);
   }

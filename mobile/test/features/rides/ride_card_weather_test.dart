@@ -59,6 +59,37 @@ void main() {
     weather: summary,
   );
 
+  PublicationDtoTrip trip({
+    bool finished = false,
+    String status = 'PUBLISHED',
+  }) => PublicationDtoTrip(
+    tags: const <TagDto>[],
+    team: const TeamPublicationDto(
+      id: 't1',
+      slug: 'n-peloton',
+      name: 'N-Peloton',
+      visibility: 'PUBLIC',
+    ),
+    id: 'v1',
+    slug: 'tour-des-alpes',
+    name: 'Tour des Alpes',
+    media: const MediaDto(
+      markdown: '',
+      assets: AssetsDto(images: <AssetDto>[], attachments: <AssetDto>[]),
+    ),
+    dateTime: '2099-07-29T07:30:00Z',
+    status: status,
+    finished: finished,
+    visibility: 'PUBLIC',
+    participantCount: 4,
+    stageCount: 3,
+    stages: const <TripStageDto>[],
+    participants: const <PublicUserDto>[],
+    deleted: false,
+    registered: false,
+    weather: summary,
+  );
+
   Future<void> pump(WidgetTester tester, PublicationDto publication) async {
     final SharedPreferences prefs = await _prefs();
     await tester.pumpWidget(
@@ -92,6 +123,26 @@ void main() {
     expect(find.byKey(keys.ride.weatherSummary), findsNothing);
 
     await pump(tester, row(status: 'CANCELLED'));
+    expect(find.byKey(keys.ride.weatherSummary), findsNothing);
+  });
+
+  // Ledger API-82 : la carte d'un voyage porte la ligne de sa prochaine étape,
+  // avec le même widget.
+  testWidgets('la carte de fil d\'un voyage porte sa ligne météo', (
+    WidgetTester tester,
+  ) async {
+    await pump(tester, trip());
+
+    expect(find.byKey(keys.ride.weatherSummary), findsOneWidget);
+    expect(find.text('9–13 °C'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('ni voyage terminé, ni annulé', (WidgetTester tester) async {
+    await pump(tester, trip(finished: true));
+    expect(find.byKey(keys.ride.weatherSummary), findsNothing);
+
+    await pump(tester, trip(status: 'CANCELLED'));
     expect(find.byKey(keys.ride.weatherSummary), findsNothing);
   });
 

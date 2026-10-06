@@ -11,6 +11,9 @@ import org.jspecify.annotations.Nullable;
  * or {@code NOT_YET_AVAILABLE}. Absent makes {@code RideDto.weather} vanish from the JSON (Jackson
  * {@code NON_NULL}): a finished or cancelled ride, one without a place, or one whose forecast is
  * not in cache yet shows no weather line at all.
+ *
+ * <p>{@link TripWeatherLookup#forTrips} builds the same thing for the trips of a page, keyed by trip
+ * id: the summary of each trip's next leg (docs/LEDGER_*.md API-82).
  */
 public record RideWeatherSummaries(Map<Long, RideWeatherSummary> byRideId) {
 
@@ -19,5 +22,10 @@ public record RideWeatherSummaries(Map<Long, RideWeatherSummary> byRideId) {
   /** This ride's summary, or null when there is nothing to show. */
   public @Nullable RideWeatherSummary forRide(@Nullable Long rideId) {
     return rideId == null ? null : byRideId.get(rideId);
+  }
+
+  /** This trip's summary, from {@link TripWeatherLookup}, or null when there is nothing to show. */
+  public @Nullable RideWeatherSummary forTrip(@Nullable Long tripId) {
+    return forRide(tripId);
   }
 }

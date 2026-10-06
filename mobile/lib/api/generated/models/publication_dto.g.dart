@@ -187,6 +187,11 @@ PublicationDtoTrip _$PublicationDtoTripFromJson(Map<String, dynamic> json) =>
       thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
       commentCount: (json['commentCount'] as num?)?.toInt(),
+      weather: json['weather'] == null
+          ? null
+          : RideWeatherSummaryDto.fromJson(
+              json['weather'] as Map<String, dynamic>,
+            ),
       $type: json['type'] as String?,
     );
 
@@ -219,5 +224,6 @@ Map<String, dynamic> _$PublicationDtoTripToJson(PublicationDtoTrip instance) =>
       'thumbnailDarkUrl': instance.thumbnailDarkUrl,
       'thumbnailUrl': instance.thumbnailUrl,
       'commentCount': instance.commentCount,
+      'weather': instance.weather?.toJson(),
       'type': instance.$type,
     };

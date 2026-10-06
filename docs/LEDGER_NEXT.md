@@ -349,13 +349,10 @@ sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` u
 ### Météo : ce qui suit `API-74`
 
 La météo des **sorties** est livrée (`API-74`, `WEB-60`, `MOB-51`, contrat `10.9.0`), celle des
-**étapes de voyage** aussi (`API-76`, `WEB-67`, `MOB-57`, contrat `10.11.0`) ; le plan
+**étapes de voyage** aussi (`API-76`, `WEB-67`, `MOB-57`, contrat `10.11.0`), et la ligne des
+cartes de voyage (`API-82`, contrat `10.13.0`) ; le plan
 [`2026-10-05-weather.md`](plans/2026-10-05-weather.md) reste ouvert pour ce qui suit.
 
-- [ ] `API-82` **Météo des voyages sur les cartes de liste (M)** — reste de `API-76` : un résumé de
-      la prochaine étape dans `TripDto` (`weather`, optionnel), en **une** requête par page comme
-      `RideWeatherLookup` (SQL de la fenêtre de la prochaine étape, sans charger les étapes), avec
-      un cas dans `PublicationQueryCountTest` ; puis la ligne sur les cartes web et mobile.
 - [ ] `API-77` **Météo sur Karoo et Garmin (M)** — `DeviceRideDto` ne porte rien ; à concevoir
       (résumé seul, ou points de passage) avec les contraintes de taille des deux apps. Les aperçus
       de lien (`og:`) ne portent **jamais** de météo.

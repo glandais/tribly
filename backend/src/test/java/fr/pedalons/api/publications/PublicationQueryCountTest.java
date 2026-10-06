@@ -16,6 +16,7 @@ import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.trip.Trip;
+import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.Status;
@@ -302,6 +303,80 @@ class PublicationQueryCountTest extends AbstractQueryCountTest {
                 + ", budget +"
                 + MAX_STATEMENT_GROWTH
                 + ")");
+  }
+
+  /**
+   * docs/LEDGER_*.md API-82: trips whose first stage has gone and whose second leaves tomorrow, on a
+   * route starting in a cell whose forecast is cached — with its elevation band, as the planner
+   * fetches a stage's first sample. The weather line of every card is that of the next stage, read
+   * for the whole page in one query (TripWeatherLookup), never by loading each trip's stages.
+   */
+  @Test
+  void listTeamTrips_inTheForecastWindow_weatherCostsAPageNotARow() {
+    Instant now = Instant.now();
+    Route route =
+        dataService.createRouteWithTracks(
+            team1,
+            user1,
+            "Trip weather route",
+            Visibility.PUBLIC,
+            List.of(
+                WeatherTestFixtures.northbound(
+                    WeatherTestFixtures.LYON_LAT, WeatherTestFixtures.LYON_LON, 30, 170)));
+    for (int i = 0; i < LARGE_PAGE; i++) {
+      Trip trip =
+          dataService.createTrip(
+              team1,
+              user1,
+              "Weather Trip " + i,
+              now.minus(1, ChronoUnit.DAYS).plusSeconds(i),
+              Visibility.PUBLIC);
+      TripStage gone =
+          dataService.createTripStage(
+              user1, trip, "Weather Trip " + i + " Day 1", 0, now.minus(1, ChronoUnit.DAYS));
+      dataService.setTripStageRoute(gone, route);
+      TripStage next =
+          dataService.createTripStage(
+              user1, trip, "Weather Trip " + i + " Day 2", 1, now.plus(1, ChronoUnit.DAYS));
+      dataService.setTripStageRoute(next, route);
+    }
+    QuarkusTransaction.requiringNew()
+        .run(
+            () -> {
+              Instant firstHour = now.truncatedTo(ChronoUnit.HOURS).minus(2, ChronoUnit.HOURS);
+              WeatherTestFixtures.seedCell(
+                  weatherCellRepository,
+                  weatherHourlyRepository,
+                  weatherDailyRepository,
+                  // The first track point, at 170 m: the 200 m band.
+                  CellKey.of(WeatherTestFixtures.LYON_LAT, WeatherTestFixtures.LYON_LON, 170.0),
+                  now,
+                  now,
+                  WeatherTestFixtures.hours(firstHour, firstHour.plus(72, ChronoUnit.HOURS)),
+                  14,
+                  WeatherTestFixtures.dates(
+                      LocalDate.now(ZoneOffset.UTC).minusDays(1),
+                      LocalDate.now(ZoneOffset.UTC).plusDays(3)));
+            });
+    // Not vacuous: every card of the page carries its line, read from the cached cell.
+    List<Map<String, Object>> weather =
+        asUser1()
+            .get()
+            .when()
+            .get("/api/teams/" + team1Slug + "/publications?type=TRIP&size=" + LARGE_PAGE)
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("publications.weather");
+    assertEquals(LARGE_PAGE, weather.size());
+    for (Map<String, Object> line : weather) {
+      assertEquals("OK", line.get("status"), weather.toString());
+      assertEquals(14.0f, ((Number) line.get("temperature")).floatValue(), weather.toString());
+    }
+    assertFlatQueryCount(
+        "GET /api/teams/{teamSlug}/publications?type=TRIP in forecast window",
+        asUser1(),
+        "/api/teams/" + team1Slug + "/publications?type=TRIP");
   }
 
   @Test

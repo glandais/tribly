@@ -41,6 +41,9 @@ _TripDto _$TripDtoFromJson(Map<String, dynamic> json) => _TripDto(
   thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
   thumbnailUrl: json['thumbnailUrl'] as String?,
   commentCount: (json['commentCount'] as num?)?.toInt(),
+  weather: json['weather'] == null
+      ? null
+      : RideWeatherSummaryDto.fromJson(json['weather'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$TripDtoToJson(_TripDto instance) => <String, dynamic>{
@@ -72,4 +75,5 @@ Map<String, dynamic> _$TripDtoToJson(_TripDto instance) => <String, dynamic>{
   'thumbnailDarkUrl': instance.thumbnailDarkUrl,
   'thumbnailUrl': instance.thumbnailUrl,
   'commentCount': instance.commentCount,
+  'weather': instance.weather?.toJson(),
 };

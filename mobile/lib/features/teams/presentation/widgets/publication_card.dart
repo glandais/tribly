@@ -480,6 +480,20 @@ class _TripBody extends ConsumerWidget {
         people: trip.participants,
         count: trip.participantCount,
       ),
+      // La ligne météo de la prochaine étape (`TripDto.weather`, ledger
+      // `API-82`) : le même widget que la carte de sortie.
+      footer:
+          RideWeatherSummaryLine.shows(
+            trip.weather,
+            finished: trip.finished,
+            cancelled: trip.status == 'CANCELLED',
+          )
+          ? RideWeatherSummaryLine(
+              summary: trip.weather,
+              finished: trip.finished,
+              cancelled: trip.status == 'CANCELLED',
+            )
+          : null,
       stats: <PdlStat>[
         if (start != null)
           PdlStat(

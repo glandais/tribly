@@ -14,7 +14,9 @@ import '../../../../keys.dart';
 import '../../domain/ride_weather_display.dart';
 
 /// La ligne météo d'une carte de sortie (fil, fil d'équipe, « Ma prochaine
-/// sortie ») : `RideDto.weather` / `PublicationDtoRide.weather`.
+/// sortie ») : `RideDto.weather` / `PublicationDtoRide.weather` — et d'une
+/// carte de voyage, celle de sa prochaine étape (`PublicationDtoTrip.weather`,
+/// ledger `API-82`).
 ///
 /// Le serveur ne la remplit que pour `OK`, `STALE` et `NOT_YET_AVAILABLE`, au
 /// point de départ, sur la fenêtre départ → dernière arrivée estimée. On
