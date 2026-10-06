@@ -133,7 +133,9 @@ Validated interest required before prioritization.
       rain alert. Ledger `API-74`, `WEB-60`, `MOB-51`
 - [X] Weather for trips (October 2026, API 10.11.0) — one forecast per stage, on the stage page and
       the stage cards. Ledger `API-76`, `WEB-67`, `MOB-57`
-- [ ] Weather for trips on list cards — ledger `API-82`; weather on Karoo/Garmin — `API-77`
+- [X] Weather for trips on list cards (October 2026, API 10.13.0) — the next stage's forecast on
+      the trip cards. Ledger `API-82`
+- [ ] Weather on Karoo/Garmin — ledger `API-77`
 
 ### Mobile
 - [X] Mobile application (iOS/Android) — Flutter app with auth, teams, rides, routes, calendar

@@ -46,7 +46,7 @@ interface RideWeatherSectionProps {
  * the reader's own group by default — as forecast points at their estimated passages, a rain or
  * dry banner, and the wind stretch by stretch.
  *
- * Every number is the server's (docs/plans/2026-10-05-weather.md §1: passages, relative wind,
+ * Every number is the server's (docs/plans/archive/2026-10-05-weather.md §1: passages, relative wind,
  * exposure and rain alert are computed once, backend side); this only words them and converts
  * the units. A finished or cancelled ride, OUT_OF_RANGE and a status this build does not know draw
  * nothing.

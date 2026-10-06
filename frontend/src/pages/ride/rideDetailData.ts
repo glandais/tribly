@@ -115,7 +115,7 @@ export function useRideDetailData(teamSlug?: string, rideSlug?: string) {
  * Server-side counterpart of {@link useRideDetailData}, in two phases: the routes bulk needs the
  * ride's groups, which only exist once the ride query has resolved into the cache. The weather
  * only needs the slugs, so it rides in the first phase — the endpoint reads the server's cache and
- * never calls the provider (docs/plans/2026-10-05-weather.md §1), so prefetching it is safe.
+ * never calls the provider (docs/plans/archive/2026-10-05-weather.md §1), so prefetching it is safe.
  *
  * It covers more than the hook does, on purpose: comments and GPS services are fetched by children
  * the page mounts (`CommentSection`, the export menu), not by the page itself — both conditional,

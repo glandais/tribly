@@ -11,7 +11,7 @@ import '../../../core/utils/formatters.dart';
 ///
 /// Les enums de la réponse arrivent en `String` : chaque lecture passe par le
 /// `fromJson` généré, dont le repli `$unknown` est traité ici **une fois**.
-/// Un statut inconnu ne montre rien (`docs/plans/2026-10-05-weather.md` §3),
+/// Un statut inconnu ne montre rien (`docs/plans/archive/2026-10-05-weather.md` §3),
 /// une condition inconnue un nuage, un vent relatif ou un point cardinal
 /// inconnu est simplement omis.
 ///

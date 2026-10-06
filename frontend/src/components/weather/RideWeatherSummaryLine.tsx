@@ -23,7 +23,7 @@ interface RideWeatherSummaryLineProps {
  * it will. Anything else — no summary, a status this build does not know — draws nothing.
  *
  * Everything here is the server's (`RideDto.weather`, `TripDto.weather`,
- * docs/plans/2026-10-05-weather.md §4): the
+ * docs/plans/archive/2026-10-05-weather.md §4): the
  * card only words it and converts the units.
  */
 export function RideWeatherSummaryLine({ summary }: RideWeatherSummaryLineProps) {

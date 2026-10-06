@@ -18,7 +18,7 @@ interface WeatherCheckpointStripProps {
 /**
  * The forecast points of a leg, start to finish, at their estimated passages: hour, sky,
  * temperature, chance of rain, and the wind as the rider meets it there. A point carries no
- * coordinates (docs/plans/2026-10-05-weather.md §1) — only its distance along the route.
+ * coordinates (docs/plans/archive/2026-10-05-weather.md §1) — only its distance along the route.
  *
  * The points hold nothing focusable, so the scrolling viewport itself is a named, focusable region:
  * without it a long route's later points were out of a keyboard user's reach.

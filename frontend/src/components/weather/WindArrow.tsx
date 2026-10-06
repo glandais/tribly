@@ -13,7 +13,7 @@ interface WindArrowProps {
 /**
  * The wind as the rider meets it. Drawn pointing forward (up, the direction of travel), then
  * turned by `relativeWindAngle`: an arrow pointing down blows in the face. Never colour alone —
- * the caller always writes the label next to it (docs/plans/2026-10-05-weather.md §1).
+ * the caller always writes the label next to it (docs/plans/archive/2026-10-05-weather.md §1).
  */
 export function WindArrow({ angle, relativeWind, label, size = 18 }: WindArrowProps) {
   return (

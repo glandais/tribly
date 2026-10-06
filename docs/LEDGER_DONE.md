@@ -441,7 +441,7 @@ couvert » ; les tests ne tournent qu'en local (`MOB-37`).
   défaire** : une adresse du site ouverte depuis l'app vient de `Paths`, jamais d'une chaîne ;
   une page sans écran est `appScreen: false`, pas ajoutée à la main à `webOnlyRouteIds` ni à
   `internalRouteTemplates` (la pousser sur le routeur mènerait à une route inconnue). La
-  reconnexion que peut demander le navigateur intégré n'est pas traitée ici.
+  reconnexion que peut demander le navigateur intégré n'est pas traitée ici : ledger `MOB-58`.
 
 ## WEB — Site web
 
@@ -1880,7 +1880,7 @@ sections resteraient vides.
 ### `API-74` Météo des sorties : cache Open-Meteo et `getRideWeather` (contrat `10.9.0`)
 
 Livré le 5 octobre 2026 (10.8.0 → 10.9.0, mineur, ajouts seulement), d'après le plan
-[`2026-10-05-weather.md`](plans/2026-10-05-weather.md), qui garde les arbitrages détaillés. Le
+[`2026-10-05-weather.md`](plans/archive/2026-10-05-weather.md), qui garde les arbitrages détaillés. Le
 backend tient un **cache global** en Postgres (`V61__weather_cache.sql` : `weather_cells`,
 `weather_hourly`, `weather_daily`, tables nouvelles seulement) rempli en tâche de fond depuis l'API
 forecast d'Open-Meteo : `WeatherPlanner` (toutes les 5 min, sans HTTP) déduit des sorties PUBLISHED
@@ -1960,7 +1960,7 @@ la liste) tient sur la base de test. **À ne pas défaire** : un échec futur de
 ### `API-76` Météo des voyages, étape par étape : `getTripWeather` (contrat `10.11.0`)
 
 Livré le 6 octobre 2026 (10.10.0 → 10.11.0, mineur, ajouts seulement), sur les briques de `API-74`
-et le §6 du plan [`2026-10-05-weather.md`](plans/2026-10-05-weather.md). Constat préalable :
+et le §6 du plan [`2026-10-05-weather.md`](plans/archive/2026-10-05-weather.md). Constat préalable :
 `TripStage.dateTime` est un vrai instant de départ (l'éditeur saisit date **et** heure ; une étape
 migrée de biketeam reçoit l'heure de rendez-vous du voyage ou 8 h), donc aucun fuseau n'entre en jeu.
 `GET /api/teams/{teamSlug}/trips/{tripSlug}/weather` (`getTripWeather`, `@CheckAccess(TRIP, READ)`,

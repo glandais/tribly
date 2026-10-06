@@ -182,6 +182,18 @@ navigateur), et la connexion par code e-mailé (la préférence de fuseau existe
         `profile.passkeys.enabled` / `notConfigured` / `replace`,
         `notifications.preferences.inAppAlwaysOn`.
 
+### Tableau de bord d'équipe
+
+- [ ] `MOB-58` **Le navigateur intégré redemande la connexion sur les pages du site (S–M)** — reste
+      de `MOB-54`. Les actions du tableau de bord d'équipe (`dashboard_section.dart`) et la
+      notification de signalement ouvrent des pages du site sans écran dans l'app (`appScreen:
+      false` : création de sortie ou d'article, membres, signalements, paramètres…) par
+      `openWebPage` (`mobile/lib/core/utils/link_launcher.dart`), dans un
+      `LaunchMode.inAppBrowserView` qui ne partage pas la session de l'app : le membre, déjà
+      connecté dans l'app, doit se reconnecter sur le site avant d'agir. Piste : un jeton
+      d'échange court et à usage unique, émis par l'API pour la session de l'app et consommé par
+      le site (changement de contrat), ou à défaut le dire dans l'app avant d'ouvrir la page.
+
 ---
 
 ## WEB — Site web
@@ -334,8 +346,9 @@ sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` u
 
 La météo des **sorties** est livrée (`API-74`, `WEB-60`, `MOB-51`, contrat `10.9.0`), celle des
 **étapes de voyage** aussi (`API-76`, `WEB-67`, `MOB-57`, contrat `10.11.0`), et la ligne des
-cartes de voyage (`API-82`, contrat `10.13.0`) ; le plan
-[`2026-10-05-weather.md`](plans/2026-10-05-weather.md) reste ouvert pour ce qui suit.
+cartes de voyage (`API-82`, contrat `10.13.0`). Le plan
+[`2026-10-05-weather.md`](plans/archive/2026-10-05-weather.md) est archivé : il garde les
+arbitrages, ce qui suit est ici (et les recettes des sorties, `WEB-61`, `MOB-52`, `OPS-29`).
 
 - [ ] `API-77` **Météo sur Karoo et Garmin (M)** — `DeviceRideDto` ne porte rien ; à concevoir
       (résumé seul, ou points de passage) avec les contraintes de taille des deux apps. Les aperçus

@@ -37,7 +37,7 @@ abstract final class UnitSymbols {
   static const String fahrenheit = '°F';
 
   /// Hauteur de précipitation. Elle ne se convertit pas : le plan météo
-  /// (`docs/plans/2026-10-05-weather.md` §1) ne convertit que les
+  /// (`docs/plans/archive/2026-10-05-weather.md` §1) ne convertit que les
   /// températures et les vitesses.
   static const String millimeter = 'mm';
 }

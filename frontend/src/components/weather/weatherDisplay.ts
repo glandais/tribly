@@ -26,7 +26,7 @@ import type { BadgeFamily } from '@/lib/badgeColors.generated'
  * first, how the wind stretches split the route).
  *
  * The API carries the computations — passages, relative wind, exposure, rain alert
- * (docs/plans/2026-10-05-weather.md §1) — and no rendered text: the client only picks icons,
+ * (docs/plans/archive/2026-10-05-weather.md §1) — and no rendered text: the client only picks icons,
  * words, and units. An enum value this build does not know yet (the contract only grows) never
  * breaks a card: an unknown condition draws a plain cloud, an unknown status draws nothing.
  */

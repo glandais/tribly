@@ -25,7 +25,7 @@ import 'ride_weather_widgets.dart';
 /// long du parcours du **groupe sélectionné** (`selectedRideGroupProvider`,
 /// que l'écran passe en [selectedGroupId]) et son alerte pluie. Un appui
 /// ouvre l'écran « Météo du parcours » (`Navigator.push` : pas de route au
-/// contrat, `docs/plans/2026-10-05-weather.md` §1).
+/// contrat, `docs/plans/archive/2026-10-05-weather.md` §1).
 ///
 /// Rien n'est rendu pour une sortie terminée ou annulée — sans même appeler
 /// l'API —, ni pour un statut que l'app ne connaît pas. `NO_LOCATION` n'est

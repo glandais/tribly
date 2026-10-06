@@ -30,8 +30,9 @@ bash regenerate.sh
 
 It performs, in order:
 1. `cd backend && mvn clean package -DskipTests` — generates `contracts/openapi.{yaml,json}`
-2. `cd frontend && pnpm check` — see below
-3. `cd mobile && bash check.sh` — see below
+2. `cd mobile && flutter pub get && dart run openapi_retrofit_generator && dart run build_runner build` — generates the mobile client **before** `pnpm check` (see below)
+3. `cd frontend && pnpm check` — see below
+4. `cd mobile && bash check.sh` — see below
 
 Prefer this over running the steps by hand so nothing drifts out of sync.
 
@@ -45,19 +46,31 @@ cd backend && mvn clean package -DskipTests
 
 Generates `contracts/openapi.yaml` and `contracts/openapi.json`.
 
-### 2. Regenerate Frontend Client — `pnpm check`
+### 2. Generate the Mobile Client — before `pnpm check`
+
+```bash
+cd mobile && flutter pub get && dart run openapi_retrofit_generator && dart run build_runner build
+```
+
+`pnpm check` runs `generate-brand-colors`, which reads the Freezed model of every coloured enum in
+`mobile/lib/api/generated/models/` (`contracts/brand-colors.yaml`, ledger `BRAND-5`). A brand-new
+enum has no model until the mobile client is generated, so this step must come first — otherwise
+the generator stops and names the missing model.
+
+### 3. Regenerate Frontend Client — `pnpm check`
 
 ```bash
 cd frontend && pnpm check
 ```
 
-`pnpm check` expands to: `pnpm install && pnpm generate-api && pnpm generate-routes && pnpm format && pnpm typecheck && pnpm lint && pnpm build`.
+`pnpm check` expands to: `pnpm install && pnpm generate-api && pnpm generate-routes && pnpm generate-brand-colors && pnpm format && pnpm typecheck && pnpm lint && pnpm build`.
 
 - `generate-api` runs Orval → `src/api/dto/`, `src/api/endpoints/`, `src/api/zod/`
 - `generate-routes` regenerates the UI routes contract (`paths.generated.*`, AASA, deeplinks) from `contracts/routes.yaml` — **don't skip this**; it's part of the contract surface
+- `generate-brand-colors` regenerates `badgeColors.generated.ts` and `enum_colors.generated.dart` from `contracts/brand-colors.yaml` (needs step 2)
 - `typecheck` (`tsc -b`) is the real type gate — not `build`
 
-### 3. Regenerate Mobile Client — `check.sh`
+### 4. Check the Mobile Client — `check.sh`
 
 ```bash
 cd mobile && bash check.sh
@@ -65,7 +78,7 @@ cd mobile && bash check.sh
 
 `check.sh` runs: `flutter pub get && dart run openapi_retrofit_generator && dart run build_runner build && ../format.sh mobile && flutter analyze && flutter test`.
 
-- Generates `lib/api/generated/clients/` (Retrofit) and `lib/api/generated/models/` (Freezed)
+- Regenerates `lib/api/generated/clients/` (Retrofit) and `lib/api/generated/models/` (Freezed) — a no-op after step 2 unless something changed in between
 - Formats the mobile module (`../format.sh mobile`)
 - `flutter analyze` verifies no Dart errors
 - `flutter test` runs the mobile unit and widget tests

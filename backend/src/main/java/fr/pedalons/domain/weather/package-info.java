@@ -1,5 +1,5 @@
 /**
- * The Open-Meteo forecast cache behind the ride weather (docs/plans/2026-10-05-weather.md §2).
+ * The Open-Meteo forecast cache behind the ride weather (docs/plans/archive/2026-10-05-weather.md §2).
  *
  * <p><b>The one deliberate exception to "every query filters by domainId".</b> None of these tables
  * carries a domain: a forecast is a function of a place and an hour and of nothing a tenant owns,
