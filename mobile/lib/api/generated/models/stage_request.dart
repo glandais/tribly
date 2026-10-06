@@ -4,7 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'instant.dart';
+import 'event_date_time.dart';
 import 'media_dto.dart';
 
 part 'stage_request.freezed.dart';
@@ -17,7 +17,7 @@ abstract class StageRequest with _$StageRequest {
     /// Stage name
     required String name,
 
-    /// Stage date/time
+    /// Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's). An instant with an offset is still tolerated.
     required String dateTime,
 
     /// Stage media

@@ -66,4 +66,6 @@ export interface TeamDetailDto {
   createdAt: Instant
   /** Team location coordinates [longitude, latitude] */
   geometry?: TeamDetailDtoGeometry
+  /** The team's IANA zone: the one its rides, trips and posts fall back on when no place locates them. Administrators change it through TeamRequest.timezone. */
+  timezone: string
 }

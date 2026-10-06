@@ -18,7 +18,7 @@ export interface UserPreferencesRequest {
   language?: string
   /**
    * Preferred IANA timezone (e.g. 'Europe/Paris'). Omit or send null to leave it unchanged. Validated against the JDK's own timezone database, not a regex.
-   * @maxLength 40
+   * @maxLength 64
    */
   timezone?: string
   /** Whether team members may reach you through the classified-ad relay. Omit or send null to leave it unchanged. Setting it to false stops the relay from delivering to you; your ads stay visible, they simply stop being answerable. */

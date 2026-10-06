@@ -15,6 +15,7 @@ import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.common.EventDateTime;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.rides.request.GroupRequest;
@@ -53,6 +54,7 @@ import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.tag.TagLookup;
 import fr.pedalons.service.tag.TagService;
 import fr.pedalons.service.thumbnail.ThumbnailService;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
 import fr.pedalons.service.weather.RideWeatherLookup;
 import fr.pedalons.service.weather.RideWeatherService;
 import fr.pedalons.service.weather.WeatherEtag;
@@ -61,6 +63,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -105,6 +108,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
   @Inject ObjectMapper objectMapper;
 
   @Inject PublicationEndCalculator publicationEndCalculator;
+
+  @Inject EventTimezoneResolver eventTimezoneResolver;
 
   /** How long a ride edit waits before notifying — the window in which further edits fold in. */
   @ConfigProperty(name = "pedalons.notifications.update-delay-seconds", defaultValue = "300")
@@ -212,14 +217,23 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     Place startPlace = getPlace(request.startPlaceId(), team);
     Place endPlace = getPlace(request.endPlaceId(), team);
 
+    // The zone first: the request's wall times are read in it (docs/LEDGER_*.md API-60).
+    ZoneId zone = eventTimezoneResolver.ride(team, startPlace, route);
     Ride ride =
-        new Ride(creator, team, request.dateTime(), request.name(), slug, request.visibility());
+        new Ride(
+            creator,
+            team,
+            request.dateTime().toInstant(zone),
+            request.name(),
+            slug,
+            request.visibility());
+    ride.setTimezone(zone.getId());
     ride.setRoute(route);
     ride.setStart(startPlace);
     ride.setEnd(endPlace);
     ride.setStatus(request.status());
     if (request.status() == Status.DRAFT) {
-      ride.setPublishAt(request.publishAt());
+      ride.setPublishAt(EventDateTime.toInstant(request.publishAt(), zone));
     } else {
       ride.setPublishAt(null);
     }
@@ -233,6 +247,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
       createRideGroup(teamSlug, creator, ride, groupRequest, sortOrder);
       sortOrder++;
     }
+    EventTimezoneResolver.applyGroupStarts(ride, zone);
     // After the groups: the end is the latest of them (docs/LEDGER_*.md API-85).
     publicationEndCalculator.refresh(ride);
     // A ride created from a template arrives with the template's tags in tagIds: the client
@@ -338,7 +353,6 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     ride.setVisibility(request.visibility());
 
     ride.setName(request.name());
-    ride.setDateTime(request.dateTime());
     ride.setStatus(request.status());
     Route route = getRoute(teamSlug, request.routeSlug(), request.visibility());
     ride.setRoute(route);
@@ -346,8 +360,13 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     Place endPlace = getPlace(request.endPlaceId(), team);
     ride.setStart(startPlace);
     ride.setEnd(endPlace);
+    // Once the place and the route are known: a new start place keeps the wall time and moves the
+    // instant (plan §2.5), which RideUpdated below then reports (docs/LEDGER_*.md API-60).
+    ZoneId zone = eventTimezoneResolver.ride(team, startPlace, route);
+    ride.setTimezone(zone.getId());
+    ride.setDateTime(request.dateTime().toInstant(zone));
     if (request.status() == Status.DRAFT) {
-      ride.setPublishAt(request.publishAt());
+      ride.setPublishAt(EventDateTime.toInstant(request.publishAt(), zone));
     } else {
       ride.setPublishAt(null);
     }
@@ -389,6 +408,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
       }
     }
     ride.getGroups().removeAll(orphanedGroups.values());
+    EventTimezoneResolver.applyGroupStarts(ride, zone);
     // Once the groups are final — departure, times, routes and speeds all count (API-85).
     publicationEndCalculator.refresh(ride);
     // Tags notify nobody (plan D23): RideUpdated below only looks at the date and the start place.

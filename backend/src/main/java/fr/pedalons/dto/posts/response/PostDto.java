@@ -65,6 +65,14 @@ public class PostDto implements PublicationDto {
   @Schema(description = "Publication date/time", required = true)
   final Instant dateTime;
 
+  @Schema(
+      description =
+          "IANA zone the post's times were entered in and read in: the team's at its last save."
+              + " dateTime, publishAt are rendezvous in this zone.",
+      examples = "Europe/Paris",
+      required = true)
+  final String timezone;
+
   @Schema(description = "Publication status", required = true)
   final Status status;
 
@@ -120,6 +128,7 @@ public class PostDto implements PublicationDto {
       @Nullable String excerpt,
       @Nullable String thumbnailUrl,
       Instant dateTime,
+      String timezone,
       Status status,
       Visibility visibility,
       @Nullable Instant publishAt,
@@ -138,6 +147,7 @@ public class PostDto implements PublicationDto {
     this.excerpt = excerpt;
     this.thumbnailUrl = thumbnailUrl;
     this.dateTime = dateTime;
+    this.timezone = timezone;
     this.status = status;
     this.visibility = visibility;
     this.publishAt = publishAt;
@@ -180,6 +190,7 @@ public class PostDto implements PublicationDto {
         MarkdownExcerpt.of(post.getMarkdown()),
         assetService.getFirstImageUrl(post),
         post.getDateTime(),
+        post.zone().getId(),
         post.getStatus(),
         post.getVisibility(),
         post.getPublishAt(),

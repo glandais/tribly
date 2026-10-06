@@ -51,4 +51,44 @@ public record TeamRequest(
     @Schema(
             description = "Team location coordinates [longitude, latitude]",
             implementation = GeoJsonPoint.class)
-        @Nullable Point<G2D> geometry) {}
+        @Nullable Point<G2D> geometry,
+    @Nullable
+        @Schema(
+            description =
+                "The team's IANA zone (Europe/Paris): the one its rides, trips and posts fall back"
+                    + " on when no place locates them. Validated against the JDK's timezone"
+                    + " database, else 400 INVALID_TIMEZONE. Omitted: Europe/Paris on a creation,"
+                    + " left as it is on an update. Changing it keeps the wall time of the upcoming"
+                    + " rides, trips and posts that no place locates.",
+            examples = "Europe/Paris")
+        @Size(max = 64)
+        String timezone) {
+
+  /** Without a zone: the shape this record had before docs/LEDGER_*.md API-60. */
+  public TeamRequest(
+      String name,
+      MediaDto media,
+      Visibility visibility,
+      boolean enableTrips,
+      boolean enableAds,
+      boolean enablePosts,
+      boolean enableRides,
+      boolean enableRoutes,
+      boolean enableMemberDirectory,
+      @Nullable Boolean postsAsTeamByDefault,
+      @Nullable Point<G2D> geometry) {
+    this(
+        name,
+        media,
+        visibility,
+        enableTrips,
+        enableAds,
+        enablePosts,
+        enableRides,
+        enableRoutes,
+        enableMemberDirectory,
+        postsAsTeamByDefault,
+        geometry,
+        null);
+  }
+}

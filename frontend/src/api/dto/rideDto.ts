@@ -31,6 +31,8 @@ export interface RideDto {
   excerpt?: string
   /** Publication date/time */
   dateTime: Instant
+  /** IANA zone the ride's times were entered in and read in: its start place's, else its route's, else the team's. dateTime, publishAt, endDateTime and the groups' startAt are rendezvous in this zone. */
+  timezone: string
   /** When the ride is over, computed by the server: the latest of its groups, each one its departure plus its route's length at its average speed — or plus 3 hours when the group has no speed or no route, and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read. */
   endDateTime: Instant
   /** Publication status */

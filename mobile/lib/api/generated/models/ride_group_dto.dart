@@ -4,6 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'instant.dart';
 import 'local_time.dart';
 import 'public_user_dto.dart';
 
@@ -20,6 +21,9 @@ abstract class RideGroupDto with _$RideGroupDto {
     /// Group name
     required String name,
 
+    /// When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own.
+    required String startAt,
+
     /// Current number of participants
     required int countParticipants,
 
@@ -34,7 +38,9 @@ abstract class RideGroupDto with _$RideGroupDto {
 
     /// Whether the group has reached maxParticipants. False when maxParticipants is not set.
     required bool full,
-    LocalTime? time,
+
+    /// Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride.
+    String? time,
 
     /// Route slug
     String? routeSlug,

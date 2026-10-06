@@ -30,6 +30,7 @@ _TeamDetailDto _$TeamDetailDtoFromJson(Map<String, dynamic> json) =>
       upcomingTripCount: (json['upcomingTripCount'] as num).toInt(),
       recentPostCount: (json['recentPostCount'] as num).toInt(),
       createdAt: json['createdAt'] as String,
+      timezone: json['timezone'] as String,
       excerpt: json['excerpt'] as String?,
       logoUrl: json['logoUrl'] as String?,
       pages: (json['pages'] as List<dynamic>?)
@@ -72,6 +73,7 @@ Map<String, dynamic> _$TeamDetailDtoToJson(_TeamDetailDto instance) =>
       'upcomingTripCount': instance.upcomingTripCount,
       'recentPostCount': instance.recentPostCount,
       'createdAt': instance.createdAt,
+      'timezone': instance.timezone,
       'excerpt': instance.excerpt,
       'logoUrl': instance.logoUrl,
       'pages': instance.pages?.map((e) => e.toJson()).toList(),

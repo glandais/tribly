@@ -254,7 +254,13 @@ Les entités sans lieu dépendent du fuseau de l'équipe. **Décidé le 6 octobr
 la même transaction, les instants des entités **à venir** dont le fuseau stocké est l'ancien fuseau
 de l'équipe et dont la chaîne du §4 ne trouve aucun point, **à heure murale constante** — un
 changement de fuseau d'équipe est presque toujours la correction d'un mauvais réglage, et l'heure a
-été tapée en face de l'étiquette de l'ancien fuseau. Le passé n'est pas touché. L'écran de réglage
+été tapée en face de l'étiquette de l'ancien fuseau. Le passé garde ses instants mais change aussi
+d'étiquette : une étape déjà roulée, un voyage en cours, une sortie passée stockés dans l'ancien
+fuseau et sans point passent au nouveau **à instant constant** (les heures de groupe d'une sortie
+passée réécrites dans le nouveau fuseau pour garder leurs départs). Sans cela, la modification d'un
+voyage en cours — qui renvoie toutes ses étapes — relirait l'étape d'hier dans le nouveau fuseau et
+la décalerait. L'invariant « fuseau stocké = fuseau résolu » tient donc pour toute entité sans
+point de l'équipe. L'écran de réglage
 montre un aperçu : « 3 événements à venir sans lieu : la sortie du samedi 11 restera à 09:30,
 désormais heure de Montréal ». Chaque entité réécrite repasse par `PublicationEndCalculator`, seul
 auteur de la fin stockée (`API-85`).

@@ -4,6 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'instant.dart';
 import 'local_time.dart';
 
 part 'ride_group_summary_dto.freezed.dart';
@@ -18,6 +19,9 @@ abstract class RideGroupSummaryDto with _$RideGroupSummaryDto {
 
     /// Group name
     required String name,
+
+    /// When the group leaves, as RideGroupDto.startAt. Replaces time, kept for the clients that still read it.
+    required String startAt,
 
     /// Current number of participants
     required int countParticipants,

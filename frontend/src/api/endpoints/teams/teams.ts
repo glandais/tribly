@@ -16,12 +16,14 @@ import type {
 
 import type {
   ErrorResponse,
+  GetTeamTimezoneParams,
   ListTeamsParams,
   SlugChangeRequest,
   TeamDashboardDto,
   TeamDetailDto,
   TeamListResponse,
   TeamRequest,
+  TeamTimezoneDto,
 } from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance.ts'
@@ -809,4 +811,153 @@ export const useChangeTeamSlug = <TError = ErrorType<ErrorResponse>, TContext = 
   TContext
 > => {
   return useMutation(getChangeTeamSlugMutationOptions(options), queryClient)
+}
+/**
+ * The IANA zone of the given point, else the team's own: the zone the backend will read an event's wall times in once that point is its start (docs/LEDGER_*.md API-60). For the editors' field labels only — the backend resolves the zone of a saved entity itself. Organisers and above.
+ * @summary Zone of a point for the team
+ */
+export const getTeamTimezone = (
+  teamSlug: string,
+  params?: GetTeamTimezoneParams,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<TeamTimezoneDto>(
+    { url: `/api/teams/${teamSlug}/timezone`, method: 'GET', params, signal },
+    options
+  )
+}
+
+export const getGetTeamTimezoneQueryKey = (teamSlug: string, params?: GetTeamTimezoneParams) => {
+  return [`/api/teams/${teamSlug}/timezone`, ...(params ? [params] : [])] as const
+}
+
+export const getGetTeamTimezoneQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTeamTimezone>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: GetTeamTimezoneParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamTimezone>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetTeamTimezoneQueryKey(teamSlug, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getTeamTimezone>>> = ({ signal }) =>
+    getTeamTimezone(teamSlug, params, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: teamSlug !== null && teamSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getTeamTimezone>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type GetTeamTimezoneQueryResult = NonNullable<Awaited<ReturnType<typeof getTeamTimezone>>>
+export type GetTeamTimezoneQueryError = ErrorType<ErrorResponse>
+
+export function useGetTeamTimezone<
+  TData = Awaited<ReturnType<typeof getTeamTimezone>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params: undefined | GetTeamTimezoneParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamTimezone>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTeamTimezone>>,
+          TError,
+          Awaited<ReturnType<typeof getTeamTimezone>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTeamTimezone<
+  TData = Awaited<ReturnType<typeof getTeamTimezone>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: GetTeamTimezoneParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamTimezone>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTeamTimezone>>,
+          TError,
+          Awaited<ReturnType<typeof getTeamTimezone>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTeamTimezone<
+  TData = Awaited<ReturnType<typeof getTeamTimezone>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: GetTeamTimezoneParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamTimezone>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Zone of a point for the team
+ */
+
+export function useGetTeamTimezone<
+  TData = Awaited<ReturnType<typeof getTeamTimezone>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  teamSlug: string,
+  params?: GetTeamTimezoneParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamTimezone>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetTeamTimezoneQueryOptions(teamSlug, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+/**
+ * @summary Zone of a point for the team
+ */
+export const prefetchGetTeamTimezoneQuery = async <
+  TData = Awaited<ReturnType<typeof getTeamTimezone>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  queryClient: QueryClient,
+  teamSlug: string,
+  params?: GetTeamTimezoneParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamTimezone>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+): Promise<QueryClient> => {
+  const queryOptions = getGetTeamTimezoneQueryOptions(teamSlug, params, options)
+
+  await queryClient.prefetchQuery(queryOptions)
+
+  return queryClient
 }

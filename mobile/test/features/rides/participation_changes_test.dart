@@ -212,6 +212,7 @@ RideDto _twoGroups({String? registeredIn}) => fixtureRide(
 /// Une ligne de `listMyParticipations` : pas de `groups[]`, comme côté
 /// serveur, mais le groupe rejoint en entier (`registeredGroup`).
 PublicationDtoRide _asListRow(RideDto r) => PublicationDtoRide(
+  timezone: r.timezone,
   tags: r.tags,
   team: r.team,
   id: r.id,

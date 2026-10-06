@@ -138,6 +138,7 @@ void main() {
       // Le cas exact du défaut : l'utilisateur est inscrit, mais la liste
       // renvoyée est vide (droit de lecture absent). `registered` suffit.
       const RideGroupDto opaque = RideGroupDto(
+        startAt: '2026-10-11T06:00:00Z',
         id: 'g1',
         name: 'G1',
         countParticipants: 18,

@@ -1,6 +1,7 @@
 package fr.pedalons.dto.rides.response;
 
 import fr.pedalons.dto.validation.ValidateSchema;
+import java.time.Instant;
 import java.time.LocalTime;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -22,6 +23,12 @@ public record RideGroupSummaryDto(
     @Schema(description = "Group name", required = true) String name,
     @Nullable @Schema(description = "Start time of the group, when it differs from the ride's")
         LocalTime time,
+    @Schema(
+            description =
+                "When the group leaves, as RideGroupDto.startAt. Replaces time, kept for the"
+                    + " clients that still read it.",
+            required = true)
+        Instant startAt,
     @Nullable @Schema(description = "Average speed in km/h") Float averageSpeed,
     @Schema(description = "Current number of participants", required = true) int countParticipants,
     @Nullable @Schema(description = "Maximum participants, null when the group is uncapped")
@@ -46,6 +53,7 @@ public record RideGroupSummaryDto(
         group.id(),
         group.name(),
         group.time(),
+        group.startAt(),
         group.averageSpeed(),
         group.countParticipants(),
         group.maxParticipants(),

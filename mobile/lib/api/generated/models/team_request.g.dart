@@ -20,6 +20,7 @@ _TeamRequest _$TeamRequestFromJson(Map<String, dynamic> json) => _TeamRequest(
   geometry: json['geometry'] == null
       ? null
       : TeamRequestGeometry.fromJson(json['geometry'] as Map<String, dynamic>),
+  timezone: json['timezone'] as String?,
 );
 
 Map<String, dynamic> _$TeamRequestToJson(_TeamRequest instance) =>
@@ -35,4 +36,5 @@ Map<String, dynamic> _$TeamRequestToJson(_TeamRequest instance) =>
       'enableMemberDirectory': instance.enableMemberDirectory,
       'postsAsTeamByDefault': instance.postsAsTeamByDefault,
       'geometry': instance.geometry?.toJson(),
+      'timezone': instance.timezone,
     };

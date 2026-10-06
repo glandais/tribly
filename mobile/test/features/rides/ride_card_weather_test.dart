@@ -30,6 +30,7 @@ void main() {
     bool finished = false,
     String status = 'PUBLISHED',
   }) => PublicationDtoRide(
+    timezone: 'Europe/Paris',
     tags: const <TagDto>[],
     groupSummaries: const [],
     team: const TeamPublicationDto(
@@ -64,6 +65,7 @@ void main() {
     bool finished = false,
     String status = 'PUBLISHED',
   }) => PublicationDtoTrip(
+    timezone: 'Europe/Paris',
     tags: const <TagDto>[],
     team: const TeamPublicationDto(
       id: 't1',

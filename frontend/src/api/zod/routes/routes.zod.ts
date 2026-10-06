@@ -3594,6 +3594,11 @@ export const GetRouteUsagesResponse = zod
             slug: zod.string().describe('Publication URL slug'),
             name: zod.string().describe('Publication name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+            timezone: zod
+              .string()
+              .describe(
+                'IANA zone of the publication, as RideDto.timezone / TripDto.timezone: dateTime and endDate are rendezvous in it.'
+              ),
             endDate: zod.iso
               .datetime({ offset: true })
               .optional()

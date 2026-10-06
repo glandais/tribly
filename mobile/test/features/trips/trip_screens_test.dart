@@ -98,6 +98,7 @@ class _StubTeamRepository implements TeamRepository {
   Future<List<TeamDetailDto>> getMyTeams() async => member
       ? <TeamDetailDto>[
           const TeamDetailDto(
+            timezone: 'Europe/Paris',
             id: 't1',
             slug: 'n-peloton',
             name: 'N-Peloton',

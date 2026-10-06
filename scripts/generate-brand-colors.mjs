@@ -45,7 +45,7 @@ function dartEnumIdentifiers(enumName) {
   } catch {
     throw new Error(
       `${path.relative(repoRoot, file)} is missing: generate the mobile client first ` +
-        '(regenerate.sh and check.sh do it before pnpm check — docs/LEDGER_*.md BRAND-5)',
+        '(regenerate.sh and check.sh do it before pnpm check — docs/LEDGER_*.md BRAND-5)'
     )
   }
   const ids = new Map()

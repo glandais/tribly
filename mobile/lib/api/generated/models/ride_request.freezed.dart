@@ -18,14 +18,14 @@ mixin _$RideRequest {
 
 /// Ride name
  String get name;/// Ride media
- MediaDto get media;/// Ride date/time
+ MediaDto get media;/// Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team). An instant with an offset is still tolerated.
  String get dateTime;/// Ride status
  String get status;/// Visibility level
  String get visibility;/// Ride groups to create
  List<GroupRequest> get groups;/// Route slug
  String? get routeSlug;/// Start place ID (TSID)
  String? get startPlaceId;/// End place ID (TSID)
- String? get endPlaceId;/// Publication timestamp (for scheduled publishing)
+ String? get endPlaceId;/// Publication time (for scheduled publishing), a wall time in the ride's zone like dateTime.
  String? get publishAt;/// IDs (TSID) of the team's RIDE tags the ride carries, replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
  List<String>? get tagIds;
 /// Create a copy of RideRequest
@@ -252,7 +252,7 @@ class _RideRequest implements RideRequest {
 @override final  String name;
 /// Ride media
 @override final  MediaDto media;
-/// Ride date/time
+/// Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team). An instant with an offset is still tolerated.
 @override final  String dateTime;
 /// Ride status
 @override final  String status;
@@ -273,7 +273,7 @@ class _RideRequest implements RideRequest {
 @override final  String? startPlaceId;
 /// End place ID (TSID)
 @override final  String? endPlaceId;
-/// Publication timestamp (for scheduled publishing)
+/// Publication time (for scheduled publishing), a wall time in the ride's zone like dateTime.
 @override final  String? publishAt;
 /// IDs (TSID) of the team's RIDE tags the ride carries, replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
  final  List<String>? _tagIds;

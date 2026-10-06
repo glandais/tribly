@@ -10,6 +10,7 @@ CalendarEventDto event({
   String status = 'PUBLISHED',
   String? groupName,
 }) => CalendarEventDto(
+  timezone: 'Europe/Paris',
   id: start,
   title: 'Sortie $start',
   start: start,

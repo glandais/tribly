@@ -4,7 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'instant.dart';
+import 'event_date_time.dart';
 import 'media_dto.dart';
 import 'stage_request.dart';
 import 'status.dart';
@@ -23,7 +23,7 @@ abstract class TripRequest with _$TripRequest {
     /// Trip media
     required MediaDto media,
 
-    /// Trip start date/time
+    /// Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team). An instant with an offset is still tolerated.
     required String dateTime,
 
     /// Trip status
@@ -38,7 +38,7 @@ abstract class TripRequest with _$TripRequest {
     /// Overall route slug for the trip
     String? routeSlug,
 
-    /// Publication timestamp (for scheduled publishing)
+    /// Publication time (for scheduled publishing), a wall time in the trip's zone like dateTime.
     String? publishAt,
 
     /// IDs (TSID) of the team's TRIP tags the trip carries, replacing the whole set — at most 10, each a tag of this team and of kind TRIP, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.

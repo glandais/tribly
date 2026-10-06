@@ -118,7 +118,14 @@ public record TeamDetailDto(
         @Schema(
             description = "Team location coordinates [longitude, latitude]",
             implementation = GeoJsonPoint.class)
-        Point<G2D> geometry) {
+        Point<G2D> geometry,
+    @Schema(
+            description =
+                "The team's IANA zone: the one its rides, trips and posts fall back on when no"
+                    + " place locates them. Administrators change it through TeamRequest.timezone.",
+            examples = "Europe/Paris",
+            required = true)
+        String timezone) {
   public static TeamDetailDto from(
       TeamAndRole teamAndRole, AssetService assetService, boolean platformAdmin) {
     return from(teamAndRole, assetService, platformAdmin, TeamStats.EMPTY);
@@ -181,7 +188,8 @@ public record TeamDetailDto(
         memberCountByRole,
         platformAdmin ? TeamRole.ADMIN : teamAndRole.teamRole(),
         team.getCreatedAt(),
-        team.getGeometry());
+        team.getGeometry(),
+        team.getTimezone());
   }
 
   /**

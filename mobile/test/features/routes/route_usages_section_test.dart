@@ -45,6 +45,7 @@ void main() {
     required String slug,
     String? endDate,
   }) => RouteUsageDto(
+    timezone: 'Europe/Paris',
     type: type,
     slug: slug,
     name: slug,

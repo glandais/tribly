@@ -26,6 +26,9 @@ abstract class RouteUsageDto with _$RouteUsageDto {
     /// Publication date/time
     required String dateTime,
 
+    /// IANA zone of the publication, as RideDto.timezone / TripDto.timezone: dateTime and endDate are rendezvous in it.
+    required String timezone,
+
     /// Slug of the team owning the publication
     required String teamSlug,
 

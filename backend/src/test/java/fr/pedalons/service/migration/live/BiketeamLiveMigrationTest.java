@@ -242,9 +242,11 @@ class BiketeamLiveMigrationTest extends AbstractResourceTest {
 
     List<BiketeamTestData.StageView> stages = biketeamData.stages(teamId, "Tour 2025");
     assertEquals(2, stages.size());
-    // First stage: the trip's meeting time; later ones: 8:00 — both in the team's zone.
-    assertEquals(Instant.parse("2025-07-01T03:30:00Z"), stages.get(0).dateTime());
-    assertEquals(Instant.parse("2025-07-02T04:00:00Z"), stages.get(1).dateTime());
+    // First stage: the trip's meeting time; later ones: 8:00. Read in the stage's zone, not the
+    // team's (docs/LEDGER_*.md API-60): stage 1's route starts in France, so Paris (UTC+2);
+    // stage 2, with neither place nor route, takes the previous stage's.
+    assertEquals(Instant.parse("2025-07-01T05:30:00Z"), stages.get(0).dateTime());
+    assertEquals(Instant.parse("2025-07-02T06:00:00Z"), stages.get(1).dateTime());
   }
 
   /** The import goes through the same creation as the API: every end is stored (API-85). */

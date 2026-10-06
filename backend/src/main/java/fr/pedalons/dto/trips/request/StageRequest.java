@@ -1,5 +1,6 @@
 package fr.pedalons.dto.trips.request;
 
+import fr.pedalons.dto.common.EventDateTime;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.validation.AcceptableText;
 import fr.pedalons.dto.validation.ValidateSchema;
@@ -22,10 +23,34 @@ public record StageRequest(
         @Size(min = 1, max = 200)
         @AcceptableText
         String name,
-    @Schema(description = "Stage date/time", required = true) Instant dateTime,
+    @Schema(
+            description =
+                "Stage date/time: a wall time without offset, read in the stage's zone (start"
+                    + " place, else route, else the previous stage's, else the trip route's, else"
+                    + " the team's). An instant with an offset is still tolerated.",
+            required = true)
+        EventDateTime dateTime,
     @Nullable @Schema(description = "Average speed in km/h", examples = "22") @Positive
         Float averageSpeed,
     @Nullable @Schema(description = "Route slug for this stage") String routeSlug,
     @Nullable @Schema(description = "Start place ID (TSID)") String startPlaceId,
     @Nullable @Schema(description = "End place ID (TSID)") String endPlaceId,
-    @Schema(description = "Stage media", required = true) @Valid MediaDto media) {}
+    @Schema(description = "Stage media", required = true) @Valid MediaDto media) {
+
+  /** Lombok fills in the rest of the builder. */
+  public static class StageRequestBuilder {
+    private EventDateTime dateTime;
+
+    public StageRequestBuilder dateTime(EventDateTime dateTime) {
+      this.dateTime = dateTime;
+      return this;
+    }
+
+    /**
+     * An instant: the format before docs/LEDGER_*.md API-60, still tolerated for one version.
+     */
+    public StageRequestBuilder dateTime(Instant dateTime) {
+      return dateTime(EventDateTime.legacy(dateTime));
+    }
+  }
+}

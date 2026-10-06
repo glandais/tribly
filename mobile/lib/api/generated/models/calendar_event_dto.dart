@@ -45,6 +45,9 @@ abstract class CalendarEventDto with _$CalendarEventDto {
     /// Publication status of the ride or stage
     required String status,
 
+    /// IANA zone of the ride or stage, as RideDto.timezone / TripStageDto.timezone: start and end are rendezvous in it. The calendar grid itself stays in the reader's zone.
+    required String timezone,
+
     /// Whether the ride or stage is over, computed by the server when the response is built: its end (or its start, when it has no end) has passed. Independent of status.
     required bool finished,
 

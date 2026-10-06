@@ -42,6 +42,9 @@ abstract class PostDto with _$PostDto {
     /// Publication date/time
     required String dateTime,
 
+    /// IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone.
+    required String timezone,
+
     /// Publication status
     required String status,
 

@@ -82,6 +82,7 @@ function group(overrides: Partial<RideGroupSummaryDto>): RideGroupSummaryDto {
     maxParticipants: 14,
     full: true,
     sortOrder: 0,
+    startAt: '2026-10-10T06:30:00Z',
     ...overrides,
   }
 }
@@ -95,6 +96,7 @@ function ride(overrides: Partial<RideDto> = {}): RideDto {
     name: 'Sortie du samedi',
     media: MEDIA,
     dateTime: '2026-10-10T06:30:00Z',
+    timezone: 'Europe/Paris',
     status: 'PUBLISHED',
     finished: false,
     visibility: 'TEAM',
@@ -135,6 +137,7 @@ function post(): PostDto {
     media: MEDIA,
     excerpt: 'Assemblée générale le 6 novembre.',
     dateTime: '2026-10-02T10:00:00Z',
+    timezone: 'Europe/Paris',
     status: 'PUBLISHED',
     visibility: 'TEAM',
     deleted: false,
@@ -154,6 +157,7 @@ function trip(): TripDto {
     name: 'Traversée du Jura',
     media: MEDIA,
     dateTime: '2026-10-23T06:00:00Z',
+    timezone: 'Europe/Paris',
     endDate: '2026-10-25T16:00:00Z',
     endDateTime: '2026-10-25T19:00:00Z',
     status: 'PUBLISHED',

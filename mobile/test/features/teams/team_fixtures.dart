@@ -26,6 +26,7 @@ TeamDetailDto fixtureTeam({
   int recentPostCount = 0,
   String? logoUrl,
 }) => TeamDetailDto(
+  timezone: 'Europe/Paris',
   id: 'team-$slug',
   slug: slug,
   name: name,

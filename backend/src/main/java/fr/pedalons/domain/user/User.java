@@ -56,7 +56,7 @@ public class User extends BaseEntity {
   private @Nullable String language;
 
   /** IANA timezone ID ("Europe/Paris"). Null means "follow the client / the browser". */
-  @Column(name = "timezone", length = 40)
+  @Column(name = "timezone", length = 64)
   private @Nullable String timezone;
 
   /**

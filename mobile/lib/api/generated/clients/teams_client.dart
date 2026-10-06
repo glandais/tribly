@@ -14,6 +14,7 @@ import '../models/team_detail_dto.dart';
 import '../models/team_list_response.dart';
 import '../models/team_request.dart';
 import '../models/team_sort_by.dart';
+import '../models/team_timezone_dto.dart';
 
 part 'teams_client.g.dart';
 
@@ -113,5 +114,21 @@ abstract class TeamsClient {
   Future<TeamDetailDto> changeTeamSlug({
     @Path('teamSlug') required String teamSlug,
     @Body() required SlugChangeRequest body,
+  });
+
+  /// Zone of a point for the team.
+  ///
+  /// The IANA zone of the given point, else the team's own: the zone the backend will read an event's wall times in once that point is its start (docs/LEDGER_*.md API-60). For the editors' field labels only — the backend resolves the zone of a saved entity itself. Organisers and above.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [lat] - Latitude of the point; omitted with lon: the team's zone.
+  ///
+  /// [lon] - Longitude of the point; omitted with lat: the team's zone.
+  @GET('/api/teams/{teamSlug}/timezone')
+  Future<TeamTimezoneDto> getTeamTimezone({
+    @Path('teamSlug') required String teamSlug,
+    @Query('lat') double? lat,
+    @Query('lon') double? lon,
   });
 }

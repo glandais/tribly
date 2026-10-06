@@ -1048,6 +1048,7 @@ components:
       - entitySlug
       - registered
       - status
+      - timezone
       - finished
       properties:
         id:
@@ -1128,6 +1129,13 @@ components:
           description: Publication status of the ride or stage
           type: string
           $ref: "#/components/schemas/Status"
+        timezone:
+          type: string
+          description: "IANA zone of the ride or stage, as RideDto.timezone / TripStageDto.timezone:\
+            \ start and end are rendezvous in it. The calendar grid itself stays in\
+            \ the reader's zone."
+          examples:
+          - Europe/Paris
         finished:
           type: boolean
           description: "Whether the ride or stage is over, computed by the server\
@@ -2145,6 +2153,13 @@ components:
           items:
             $ref: "#/components/schemas/FieldError"
           description: Field Errors
+    EventDateTime:
+      type: string
+      description: "Wall time without offset (2026-10-11T08:00:00), in the zone the\
+        \ backend resolves for the entity. An instant with Z or an offset is still\
+        \ accepted during the transition and kept as that instant."
+      examples:
+      - 2026-10-11T08:00:00
     FeedbackKind:
       type: string
       enum:
@@ -3535,6 +3550,7 @@ components:
       - name
       - media
       - dateTime
+      - timezone
       - status
       - visibility
       - deleted
@@ -3576,6 +3592,13 @@ components:
           description: Publication date/time
           type: string
           $ref: "#/components/schemas/Instant"
+        timezone:
+          type: string
+          description: "IANA zone the post's times were entered in and read in: the\
+            \ team's at its last save. dateTime, publishAt are rendezvous in this\
+            \ zone."
+          examples:
+          - Europe/Paris
         status:
           description: Publication status
           type: string
@@ -3665,9 +3688,10 @@ components:
           type: object
           $ref: "#/components/schemas/MediaDto"
         dateTime:
-          description: Post date/time
+          description: "Post date/time: a wall time without offset, read in the team's\
+            \ zone. An instant with an offset is still tolerated."
           type: string
-          $ref: "#/components/schemas/Instant"
+          $ref: "#/components/schemas/EventDateTime"
         status:
           description: Post status
           type: string
@@ -3677,9 +3701,10 @@ components:
           type: string
           $ref: "#/components/schemas/Visibility"
         publishAt:
-          description: Publication timestamp (for scheduled publishing)
+          description: "Publication time (for scheduled publishing), a wall time in\
+            \ the team's zone like dateTime."
           type: string
-          $ref: "#/components/schemas/Instant"
+          $ref: "#/components/schemas/EventDateTime"
         signedAsTeam:
           type: boolean
           description: "Sign the post as the team rather than as its author. Omitted:\
@@ -4059,6 +4084,7 @@ components:
       - name
       - media
       - dateTime
+      - timezone
       - endDateTime
       - status
       - finished
@@ -4104,6 +4130,13 @@ components:
           description: Publication date/time
           type: string
           $ref: "#/components/schemas/Instant"
+        timezone:
+          type: string
+          description: "IANA zone the ride's times were entered in and read in: its\
+            \ start place's, else its route's, else the team's. dateTime, publishAt,\
+            \ endDateTime and the groups' startAt are rendezvous in this zone."
+          examples:
+          - Europe/Paris
         endDateTime:
           description: "When the ride is over, computed by the server: the latest\
             \ of its groups, each one its departure plus its route's length at its\
@@ -4256,6 +4289,7 @@ components:
       required:
       - id
       - name
+      - startAt
       - countParticipants
       - participants
       - sortOrder
@@ -4269,7 +4303,15 @@ components:
           type: string
           description: Group name
         time:
+          description: "Deprecated in favour of startAt: the group's start as a wall\
+            \ time of the ride's zone, null when the group leaves with the ride."
+          type: string
           $ref: "#/components/schemas/LocalTime"
+        startAt:
+          description: "When the group leaves: its time on the ride's local date in\
+            \ the ride's zone, the ride's dateTime when it has no time of its own."
+          type: string
+          $ref: "#/components/schemas/Instant"
         routeSlug:
           type: string
           description: Route slug
@@ -4340,6 +4382,7 @@ components:
       required:
       - id
       - name
+      - startAt
       - countParticipants
       - full
       - sortOrder
@@ -4354,6 +4397,11 @@ components:
           description: "Start time of the group, when it differs from the ride's"
           type: string
           $ref: "#/components/schemas/LocalTime"
+        startAt:
+          description: "When the group leaves, as RideGroupDto.startAt. Replaces time,\
+            \ kept for the clients that still read it."
+          type: string
+          $ref: "#/components/schemas/Instant"
         averageSpeed:
           type: number
           format: float
@@ -4453,9 +4501,11 @@ components:
           type: object
           $ref: "#/components/schemas/MediaDto"
         dateTime:
-          description: Ride date/time
+          description: "Ride date/time: a wall time without offset, read in the ride's\
+            \ zone (start place, else route, else team). An instant with an offset\
+            \ is still tolerated."
           type: string
-          $ref: "#/components/schemas/Instant"
+          $ref: "#/components/schemas/EventDateTime"
         status:
           description: Ride status
           type: string
@@ -4474,9 +4524,10 @@ components:
           type: string
           description: End place ID (TSID)
         publishAt:
-          description: Publication timestamp (for scheduled publishing)
+          description: "Publication time (for scheduled publishing), a wall time in\
+            \ the ride's zone like dateTime."
           type: string
-          $ref: "#/components/schemas/Instant"
+          $ref: "#/components/schemas/EventDateTime"
         groups:
           type: array
           items:
@@ -5072,6 +5123,7 @@ components:
       - slug
       - name
       - dateTime
+      - timezone
       - teamSlug
       - referencedDirectly
       - viaChildNames
@@ -5090,6 +5142,12 @@ components:
           description: Publication date/time
           type: string
           $ref: "#/components/schemas/Instant"
+        timezone:
+          type: string
+          description: "IANA zone of the publication, as RideDto.timezone / TripDto.timezone:\
+            \ dateTime and endDate are rendezvous in it."
+          examples:
+          - Europe/Paris
         endDate:
           description: "For a trip, the date of its last stage — the same value as\
             \ TripDto.endDate. Null for a ride, and for a trip with no stage, which\
@@ -5262,9 +5320,11 @@ components:
           minLength: 1
           maxLength: 200
         dateTime:
-          description: Stage date/time
+          description: "Stage date/time: a wall time without offset, read in the stage's\
+            \ zone (start place, else route, else the previous stage's, else the trip\
+            \ route's, else the team's). An instant with an offset is still tolerated."
           type: string
-          $ref: "#/components/schemas/Instant"
+          $ref: "#/components/schemas/EventDateTime"
         averageSpeed:
           type: number
           format: float
@@ -5600,6 +5660,7 @@ components:
       - upcomingTripCount
       - recentPostCount
       - createdAt
+      - timezone
       properties:
         id:
           type: string
@@ -5741,6 +5802,13 @@ components:
               examples:
               - - 2.3522
                 - 48.8566
+        timezone:
+          type: string
+          description: "The team's IANA zone: the one its rides, trips and posts fall\
+            \ back on when no place locates them. Administrators change it through\
+            \ TeamRequest.timezone."
+          examples:
+          - Europe/Paris
     TeamInvitationDto:
       description: A pending or settled invitation to join a team
       type: object
@@ -6048,6 +6116,16 @@ components:
               examples:
               - - 2.3522
                 - 48.8566
+        timezone:
+          type: string
+          description: "The team's IANA zone (Europe/Paris): the one its rides, trips\
+            \ and posts fall back on when no place locates them. Validated against\
+            \ the JDK's timezone database, else 400 INVALID_TIMEZONE. Omitted: Europe/Paris\
+            \ on a creation, left as it is on an update. Changing it keeps the wall\
+            \ time of the upcoming rides, trips and posts that no place locates."
+          examples:
+          - Europe/Paris
+          maxLength: 64
     TeamRole:
       type: string
       enum:
@@ -6059,6 +6137,18 @@ components:
       enum:
       - NAME
       - MEMBER_COUNT
+    TeamTimezoneDto:
+      description: "The zone of a point, else the team's"
+      type: object
+      required:
+      - timezone
+      properties:
+        timezone:
+          type: string
+          description: IANA zone of the point; the team's own when no point is given
+            or the point lies outside every zone
+          examples:
+          - Asia/Tokyo
     TeamWebhookDto:
       type: object
       description: The team's outgoing webhook
@@ -6345,6 +6435,7 @@ components:
       - name
       - media
       - dateTime
+      - timezone
       - endDateTime
       - status
       - finished
@@ -6388,6 +6479,13 @@ components:
           description: Trip start date/time
           type: string
           $ref: "#/components/schemas/Instant"
+        timezone:
+          type: string
+          description: "IANA zone the trip's times were entered in and read in: its\
+            \ first stage's, else its route's, else the team's. dateTime, endDate,\
+            \ endDateTime and publishAt are rendezvous in this zone."
+          examples:
+          - Europe/Paris
         endDate:
           description: "Date of the last stage — the day the trip ends. Null when\
             \ the trip has no stage, in which case it lasts a day and dateTime is\
@@ -6565,9 +6663,11 @@ components:
           type: object
           $ref: "#/components/schemas/MediaDto"
         dateTime:
-          description: Trip start date/time
+          description: "Trip start date/time: a wall time without offset, read in\
+            \ the trip's zone (first stage, else route, else team). An instant with\
+            \ an offset is still tolerated."
           type: string
-          $ref: "#/components/schemas/Instant"
+          $ref: "#/components/schemas/EventDateTime"
         status:
           description: Trip status
           type: string
@@ -6580,9 +6680,10 @@ components:
           type: string
           description: Overall route slug for the trip
         publishAt:
-          description: Publication timestamp (for scheduled publishing)
+          description: "Publication time (for scheduled publishing), a wall time in\
+            \ the trip's zone like dateTime."
           type: string
-          $ref: "#/components/schemas/Instant"
+          $ref: "#/components/schemas/EventDateTime"
         stages:
           type: array
           items:
@@ -6604,6 +6705,7 @@ components:
       - slug
       - name
       - dateTime
+      - timezone
       - media
       - sortOrder
       - stageIndex
@@ -6622,6 +6724,13 @@ components:
           description: Stage date/time
           type: string
           $ref: "#/components/schemas/Instant"
+        timezone:
+          type: string
+          description: "IANA zone the stage's time was entered in and is read in:\
+            \ its start place's, else its route's, else the previous stage's, else\
+            \ the trip route's, else the team's. A stage may differ from its trip."
+          examples:
+          - Asia/Tokyo
         averageSpeed:
           type: number
           format: float
@@ -6982,7 +7091,7 @@ components:
             \ database, not a regex."
           examples:
           - Europe/Paris
-          maxLength: 40
+          maxLength: 64
         contactableByMembers:
           type: boolean
           description: "Whether team members may reach you through the classified-ad\
@@ -17143,6 +17252,73 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{teamSlug}/timezone:
+    get:
+      summary: Zone of a point for the team
+      description: "The IANA zone of the given point, else the team's own: the zone\
+        \ the backend will read an event's wall times in once that point is its start\
+        \ (docs/LEDGER_*.md API-60). For the editors' field labels only — the backend\
+        \ resolves the zone of a saved entity itself. Organisers and above."
+      operationId: getTeamTimezone
+      tags:
+      - Teams
+      parameters:
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: "Latitude of the point; omitted with lon: the team's zone"
+        name: lat
+        in: query
+        schema:
+          type: number
+          format: double
+          maximum: 90
+          minimum: -90
+      - description: "Longitude of the point; omitted with lat: the team's zone"
+        name: lon
+        in: query
+        schema:
+          type: number
+          format: double
+          maximum: 180
+          minimum: -180
+      responses:
+        "200":
+          description: Zone resolved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamTimezoneDto"
+        "400":
+          description: Latitude or longitude out of range
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not an organiser of the team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
   /api/teams/{teamSlug}/trips:
     post:
       summary: Create trip
@@ -18733,7 +18909,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 10.16.0
+  version: 10.17.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

@@ -223,14 +223,20 @@ export const CreateTripBody = zod
           .describe('Assets'),
       })
       .describe('Trip media'),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+    dateTime: zod
+      .string()
+      .describe(
+        "Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team). An instant with an offset is still tolerated."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Trip status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     routeSlug: zod.string().optional().describe('Overall route slug for the trip'),
-    publishAt: zod.iso
-      .datetime({ offset: true })
+    publishAt: zod
+      .string()
       .optional()
-      .describe('Publication timestamp (for scheduled publishing)'),
+      .describe(
+        "Publication time (for scheduled publishing), a wall time in the trip's zone like dateTime."
+      ),
     stages: zod
       .array(
         zod
@@ -242,7 +248,11 @@ export const CreateTripBody = zod
               .max(createTripBodyStagesItemNameMax)
               .regex(createTripBodyStagesItemNameRegExp)
               .describe('Stage name'),
-            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            dateTime: zod
+              .string()
+              .describe(
+                "Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's). An instant with an offset is still tolerated."
+              ),
             averageSpeed: zod
               .number()
               .gt(createTripBodyStagesItemAverageSpeedExclusiveMin)
@@ -692,6 +702,11 @@ export const CreateTripResponse = zod
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+      ),
     endDate: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -735,6 +750,11 @@ export const CreateTripResponse = zod
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            timezone: zod
+              .string()
+              .describe(
+                "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+              ),
             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             route: zod
               .object({
@@ -1642,14 +1662,20 @@ export const UpdateTripBody = zod
           .describe('Assets'),
       })
       .describe('Trip media'),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+    dateTime: zod
+      .string()
+      .describe(
+        "Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team). An instant with an offset is still tolerated."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Trip status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     routeSlug: zod.string().optional().describe('Overall route slug for the trip'),
-    publishAt: zod.iso
-      .datetime({ offset: true })
+    publishAt: zod
+      .string()
       .optional()
-      .describe('Publication timestamp (for scheduled publishing)'),
+      .describe(
+        "Publication time (for scheduled publishing), a wall time in the trip's zone like dateTime."
+      ),
     stages: zod
       .array(
         zod
@@ -1661,7 +1687,11 @@ export const UpdateTripBody = zod
               .max(updateTripBodyStagesItemNameMax)
               .regex(updateTripBodyStagesItemNameRegExp)
               .describe('Stage name'),
-            dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            dateTime: zod
+              .string()
+              .describe(
+                "Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's). An instant with an offset is still tolerated."
+              ),
             averageSpeed: zod
               .number()
               .gt(updateTripBodyStagesItemAverageSpeedExclusiveMin)
@@ -2111,6 +2141,11 @@ export const UpdateTripResponse = zod
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+      ),
     endDate: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -2154,6 +2189,11 @@ export const UpdateTripResponse = zod
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            timezone: zod
+              .string()
+              .describe(
+                "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+              ),
             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             route: zod
               .object({
@@ -3076,6 +3116,11 @@ export const GetTripResponse = zod
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+      ),
     endDate: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -3119,6 +3164,11 @@ export const GetTripResponse = zod
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            timezone: zod
+              .string()
+              .describe(
+                "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+              ),
             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             route: zod
               .object({
@@ -4146,6 +4196,11 @@ export const ChangeTripSlugResponse = zod
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+      ),
     endDate: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -4189,6 +4244,11 @@ export const ChangeTripSlugResponse = zod
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            timezone: zod
+              .string()
+              .describe(
+                "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+              ),
             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             route: zod
               .object({
@@ -5117,6 +5177,11 @@ export const ChangeTripStatusResponse = zod
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+      ),
     endDate: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -5160,6 +5225,11 @@ export const ChangeTripStatusResponse = zod
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            timezone: zod
+              .string()
+              .describe(
+                "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+              ),
             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             route: zod
               .object({
@@ -6082,6 +6152,11 @@ export const UndeleteTripResponse = zod
         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+      ),
     endDate: zod.iso
       .datetime({ offset: true })
       .optional()
@@ -6125,6 +6200,11 @@ export const UndeleteTripResponse = zod
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            timezone: zod
+              .string()
+              .describe(
+                "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+              ),
             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             route: zod
               .object({

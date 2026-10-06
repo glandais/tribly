@@ -1,4 +1,4 @@
-import type { Instant } from './instant.ts'
+import type { EventDateTime } from './eventDateTime.ts'
 import type { MediaDto } from './mediaDto.ts'
 import type { StageRequest } from './stageRequest.ts'
 import type { Status } from './status.ts'
@@ -17,16 +17,16 @@ export interface TripRequest {
   name: string
   /** Trip media */
   media: MediaDto
-  /** Trip start date/time */
-  dateTime: Instant
+  /** Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team). An instant with an offset is still tolerated. */
+  dateTime: EventDateTime
   /** Trip status */
   status: Status
   /** Visibility level */
   visibility: Visibility
   /** Overall route slug for the trip */
   routeSlug?: string
-  /** Publication timestamp (for scheduled publishing) */
-  publishAt?: Instant
+  /** Publication time (for scheduled publishing), a wall time in the trip's zone like dateTime. */
+  publishAt?: EventDateTime
   /** Trip stages to create */
   stages: StageRequest[]
   /** IDs (TSID) of the team's TRIP tags the trip carries, replacing the whole set — at most 10, each a tag of this team and of kind TRIP, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update. */

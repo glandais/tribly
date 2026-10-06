@@ -33,4 +33,9 @@ export interface TeamRequest {
   postsAsTeamByDefault?: boolean
   /** Team location coordinates [longitude, latitude] */
   geometry?: TeamRequestGeometry
+  /**
+   * The team's IANA zone (Europe/Paris): the one its rides, trips and posts fall back on when no place locates them. Validated against the JDK's timezone database, else 400 INVALID_TIMEZONE. Omitted: Europe/Paris on a creation, left as it is on an update. Changing it keeps the wall time of the upcoming rides, trips and posts that no place locates.
+   * @maxLength 64
+   */
+  timezone?: string
 }

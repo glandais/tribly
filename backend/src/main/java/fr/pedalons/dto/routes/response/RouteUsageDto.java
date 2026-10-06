@@ -24,6 +24,13 @@ public record RouteUsageDto(
     @Schema(description = "Publication URL slug", required = true) String slug,
     @Schema(description = "Publication name", required = true) String name,
     @Schema(description = "Publication date/time", required = true) Instant dateTime,
+    @Schema(
+            description =
+                "IANA zone of the publication, as RideDto.timezone / TripDto.timezone: dateTime"
+                    + " and endDate are rendezvous in it.",
+            examples = "Europe/Paris",
+            required = true)
+        String timezone,
     @Nullable
         @Schema(
             description =
@@ -54,6 +61,7 @@ public record RouteUsageDto(
         ride.getSlug(),
         ride.getName(),
         ride.getDateTime(),
+        ride.zone().getId(),
         null,
         ride.getTeam().getSlug(),
         referencesRoute(ride.getRoute(), routeId),
@@ -72,6 +80,7 @@ public record RouteUsageDto(
         trip.getSlug(),
         trip.getName(),
         trip.getDateTime(),
+        trip.zone().getId(),
         // The rule of TripDto.endDateOf: the last live stage's date, whatever the stage order.
         liveStages.stream().map(TripStage::getDateTime).max(Comparator.naturalOrder()).orElse(null),
         trip.getTeam().getSlug(),

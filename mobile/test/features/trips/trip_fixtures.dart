@@ -51,6 +51,7 @@ TripStageDto fixtureStage({
   String? endPlaceName,
   int? commentCount,
 }) => TripStageDto(
+  timezone: 'Europe/Paris',
   id: 's$index',
   slug: slug ?? 'j$index',
   name: name ?? 'J$index',
@@ -103,6 +104,7 @@ TripDto fixtureTrip({
         fixtureStage(index: 3),
       ];
   return TripDto(
+    timezone: 'Europe/Paris',
     tags: const [],
     type: 'TRIP',
     team: kFixtureTeam,

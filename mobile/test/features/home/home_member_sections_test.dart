@@ -28,6 +28,7 @@ CalendarEventDto _event(
   String status = 'PUBLISHED',
   String? tripSlug,
 }) => CalendarEventDto(
+  timezone: 'Europe/Paris',
   id: 'e-$slug',
   title: 'Titre $slug',
   start: start,

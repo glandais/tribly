@@ -29,6 +29,7 @@ import fr.pedalons.service.common.ParticipantPreviewLookup.PreviewedParticipant;
 import fr.pedalons.service.publication.PublicationEndCalculator;
 import fr.pedalons.service.weather.RideWeatherSummaries;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -75,6 +76,15 @@ public class RideDto implements PublicationDto {
 
   @Schema(description = "Publication date/time", required = true)
   final Instant dateTime;
+
+  @Schema(
+      description =
+          "IANA zone the ride's times were entered in and read in: its start place's, else its"
+              + " route's, else the team's. dateTime, publishAt, endDateTime and the groups'"
+              + " startAt are rendezvous in this zone.",
+      examples = "Europe/Paris",
+      required = true)
+  final String timezone;
 
   @Schema(
       description =
@@ -247,6 +257,7 @@ public class RideDto implements PublicationDto {
       MediaDto media,
       @Nullable String excerpt,
       Instant dateTime,
+      String timezone,
       Instant endDateTime,
       Status status,
       Visibility visibility,
@@ -283,6 +294,7 @@ public class RideDto implements PublicationDto {
     this.media = media;
     this.excerpt = excerpt;
     this.dateTime = dateTime;
+    this.timezone = timezone;
     this.endDateTime = endDateTime;
     this.status = status;
     // docs/LEDGER_*.md API-16: the one rule the clients used to derive each on its own.
@@ -388,6 +400,8 @@ public class RideDto implements PublicationDto {
     Long registeredGroupId = participations.registeredGroupId(ride.getId());
     List<RideGroup> groups =
         ride.getGroups().stream().sorted(Comparator.comparing(RideGroup::getSortOrder)).toList();
+    // Read once: the groups' fallback start is in the ride's zone (docs/LEDGER_*.md API-60).
+    ZoneId rideZone = ride.zone();
     Function<RideGroup, ParticipantPreview> preview =
         group -> groupParticipants.getOrDefault(group.getId(), ParticipantPreview.EMPTY);
 
@@ -397,6 +411,7 @@ public class RideDto implements PublicationDto {
                 group ->
                     RideGroupDto.from(
                         group,
+                        rideZone,
                         registeredGroupId,
                         group.getRoute() != null
                             ? routeThumbnails.get(group.getRoute().getId())
@@ -530,6 +545,7 @@ public class RideDto implements PublicationDto {
         MediaDto.from(ride, assetService, view),
         MarkdownExcerpt.of(ride.getMarkdown()),
         ride.getDateTime(),
+        ride.zone().getId(),
         PublicationEndCalculator.effectiveEnd(ride),
         ride.getStatus(),
         ride.getVisibility(),

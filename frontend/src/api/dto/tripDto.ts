@@ -28,6 +28,8 @@ export interface TripDto {
   excerpt?: string
   /** Trip start date/time */
   dateTime: Instant
+  /** IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone. */
+  timezone: string
   /** Date of the last stage — the day the trip ends. Null when the trip has no stage, in which case it lasts a day and dateTime is both ends. */
   endDate?: Instant
   /** When the trip is over, computed by the server: the end of its latest stage — its departure plus its route's length at its average speed, or plus 3 hours when the stage has no speed or no route — or dateTime plus 3 hours for a trip with no stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read. */

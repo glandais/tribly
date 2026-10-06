@@ -20,7 +20,8 @@ mixin _$RouteUsageDto {
  String get type;/// Publication URL slug
  String get slug;/// Publication name
  String get name;/// Publication date/time
- String get dateTime;/// Slug of the team owning the publication
+ String get dateTime;/// IANA zone of the publication, as RideDto.timezone / TripDto.timezone: dateTime and endDate are rendezvous in it.
+ String get timezone;/// Slug of the team owning the publication
  String get teamSlug;/// Whether the publication references the route directly (not only via a child)
  bool get referencedDirectly;/// Names of the ride groups or trip stages that reference the route, if any
  List<String> get viaChildNames;/// For a trip, the date of its last stage — the same value as TripDto.endDate. Null for a ride, and for a trip with no stage, which lasts a day.
@@ -38,20 +39,20 @@ $RouteUsageDtoCopyWith<RouteUsageDto> get copyWith => _$RouteUsageDtoCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as RouteUsageDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteUsageDto&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.dateTime, _this.dateTime) || other.dateTime == _this.dateTime)&&(identical(other.teamSlug, _this.teamSlug) || other.teamSlug == _this.teamSlug)&&(identical(other.referencedDirectly, _this.referencedDirectly) || other.referencedDirectly == _this.referencedDirectly)&&const DeepCollectionEquality().equals(other.viaChildNames, _this.viaChildNames)&&(identical(other.endDate, _this.endDate) || other.endDate == _this.endDate));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RouteUsageDto&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.dateTime, _this.dateTime) || other.dateTime == _this.dateTime)&&(identical(other.timezone, _this.timezone) || other.timezone == _this.timezone)&&(identical(other.teamSlug, _this.teamSlug) || other.teamSlug == _this.teamSlug)&&(identical(other.referencedDirectly, _this.referencedDirectly) || other.referencedDirectly == _this.referencedDirectly)&&const DeepCollectionEquality().equals(other.viaChildNames, _this.viaChildNames)&&(identical(other.endDate, _this.endDate) || other.endDate == _this.endDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as RouteUsageDto;
-  return Object.hash(runtimeType,_this.type,_this.slug,_this.name,_this.dateTime,_this.teamSlug,_this.referencedDirectly,const DeepCollectionEquality().hash(_this.viaChildNames),_this.endDate);
+  return Object.hash(runtimeType,_this.type,_this.slug,_this.name,_this.dateTime,_this.timezone,_this.teamSlug,_this.referencedDirectly,const DeepCollectionEquality().hash(_this.viaChildNames),_this.endDate);
 }
 
 @override
 String toString() {
   final _this = this as RouteUsageDto;
-  return 'RouteUsageDto(type: ${_this.type}, slug: ${_this.slug}, name: ${_this.name}, dateTime: ${_this.dateTime}, teamSlug: ${_this.teamSlug}, referencedDirectly: ${_this.referencedDirectly}, viaChildNames: ${_this.viaChildNames}, endDate: ${_this.endDate})';
+  return 'RouteUsageDto(type: ${_this.type}, slug: ${_this.slug}, name: ${_this.name}, dateTime: ${_this.dateTime}, timezone: ${_this.timezone}, teamSlug: ${_this.teamSlug}, referencedDirectly: ${_this.referencedDirectly}, viaChildNames: ${_this.viaChildNames}, endDate: ${_this.endDate})';
 }
 
 
@@ -62,7 +63,7 @@ abstract mixin class $RouteUsageDtoCopyWith<$Res>  {
   factory $RouteUsageDtoCopyWith(RouteUsageDto value, $Res Function(RouteUsageDto) _then) = _$RouteUsageDtoCopyWithImpl;
 @useResult
 $Res call({
- String type, String slug, String name, String dateTime, String teamSlug, bool referencedDirectly, List<String> viaChildNames, String? endDate
+ String type, String slug, String name, String dateTime, String timezone, String teamSlug, bool referencedDirectly, List<String> viaChildNames, String? endDate
 });
 
 
@@ -79,12 +80,13 @@ class _$RouteUsageDtoCopyWithImpl<$Res>
 
 /// Create a copy of RouteUsageDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? slug = null,Object? name = null,Object? dateTime = null,Object? teamSlug = null,Object? referencedDirectly = null,Object? viaChildNames = null,Object? endDate = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? slug = null,Object? name = null,Object? dateTime = null,Object? timezone = null,Object? teamSlug = null,Object? referencedDirectly = null,Object? viaChildNames = null,Object? endDate = freezed,}) {
   return _then(RouteUsageDto(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,dateTime: null == dateTime ? _self.dateTime : dateTime // ignore: cast_nullable_to_non_nullable
+as String,timezone: null == timezone ? _self.timezone : timezone // ignore: cast_nullable_to_non_nullable
 as String,teamSlug: null == teamSlug ? _self.teamSlug : teamSlug // ignore: cast_nullable_to_non_nullable
 as String,referencedDirectly: null == referencedDirectly ? _self.referencedDirectly : referencedDirectly // ignore: cast_nullable_to_non_nullable
 as bool,viaChildNames: null == viaChildNames ? _self.viaChildNames : viaChildNames // ignore: cast_nullable_to_non_nullable
@@ -174,10 +176,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String slug,  String name,  String dateTime,  String teamSlug,  bool referencedDirectly,  List<String> viaChildNames,  String? endDate)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String slug,  String name,  String dateTime,  String timezone,  String teamSlug,  bool referencedDirectly,  List<String> viaChildNames,  String? endDate)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RouteUsageDto() when $default != null:
-return $default(_that.type,_that.slug,_that.name,_that.dateTime,_that.teamSlug,_that.referencedDirectly,_that.viaChildNames,_that.endDate);case _:
+return $default(_that.type,_that.slug,_that.name,_that.dateTime,_that.timezone,_that.teamSlug,_that.referencedDirectly,_that.viaChildNames,_that.endDate);case _:
   return orElse();
 
 }
@@ -195,10 +197,10 @@ return $default(_that.type,_that.slug,_that.name,_that.dateTime,_that.teamSlug,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String slug,  String name,  String dateTime,  String teamSlug,  bool referencedDirectly,  List<String> viaChildNames,  String? endDate)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String slug,  String name,  String dateTime,  String timezone,  String teamSlug,  bool referencedDirectly,  List<String> viaChildNames,  String? endDate)  $default,) {final _that = this;
 switch (_that) {
 case _RouteUsageDto():
-return $default(_that.type,_that.slug,_that.name,_that.dateTime,_that.teamSlug,_that.referencedDirectly,_that.viaChildNames,_that.endDate);case _:
+return $default(_that.type,_that.slug,_that.name,_that.dateTime,_that.timezone,_that.teamSlug,_that.referencedDirectly,_that.viaChildNames,_that.endDate);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -215,10 +217,10 @@ return $default(_that.type,_that.slug,_that.name,_that.dateTime,_that.teamSlug,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String slug,  String name,  String dateTime,  String teamSlug,  bool referencedDirectly,  List<String> viaChildNames,  String? endDate)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String slug,  String name,  String dateTime,  String timezone,  String teamSlug,  bool referencedDirectly,  List<String> viaChildNames,  String? endDate)?  $default,) {final _that = this;
 switch (_that) {
 case _RouteUsageDto() when $default != null:
-return $default(_that.type,_that.slug,_that.name,_that.dateTime,_that.teamSlug,_that.referencedDirectly,_that.viaChildNames,_that.endDate);case _:
+return $default(_that.type,_that.slug,_that.name,_that.dateTime,_that.timezone,_that.teamSlug,_that.referencedDirectly,_that.viaChildNames,_that.endDate);case _:
   return null;
 
 }
@@ -230,7 +232,7 @@ return $default(_that.type,_that.slug,_that.name,_that.dateTime,_that.teamSlug,_
 @JsonSerializable()
 
 class _RouteUsageDto implements RouteUsageDto {
-  const _RouteUsageDto({required this.type, required this.slug, required this.name, required this.dateTime, required this.teamSlug, required this.referencedDirectly, required  List<String> viaChildNames, this.endDate}): _viaChildNames = viaChildNames;
+  const _RouteUsageDto({required this.type, required this.slug, required this.name, required this.dateTime, required this.timezone, required this.teamSlug, required this.referencedDirectly, required  List<String> viaChildNames, this.endDate}): _viaChildNames = viaChildNames;
   factory _RouteUsageDto.fromJson(Map<String, dynamic> json) => _$RouteUsageDtoFromJson(json);
 
 /// Publication type (RIDE or TRIP)
@@ -241,6 +243,8 @@ class _RouteUsageDto implements RouteUsageDto {
 @override final  String name;
 /// Publication date/time
 @override final  String dateTime;
+/// IANA zone of the publication, as RideDto.timezone / TripDto.timezone: dateTime and endDate are rendezvous in it.
+@override final  String timezone;
 /// Slug of the team owning the publication
 @override final  String teamSlug;
 /// Whether the publication references the route directly (not only via a child)
@@ -270,18 +274,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteUsageDto&&(identical(other.type, type) || other.type == type)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.referencedDirectly, referencedDirectly) || other.referencedDirectly == referencedDirectly)&&const DeepCollectionEquality().equals(other.viaChildNames, _viaChildNames)&&(identical(other.endDate, endDate) || other.endDate == endDate));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RouteUsageDto&&(identical(other.type, type) || other.type == type)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.referencedDirectly, referencedDirectly) || other.referencedDirectly == referencedDirectly)&&const DeepCollectionEquality().equals(other.viaChildNames, _viaChildNames)&&(identical(other.endDate, endDate) || other.endDate == endDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,type,slug,name,dateTime,teamSlug,referencedDirectly,const DeepCollectionEquality().hash(_viaChildNames),endDate);
+    return Object.hash(runtimeType,type,slug,name,dateTime,timezone,teamSlug,referencedDirectly,const DeepCollectionEquality().hash(_viaChildNames),endDate);
 }
 
 @override
 String toString() {
-    return 'RouteUsageDto(type: $type, slug: $slug, name: $name, dateTime: $dateTime, teamSlug: $teamSlug, referencedDirectly: $referencedDirectly, viaChildNames: $viaChildNames, endDate: $endDate)';
+    return 'RouteUsageDto(type: $type, slug: $slug, name: $name, dateTime: $dateTime, timezone: $timezone, teamSlug: $teamSlug, referencedDirectly: $referencedDirectly, viaChildNames: $viaChildNames, endDate: $endDate)';
 }
 
 
@@ -292,7 +296,7 @@ abstract mixin class _$RouteUsageDtoCopyWith<$Res> implements $RouteUsageDtoCopy
   factory _$RouteUsageDtoCopyWith(_RouteUsageDto value, $Res Function(_RouteUsageDto) _then) = __$RouteUsageDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String type, String slug, String name, String dateTime, String teamSlug, bool referencedDirectly, List<String> viaChildNames, String? endDate
+ String type, String slug, String name, String dateTime, String timezone, String teamSlug, bool referencedDirectly, List<String> viaChildNames, String? endDate
 });
 
 
@@ -309,12 +313,13 @@ class __$RouteUsageDtoCopyWithImpl<$Res>
 
 /// Create a copy of RouteUsageDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? slug = null,Object? name = null,Object? dateTime = null,Object? teamSlug = null,Object? referencedDirectly = null,Object? viaChildNames = null,Object? endDate = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? slug = null,Object? name = null,Object? dateTime = null,Object? timezone = null,Object? teamSlug = null,Object? referencedDirectly = null,Object? viaChildNames = null,Object? endDate = freezed,}) {
   return _then(_RouteUsageDto(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,dateTime: null == dateTime ? _self.dateTime : dateTime // ignore: cast_nullable_to_non_nullable
+as String,timezone: null == timezone ? _self.timezone : timezone // ignore: cast_nullable_to_non_nullable
 as String,teamSlug: null == teamSlug ? _self.teamSlug : teamSlug // ignore: cast_nullable_to_non_nullable
 as String,referencedDirectly: null == referencedDirectly ? _self.referencedDirectly : referencedDirectly // ignore: cast_nullable_to_non_nullable
 as bool,viaChildNames: null == viaChildNames ? _self._viaChildNames : viaChildNames // ignore: cast_nullable_to_non_nullable

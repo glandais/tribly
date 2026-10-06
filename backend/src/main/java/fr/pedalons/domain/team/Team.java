@@ -154,6 +154,18 @@ public class Team extends BaseEntity {
   @Column(name = "deleted", nullable = false)
   private boolean deleted = false;
 
+  /**
+   * The team's IANA zone: the one its rides, trips and posts fall back on when no start place or
+   * route locates them, and the zone of everything else it publishes (docs/LEDGER_*.md API-60).
+   * Validated by {@code ZoneId.of} on the way in. The initializer matters: it runs before the
+   * constructor builds the about page, which copies it.
+   */
+  @Column(name = "timezone", nullable = false, length = 64)
+  private String timezone = DEFAULT_TIMEZONE;
+
+  /** Every team that existed before docs/LEDGER_*.md API-60 is French. */
+  public static final String DEFAULT_TIMEZONE = "Europe/Paris";
+
   public Team(Domain domain, User creator, String name, String slug, Visibility visibility) {
     super(creator);
     this.domain = domain;

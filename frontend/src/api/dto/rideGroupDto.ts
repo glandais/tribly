@@ -1,3 +1,4 @@
+import type { Instant } from './instant.ts'
 import type { LocalTime } from './localTime.ts'
 import type { PublicUserDto } from './publicUserDto.ts'
 
@@ -9,7 +10,10 @@ export interface RideGroupDto {
   id: string
   /** Group name */
   name: string
+  /** Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride. */
   time?: LocalTime
+  /** When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own. */
+  startAt: Instant
   /** Route slug */
   routeSlug?: string
   /** Average speed in km/h */

@@ -375,7 +375,8 @@ public class CalendarService {
         rideThumbnails.dark(),
         registeredGroupId != null,
         registeredGroupId != null ? groupNames.get(registeredGroupId) : null,
-        ride.getStatus());
+        ride.getStatus(),
+        ride.zone().getId());
   }
 
   private CalendarEventDto toCalendarEvent(
@@ -407,7 +408,8 @@ public class CalendarService {
         // have no groups, hence no group name to report.
         participations.isRegisteredToTrip(trip.getId()),
         null,
-        stage.getStatus());
+        stage.getStatus(),
+        stage.zone().getId());
   }
 
   protected Instant getDefaultFrom() {

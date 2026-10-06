@@ -426,7 +426,72 @@ toléré une version).
 de l'étape nécessaire » — c'est le cas qui a déclenché l'audit. Le fuseau résolu est bien celui du
 lieu de départ, comme la note d'alors le demandait ; celui de l'équipe n'est que le repli.
 Plan validé le 6 octobre 2026 (décisions au §12). **Lot 0 livré le 6 octobre 2026** (`API-90`,
-`API-91`, `API-92`, `WEB-70`, `WEB-71`) ; les lots 1 à 5 ne sont pas commencés.
+`API-91`, `API-92`, `WEB-70`, `WEB-71`).
+
+**Lot 1 (backend) livré le 6 octobre 2026, contrat `10.17.0`** (mineure : l'ancien format de
+requête est toléré). Livré :
+
+- **Colonnes** (`V64__event_timezones.sql`) : `teams.timezone varchar(64) NOT NULL DEFAULT
+  'Europe/Paris'`, `team_entities.timezone` et `ride_groups.start_at` nullables le temps d'une
+  version, `users.timezone` élargie à 64 ; remplissage SQL du §8.2 (fuseau de l'équipe, `start_at`
+  depuis `time` sur la date locale de la sortie). Les lignes que l'ancienne version écrit pendant la
+  bascule sont remplies au démarrage par `EventTimezoneBackfill` (modèle de
+  `PublicationEndBackfill`) ; les lectures retombent sur l'équipe et sur `legStart` en attendant.
+- **Résolution** : `EventTimezoneResolver` (chaînes du §4, jamais UTC ; en mer, `timeshape` rend le
+  fuseau nautique `Etc/GMT±n`, pas l'équipe). Sorties, voyages, étapes et articles stockent le
+  fuseau de leur enregistrement ; `ride_groups.start_at` est écrit à chaque enregistrement de la
+  sortie.
+- **Contrat** : `dateTime` et `publishAt` des requêtes sont un `EventDateTime` (chaîne sans
+  `format: date-time`) — heure murale lue dans le fuseau résolu, ou instant avec `Z`/offset gardé
+  tel quel (ancien SPA) ; `TeamRequest.timezone` / `TeamDetailDto.timezone` ; `timezone` sur
+  `RideDto`, `TripDto`, `TripStageDto`, `PostDto`, `RouteUsageDto`, `CalendarEventDto` ; `startAt`
+  sur `RideGroupDto` et `RideGroupSummaryDto` (`time` servi, déprécié) ; nouvel appel
+  `GET /api/teams/{teamSlug}/timezone?lat=&lon=` (organisateur au minimum).
+- **Changement de fuseau d'équipe** (§9) : `TeamTimezoneChange`, dans la même transaction —
+  entités à venir, sans lieu, stockées dans l'ancien fuseau, réécrites à heure murale constante ;
+  seuls les instants encore à venir bougent ; la fin stockée est recalculée.
+- **Tests** (écrits, à lancer) : `EventTimezoneResolverTest`, `EventDateTimeTest`,
+  `RideTimezoneTest`, `TripTimezoneTest`, `PostTimezoneTest`, `TeamTimezoneResourceTest`,
+  `TeamTimezoneChangeTest`, `EventTimezoneBackfillTest`, `PublicationEndStoredTest` étendu
+  (changement de lieu, de fuseau d'équipe ; remplacement de GPX qui ne touche ni le fuseau ni le
+  départ).
+
+**Divergence acceptée le temps du lot 1** : la météo, les appareils et `PublicationEndCalculator`
+lisent encore le départ d'un groupe par `RideWeatherPlans.departure()` + `legStart`, avec repli UTC
+et le parcours du premier groupe ; `start_at` suit la chaîne du §4 avec repli équipe. Pour une
+sortie sans lieu dont un groupe a une heure, ou située seulement par le parcours d'un groupe, la fin
+stockée et la météo peuvent donc différer de `start_at` jusqu'au lot 4.
+
+**Rattrapage du §8.3 non écrit, à mesurer d'abord** : la requête de mesure est en commentaire à la
+fin de `V64__event_timezones.sql` (sorties à venir dont le lieu de départ ou le parcours a un point ;
+étapes et voyages de même). Attendu à zéro ligne en production ; n'écrire le rattrapage Java (à
+instant constant, puis `start_at` et fin recalculés) que si elle en trouve.
+
+Reste :
+
+- **Lot 2** (web) : saisie en heure murale (fin d'`InstantDateTimePicker`), étiquette « heure de
+  Tokyo », appel `…/timezone` pendant l'édition, réglage du fuseau d'équipe avec l'aperçu du §9.
+- **Lot 3** (web, mobile) : affichage rendez-vous / horodatage, mention « chez vous », 12 h / 24 h
+  du téléphone sur le mobile.
+- **Lot 4** (backend, web) : notifications, webhooks, iCal (`StageTimezones` lit le fuseau stocké),
+  SEO ; météo, appareils et `PublicationEndCalculator` sur `start_at` (fin de `legStart` et de
+  `TimezoneService.getZoneId`) ; `DeviceRideDto.timezone`, `NotificationDto.subjectTimezone`
+  (nouvelle colonne d'instantané).
+- **Lot 5 = version N+1** : dernier rattrapage puis `team_entities.timezone` et
+  `ride_groups.start_at` `NOT NULL`, suppression de `ride_groups.time`, refus en 400 des instants
+  avec offset dans `EventDateTime.parse` (et retrait des surcharges `Instant` des requêtes, des
+  constructeurs de compatibilité de `TeamRequest` et `CalendarEventDto`).
+
+À ne pas défaire :
+
+- **Le fuseau stocké est un fuseau de saisie, pas un cache** : figé à l'enregistrement de l'entité,
+  recalculé seulement par un nouvel enregistrement (ou un changement de fuseau d'équipe, §9) ;
+  jamais par effet de bord — un GPX remplacé, un lieu modifié ne déplacent ni fuseau ni départ
+  (`PublicationEndStoredTest#replacingARoutesTrack_movesTheEnd_butNeitherTheZoneNorTheStart`).
+- **Le backend est la seule autorité du fuseau** : les clients envoient des heures murales et
+  n'en calculent aucun ; `…/timezone` ne sert qu'à étiqueter un champ.
+- Un instant de l'ancien format est gardé tel quel, jamais repassé par l'heure murale (il
+  bougerait dans le recouvrement d'automne).
 
 ### Les chantiers d'infrastructure d'API
 

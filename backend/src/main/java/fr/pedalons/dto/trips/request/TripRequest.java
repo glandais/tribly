@@ -1,5 +1,6 @@
 package fr.pedalons.dto.trips.request;
 
+import fr.pedalons.dto.common.EventDateTime;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.WithVisibility;
 import fr.pedalons.dto.validation.AcceptableText;
@@ -23,12 +24,22 @@ public record TripRequest(
         @AcceptableText
         String name,
     @Schema(description = "Trip media", required = true) @Valid MediaDto media,
-    @Schema(description = "Trip start date/time", required = true) Instant dateTime,
+    @Schema(
+            description =
+                "Trip start date/time: a wall time without offset, read in the trip's zone (first"
+                    + " stage, else route, else team). An instant with an offset is still"
+                    + " tolerated.",
+            required = true)
+        EventDateTime dateTime,
     @Schema(description = "Trip status", required = true) Status status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Nullable @Schema(description = "Overall route slug for the trip") String routeSlug,
-    @Nullable @Schema(description = "Publication timestamp (for scheduled publishing)")
-        Instant publishAt,
+    @Nullable
+        @Schema(
+            description =
+                "Publication time (for scheduled publishing), a wall time in the trip's zone like"
+                    + " dateTime.")
+        EventDateTime publishAt,
     @Schema(description = "Trip stages to create", required = true)
         List<@Valid StageRequest> stages,
     @Nullable
@@ -41,6 +52,32 @@ public record TripRequest(
         List<String> tagIds)
     implements WithVisibility {
 
+  /**
+   * With instants: the format before docs/LEDGER_*.md API-60, still tolerated for one version and
+   * kept as the instants they are.
+   */
+  public TripRequest(
+      String name,
+      MediaDto media,
+      Instant dateTime,
+      Status status,
+      Visibility visibility,
+      @Nullable String routeSlug,
+      @Nullable Instant publishAt,
+      List<StageRequest> stages,
+      @Nullable List<String> tagIds) {
+    this(
+        name,
+        media,
+        EventDateTime.legacy(dateTime),
+        status,
+        visibility,
+        routeSlug,
+        EventDateTime.legacyNullable(publishAt),
+        stages,
+        tagIds);
+  }
+
   /** Without tags: the shape this record had before API-59 — leaves the tags as they are. */
   public TripRequest(
       String name,
@@ -51,6 +88,15 @@ public record TripRequest(
       @Nullable String routeSlug,
       @Nullable Instant publishAt,
       List<StageRequest> stages) {
-    this(name, media, dateTime, status, visibility, routeSlug, publishAt, stages, null);
+    this(
+        name,
+        media,
+        dateTime,
+        status,
+        visibility,
+        routeSlug,
+        publishAt,
+        stages,
+        (List<String>) null);
   }
 }

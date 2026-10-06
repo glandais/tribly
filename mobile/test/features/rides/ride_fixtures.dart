@@ -17,6 +17,7 @@ RideGroupDto fixtureGroup({
   PublicUserDto? leader,
   String? routeSlug,
 }) => RideGroupDto(
+  startAt: '2026-10-11T06:00:00Z',
   id: id,
   name: name,
   countParticipants: countParticipants,
@@ -45,6 +46,7 @@ RideDto fixtureRide({
 }) {
   final List<RideGroupDto> gs = groups ?? <RideGroupDto>[fixtureGroup()];
   return RideDto(
+    timezone: 'Europe/Paris',
     tags: const [],
     type: 'RIDE',
     team: const TeamPublicationDto(

@@ -8,6 +8,7 @@ import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
@@ -58,6 +59,18 @@ public abstract class TeamEntity extends BaseEntity {
   @Column(name = "end_date_time")
   protected Instant endDateTime;
 
+  /**
+   * The zone this entity's dates were entered in (IANA id): that of its start place or route for a
+   * ride, a trip or a stage, the team's for everything else. <b>Not a cache</b>: it is frozen when
+   * the entity is saved and only a new save recomputes it, never a side effect (a route whose GPX
+   * is replaced moves nobody's zone). With {@code dateTime} it gives back the wall time that was
+   * typed. Null only on a row written by a backend that predates the column — read it through
+   * {@link #zone()} (docs/LEDGER_*.md API-60).
+   */
+  @Nullable
+  @Column(name = "timezone", length = 64)
+  protected String timezone;
+
   @Enumerated(EnumType.STRING)
   @Column(name = "status", length = 20, nullable = false)
   protected Status status = Status.PUBLISHED;
@@ -106,6 +119,16 @@ public abstract class TeamEntity extends BaseEntity {
     this.name = name;
     this.slug = slug;
     this.visibility = visibility;
+    // The team's zone until a service resolves a better one (rides, trips, stages).
+    this.timezone = team != null ? team.getTimezone() : null;
+  }
+
+  /**
+   * The stored zone, or the team's for a row an older backend wrote without one (docs/LEDGER_*.md
+   * API-60).
+   */
+  public ZoneId zone() {
+    return ZoneId.of(timezone != null ? timezone : team.getTimezone());
   }
 
   public abstract EntityType getEntityType();

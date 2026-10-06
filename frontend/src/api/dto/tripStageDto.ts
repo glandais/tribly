@@ -15,6 +15,8 @@ export interface TripStageDto {
   name: string
   /** Stage date/time */
   dateTime: Instant
+  /** IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip. */
+  timezone: string
   /** Average speed in km/h */
   averageSpeed?: number
   /** Route */

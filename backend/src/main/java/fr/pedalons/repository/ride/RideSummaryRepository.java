@@ -1,6 +1,7 @@
 package fr.pedalons.repository.ride;
 
 import fr.pedalons.common.TsidUtils;
+import fr.pedalons.dto.rides.response.RideGroupDto;
 import fr.pedalons.dto.rides.response.RideGroupSummaryDto;
 import fr.pedalons.dto.rides.response.RideListSummary;
 import fr.pedalons.dto.users.response.PublicUserDto;
@@ -8,6 +9,7 @@ import fr.pedalons.enums.SurfaceType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,6 +86,8 @@ public class RideSummaryRepository {
                   TsidUtils.toString(groupId),
                   (String) row[4],
                   (LocalTime) row[5],
+                  RideGroupDto.startAt(
+                      (Instant) row[12], (Instant) row[13], (LocalTime) row[5], (String) row[14]),
                   (Float) row[6],
                   participants,
                   maxParticipants,
@@ -126,7 +130,7 @@ public class RideSummaryRepository {
   /**
    * One row per group, in {@code (ride, sortOrder)} order: {@code (rideId, groupId,
    * maxParticipants, participantCount, name, time, averageSpeed, sortOrder, routeSlug, distance,
-   * elevationGain, surfaceType)} — the route columns null when the group has none.
+   * elevationGain, surfaceType, startAt, rideDateTime, rideZone)} — the route columns null when the group has none.
    *
    * <p>One row per group rather than per ride is what makes {@code full} and {@code
    * maxParticipants} computable: capacity is a per-group property, so a per-ride aggregate cannot
@@ -141,7 +145,10 @@ public class RideSummaryRepository {
             "select g.ride.id, g.id, g.maxParticipants,"
                 + " (select count(p.id) from RideParticipation p where p.rideGroup.id = g.id),"
                 + " g.name, g.time, g.averageSpeed, g.sortOrder,"
-                + " r.slug, r.distance, r.elevationGain, r.surfaceType"
+                + " r.slug, r.distance, r.elevationGain, r.surfaceType,"
+                // docs/LEDGER_*.md API-60: the start, and its fallback's inputs for a row an older
+                // backend wrote — implicit joins of this same statement, still one per page.
+                + " g.startAt, g.ride.dateTime, coalesce(g.ride.timezone, g.ride.team.timezone)"
                 + " from RideGroup g left join g.route r"
                 + " where g.ride.id in (:rideIds)"
                 + " order by g.ride.id, g.sortOrder, g.id",

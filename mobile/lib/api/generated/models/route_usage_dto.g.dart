@@ -12,6 +12,7 @@ _RouteUsageDto _$RouteUsageDtoFromJson(Map<String, dynamic> json) =>
       slug: json['slug'] as String,
       name: json['name'] as String,
       dateTime: json['dateTime'] as String,
+      timezone: json['timezone'] as String,
       teamSlug: json['teamSlug'] as String,
       referencedDirectly: json['referencedDirectly'] as bool,
       viaChildNames: (json['viaChildNames'] as List<dynamic>)
@@ -26,6 +27,7 @@ Map<String, dynamic> _$RouteUsageDtoToJson(_RouteUsageDto instance) =>
       'slug': instance.slug,
       'name': instance.name,
       'dateTime': instance.dateTime,
+      'timezone': instance.timezone,
       'teamSlug': instance.teamSlug,
       'referencedDirectly': instance.referencedDirectly,
       'viaChildNames': instance.viaChildNames,

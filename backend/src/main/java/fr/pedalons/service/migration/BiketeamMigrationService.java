@@ -23,6 +23,7 @@ import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.common.EventDateTime;
 import fr.pedalons.dto.common.asset.AssetsDto;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.error.ErrorCode;
@@ -98,6 +99,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -384,6 +386,10 @@ public class BiketeamMigrationService {
     // Biketeam gates /join behind authorizePublicAccess, so a private team can't be self-joined.
     team.setJoinable(visibility != Visibility.TEAM);
     team.setAddMemberAllowed(true);
+    // Biketeam's own zone (team_configuration.timezone), at creation only: a replay leaves a zone
+    // changed in Pédalons alone. The about page was built by the constructor, with the default.
+    team.setTimezone(zone.getId());
+    team.getAboutPage().setTimezone(zone.getId());
     teamRepository.persistAndFlush(team);
     mapRepo.upsert(T_TEAM, src.id(), team.getId(), null, src.id());
     Instant createdAt = at(zone, src.createdAt(), null);
@@ -1052,7 +1058,8 @@ public class BiketeamMigrationService {
       Fetched image) {
     Team team = r.team();
     List<BtRideGroup> groups = groupsByRide.getOrDefault(bt.id(), List.of());
-    Instant dateTime = at(r.zone(), bt.date(), earliestMeetingTime(groups));
+    EventDateTime dateTime =
+        EventDateTime.local(wall(r.zone(), bt.date(), earliestMeetingTime(groups)));
     Long mapped = mapRepo.findTriblyId(T_RIDE, bt.id());
     Ride existing =
         mapped != null ? owned(rideRepository.findByIdOptional(mapped).orElse(null), team) : null;
@@ -1088,7 +1095,8 @@ public class BiketeamMigrationService {
             placeIdString(placeIds, bt.startPlaceId()),
             placeIdString(placeIds, bt.endPlaceId()),
             null,
-            groupRequests);
+            groupRequests,
+            null);
 
     Ride ride;
     if (existing != null) {
@@ -1202,7 +1210,7 @@ public class BiketeamMigrationService {
   private int migrateOneTrip(
       Run r, BtTrip bt, List<BtTripStage> stages, Map<String, Long> routeIds, Fetched image) {
     Team team = r.team();
-    Instant dateTime = at(r.zone(), bt.startDate(), bt.meetingTime());
+    EventDateTime dateTime = EventDateTime.local(wall(r.zone(), bt.startDate(), bt.meetingTime()));
     Long mapped = mapRepo.findTriblyId(T_TRIP, bt.id());
     Trip existing =
         mapped != null ? owned(tripRepository.findByIdOptional(mapped).orElse(null), team) : null;
@@ -1220,7 +1228,9 @@ public class BiketeamMigrationService {
           StageRequest.builder()
               .id(existingStageId(s.id(), liveStageIds))
               .name(s.name())
-              .dateTime(at(r.zone(), s.date(), stageDeparture(i, bt.meetingTime())))
+              .dateTime(
+                  EventDateTime.local(
+                      wall(r.zone(), s.date(), stageDeparture(i, bt.meetingTime()))))
               .routeSlug(routeSlugFromBiketeamId(team, routeIds, s.mapId()))
               .startPlaceId(null)
               .endPlaceId(null)
@@ -1236,7 +1246,8 @@ public class BiketeamMigrationService {
             contentVisibility(team.getVisibility(), bt.listedInFeed()),
             null,
             null,
-            stageRequests);
+            stageRequests,
+            null);
 
     Trip trip;
     if (existing != null) {
@@ -1721,9 +1732,19 @@ public class BiketeamMigrationService {
    * render time; the source carries that zone.
    */
   static Instant at(ZoneId zone, @Nullable LocalDate date, @Nullable LocalTime time) {
+    return wall(zone, date, time).atZone(zone).toInstant();
+  }
+
+  /**
+   * The same biketeam date and time as a wall time, for the requests of rides, trips and stages:
+   * the backend reads it in the zone it resolves for the entity — the start place's or the route's,
+   * else the team's, which is biketeam's (docs/LEDGER_*.md API-60). Identical to {@link #at} for an
+   * entity located in the team's zone.
+   */
+  static LocalDateTime wall(ZoneId zone, @Nullable LocalDate date, @Nullable LocalTime time) {
     LocalDate d = date != null ? date : LocalDate.now(zone);
     LocalTime t = time != null ? time : LocalTime.MIDNIGHT;
-    return d.atTime(t).atZone(zone).toInstant();
+    return d.atTime(t);
   }
 
   /**

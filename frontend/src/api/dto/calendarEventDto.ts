@@ -44,6 +44,8 @@ export interface CalendarEventDto {
   groupName?: string
   /** Publication status of the ride or stage */
   status: Status
+  /** IANA zone of the ride or stage, as RideDto.timezone / TripStageDto.timezone: start and end are rendezvous in it. The calendar grid itself stays in the reader's zone. */
+  timezone: string
   /** Whether the ride or stage is over, computed by the server when the response is built: its end (or its start, when it has no end) has passed. Independent of status. */
   finished: boolean
 }

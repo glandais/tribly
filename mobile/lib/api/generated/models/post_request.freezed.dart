@@ -18,10 +18,10 @@ mixin _$PostRequest {
 
 /// Post name
  String get name;/// Post description
- MediaDto get media;/// Post date/time
+ MediaDto get media;/// Post date/time: a wall time without offset, read in the team's zone. An instant with an offset is still tolerated.
  String get dateTime;/// Post status
  String get status;/// Visibility level
- String get visibility;/// Publication timestamp (for scheduled publishing)
+ String get visibility;/// Publication time (for scheduled publishing), a wall time in the team's zone like dateTime.
  String? get publishAt;/// Sign the post as the team rather than as its author. Omitted: on creation, the team's postsAsTeamByDefault; on an update, left as it is.
  bool? get signedAsTeam;/// IDs (TSID) of the team's POST tags the post carries, replacing the whole set — at most 10, each a tag of this team and of kind POST, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
  List<String>? get tagIds;
@@ -246,13 +246,13 @@ class _PostRequest implements PostRequest {
 @override final  String name;
 /// Post description
 @override final  MediaDto media;
-/// Post date/time
+/// Post date/time: a wall time without offset, read in the team's zone. An instant with an offset is still tolerated.
 @override final  String dateTime;
 /// Post status
 @override final  String status;
 /// Visibility level
 @override final  String visibility;
-/// Publication timestamp (for scheduled publishing)
+/// Publication time (for scheduled publishing), a wall time in the team's zone like dateTime.
 @override final  String? publishAt;
 /// Sign the post as the team rather than as its author. Omitted: on creation, the team's postsAsTeamByDefault; on an update, left as it is.
 @override final  bool? signedAsTeam;

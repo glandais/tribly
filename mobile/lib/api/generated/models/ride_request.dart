@@ -4,8 +4,8 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'event_date_time.dart';
 import 'group_request.dart';
-import 'instant.dart';
 import 'media_dto.dart';
 import 'status.dart';
 import 'visibility.dart';
@@ -23,7 +23,7 @@ abstract class RideRequest with _$RideRequest {
     /// Ride media
     required MediaDto media,
 
-    /// Ride date/time
+    /// Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team). An instant with an offset is still tolerated.
     required String dateTime,
 
     /// Ride status
@@ -44,7 +44,7 @@ abstract class RideRequest with _$RideRequest {
     /// End place ID (TSID)
     String? endPlaceId,
 
-    /// Publication timestamp (for scheduled publishing)
+    /// Publication time (for scheduled publishing), a wall time in the ride's zone like dateTime.
     String? publishAt,
 
     /// IDs (TSID) of the team's RIDE tags the ride carries, replacing the whole set — at most 10, each a tag of this team and of kind RIDE, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.

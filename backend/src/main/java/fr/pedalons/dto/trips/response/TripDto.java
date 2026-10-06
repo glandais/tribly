@@ -69,6 +69,15 @@ public class TripDto implements PublicationDto {
   @Schema(description = "Trip start date/time", required = true)
   final Instant dateTime;
 
+  @Schema(
+      description =
+          "IANA zone the trip's times were entered in and read in: its first stage's, else its"
+              + " route's, else the team's. dateTime, endDate, endDateTime and publishAt are"
+              + " rendezvous in this zone.",
+      examples = "Europe/Paris",
+      required = true)
+  final String timezone;
+
   @Nullable
   @Schema(
       description =
@@ -199,6 +208,7 @@ public class TripDto implements PublicationDto {
       MediaDto media,
       @Nullable String excerpt,
       Instant dateTime,
+      String timezone,
       @Nullable Instant endDate,
       Instant endDateTime,
       Status status,
@@ -228,6 +238,7 @@ public class TripDto implements PublicationDto {
     this.media = media;
     this.excerpt = excerpt;
     this.dateTime = dateTime;
+    this.timezone = timezone;
     this.endDate = endDate;
     this.endDateTime = endDateTime;
     this.status = status;
@@ -436,6 +447,7 @@ public class TripDto implements PublicationDto {
         MediaDto.from(trip, assetService, view),
         MarkdownExcerpt.of(trip.getMarkdown()),
         trip.getDateTime(),
+        trip.zone().getId(),
         endDate,
         PublicationEndCalculator.effectiveEnd(trip),
         trip.getStatus(),

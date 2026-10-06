@@ -216,13 +216,19 @@ export const CreatePostBody = zod
           .describe('Assets'),
       })
       .describe('Post description'),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Post date/time'),
+    dateTime: zod
+      .string()
+      .describe(
+        "Post date/time: a wall time without offset, read in the team's zone. An instant with an offset is still tolerated."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Post status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso
-      .datetime({ offset: true })
+    publishAt: zod
+      .string()
       .optional()
-      .describe('Publication timestamp (for scheduled publishing)'),
+      .describe(
+        "Publication time (for scheduled publishing), a wall time in the team's zone like dateTime."
+      ),
     signedAsTeam: zod
       .boolean()
       .optional()
@@ -470,6 +476,11 @@ export const CreatePostResponse = zod
         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -731,13 +742,19 @@ export const UpdatePostBody = zod
           .describe('Assets'),
       })
       .describe('Post description'),
-    dateTime: zod.iso.datetime({ offset: true }).describe('Post date/time'),
+    dateTime: zod
+      .string()
+      .describe(
+        "Post date/time: a wall time without offset, read in the team's zone. An instant with an offset is still tolerated."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Post status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
-    publishAt: zod.iso
-      .datetime({ offset: true })
+    publishAt: zod
+      .string()
       .optional()
-      .describe('Publication timestamp (for scheduled publishing)'),
+      .describe(
+        "Publication time (for scheduled publishing), a wall time in the team's zone like dateTime."
+      ),
     signedAsTeam: zod
       .boolean()
       .optional()
@@ -985,6 +1002,11 @@ export const UpdatePostResponse = zod
         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -1270,6 +1292,11 @@ export const GetPostResponse = zod
         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -1580,6 +1607,11 @@ export const ChangePostSlugResponse = zod
         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -1871,6 +1903,11 @@ export const ChangePostStatusResponse = zod
         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),
@@ -2156,6 +2193,11 @@ export const UndeletePostResponse = zod
         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
       ),
     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+      ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Publication status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod.iso.datetime({ offset: true }).optional().describe('Publication timestamp'),

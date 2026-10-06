@@ -10,6 +10,7 @@ _RideGroupSummaryDto _$RideGroupSummaryDtoFromJson(Map<String, dynamic> json) =>
     _RideGroupSummaryDto(
       id: json['id'] as String,
       name: json['name'] as String,
+      startAt: json['startAt'] as String,
       countParticipants: (json['countParticipants'] as num).toInt(),
       full: json['full'] as bool,
       sortOrder: (json['sortOrder'] as num).toInt(),
@@ -26,6 +27,7 @@ Map<String, dynamic> _$RideGroupSummaryDtoToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
+  'startAt': instance.startAt,
   'countParticipants': instance.countParticipants,
   'full': instance.full,
   'sortOrder': instance.sortOrder,

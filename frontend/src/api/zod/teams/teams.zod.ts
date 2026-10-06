@@ -339,6 +339,11 @@ export const ListTeamsResponse = zod
               })
               .optional()
               .describe('Team location coordinates [longitude, latitude]'),
+            timezone: zod
+              .string()
+              .describe(
+                "The team's IANA zone: the one its rides, trips and posts fall back on when no place locates them. Administrators change it through TeamRequest.timezone."
+              ),
           })
           .describe('Detailed team information')
       )
@@ -357,6 +362,8 @@ export const createTeamBodyNameMax = 200
 
 export const createTeamBodyNameRegExp = new RegExp('\\S')
 export const createTeamBodyMediaMarkdownMax = 100000
+
+export const createTeamBodyTimezoneMax = 64
 
 export const CreateTeamBody = zod
   .object({
@@ -585,6 +592,13 @@ export const CreateTeamBody = zod
       })
       .optional()
       .describe('Team location coordinates [longitude, latitude]'),
+    timezone: zod
+      .string()
+      .max(createTeamBodyTimezoneMax)
+      .optional()
+      .describe(
+        "The team's IANA zone (Europe/Paris): the one its rides, trips and posts fall back on when no place locates them. Validated against the JDK's timezone database, else 400 INVALID_TIMEZONE. Omitted: Europe/Paris on a creation, left as it is on an update. Changing it keeps the wall time of the upcoming rides, trips and posts that no place locates."
+      ),
   })
   .describe('Team creation request')
 
@@ -888,6 +902,11 @@ export const CreateTeamResponse = zod
       })
       .optional()
       .describe('Team location coordinates [longitude, latitude]'),
+    timezone: zod
+      .string()
+      .describe(
+        "The team's IANA zone: the one its rides, trips and posts fall back on when no place locates them. Administrators change it through TeamRequest.timezone."
+      ),
   })
   .describe('Detailed team information')
 
@@ -903,6 +922,8 @@ export const updateTeamBodyNameMax = 200
 
 export const updateTeamBodyNameRegExp = new RegExp('\\S')
 export const updateTeamBodyMediaMarkdownMax = 100000
+
+export const updateTeamBodyTimezoneMax = 64
 
 export const UpdateTeamBody = zod
   .object({
@@ -1131,6 +1152,13 @@ export const UpdateTeamBody = zod
       })
       .optional()
       .describe('Team location coordinates [longitude, latitude]'),
+    timezone: zod
+      .string()
+      .max(updateTeamBodyTimezoneMax)
+      .optional()
+      .describe(
+        "The team's IANA zone (Europe/Paris): the one its rides, trips and posts fall back on when no place locates them. Validated against the JDK's timezone database, else 400 INVALID_TIMEZONE. Omitted: Europe/Paris on a creation, left as it is on an update. Changing it keeps the wall time of the upcoming rides, trips and posts that no place locates."
+      ),
   })
   .describe('Team creation request')
 
@@ -1434,6 +1462,11 @@ export const UpdateTeamResponse = zod
       })
       .optional()
       .describe('Team location coordinates [longitude, latitude]'),
+    timezone: zod
+      .string()
+      .describe(
+        "The team's IANA zone: the one its rides, trips and posts fall back on when no place locates them. Administrators change it through TeamRequest.timezone."
+      ),
   })
   .describe('Detailed team information')
 
@@ -1745,6 +1778,11 @@ export const GetTeamResponse = zod
       })
       .optional()
       .describe('Team location coordinates [longitude, latitude]'),
+    timezone: zod
+      .string()
+      .describe(
+        "The team's IANA zone: the one its rides, trips and posts fall back on when no place locates them. Administrators change it through TeamRequest.timezone."
+      ),
   })
   .describe('Detailed team information')
 
@@ -2135,6 +2173,11 @@ export const GetTeamDashboardResponse = zod
           })
           .optional()
           .describe('Team location coordinates [longitude, latitude]'),
+        timezone: zod
+          .string()
+          .describe(
+            "The team's IANA zone: the one its rides, trips and posts fall back on when no place locates them. Administrators change it through TeamRequest.timezone."
+          ),
       })
       .describe(
         'The team, as GET /api/teams/{teamSlug} returns it — header, feature flags, memberCount; memberCountByRole is filled for an administrator.'
@@ -2380,6 +2423,11 @@ export const GetTeamDashboardResponse = zod
                         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                       ),
                     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    timezone: zod
+                      .string()
+                      .describe(
+                        "IANA zone the ride's times were entered in and read in: its start place's, else its route's, else the team's. dateTime, publishAt, endDateTime and the groups' startAt are rendezvous in this zone."
+                      ),
                     endDateTime: zod.iso
                       .datetime({ offset: true })
                       .describe(
@@ -2413,7 +2461,17 @@ export const GetTeamDashboardResponse = zod
                           .object({
                             id: zod.string().describe('Group ID (TSID)'),
                             name: zod.string().describe('Group name'),
-                            time: zod.string().optional(),
+                            time: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                              ),
+                            startAt: zod.iso
+                              .datetime({ offset: true })
+                              .describe(
+                                "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                              ),
                             routeSlug: zod.string().optional().describe('Route slug'),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -2490,6 +2548,11 @@ export const GetTeamDashboardResponse = zod
                               .string()
                               .optional()
                               .describe("Start time of the group, when it differs from the ride's"),
+                            startAt: zod.iso
+                              .datetime({ offset: true })
+                              .describe(
+                                'When the group leaves, as RideGroupDto.startAt. Replaces time, kept for the clients that still read it.'
+                              ),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             countParticipants: zod.int().describe('Current number of participants'),
                             maxParticipants: zod
@@ -2617,7 +2680,17 @@ export const GetTeamDashboardResponse = zod
                       .object({
                         id: zod.string().describe('Group ID (TSID)'),
                         name: zod.string().describe('Group name'),
-                        time: zod.string().optional(),
+                        time: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                          ),
+                        startAt: zod.iso
+                          .datetime({ offset: true })
+                          .describe(
+                            "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                          ),
                         routeSlug: zod.string().optional().describe('Route slug'),
                         averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                         maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -3087,6 +3160,11 @@ export const GetTeamDashboardResponse = zod
                         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
                       ),
                     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    timezone: zod
+                      .string()
+                      .describe(
+                        "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+                      ),
                     status: zod
                       .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                       .describe('Publication status'),
@@ -3379,6 +3457,11 @@ export const GetTeamDashboardResponse = zod
                         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                       ),
                     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+                    timezone: zod
+                      .string()
+                      .describe(
+                        "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+                      ),
                     endDate: zod.iso
                       .datetime({ offset: true })
                       .optional()
@@ -3434,6 +3517,11 @@ export const GetTeamDashboardResponse = zod
                             dateTime: zod.iso
                               .datetime({ offset: true })
                               .describe('Stage date/time'),
+                            timezone: zod
+                              .string()
+                              .describe(
+                                "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+                              ),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             route: zod
                               .object({
@@ -4469,6 +4557,11 @@ export const GetTeamDashboardResponse = zod
                         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                       ),
                     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    timezone: zod
+                      .string()
+                      .describe(
+                        "IANA zone the ride's times were entered in and read in: its start place's, else its route's, else the team's. dateTime, publishAt, endDateTime and the groups' startAt are rendezvous in this zone."
+                      ),
                     endDateTime: zod.iso
                       .datetime({ offset: true })
                       .describe(
@@ -4502,7 +4595,17 @@ export const GetTeamDashboardResponse = zod
                           .object({
                             id: zod.string().describe('Group ID (TSID)'),
                             name: zod.string().describe('Group name'),
-                            time: zod.string().optional(),
+                            time: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                              ),
+                            startAt: zod.iso
+                              .datetime({ offset: true })
+                              .describe(
+                                "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                              ),
                             routeSlug: zod.string().optional().describe('Route slug'),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -4579,6 +4682,11 @@ export const GetTeamDashboardResponse = zod
                               .string()
                               .optional()
                               .describe("Start time of the group, when it differs from the ride's"),
+                            startAt: zod.iso
+                              .datetime({ offset: true })
+                              .describe(
+                                'When the group leaves, as RideGroupDto.startAt. Replaces time, kept for the clients that still read it.'
+                              ),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             countParticipants: zod.int().describe('Current number of participants'),
                             maxParticipants: zod
@@ -4706,7 +4814,17 @@ export const GetTeamDashboardResponse = zod
                       .object({
                         id: zod.string().describe('Group ID (TSID)'),
                         name: zod.string().describe('Group name'),
-                        time: zod.string().optional(),
+                        time: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                          ),
+                        startAt: zod.iso
+                          .datetime({ offset: true })
+                          .describe(
+                            "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                          ),
                         routeSlug: zod.string().optional().describe('Route slug'),
                         averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                         maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -5176,6 +5294,11 @@ export const GetTeamDashboardResponse = zod
                         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
                       ),
                     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    timezone: zod
+                      .string()
+                      .describe(
+                        "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+                      ),
                     status: zod
                       .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                       .describe('Publication status'),
@@ -5468,6 +5591,11 @@ export const GetTeamDashboardResponse = zod
                         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                       ),
                     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+                    timezone: zod
+                      .string()
+                      .describe(
+                        "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+                      ),
                     endDate: zod.iso
                       .datetime({ offset: true })
                       .optional()
@@ -5523,6 +5651,11 @@ export const GetTeamDashboardResponse = zod
                             dateTime: zod.iso
                               .datetime({ offset: true })
                               .describe('Stage date/time'),
+                            timezone: zod
+                              .string()
+                              .describe(
+                                "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+                              ),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             route: zod
                               .object({
@@ -6558,6 +6691,11 @@ export const GetTeamDashboardResponse = zod
                         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                       ),
                     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    timezone: zod
+                      .string()
+                      .describe(
+                        "IANA zone the ride's times were entered in and read in: its start place's, else its route's, else the team's. dateTime, publishAt, endDateTime and the groups' startAt are rendezvous in this zone."
+                      ),
                     endDateTime: zod.iso
                       .datetime({ offset: true })
                       .describe(
@@ -6591,7 +6729,17 @@ export const GetTeamDashboardResponse = zod
                           .object({
                             id: zod.string().describe('Group ID (TSID)'),
                             name: zod.string().describe('Group name'),
-                            time: zod.string().optional(),
+                            time: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                              ),
+                            startAt: zod.iso
+                              .datetime({ offset: true })
+                              .describe(
+                                "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                              ),
                             routeSlug: zod.string().optional().describe('Route slug'),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -6668,6 +6816,11 @@ export const GetTeamDashboardResponse = zod
                               .string()
                               .optional()
                               .describe("Start time of the group, when it differs from the ride's"),
+                            startAt: zod.iso
+                              .datetime({ offset: true })
+                              .describe(
+                                'When the group leaves, as RideGroupDto.startAt. Replaces time, kept for the clients that still read it.'
+                              ),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             countParticipants: zod.int().describe('Current number of participants'),
                             maxParticipants: zod
@@ -6795,7 +6948,17 @@ export const GetTeamDashboardResponse = zod
                       .object({
                         id: zod.string().describe('Group ID (TSID)'),
                         name: zod.string().describe('Group name'),
-                        time: zod.string().optional(),
+                        time: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                          ),
+                        startAt: zod.iso
+                          .datetime({ offset: true })
+                          .describe(
+                            "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                          ),
                         routeSlug: zod.string().optional().describe('Route slug'),
                         averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                         maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -7265,6 +7428,11 @@ export const GetTeamDashboardResponse = zod
                         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
                       ),
                     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    timezone: zod
+                      .string()
+                      .describe(
+                        "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+                      ),
                     status: zod
                       .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                       .describe('Publication status'),
@@ -7557,6 +7725,11 @@ export const GetTeamDashboardResponse = zod
                         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                       ),
                     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+                    timezone: zod
+                      .string()
+                      .describe(
+                        "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+                      ),
                     endDate: zod.iso
                       .datetime({ offset: true })
                       .optional()
@@ -7612,6 +7785,11 @@ export const GetTeamDashboardResponse = zod
                             dateTime: zod.iso
                               .datetime({ offset: true })
                               .describe('Stage date/time'),
+                            timezone: zod
+                              .string()
+                              .describe(
+                                "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+                              ),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             route: zod
                               .object({
@@ -9272,6 +9450,11 @@ export const GetTeamDashboardResponse = zod
                         dateTime: zod.iso
                           .datetime({ offset: true })
                           .describe('Publication date/time'),
+                        timezone: zod
+                          .string()
+                          .describe(
+                            "IANA zone the ride's times were entered in and read in: its start place's, else its route's, else the team's. dateTime, publishAt, endDateTime and the groups' startAt are rendezvous in this zone."
+                          ),
                         endDateTime: zod.iso
                           .datetime({ offset: true })
                           .describe(
@@ -9305,7 +9488,17 @@ export const GetTeamDashboardResponse = zod
                               .object({
                                 id: zod.string().describe('Group ID (TSID)'),
                                 name: zod.string().describe('Group name'),
-                                time: zod.string().optional(),
+                                time: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                                  ),
+                                startAt: zod.iso
+                                  .datetime({ offset: true })
+                                  .describe(
+                                    "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                                  ),
                                 routeSlug: zod.string().optional().describe('Route slug'),
                                 averageSpeed: zod
                                   .number()
@@ -9398,6 +9591,11 @@ export const GetTeamDashboardResponse = zod
                                   .optional()
                                   .describe(
                                     "Start time of the group, when it differs from the ride's"
+                                  ),
+                                startAt: zod.iso
+                                  .datetime({ offset: true })
+                                  .describe(
+                                    'When the group leaves, as RideGroupDto.startAt. Replaces time, kept for the clients that still read it.'
                                   ),
                                 averageSpeed: zod
                                   .number()
@@ -9536,7 +9734,17 @@ export const GetTeamDashboardResponse = zod
                           .object({
                             id: zod.string().describe('Group ID (TSID)'),
                             name: zod.string().describe('Group name'),
-                            time: zod.string().optional(),
+                            time: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                              ),
+                            startAt: zod.iso
+                              .datetime({ offset: true })
+                              .describe(
+                                "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                              ),
                             routeSlug: zod.string().optional().describe('Route slug'),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -10032,6 +10240,11 @@ export const GetTeamDashboardResponse = zod
                         dateTime: zod.iso
                           .datetime({ offset: true })
                           .describe('Publication date/time'),
+                        timezone: zod
+                          .string()
+                          .describe(
+                            "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+                          ),
                         status: zod
                           .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                           .describe('Publication status'),
@@ -10350,6 +10563,11 @@ export const GetTeamDashboardResponse = zod
                         dateTime: zod.iso
                           .datetime({ offset: true })
                           .describe('Trip start date/time'),
+                        timezone: zod
+                          .string()
+                          .describe(
+                            "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+                          ),
                         endDate: zod.iso
                           .datetime({ offset: true })
                           .optional()
@@ -10405,6 +10623,11 @@ export const GetTeamDashboardResponse = zod
                                 dateTime: zod.iso
                                   .datetime({ offset: true })
                                   .describe('Stage date/time'),
+                                timezone: zod
+                                  .string()
+                                  .describe(
+                                    "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+                                  ),
                                 averageSpeed: zod
                                   .number()
                                   .optional()
@@ -11475,6 +11698,11 @@ export const GetTeamDashboardResponse = zod
                         dateTime: zod.iso
                           .datetime({ offset: true })
                           .describe('Publication date/time'),
+                        timezone: zod
+                          .string()
+                          .describe(
+                            "IANA zone the ride's times were entered in and read in: its start place's, else its route's, else the team's. dateTime, publishAt, endDateTime and the groups' startAt are rendezvous in this zone."
+                          ),
                         endDateTime: zod.iso
                           .datetime({ offset: true })
                           .describe(
@@ -11508,7 +11736,17 @@ export const GetTeamDashboardResponse = zod
                               .object({
                                 id: zod.string().describe('Group ID (TSID)'),
                                 name: zod.string().describe('Group name'),
-                                time: zod.string().optional(),
+                                time: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                                  ),
+                                startAt: zod.iso
+                                  .datetime({ offset: true })
+                                  .describe(
+                                    "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                                  ),
                                 routeSlug: zod.string().optional().describe('Route slug'),
                                 averageSpeed: zod
                                   .number()
@@ -11601,6 +11839,11 @@ export const GetTeamDashboardResponse = zod
                                   .optional()
                                   .describe(
                                     "Start time of the group, when it differs from the ride's"
+                                  ),
+                                startAt: zod.iso
+                                  .datetime({ offset: true })
+                                  .describe(
+                                    'When the group leaves, as RideGroupDto.startAt. Replaces time, kept for the clients that still read it.'
                                   ),
                                 averageSpeed: zod
                                   .number()
@@ -11739,7 +11982,17 @@ export const GetTeamDashboardResponse = zod
                           .object({
                             id: zod.string().describe('Group ID (TSID)'),
                             name: zod.string().describe('Group name'),
-                            time: zod.string().optional(),
+                            time: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                              ),
+                            startAt: zod.iso
+                              .datetime({ offset: true })
+                              .describe(
+                                "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                              ),
                             routeSlug: zod.string().optional().describe('Route slug'),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -12235,6 +12488,11 @@ export const GetTeamDashboardResponse = zod
                         dateTime: zod.iso
                           .datetime({ offset: true })
                           .describe('Publication date/time'),
+                        timezone: zod
+                          .string()
+                          .describe(
+                            "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+                          ),
                         status: zod
                           .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                           .describe('Publication status'),
@@ -12553,6 +12811,11 @@ export const GetTeamDashboardResponse = zod
                         dateTime: zod.iso
                           .datetime({ offset: true })
                           .describe('Trip start date/time'),
+                        timezone: zod
+                          .string()
+                          .describe(
+                            "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+                          ),
                         endDate: zod.iso
                           .datetime({ offset: true })
                           .optional()
@@ -12608,6 +12871,11 @@ export const GetTeamDashboardResponse = zod
                                 dateTime: zod.iso
                                   .datetime({ offset: true })
                                   .describe('Stage date/time'),
+                                timezone: zod
+                                  .string()
+                                  .describe(
+                                    "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+                                  ),
                                 averageSpeed: zod
                                   .number()
                                   .optional()
@@ -13679,6 +13947,11 @@ export const GetTeamDashboardResponse = zod
                         dateTime: zod.iso
                           .datetime({ offset: true })
                           .describe('Publication date/time'),
+                        timezone: zod
+                          .string()
+                          .describe(
+                            "IANA zone the ride's times were entered in and read in: its start place's, else its route's, else the team's. dateTime, publishAt, endDateTime and the groups' startAt are rendezvous in this zone."
+                          ),
                         endDateTime: zod.iso
                           .datetime({ offset: true })
                           .describe(
@@ -13712,7 +13985,17 @@ export const GetTeamDashboardResponse = zod
                               .object({
                                 id: zod.string().describe('Group ID (TSID)'),
                                 name: zod.string().describe('Group name'),
-                                time: zod.string().optional(),
+                                time: zod
+                                  .string()
+                                  .optional()
+                                  .describe(
+                                    "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                                  ),
+                                startAt: zod.iso
+                                  .datetime({ offset: true })
+                                  .describe(
+                                    "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                                  ),
                                 routeSlug: zod.string().optional().describe('Route slug'),
                                 averageSpeed: zod
                                   .number()
@@ -13805,6 +14088,11 @@ export const GetTeamDashboardResponse = zod
                                   .optional()
                                   .describe(
                                     "Start time of the group, when it differs from the ride's"
+                                  ),
+                                startAt: zod.iso
+                                  .datetime({ offset: true })
+                                  .describe(
+                                    'When the group leaves, as RideGroupDto.startAt. Replaces time, kept for the clients that still read it.'
                                   ),
                                 averageSpeed: zod
                                   .number()
@@ -13943,7 +14231,17 @@ export const GetTeamDashboardResponse = zod
                           .object({
                             id: zod.string().describe('Group ID (TSID)'),
                             name: zod.string().describe('Group name'),
-                            time: zod.string().optional(),
+                            time: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                              ),
+                            startAt: zod.iso
+                              .datetime({ offset: true })
+                              .describe(
+                                "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                              ),
                             routeSlug: zod.string().optional().describe('Route slug'),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -14439,6 +14737,11 @@ export const GetTeamDashboardResponse = zod
                         dateTime: zod.iso
                           .datetime({ offset: true })
                           .describe('Publication date/time'),
+                        timezone: zod
+                          .string()
+                          .describe(
+                            "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+                          ),
                         status: zod
                           .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                           .describe('Publication status'),
@@ -14757,6 +15060,11 @@ export const GetTeamDashboardResponse = zod
                         dateTime: zod.iso
                           .datetime({ offset: true })
                           .describe('Trip start date/time'),
+                        timezone: zod
+                          .string()
+                          .describe(
+                            "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+                          ),
                         endDate: zod.iso
                           .datetime({ offset: true })
                           .optional()
@@ -14812,6 +15120,11 @@ export const GetTeamDashboardResponse = zod
                                 dateTime: zod.iso
                                   .datetime({ offset: true })
                                   .describe('Stage date/time'),
+                                timezone: zod
+                                  .string()
+                                  .describe(
+                                    "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+                                  ),
                                 averageSpeed: zod
                                   .number()
                                   .optional()
@@ -16159,5 +16472,49 @@ export const ChangeTeamSlugResponse = zod
       })
       .optional()
       .describe('Team location coordinates [longitude, latitude]'),
+    timezone: zod
+      .string()
+      .describe(
+        "The team's IANA zone: the one its rides, trips and posts fall back on when no place locates them. Administrators change it through TeamRequest.timezone."
+      ),
   })
   .describe('Detailed team information')
+
+/**
+ * The IANA zone of the given point, else the team's own: the zone the backend will read an event's wall times in once that point is its start (docs/LEDGER_*.md API-60). For the editors' field labels only — the backend resolves the zone of a saved entity itself. Organisers and above.
+ * @summary Zone of a point for the team
+ */
+export const GetTeamTimezoneParams = zod.object({
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const getTeamTimezoneQueryLatMin = -90
+export const getTeamTimezoneQueryLatMax = 90
+
+export const getTeamTimezoneQueryLonMin = -180
+export const getTeamTimezoneQueryLonMax = 180
+
+export const GetTeamTimezoneQueryParams = zod.object({
+  lat: zod
+    .number()
+    .min(getTeamTimezoneQueryLatMin)
+    .max(getTeamTimezoneQueryLatMax)
+    .optional()
+    .describe("Latitude of the point; omitted with lon: the team's zone"),
+  lon: zod
+    .number()
+    .min(getTeamTimezoneQueryLonMin)
+    .max(getTeamTimezoneQueryLonMax)
+    .optional()
+    .describe("Longitude of the point; omitted with lat: the team's zone"),
+})
+
+export const GetTeamTimezoneResponse = zod
+  .object({
+    timezone: zod
+      .string()
+      .describe(
+        "IANA zone of the point; the team's own when no point is given or the point lies outside every zone"
+      ),
+  })
+  .describe("The zone of a point, else the team's")

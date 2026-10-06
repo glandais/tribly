@@ -10,6 +10,7 @@ _RideGroupDto _$RideGroupDtoFromJson(Map<String, dynamic> json) =>
     _RideGroupDto(
       id: json['id'] as String,
       name: json['name'] as String,
+      startAt: json['startAt'] as String,
       countParticipants: (json['countParticipants'] as num).toInt(),
       participants: (json['participants'] as List<dynamic>)
           .map((e) => PublicUserDto.fromJson(e as Map<String, dynamic>))
@@ -35,6 +36,7 @@ Map<String, dynamic> _$RideGroupDtoToJson(_RideGroupDto instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
+      'startAt': instance.startAt,
       'countParticipants': instance.countParticipants,
       'participants': instance.participants.map((e) => e.toJson()).toList(),
       'sortOrder': instance.sortOrder,

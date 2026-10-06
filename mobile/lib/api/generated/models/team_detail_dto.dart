@@ -85,6 +85,9 @@ abstract class TeamDetailDto with _$TeamDetailDto {
     /// Team creation timestamp
     required String createdAt,
 
+    /// The team's IANA zone: the one its rides, trips and posts fall back on when no place locates them. Administrators change it through TeamRequest.timezone.
+    required String timezone,
+
     /// Plain-text opening of the about page, flattened and cut on a word boundary at about 200 characters. Null when the about page holds no text. Lets a team card render its two lines without parsing the markdown client-side.
     String? excerpt,
 

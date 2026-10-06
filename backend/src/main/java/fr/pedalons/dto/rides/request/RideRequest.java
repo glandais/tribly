@@ -1,5 +1,6 @@
 package fr.pedalons.dto.rides.request;
 
+import fr.pedalons.dto.common.EventDateTime;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.WithVisibility;
 import fr.pedalons.dto.validation.AcceptableText;
@@ -23,14 +24,23 @@ public record RideRequest(
         @AcceptableText
         String name,
     @Schema(description = "Ride media", required = true) @Valid MediaDto media,
-    @Schema(description = "Ride date/time", required = true) Instant dateTime,
+    @Schema(
+            description =
+                "Ride date/time: a wall time without offset, read in the ride's zone (start place,"
+                    + " else route, else team). An instant with an offset is still tolerated.",
+            required = true)
+        EventDateTime dateTime,
     @Schema(description = "Ride status", required = true) Status status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Nullable @Schema(description = "Route slug") String routeSlug,
     @Nullable @Schema(description = "Start place ID (TSID)") String startPlaceId,
     @Nullable @Schema(description = "End place ID (TSID)") String endPlaceId,
-    @Nullable @Schema(description = "Publication timestamp (for scheduled publishing)")
-        Instant publishAt,
+    @Nullable
+        @Schema(
+            description =
+                "Publication time (for scheduled publishing), a wall time in the ride's zone like"
+                    + " dateTime.")
+        EventDateTime publishAt,
     @Schema(description = "Ride groups to create", required = true)
         List<@Valid GroupRequest> groups,
     @Nullable
@@ -42,6 +52,36 @@ public record RideRequest(
                     + " creation, left as they are on an update.")
         List<String> tagIds)
     implements WithVisibility {
+
+  /**
+   * With instants: the format before docs/LEDGER_*.md API-60, still tolerated for one version and
+   * kept as the instants they are.
+   */
+  public RideRequest(
+      String name,
+      MediaDto media,
+      Instant dateTime,
+      Status status,
+      Visibility visibility,
+      @Nullable String routeSlug,
+      @Nullable String startPlaceId,
+      @Nullable String endPlaceId,
+      @Nullable Instant publishAt,
+      List<GroupRequest> groups,
+      @Nullable List<String> tagIds) {
+    this(
+        name,
+        media,
+        EventDateTime.legacy(dateTime),
+        status,
+        visibility,
+        routeSlug,
+        startPlaceId,
+        endPlaceId,
+        EventDateTime.legacyNullable(publishAt),
+        groups,
+        tagIds);
+  }
 
   /** Without tags: the shape this record had before API-59 — leaves the tags as they are. */
   public RideRequest(
@@ -58,14 +98,14 @@ public record RideRequest(
     this(
         name,
         media,
-        dateTime,
+        EventDateTime.legacy(dateTime),
         status,
         visibility,
         routeSlug,
         startPlaceId,
         endPlaceId,
-        publishAt,
+        EventDateTime.legacyNullable(publishAt),
         groups,
-        null);
+        (List<String>) null);
   }
 }

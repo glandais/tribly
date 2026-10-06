@@ -8,13 +8,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.common.TsidUtils;
+import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.trip.Trip;
+import fr.pedalons.dto.common.EventDateTime;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.rides.request.GroupRequest;
 import fr.pedalons.dto.rides.request.RideRequest;
 import fr.pedalons.dto.routes.request.RouteRequest;
+import fr.pedalons.dto.teams.request.TeamRequest;
 import fr.pedalons.dto.trips.request.StageRequest;
 import fr.pedalons.dto.trips.request.TripRequest;
 import fr.pedalons.enums.Status;
@@ -30,7 +33,9 @@ import jakarta.ws.rs.core.MediaType;
 import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -383,6 +388,138 @@ class PublicationEndStoredTest extends AbstractResourceTest {
     assertEquals(expected, storedEnd(ride.getString("id")));
     assertEquals(expected, storedEnd(trip.getString("id")));
     assertEquals(expected, storedEnd(trip.getString("stages[0].id")));
+  }
+
+  /**
+   * The zone is an entry zone, not a cache (docs/LEDGER_*.md API-60, plan §2.3): a ride located by
+   * its route keeps its zone and its start when the route's track is replaced elsewhere — only its
+   * end moves.
+   */
+  @Test
+  void replacingARoutesTrack_movesTheEnd_butNeitherTheZoneNorTheStart() {
+    Route tokyo =
+        dataService.createRouteWithProperties(
+            team1,
+            user1,
+            "Tokyo",
+            Visibility.PUBLIC,
+            50_000,
+            100,
+            SurfaceType.ROAD,
+            WindDirection.NORTH,
+            35.68,
+            139.76,
+            35.7,
+            139.8);
+    JsonPath ride =
+        postRide(
+            new RideRequest(
+                "Sortie à Tokyo",
+                MediaDto.builder().build(),
+                EventDateTime.local(LocalDateTime.parse("2030-06-02T08:00:00")),
+                Status.PUBLISHED,
+                Visibility.PUBLIC,
+                tokyo.getSlug(),
+                null,
+                null,
+                null,
+                List.of(new GroupRequest(null, "G", null, 25f, null, null)),
+                null));
+    Long id = TsidUtils.toLong(ride.getString("id"));
+    Instant start = Instant.parse("2030-06-01T23:00:00Z");
+    assertEquals("Asia/Tokyo", ride.getString("timezone"));
+    assertEquals(start, dataService.getDateTime(id));
+    assertEquals(start.plus(Duration.ofHours(2)), storedEnd(ride.getString("id")));
+
+    // The new track starts in Nantes (Europe/Paris).
+    float newDistance =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .multiPart(
+                "route",
+                new RouteRequest(
+                    "Tokyo", MediaDto.builder().build(), SurfaceType.ROAD, Visibility.PUBLIC, null),
+                MediaType.APPLICATION_JSON)
+            .multiPart("gpxFile", new File("src/test/resources/example.gpx"), "application/gpx+xml")
+            .when()
+            .put("/api/teams/" + team1Slug + "/routes/" + tokyo.getSlug())
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("distance");
+
+    assertEquals("Asia/Tokyo", dataService.getTimezone(id));
+    assertEquals(start, dataService.getDateTime(id));
+    assertEquals(
+        RideWeatherCalculator.passage(start, newDistance, 25), storedEnd(ride.getString("id")));
+  }
+
+  // ==================== Event timezones (API-60) ====================
+
+  private static RideRequest wallRideRequest(String wallTime, @Nullable Place start) {
+    return new RideRequest(
+        "Sortie murale",
+        MediaDto.builder().build(),
+        EventDateTime.local(LocalDateTime.parse(wallTime)),
+        Status.PUBLISHED,
+        Visibility.PUBLIC,
+        null,
+        start == null ? null : TsidUtils.toString(start.getId()),
+        null,
+        null,
+        List.of(),
+        null);
+  }
+
+  /** Plan §2.5: a new start place keeps the wall time, moves the instant, and the end with it. */
+  @Test
+  void movingTheStartPlace_movesTheEnd_withTheInstant() {
+    Place paris = dataService.createPlaceAt(team1, user1, "Notre-Dame", 48.853, 2.349);
+    Place tokyo = dataService.createPlaceAt(team1, user1, "Shibuya", 35.66, 139.70);
+    JsonPath ride = postRide(wallRideRequest("2030-06-02T08:00:00", paris));
+    assertEquals(
+        Instant.parse("2030-06-02T06:00:00Z").plus(DEFAULT), storedEnd(ride.getString("id")));
+
+    putRide(ride.getString("slug"), wallRideRequest("2030-06-02T08:00:00", tokyo));
+
+    assertEquals(
+        Instant.parse("2030-06-01T23:00:00Z").plus(DEFAULT), storedEnd(ride.getString("id")));
+  }
+
+  /** Plan §9: a ride the team's new zone rewrites has its end recomputed in the same transaction. */
+  @Test
+  void changingTheTeamsZone_movesTheEndOfTheRidesItRewrites() {
+    JsonPath ride = postRide(wallRideRequest("2030-06-02T09:30:00", null));
+    assertEquals(
+        Instant.parse("2030-06-02T07:30:00Z").plus(DEFAULT), storedEnd(ride.getString("id")));
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(
+            new TeamRequest(
+                "Team 1",
+                MediaDto.builder().build(),
+                Visibility.PUBLIC,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                null,
+                null,
+                "America/Montreal"))
+        .when()
+        .put("/api/teams/" + team1Slug)
+        .then()
+        .statusCode(200);
+
+    // 09:30 in Montreal (UTC-4 in June).
+    assertEquals(
+        Instant.parse("2030-06-02T13:30:00Z").plus(DEFAULT), storedEnd(ride.getString("id")));
   }
 
   // ==================== Startup backfill ====================

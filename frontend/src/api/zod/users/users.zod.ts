@@ -729,6 +729,11 @@ export const ListMyParticipationsResponse = zod
                     "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                   ),
                 dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                timezone: zod
+                  .string()
+                  .describe(
+                    "IANA zone the ride's times were entered in and read in: its start place's, else its route's, else the team's. dateTime, publishAt, endDateTime and the groups' startAt are rendezvous in this zone."
+                  ),
                 endDateTime: zod.iso
                   .datetime({ offset: true })
                   .describe(
@@ -762,7 +767,17 @@ export const ListMyParticipationsResponse = zod
                       .object({
                         id: zod.string().describe('Group ID (TSID)'),
                         name: zod.string().describe('Group name'),
-                        time: zod.string().optional(),
+                        time: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                          ),
+                        startAt: zod.iso
+                          .datetime({ offset: true })
+                          .describe(
+                            "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                          ),
                         routeSlug: zod.string().optional().describe('Route slug'),
                         averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                         maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -839,6 +854,11 @@ export const ListMyParticipationsResponse = zod
                           .string()
                           .optional()
                           .describe("Start time of the group, when it differs from the ride's"),
+                        startAt: zod.iso
+                          .datetime({ offset: true })
+                          .describe(
+                            'When the group leaves, as RideGroupDto.startAt. Replaces time, kept for the clients that still read it.'
+                          ),
                         averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                         countParticipants: zod.int().describe('Current number of participants'),
                         maxParticipants: zod
@@ -966,7 +986,17 @@ export const ListMyParticipationsResponse = zod
                   .object({
                     id: zod.string().describe('Group ID (TSID)'),
                     name: zod.string().describe('Group name'),
-                    time: zod.string().optional(),
+                    time: zod
+                      .string()
+                      .optional()
+                      .describe(
+                        "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                      ),
+                    startAt: zod.iso
+                      .datetime({ offset: true })
+                      .describe(
+                        "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                      ),
                     routeSlug: zod.string().optional().describe('Route slug'),
                     averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                     maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -1429,6 +1459,11 @@ export const ListMyParticipationsResponse = zod
                     "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
                   ),
                 dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                timezone: zod
+                  .string()
+                  .describe(
+                    "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+                  ),
                 status: zod
                   .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                   .describe('Publication status'),
@@ -1719,6 +1754,11 @@ export const ListMyParticipationsResponse = zod
                     "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                   ),
                 dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+                timezone: zod
+                  .string()
+                  .describe(
+                    "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+                  ),
                 endDate: zod.iso
                   .datetime({ offset: true })
                   .optional()
@@ -1772,6 +1812,11 @@ export const ListMyParticipationsResponse = zod
                         slug: zod.string().describe('Stage slug'),
                         name: zod.string().describe('Stage name'),
                         dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+                        timezone: zod
+                          .string()
+                          .describe(
+                            "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+                          ),
                         averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                         route: zod
                           .object({
@@ -2569,7 +2614,7 @@ export const updateMyPreferencesBodyLanguageMax = 10
 export const updateMyPreferencesBodyLanguageRegExp = new RegExp(
   '^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$'
 )
-export const updateMyPreferencesBodyTimezoneMax = 40
+export const updateMyPreferencesBodyTimezoneMax = 64
 
 export const UpdateMyPreferencesBody = zod
   .object({
@@ -2915,6 +2960,11 @@ export const GetMyProfileSummaryResponse = zod
                         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                       ),
                     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    timezone: zod
+                      .string()
+                      .describe(
+                        "IANA zone the ride's times were entered in and read in: its start place's, else its route's, else the team's. dateTime, publishAt, endDateTime and the groups' startAt are rendezvous in this zone."
+                      ),
                     endDateTime: zod.iso
                       .datetime({ offset: true })
                       .describe(
@@ -2948,7 +2998,17 @@ export const GetMyProfileSummaryResponse = zod
                           .object({
                             id: zod.string().describe('Group ID (TSID)'),
                             name: zod.string().describe('Group name'),
-                            time: zod.string().optional(),
+                            time: zod
+                              .string()
+                              .optional()
+                              .describe(
+                                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                              ),
+                            startAt: zod.iso
+                              .datetime({ offset: true })
+                              .describe(
+                                "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                              ),
                             routeSlug: zod.string().optional().describe('Route slug'),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -3025,6 +3085,11 @@ export const GetMyProfileSummaryResponse = zod
                               .string()
                               .optional()
                               .describe("Start time of the group, when it differs from the ride's"),
+                            startAt: zod.iso
+                              .datetime({ offset: true })
+                              .describe(
+                                'When the group leaves, as RideGroupDto.startAt. Replaces time, kept for the clients that still read it.'
+                              ),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             countParticipants: zod.int().describe('Current number of participants'),
                             maxParticipants: zod
@@ -3152,7 +3217,17 @@ export const GetMyProfileSummaryResponse = zod
                       .object({
                         id: zod.string().describe('Group ID (TSID)'),
                         name: zod.string().describe('Group name'),
-                        time: zod.string().optional(),
+                        time: zod
+                          .string()
+                          .optional()
+                          .describe(
+                            "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                          ),
+                        startAt: zod.iso
+                          .datetime({ offset: true })
+                          .describe(
+                            "When the group leaves: its time on the ride's local date in the ride's zone, the ride's dateTime when it has no time of its own."
+                          ),
                         routeSlug: zod.string().optional().describe('Route slug'),
                         averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                         maxParticipants: zod.int().optional().describe('Maximum participants'),
@@ -3620,6 +3695,11 @@ export const GetMyProfileSummaryResponse = zod
                         "URL template of the post's first image, the one a card shows. Saves a compact row from carrying media.assets just to find a picture."
                       ),
                     dateTime: zod.iso.datetime({ offset: true }).describe('Publication date/time'),
+                    timezone: zod
+                      .string()
+                      .describe(
+                        "IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone."
+                      ),
                     status: zod
                       .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
                       .describe('Publication status'),
@@ -3912,6 +3992,11 @@ export const GetMyProfileSummaryResponse = zod
                         "Plain-text opening of the markdown body, flattened (links become their label) and cut on a word boundary at about 200 characters. Null when the body holds no text. Lets a list row render its two lines without the body being sent at all — see the 'view' parameter."
                       ),
                     dateTime: zod.iso.datetime({ offset: true }).describe('Trip start date/time'),
+                    timezone: zod
+                      .string()
+                      .describe(
+                        "IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone."
+                      ),
                     endDate: zod.iso
                       .datetime({ offset: true })
                       .optional()
@@ -3967,6 +4052,11 @@ export const GetMyProfileSummaryResponse = zod
                             dateTime: zod.iso
                               .datetime({ offset: true })
                               .describe('Stage date/time'),
+                            timezone: zod
+                              .string()
+                              .describe(
+                                "IANA zone the stage's time was entered in and is read in: its start place's, else its route's, else the previous stage's, else the trip route's, else the team's. A stage may differ from its trip."
+                              ),
                             averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             route: zod
                               .object({

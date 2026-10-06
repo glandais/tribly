@@ -49,6 +49,7 @@ class _StubAdRepository implements AdRepository {
 }
 
 const TeamDetailDto _team = TeamDetailDto(
+  timezone: 'Europe/Paris',
   id: 't1',
   slug: 'n-peloton',
   name: 'N-Peloton',

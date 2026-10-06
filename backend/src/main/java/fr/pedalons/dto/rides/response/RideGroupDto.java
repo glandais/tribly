@@ -8,7 +8,10 @@ import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.repository.ride.RideGroupRepository.GroupRow;
 import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import fr.pedalons.service.common.ParticipantPreviewLookup.ParticipantPreview;
+import fr.pedalons.service.weather.RideWeatherCalculator;
+import java.time.Instant;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -18,7 +21,18 @@ import org.jspecify.annotations.Nullable;
 public record RideGroupDto(
     @Schema(description = "Group ID (TSID)", required = true) String id,
     @Schema(description = "Group name", required = true) String name,
-    @Nullable LocalTime time,
+    @Nullable
+        @Schema(
+            description =
+                "Deprecated in favour of startAt: the group's start as a wall time of the ride's"
+                    + " zone, null when the group leaves with the ride.")
+        LocalTime time,
+    @Schema(
+            description =
+                "When the group leaves: its time on the ride's local date in the ride's zone, the"
+                    + " ride's dateTime when it has no time of its own.",
+            required = true)
+        Instant startAt,
     @Nullable @Schema(description = "Route slug") String routeSlug,
     @Nullable @Schema(description = "Average speed in km/h") Float averageSpeed,
     @Nullable @Schema(description = "Maximum participants") Integer maxParticipants,
@@ -78,6 +92,7 @@ public record RideGroupDto(
    */
   public static RideGroupDto from(
       RideGroup group,
+      ZoneId rideZone,
       @Nullable Long registeredGroupId,
       @Nullable ThemedThumbnail routeThumbnail,
       ParticipantPreview participants) {
@@ -88,6 +103,10 @@ public record RideGroupDto(
         TsidUtils.toString(group.getId()),
         group.getName(),
         group.getTime(),
+        group.getStartAt() != null
+            ? group.getStartAt()
+            : RideWeatherCalculator.legStart(
+                group.getRide().getDateTime(), group.getTime(), rideZone),
         route != null ? route.getSlug() : null,
         group.getAverageSpeed(),
         group.getMaxParticipants(),
@@ -102,6 +121,17 @@ public record RideGroupDto(
         routeThumbnail != null ? routeThumbnail.light() : null,
         routeThumbnail != null ? routeThumbnail.dark() : null,
         routeThumbnail != null ? routeThumbnail.collapsed() : null);
+  }
+
+  /**
+   * The stored start of a group, else — on a row an older backend wrote — its time on the ride's
+   * local date in the ride's zone (docs/LEDGER_*.md API-60).
+   */
+  public static Instant startAt(
+      @Nullable Instant stored, Instant rideDateTime, @Nullable LocalTime time, String rideZone) {
+    return stored != null
+        ? stored
+        : RideWeatherCalculator.legStart(rideDateTime, time, ZoneId.of(rideZone));
   }
 
   /**
@@ -121,6 +151,7 @@ public record RideGroupDto(
         TsidUtils.toString(row.id()),
         row.name(),
         row.time(),
+        row.startAt(),
         row.routeSlug(),
         row.averageSpeed(),
         row.maxParticipants(),

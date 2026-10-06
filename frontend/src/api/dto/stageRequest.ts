@@ -1,4 +1,4 @@
-import type { Instant } from './instant.ts'
+import type { EventDateTime } from './eventDateTime.ts'
 import type { MediaDto } from './mediaDto.ts'
 
 /**
@@ -14,8 +14,8 @@ export interface StageRequest {
    * @pattern \S
    */
   name: string
-  /** Stage date/time */
-  dateTime: Instant
+  /** Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's). An instant with an offset is still tolerated. */
+  dateTime: EventDateTime
   /**
    * Average speed in km/h
    * @exclusiveMinimum 0

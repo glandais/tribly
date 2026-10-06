@@ -12,6 +12,7 @@ import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.trip.TripParticipation;
 import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.domain.user.User;
+import fr.pedalons.dto.common.EventDateTime;
 import fr.pedalons.dto.common.PedalonsPage;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.trips.request.StageRequest;
@@ -47,11 +48,13 @@ import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.tag.TagLookup;
 import fr.pedalons.service.tag.TagService;
 import fr.pedalons.service.thumbnail.ThumbnailService;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
 import fr.pedalons.service.weather.TripWeatherService;
 import fr.pedalons.service.weather.WeatherEtag;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +67,8 @@ import org.jspecify.annotations.Nullable;
 public class TripService extends TeamEntityService<Trip, TripRepository, TripDto> {
 
   @Inject TripRepository tripRepository;
+
+  @Inject EventTimezoneResolver eventTimezoneResolver;
 
   @Inject TripStageRepository tripStageRepository;
 
@@ -209,12 +214,19 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     String slug = slugService.generateSlug(request.name(), team.getId(), tripRepository);
 
     Route route = getRoute(teamSlug, request.routeSlug(), visibility);
+    // Every stage's zone before the trip's: the trip takes its first stage's, and a stage the
+    // previous one's (docs/LEDGER_*.md API-60).
+    List<StageParts> parts = stageParts(teamSlug, team, visibility, request.stages(), route);
+    ZoneId zone = tripZone(team, parts, route);
 
-    Trip trip = new Trip(creator, team, request.dateTime(), request.name(), slug, visibility);
+    Trip trip =
+        new Trip(
+            creator, team, request.dateTime().toInstant(zone), request.name(), slug, visibility);
+    trip.setTimezone(zone.getId());
     trip.setRoute(route);
     trip.setStatus(request.status());
     if (request.status() == Status.DRAFT) {
-      trip.setPublishAt(request.publishAt());
+      trip.setPublishAt(EventDateTime.toInstant(request.publishAt(), zone));
     } else {
       trip.setPublishAt(null);
     }
@@ -226,7 +238,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
 
     int sortOrder = 0;
     for (StageRequest stageRequest : request.stages()) {
-      createTripStage(teamSlug, creator, trip, stageRequest, sortOrder);
+      createTripStage(creator, trip, stageRequest, parts.get(sortOrder), sortOrder);
       sortOrder++;
     }
     // After the stages: the trip ends with the latest of them (docs/LEDGER_*.md API-85).
@@ -240,9 +252,9 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
   }
 
   private void createTripStage(
-      String teamSlug, User user, Trip trip, StageRequest stageRequest, int sortOrder) {
+      User user, Trip trip, StageRequest stageRequest, StageParts parts, int sortOrder) {
     TripStage stage = new TripStage(user, trip, stageRequest.name(), stageSlug(trip, stageRequest));
-    setStageProperties(teamSlug, trip, stage, stageRequest, sortOrder, user);
+    setStageProperties(trip, stage, stageRequest, parts, sortOrder);
     trip.addStage(stage);
     tripStageRepository.persistAndFlush(stage);
     updateMedia(stage, stageRequest.media());
@@ -269,23 +281,62 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     return slug;
   }
 
-  private void setStageProperties(
+  /**
+   * A stage's route and places, looked up before anything is written, and the zone they give it.
+   */
+  private record StageParts(
+      @Nullable Route route, @Nullable Place start, @Nullable Place end, ZoneId zone) {}
+
+  /** The parts of every stage of the request, in its order (docs/LEDGER_*.md API-60). */
+  private List<StageParts> stageParts(
       String teamSlug,
-      Trip trip,
-      TripStage stage,
-      StageRequest stageRequest,
-      int sortOrder,
-      User user) {
+      Team team,
+      Visibility visibility,
+      List<StageRequest> stages,
+      @Nullable Route tripRoute) {
+    List<Route> routes = new ArrayList<>();
+    List<Place> starts = new ArrayList<>();
+    List<Place> ends = new ArrayList<>();
+    List<EventTimezoneResolver.StagePoints> points = new ArrayList<>();
+    for (StageRequest stageRequest : stages) {
+      Route stageRoute = getRoute(teamSlug, stageRequest.routeSlug(), visibility);
+      Place startPlace = getPlace(stageRequest.startPlaceId(), team);
+      routes.add(stageRoute);
+      starts.add(startPlace);
+      ends.add(getPlace(stageRequest.endPlaceId(), team));
+      points.add(new EventTimezoneResolver.StagePoints(startPlace, stageRoute));
+    }
+    List<Optional<ZoneId>> zones = eventTimezoneResolver.locateStages(points, tripRoute);
+    ZoneId teamZone = EventTimezoneResolver.teamZone(team);
+    List<StageParts> parts = new ArrayList<>();
+    for (int i = 0; i < stages.size(); i++) {
+      parts.add(
+          new StageParts(routes.get(i), starts.get(i), ends.get(i), zones.get(i).orElse(teamZone)));
+    }
+    return parts;
+  }
+
+  /** The trip's zone: its first stage's, else its route's, else the team's. */
+  private ZoneId tripZone(Team team, List<StageParts> parts, @Nullable Route tripRoute) {
+    if (!parts.isEmpty()) {
+      // The first stage's chain already ends with the trip route, then the team.
+      return parts.getFirst().zone();
+    }
+    return eventTimezoneResolver
+        .locateTrip(List.of(), tripRoute)
+        .orElse(EventTimezoneResolver.teamZone(team));
+  }
+
+  private void setStageProperties(
+      Trip trip, TripStage stage, StageRequest stageRequest, StageParts parts, int sortOrder) {
     stage.setTrip(trip);
     stage.setName(stageRequest.name());
-    stage.setDateTime(stageRequest.dateTime());
+    stage.setTimezone(parts.zone().getId());
+    stage.setDateTime(stageRequest.dateTime().toInstant(parts.zone()));
     stage.setAverageSpeed(stageRequest.averageSpeed());
-    Route stageRoute = getRoute(teamSlug, stageRequest.routeSlug(), trip.getVisibility());
-    stage.setRoute(stageRoute);
-    Place startPlace = getPlace(stageRequest.startPlaceId(), trip.getTeam());
-    Place endPlace = getPlace(stageRequest.endPlaceId(), trip.getTeam());
-    stage.setStartPlace(startPlace);
-    stage.setEndPlace(endPlace);
+    stage.setRoute(parts.route());
+    stage.setStartPlace(parts.start());
+    stage.setEndPlace(parts.end());
     stage.setSortOrder(sortOrder);
     // Inherit visibility from trip
     stage.setVisibility(trip.getVisibility());
@@ -328,12 +379,17 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     trip.setVisibility(request.visibility());
 
     trip.setName(request.name());
-    trip.setDateTime(request.dateTime());
     trip.setStatus(request.status());
     Route route = getRoute(teamSlug, request.routeSlug(), trip.getVisibility());
     trip.setRoute(route);
+    // Every stage's zone before the trip's dates (docs/LEDGER_*.md API-60).
+    List<StageParts> parts =
+        stageParts(teamSlug, team, trip.getVisibility(), request.stages(), route);
+    ZoneId zone = tripZone(team, parts, route);
+    trip.setTimezone(zone.getId());
+    trip.setDateTime(request.dateTime().toInstant(zone));
     if (request.status() == Status.DRAFT) {
-      trip.setPublishAt(request.publishAt());
+      trip.setPublishAt(EventDateTime.toInstant(request.publishAt(), zone));
     } else {
       trip.setPublishAt(null);
     }
@@ -350,12 +406,12 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     for (StageRequest stageRequest : request.stages()) {
       Long stageId = TsidUtils.toLongNullable(stageRequest.id());
       if (stageId == null) {
-        createTripStage(teamSlug, user, trip, stageRequest, sortOrder);
+        createTripStage(user, trip, stageRequest, parts.get(sortOrder), sortOrder);
       } else {
         TripStage existingStage = existingStages.remove(stageId);
         if (existingStage != null) {
           existingStage.setDeleted(false);
-          setStageProperties(teamSlug, trip, existingStage, stageRequest, sortOrder, user);
+          setStageProperties(trip, existingStage, stageRequest, parts.get(sortOrder), sortOrder);
           updateMedia(existingStage, stageRequest.media());
           // No persist needed - entity is already managed and will be updated on flush
         } else {

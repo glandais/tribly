@@ -857,6 +857,110 @@ public class TestDataService {
         .executeUpdate();
   }
 
+  // ─── Event timezones (docs/LEDGER_*.md API-60) ──────────────────────────────
+
+  /** The zone stored on a team entity, as the database holds it (null: an older backend's row). */
+  @Transactional
+  public @Nullable String getTimezone(Long teamEntityId) {
+    return rideRepository
+        .getEntityManager()
+        .createQuery("select te.timezone from TeamEntity te where te.id = :id", String.class)
+        .setParameter("id", teamEntityId)
+        .getSingleResult();
+  }
+
+  /**
+   * Writes a stored zone directly, without the version: null is what the previous release leaves
+   * during a start-first deploy.
+   */
+  @Transactional
+  public void setTimezone(Long teamEntityId, @Nullable String timezone) {
+    rideRepository
+        .getEntityManager()
+        .createQuery("update TeamEntity te set te.timezone = :zone where te.id = :id")
+        .setParameter("zone", timezone)
+        .setParameter("id", teamEntityId)
+        .executeUpdate();
+  }
+
+  /** The stored date of a team entity, read back from the database. */
+  @Transactional
+  public Instant getDateTime(Long teamEntityId) {
+    return rideRepository
+        .getEntityManager()
+        .createQuery("select te.dateTime from TeamEntity te where te.id = :id", Instant.class)
+        .setParameter("id", teamEntityId)
+        .getSingleResult();
+  }
+
+  /** The stored scheduled publication of a team entity, read back from the database. */
+  @Transactional
+  public @Nullable Instant getPublishAt(Long teamEntityId) {
+    return rideRepository
+        .getEntityManager()
+        .createQuery("select te.publishAt from TeamEntity te where te.id = :id", Instant.class)
+        .setParameter("id", teamEntityId)
+        .getSingleResult();
+  }
+
+  /** The stored start of a ride group (null: an older backend's row). */
+  @Transactional
+  public @Nullable Instant getGroupStartAt(Long groupId) {
+    return rideRepository
+        .getEntityManager()
+        .createQuery("select g.startAt from RideGroup g where g.id = :id", Instant.class)
+        .setParameter("id", groupId)
+        .getSingleResult();
+  }
+
+  /** Writes a group's stored start directly, without the version. */
+  @Transactional
+  public void setGroupStartAt(Long groupId, @Nullable Instant startAt) {
+    rideRepository
+        .getEntityManager()
+        .createQuery("update RideGroup g set g.startAt = :start where g.id = :id")
+        .setParameter("start", startAt)
+        .setParameter("id", groupId)
+        .executeUpdate();
+  }
+
+  /** Sets a group's wall time ({@code ride_groups.time}) directly, leaving its start alone. */
+  @Transactional
+  public void setGroupTime(Long groupId, java.time.@Nullable LocalTime time) {
+    rideRepository
+        .getEntityManager()
+        .createQuery("update RideGroup g set g.time = :time where g.id = :id")
+        .setParameter("time", time)
+        .setParameter("id", groupId)
+        .executeUpdate();
+  }
+
+  /** Sets a team's zone directly, without rewriting its content as an update through the API does. */
+  @Transactional
+  public void setTeamTimezone(Team team, String timezone) {
+    teamRepository.findById(team.getId()).setTimezone(timezone);
+  }
+
+  /** The zone stored on a team's about page. */
+  @Transactional
+  public @Nullable String getAboutPageTimezone(Long teamId) {
+    return teamRepository
+        .getEntityManager()
+        .createQuery("select t.aboutPage.timezone from Team t where t.id = :id", String.class)
+        .setParameter("id", teamId)
+        .getSingleResult();
+  }
+
+  /** A place with a position, so that it locates what starts there. */
+  @Transactional
+  public Place createPlaceAt(Team team, User createdBy, String name, double lat, double lon) {
+    Place place = new Place(createdBy, team, name, true, true);
+    place.setGeometry(
+        org.geolatte.geom.builder.DSL.point(WGS84, org.geolatte.geom.builder.DSL.g(lon, lat)));
+    placeRepository.persistAndFlush(place);
+    return place;
+  }
+
   @Transactional
   public RideTemplate getRideTemplate(Long id) {
     return rideTemplateRepository.findById(id);

@@ -1,5 +1,6 @@
 package fr.pedalons.dto.posts.request;
 
+import fr.pedalons.dto.common.EventDateTime;
 import fr.pedalons.dto.common.asset.MediaDto;
 import fr.pedalons.dto.common.request.WithVisibility;
 import fr.pedalons.dto.validation.AcceptableText;
@@ -23,11 +24,20 @@ public record PostRequest(
         @AcceptableText
         String name,
     @Schema(description = "Post description", required = true) @Valid MediaDto media,
-    @Schema(description = "Post date/time", required = true) Instant dateTime,
+    @Schema(
+            description =
+                "Post date/time: a wall time without offset, read in the team's zone. An instant"
+                    + " with an offset is still tolerated.",
+            required = true)
+        EventDateTime dateTime,
     @Schema(description = "Post status", required = true) Status status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
-    @Nullable @Schema(description = "Publication timestamp (for scheduled publishing)")
-        Instant publishAt,
+    @Nullable
+        @Schema(
+            description =
+                "Publication time (for scheduled publishing), a wall time in the team's zone like"
+                    + " dateTime.")
+        EventDateTime publishAt,
     @Nullable
         @Schema(
             description =
@@ -44,6 +54,30 @@ public record PostRequest(
         List<String> tagIds)
     implements WithVisibility {
 
+  /**
+   * With instants: the format before docs/LEDGER_*.md API-60, still tolerated for one version and
+   * kept as the instants they are.
+   */
+  public PostRequest(
+      String name,
+      MediaDto media,
+      Instant dateTime,
+      Status status,
+      Visibility visibility,
+      @Nullable Instant publishAt,
+      @Nullable Boolean signedAsTeam,
+      @Nullable List<String> tagIds) {
+    this(
+        name,
+        media,
+        EventDateTime.legacy(dateTime),
+        status,
+        visibility,
+        EventDateTime.legacyNullable(publishAt),
+        signedAsTeam,
+        tagIds);
+  }
+
   /** Without tags: the shape this record had before API-59 — leaves the tags as they are. */
   public PostRequest(
       String name,
@@ -53,6 +87,6 @@ public record PostRequest(
       Visibility visibility,
       @Nullable Instant publishAt,
       @Nullable Boolean signedAsTeam) {
-    this(name, media, dateTime, status, visibility, publishAt, signedAsTeam, null);
+    this(name, media, dateTime, status, visibility, publishAt, signedAsTeam, (List<String>) null);
   }
 }

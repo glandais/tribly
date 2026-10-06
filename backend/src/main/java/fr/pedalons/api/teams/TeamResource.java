@@ -5,6 +5,7 @@ import fr.pedalons.dto.error.ErrorResponse;
 import fr.pedalons.dto.teams.request.TeamRequest;
 import fr.pedalons.dto.teams.response.TeamDetailDto;
 import fr.pedalons.dto.teams.response.TeamListResponse;
+import fr.pedalons.dto.teams.response.TeamTimezoneDto;
 import fr.pedalons.enums.SortDirection;
 import fr.pedalons.enums.TeamSortBy;
 import fr.pedalons.service.team.TeamService;
@@ -13,6 +14,8 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -158,6 +161,54 @@ public class TeamResource {
     TeamDetailDto teamDetailDto = teamService.updateTeam(teamSlug, request);
 
     return Response.ok(teamDetailDto).build();
+  }
+
+  @GET
+  @Path("/{teamSlug}/timezone")
+  @RolesAllowed("user")
+  @Operation(
+      operationId = "getTeamTimezone",
+      summary = "Zone of a point for the team",
+      description =
+          "The IANA zone of the given point, else the team's own: the zone the backend will read"
+              + " an event's wall times in once that point is its start (docs/LEDGER_*.md API-60)."
+              + " For the editors' field labels only — the backend resolves the zone of a saved"
+              + " entity itself. Organisers and above.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Zone resolved",
+        content = @Content(schema = @Schema(implementation = TeamTimezoneDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Latitude or longitude out of range",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not an organiser of the team",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public TeamTimezoneDto getTeamTimezone(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Latitude of the point; omitted with lon: the team's zone")
+          @QueryParam("lat")
+          @DecimalMin("-90")
+          @DecimalMax("90")
+          @Nullable Double lat,
+      @Parameter(description = "Longitude of the point; omitted with lat: the team's zone")
+          @QueryParam("lon")
+          @DecimalMin("-180")
+          @DecimalMax("180")
+          @Nullable Double lon) {
+    return teamService.getTimezone(teamSlug, lat, lon);
   }
 
   @PATCH

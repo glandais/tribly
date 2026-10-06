@@ -1,6 +1,7 @@
 package fr.pedalons.dto.calendar.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.enums.Status;
 import java.time.Instant;
@@ -91,8 +92,59 @@ public record CalendarEventDto(
                 "Name of the ride group the current user joined. Null when not registered, and"
                     + " always null for trip stages, which have no groups.")
         String groupName,
-    @Schema(description = "Publication status of the ride or stage", required = true)
-        Status status) {
+    @Schema(description = "Publication status of the ride or stage", required = true) Status status,
+    @Schema(
+            description =
+                "IANA zone of the ride or stage, as RideDto.timezone / TripStageDto.timezone: start"
+                    + " and end are rendezvous in it. The calendar grid itself stays in the"
+                    + " reader's zone.",
+            examples = "Europe/Paris",
+            required = true)
+        String timezone) {
+
+  /** Without a zone: the shape before docs/LEDGER_*.md API-60, in the default team zone. */
+  public CalendarEventDto(
+      String id,
+      String title,
+      Instant start,
+      @Nullable Instant end,
+      boolean allDay,
+      CalendarEventType type,
+      String teamSlug,
+      String teamName,
+      String entitySlug,
+      @Nullable String tripSlug,
+      @Nullable String startPlaceName,
+      @Nullable Float distance,
+      @Nullable Float elevationGain,
+      @Nullable String thumbnailUrl,
+      @Nullable String thumbnailLightUrl,
+      @Nullable String thumbnailDarkUrl,
+      boolean registered,
+      @Nullable String groupName,
+      Status status) {
+    this(
+        id,
+        title,
+        start,
+        end,
+        allDay,
+        type,
+        teamSlug,
+        teamName,
+        entitySlug,
+        tripSlug,
+        startPlaceName,
+        distance,
+        elevationGain,
+        thumbnailUrl,
+        thumbnailLightUrl,
+        thumbnailDarkUrl,
+        registered,
+        groupName,
+        status,
+        Team.DEFAULT_TIMEZONE);
+  }
 
   /**
    * Whether the ride or stage is over: its end, or its start when it has none, has passed. Derived

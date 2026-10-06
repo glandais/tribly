@@ -1,8 +1,10 @@
 package fr.pedalons.repository.ride;
 
 import fr.pedalons.domain.ride.RideGroup;
+import fr.pedalons.dto.rides.response.RideGroupDto;
 import fr.pedalons.repository.common.BaseRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.Collection;
 import java.util.HashMap;
@@ -68,7 +70,10 @@ public class RideGroupRepository implements BaseRepository<RideGroup> {
             .createQuery(
                 "select g.id, g.ride.id, g.name, g.time, g.averageSpeed, g.maxParticipants,"
                     + " g.sortOrder, r.id, r.slug, r.distance, r.elevationGain,"
-                    + " l.id, l.displayName, l.avatarUrl"
+                    + " l.id, l.displayName, l.avatarUrl,"
+                    // The start, and what its fallback needs on a row an older backend wrote
+                    // (docs/LEDGER_*.md API-60): implicit joins of this one statement.
+                    + " g.startAt, g.ride.dateTime, coalesce(g.ride.timezone, g.ride.team.timezone)"
                     + " from RideGroup g left join g.route r left join g.leader l"
                     + " where g.id in (:ids)",
                 Object[].class)
@@ -91,7 +96,12 @@ public class RideGroupRepository implements BaseRepository<RideGroup> {
                     (Float) row[10],
                     (Long) row[11],
                     (String) row[12],
-                    (String) row[13]))
+                    (String) row[13],
+                    RideGroupDto.startAt(
+                        (Instant) row[14],
+                        (Instant) row[15],
+                        (LocalTime) row[3],
+                        (String) row[16])))
         .toList();
   }
 
@@ -110,7 +120,8 @@ public class RideGroupRepository implements BaseRepository<RideGroup> {
       @Nullable Float elevationGain,
       @Nullable Long leaderId,
       @Nullable String leaderDisplayName,
-      @Nullable String leaderAvatarUrl) {}
+      @Nullable String leaderAvatarUrl,
+      Instant startAt) {}
 
   /** Ride groups a user created, for the GDPR data export. */
   public List<RideGroup> findByCreator(Long domainId, Long userId) {

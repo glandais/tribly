@@ -48,6 +48,7 @@ class _Teams implements TeamRepository {
   @override
   Future<List<TeamDetailDto>> getMyTeams() async => <TeamDetailDto>[
     TeamDetailDto(
+      timezone: 'Europe/Paris',
       id: 't1',
       slug: 'n-peloton',
       name: 'N-Peloton',

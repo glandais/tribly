@@ -18,12 +18,12 @@ mixin _$TripRequest {
 
 /// Trip name
  String get name;/// Trip media
- MediaDto get media;/// Trip start date/time
+ MediaDto get media;/// Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team). An instant with an offset is still tolerated.
  String get dateTime;/// Trip status
  String get status;/// Visibility level
  String get visibility;/// Trip stages to create
  List<StageRequest> get stages;/// Overall route slug for the trip
- String? get routeSlug;/// Publication timestamp (for scheduled publishing)
+ String? get routeSlug;/// Publication time (for scheduled publishing), a wall time in the trip's zone like dateTime.
  String? get publishAt;/// IDs (TSID) of the team's TRIP tags the trip carries, replacing the whole set — at most 10, each a tag of this team and of kind TRIP, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
  List<String>? get tagIds;
 /// Create a copy of TripRequest
@@ -248,7 +248,7 @@ class _TripRequest implements TripRequest {
 @override final  String name;
 /// Trip media
 @override final  MediaDto media;
-/// Trip start date/time
+/// Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team). An instant with an offset is still tolerated.
 @override final  String dateTime;
 /// Trip status
 @override final  String status;
@@ -265,7 +265,7 @@ class _TripRequest implements TripRequest {
 
 /// Overall route slug for the trip
 @override final  String? routeSlug;
-/// Publication timestamp (for scheduled publishing)
+/// Publication time (for scheduled publishing), a wall time in the trip's zone like dateTime.
 @override final  String? publishAt;
 /// IDs (TSID) of the team's TRIP tags the trip carries, replacing the whole set — at most 10, each a tag of this team and of kind TRIP, else 400 (TAG_INVALID, TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a creation, left as they are on an update.
  final  List<String>? _tagIds;

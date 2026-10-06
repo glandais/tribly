@@ -28,6 +28,8 @@ export interface PostDto {
   thumbnailUrl?: string
   /** Publication date/time */
   dateTime: Instant
+  /** IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone. */
+  timezone: string
   /** Publication status */
   status: Status
   /** Visibility level */

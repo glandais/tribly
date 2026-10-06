@@ -48,7 +48,7 @@ public record UserPreferencesRequest(
                 "Preferred IANA timezone (e.g. 'Europe/Paris'). Omit or send null to leave it"
                     + " unchanged. Validated against the JDK's own timezone database, not a regex.",
             examples = "Europe/Paris")
-        @Size(max = 40)
+        @Size(max = 64)
         String timezone,
     @Nullable
         @Schema(

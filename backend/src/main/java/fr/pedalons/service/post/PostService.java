@@ -3,6 +3,7 @@ package fr.pedalons.service.post;
 import fr.pedalons.domain.post.Post;
 import fr.pedalons.domain.team.Team;
 import fr.pedalons.dto.comments.response.CommentCounts;
+import fr.pedalons.dto.common.EventDateTime;
 import fr.pedalons.dto.posts.request.PostRequest;
 import fr.pedalons.dto.posts.response.PostDto;
 import fr.pedalons.enums.ActionType;
@@ -15,9 +16,11 @@ import fr.pedalons.service.notification.NotificationPublisher;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.tag.TagLookup;
 import fr.pedalons.service.tag.TagService;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.ZoneId;
 import java.util.List;
 
 @ApplicationScoped
@@ -70,17 +73,20 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
     // Generate slug from name, ensure unique within team
     String slug = slugService.generateSlug(request.name(), team.getId(), postRepository);
 
+    // A post has no place: its wall times are the team's (docs/LEDGER_*.md API-60).
+    ZoneId zone = EventTimezoneResolver.teamZone(team);
     Post post =
         new Post(
             pedalonsContext.getUser(),
             team,
-            request.dateTime(),
+            request.dateTime().toInstant(zone),
             request.name(),
             slug,
             request.visibility());
+    post.setTimezone(zone.getId());
     post.setStatus(request.status());
     if (request.status() == Status.DRAFT) {
-      post.setPublishAt(request.publishAt());
+      post.setPublishAt(EventDateTime.toInstant(request.publishAt(), zone));
     } else {
       post.setPublishAt(null);
     }
@@ -110,10 +116,13 @@ public class PostService extends TeamEntityService<Post, PostRepository, PostDto
     post.setVisibility(request.visibility());
 
     post.setName(request.name());
-    post.setDateTime(request.dateTime());
+    // The zone is the one of this save, frozen with it (docs/LEDGER_*.md API-60).
+    ZoneId zone = EventTimezoneResolver.teamZone(team);
+    post.setTimezone(zone.getId());
+    post.setDateTime(request.dateTime().toInstant(zone));
     post.setStatus(request.status());
     if (request.status() == Status.DRAFT) {
-      post.setPublishAt(request.publishAt());
+      post.setPublishAt(EventDateTime.toInstant(request.publishAt(), zone));
     } else {
       post.setPublishAt(null);
     }

@@ -73,6 +73,7 @@ function event(overrides: Partial<CalendarEventDto>): CalendarEventDto {
     registered: false,
     status: 'PUBLISHED',
     finished: false,
+    timezone: 'Europe/Paris',
     ...overrides,
   }
 }

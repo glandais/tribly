@@ -57,7 +57,8 @@ public class PublicationIcsService {
             CalendarEventType.RIDE,
             ride.getSlug(),
             null,
-            ride.getStatus());
+            ride.getStatus(),
+            ride.getTimezone());
     return icsGenerationService.generateIcs(List.of(event), ride.getName());
   }
 
@@ -88,7 +89,8 @@ public class PublicationIcsService {
                         CalendarEventType.TRIP_STAGE,
                         stage.slug(),
                         trip.getSlug(),
-                        trip.getStatus()))
+                        trip.getStatus(),
+                        stage.timezone()))
             .toList();
     return icsGenerationService.generateIcs(events, trip.getName(), zones);
   }
@@ -104,7 +106,8 @@ public class PublicationIcsService {
       CalendarEventType type,
       String entitySlug,
       @Nullable String tripSlug,
-      Status status) {
+      Status status,
+      String timezone) {
     return new CalendarEventDto(
         id,
         title,
@@ -124,6 +127,7 @@ public class PublicationIcsService {
         null,
         false,
         null,
-        status);
+        status,
+        timezone);
   }
 }

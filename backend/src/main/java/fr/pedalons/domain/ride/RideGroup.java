@@ -4,6 +4,7 @@ import fr.pedalons.domain.common.BaseEntity;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.user.User;
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,16 @@ public class RideGroup extends BaseEntity {
   @Nullable
   @Column(name = "time")
   protected LocalTime time;
+
+  /**
+   * When the group leaves: {@link #time} on the ride's local date, in the ride's zone; the ride's
+   * own start when the group has no time. Written with {@code time} on every save of the ride, so
+   * a date change moves every group. Null only on a row an older backend wrote: readers fall back
+   * on {@code RideWeatherCalculator.legStart} in the ride's stored zone (docs/LEDGER_*.md API-60).
+   */
+  @Nullable
+  @Column(name = "start_at")
+  private Instant startAt;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "route_id")

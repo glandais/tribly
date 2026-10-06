@@ -430,6 +430,7 @@ RideGroupSummaryDto _group({
   String? routeSlug,
   int sortOrder = 0,
 }) => RideGroupSummaryDto(
+  startAt: '2026-10-11T06:00:00Z',
   id: id,
   name: name,
   countParticipants: count,
@@ -450,6 +451,7 @@ PublicationDto _ride({
   String status = 'PUBLISHED',
   double? distance,
 }) => PublicationDto.ride(
+  timezone: 'Europe/Paris',
   full: false,
   id: 'ride-$slug',
   slug: slug,
@@ -502,6 +504,7 @@ TeamDashboardDto _dashboard({required String role}) {
     distance: 72000,
     registered: true,
     registeredGroup: const RideGroupDto(
+      startAt: '2026-10-11T06:00:00Z',
       id: 'g-b',
       name: 'Groupe B',
       countParticipants: 11,
@@ -542,6 +545,7 @@ TeamDashboardDto _dashboard({required String role}) {
     upcomingRides: _list(<PublicationDto>[saturday, night], total: 5),
     latestPosts: _list(<PublicationDto>[
       const PublicationDto.post(
+        timezone: 'Europe/Paris',
         team: _team,
         id: 'post-1',
         slug: 'bilan',

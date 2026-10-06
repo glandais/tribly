@@ -78,6 +78,11 @@ export const GetEventsResponse = zod
             status: zod
               .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
               .describe('Publication status of the ride or stage'),
+            timezone: zod
+              .string()
+              .describe(
+                "IANA zone of the ride or stage, as RideDto.timezone / TripStageDto.timezone: start and end are rendezvous in it. The calendar grid itself stays in the reader's zone."
+              ),
             finished: zod
               .boolean()
               .describe(
@@ -206,6 +211,11 @@ export const GetTeamEventsResponse = zod
             status: zod
               .enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
               .describe('Publication status of the ride or stage'),
+            timezone: zod
+              .string()
+              .describe(
+                "IANA zone of the ride or stage, as RideDto.timezone / TripStageDto.timezone: start and end are rendezvous in it. The calendar grid itself stays in the reader's zone."
+              ),
             finished: zod
               .boolean()
               .describe(

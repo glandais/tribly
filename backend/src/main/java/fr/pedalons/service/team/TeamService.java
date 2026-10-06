@@ -2,6 +2,7 @@ package fr.pedalons.service.team;
 
 import static fr.pedalons.dto.error.ErrorCode.*;
 
+import fr.pedalons.common.exception.BadRequestException;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.ConflictException;
 import fr.pedalons.domain.platform.Domain;
@@ -10,10 +11,12 @@ import fr.pedalons.domain.team.TeamSlugRedirect;
 import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.dto.common.PedalonsPage;
+import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.dto.teams.request.TeamRequest;
 import fr.pedalons.dto.teams.response.MemberCountByRoleDto;
 import fr.pedalons.dto.teams.response.TeamDetailDto;
 import fr.pedalons.dto.teams.response.TeamListResponse;
+import fr.pedalons.dto.teams.response.TeamTimezoneDto;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.SortDirection;
@@ -33,10 +36,14 @@ import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.team.request.MinRole;
 import fr.pedalons.service.team.response.TeamAndRole;
 import fr.pedalons.service.team.response.TeamStats;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
+import fr.pedalons.service.timezone.TeamTimezoneChange;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -62,6 +69,10 @@ public class TeamService {
   @Inject PedalonsQueryContext pedalonsContext;
 
   @Inject EntityManager em;
+
+  @Inject EventTimezoneResolver eventTimezoneResolver;
+
+  @Inject TeamTimezoneChange teamTimezoneChange;
 
   /**
    * Resolves a team by slug.
@@ -143,6 +154,12 @@ public class TeamService {
     team.setAddMemberAllowed(false);
     applyFeatureFlags(team, request);
     team.setGeometry(request.geometry());
+    String timezone = request.timezone();
+    if (timezone != null) {
+      team.setTimezone(validZone(timezone).getId());
+      // Built by the constructor, with the default zone.
+      team.getAboutPage().setTimezone(team.getTimezone());
+    }
 
     teamRepository.persistAndFlush(team);
     assetService.updateAssets(team.getAboutPage(), request.media());
@@ -255,10 +272,55 @@ public class TeamService {
     }
     applyFeatureFlags(team, request);
     team.setGeometry(request.geometry());
+    String timezone = request.timezone();
+    if (timezone != null) {
+      changeTimezone(team, validZone(timezone));
+    }
     assetService.updateAssets(team.getAboutPage(), request.media());
 
     teamRepository.persist(team);
     return getTeamDetailDto(teamSlug);
+  }
+
+  /**
+   * A new zone for the team, and for its upcoming content that no place locates, at constant wall
+   * time (plan §9). The team's own pages, ads and routes follow at their next save: their dates
+   * are timestamps, not rendezvous (docs/LEDGER_*.md API-60).
+   */
+  private void changeTimezone(Team team, ZoneId zone) {
+    ZoneId previous = EventTimezoneResolver.teamZone(team);
+    if (previous.equals(zone)) {
+      return;
+    }
+    // Before the team's zone moves: an entity without a stored zone reads the team's.
+    teamTimezoneChange.apply(team, previous, zone);
+    team.setTimezone(zone.getId());
+  }
+
+  private static ZoneId validZone(String timezone) {
+    try {
+      return ZoneId.of(timezone);
+    } catch (DateTimeException e) {
+      throw new BadRequestException(ErrorCode.INVALID_TIMEZONE, e);
+    }
+  }
+
+  /**
+   * The zone of a point for the team's editors, else the team's: what the editors label their
+   * date fields with while a start place or a route is being chosen (docs/LEDGER_*.md API-60). The
+   * same rule as a saved entity, which is resolved by the backend alone.
+   */
+  @CheckAccess(entityType = EntityType.PLACE, action = ActionType.LIST)
+  public TeamTimezoneDto getTimezone(String teamSlug, @Nullable Double lat, @Nullable Double lon) {
+    Team team = getTeam(teamSlug);
+    if (lat == null || lon == null) {
+      return new TeamTimezoneDto(EventTimezoneResolver.teamZone(team).getId());
+    }
+    return new TeamTimezoneDto(
+        eventTimezoneResolver
+            .locate(lat, lon)
+            .orElseGet(() -> EventTimezoneResolver.teamZone(team))
+            .getId());
   }
 
   /**

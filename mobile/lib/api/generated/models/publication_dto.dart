@@ -48,6 +48,9 @@ sealed class PublicationDto with _$PublicationDto {
     /// Publication date/time
     required String dateTime,
 
+    /// IANA zone the ride's times were entered in and read in: its start place's, else its route's, else the team's. dateTime, publishAt, endDateTime and the groups' startAt are rendezvous in this zone.
+    required String timezone,
+
     /// When the ride is over, computed by the server: the latest of its groups, each one its departure plus its route's length at its average speed — or plus 3 hours when the group has no speed or no route, and for a ride with no group. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read.
     required String endDateTime,
 
@@ -159,6 +162,9 @@ sealed class PublicationDto with _$PublicationDto {
     /// Publication date/time
     required String dateTime,
 
+    /// IANA zone the post's times were entered in and read in: the team's at its last save. dateTime, publishAt are rendezvous in this zone.
+    required String timezone,
+
     /// Publication status
     required String status,
 
@@ -212,6 +218,9 @@ sealed class PublicationDto with _$PublicationDto {
 
     /// Trip start date/time
     required String dateTime,
+
+    /// IANA zone the trip's times were entered in and read in: its first stage's, else its route's, else the team's. dateTime, endDate, endDateTime and publishAt are rendezvous in this zone.
+    required String timezone,
 
     /// When the trip is over, computed by the server: the end of its latest stage — its departure plus its route's length at its average speed, or plus 3 hours when the stage has no speed or no route — or dateTime plus 3 hours for a trip with no stage. What the upcoming and past lists (when=UPCOMING|PAST) and the calendar read.
     required String endDateTime,

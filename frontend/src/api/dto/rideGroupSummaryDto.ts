@@ -1,3 +1,4 @@
+import type { Instant } from './instant.ts'
 import type { LocalTime } from './localTime.ts'
 
 /**
@@ -10,6 +11,8 @@ export interface RideGroupSummaryDto {
   name: string
   /** Start time of the group, when it differs from the ride's */
   time?: LocalTime
+  /** When the group leaves, as RideGroupDto.startAt. Replaces time, kept for the clients that still read it. */
+  startAt: Instant
   /** Average speed in km/h */
   averageSpeed?: number
   /** Current number of participants */

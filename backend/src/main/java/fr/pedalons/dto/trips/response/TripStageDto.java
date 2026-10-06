@@ -20,6 +20,14 @@ public record TripStageDto(
     @Schema(description = "Stage slug", required = true) String slug,
     @Schema(description = "Stage name", required = true) String name,
     @Schema(description = "Stage date/time", required = true) Instant dateTime,
+    @Schema(
+            description =
+                "IANA zone the stage's time was entered in and is read in: its start place's,"
+                    + " else its route's, else the previous stage's, else the trip route's, else"
+                    + " the team's. A stage may differ from its trip.",
+            examples = "Asia/Tokyo",
+            required = true)
+        String timezone,
     @Nullable @Schema(description = "Average speed in km/h") Float averageSpeed,
     @Nullable @Schema(description = "Route") RouteDto route,
     @Nullable @Schema(description = "Start place") PlaceDetailDto startPlace,
@@ -64,6 +72,7 @@ public record TripStageDto(
         stage.getSlug(),
         stage.getName(),
         stage.getDateTime(),
+        stage.zone().getId(),
         stage.getAverageSpeed(),
         stage.getRoute() != null
             ? RouteDto.from(stage.getRoute(), assetService, CommentCounts.NONE, routeTags)

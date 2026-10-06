@@ -68,6 +68,7 @@ describe('CalendarView server render', () => {
         groupName: 'Groupe A',
         status: 'PUBLISHED',
         finished: false,
+        timezone: 'Europe/Paris',
       },
     ])
     // The phone's agenda, below its day header: MobileMonthView ignores renderEventBody.

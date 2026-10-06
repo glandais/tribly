@@ -4,7 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'instant.dart';
+import 'event_date_time.dart';
 import 'media_dto.dart';
 import 'status.dart';
 import 'visibility.dart';
@@ -22,7 +22,7 @@ abstract class PostRequest with _$PostRequest {
     /// Post description
     required MediaDto media,
 
-    /// Post date/time
+    /// Post date/time: a wall time without offset, read in the team's zone. An instant with an offset is still tolerated.
     required String dateTime,
 
     /// Post status
@@ -31,7 +31,7 @@ abstract class PostRequest with _$PostRequest {
     /// Visibility level
     required String visibility,
 
-    /// Publication timestamp (for scheduled publishing)
+    /// Publication time (for scheduled publishing), a wall time in the team's zone like dateTime.
     String? publishAt,
 
     /// Sign the post as the team rather than as its author. Omitted: on creation, the team's postsAsTeamByDefault; on an update, left as it is.
