@@ -15,6 +15,8 @@ export interface TripStageDto {
   name: string
   /** Stage date/time */
   dateTime: Instant
+  /** Average speed in km/h */
+  averageSpeed?: number
   /** Route */
   route?: RouteDto
   /** Start place */

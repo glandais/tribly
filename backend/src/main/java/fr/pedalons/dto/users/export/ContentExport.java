@@ -121,6 +121,7 @@ public final class ContentExport {
       TeamEntityEntry entity,
       @Nullable String tripSlug,
       @Nullable String routeSlug,
+      @Nullable Float averageSpeed,
       int sortOrder) {
 
     public static TripStageEntry from(TripStage s) {
@@ -128,6 +129,7 @@ public final class ContentExport {
           TeamEntityEntry.from(s),
           s.getTrip() == null ? null : s.getTrip().getSlug(),
           s.getRoute() == null ? null : s.getRoute().getSlug(),
+          s.getAverageSpeed(),
           s.getSortOrder());
     }
   }

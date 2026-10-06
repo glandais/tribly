@@ -1323,6 +1323,7 @@ export const ListAllPublicationsResponse = zod
                         slug: zod.string().describe('Stage slug'),
                         name: zod.string().describe('Stage name'),
                         dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+                        averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                         route: zod
                           .object({
                             id: zod.string().describe('Route ID (TSID)'),
@@ -3367,6 +3368,7 @@ export const ListPublicationsResponse = zod
                         slug: zod.string().describe('Stage slug'),
                         name: zod.string().describe('Stage name'),
                         dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+                        averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                         route: zod
                           .object({
                             id: zod.string().describe('Route ID (TSID)'),

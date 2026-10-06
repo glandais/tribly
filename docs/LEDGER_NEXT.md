@@ -356,7 +356,7 @@ La météo des **sorties** est livrée (`API-74`, `WEB-60`, `MOB-51`, contrat `1
       `PublicationQueryCountTest` se corrige dans `RideWeatherLookup`, jamais en desserrant le test.
 - [ ] `API-76` **Météo des voyages (M)** — `GET /api/teams/{teamSlug}/trips/{tripSlug}/weather`
       rendant une `WeatherLegDto` par étape (statut propre, fuseau du départ de chaque étape,
-      25 km/h par défaut), et le résumé de la prochaine étape dans `TripDto`, sur les mêmes briques
+      vitesse de l'étape `TripStageDto.averageSpeed` (`API-81`), 25 km/h à défaut), et le résumé de la prochaine étape dans `TripDto`, sur les mêmes briques
       (cache, `RideWeatherCalculator`, schémas génériques) ; puis les deux clients. À vérifier
       d'abord : ce que porte vraiment `TripStage.dateTime` (heure de départ réelle ou date seule).
       Détail au §6 du plan.

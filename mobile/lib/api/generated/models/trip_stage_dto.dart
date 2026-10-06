@@ -40,6 +40,9 @@ abstract class TripStageDto with _$TripStageDto {
     /// How many live stages the trip has — the '/ 5' of 'Day 2 / 5'.
     required int stageCount,
 
+    /// Average speed in km/h
+    double? averageSpeed,
+
     /// Route
     RouteDto? route,
 

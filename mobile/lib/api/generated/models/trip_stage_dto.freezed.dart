@@ -24,7 +24,8 @@ mixin _$TripStageDto {
  MediaDto get media;/// Sort order
  int get sortOrder;/// Position of this stage among the trip's live stages, 1-based — the 'Day 2' of a stage header. Unlike sortOrder, which is a persisted rank that may have gaps, this is a rank a client can print.
  int get stageIndex;/// How many live stages the trip has — the '/ 5' of 'Day 2 / 5'.
- int get stageCount;/// Route
+ int get stageCount;/// Average speed in km/h
+ double? get averageSpeed;/// Route
  RouteDto? get route;/// Start place
  PlaceDetailDto? get startPlace;/// End place
  PlaceDetailDto? get endPlace;/// Number of comments on the stage's own thread. Absent when the caller cannot read comments (not a member of the team), like TripDto.commentCount.
@@ -42,20 +43,20 @@ $TripStageDtoCopyWith<TripStageDto> get copyWith => _$TripStageDtoCopyWithImpl<T
 @override
 bool operator ==(Object other) {
   final _this = this as TripStageDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripStageDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.dateTime, _this.dateTime) || other.dateTime == _this.dateTime)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.sortOrder, _this.sortOrder) || other.sortOrder == _this.sortOrder)&&(identical(other.stageIndex, _this.stageIndex) || other.stageIndex == _this.stageIndex)&&(identical(other.stageCount, _this.stageCount) || other.stageCount == _this.stageCount)&&(identical(other.route, _this.route) || other.route == _this.route)&&(identical(other.startPlace, _this.startPlace) || other.startPlace == _this.startPlace)&&(identical(other.endPlace, _this.endPlace) || other.endPlace == _this.endPlace)&&(identical(other.commentCount, _this.commentCount) || other.commentCount == _this.commentCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripStageDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.dateTime, _this.dateTime) || other.dateTime == _this.dateTime)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.sortOrder, _this.sortOrder) || other.sortOrder == _this.sortOrder)&&(identical(other.stageIndex, _this.stageIndex) || other.stageIndex == _this.stageIndex)&&(identical(other.stageCount, _this.stageCount) || other.stageCount == _this.stageCount)&&(identical(other.averageSpeed, _this.averageSpeed) || other.averageSpeed == _this.averageSpeed)&&(identical(other.route, _this.route) || other.route == _this.route)&&(identical(other.startPlace, _this.startPlace) || other.startPlace == _this.startPlace)&&(identical(other.endPlace, _this.endPlace) || other.endPlace == _this.endPlace)&&(identical(other.commentCount, _this.commentCount) || other.commentCount == _this.commentCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as TripStageDto;
-  return Object.hash(runtimeType,_this.id,_this.slug,_this.name,_this.dateTime,_this.media,_this.sortOrder,_this.stageIndex,_this.stageCount,_this.route,_this.startPlace,_this.endPlace,_this.commentCount);
+  return Object.hash(runtimeType,_this.id,_this.slug,_this.name,_this.dateTime,_this.media,_this.sortOrder,_this.stageIndex,_this.stageCount,_this.averageSpeed,_this.route,_this.startPlace,_this.endPlace,_this.commentCount);
 }
 
 @override
 String toString() {
   final _this = this as TripStageDto;
-  return 'TripStageDto(id: ${_this.id}, slug: ${_this.slug}, name: ${_this.name}, dateTime: ${_this.dateTime}, media: ${_this.media}, sortOrder: ${_this.sortOrder}, stageIndex: ${_this.stageIndex}, stageCount: ${_this.stageCount}, route: ${_this.route}, startPlace: ${_this.startPlace}, endPlace: ${_this.endPlace}, commentCount: ${_this.commentCount})';
+  return 'TripStageDto(id: ${_this.id}, slug: ${_this.slug}, name: ${_this.name}, dateTime: ${_this.dateTime}, media: ${_this.media}, sortOrder: ${_this.sortOrder}, stageIndex: ${_this.stageIndex}, stageCount: ${_this.stageCount}, averageSpeed: ${_this.averageSpeed}, route: ${_this.route}, startPlace: ${_this.startPlace}, endPlace: ${_this.endPlace}, commentCount: ${_this.commentCount})';
 }
 
 
@@ -66,7 +67,7 @@ abstract mixin class $TripStageDtoCopyWith<$Res>  {
   factory $TripStageDtoCopyWith(TripStageDto value, $Res Function(TripStageDto) _then) = _$TripStageDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, String name, String dateTime, MediaDto media, int sortOrder, int stageIndex, int stageCount, RouteDto? route, PlaceDetailDto? startPlace, PlaceDetailDto? endPlace, int? commentCount
+ String id, String slug, String name, String dateTime, MediaDto media, int sortOrder, int stageIndex, int stageCount, double? averageSpeed, RouteDto? route, PlaceDetailDto? startPlace, PlaceDetailDto? endPlace, int? commentCount
 });
 
 
@@ -83,7 +84,7 @@ class _$TripStageDtoCopyWithImpl<$Res>
 
 /// Create a copy of TripStageDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? dateTime = null,Object? media = null,Object? sortOrder = null,Object? stageIndex = null,Object? stageCount = null,Object? route = freezed,Object? startPlace = freezed,Object? endPlace = freezed,Object? commentCount = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? dateTime = null,Object? media = null,Object? sortOrder = null,Object? stageIndex = null,Object? stageCount = null,Object? averageSpeed = freezed,Object? route = freezed,Object? startPlace = freezed,Object? endPlace = freezed,Object? commentCount = freezed,}) {
   return _then(TripStageDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -93,7 +94,8 @@ as String,media: null == media ? _self.media : media // ignore: cast_nullable_to
 as MediaDto,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
 as int,stageIndex: null == stageIndex ? _self.stageIndex : stageIndex // ignore: cast_nullable_to_non_nullable
 as int,stageCount: null == stageCount ? _self.stageCount : stageCount // ignore: cast_nullable_to_non_nullable
-as int,route: freezed == route ? _self.route : route // ignore: cast_nullable_to_non_nullable
+as int,averageSpeed: freezed == averageSpeed ? _self.averageSpeed : averageSpeed // ignore: cast_nullable_to_non_nullable
+as double?,route: freezed == route ? _self.route : route // ignore: cast_nullable_to_non_nullable
 as RouteDto?,startPlace: freezed == startPlace ? _self.startPlace : startPlace // ignore: cast_nullable_to_non_nullable
 as PlaceDetailDto?,endPlace: freezed == endPlace ? _self.endPlace : endPlace // ignore: cast_nullable_to_non_nullable
 as PlaceDetailDto?,commentCount: freezed == commentCount ? _self.commentCount : commentCount // ignore: cast_nullable_to_non_nullable
@@ -227,10 +229,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String dateTime,  MediaDto media,  int sortOrder,  int stageIndex,  int stageCount,  RouteDto? route,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace,  int? commentCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String dateTime,  MediaDto media,  int sortOrder,  int stageIndex,  int stageCount,  double? averageSpeed,  RouteDto? route,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace,  int? commentCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TripStageDto() when $default != null:
-return $default(_that.id,_that.slug,_that.name,_that.dateTime,_that.media,_that.sortOrder,_that.stageIndex,_that.stageCount,_that.route,_that.startPlace,_that.endPlace,_that.commentCount);case _:
+return $default(_that.id,_that.slug,_that.name,_that.dateTime,_that.media,_that.sortOrder,_that.stageIndex,_that.stageCount,_that.averageSpeed,_that.route,_that.startPlace,_that.endPlace,_that.commentCount);case _:
   return orElse();
 
 }
@@ -248,10 +250,10 @@ return $default(_that.id,_that.slug,_that.name,_that.dateTime,_that.media,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String dateTime,  MediaDto media,  int sortOrder,  int stageIndex,  int stageCount,  RouteDto? route,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace,  int? commentCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String dateTime,  MediaDto media,  int sortOrder,  int stageIndex,  int stageCount,  double? averageSpeed,  RouteDto? route,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace,  int? commentCount)  $default,) {final _that = this;
 switch (_that) {
 case _TripStageDto():
-return $default(_that.id,_that.slug,_that.name,_that.dateTime,_that.media,_that.sortOrder,_that.stageIndex,_that.stageCount,_that.route,_that.startPlace,_that.endPlace,_that.commentCount);case _:
+return $default(_that.id,_that.slug,_that.name,_that.dateTime,_that.media,_that.sortOrder,_that.stageIndex,_that.stageCount,_that.averageSpeed,_that.route,_that.startPlace,_that.endPlace,_that.commentCount);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -268,10 +270,10 @@ return $default(_that.id,_that.slug,_that.name,_that.dateTime,_that.media,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String dateTime,  MediaDto media,  int sortOrder,  int stageIndex,  int stageCount,  RouteDto? route,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace,  int? commentCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String dateTime,  MediaDto media,  int sortOrder,  int stageIndex,  int stageCount,  double? averageSpeed,  RouteDto? route,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace,  int? commentCount)?  $default,) {final _that = this;
 switch (_that) {
 case _TripStageDto() when $default != null:
-return $default(_that.id,_that.slug,_that.name,_that.dateTime,_that.media,_that.sortOrder,_that.stageIndex,_that.stageCount,_that.route,_that.startPlace,_that.endPlace,_that.commentCount);case _:
+return $default(_that.id,_that.slug,_that.name,_that.dateTime,_that.media,_that.sortOrder,_that.stageIndex,_that.stageCount,_that.averageSpeed,_that.route,_that.startPlace,_that.endPlace,_that.commentCount);case _:
   return null;
 
 }
@@ -283,7 +285,7 @@ return $default(_that.id,_that.slug,_that.name,_that.dateTime,_that.media,_that.
 @JsonSerializable()
 
 class _TripStageDto implements TripStageDto {
-  const _TripStageDto({required this.id, required this.slug, required this.name, required this.dateTime, required this.media, required this.sortOrder, required this.stageIndex, required this.stageCount, this.route, this.startPlace, this.endPlace, this.commentCount});
+  const _TripStageDto({required this.id, required this.slug, required this.name, required this.dateTime, required this.media, required this.sortOrder, required this.stageIndex, required this.stageCount, this.averageSpeed, this.route, this.startPlace, this.endPlace, this.commentCount});
   factory _TripStageDto.fromJson(Map<String, dynamic> json) => _$TripStageDtoFromJson(json);
 
 /// Stage ID (TSID)
@@ -302,6 +304,8 @@ class _TripStageDto implements TripStageDto {
 @override final  int stageIndex;
 /// How many live stages the trip has — the '/ 5' of 'Day 2 / 5'.
 @override final  int stageCount;
+/// Average speed in km/h
+@override final  double? averageSpeed;
 /// Route
 @override final  RouteDto? route;
 /// Start place
@@ -324,18 +328,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripStageDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.media, media) || other.media == media)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.stageIndex, stageIndex) || other.stageIndex == stageIndex)&&(identical(other.stageCount, stageCount) || other.stageCount == stageCount)&&(identical(other.route, route) || other.route == route)&&(identical(other.startPlace, startPlace) || other.startPlace == startPlace)&&(identical(other.endPlace, endPlace) || other.endPlace == endPlace)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripStageDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.media, media) || other.media == media)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.stageIndex, stageIndex) || other.stageIndex == stageIndex)&&(identical(other.stageCount, stageCount) || other.stageCount == stageCount)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.route, route) || other.route == route)&&(identical(other.startPlace, startPlace) || other.startPlace == startPlace)&&(identical(other.endPlace, endPlace) || other.endPlace == endPlace)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,slug,name,dateTime,media,sortOrder,stageIndex,stageCount,route,startPlace,endPlace,commentCount);
+    return Object.hash(runtimeType,id,slug,name,dateTime,media,sortOrder,stageIndex,stageCount,averageSpeed,route,startPlace,endPlace,commentCount);
 }
 
 @override
 String toString() {
-    return 'TripStageDto(id: $id, slug: $slug, name: $name, dateTime: $dateTime, media: $media, sortOrder: $sortOrder, stageIndex: $stageIndex, stageCount: $stageCount, route: $route, startPlace: $startPlace, endPlace: $endPlace, commentCount: $commentCount)';
+    return 'TripStageDto(id: $id, slug: $slug, name: $name, dateTime: $dateTime, media: $media, sortOrder: $sortOrder, stageIndex: $stageIndex, stageCount: $stageCount, averageSpeed: $averageSpeed, route: $route, startPlace: $startPlace, endPlace: $endPlace, commentCount: $commentCount)';
 }
 
 
@@ -346,7 +350,7 @@ abstract mixin class _$TripStageDtoCopyWith<$Res> implements $TripStageDtoCopyWi
   factory _$TripStageDtoCopyWith(_TripStageDto value, $Res Function(_TripStageDto) _then) = __$TripStageDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, String name, String dateTime, MediaDto media, int sortOrder, int stageIndex, int stageCount, RouteDto? route, PlaceDetailDto? startPlace, PlaceDetailDto? endPlace, int? commentCount
+ String id, String slug, String name, String dateTime, MediaDto media, int sortOrder, int stageIndex, int stageCount, double? averageSpeed, RouteDto? route, PlaceDetailDto? startPlace, PlaceDetailDto? endPlace, int? commentCount
 });
 
 
@@ -363,7 +367,7 @@ class __$TripStageDtoCopyWithImpl<$Res>
 
 /// Create a copy of TripStageDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? dateTime = null,Object? media = null,Object? sortOrder = null,Object? stageIndex = null,Object? stageCount = null,Object? route = freezed,Object? startPlace = freezed,Object? endPlace = freezed,Object? commentCount = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? dateTime = null,Object? media = null,Object? sortOrder = null,Object? stageIndex = null,Object? stageCount = null,Object? averageSpeed = freezed,Object? route = freezed,Object? startPlace = freezed,Object? endPlace = freezed,Object? commentCount = freezed,}) {
   return _then(_TripStageDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -373,7 +377,8 @@ as String,media: null == media ? _self.media : media // ignore: cast_nullable_to
 as MediaDto,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
 as int,stageIndex: null == stageIndex ? _self.stageIndex : stageIndex // ignore: cast_nullable_to_non_nullable
 as int,stageCount: null == stageCount ? _self.stageCount : stageCount // ignore: cast_nullable_to_non_nullable
-as int,route: freezed == route ? _self.route : route // ignore: cast_nullable_to_non_nullable
+as int,averageSpeed: freezed == averageSpeed ? _self.averageSpeed : averageSpeed // ignore: cast_nullable_to_non_nullable
+as double?,route: freezed == route ? _self.route : route // ignore: cast_nullable_to_non_nullable
 as RouteDto?,startPlace: freezed == startPlace ? _self.startPlace : startPlace // ignore: cast_nullable_to_non_nullable
 as PlaceDetailDto?,endPlace: freezed == endPlace ? _self.endPlace : endPlace // ignore: cast_nullable_to_non_nullable
 as PlaceDetailDto?,commentCount: freezed == commentCount ? _self.commentCount : commentCount // ignore: cast_nullable_to_non_nullable

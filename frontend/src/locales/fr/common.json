@@ -1762,6 +1762,8 @@
   "trips.create.form.stages.name.placeholder": "Nom de l'étape (ex: Jour 1: Col de montagne)",
   "trips.create.form.stages.remove": "Supprimer",
   "trips.create.form.stages.route.label": "Parcours de l'étape",
+  "trips.create.form.stages.speed.label": "Vitesse moyenne",
+  "trips.create.form.stages.speed.placeholder": "Facultative ({{unit}})",
   "trips.create.form.stages.startPlace.label": "Lieu de départ",
   "trips.create.form.stages.startPlace.placeholder": "Rechercher un lieu de départ...",
   "trips.create.form.title.label": "Titre du voyage",

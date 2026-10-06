@@ -243,6 +243,7 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     stage.setTrip(trip);
     stage.setName(stageRequest.name());
     stage.setDateTime(stageRequest.dateTime());
+    stage.setAverageSpeed(stageRequest.averageSpeed());
     Route stageRoute = getRoute(teamSlug, stageRequest.routeSlug(), trip.getVisibility());
     stage.setRoute(stageRoute);
     Place startPlace = getPlace(stageRequest.startPlaceId(), trip.getTeam());

@@ -1740,6 +1740,8 @@
   "trips.create.form.stages.name.placeholder": "Stage name (e.g., Day 1: Mountain Pass)",
   "trips.create.form.stages.remove": "Remove",
   "trips.create.form.stages.route.label": "Stage Route",
+  "trips.create.form.stages.speed.label": "Average speed",
+  "trips.create.form.stages.speed.placeholder": "Optional ({{unit}})",
   "trips.create.form.stages.startPlace.label": "Start Location",
   "trips.create.form.stages.startPlace.placeholder": "Search for start location...",
   "trips.create.form.title.label": "Trip Title",

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
+import { useUnits } from '@/hooks/useUnits'
 import {
   TextInput,
   Radio,
@@ -13,6 +14,7 @@ import {
   SimpleGrid,
   Tabs,
   Badge,
+  NumberInput,
 } from '@mantine/core'
 import { InstantDateTimePicker } from '@/components/common/InstantDateTimePicker'
 import { IconPlus, IconTrash, IconSettings, IconRoute as IconRouteIcon } from '@tabler/icons-react'
@@ -84,6 +86,8 @@ export function TripEditor({
       ),
     [t]
   )
+
+  const { config, speedToDisplay, speedFromDisplay } = useUnits()
 
   const form = useForm<TripRequest>({
     validate: zodFormValidator<TripRequest>(tripSchema),
@@ -382,7 +386,7 @@ export function TripEditor({
                 </Group>
 
                 <Stack>
-                  <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                  <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
                     <TextInput
                       label={t('trips.create.form.stages.name.label')}
                       placeholder={t('trips.create.form.stages.name.placeholder')}
@@ -394,6 +398,18 @@ export function TripEditor({
                       onChange={(iso) => {
                         if (iso) form.setFieldValue(`stages.${index}.dateTime`, iso)
                       }}
+                    />
+                    <NumberInput
+                      label={t('trips.create.form.stages.speed.label')}
+                      placeholder={t('trips.create.form.stages.speed.placeholder', {
+                        unit: config.speedUnit,
+                      })}
+                      min={0}
+                      suffix={` ${config.speedUnit}`}
+                      value={speedToDisplay(form.values.stages[index]?.averageSpeed) ?? ''}
+                      onChange={(val) =>
+                        form.setFieldValue(`stages.${index}.averageSpeed`, speedFromDisplay(val))
+                      }
                     />
                   </SimpleGrid>
 

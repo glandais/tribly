@@ -20,7 +20,8 @@ mixin _$StageRequest {
  String get name;/// Stage date/time
  String get dateTime;/// Stage media
  MediaDto get media;/// Stage ID (for updates)
- String? get id;/// Route slug for this stage
+ String? get id;/// Average speed in km/h
+ double? get averageSpeed;/// Route slug for this stage
  String? get routeSlug;/// Start place ID (TSID)
  String? get startPlaceId;/// End place ID (TSID)
  String? get endPlaceId;
@@ -37,20 +38,20 @@ $StageRequestCopyWith<StageRequest> get copyWith => _$StageRequestCopyWithImpl<S
 @override
 bool operator ==(Object other) {
   final _this = this as StageRequest;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StageRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.dateTime, _this.dateTime) || other.dateTime == _this.dateTime)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.routeSlug, _this.routeSlug) || other.routeSlug == _this.routeSlug)&&(identical(other.startPlaceId, _this.startPlaceId) || other.startPlaceId == _this.startPlaceId)&&(identical(other.endPlaceId, _this.endPlaceId) || other.endPlaceId == _this.endPlaceId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StageRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.dateTime, _this.dateTime) || other.dateTime == _this.dateTime)&&(identical(other.media, _this.media) || other.media == _this.media)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.averageSpeed, _this.averageSpeed) || other.averageSpeed == _this.averageSpeed)&&(identical(other.routeSlug, _this.routeSlug) || other.routeSlug == _this.routeSlug)&&(identical(other.startPlaceId, _this.startPlaceId) || other.startPlaceId == _this.startPlaceId)&&(identical(other.endPlaceId, _this.endPlaceId) || other.endPlaceId == _this.endPlaceId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as StageRequest;
-  return Object.hash(runtimeType,_this.name,_this.dateTime,_this.media,_this.id,_this.routeSlug,_this.startPlaceId,_this.endPlaceId);
+  return Object.hash(runtimeType,_this.name,_this.dateTime,_this.media,_this.id,_this.averageSpeed,_this.routeSlug,_this.startPlaceId,_this.endPlaceId);
 }
 
 @override
 String toString() {
   final _this = this as StageRequest;
-  return 'StageRequest(name: ${_this.name}, dateTime: ${_this.dateTime}, media: ${_this.media}, id: ${_this.id}, routeSlug: ${_this.routeSlug}, startPlaceId: ${_this.startPlaceId}, endPlaceId: ${_this.endPlaceId})';
+  return 'StageRequest(name: ${_this.name}, dateTime: ${_this.dateTime}, media: ${_this.media}, id: ${_this.id}, averageSpeed: ${_this.averageSpeed}, routeSlug: ${_this.routeSlug}, startPlaceId: ${_this.startPlaceId}, endPlaceId: ${_this.endPlaceId})';
 }
 
 
@@ -61,7 +62,7 @@ abstract mixin class $StageRequestCopyWith<$Res>  {
   factory $StageRequestCopyWith(StageRequest value, $Res Function(StageRequest) _then) = _$StageRequestCopyWithImpl;
 @useResult
 $Res call({
- String name, String dateTime, MediaDto media, String? id, String? routeSlug, String? startPlaceId, String? endPlaceId
+ String name, String dateTime, MediaDto media, String? id, double? averageSpeed, String? routeSlug, String? startPlaceId, String? endPlaceId
 });
 
 
@@ -78,13 +79,14 @@ class _$StageRequestCopyWithImpl<$Res>
 
 /// Create a copy of StageRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? dateTime = null,Object? media = null,Object? id = freezed,Object? routeSlug = freezed,Object? startPlaceId = freezed,Object? endPlaceId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? dateTime = null,Object? media = null,Object? id = freezed,Object? averageSpeed = freezed,Object? routeSlug = freezed,Object? startPlaceId = freezed,Object? endPlaceId = freezed,}) {
   return _then(StageRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,dateTime: null == dateTime ? _self.dateTime : dateTime // ignore: cast_nullable_to_non_nullable
 as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
 as MediaDto,id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String?,routeSlug: freezed == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
+as String?,averageSpeed: freezed == averageSpeed ? _self.averageSpeed : averageSpeed // ignore: cast_nullable_to_non_nullable
+as double?,routeSlug: freezed == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
 as String?,startPlaceId: freezed == startPlaceId ? _self.startPlaceId : startPlaceId // ignore: cast_nullable_to_non_nullable
 as String?,endPlaceId: freezed == endPlaceId ? _self.endPlaceId : endPlaceId // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -181,10 +183,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String dateTime,  MediaDto media,  String? id,  String? routeSlug,  String? startPlaceId,  String? endPlaceId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String dateTime,  MediaDto media,  String? id,  double? averageSpeed,  String? routeSlug,  String? startPlaceId,  String? endPlaceId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StageRequest() when $default != null:
-return $default(_that.name,_that.dateTime,_that.media,_that.id,_that.routeSlug,_that.startPlaceId,_that.endPlaceId);case _:
+return $default(_that.name,_that.dateTime,_that.media,_that.id,_that.averageSpeed,_that.routeSlug,_that.startPlaceId,_that.endPlaceId);case _:
   return orElse();
 
 }
@@ -202,10 +204,10 @@ return $default(_that.name,_that.dateTime,_that.media,_that.id,_that.routeSlug,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String dateTime,  MediaDto media,  String? id,  String? routeSlug,  String? startPlaceId,  String? endPlaceId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String dateTime,  MediaDto media,  String? id,  double? averageSpeed,  String? routeSlug,  String? startPlaceId,  String? endPlaceId)  $default,) {final _that = this;
 switch (_that) {
 case _StageRequest():
-return $default(_that.name,_that.dateTime,_that.media,_that.id,_that.routeSlug,_that.startPlaceId,_that.endPlaceId);case _:
+return $default(_that.name,_that.dateTime,_that.media,_that.id,_that.averageSpeed,_that.routeSlug,_that.startPlaceId,_that.endPlaceId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -222,10 +224,10 @@ return $default(_that.name,_that.dateTime,_that.media,_that.id,_that.routeSlug,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String dateTime,  MediaDto media,  String? id,  String? routeSlug,  String? startPlaceId,  String? endPlaceId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String dateTime,  MediaDto media,  String? id,  double? averageSpeed,  String? routeSlug,  String? startPlaceId,  String? endPlaceId)?  $default,) {final _that = this;
 switch (_that) {
 case _StageRequest() when $default != null:
-return $default(_that.name,_that.dateTime,_that.media,_that.id,_that.routeSlug,_that.startPlaceId,_that.endPlaceId);case _:
+return $default(_that.name,_that.dateTime,_that.media,_that.id,_that.averageSpeed,_that.routeSlug,_that.startPlaceId,_that.endPlaceId);case _:
   return null;
 
 }
@@ -237,7 +239,7 @@ return $default(_that.name,_that.dateTime,_that.media,_that.id,_that.routeSlug,_
 @JsonSerializable()
 
 class _StageRequest implements StageRequest {
-  const _StageRequest({required this.name, required this.dateTime, required this.media, this.id, this.routeSlug, this.startPlaceId, this.endPlaceId});
+  const _StageRequest({required this.name, required this.dateTime, required this.media, this.id, this.averageSpeed, this.routeSlug, this.startPlaceId, this.endPlaceId});
   factory _StageRequest.fromJson(Map<String, dynamic> json) => _$StageRequestFromJson(json);
 
 /// Stage name
@@ -248,6 +250,8 @@ class _StageRequest implements StageRequest {
 @override final  MediaDto media;
 /// Stage ID (for updates)
 @override final  String? id;
+/// Average speed in km/h
+@override final  double? averageSpeed;
 /// Route slug for this stage
 @override final  String? routeSlug;
 /// Start place ID (TSID)
@@ -268,18 +272,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StageRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.media, media) || other.media == media)&&(identical(other.id, id) || other.id == id)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.startPlaceId, startPlaceId) || other.startPlaceId == startPlaceId)&&(identical(other.endPlaceId, endPlaceId) || other.endPlaceId == endPlaceId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StageRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.media, media) || other.media == media)&&(identical(other.id, id) || other.id == id)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.startPlaceId, startPlaceId) || other.startPlaceId == startPlaceId)&&(identical(other.endPlaceId, endPlaceId) || other.endPlaceId == endPlaceId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,dateTime,media,id,routeSlug,startPlaceId,endPlaceId);
+    return Object.hash(runtimeType,name,dateTime,media,id,averageSpeed,routeSlug,startPlaceId,endPlaceId);
 }
 
 @override
 String toString() {
-    return 'StageRequest(name: $name, dateTime: $dateTime, media: $media, id: $id, routeSlug: $routeSlug, startPlaceId: $startPlaceId, endPlaceId: $endPlaceId)';
+    return 'StageRequest(name: $name, dateTime: $dateTime, media: $media, id: $id, averageSpeed: $averageSpeed, routeSlug: $routeSlug, startPlaceId: $startPlaceId, endPlaceId: $endPlaceId)';
 }
 
 
@@ -290,7 +294,7 @@ abstract mixin class _$StageRequestCopyWith<$Res> implements $StageRequestCopyWi
   factory _$StageRequestCopyWith(_StageRequest value, $Res Function(_StageRequest) _then) = __$StageRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String dateTime, MediaDto media, String? id, String? routeSlug, String? startPlaceId, String? endPlaceId
+ String name, String dateTime, MediaDto media, String? id, double? averageSpeed, String? routeSlug, String? startPlaceId, String? endPlaceId
 });
 
 
@@ -307,13 +311,14 @@ class __$StageRequestCopyWithImpl<$Res>
 
 /// Create a copy of StageRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? dateTime = null,Object? media = null,Object? id = freezed,Object? routeSlug = freezed,Object? startPlaceId = freezed,Object? endPlaceId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? dateTime = null,Object? media = null,Object? id = freezed,Object? averageSpeed = freezed,Object? routeSlug = freezed,Object? startPlaceId = freezed,Object? endPlaceId = freezed,}) {
   return _then(_StageRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,dateTime: null == dateTime ? _self.dateTime : dateTime // ignore: cast_nullable_to_non_nullable
 as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
 as MediaDto,id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String?,routeSlug: freezed == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
+as String?,averageSpeed: freezed == averageSpeed ? _self.averageSpeed : averageSpeed // ignore: cast_nullable_to_non_nullable
+as double?,routeSlug: freezed == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
 as String?,startPlaceId: freezed == startPlaceId ? _self.startPlaceId : startPlaceId // ignore: cast_nullable_to_non_nullable
 as String?,endPlaceId: freezed == endPlaceId ? _self.endPlaceId : endPlaceId // ignore: cast_nullable_to_non_nullable
 as String?,

@@ -133,6 +133,7 @@ export function tripToRequest(trip: TripDto): TripRequest {
       id: stage.id,
       name: stage.name,
       dateTime: stage.dateTime,
+      averageSpeed: stage.averageSpeed,
       routeSlug: stage.route?.slug,
       startPlaceId: stage.startPlace?.id,
       endPlaceId: stage.endPlace?.id,

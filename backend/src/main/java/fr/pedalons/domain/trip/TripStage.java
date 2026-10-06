@@ -42,6 +42,11 @@ public class TripStage extends TeamEntity {
   @Nullable
   private Place endPlace;
 
+  /** Average speed in km/h, as {@code RideGroup.averageSpeed}. */
+  @Column(name = "average_speed")
+  @Nullable
+  private Float averageSpeed;
+
   @Column(name = "sort_order")
   @NotNullableDbValue
   private int sortOrder = 0;

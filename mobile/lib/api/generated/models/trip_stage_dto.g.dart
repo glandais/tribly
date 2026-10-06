@@ -16,6 +16,7 @@ _TripStageDto _$TripStageDtoFromJson(Map<String, dynamic> json) =>
       sortOrder: (json['sortOrder'] as num).toInt(),
       stageIndex: (json['stageIndex'] as num).toInt(),
       stageCount: (json['stageCount'] as num).toInt(),
+      averageSpeed: (json['averageSpeed'] as num?)?.toDouble(),
       route: json['route'] == null
           ? null
           : RouteDto.fromJson(json['route'] as Map<String, dynamic>),
@@ -38,6 +39,7 @@ Map<String, dynamic> _$TripStageDtoToJson(_TripStageDto instance) =>
       'sortOrder': instance.sortOrder,
       'stageIndex': instance.stageIndex,
       'stageCount': instance.stageCount,
+      'averageSpeed': instance.averageSpeed,
       'route': instance.route?.toJson(),
       'startPlace': instance.startPlace?.toJson(),
       'endPlace': instance.endPlace?.toJson(),

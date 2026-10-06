@@ -106,26 +106,37 @@ class StageCard extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                if (route != null)
+                if (route != null || stage.averageSpeed != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Wrap(
                       spacing: PdlSpacing.statsNowrap,
                       runSpacing: PdlSpacing.statsWrapV,
                       children: <Widget>[
-                        _stat(
-                          context,
-                          PdlIcons.distance,
-                          AppFormatters.formatDistance(route.distance, units),
-                        ),
-                        _stat(
-                          context,
-                          PdlIcons.elevationUp,
-                          AppFormatters.formatElevationGain(
-                            route.elevationGain,
-                            units,
+                        if (route != null) ...<Widget>[
+                          _stat(
+                            context,
+                            PdlIcons.distance,
+                            AppFormatters.formatDistance(route.distance, units),
                           ),
-                        ),
+                          _stat(
+                            context,
+                            PdlIcons.elevationUp,
+                            AppFormatters.formatElevationGain(
+                              route.elevationGain,
+                              units,
+                            ),
+                          ),
+                        ],
+                        if (stage.averageSpeed != null)
+                          _stat(
+                            context,
+                            PdlIcons.speed,
+                            AppFormatters.formatSpeed(
+                              stage.averageSpeed!,
+                              units,
+                            ),
+                          ),
                       ],
                     ),
                   ),

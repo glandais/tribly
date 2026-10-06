@@ -5,6 +5,7 @@ import fr.pedalons.dto.validation.AcceptableText;
 import fr.pedalons.dto.validation.ValidateSchema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import lombok.Builder;
@@ -22,6 +23,8 @@ public record StageRequest(
         @AcceptableText
         String name,
     @Schema(description = "Stage date/time", required = true) Instant dateTime,
+    @Nullable @Schema(description = "Average speed in km/h", examples = "22") @Positive
+        Float averageSpeed,
     @Nullable @Schema(description = "Route slug for this stage") String routeSlug,
     @Nullable @Schema(description = "Start place ID (TSID)") String startPlaceId,
     @Nullable @Schema(description = "End place ID (TSID)") String endPlaceId,

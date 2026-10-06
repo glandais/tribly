@@ -26,6 +26,9 @@ abstract class StageRequest with _$StageRequest {
     /// Stage ID (for updates)
     String? id,
 
+    /// Average speed in km/h
+    double? averageSpeed,
+
     /// Route slug for this stage
     String? routeSlug,
 

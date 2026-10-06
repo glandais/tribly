@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/pdl/pdl.dart';
+import '../../../../core/preferences/user_preferences_provider.dart';
 import '../../../../core/theme/enum_colors.dart';
 import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_icons.dart';
@@ -107,7 +108,9 @@ class _StageDetailContent extends ConsumerWidget {
       toolbar: _rail(context),
       slivers: <Widget>[
         SliverToBoxAdapter(child: _identity(context)),
-        SliverToBoxAdapter(child: _facts(context)),
+        SliverToBoxAdapter(
+          child: _facts(context, ref.watch(unitSystemProvider)),
+        ),
         if (routeSlug != null)
           SliverToBoxAdapter(
             child: Padding(
@@ -273,8 +276,8 @@ class _StageDetailContent extends ConsumerWidget {
     );
   }
 
-  // ── Date et lieux ───────────────────────────────────────────────────────
-  Widget _facts(BuildContext context) {
+  // ── Date, vitesse et lieux ──────────────────────────────────────────────
+  Widget _facts(BuildContext context, UnitSystem units) {
     final PdlTypography t = context.pdlText;
     final DateTime? start = stage.startsAt;
     final PlaceDetailDto? from = stage.startPlace;
@@ -304,12 +307,21 @@ class _StageDetailContent extends ConsumerWidget {
                           AppFormatters.formatLongDate(start),
                           style: t.bodyStrong,
                         ),
+                        // La vitesse de l'étape, facultative, suit l'heure
+                        // de départ comme sur la carte d'un groupe de sortie.
                         Text(
-                          'trips.stage.groupStart'.tr(
-                            namedArgs: <String, String>{
-                              'time': AppFormatters.formatTime(start),
-                            },
-                          ),
+                          <String>[
+                            'trips.stage.groupStart'.tr(
+                              namedArgs: <String, String>{
+                                'time': AppFormatters.formatTime(start),
+                              },
+                            ),
+                            if (stage.averageSpeed != null)
+                              AppFormatters.formatSpeed(
+                                stage.averageSpeed!,
+                                units,
+                              ),
+                          ].join(' · '),
                           style: t.xs,
                         ),
                       ],

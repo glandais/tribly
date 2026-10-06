@@ -20,6 +20,7 @@ public record TripStageDto(
     @Schema(description = "Stage slug", required = true) String slug,
     @Schema(description = "Stage name", required = true) String name,
     @Schema(description = "Stage date/time", required = true) Instant dateTime,
+    @Nullable @Schema(description = "Average speed in km/h") Float averageSpeed,
     @Nullable @Schema(description = "Route") RouteDto route,
     @Nullable @Schema(description = "Start place") PlaceDetailDto startPlace,
     @Nullable @Schema(description = "End place") PlaceDetailDto endPlace,
@@ -63,6 +64,7 @@ public record TripStageDto(
         stage.getSlug(),
         stage.getName(),
         stage.getDateTime(),
+        stage.getAverageSpeed(),
         stage.getRoute() != null
             ? RouteDto.from(stage.getRoute(), assetService, CommentCounts.NONE, routeTags)
             : null,

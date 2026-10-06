@@ -16,6 +16,11 @@ export interface StageRequest {
   name: string
   /** Stage date/time */
   dateTime: Instant
+  /**
+   * Average speed in km/h
+   * @exclusiveMinimum 0
+   */
+  averageSpeed?: number
   /** Route slug for this stage */
   routeSlug?: string
   /** Start place ID (TSID) */

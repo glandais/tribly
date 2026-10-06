@@ -13,11 +13,12 @@ import {
   Box,
   Anchor,
 } from '@mantine/core'
-import { IconCalendar, IconMapPin, IconPencil } from '@tabler/icons-react'
+import { IconBolt, IconCalendar, IconMapPin, IconPencil } from '@tabler/icons-react'
 import { useStageDetailData } from './stageDetailData'
 import { RouteDetailView } from '../../components/route/RouteDetailView'
 import { paths } from '../../config/paths'
 import { useAuth } from '../../hooks/useAuth'
+import { useUnits } from '../../hooks/useUnits'
 import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
 import { DetailPageSkeleton } from '../../components/common/DetailPageSkeleton'
 import { TripLayout } from '../../components/trip/TripLayout'
@@ -31,6 +32,7 @@ import { STATUS_COLORS } from '@/lib/badgeColors.generated'
 
 export function StageDetailPage() {
   const { t } = useTranslation()
+  const { speed } = useUnits()
   const { teamSlug, tripSlug, stageSlug } = useParams<{
     teamSlug: string
     tripSlug: string
@@ -172,6 +174,14 @@ export function StageDetailPage() {
                   <Text size="sm" c="dimmed">
                     <FormattedDateTime date={stage.dateTime} />
                   </Text>
+                  {stage.averageSpeed && (
+                    <>
+                      <IconBolt size={16} />
+                      <Text size="sm" c="dimmed">
+                        {speed(stage.averageSpeed)}
+                      </Text>
+                    </>
+                  )}
                 </Group>
               </Box>
             </Group>

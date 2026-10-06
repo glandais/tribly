@@ -5218,6 +5218,13 @@ components:
           description: Stage date/time
           type: string
           $ref: "#/components/schemas/Instant"
+        averageSpeed:
+          type: number
+          format: float
+          description: Average speed in km/h
+          examples:
+          - 22
+          exclusiveMinimum: 0
         routeSlug:
           type: string
           description: Route slug for this stage
@@ -6546,6 +6553,10 @@ components:
           description: Stage date/time
           type: string
           $ref: "#/components/schemas/Instant"
+        averageSpeed:
+          type: number
+          format: float
+          description: Average speed in km/h
         route:
           description: Route
           type: object
@@ -18503,7 +18514,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 10.9.0
+  version: 10.10.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

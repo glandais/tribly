@@ -194,6 +194,7 @@ class TripServiceTest extends AbstractBaseTest {
           StageRequest.builder()
               .name("Stage 1")
               .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .averageSpeed(22f)
               .media(MediaDto.builder().build())
               .build();
       StageRequest stage2 =
@@ -220,6 +221,8 @@ class TripServiceTest extends AbstractBaseTest {
       assertEquals(2, result.getStages().size());
       assertEquals("Stage 1", result.getStages().get(0).name());
       assertEquals("Stage 2", result.getStages().get(1).name());
+      assertEquals(22f, result.getStages().get(0).averageSpeed());
+      assertNull(result.getStages().get(1).averageSpeed());
     }
 
     @Test

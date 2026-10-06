@@ -3423,6 +3423,7 @@ export const GetTeamDashboardResponse = zod
                             dateTime: zod.iso
                               .datetime({ offset: true })
                               .describe('Stage date/time'),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             route: zod
                               .object({
                                 id: zod.string().describe('Route ID (TSID)'),
@@ -5378,6 +5379,7 @@ export const GetTeamDashboardResponse = zod
                             dateTime: zod.iso
                               .datetime({ offset: true })
                               .describe('Stage date/time'),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             route: zod
                               .object({
                                 id: zod.string().describe('Route ID (TSID)'),
@@ -7333,6 +7335,7 @@ export const GetTeamDashboardResponse = zod
                             dateTime: zod.iso
                               .datetime({ offset: true })
                               .describe('Stage date/time'),
+                            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
                             route: zod
                               .object({
                                 id: zod.string().describe('Route ID (TSID)'),
@@ -9992,6 +9995,10 @@ export const GetTeamDashboardResponse = zod
                                 dateTime: zod.iso
                                   .datetime({ offset: true })
                                   .describe('Stage date/time'),
+                                averageSpeed: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Average speed in km/h'),
                                 route: zod
                                   .object({
                                     id: zod.string().describe('Route ID (TSID)'),
@@ -12058,6 +12065,10 @@ export const GetTeamDashboardResponse = zod
                                 dateTime: zod.iso
                                   .datetime({ offset: true })
                                   .describe('Stage date/time'),
+                                averageSpeed: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Average speed in km/h'),
                                 route: zod
                                   .object({
                                     id: zod.string().describe('Route ID (TSID)'),
@@ -14125,6 +14136,10 @@ export const GetTeamDashboardResponse = zod
                                 dateTime: zod.iso
                                   .datetime({ offset: true })
                                   .describe('Stage date/time'),
+                                averageSpeed: zod
+                                  .number()
+                                  .optional()
+                                  .describe('Average speed in km/h'),
                                 route: zod
                                   .object({
                                     id: zod.string().describe('Route ID (TSID)'),

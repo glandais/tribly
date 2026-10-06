@@ -16,6 +16,8 @@ export const createTripBodyMediaMarkdownMax = 100000
 export const createTripBodyStagesItemNameMax = 200
 
 export const createTripBodyStagesItemNameRegExp = new RegExp('\\S')
+export const createTripBodyStagesItemAverageSpeedExclusiveMin = 0
+
 export const createTripBodyStagesItemMediaMarkdownMax = 100000
 
 export const CreateTripBody = zod
@@ -241,6 +243,11 @@ export const CreateTripBody = zod
               .regex(createTripBodyStagesItemNameRegExp)
               .describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            averageSpeed: zod
+              .number()
+              .gt(createTripBodyStagesItemAverageSpeedExclusiveMin)
+              .optional()
+              .describe('Average speed in km/h'),
             routeSlug: zod.string().optional().describe('Route slug for this stage'),
             startPlaceId: zod.string().optional().describe('Start place ID (TSID)'),
             endPlaceId: zod.string().optional().describe('End place ID (TSID)'),
@@ -723,6 +730,7 @@ export const CreateTripResponse = zod
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             route: zod
               .object({
                 id: zod.string().describe('Route ID (TSID)'),
@@ -1320,6 +1328,8 @@ export const updateTripBodyMediaMarkdownMax = 100000
 export const updateTripBodyStagesItemNameMax = 200
 
 export const updateTripBodyStagesItemNameRegExp = new RegExp('\\S')
+export const updateTripBodyStagesItemAverageSpeedExclusiveMin = 0
+
 export const updateTripBodyStagesItemMediaMarkdownMax = 100000
 
 export const UpdateTripBody = zod
@@ -1545,6 +1555,11 @@ export const UpdateTripBody = zod
               .regex(updateTripBodyStagesItemNameRegExp)
               .describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            averageSpeed: zod
+              .number()
+              .gt(updateTripBodyStagesItemAverageSpeedExclusiveMin)
+              .optional()
+              .describe('Average speed in km/h'),
             routeSlug: zod.string().optional().describe('Route slug for this stage'),
             startPlaceId: zod.string().optional().describe('Start place ID (TSID)'),
             endPlaceId: zod.string().optional().describe('End place ID (TSID)'),
@@ -2027,6 +2042,7 @@ export const UpdateTripResponse = zod
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             route: zod
               .object({
                 id: zod.string().describe('Route ID (TSID)'),
@@ -2884,6 +2900,7 @@ export const GetTripResponse = zod
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             route: zod
               .object({
                 id: zod.string().describe('Route ID (TSID)'),
@@ -3846,6 +3863,7 @@ export const ChangeTripSlugResponse = zod
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             route: zod
               .object({
                 id: zod.string().describe('Route ID (TSID)'),
@@ -4709,6 +4727,7 @@ export const ChangeTripStatusResponse = zod
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             route: zod
               .object({
                 id: zod.string().describe('Route ID (TSID)'),
@@ -5566,6 +5585,7 @@ export const UndeleteTripResponse = zod
             slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({ offset: true }).describe('Stage date/time'),
+            averageSpeed: zod.number().optional().describe('Average speed in km/h'),
             route: zod
               .object({
                 id: zod.string().describe('Route ID (TSID)'),
