@@ -12,12 +12,18 @@ class PdlSegment<T> {
     required this.label,
     this.icon,
     this.key,
+    this.iconOnly = false,
   });
 
   final T value;
   final Key? key;
   final String label;
   final IconData? icon;
+
+  /// L'icône seule, le libellé devenant le nom accessible et l'infobulle du
+  /// segment : le sélecteur de vue d'une liste (Liste · Calendrier), dont les
+  /// icônes se lisent seules. Exige une [icon].
+  final bool iconOnly;
 }
 
 /// A14 — Sélecteur segmenté à 2 ou 3 positions.
@@ -135,24 +141,35 @@ class _Segment<T> extends StatelessWidget {
                 : null,
             boxShadow: selected ? shadow : null,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              if (segment.icon != null) ...<Widget>[
-                Icon(segment.icon, size: 16, color: foreground),
-                const SizedBox(width: 6),
-              ],
-              Flexible(
-                child: Text(
-                  segment.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: style.copyWith(color: foreground),
+          child: segment.iconOnly && segment.icon != null
+              ? Tooltip(
+                  message: segment.label,
+                  excludeFromSemantics: true,
+                  child: Icon(
+                    segment.icon,
+                    size: 16,
+                    color: foreground,
+                    semanticLabel: segment.label,
+                  ),
+                )
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    if (segment.icon != null) ...<Widget>[
+                      Icon(segment.icon, size: 16, color: foreground),
+                      const SizedBox(width: 6),
+                    ],
+                    Flexible(
+                      child: Text(
+                        segment.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: style.copyWith(color: foreground),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         ),
       ),
     );

@@ -126,6 +126,11 @@ abstract final class PdlDerivedTones {
   static PdlTone registered(PdlColors c) =>
       PdlTone.pair(c.softIndigo, c.primary);
 
+  /// Vert doux, à pastille (`PdlBadge.dot`). Sortie ou voyage **en cours** :
+  /// parti et pas encore rentré (`dateTime <= now < endDateTime`, ledger
+  /// `API-85`) — « EN COURS » au web, même famille.
+  static PdlTone underWay(PdlColors c) => PdlTone.pair(c.softGreen, c.success);
+
   /// `.b-done` — gris foncé. Sortie ou voyage terminé.
   static PdlTone done(PdlColors c) => PdlTone.pair(c.softDone, c.neutral);
 

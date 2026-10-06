@@ -34,6 +34,7 @@ class PdlBadge extends StatelessWidget {
     this.size = PdlBadgeSize.sm,
     this.icon,
     this.filled,
+    this.dot = false,
   });
 
   final String label;
@@ -46,6 +47,11 @@ class PdlBadge extends StatelessWidget {
   /// Force l'aplat (`true`) ou le doux (`false`). Par défaut, la famille
   /// décide via [PdlTone.filledStyle].
   final bool? filled;
+
+  /// Une pastille pleine devant le libellé, de la couleur du texte : l'état
+  /// « en cours » d'une sortie (« ● EN COURS »), qui dit un instant présent
+  /// plutôt qu'une catégorie. Ignorée quand [icon] est donnée.
+  final bool dot;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +76,16 @@ class PdlBadge extends StatelessWidget {
         children: <Widget>[
           if (icon != null) ...<Widget>[
             Icon(icon, size: 11, color: foreground),
+            const SizedBox(width: 4),
+          ] else if (dot) ...<Widget>[
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: foreground,
+                shape: BoxShape.circle,
+              ),
+            ),
             const SizedBox(width: 4),
           ],
           Flexible(

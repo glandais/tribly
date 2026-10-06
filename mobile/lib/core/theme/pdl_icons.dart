@@ -67,6 +67,10 @@ abstract final class PdlIcons {
   static const IconData tag = Icons.label_outline;
   static const IconData feed = Icons.dynamic_feed_outlined;
   static const IconData dashboard = Icons.dashboard_outlined;
+
+  /// La section « Agenda » d'une équipe — sorties et voyages (`IconCalendarEvent`
+  /// au web, `docs/BRANDING.md` §6).
+  static const IconData agenda = Icons.event_outlined;
   static const IconData comment = Icons.mode_comment_outlined;
   static const IconData attachment = Icons.attach_file;
   static const IconData gpx = Icons.download_outlined;
