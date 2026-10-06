@@ -1,6 +1,7 @@
 package fr.pedalons.dto.device.response;
 
 import fr.pedalons.dto.validation.ValidateSchema;
+import java.time.Instant;
 import lombok.Builder;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -15,4 +16,12 @@ public record DeviceRideEntryDto(
     @Schema(description = "Distance in meters", required = true) float distance,
     @Schema(description = "Elevation gain in meters", required = true) float elevationGain,
     @Schema(description = "Start latitude") @Nullable Double startLat,
-    @Schema(description = "Start longitude") @Nullable Double startLon) {}
+    @Schema(description = "Start longitude") @Nullable Double startLon,
+    @Schema(
+            description =
+                "When this entry leaves, as an absolute instant (UTC): the group's time read at"
+                    + " the ride's departure point local time, on the ride's local date; the"
+                    + " ride's own startDateTime for the ride-level route and for a group without"
+                    + " a time. Devices render it in their own zone.",
+            required = true)
+        Instant startDateTime) {}

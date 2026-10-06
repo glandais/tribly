@@ -1825,7 +1825,7 @@
       "DeviceRideEntryDto" : {
         "type" : "object",
         "description" : "Route entry within a ride for device applications",
-        "required" : [ "routeSlug", "routeName", "distance", "elevationGain" ],
+        "required" : [ "routeSlug", "routeName", "distance", "elevationGain", "startDateTime" ],
         "properties" : {
           "routeSlug" : {
             "type" : "string",
@@ -1858,6 +1858,11 @@
             "type" : "number",
             "format" : "double",
             "description" : "Start longitude"
+          },
+          "startDateTime" : {
+            "description" : "When this entry leaves, as an absolute instant (UTC): the group's time read at the ride's departure point local time, on the ride's local date; the ride's own startDateTime for the ride-level route and for a group without a time. Devices render it in their own zone.",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
           }
         }
       },
@@ -23199,7 +23204,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.13.0",
+    "version" : "10.14.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

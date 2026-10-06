@@ -1770,6 +1770,7 @@ components:
       - routeName
       - distance
       - elevationGain
+      - startDateTime
       properties:
         routeSlug:
           type: string
@@ -1796,6 +1797,13 @@ components:
           type: number
           format: double
           description: Start longitude
+        startDateTime:
+          description: "When this entry leaves, as an absolute instant (UTC): the\
+            \ group's time read at the ride's departure point local time, on the ride's\
+            \ local date; the ride's own startDateTime for the ride-level route and\
+            \ for a group without a time. Devices render it in their own zone."
+          type: string
+          $ref: "#/components/schemas/Instant"
     DeviceRouteDto:
       description: Standalone route information for device applications
       type: object
@@ -18658,7 +18666,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 10.13.0
+  version: 10.14.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

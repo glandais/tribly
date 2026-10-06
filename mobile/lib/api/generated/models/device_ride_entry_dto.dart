@@ -4,6 +4,8 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'instant.dart';
+
 part 'device_ride_entry_dto.freezed.dart';
 part 'device_ride_entry_dto.g.dart';
 
@@ -22,6 +24,9 @@ abstract class DeviceRideEntryDto with _$DeviceRideEntryDto {
 
     /// Elevation gain in meters
     required double elevationGain,
+
+    /// When this entry leaves, as an absolute instant (UTC): the group's time read at the ride's departure point local time, on the ride's local date; the ride's own startDateTime for the ride-level route and for a group without a time. Devices render it in their own zone.
+    required String startDateTime,
 
     /// Group name (null for ride-level route)
     String? groupName,

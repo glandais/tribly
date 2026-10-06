@@ -137,9 +137,10 @@ public class RideWeatherPlans {
   /**
    * The meeting point, else the start of the ride's route, else the start of the first group's
    * route — deleted routes skipped. Kept in step with the SQL of {@code
-   * WeatherHourlyRepository#findRideWindowHours}.
+   * WeatherHourlyRepository#findRideWindowHours}. Public for the device feed, which reads its
+   * groups' times at the same zone (docs/LEDGER_*.md API-84).
    */
-  static @Nullable Departure departure(Ride ride) {
+  public static @Nullable Departure departure(Ride ride) {
     Place start = ride.getStart();
     Departure point = start == null ? null : point(start.getGeometry());
     if (point != null) {

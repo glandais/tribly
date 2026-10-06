@@ -147,6 +147,79 @@ class DeviceRoutesResourceTest extends AbstractResourceTest {
     assertEquals(rideStart, Instant.parse(startDateTime));
   }
 
+  /**
+   * Each entry carries its own start (docs/LEDGER_*.md API-84). The route starts in Nantes
+   * (Europe/Paris): the ride leaves at 7:30 Paris, a group without a time leaves with it, a group at
+   * 9:00 leaves at 9:00 Paris on the ride's local date — expressed in UTC, so one or two hours
+   * earlier depending on the date's offset (the DST edges themselves are covered by {@code
+   * RideWeatherCalculatorTest}). The ride's own startDateTime stays the ride's instant.
+   */
+  @Test
+  void getRoutes_entryStart_isTheGroupTimeAtTheDepartureZone() {
+    ZoneId paris = ZoneId.of("Europe/Paris");
+    LocalDate day = LocalDate.now(paris).plusDays(2);
+    Instant rideStart = day.atTime(LocalTime.of(7, 30)).atZone(paris).toInstant();
+    Instant lateGroupStart = day.atTime(LocalTime.of(9, 0)).atZone(paris).toInstant();
+    RideRequest request =
+        new RideRequest(
+            "Sortie deux groupes",
+            MediaDto.builder().markdown("Sortie").build(),
+            rideStart,
+            Status.PUBLISHED,
+            Visibility.TEAM,
+            routeSlug,
+            null,
+            null,
+            null,
+            List.of(
+                GroupRequest.builder().name("Groupe sans heure").routeSlug(routeSlug).build(),
+                GroupRequest.builder()
+                    .name("Groupe de 9 h")
+                    .time(LocalTime.of(9, 0))
+                    .routeSlug(routeSlug)
+                    .build()));
+    String rideSlug =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .contentType("application/json")
+            .body(request)
+            .when()
+            .post("/api/teams/" + team1Slug + "/rides")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("slug");
+
+    String ride = "rides.find { it.rideSlug == '" + rideSlug + "' }";
+    var json =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .when()
+            .get("/api/device/routes")
+            .then()
+            .statusCode(200)
+            .extract()
+            .jsonPath();
+
+    assertEquals(rideStart, Instant.parse(json.getString(ride + ".startDateTime")));
+    assertEquals(
+        rideStart,
+        Instant.parse(
+            json.getString(ride + ".entries.find { it.groupName == null }.startDateTime")));
+    assertEquals(
+        rideStart,
+        Instant.parse(
+            json.getString(
+                ride + ".entries.find { it.groupName == 'Groupe sans heure' }.startDateTime")));
+    assertEquals(
+        lateGroupStart,
+        Instant.parse(
+            json.getString(
+                ride + ".entries.find { it.groupName == 'Groupe de 9 h' }.startDateTime")));
+  }
+
   // ==================== Download FIT ====================
 
   @Test

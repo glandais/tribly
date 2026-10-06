@@ -36,6 +36,11 @@ export const DeviceListRoutesResponse = zod
                     elevationGain: zod.number().describe('Elevation gain in meters'),
                     startLat: zod.number().optional().describe('Start latitude'),
                     startLon: zod.number().optional().describe('Start longitude'),
+                    startDateTime: zod.iso
+                      .datetime({ offset: true })
+                      .describe(
+                        "When this entry leaves, as an absolute instant (UTC): the group's time read at the ride's departure point local time, on the ride's local date; the ride's own startDateTime for the ride-level route and for a group without a time. Devices render it in their own zone."
+                      ),
                   })
                   .describe('Route entry within a ride for device applications')
               )
