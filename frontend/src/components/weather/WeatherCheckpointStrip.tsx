@@ -102,7 +102,6 @@ function CheckpointCard({
                   color="var(--mantine-color-blue-text)"
                   role="img"
                   aria-label={t('rides.weather.precipitationLabel')}
-                  title={t('rides.weather.precipitationLabel')}
                 />
                 <Text size="xs" c="dimmed">
                   {t('rides.weather.percent', { value: weather.precipitationProbability })}

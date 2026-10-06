@@ -83,29 +83,13 @@ export function DepartureWeather({ departure, time, timezone }: DepartureWeather
           </Stat>
           {departure.sunrise && (
             <Stat
-              icon={
-                <IconSunrise
-                  size={16}
-                  role="img"
-                  aria-label={t('rides.weather.sunrise')}
-                  title={t('rides.weather.sunrise')}
-                />
-              }
+              icon={<IconSunrise size={16} role="img" aria-label={t('rides.weather.sunrise')} />}
             >
               <FormattedTime date={departure.sunrise} />
             </Stat>
           )}
           {departure.sunset && (
-            <Stat
-              icon={
-                <IconSunset
-                  size={16}
-                  role="img"
-                  aria-label={t('rides.weather.sunset')}
-                  title={t('rides.weather.sunset')}
-                />
-              }
-            >
+            <Stat icon={<IconSunset size={16} role="img" aria-label={t('rides.weather.sunset')} />}>
               <FormattedTime date={departure.sunset} />
             </Stat>
           )}

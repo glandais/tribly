@@ -22,7 +22,6 @@ export function WindArrow({ angle, relativeWind, label, size = 18 }: WindArrowPr
       stroke={2.5}
       role="img"
       aria-label={label}
-      title={label}
       color={`var(--mantine-color-${relativeWindColor(relativeWind)}-text)`}
       style={{ transform: `rotate(${windArrowRotation(angle)}deg)`, flexShrink: 0 }}
     />

@@ -118,7 +118,6 @@ export function RideWeatherSummaryLine({ summary, timezone }: RideWeatherSummary
           color="var(--mantine-color-dimmed)"
           role="img"
           aria-label={t('rides.weather.stale')}
-          title={t('rides.weather.stale')}
         />
       )}
     </Group>
