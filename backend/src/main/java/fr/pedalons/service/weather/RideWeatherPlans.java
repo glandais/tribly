@@ -196,7 +196,7 @@ public class RideWeatherPlans {
     return routes;
   }
 
-  private @Nullable RouteSamples samples(@Nullable Route route, Map<Long, List<Long>> trackIds) {
+  @Nullable RouteSamples samples(@Nullable Route route, Map<Long, List<Long>> trackIds) {
     if (route == null) {
       return null;
     }
@@ -208,7 +208,7 @@ public class RideWeatherPlans {
     return samples.isEmpty() ? null : samples;
   }
 
-  private static @Nullable Route live(@Nullable Route route) {
+  static @Nullable Route live(@Nullable Route route) {
     return route == null || route.isDeleted() ? null : route;
   }
 

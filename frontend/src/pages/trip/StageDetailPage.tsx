@@ -29,6 +29,8 @@ import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { ShareButton } from '../../components/common/ShareButton'
 import { CommentSection } from '../../components/comment'
 import { STATUS_COLORS } from '@/lib/badgeColors.generated'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { StageWeatherSection } from '@/components/weather'
 
 export function StageDetailPage() {
   const { t } = useTranslation()
@@ -45,6 +47,7 @@ export function StageDetailPage() {
     trip: { data: trip, isLoading: isLoadingTrip, error, refetch },
     route: { data: route, isLoading: isLoadingRoute },
     routeSlug,
+    weather,
   } = useStageDetailData(teamSlug, tripSlug, stageSlug)
 
   // Find stage (derived from the trip already in cache)
@@ -221,6 +224,18 @@ export function StageDetailPage() {
               </Stack>
             )}
           </Paper>
+
+          {/* Weather along the stage's route, its own state (docs/LEDGER_*.md API-76) */}
+          <ErrorBoundary variant="inline">
+            <StageWeatherSection
+              weather={weather.data}
+              stageId={stage.id}
+              isLoading={weather.isLoading}
+              isFetching={weather.isFetching}
+              onRetry={() => void weather.refetch()}
+              canEdit={canEdit}
+            />
+          </ErrorBoundary>
 
           {/* Route details */}
           {route && (

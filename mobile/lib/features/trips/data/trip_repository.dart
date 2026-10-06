@@ -16,6 +16,14 @@ class TripRepository {
     return _tripsClient.getTrip(teamSlug: teamSlug, tripSlug: tripSlug);
   }
 
+  /// La météo du voyage, étape par étape. Toujours 200 pour qui peut lire
+  /// le voyage : l'état est dans `TripWeatherDto.status` et, pour chaque
+  /// étape, dans `leg.status`. Le serveur ne lit que son cache : l'appel est
+  /// bon marché, et le recharger ne « force » aucune prévision.
+  Future<TripWeatherDto> getTripWeather(String teamSlug, String tripSlug) {
+    return _tripsClient.getTripWeather(teamSlug: teamSlug, tripSlug: tripSlug);
+  }
+
   Future<TripParticipationDto> joinTrip(String teamSlug, String tripSlug) {
     return _tripsClient.joinTrip(teamSlug: teamSlug, tripSlug: tripSlug);
   }

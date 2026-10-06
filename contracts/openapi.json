@@ -4718,7 +4718,7 @@
       },
       "RideWeatherSummaryDto" : {
         "type" : "object",
-        "description" : "A ride's weather on a card, at the meeting point, over the window from the departure to the estimated arrival of the last group. Only OK, STALE and NOT_YET_AVAILABLE are ever sent; for NOT_YET_AVAILABLE only status and availableFrom are set.",
+        "description" : "A ride's weather on a card, at the meeting point, over the window from the departure to the estimated arrival of the last group — or a trip stage's, over its checkpoints. Only OK, STALE and NOT_YET_AVAILABLE are ever sent; for NOT_YET_AVAILABLE only status and availableFrom are set.",
         "required" : [ "status" ],
         "properties" : {
           "status" : {
@@ -4771,7 +4771,7 @@
             "$ref" : "#/components/schemas/WindDto"
           },
           "rainAlert" : {
-            "description" : "The first hour of the window with rain likely (50 % or more); its distance is always absent here",
+            "description" : "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)",
             "type" : "object",
             "$ref" : "#/components/schemas/WeatherRainAlertDto"
           }
@@ -6640,6 +6640,61 @@
           }
         }
       },
+      "TripStageWeatherDto" : {
+        "description" : "One stage of a trip: its weather in one line, and along its route",
+        "type" : "object",
+        "properties" : {
+          "stageId" : {
+            "type" : "string",
+            "description" : "The stage (TSID), as TripStageDto.id. Absent for the single leg of a trip without stages, which rides the trip's own route at its own time."
+          },
+          "summary" : {
+            "description" : "The stage's weather in one line, for its card: the first checkpoint's hour, the extremes over the checkpoints, the rain alert. Present when leg.status is OK, STALE or NOT_YET_AVAILABLE (then status and availableFrom only).",
+            "type" : "object",
+            "$ref" : "#/components/schemas/RideWeatherSummaryDto"
+          },
+          "leg" : {
+            "description" : "The stage's route, at its estimated passages (stage speed, else 25 km/h)",
+            "type" : "object",
+            "$ref" : "#/components/schemas/WeatherLegDto"
+          }
+        },
+        "required" : [ "leg" ]
+      },
+      "TripWeatherDto" : {
+        "description" : "A trip's weather, stage by stage: each stage's route at its estimated passages. Read from the server's cache only — the forecast is refreshed in the background, never on request.",
+        "type" : "object",
+        "required" : [ "status", "stages", "attribution" ],
+        "properties" : {
+          "status" : {
+            "description" : "Overall state, over the stages yet to leave. OK and STALE (shown, flagged as old) carry a forecast for at least one stage; NOT_YET_AVAILABLE (every stage with a route is beyond the horizon) comes with availableFrom; UNAVAILABLE (nothing in cache yet, or the provider failing) offers to retry; NO_LOCATION (no stage yet to leave has a route) is worth a word to the organisers only; OUT_OF_RANGE (finished, cancelled, draft) shows nothing. Each stage also has its own, in its leg.",
+            "type" : "string",
+            "$ref" : "#/components/schemas/WeatherStatus"
+          },
+          "availableFrom" : {
+            "description" : "For NOT_YET_AVAILABLE: when the first forecast opens, seven days before the first stage with a route leaves",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "fetchedAt" : {
+            "description" : "The oldest fetch among the forecasts read",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "stages" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TripStageWeatherDto"
+            },
+            "description" : "One per live stage, in stage order (as TripDto.stages), stages already gone included with leg.status OUT_OF_RANGE; a single one without stageId for a trip without stages. Empty when the trip is not published."
+          },
+          "attribution" : {
+            "description" : "The credit the forecast's licence asks for",
+            "type" : "object",
+            "$ref" : "#/components/schemas/WeatherAttributionDto"
+          }
+        }
+      },
       "UnitSystem" : {
         "type" : "string",
         "enum" : [ "METRIC", "IMPERIAL" ]
@@ -7140,16 +7195,21 @@
       },
       "WeatherLegDto" : {
         "type" : "object",
-        "description" : "The weather along one ridden route: a group of a ride (a stage of a trip, later). Passages are estimated from startTime at averageSpeed.",
+        "description" : "The weather along one ridden route: a group of a ride, or a stage of a trip. Passages are estimated from startTime at averageSpeed.",
         "properties" : {
           "groupId" : {
             "type" : "string",
-            "description" : "The ride group (TSID). Absent for a ride without groups: the leg rides the ride's own route."
+            "description" : "The ride group (TSID). Absent for a ride without groups — the leg rides the ride's own route — and for a trip's legs, which TripStageWeatherDto.stageId names."
           },
           "status" : {
-            "description" : "State of this leg's forecast. NO_LOCATION when the leg has no route to sample: then no checkpoint, no segment.",
+            "description" : "State of this leg's forecast. NO_LOCATION when the leg has no route to sample: then no checkpoint, no segment. NOT_YET_AVAILABLE when it leaves beyond the seven-day horizon: checkpoints and times without weather, and availableFrom. OUT_OF_RANGE for a trip stage already gone: nothing to show.",
             "type" : "string",
             "$ref" : "#/components/schemas/WeatherStatus"
+          },
+          "availableFrom" : {
+            "description" : "For NOT_YET_AVAILABLE: when this leg's forecast opens, seven days before it leaves",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
           },
           "startTime" : {
             "description" : "When the leg leaves",
@@ -7163,7 +7223,7 @@
           },
           "speedIsDefault" : {
             "type" : "boolean",
-            "description" : "Whether averageSpeed is the 25 km/h default, the group having none — to be said on screen"
+            "description" : "Whether averageSpeed is the 25 km/h default, the group or stage having none — to be said on screen"
           },
           "distance" : {
             "type" : "number",
@@ -21883,6 +21943,56 @@
         } ]
       }
     },
+    "/api/teams/{teamSlug}/trips/{tripSlug}/weather" : {
+      "get" : {
+        "summary" : "Get trip weather",
+        "description" : "The forecast for the trip, stage by stage: along each stage's route at its estimated passages (stage speed, else 25 km/h), each stage with its own state. Read from the server's cache only — the forecast is refreshed in the background, never on request. Readable by whoever may read the trip, and then always 200: the state is in status. Cache-Control: private, no-cache with an ETag (revalidate with If-None-Match, 304 when unchanged); no-store when status is UNAVAILABLE.",
+        "operationId" : "getTripWeather",
+        "tags" : [ "Trips" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Trip URL slug",
+          "name" : "tripSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Trip weather, in whatever state it is",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TripWeatherDto"
+                }
+              }
+            }
+          },
+          "304" : {
+            "description" : "Unchanged since the ETag sent"
+          },
+          "404" : {
+            "description" : "Team or trip not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/teams/{teamSlug}/webhook" : {
       "put" : {
         "summary" : "Create or change the team's webhook",
@@ -23065,7 +23175,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.10.0",
+    "version" : "10.11.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

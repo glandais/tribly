@@ -12,6 +12,7 @@ import {
   getGetTripQueryKey,
 } from '../../api/endpoints/trips/trips'
 import { invalidateTeamPublications } from '@/lib/teamDashboardCache'
+import { invalidateTripWeather } from '@/pages/trip/tripDetailData'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
 import { TripRequest } from '@/api/dto'
@@ -55,6 +56,7 @@ export function EditTripPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          void invalidateTripWeather(queryClient, teamSlug!, tripSlug!)
           invalidateTeamPublications(queryClient, teamSlug!)
           notifications.show({ message: i18next.t('trips.notifications.updated'), color: 'green' })
           navigate(paths.trip(teamSlug!, tripSlug!))
@@ -70,6 +72,7 @@ export function EditTripPage() {
         onSuccess: (updatedTrip) => {
           invalidateTeamPublications(queryClient, teamSlug!)
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          void invalidateTripWeather(queryClient, teamSlug!, tripSlug!)
           navigate(paths.tripEdit(teamSlug!, updatedTrip.slug), { replace: true })
         },
       }

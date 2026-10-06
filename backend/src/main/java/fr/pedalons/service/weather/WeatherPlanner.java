@@ -2,14 +2,18 @@ package fr.pedalons.service.weather;
 
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.repository.ride.RideRepository;
+import fr.pedalons.repository.trip.TripRepository;
+import fr.pedalons.repository.trip.TripStageRepository;
 import fr.pedalons.repository.weather.WeatherCellRepository;
 import fr.pedalons.service.weather.RideWeatherCalculator.LegInput;
 import fr.pedalons.service.weather.RideWeatherPlans.RidePlan;
+import fr.pedalons.service.weather.TripWeatherPlans.StagePlan;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +26,8 @@ import org.jboss.logging.Logger;
  * the read side shows ({@code RideWeatherService#isOutOfRange}: a ride already gone is {@code
  * OUT_OF_RANGE}), so no cell is fetched for a forecast nobody can see:
  * their departure cell and the cell of each forecast point of each group, with the passage nearest
- * to now. Each cell is upserted with that demand ({@code WeatherCellRepository#upsertDemand}); the
+ * to now. The same for the trip stages leaving in that window, and the trips without stages: the
+ * cell of each forecast point of their leg ({@link TripWeatherPlans}). Each cell is upserted with that demand ({@code WeatherCellRepository#upsertDemand}); the
  * refresh interval follows from it ({@link WeatherRefreshPolicy}). Deterministic in the rides and
  * the clock, so a tick replayed — or run by both backends of a rolling deploy — writes the same
  * rows.
@@ -36,6 +41,9 @@ public class WeatherPlanner {
 
   @Inject RideRepository rideRepository;
   @Inject RideWeatherPlans plans;
+  @Inject TripStageRepository tripStageRepository;
+  @Inject TripRepository tripRepository;
+  @Inject TripWeatherPlans tripPlans;
   @Inject WeatherCellRepository cellRepository;
   @Inject WeatherFetchWorker fetchWorker;
 
@@ -55,8 +63,12 @@ public class WeatherPlanner {
   /** One planning pass. Public for the tests, which run with the scheduler off. */
   @Transactional
   public int plan(Instant now) {
-    List<Ride> rides = rideRepository.findForWeather(now, now.plus(RideWeatherCalculator.HORIZON));
-    Map<CellKey, Instant> demand = demand(plans.plans(rides), now);
+    Instant until = now.plus(RideWeatherCalculator.HORIZON);
+    List<Ride> rides = rideRepository.findForWeather(now, until);
+    List<StagePlan> stages =
+        new ArrayList<>(tripPlans.stagePlans(tripStageRepository.findForWeather(now, until)));
+    stages.addAll(tripPlans.tripPlans(tripRepository.findStagelessForWeather(now, until)));
+    Map<CellKey, Instant> demand = demand(plans.plans(rides), stages, now);
     for (Map.Entry<CellKey, Instant> entry : demand.entrySet()) {
       CellKey key = entry.getKey();
       Instant need = entry.getValue();
@@ -78,23 +90,35 @@ public class WeatherPlanner {
    * departure) counts as {@code now}: its cells want the shortest interval.
    */
   static Map<CellKey, Instant> demand(List<RidePlan> plans, Instant now) {
+    return demand(plans, List.of(), now);
+  }
+
+  /** The same, with the legs of trip stages on top of the rides. */
+  static Map<CellKey, Instant> demand(List<RidePlan> plans, List<StagePlan> stages, Instant now) {
     Map<CellKey, Instant> demand = new HashMap<>();
     for (RidePlan plan : plans) {
       if (plan.departure() != null) {
         need(demand, plan.departure().cell(), plan.departureTime(), now);
       }
       for (LegInput leg : plan.legs()) {
-        if (leg.samples() == null) {
-          continue;
-        }
-        for (RouteSamples.Sample sample : leg.samples().samples()) {
-          Instant passage =
-              RideWeatherCalculator.passage(leg.start(), sample.distance(), leg.speed().kmh());
-          need(demand, sample.cell(), passage, now);
-        }
+        need(demand, leg, now);
       }
     }
+    for (StagePlan stage : stages) {
+      need(demand, stage.leg(), now);
+    }
     return demand;
+  }
+
+  private static void need(Map<CellKey, Instant> demand, LegInput leg, Instant now) {
+    if (leg.samples() == null) {
+      return;
+    }
+    for (RouteSamples.Sample sample : leg.samples().samples()) {
+      Instant passage =
+          RideWeatherCalculator.passage(leg.start(), sample.distance(), leg.speed().kmh());
+      need(demand, sample.cell(), passage, now);
+    }
   }
 
   private static void need(

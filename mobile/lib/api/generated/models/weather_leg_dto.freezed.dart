@@ -16,17 +16,18 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WeatherLegDto {
 
-/// State of this leg's forecast. NO_LOCATION when the leg has no route to sample: then no checkpoint, no segment.
+/// State of this leg's forecast. NO_LOCATION when the leg has no route to sample: then no checkpoint, no segment. NOT_YET_AVAILABLE when it leaves beyond the seven-day horizon: checkpoints and times without weather, and availableFrom. OUT_OF_RANGE for a trip stage already gone: nothing to show.
  String get status;/// When the leg leaves
  String get startTime;/// Speed used for the passages, km/h
- double get averageSpeed;/// Whether averageSpeed is the 25 km/h default, the group having none — to be said on screen
+ double get averageSpeed;/// Whether averageSpeed is the 25 km/h default, the group or stage having none — to be said on screen
  bool get speedIsDefault;/// Length of the leg's route, metres
  double get distance;/// Estimated arrival
  String get arrivalTime;/// Forecast points, start to finish
  List<WeatherCheckpointDto> get checkpoints;/// The wind stretch by stretch, from one checkpoint to the next
  List<WindSegmentDto> get segments;/// Distance ridden against, across and with the wind
- WindExposureDto get windExposure;/// The ride group (TSID). Absent for a ride without groups: the leg rides the ride's own route.
- String? get groupId;/// The oldest fetch among the forecasts this leg reads
+ WindExposureDto get windExposure;/// The ride group (TSID). Absent for a ride without groups — the leg rides the ride's own route — and for a trip's legs, which TripStageWeatherDto.stageId names.
+ String? get groupId;/// For NOT_YET_AVAILABLE: when this leg's forecast opens, seven days before it leaves
+ String? get availableFrom;/// The oldest fetch among the forecasts this leg reads
  String? get fetchedAt;/// The leg's dominant wind: circular mean of the directions, mean speed, highest gust
  WindDto? get prevailingWind;/// The first checkpoint where rain becomes likely, if any
  WeatherRainAlertDto? get rainAlert;
@@ -43,20 +44,20 @@ $WeatherLegDtoCopyWith<WeatherLegDto> get copyWith => _$WeatherLegDtoCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as WeatherLegDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WeatherLegDto&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.startTime, _this.startTime) || other.startTime == _this.startTime)&&(identical(other.averageSpeed, _this.averageSpeed) || other.averageSpeed == _this.averageSpeed)&&(identical(other.speedIsDefault, _this.speedIsDefault) || other.speedIsDefault == _this.speedIsDefault)&&(identical(other.distance, _this.distance) || other.distance == _this.distance)&&(identical(other.arrivalTime, _this.arrivalTime) || other.arrivalTime == _this.arrivalTime)&&const DeepCollectionEquality().equals(other.checkpoints, _this.checkpoints)&&const DeepCollectionEquality().equals(other.segments, _this.segments)&&(identical(other.windExposure, _this.windExposure) || other.windExposure == _this.windExposure)&&(identical(other.groupId, _this.groupId) || other.groupId == _this.groupId)&&(identical(other.fetchedAt, _this.fetchedAt) || other.fetchedAt == _this.fetchedAt)&&(identical(other.prevailingWind, _this.prevailingWind) || other.prevailingWind == _this.prevailingWind)&&(identical(other.rainAlert, _this.rainAlert) || other.rainAlert == _this.rainAlert));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WeatherLegDto&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.startTime, _this.startTime) || other.startTime == _this.startTime)&&(identical(other.averageSpeed, _this.averageSpeed) || other.averageSpeed == _this.averageSpeed)&&(identical(other.speedIsDefault, _this.speedIsDefault) || other.speedIsDefault == _this.speedIsDefault)&&(identical(other.distance, _this.distance) || other.distance == _this.distance)&&(identical(other.arrivalTime, _this.arrivalTime) || other.arrivalTime == _this.arrivalTime)&&const DeepCollectionEquality().equals(other.checkpoints, _this.checkpoints)&&const DeepCollectionEquality().equals(other.segments, _this.segments)&&(identical(other.windExposure, _this.windExposure) || other.windExposure == _this.windExposure)&&(identical(other.groupId, _this.groupId) || other.groupId == _this.groupId)&&(identical(other.availableFrom, _this.availableFrom) || other.availableFrom == _this.availableFrom)&&(identical(other.fetchedAt, _this.fetchedAt) || other.fetchedAt == _this.fetchedAt)&&(identical(other.prevailingWind, _this.prevailingWind) || other.prevailingWind == _this.prevailingWind)&&(identical(other.rainAlert, _this.rainAlert) || other.rainAlert == _this.rainAlert));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as WeatherLegDto;
-  return Object.hash(runtimeType,_this.status,_this.startTime,_this.averageSpeed,_this.speedIsDefault,_this.distance,_this.arrivalTime,const DeepCollectionEquality().hash(_this.checkpoints),const DeepCollectionEquality().hash(_this.segments),_this.windExposure,_this.groupId,_this.fetchedAt,_this.prevailingWind,_this.rainAlert);
+  return Object.hash(runtimeType,_this.status,_this.startTime,_this.averageSpeed,_this.speedIsDefault,_this.distance,_this.arrivalTime,const DeepCollectionEquality().hash(_this.checkpoints),const DeepCollectionEquality().hash(_this.segments),_this.windExposure,_this.groupId,_this.availableFrom,_this.fetchedAt,_this.prevailingWind,_this.rainAlert);
 }
 
 @override
 String toString() {
   final _this = this as WeatherLegDto;
-  return 'WeatherLegDto(status: ${_this.status}, startTime: ${_this.startTime}, averageSpeed: ${_this.averageSpeed}, speedIsDefault: ${_this.speedIsDefault}, distance: ${_this.distance}, arrivalTime: ${_this.arrivalTime}, checkpoints: ${_this.checkpoints}, segments: ${_this.segments}, windExposure: ${_this.windExposure}, groupId: ${_this.groupId}, fetchedAt: ${_this.fetchedAt}, prevailingWind: ${_this.prevailingWind}, rainAlert: ${_this.rainAlert})';
+  return 'WeatherLegDto(status: ${_this.status}, startTime: ${_this.startTime}, averageSpeed: ${_this.averageSpeed}, speedIsDefault: ${_this.speedIsDefault}, distance: ${_this.distance}, arrivalTime: ${_this.arrivalTime}, checkpoints: ${_this.checkpoints}, segments: ${_this.segments}, windExposure: ${_this.windExposure}, groupId: ${_this.groupId}, availableFrom: ${_this.availableFrom}, fetchedAt: ${_this.fetchedAt}, prevailingWind: ${_this.prevailingWind}, rainAlert: ${_this.rainAlert})';
 }
 
 
@@ -67,7 +68,7 @@ abstract mixin class $WeatherLegDtoCopyWith<$Res>  {
   factory $WeatherLegDtoCopyWith(WeatherLegDto value, $Res Function(WeatherLegDto) _then) = _$WeatherLegDtoCopyWithImpl;
 @useResult
 $Res call({
- String status, String startTime, double averageSpeed, bool speedIsDefault, double distance, String arrivalTime, List<WeatherCheckpointDto> checkpoints, List<WindSegmentDto> segments, WindExposureDto windExposure, String? groupId, String? fetchedAt, WindDto? prevailingWind, WeatherRainAlertDto? rainAlert
+ String status, String startTime, double averageSpeed, bool speedIsDefault, double distance, String arrivalTime, List<WeatherCheckpointDto> checkpoints, List<WindSegmentDto> segments, WindExposureDto windExposure, String? groupId, String? availableFrom, String? fetchedAt, WindDto? prevailingWind, WeatherRainAlertDto? rainAlert
 });
 
 
@@ -84,7 +85,7 @@ class _$WeatherLegDtoCopyWithImpl<$Res>
 
 /// Create a copy of WeatherLegDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? startTime = null,Object? averageSpeed = null,Object? speedIsDefault = null,Object? distance = null,Object? arrivalTime = null,Object? checkpoints = null,Object? segments = null,Object? windExposure = null,Object? groupId = freezed,Object? fetchedAt = freezed,Object? prevailingWind = freezed,Object? rainAlert = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? startTime = null,Object? averageSpeed = null,Object? speedIsDefault = null,Object? distance = null,Object? arrivalTime = null,Object? checkpoints = null,Object? segments = null,Object? windExposure = null,Object? groupId = freezed,Object? availableFrom = freezed,Object? fetchedAt = freezed,Object? prevailingWind = freezed,Object? rainAlert = freezed,}) {
   return _then(WeatherLegDto(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
@@ -96,6 +97,7 @@ as String,checkpoints: null == checkpoints ? _self.checkpoints : checkpoints // 
 as List<WeatherCheckpointDto>,segments: null == segments ? _self.segments : segments // ignore: cast_nullable_to_non_nullable
 as List<WindSegmentDto>,windExposure: null == windExposure ? _self.windExposure : windExposure // ignore: cast_nullable_to_non_nullable
 as WindExposureDto,groupId: freezed == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
+as String?,availableFrom: freezed == availableFrom ? _self.availableFrom : availableFrom // ignore: cast_nullable_to_non_nullable
 as String?,fetchedAt: freezed == fetchedAt ? _self.fetchedAt : fetchedAt // ignore: cast_nullable_to_non_nullable
 as String?,prevailingWind: freezed == prevailingWind ? _self.prevailingWind : prevailingWind // ignore: cast_nullable_to_non_nullable
 as WindDto?,rainAlert: freezed == rainAlert ? _self.rainAlert : rainAlert // ignore: cast_nullable_to_non_nullable
@@ -217,10 +219,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String status,  String startTime,  double averageSpeed,  bool speedIsDefault,  double distance,  String arrivalTime,  List<WeatherCheckpointDto> checkpoints,  List<WindSegmentDto> segments,  WindExposureDto windExposure,  String? groupId,  String? fetchedAt,  WindDto? prevailingWind,  WeatherRainAlertDto? rainAlert)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String status,  String startTime,  double averageSpeed,  bool speedIsDefault,  double distance,  String arrivalTime,  List<WeatherCheckpointDto> checkpoints,  List<WindSegmentDto> segments,  WindExposureDto windExposure,  String? groupId,  String? availableFrom,  String? fetchedAt,  WindDto? prevailingWind,  WeatherRainAlertDto? rainAlert)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WeatherLegDto() when $default != null:
-return $default(_that.status,_that.startTime,_that.averageSpeed,_that.speedIsDefault,_that.distance,_that.arrivalTime,_that.checkpoints,_that.segments,_that.windExposure,_that.groupId,_that.fetchedAt,_that.prevailingWind,_that.rainAlert);case _:
+return $default(_that.status,_that.startTime,_that.averageSpeed,_that.speedIsDefault,_that.distance,_that.arrivalTime,_that.checkpoints,_that.segments,_that.windExposure,_that.groupId,_that.availableFrom,_that.fetchedAt,_that.prevailingWind,_that.rainAlert);case _:
   return orElse();
 
 }
@@ -238,10 +240,10 @@ return $default(_that.status,_that.startTime,_that.averageSpeed,_that.speedIsDef
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String status,  String startTime,  double averageSpeed,  bool speedIsDefault,  double distance,  String arrivalTime,  List<WeatherCheckpointDto> checkpoints,  List<WindSegmentDto> segments,  WindExposureDto windExposure,  String? groupId,  String? fetchedAt,  WindDto? prevailingWind,  WeatherRainAlertDto? rainAlert)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String status,  String startTime,  double averageSpeed,  bool speedIsDefault,  double distance,  String arrivalTime,  List<WeatherCheckpointDto> checkpoints,  List<WindSegmentDto> segments,  WindExposureDto windExposure,  String? groupId,  String? availableFrom,  String? fetchedAt,  WindDto? prevailingWind,  WeatherRainAlertDto? rainAlert)  $default,) {final _that = this;
 switch (_that) {
 case _WeatherLegDto():
-return $default(_that.status,_that.startTime,_that.averageSpeed,_that.speedIsDefault,_that.distance,_that.arrivalTime,_that.checkpoints,_that.segments,_that.windExposure,_that.groupId,_that.fetchedAt,_that.prevailingWind,_that.rainAlert);case _:
+return $default(_that.status,_that.startTime,_that.averageSpeed,_that.speedIsDefault,_that.distance,_that.arrivalTime,_that.checkpoints,_that.segments,_that.windExposure,_that.groupId,_that.availableFrom,_that.fetchedAt,_that.prevailingWind,_that.rainAlert);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -258,10 +260,10 @@ return $default(_that.status,_that.startTime,_that.averageSpeed,_that.speedIsDef
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String status,  String startTime,  double averageSpeed,  bool speedIsDefault,  double distance,  String arrivalTime,  List<WeatherCheckpointDto> checkpoints,  List<WindSegmentDto> segments,  WindExposureDto windExposure,  String? groupId,  String? fetchedAt,  WindDto? prevailingWind,  WeatherRainAlertDto? rainAlert)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String status,  String startTime,  double averageSpeed,  bool speedIsDefault,  double distance,  String arrivalTime,  List<WeatherCheckpointDto> checkpoints,  List<WindSegmentDto> segments,  WindExposureDto windExposure,  String? groupId,  String? availableFrom,  String? fetchedAt,  WindDto? prevailingWind,  WeatherRainAlertDto? rainAlert)?  $default,) {final _that = this;
 switch (_that) {
 case _WeatherLegDto() when $default != null:
-return $default(_that.status,_that.startTime,_that.averageSpeed,_that.speedIsDefault,_that.distance,_that.arrivalTime,_that.checkpoints,_that.segments,_that.windExposure,_that.groupId,_that.fetchedAt,_that.prevailingWind,_that.rainAlert);case _:
+return $default(_that.status,_that.startTime,_that.averageSpeed,_that.speedIsDefault,_that.distance,_that.arrivalTime,_that.checkpoints,_that.segments,_that.windExposure,_that.groupId,_that.availableFrom,_that.fetchedAt,_that.prevailingWind,_that.rainAlert);case _:
   return null;
 
 }
@@ -273,16 +275,16 @@ return $default(_that.status,_that.startTime,_that.averageSpeed,_that.speedIsDef
 @JsonSerializable()
 
 class _WeatherLegDto implements WeatherLegDto {
-  const _WeatherLegDto({required this.status, required this.startTime, required this.averageSpeed, required this.speedIsDefault, required this.distance, required this.arrivalTime, required  List<WeatherCheckpointDto> checkpoints, required  List<WindSegmentDto> segments, required this.windExposure, this.groupId, this.fetchedAt, this.prevailingWind, this.rainAlert}): _checkpoints = checkpoints,_segments = segments;
+  const _WeatherLegDto({required this.status, required this.startTime, required this.averageSpeed, required this.speedIsDefault, required this.distance, required this.arrivalTime, required  List<WeatherCheckpointDto> checkpoints, required  List<WindSegmentDto> segments, required this.windExposure, this.groupId, this.availableFrom, this.fetchedAt, this.prevailingWind, this.rainAlert}): _checkpoints = checkpoints,_segments = segments;
   factory _WeatherLegDto.fromJson(Map<String, dynamic> json) => _$WeatherLegDtoFromJson(json);
 
-/// State of this leg's forecast. NO_LOCATION when the leg has no route to sample: then no checkpoint, no segment.
+/// State of this leg's forecast. NO_LOCATION when the leg has no route to sample: then no checkpoint, no segment. NOT_YET_AVAILABLE when it leaves beyond the seven-day horizon: checkpoints and times without weather, and availableFrom. OUT_OF_RANGE for a trip stage already gone: nothing to show.
 @override final  String status;
 /// When the leg leaves
 @override final  String startTime;
 /// Speed used for the passages, km/h
 @override final  double averageSpeed;
-/// Whether averageSpeed is the 25 km/h default, the group having none — to be said on screen
+/// Whether averageSpeed is the 25 km/h default, the group or stage having none — to be said on screen
 @override final  bool speedIsDefault;
 /// Length of the leg's route, metres
 @override final  double distance;
@@ -308,8 +310,10 @@ class _WeatherLegDto implements WeatherLegDto {
 
 /// Distance ridden against, across and with the wind
 @override final  WindExposureDto windExposure;
-/// The ride group (TSID). Absent for a ride without groups: the leg rides the ride's own route.
+/// The ride group (TSID). Absent for a ride without groups — the leg rides the ride's own route — and for a trip's legs, which TripStageWeatherDto.stageId names.
 @override final  String? groupId;
+/// For NOT_YET_AVAILABLE: when this leg's forecast opens, seven days before it leaves
+@override final  String? availableFrom;
 /// The oldest fetch among the forecasts this leg reads
 @override final  String? fetchedAt;
 /// The leg's dominant wind: circular mean of the directions, mean speed, highest gust
@@ -330,18 +334,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WeatherLegDto&&(identical(other.status, status) || other.status == status)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.speedIsDefault, speedIsDefault) || other.speedIsDefault == speedIsDefault)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.arrivalTime, arrivalTime) || other.arrivalTime == arrivalTime)&&const DeepCollectionEquality().equals(other.checkpoints, _checkpoints)&&const DeepCollectionEquality().equals(other.segments, _segments)&&(identical(other.windExposure, windExposure) || other.windExposure == windExposure)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.fetchedAt, fetchedAt) || other.fetchedAt == fetchedAt)&&(identical(other.prevailingWind, prevailingWind) || other.prevailingWind == prevailingWind)&&(identical(other.rainAlert, rainAlert) || other.rainAlert == rainAlert));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WeatherLegDto&&(identical(other.status, status) || other.status == status)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.speedIsDefault, speedIsDefault) || other.speedIsDefault == speedIsDefault)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.arrivalTime, arrivalTime) || other.arrivalTime == arrivalTime)&&const DeepCollectionEquality().equals(other.checkpoints, _checkpoints)&&const DeepCollectionEquality().equals(other.segments, _segments)&&(identical(other.windExposure, windExposure) || other.windExposure == windExposure)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.availableFrom, availableFrom) || other.availableFrom == availableFrom)&&(identical(other.fetchedAt, fetchedAt) || other.fetchedAt == fetchedAt)&&(identical(other.prevailingWind, prevailingWind) || other.prevailingWind == prevailingWind)&&(identical(other.rainAlert, rainAlert) || other.rainAlert == rainAlert));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,status,startTime,averageSpeed,speedIsDefault,distance,arrivalTime,const DeepCollectionEquality().hash(_checkpoints),const DeepCollectionEquality().hash(_segments),windExposure,groupId,fetchedAt,prevailingWind,rainAlert);
+    return Object.hash(runtimeType,status,startTime,averageSpeed,speedIsDefault,distance,arrivalTime,const DeepCollectionEquality().hash(_checkpoints),const DeepCollectionEquality().hash(_segments),windExposure,groupId,availableFrom,fetchedAt,prevailingWind,rainAlert);
 }
 
 @override
 String toString() {
-    return 'WeatherLegDto(status: $status, startTime: $startTime, averageSpeed: $averageSpeed, speedIsDefault: $speedIsDefault, distance: $distance, arrivalTime: $arrivalTime, checkpoints: $checkpoints, segments: $segments, windExposure: $windExposure, groupId: $groupId, fetchedAt: $fetchedAt, prevailingWind: $prevailingWind, rainAlert: $rainAlert)';
+    return 'WeatherLegDto(status: $status, startTime: $startTime, averageSpeed: $averageSpeed, speedIsDefault: $speedIsDefault, distance: $distance, arrivalTime: $arrivalTime, checkpoints: $checkpoints, segments: $segments, windExposure: $windExposure, groupId: $groupId, availableFrom: $availableFrom, fetchedAt: $fetchedAt, prevailingWind: $prevailingWind, rainAlert: $rainAlert)';
 }
 
 
@@ -352,7 +356,7 @@ abstract mixin class _$WeatherLegDtoCopyWith<$Res> implements $WeatherLegDtoCopy
   factory _$WeatherLegDtoCopyWith(_WeatherLegDto value, $Res Function(_WeatherLegDto) _then) = __$WeatherLegDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String status, String startTime, double averageSpeed, bool speedIsDefault, double distance, String arrivalTime, List<WeatherCheckpointDto> checkpoints, List<WindSegmentDto> segments, WindExposureDto windExposure, String? groupId, String? fetchedAt, WindDto? prevailingWind, WeatherRainAlertDto? rainAlert
+ String status, String startTime, double averageSpeed, bool speedIsDefault, double distance, String arrivalTime, List<WeatherCheckpointDto> checkpoints, List<WindSegmentDto> segments, WindExposureDto windExposure, String? groupId, String? availableFrom, String? fetchedAt, WindDto? prevailingWind, WeatherRainAlertDto? rainAlert
 });
 
 
@@ -369,7 +373,7 @@ class __$WeatherLegDtoCopyWithImpl<$Res>
 
 /// Create a copy of WeatherLegDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? startTime = null,Object? averageSpeed = null,Object? speedIsDefault = null,Object? distance = null,Object? arrivalTime = null,Object? checkpoints = null,Object? segments = null,Object? windExposure = null,Object? groupId = freezed,Object? fetchedAt = freezed,Object? prevailingWind = freezed,Object? rainAlert = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? startTime = null,Object? averageSpeed = null,Object? speedIsDefault = null,Object? distance = null,Object? arrivalTime = null,Object? checkpoints = null,Object? segments = null,Object? windExposure = null,Object? groupId = freezed,Object? availableFrom = freezed,Object? fetchedAt = freezed,Object? prevailingWind = freezed,Object? rainAlert = freezed,}) {
   return _then(_WeatherLegDto(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
@@ -381,6 +385,7 @@ as String,checkpoints: null == checkpoints ? _self._checkpoints : checkpoints //
 as List<WeatherCheckpointDto>,segments: null == segments ? _self._segments : segments // ignore: cast_nullable_to_non_nullable
 as List<WindSegmentDto>,windExposure: null == windExposure ? _self.windExposure : windExposure // ignore: cast_nullable_to_non_nullable
 as WindExposureDto,groupId: freezed == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
+as String?,availableFrom: freezed == availableFrom ? _self.availableFrom : availableFrom // ignore: cast_nullable_to_non_nullable
 as String?,fetchedAt: freezed == fetchedAt ? _self.fetchedAt : fetchedAt // ignore: cast_nullable_to_non_nullable
 as String?,prevailingWind: freezed == prevailingWind ? _self.prevailingWind : prevailingWind // ignore: cast_nullable_to_non_nullable
 as WindDto?,rainAlert: freezed == rainAlert ? _self.rainAlert : rainAlert // ignore: cast_nullable_to_non_nullable

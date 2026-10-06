@@ -4,6 +4,7 @@ import static org.geolatte.geom.builder.DSL.g;
 import static org.geolatte.geom.builder.DSL.point;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,12 +17,15 @@ import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.route.GpxTrack.TrackPoint;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.team.Team;
+import fr.pedalons.domain.trip.Trip;
+import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.domain.weather.WeatherCell;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.Visibility;
 import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.ride.RideRepository;
+import fr.pedalons.repository.trip.TripStageRepository;
 import fr.pedalons.repository.weather.WeatherCellRepository;
 import fr.pedalons.service.security.DomainResolver;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -54,6 +58,7 @@ class WeatherPlannerTest extends AbstractResourceTest {
   @Inject RideRepository rideRepository;
   @Inject PlaceRepository placeRepository;
   @Inject DomainResolver domainResolver;
+  @Inject TripStageRepository tripStageRepository;
 
   /** A second tenant: its own domain, user and team. */
   private Domain otherDomain;
@@ -195,6 +200,51 @@ class WeatherPlannerTest extends AbstractResourceTest {
     for (int i = 1; i < rides.size(); i++) {
       assertNull(cell(CellKey.of(44.0 + i * 0.1, 4.0)), rides.get(i).getSlug());
     }
+  }
+
+  /** The cells of a stage leaving tomorrow along 30 km due north of ({@code lat}, 4.0). */
+  private TripStage routedStage(Trip trip, String name, double lat, Instant dateTime) {
+    TripStage stage = dataService.createTripStage(user1, trip, name, 0);
+    Route route =
+        dataService.createRouteWithTracks(
+            team1,
+            user1,
+            "Route " + name,
+            Visibility.PUBLIC,
+            List.of(WeatherTestFixtures.northbound(lat, 4.0, 30, 170)));
+    dataService.setTripStageRoute(stage, route);
+    QuarkusTransaction.requiringNew()
+        .run(() -> tripStageRepository.findById(stage.getId()).setDateTime(dateTime));
+    return stage;
+  }
+
+  private boolean plannedAround(double lat) {
+    int latIdx = CellKey.of(lat, 4.0).latIdx();
+    return cells().stream().anyMatch(c -> c.getLatIdx() == latIdx);
+  }
+
+  /** docs/LEDGER_*.md API-76: a trip's stages are planned as rides are, stage by stage. */
+  @Test
+  void plan_shouldPlanTheStagesOfPublishedTripsLeavingInTheWindow() {
+    Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+    Instant tomorrow = now.plus(Duration.ofDays(1));
+    Trip published =
+        dataService.createTrip(
+            team1, user1, "Published trip", now, Visibility.PUBLIC, Status.PUBLISHED, null);
+    Trip draft =
+        dataService.createTrip(
+            team1, user1, "Draft trip", now, Visibility.PUBLIC, Status.DRAFT, null);
+    routedStage(published, "Trip tomorrow", 44.0, tomorrow);
+    routedStage(published, "Trip gone", 45.0, now.minus(Duration.ofHours(2)));
+    routedStage(published, "Trip too far", 46.0, now.plus(Duration.ofDays(8)));
+    routedStage(draft, "Draft tomorrow", 47.0, tomorrow);
+
+    assertTrue(planner.plan(now) > 0);
+
+    assertTrue(plannedAround(44.0), "the published stage leaving tomorrow");
+    assertFalse(plannedAround(45.0), "a stage already gone");
+    assertFalse(plannedAround(46.0), "a stage beyond the horizon");
+    assertFalse(plannedAround(47.0), "a stage of a draft trip");
   }
 
   @Test

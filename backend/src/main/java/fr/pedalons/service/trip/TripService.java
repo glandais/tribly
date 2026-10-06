@@ -1,5 +1,6 @@
 package fr.pedalons.service.trip;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.BusinessException;
 import fr.pedalons.common.exception.ConflictException;
@@ -19,12 +20,17 @@ import fr.pedalons.dto.trips.response.TripDto;
 import fr.pedalons.dto.trips.response.TripParticipationDto;
 import fr.pedalons.dto.users.response.ParticipantListResponse;
 import fr.pedalons.dto.users.response.PublicUserDto;
+import fr.pedalons.dto.weather.response.TripWeatherAnswer;
+import fr.pedalons.dto.weather.response.TripWeatherDto;
+import fr.pedalons.dto.weather.response.WeatherAttributionDto;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.enums.Visibility;
+import fr.pedalons.enums.WeatherStatus;
 import fr.pedalons.infrastructure.exception.*;
+import fr.pedalons.infrastructure.openmeteo.OpenMeteoGateway;
 import fr.pedalons.repository.common.BaseRepository;
 import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.trip.TripParticipationRepository;
@@ -40,6 +46,8 @@ import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.tag.TagLookup;
 import fr.pedalons.service.tag.TagService;
 import fr.pedalons.service.thumbnail.ThumbnailService;
+import fr.pedalons.service.weather.TripWeatherService;
+import fr.pedalons.service.weather.WeatherEtag;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -77,6 +85,10 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
   @Inject TagService tagService;
 
   @Inject TagLookup tagLookup;
+
+  @Inject TripWeatherService tripWeatherService;
+
+  @Inject ObjectMapper objectMapper;
 
   @Override
   protected TripRepository getRepository() {
@@ -154,6 +166,25 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
       throw new NotFoundException(EntityType.TRIP_STAGE, stageSlug);
     }
     return stage;
+  }
+
+  /**
+   * The trip's weather, stage by stage, read from the cache only: never a call to the provider,
+   * never a write — a web SSR may prefetch it like any read. Readable by whoever may read the trip;
+   * always an answer once it is readable, its state in {@code status} (docs/LEDGER_*.md API-76).
+   */
+  @CheckAccess(entityType = EntityType.TRIP, action = ActionType.READ)
+  public TripWeatherAnswer getWeather(String teamSlug, String tripSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    Trip trip = findBySlug(team, tripSlug);
+    TripWeatherDto body =
+        TripWeatherDto.from(
+            tripWeatherService.forTrip(trip),
+            new WeatherAttributionDto(
+                OpenMeteoGateway.ATTRIBUTION_NAME, OpenMeteoGateway.ATTRIBUTION_URL));
+    return new TripWeatherAnswer(
+        body,
+        body.status() == WeatherStatus.UNAVAILABLE ? null : WeatherEtag.of(objectMapper, body));
   }
 
   @CheckAccess(entityType = EntityType.TRIP, action = ActionType.READ)

@@ -311,7 +311,7 @@ public final class RideWeatherCalculator {
    * them, and what they add up to.
    *
    * <p>Status: {@code NO_LOCATION} without a route, {@code NOT_YET_AVAILABLE} when the leg leaves
-   * beyond the horizon (checkpoints and times, no weather), {@code UNAVAILABLE} when no checkpoint
+   * beyond the horizon (checkpoints and times, no weather, and {@code availableFrom}), {@code UNAVAILABLE} when no checkpoint
    * has weather, {@code STALE} when some lack it or a cell read is overdue, {@code OK} otherwise.
    */
   public static WeatherLeg leg(LegInput input, Function<CellKey, CellSeries> cache, Instant now) {
@@ -322,6 +322,7 @@ public final class RideWeatherCalculator {
       return new WeatherLeg(
           input.groupId(),
           WeatherStatus.NO_LOCATION,
+          null,
           start,
           speed.kmh(),
           speed.isDefault(),
@@ -424,6 +425,7 @@ public final class RideWeatherCalculator {
     return new WeatherLeg(
         input.groupId(),
         status,
+        beyondHorizon ? availableFrom(start) : null,
         start,
         speed.kmh(),
         speed.isDefault(),
@@ -526,6 +528,104 @@ public final class RideWeatherCalculator {
         maxProbability,
         start.wind(),
         rainAlert);
+  }
+
+  /**
+   * A trip as a whole, from the legs of its stages yet to leave. {@code NO_LOCATION} when none of
+   * them has a route; {@code NOT_YET_AVAILABLE} when every one that has is beyond the horizon, with
+   * the earliest {@code availableFrom}; otherwise as {@link #ride}: legs without a route or beyond
+   * the horizon do not count either way. {@code OUT_OF_RANGE} when no stage is left to leave.
+   */
+  public static TripWeather trip(List<TripWeather.StageLeg> stages, List<WeatherLeg> upcoming) {
+    if (upcoming.isEmpty()) {
+      return new TripWeather(WeatherStatus.OUT_OF_RANGE, null, null, List.copyOf(stages));
+    }
+    List<WeatherStatus> parts = new ArrayList<>();
+    Instant oldest = null;
+    Instant availableFrom = null;
+    for (WeatherLeg leg : upcoming) {
+      switch (leg.status()) {
+        case NO_LOCATION -> {}
+        case NOT_YET_AVAILABLE -> {
+          if (leg.availableFrom() != null
+              && (availableFrom == null || leg.availableFrom().isBefore(availableFrom))) {
+            availableFrom = leg.availableFrom();
+          }
+        }
+        default -> {
+          parts.add(leg.status());
+          if (leg.fetchedAt() != null && (oldest == null || leg.fetchedAt().isBefore(oldest))) {
+            oldest = leg.fetchedAt();
+          }
+        }
+      }
+    }
+    WeatherStatus status;
+    if (parts.isEmpty()) {
+      status = availableFrom == null ? WeatherStatus.NO_LOCATION : WeatherStatus.NOT_YET_AVAILABLE;
+    } else if (parts.stream().allMatch(s -> s == WeatherStatus.UNAVAILABLE)) {
+      status = WeatherStatus.UNAVAILABLE;
+    } else if (parts.stream().anyMatch(s -> s != WeatherStatus.OK)) {
+      status = WeatherStatus.STALE;
+    } else {
+      status = WeatherStatus.OK;
+    }
+    return new TripWeather(
+        status,
+        status == WeatherStatus.NOT_YET_AVAILABLE ? availableFrom : null,
+        oldest,
+        List.copyOf(stages));
+  }
+
+  /**
+   * A leg's weather in one line, for a stage's card: the hour of its first checkpoint read, the
+   * extremes over its checkpoints, its rain alert. {@code NOT_YET_AVAILABLE} carries {@code
+   * availableFrom} alone; null for any state with nothing to show, or when no checkpoint was read.
+   */
+  public static @Nullable RideWeatherSummary legSummary(WeatherLeg leg) {
+    if (leg.status() == WeatherStatus.NOT_YET_AVAILABLE) {
+      return leg.availableFrom() == null
+          ? null
+          : RideWeatherSummary.notYetAvailable(leg.availableFrom());
+    }
+    if (leg.status() != WeatherStatus.OK && leg.status() != WeatherStatus.STALE) {
+      return null;
+    }
+    WeatherConditions first = null;
+    double min = Double.POSITIVE_INFINITY;
+    double max = Double.NEGATIVE_INFINITY;
+    Integer maxProbability = null;
+    for (WeatherCheckpoint checkpoint : leg.checkpoints()) {
+      WeatherConditions weather = checkpoint.weather();
+      if (weather == null) {
+        continue;
+      }
+      if (first == null) {
+        first = weather;
+      }
+      min = Math.min(min, weather.temperature());
+      max = Math.max(max, weather.temperature());
+      Integer probability = weather.precipitationProbability();
+      if (probability != null) {
+        maxProbability =
+            maxProbability == null ? probability : Math.max(maxProbability, probability);
+      }
+    }
+    if (first == null) {
+      return null;
+    }
+    return new RideWeatherSummary(
+        leg.status(),
+        null,
+        first.weatherCode(),
+        first.condition(),
+        first.daylight(),
+        first.temperature(),
+        min,
+        max,
+        maxProbability,
+        first.wind(),
+        leg.rainAlert());
   }
 
   /** {@code rideDateTime} minus the horizon: when a ride further out gets its forecast. */

@@ -3,7 +3,8 @@ import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
 import { IconArrowsMaximize, IconArrowUp, IconCalendar, IconMapPin } from '@tabler/icons-react'
 import { Paper, Group, Text, UnstyledButton, Badge, Box } from '@mantine/core'
-import type { TripStageDto } from '@/api/dto'
+import type { RideWeatherSummaryDto, TripStageDto } from '@/api/dto'
+import { RideWeatherSummaryLine } from '@/components/weather'
 import { FormattedDateTime } from '../common/FormattedDate'
 import { useUnits } from '@/hooks/useUnits'
 import { MediaDisplay } from '../common/MediaDisplay'
@@ -18,6 +19,8 @@ interface TripStageCardProps {
   tripSlug: string
   onHover?: (stageId: string | null) => void
   isHighlighted?: boolean
+  /** The stage's weather line, from `GET …/trips/{tripSlug}/weather` (docs/LEDGER_*.md API-76). */
+  weather?: RideWeatherSummaryDto
 }
 
 export function TripStageCard({
@@ -27,6 +30,7 @@ export function TripStageCard({
   tripSlug,
   onHover,
   isHighlighted = false,
+  weather,
 }: TripStageCardProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
@@ -71,6 +75,12 @@ export function TripStageCard({
           </Text>
         </Group>
       </Group>
+
+      {weather && (
+        <Box mb="sm">
+          <RideWeatherSummaryLine summary={weather} />
+        </Box>
+      )}
 
       {stage.media.markdown && (
         <Box mb="sm">

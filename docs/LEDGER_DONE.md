@@ -395,6 +395,18 @@ couvert » ; les tests ne tournent qu'en local (`MOB-37`).
   aucune traduction dans `core/pdl`) ; les précipitations restent en mm même en impérial ; pas de
   teinte par condition (voir `WEB-60`). `RideCard`, d'avant la v2 et sans écran qui l'utilise, n'a
   pas reçu la ligne de résumé.
+- `MOB-57` **Météo des étapes de voyage au mobile** (6 octobre 2026, contrat `10.11.0`, `API-76`).
+  `TripRepository.getTripWeather` et `tripWeatherProvider` (`FutureProvider.autoDispose.family` par
+  `TripKey`). L'écran 24 apparie `stages[].summary` aux étapes par `stageId` et affiche
+  `RideWeatherSummaryLine` sur chaque `StageCard`. L'écran 25 montre `StageWeatherCard` sous le bloc
+  date et lieux (état propre de l'étape : badge ancien, date d'ouverture, « Réessayer »,
+  `NO_LOCATION` aux seuls organisateurs, rien pour `OUT_OF_RANGE`), qui pousse `StageWeatherPage`
+  (`Navigator.push`, le seul leg de l'étape, sans sélecteur de groupe ni bloc départ). Les sections
+  de `ride_weather_page.dart` sont sorties dans `weather_leg_sections.dart` et les cartes de
+  `ride_weather_card.dart` rendues génériques (`WeatherForecastCard`…), partagées par les deux.
+  Pull-to-refresh : le détail de voyage recharge aussi la météo ; l'écran 25 en a gagné un. Aucun
+  appel pour un voyage terminé ou annulé. Clés `trips.weather.*` (fr, en). Test :
+  `trip_weather_test.dart`. Un voyage sans étape (une entrée sans `stageId`) n'affiche rien.
 
 ---
 
@@ -1136,6 +1148,16 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   libellé et de la flèche ; le client ne calcule rien d'autre que l'affichage ; le bloc est masqué
   pour une sortie terminée ou annulée et pour un statut inconnu ; la requête part quand même (le
   serveur répond `OUT_OF_RANGE` sans rien lire), pour garder la clé du préfetch.
+- `WEB-67` **Météo des étapes de voyage au web** (6 octobre 2026, contrat `10.11.0`, `API-76`).
+  `useGetTripWeather` est lu (et préfetché en phase 1, `TRIP_WEATHER_REQUEST` sans toast) par
+  `useTripDetailData` et `useStageDetailData`. La page d'étape montre `StageWeatherSection` sous un
+  `ErrorBoundary variant="inline"`, entre l'en-tête et le parcours : l'état propre de l'étape
+  (badge `STALE`, date d'ouverture, « Réessayer », `NO_LOCATION` aux organisateurs seulement, rien
+  pour `OUT_OF_RANGE` ni un statut inconnu) puis `LegWeather` libellé pour une étape. Chaque
+  `TripStageCard` du détail de voyage porte `RideWeatherSummaryLine` nourrie par
+  `stages[].summary`. `LegWeather` et `WeatherAttribution` sont sortis de `RideWeatherSection` pour
+  être partagés. `invalidateTripWeather` suit chaque invalidation du voyage (statut, édition).
+  Clés `trips.weather.*` (fr, en). Test : `StageWeatherSection.test.tsx`.
 
 ---
 
@@ -1837,6 +1859,38 @@ lancés** (`API-75`) : purs — `CellKeyTest`, `RouteSampleLookupTest`, `RideWea
   l'arrivée est omis. À rouvrir ensemble si la lecture sert un jour les sorties en cours.
 - Sur échec, rien n'est supprimé : on sert le cache périmé (`STALE` au-delà de deux intervalles de
   rafraîchissement).
+
+### `API-76` Météo des voyages, étape par étape : `getTripWeather` (contrat `10.11.0`)
+
+Livré le 6 octobre 2026 (10.10.0 → 10.11.0, mineur, ajouts seulement), sur les briques de `API-74`
+et le §6 du plan [`2026-10-05-weather.md`](plans/2026-10-05-weather.md). Constat préalable :
+`TripStage.dateTime` est un vrai instant de départ (l'éditeur saisit date **et** heure ; une étape
+migrée de biketeam reçoit l'heure de rendez-vous du voyage ou 8 h), donc aucun fuseau n'entre en jeu.
+`GET /api/teams/{teamSlug}/trips/{tripSlug}/weather` (`getTripWeather`, `@CheckAccess(TRIP, READ)`,
+mêmes en-têtes de cache que `getRideWeather`) rend un `TripWeatherDto` : une `TripStageWeatherDto`
+par étape vivante, dans l'ordre de `TripDto.stages` (`stageId`, `leg` : `WeatherLegDto` du parcours
+de l'étape à sa vitesse `averageSpeed` (`API-81`) ou 25 km/h, `summary` : `RideWeatherSummaryDto`
+d'une ligne pour sa carte) ; un voyage sans étape a une seule entrée sans `stageId`, sur son propre
+parcours. Chaque étape a **son** statut : partie → `OUT_OF_RANGE`, au-delà de 7 jours →
+`NOT_YET_AVAILABLE` avec `WeatherLegDto.availableFrom` (champ nouveau, générique), sans parcours →
+`NO_LOCATION`. Le statut global ne compte que les étapes à venir avec parcours dans l'horizon
+(`RideWeatherCalculator.trip`) ; brouillon ou annulé → `OUT_OF_RANGE`. Pas de bloc « départ » : le
+premier point du parcours est le départ. `WeatherPlanner` demande aussi les mailles des étapes
+partant dans `[now, now+7 j]` (`TripStageRepository.findForWeather`) et des voyages sans étape
+(`TripRepository.findStagelessForWeather`), via `TripWeatherPlans`, que la lecture
+(`TripWeatherService`) partage. Au passage : lecture du cache extraite dans `WeatherSeriesLoader`,
+ETag dans `WeatherEtag`, communs aux sorties et aux voyages. Tests **écrits, pas encore lancés**
+(voir `API-75`) : `TripWeatherResourceTest`, cas `trip_*` et `legSummary_*` de
+`RideWeatherCalculatorTest`, `plan_shouldPlanTheStagesOfPublishedTripsLeavingInTheWindow` de
+`WeatherPlannerTest`.
+
+**À ne pas défaire** :
+- Une étape partie reste dans la liste (`OUT_OF_RANGE`) : la liste suit `TripDto.stages` un pour un,
+  les clients apparient par `stageId`.
+- Le nombre de requêtes ne dépend pas du nombre d'étapes (traces, mailles, heures : une chacune) ;
+  les heures sont lues sur une seule fenêtre couvrant les étapes dans l'horizon, bornée à ~7 jours.
+- `RideWeatherSummaryDto.rainAlert.distance` est absente sur une sortie, présente sur une étape.
+- Le résumé dans `TripDto` pour les cartes de liste n'est **pas** fait : c'est `API-82`.
 
 ## OPS — Exploitation, déploiement, recette du backend
 

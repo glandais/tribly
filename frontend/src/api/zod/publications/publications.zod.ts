@@ -743,7 +743,7 @@ export const ListAllPublicationsResponse = zod
                       })
                       .optional()
                       .describe(
-                        'The first hour of the window with rain likely (50 % or more); its distance is always absent here'
+                        "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
                       ),
                   })
                   .optional()
@@ -2788,7 +2788,7 @@ export const ListPublicationsResponse = zod
                       })
                       .optional()
                       .describe(
-                        'The first hour of the window with rain likely (50 % or more); its distance is always absent here'
+                        "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
                       ),
                   })
                   .optional()

@@ -1,8 +1,10 @@
 package fr.pedalons.repository.trip;
 
 import fr.pedalons.domain.trip.TripStage;
+import fr.pedalons.enums.Status;
 import fr.pedalons.repository.common.BaseRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,5 +24,20 @@ public class TripStageRepository implements BaseRepository<TripStage> {
   /** Trip stages a user created, for the GDPR data export. */
   public List<TripStage> findByCreator(Long domainId, Long userId) {
     return list("createdBy.id = ?2 and team.domain.id = ?1 order by createdAt", domainId, userId);
+  }
+
+  /**
+   * The weather planner's stages: live stages of published live trips, leaving within {@code [from,
+   * to]}, across all domains (the weather cache is global), in trip then stage order.
+   */
+  public List<TripStage> findForWeather(Instant from, Instant to) {
+    return list(
+        "from TripStage s where s.deleted = false and s.team.deleted = false"
+            + " and s.trip.deleted = false and s.trip.status = ?1"
+            + " and s.dateTime >= ?2 and s.dateTime <= ?3"
+            + " order by s.trip.id, s.sortOrder, s.id",
+        Status.PUBLISHED,
+        from,
+        to);
   }
 }

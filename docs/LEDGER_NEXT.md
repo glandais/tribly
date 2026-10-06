@@ -119,7 +119,10 @@ données en prod), `MOB-15` pas faite, et le 500 du contact vendeur (`MOB-47`).
       rouvrir.
 - [ ] `MOB-52` **Météo des sorties : recette sur appareil (S)** — `MOB-51` est vérifié par
       `flutter analyze` et les tests de widgets seulement, et sa mise en page n'a pas été comparée
-      à la maquette (canevas « Intégration météo ») : carte compacte sous le bloc date et lieu,
+      à la maquette (canevas « Intégration météo ») — pas plus que la météo des étapes de voyage
+      (`MOB-57` : carte de l'écran 25 sans place réservée au chargement, pull-to-refresh nouveau de
+      l'écran 25 face au rail épinglé, clés `keys.ride.weather*` réutilisées et donc en double sur
+      l'écran 24) : carte compacte sous le bloc date et lieu,
       ordre de l'écran « Météo du parcours », clair et sombre, text scaling, pull-to-refresh du
       détail (nouveau). À trancher avec le propriétaire : garder la ligne « Météo dès le … »
       (`NOT_YET_AVAILABLE`) sur les cartes du fil, qui ajoute une ligne à toutes les sorties à plus
@@ -278,7 +281,8 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       frise horizontale des points, mode sombre, téléphone. À trancher avec le propriétaire : le
       libellé « Pluie dès 10:00 » / « Neige dès … » (probabilité en info-bulle seulement, la
       maquette disait « Averse 70 % »). Aucun e2e ne couvre la météo : la pile e2e coupe
-      le fournisseur, il faudrait remplir le cache par SQL.
+      le fournisseur, il faudrait remplir le cache par SQL. Même recette pour la météo des étapes
+      (`WEB-67`) : bloc de la page d'étape, ligne des cartes d'étape.
 - [ ] `WEB-62` **`pnpm i18n:extract` réécrit tout le catalogue (S)** — lancé le 5 octobre 2026, il a
       réécrit les deux `common.json` (~2 000 lignes de diff : clés `_one`/`_many` remplies de
       `___MISSING_TRANSLATION___`, réordonnancement). Les clés météo ont été insérées à la main.
@@ -344,22 +348,21 @@ sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` u
 
 ### Météo : ce qui suit `API-74`
 
-La météo des **sorties** est livrée (`API-74`, `WEB-60`, `MOB-51`, contrat `10.9.0`) ; le plan
+La météo des **sorties** est livrée (`API-74`, `WEB-60`, `MOB-51`, contrat `10.9.0`), celle des
+**étapes de voyage** aussi (`API-76`, `WEB-67`, `MOB-57`, contrat `10.11.0`) ; le plan
 [`2026-10-05-weather.md`](plans/2026-10-05-weather.md) reste ouvert pour ce qui suit.
 
-- [ ] `API-75` **Lancer les tests backend de la météo (S)** — écrits le 5 octobre 2026, compilés
+- [ ] `API-75` **Lancer les tests backend de la météo (S)** — écrits les 5 et 6 octobre 2026 (sorties, puis voyages `API-76`), compilés
       (`mvn -DskipTests test-compile`, checkstyle propre), **jamais lancés** (`OPS-2`) :
-      `cd backend && mvn test -Dtest='CellKeyTest,RouteSampleLookupTest,RideWeatherCalculatorTest,WeatherRefreshPolicyTest,OpenMeteoGatewayTest,OpenMeteoClientTest,OpenMeteoCircuitBreakerTest,OpenMeteoGatewayHttpTest,WeatherCacheTest,WeatherFetchWorkerTest,WeatherPlannerTest,WeatherHousekeepingTest,RideWeatherResourceTest,PublicationQueryCountTest,ArchitectureTest'`,
+      `cd backend && mvn test -Dtest='TripWeatherResourceTest,CellKeyTest,RouteSampleLookupTest,RideWeatherCalculatorTest,WeatherRefreshPolicyTest,OpenMeteoGatewayTest,OpenMeteoClientTest,OpenMeteoCircuitBreakerTest,OpenMeteoGatewayHttpTest,WeatherCacheTest,WeatherFetchWorkerTest,WeatherPlannerTest,WeatherHousekeepingTest,RideWeatherResourceTest,PublicationQueryCountTest,ArchitectureTest'`,
       puis la suite complète (`RideDto.from` et `PublicationDto.from` ont gagné un paramètre
       obligatoire). Le SQL natif a seulement été essayé à la main sur un PostGIS jetable (V61,
       upsert `NULLS NOT DISTINCT`, backoff, fenêtre de la liste). Un échec de
       `PublicationQueryCountTest` se corrige dans `RideWeatherLookup`, jamais en desserrant le test.
-- [ ] `API-76` **Météo des voyages (M)** — `GET /api/teams/{teamSlug}/trips/{tripSlug}/weather`
-      rendant une `WeatherLegDto` par étape (statut propre, fuseau du départ de chaque étape,
-      vitesse de l'étape `TripStageDto.averageSpeed` (`API-81`), 25 km/h à défaut), et le résumé de la prochaine étape dans `TripDto`, sur les mêmes briques
-      (cache, `RideWeatherCalculator`, schémas génériques) ; puis les deux clients. À vérifier
-      d'abord : ce que porte vraiment `TripStage.dateTime` (heure de départ réelle ou date seule).
-      Détail au §6 du plan.
+- [ ] `API-82` **Météo des voyages sur les cartes de liste (M)** — reste de `API-76` : un résumé de
+      la prochaine étape dans `TripDto` (`weather`, optionnel), en **une** requête par page comme
+      `RideWeatherLookup` (SQL de la fenêtre de la prochaine étape, sans charger les étapes), avec
+      un cas dans `PublicationQueryCountTest` ; puis la ligne sur les cartes web et mobile.
 - [ ] `API-77` **Météo sur Karoo et Garmin (M)** — `DeviceRideDto` ne porte rien ; à concevoir
       (résumé seul, ou points de passage) avec les contraintes de taille des deux apps. Les aperçus
       de lien (`og:`) ne portent **jamais** de météo.

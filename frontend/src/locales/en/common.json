@@ -2169,5 +2169,9 @@
   "features.demo.privacy.passwordless": "Passwordless sign-in with a passkey or a code sent by email",
   "share.button": "Share",
   "share.copied": "Link copied",
-  "share.copyFailed": "Could not copy the link"
+  "share.copyFailed": "Could not copy the link",
+  "trips.weather.noLocation": "Add a route to this stage to show its weather.",
+  "trips.weather.noRoute": "This stage has no route: no forecast along the way.",
+  "trips.weather.notYetAvailableNoDate": "The weather will be available seven days before the stage leaves.",
+  "trips.weather.speedDefault": "Passage times estimated at {{speed}}, the default speed (the stage gives none)"
 }

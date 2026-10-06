@@ -131,7 +131,9 @@ Validated interest required before prioritization.
 - [X] Weather for rides (October 2026, API 10.9.0) — Open-Meteo forecast on the ride page, the
       cards and the mobile "route weather" screen: departure, checkpoints, wind along the route,
       rain alert. Ledger `API-74`, `WEB-60`, `MOB-51`
-- [ ] Weather for trips (one forecast per stage) — ledger `API-76`; on Karoo/Garmin — `API-77`
+- [X] Weather for trips (October 2026, API 10.11.0) — one forecast per stage, on the stage page and
+      the stage cards. Ledger `API-76`, `WEB-67`, `MOB-57`
+- [ ] Weather for trips on list cards — ledger `API-82`; weather on Karoo/Garmin — `API-77`
 
 ### Mobile
 - [X] Mobile application (iOS/Android) — Flutter app with auth, teams, rides, routes, calendar

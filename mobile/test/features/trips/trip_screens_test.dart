@@ -43,6 +43,18 @@ class _StubTripRepository implements TripRepository {
     return Future<TripDto>.value(trip);
   }
 
+  /// Pas de météo à montrer : `trip_weather_test.dart` couvre ses états.
+  @override
+  Future<TripWeatherDto> getTripWeather(String t, String s) async =>
+      const TripWeatherDto(
+        status: 'OUT_OF_RANGE',
+        stages: <TripStageWeatherDto>[],
+        attribution: WeatherAttributionDto(
+          name: 'Open-Meteo.com',
+          url: 'https://open-meteo.com/',
+        ),
+      );
+
   @override
   Future<TripParticipationDto> joinTrip(String t, String s) async =>
       const TripParticipationDto(id: 'p', userId: 'u');

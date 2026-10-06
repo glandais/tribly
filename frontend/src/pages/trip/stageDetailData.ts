@@ -1,6 +1,13 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { useGetTeam, prefetchGetTeamQuery } from '@/api/endpoints/teams/teams'
-import { useGetTrip, prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
+import {
+  useGetTrip,
+  prefetchGetTripQuery,
+  getGetTripQueryKey,
+  useGetTripWeather,
+  prefetchGetTripWeatherQuery,
+} from '@/api/endpoints/trips/trips'
+import { TRIP_WEATHER_REQUEST } from './tripDetailData'
 import { useGetRoute, prefetchGetRouteQuery } from '@/api/endpoints/routes/routes'
 import { prefetchGetAvailableServicesQuery } from '@/api/endpoints/gps-services/gps-services'
 import {
@@ -56,7 +63,13 @@ export function useStageDetailData(teamSlug?: string, tripSlug?: string, stageSl
     query: { enabled: !!teamSlug && !!routeSlug },
   })
 
-  return { team, trip, route, routeSlug }
+  // The trip's weather, of which the page shows this stage's leg (docs/LEDGER_*.md API-76).
+  const weather = useGetTripWeather(teamSlug!, tripSlug!, {
+    query: { enabled: !!teamSlug && !!tripSlug },
+    request: TRIP_WEATHER_REQUEST,
+  })
+
+  return { team, trip, route, routeSlug, weather }
 }
 
 /**
@@ -77,6 +90,7 @@ export async function prefetchStageDetail(
   await Promise.all([
     prefetchGetTeamQuery(queryClient, teamSlug),
     prefetchGetTripQuery(queryClient, teamSlug, tripSlug),
+    prefetchGetTripWeatherQuery(queryClient, teamSlug, tripSlug, { request: TRIP_WEATHER_REQUEST }),
   ])
   const trip = queryClient.getQueryData<TripDto>(getGetTripQueryKey(teamSlug, tripSlug))
   const routeSlug = stageRouteSlug(trip, stageSlug)

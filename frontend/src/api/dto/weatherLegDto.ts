@@ -7,18 +7,20 @@ import type { WindExposureDto } from './windExposureDto.ts'
 import type { WindSegmentDto } from './windSegmentDto.ts'
 
 /**
- * The weather along one ridden route: a group of a ride (a stage of a trip, later). Passages are estimated from startTime at averageSpeed.
+ * The weather along one ridden route: a group of a ride, or a stage of a trip. Passages are estimated from startTime at averageSpeed.
  */
 export interface WeatherLegDto {
-  /** The ride group (TSID). Absent for a ride without groups: the leg rides the ride's own route. */
+  /** The ride group (TSID). Absent for a ride without groups — the leg rides the ride's own route — and for a trip's legs, which TripStageWeatherDto.stageId names. */
   groupId?: string
-  /** State of this leg's forecast. NO_LOCATION when the leg has no route to sample: then no checkpoint, no segment. */
+  /** State of this leg's forecast. NO_LOCATION when the leg has no route to sample: then no checkpoint, no segment. NOT_YET_AVAILABLE when it leaves beyond the seven-day horizon: checkpoints and times without weather, and availableFrom. OUT_OF_RANGE for a trip stage already gone: nothing to show. */
   status: WeatherStatus
+  /** For NOT_YET_AVAILABLE: when this leg's forecast opens, seven days before it leaves */
+  availableFrom?: Instant
   /** When the leg leaves */
   startTime: Instant
   /** Speed used for the passages, km/h */
   averageSpeed: number
-  /** Whether averageSpeed is the 25 km/h default, the group having none — to be said on screen */
+  /** Whether averageSpeed is the 25 km/h default, the group or stage having none — to be said on screen */
   speedIsDefault: boolean
   /** Length of the leg's route, metres */
   distance: number

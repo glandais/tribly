@@ -1,22 +1,15 @@
 package fr.pedalons.service.weather;
 
 import fr.pedalons.domain.ride.Ride;
-import fr.pedalons.domain.weather.WeatherCell;
 import fr.pedalons.enums.Status;
 import fr.pedalons.enums.WeatherStatus;
-import fr.pedalons.repository.weather.WeatherCellRepository;
-import fr.pedalons.repository.weather.WeatherHourRow;
-import fr.pedalons.repository.weather.WeatherHourlyRepository;
 import fr.pedalons.service.weather.RideWeatherCalculator.CellSeries;
 import fr.pedalons.service.weather.RideWeatherCalculator.LegInput;
 import fr.pedalons.service.weather.RideWeatherPlans.RidePlan;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,12 +33,8 @@ import java.util.Set;
 @ApplicationScoped
 public class RideWeatherService {
 
-  /** Hours read around the ride's window, so the hour nearest each end is in hand. */
-  static final Duration SLACK = Duration.ofMinutes(90);
-
   @Inject RideWeatherPlans plans;
-  @Inject WeatherCellRepository cellRepository;
-  @Inject WeatherHourlyRepository hourlyRepository;
+  @Inject WeatherSeriesLoader seriesLoader;
 
   public RideWeather forRide(Ride ride) {
     return forRide(ride, Instant.now());
@@ -79,7 +68,7 @@ public class RideWeatherService {
         }
       }
     }
-    Map<CellKey, CellSeries> cache = load(keys, plan.earliest(), plan.lastArrival());
+    Map<CellKey, CellSeries> cache = seriesLoader.load(keys, plan.earliest(), plan.lastArrival());
 
     DepartureWeather departure =
         RideWeatherCalculator.departure(
@@ -98,39 +87,5 @@ public class RideWeatherService {
    */
   static boolean isOutOfRange(Ride ride, Instant now) {
     return ride.getStatus() != Status.PUBLISHED || ride.getDateTime().isBefore(now);
-  }
-
-  private Map<CellKey, CellSeries> load(Set<CellKey> keys, Instant from, Instant to) {
-    Set<Integer> lats = new HashSet<>();
-    Set<Integer> lons = new HashSet<>();
-    for (CellKey key : keys) {
-      lats.add(key.latIdx());
-      lons.add(key.lonIdx());
-    }
-    Map<Long, WeatherCell> cellsById = new HashMap<>();
-    Map<Long, CellKey> keyById = new HashMap<>();
-    for (WeatherCell cell : cellRepository.findByIndexes(lats, lons)) {
-      CellKey key = new CellKey(cell.getLatIdx(), cell.getLonIdx(), cell.getEleBand());
-      if (keys.contains(key)) {
-        cellsById.put(cell.getId(), cell);
-        keyById.put(cell.getId(), key);
-      }
-    }
-    if (cellsById.isEmpty()) {
-      return Map.of();
-    }
-    Map<Long, List<WeatherHourRow>> rows = new HashMap<>();
-    for (WeatherHourRow row :
-        hourlyRepository.findHours(cellsById.keySet(), from.minus(SLACK), to.plus(SLACK))) {
-      rows.computeIfAbsent(row.ownerId(), k -> new ArrayList<>()).add(row);
-    }
-    Map<CellKey, CellSeries> cache = new HashMap<>();
-    for (Map.Entry<Long, WeatherCell> entry : cellsById.entrySet()) {
-      cache.put(
-          keyById.get(entry.getKey()),
-          CellSeries.of(
-              entry.getValue().getFetchedAt(), rows.getOrDefault(entry.getKey(), List.of())));
-    }
-    return cache;
   }
 }

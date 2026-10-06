@@ -902,7 +902,7 @@ export const CreateRideResponse = zod
           })
           .optional()
           .describe(
-            'The first hour of the window with rain likely (50 % or more); its distance is always absent here'
+            "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
       })
       .optional()
@@ -1815,7 +1815,7 @@ export const UpdateRideResponse = zod
           })
           .optional()
           .describe(
-            'The first hour of the window with rain likely (50 % or more); its distance is always absent here'
+            "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
       })
       .optional()
@@ -2460,7 +2460,7 @@ export const GetRideResponse = zod
           })
           .optional()
           .describe(
-            'The first hour of the window with rain likely (50 % or more); its distance is always absent here'
+            "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
       })
       .optional()
@@ -3216,7 +3216,7 @@ export const ChangeRideSlugResponse = zod
           })
           .optional()
           .describe(
-            'The first hour of the window with rain likely (50 % or more); its distance is always absent here'
+            "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
       })
       .optional()
@@ -3867,7 +3867,7 @@ export const ChangeRideStatusResponse = zod
           })
           .optional()
           .describe(
-            'The first hour of the window with rain likely (50 % or more); its distance is always absent here'
+            "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
       })
       .optional()
@@ -4512,7 +4512,7 @@ export const UndeleteRideResponse = zod
           })
           .optional()
           .describe(
-            'The first hour of the window with rain likely (50 % or more); its distance is always absent here'
+            "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
       })
       .optional()
@@ -4643,7 +4643,7 @@ export const GetRideWeatherResponse = zod
               .string()
               .optional()
               .describe(
-                "The ride group (TSID). Absent for a ride without groups: the leg rides the ride's own route."
+                "The ride group (TSID). Absent for a ride without groups — the leg rides the ride's own route — and for a trip's legs, which TripStageWeatherDto.stageId names."
               ),
             status: zod
               .enum([
@@ -4655,14 +4655,20 @@ export const GetRideWeatherResponse = zod
                 'OUT_OF_RANGE',
               ])
               .describe(
-                "State of this leg's forecast. NO_LOCATION when the leg has no route to sample: then no checkpoint, no segment."
+                "State of this leg's forecast. NO_LOCATION when the leg has no route to sample: then no checkpoint, no segment. NOT_YET_AVAILABLE when it leaves beyond the seven-day horizon: checkpoints and times without weather, and availableFrom. OUT_OF_RANGE for a trip stage already gone: nothing to show."
+              ),
+            availableFrom: zod.iso
+              .datetime({ offset: true })
+              .optional()
+              .describe(
+                "For NOT_YET_AVAILABLE: when this leg's forecast opens, seven days before it leaves"
               ),
             startTime: zod.iso.datetime({ offset: true }).describe('When the leg leaves'),
             averageSpeed: zod.number().describe('Speed used for the passages, km/h'),
             speedIsDefault: zod
               .boolean()
               .describe(
-                'Whether averageSpeed is the 25 km/h default, the group having none — to be said on screen'
+                'Whether averageSpeed is the 25 km/h default, the group or stage having none — to be said on screen'
               ),
             distance: zod.number().describe("Length of the leg's route, metres"),
             arrivalTime: zod.iso.datetime({ offset: true }).describe('Estimated arrival'),
@@ -4870,7 +4876,7 @@ export const GetRideWeatherResponse = zod
               .describe('The first checkpoint where rain becomes likely, if any'),
           })
           .describe(
-            'The weather along one ridden route: a group of a ride (a stage of a trip, later). Passages are estimated from startTime at averageSpeed.'
+            'The weather along one ridden route: a group of a ride, or a stage of a trip. Passages are estimated from startTime at averageSpeed.'
           )
       )
       .describe(

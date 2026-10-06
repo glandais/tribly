@@ -26,7 +26,7 @@ mixin _$RideWeatherSummaryDto {
  double? get temperatureMin;/// Highest temperature over the window, °C
  double? get temperatureMax;/// Highest probability of precipitation over the window, %. Absent when the model gives none.
  int? get maxPrecipitationProbability;/// Wind at the departure hour
- WindDto? get wind;/// The first hour of the window with rain likely (50 % or more); its distance is always absent here
+ WindDto? get wind;/// The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)
  WeatherRainAlertDto? get rainAlert;
 /// Create a copy of RideWeatherSummaryDto
 /// with the given fields replaced by the non-null parameter values.
@@ -283,7 +283,7 @@ class _RideWeatherSummaryDto implements RideWeatherSummaryDto {
 @override final  int? maxPrecipitationProbability;
 /// Wind at the departure hour
 @override final  WindDto? wind;
-/// The first hour of the window with rain likely (50 % or more); its distance is always absent here
+/// The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)
 @override final  WeatherRainAlertDto? rainAlert;
 
 /// Create a copy of RideWeatherSummaryDto

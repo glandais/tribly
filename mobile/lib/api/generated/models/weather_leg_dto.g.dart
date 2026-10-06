@@ -24,6 +24,7 @@ _WeatherLegDto _$WeatherLegDtoFromJson(Map<String, dynamic> json) =>
         json['windExposure'] as Map<String, dynamic>,
       ),
       groupId: json['groupId'] as String?,
+      availableFrom: json['availableFrom'] as String?,
       fetchedAt: json['fetchedAt'] as String?,
       prevailingWind: json['prevailingWind'] == null
           ? null
@@ -47,6 +48,7 @@ Map<String, dynamic> _$WeatherLegDtoToJson(_WeatherLegDto instance) =>
       'segments': instance.segments.map((e) => e.toJson()).toList(),
       'windExposure': instance.windExposure.toJson(),
       'groupId': instance.groupId,
+      'availableFrom': instance.availableFrom,
       'fetchedAt': instance.fetchedAt,
       'prevailingWind': instance.prevailingWind?.toJson(),
       'rainAlert': instance.rainAlert?.toJson(),

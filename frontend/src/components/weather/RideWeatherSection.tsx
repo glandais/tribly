@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  Anchor,
   Badge,
   Button,
   Divider,
@@ -22,12 +21,10 @@ import {
 } from '@tabler/icons-react'
 import type { RideDto, RideWeatherDto, WeatherLegDto } from '@/api/dto'
 import { Status, WeatherStatus } from '@/api/dto'
-import { useUnits } from '@/hooks/useUnits'
 import { useFormattedDate } from '@/utils/dateFormat'
 import { DepartureWeather } from './DepartureWeather'
-import { WeatherCheckpointStrip } from './WeatherCheckpointStrip'
-import { WeatherRainBanner } from './WeatherRainBanner'
-import { WindExposureBar } from './WindExposureBar'
+import { LegWeather } from './LegWeather'
+import { WeatherAttribution } from './WeatherAttribution'
 import { defaultLegIndex, hasForecast, showsDetailBlock } from './weatherDisplay'
 
 /** Up to this many groups pick from a segmented control; beyond, a select keeps the row short. */
@@ -63,7 +60,7 @@ export function RideWeatherSection({
   canEdit,
 }: RideWeatherSectionProps) {
   const { t } = useTranslation()
-  const { formatDate, formatTime, isToday, isGuessedTimezone } = useFormattedDate()
+  const { formatDate, isGuessedTimezone } = useFormattedDate()
   const [selectedLeg, setSelectedLeg] = useState<string | null>(null)
 
   if (ride.finished || ride.status === Status.CANCELLED || isLoading) return null
@@ -181,79 +178,9 @@ export function RideWeatherSection({
         )}
 
         {weather && status !== WeatherStatus.NO_LOCATION && (
-          <Group justify="space-between" wrap="wrap" gap="xs">
-            <Text size="xs" c="dimmed">
-              {t('rides.weather.attribution')}{' '}
-              <Anchor
-                href={weather.attribution.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                size="xs"
-              >
-                {weather.attribution.name}
-              </Anchor>
-            </Text>
-            {weather.fetchedAt && (
-              <Text size="xs" c="dimmed" suppressHydrationWarning={isGuessedTimezone}>
-                {isToday(weather.fetchedAt)
-                  ? t('rides.weather.updatedAt', { time: formatTime(weather.fetchedAt) })
-                  : t('rides.weather.updatedOn', {
-                      date: formatDate(weather.fetchedAt),
-                      time: formatTime(weather.fetchedAt),
-                    })}
-              </Text>
-            )}
-          </Group>
+          <WeatherAttribution attribution={weather.attribution} fetchedAt={weather.fetchedAt} />
         )}
       </Stack>
     </Paper>
-  )
-}
-
-/** One group's route: when it leaves and arrives, at what speed, then rain, points and wind. */
-function LegWeather({ leg }: { leg: WeatherLegDto }) {
-  const { t } = useTranslation()
-  const { distance, speed } = useUnits()
-  const { formatTime, isGuessedTimezone } = useFormattedDate()
-
-  if (leg.status === WeatherStatus.NO_LOCATION) {
-    return (
-      <Text size="sm" c="dimmed">
-        {t('rides.weather.leg.noRoute')}
-      </Text>
-    )
-  }
-  if (!hasForecast(leg.status) || leg.checkpoints.length === 0) {
-    return (
-      <Text size="sm" c="dimmed">
-        {t('rides.weather.leg.unavailable')}
-      </Text>
-    )
-  }
-
-  return (
-    <Stack gap="sm">
-      <Stack gap={2}>
-        <Text size="sm" fw={600} suppressHydrationWarning={isGuessedTimezone}>
-          {t('rides.weather.leg.schedule', {
-            start: formatTime(leg.startTime),
-            arrival: formatTime(leg.arrivalTime),
-            distance: distance(leg.distance),
-          })}
-        </Text>
-        <Text size="xs" c="dimmed">
-          {leg.speedIsDefault
-            ? t('rides.weather.leg.speedDefault', { speed: speed(leg.averageSpeed) })
-            : t('rides.weather.leg.speed', { speed: speed(leg.averageSpeed) })}
-        </Text>
-      </Stack>
-      <WeatherRainBanner rainAlert={leg.rainAlert} />
-      <WeatherCheckpointStrip checkpoints={leg.checkpoints} />
-      <WindExposureBar
-        segments={leg.segments}
-        exposure={leg.windExposure}
-        distance={leg.distance}
-      />
-    </Stack>
   )
 }

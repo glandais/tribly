@@ -1,6 +1,13 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { useGetTeam, prefetchGetTeamQuery } from '@/api/endpoints/teams/teams'
-import { useGetTrip, prefetchGetTripQuery, getGetTripQueryKey } from '@/api/endpoints/trips/trips'
+import {
+  useGetTrip,
+  prefetchGetTripQuery,
+  getGetTripQueryKey,
+  useGetTripWeather,
+  prefetchGetTripWeatherQuery,
+  getGetTripWeatherQueryKey,
+} from '@/api/endpoints/trips/trips'
 import {
   listTripComments,
   getListTripCommentsQueryKey,
@@ -37,6 +44,25 @@ export function tripRouteSlugs(trip: TripDto | undefined): string[] {
 }
 
 /**
+ * The weather's request options, one object for the hooks and the prefetches of the trip and the
+ * stage pages. No toast: the blocks say « unavailable, retry » in place, as for a ride.
+ */
+export const TRIP_WEATHER_REQUEST = { skipErrorToast: true } as const
+
+/**
+ * After the trip changes (stages, their times, speeds or routes, status), its forecast reads
+ * different passages: the weather is its own query key (`…/weather` is not a prefix match of the
+ * trip's), so it is invalidated explicitly, next to the trip.
+ */
+export function invalidateTripWeather(
+  queryClient: QueryClient,
+  teamSlug: string,
+  tripSlug: string
+): Promise<void> {
+  return queryClient.invalidateQueries({ queryKey: getGetTripWeatherQueryKey(teamSlug, tripSlug) })
+}
+
+/**
  * Every query `TripDetailPage` itself owns, returned as the raw query results so the page keeps
  * using `.data` / `.isLoading` / `.error` / `.refetch` directly in its `QueryStateBoundary`.
  *
@@ -53,8 +79,13 @@ export function useTripDetailData(teamSlug?: string, tripSlug?: string) {
   const trip = useGetTrip(teamSlug!, tripSlug!, {
     query: { enabled: !!teamSlug && !!tripSlug },
   })
+  // Each stage card's weather line (docs/LEDGER_*.md API-76).
+  const weather = useGetTripWeather(teamSlug!, tripSlug!, {
+    query: { enabled: !!teamSlug && !!tripSlug },
+    request: TRIP_WEATHER_REQUEST,
+  })
 
-  return { team, trip }
+  return { team, trip, weather }
 }
 
 /**
@@ -74,6 +105,8 @@ export async function prefetchTripDetail(
   await Promise.all([
     prefetchGetTeamQuery(queryClient, teamSlug),
     prefetchGetTripQuery(queryClient, teamSlug, tripSlug),
+    // Read from the server's cache only, never the provider: safe to prefetch.
+    prefetchGetTripWeatherQuery(queryClient, teamSlug, tripSlug, { request: TRIP_WEATHER_REQUEST }),
   ])
 
   const trip = queryClient.getQueryData<TripDto>(getGetTripQueryKey(teamSlug, tripSlug))

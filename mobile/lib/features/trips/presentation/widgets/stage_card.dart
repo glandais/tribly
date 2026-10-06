@@ -10,6 +10,7 @@ import '../../../../core/theme/pdl_icons.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../rides/presentation/widgets/ride_weather_summary_line.dart';
 import '../../providers/trip_detail_provider.dart';
 
 /// Une étape dans la liste du voyage.
@@ -28,9 +29,15 @@ class StageCard extends ConsumerWidget {
     required this.selected,
     required this.onTap,
     this.onSelect,
+    this.weather,
   });
 
   final TripStageDto stage;
+
+  /// Le résumé météo de l'étape (`TripStageWeatherDto.summary`), apparié par
+  /// `stageId` par l'écran 24. Absent — ou sans rien à montrer —, la carte
+  /// ne réserve aucune place.
+  final RideWeatherSummaryDto? weather;
 
   /// Sélectionnée depuis la carte ou la légende : la carte s'entoure d'indigo.
   final bool selected;
@@ -139,6 +146,11 @@ class StageCard extends ConsumerWidget {
                           ),
                       ],
                     ),
+                  ),
+                if (RideWeatherSummaryLine.shows(weather))
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: RideWeatherSummaryLine(summary: weather),
                   ),
               ],
             ),

@@ -47,7 +47,7 @@ import {
   useLeaveTrip,
   getGetTripQueryKey,
 } from '../../api/endpoints/trips/trips'
-import { useTripDetailData } from './tripDetailData'
+import { invalidateTripWeather, useTripDetailData } from './tripDetailData'
 import { tripStatusRequest } from './tripFormData'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { ReportTargetType, Status } from '@/api/dto'
@@ -91,7 +91,11 @@ export function TripDetailPage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const location = useLocation()
-  const { team: teamQuery, trip: tripQuery } = useTripDetailData(teamSlug, tripSlug)
+  const {
+    team: teamQuery,
+    trip: tripQuery,
+    weather: weatherQuery,
+  } = useTripDetailData(teamSlug, tripSlug)
   const { data: team, isLoading: isLoadingTeam } = teamQuery
   const { data: trip, isLoading: isLoadingTrip, error, refetch } = tripQuery
 
@@ -168,6 +172,7 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          void invalidateTripWeather(queryClient, teamSlug!, tripSlug!)
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           notifications.show({ message: t('trips.notifications.published'), color: 'green' })
         },
@@ -185,6 +190,7 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          void invalidateTripWeather(queryClient, teamSlug!, tripSlug!)
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           notifications.show({ message: t('trips.notifications.unpublished'), color: 'green' })
         },
@@ -203,6 +209,7 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          void invalidateTripWeather(queryClient, teamSlug!, tripSlug!)
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           notifications.show({ message: t('trips.notifications.cancelled'), color: 'green' })
         },
@@ -221,6 +228,7 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          void invalidateTripWeather(queryClient, teamSlug!, tripSlug!)
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           notifications.show({ message: t('trips.notifications.uncancelled'), color: 'green' })
         },
@@ -251,6 +259,7 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          void invalidateTripWeather(queryClient, teamSlug!, tripSlug!)
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           notifications.show({ message: t('trips.notifications.restored'), color: 'green' })
         },
@@ -264,6 +273,7 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          void invalidateTripWeather(queryClient, teamSlug!, tripSlug!)
           notifications.show({ message: t('trips.notifications.joined'), color: 'green' })
         },
       }
@@ -276,6 +286,7 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          void invalidateTripWeather(queryClient, teamSlug!, tripSlug!)
           notifications.show({ message: t('trips.notifications.left'), color: 'green' })
         },
       }
@@ -488,6 +499,9 @@ export function TripDetailPage() {
                       tripSlug={trip.slug}
                       onHover={setHighlightedStageId}
                       isHighlighted={highlightedStageId === stage.id}
+                      weather={
+                        weatherQuery.data?.stages.find((w) => w.stageId === stage.id)?.summary
+                      }
                     />
                   ))}
                 </Stack>

@@ -71,7 +71,7 @@ class RideWeatherCard extends ConsumerWidget {
       // Un échec réseau se lit comme `UNAVAILABLE` : un enrichissement ne
       // casse pas l'écran, et « Réessayer » suffit.
       error: (Object _, StackTrace _) =>
-          padded(_UnavailableCard(onRetry: retry)),
+          padded(WeatherUnavailableCard(onRetry: retry)),
       data: (RideWeatherDto dto) {
         switch (rideWeatherViewOf(
           dto.status,
@@ -89,16 +89,17 @@ class RideWeatherCard extends ConsumerWidget {
               ),
             );
           case RideWeatherView.unavailable:
-            return padded(_UnavailableCard(onRetry: retry));
+            return padded(WeatherUnavailableCard(onRetry: retry));
           case RideWeatherView.notYetAvailable:
             return padded(
-              _NotYetAvailableCard(availableFrom: dto.availableFrom),
+              WeatherNotYetAvailableCard(availableFrom: dto.availableFrom),
             );
           case RideWeatherView.forecast:
           case RideWeatherView.stale:
             return padded(
-              _ForecastCard(
-                weather: dto,
+              WeatherForecastCard(
+                departure: dto.departure.conditions,
+                attribution: dto.attribution,
                 stale:
                     WeatherStatus.fromJson(dto.status) == WeatherStatus.stale,
                 leg: weatherLegFor(dto.legs, selectedGroupId),
@@ -128,22 +129,29 @@ class RideWeatherCard extends ConsumerWidget {
         const PdlSkeleton(height: 96, borderRadius: PdlRadii.cardAll),
       ),
       WeatherStatus.notYetAvailable => padded(
-        _NotYetAvailableCard(availableFrom: summary.availableFrom),
+        WeatherNotYetAvailableCard(availableFrom: summary.availableFrom),
       ),
       _ => const SizedBox.shrink(),
     };
   }
 }
 
-class _ForecastCard extends ConsumerWidget {
-  const _ForecastCard({
-    required this.weather,
+/// La carte « prévision » : le départ, le vent le long du parcours de [leg]
+/// et son alerte pluie, le lien vers l'écran et le crédit. Partagée par la
+/// sortie (départ au point de rendez-vous) et l'étape de voyage (départ = le
+/// premier point de passage de son leg).
+class WeatherForecastCard extends ConsumerWidget {
+  const WeatherForecastCard({
+    super.key,
+    required this.departure,
+    required this.attribution,
     required this.stale,
     required this.leg,
     required this.onOpen,
   });
 
-  final RideWeatherDto weather;
+  final WeatherConditionsDto? departure;
+  final WeatherAttributionDto attribution;
   final bool stale;
   final WeatherLegDto? leg;
   final VoidCallback onOpen;
@@ -153,7 +161,7 @@ class _ForecastCard extends ConsumerWidget {
     final PdlColors c = context.pdl;
     final PdlTypography t = context.pdlText;
     final UnitSystem units = ref.watch(unitSystemProvider);
-    final WeatherConditionsDto? now = weather.departure.conditions;
+    final WeatherConditionsDto? now = departure;
     final WeatherLegDto? leg = this.leg;
     final WeatherRainAlertDto? rain = leg?.rainAlert;
 
@@ -217,7 +225,7 @@ class _ForecastCard extends ConsumerWidget {
                 onPressed: onOpen,
               ),
               Text(
-                weatherAttributionLabel(weather.attribution),
+                weatherAttributionLabel(attribution),
                 key: keys.ride.weatherAttribution,
                 style: t.xs,
               ),
@@ -321,8 +329,9 @@ class _DepartureSummary extends StatelessWidget {
   }
 }
 
-class _NotYetAvailableCard extends StatelessWidget {
-  const _NotYetAvailableCard({required this.availableFrom});
+/// « Prévision disponible à partir du … », en carte.
+class WeatherNotYetAvailableCard extends StatelessWidget {
+  const WeatherNotYetAvailableCard({super.key, required this.availableFrom});
 
   final String? availableFrom;
 
@@ -348,8 +357,9 @@ class _NotYetAvailableCard extends StatelessWidget {
   }
 }
 
-class _UnavailableCard extends StatelessWidget {
-  const _UnavailableCard({required this.onRetry});
+/// « Météo indisponible », avec « Réessayer ».
+class WeatherUnavailableCard extends StatelessWidget {
+  const WeatherUnavailableCard({super.key, required this.onRetry});
 
   final VoidCallback onRetry;
 

@@ -23,6 +23,8 @@ import '../../../routes/presentation/widgets/embedded_route_sheet.dart';
 import '../../../teams/providers/team_providers.dart';
 import '../../../routes/providers/route_detail_provider.dart';
 import '../../providers/trip_detail_provider.dart';
+import '../../providers/trip_weather_provider.dart';
+import '../widgets/stage_weather_card.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
 import '../../../../keys.dart';
 
@@ -58,6 +60,7 @@ class StageDetailPage extends ConsumerWidget {
             );
             if (index < 0) return _StageNotFound(trip: trip);
             return _StageDetailContent(
+              tripKey: key,
               trip: trip,
               stages: stages,
               stage: stages[index],
@@ -74,11 +77,13 @@ class StageDetailPage extends ConsumerWidget {
 
 class _StageDetailContent extends ConsumerWidget {
   const _StageDetailContent({
+    required this.tripKey,
     required this.trip,
     required this.stages,
     required this.stage,
   });
 
+  final TripKey tripKey;
   final TripDto trip;
   final List<TripStageDto> stages;
   final TripStageDto stage;
@@ -89,6 +94,15 @@ class _StageDetailContent extends ConsumerWidget {
     final bool? isMember = ref.watch(teamMembershipProvider(trip.team.slug));
 
     return PdlScreenScaffold(
+      // Relit le voyage (le détail reste affiché pendant l'appel,
+      // `skipLoadingOnRefresh`) et sa météo, partagés avec l'écran 24.
+      onRefresh: () async {
+        ref.invalidate(tripWeatherProvider(tripKey));
+        try {
+          ref.invalidate(tripDetailProvider(tripKey));
+          await ref.read(tripDetailProvider(tripKey).future);
+        } catch (_) {}
+      },
       appBar: PdlAppBar(
         // Pas de titre : le corps le porte déjà en 22/700, juste dessous,
         // avec sa ligne d'équipe et ses badges. Le répéter en 17 dans la
@@ -110,6 +124,9 @@ class _StageDetailContent extends ConsumerWidget {
         SliverToBoxAdapter(child: _identity(context)),
         SliverToBoxAdapter(
           child: _facts(context, ref.watch(unitSystemProvider)),
+        ),
+        SliverToBoxAdapter(
+          child: StageWeatherCard(tripKey: tripKey, trip: trip, stage: stage),
         ),
         if (routeSlug != null)
           SliverToBoxAdapter(

@@ -785,7 +785,13 @@
     "globalProfile": "Overall elevation profile",
     "partialTrack": "Partial track: {shown} of {total} stages are shown.",
     "missingTracks": "{count} track(s) could not be loaded.",
-    "profileGaps": "Incomplete profile: {stages} could not be loaded."
+    "profileGaps": "Incomplete profile: {stages} could not be loaded.",
+    "weather": {
+      "noLocation": "Add a route to this stage to show its weather. Only organisers see this message.",
+      "emptyTitle": "No weather for this stage",
+      "emptyMessage": "There is no forecast to show for this stage.",
+      "legSpeedDefault": "Passages estimated at {speed}, the default speed: the stage sets none"
+    }
   },
   "routes": {
     "title": "Routes",

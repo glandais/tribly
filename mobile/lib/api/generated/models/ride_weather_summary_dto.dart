@@ -13,7 +13,7 @@ import 'wind_dto.dart';
 part 'ride_weather_summary_dto.freezed.dart';
 part 'ride_weather_summary_dto.g.dart';
 
-/// A ride's weather on a card, at the meeting point, over the window from the departure to the estimated arrival of the last group. Only OK, STALE and NOT_YET_AVAILABLE are ever sent; for NOT_YET_AVAILABLE only status and availableFrom are set.
+/// A ride's weather on a card, at the meeting point, over the window from the departure to the estimated arrival of the last group — or a trip stage's, over its checkpoints. Only OK, STALE and NOT_YET_AVAILABLE are ever sent; for NOT_YET_AVAILABLE only status and availableFrom are set.
 @Freezed()
 abstract class RideWeatherSummaryDto with _$RideWeatherSummaryDto {
   const factory RideWeatherSummaryDto({
@@ -47,7 +47,7 @@ abstract class RideWeatherSummaryDto with _$RideWeatherSummaryDto {
     /// Wind at the departure hour
     WindDto? wind,
 
-    /// The first hour of the window with rain likely (50 % or more); its distance is always absent here
+    /// The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)
     WeatherRainAlertDto? rainAlert,
   }) = _RideWeatherSummaryDto;
 

@@ -7,6 +7,8 @@ import fr.pedalons.dto.trips.request.TripRequest;
 import fr.pedalons.dto.trips.response.TripDto;
 import fr.pedalons.dto.trips.response.TripParticipationDto;
 import fr.pedalons.dto.users.response.ParticipantListResponse;
+import fr.pedalons.dto.weather.response.TripWeatherAnswer;
+import fr.pedalons.dto.weather.response.TripWeatherDto;
 import fr.pedalons.service.calendar.PublicationIcsService;
 import fr.pedalons.service.trip.TripService;
 import jakarta.annotation.security.PermitAll;
@@ -14,8 +16,11 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
@@ -93,6 +98,48 @@ public class TripResource {
     TripDto trip = tripService.getDto(teamSlug, tripSlug);
     // registered makes this answer specific to the caller.
     return Response.ok(trip).header(HttpHeaders.CACHE_CONTROL, "private, no-store").build();
+  }
+
+  @GET
+  @Path("/{tripSlug}/weather")
+  @PermitAll
+  @Operation(
+      summary = "Get trip weather",
+      description =
+          "The forecast for the trip, stage by stage: along each stage's route at its estimated"
+              + " passages (stage speed, else 25 km/h), each stage with its own state. Read from"
+              + " the server's cache only — the forecast is refreshed in the background, never on"
+              + " request. Readable by whoever may read the trip, and then always 200: the state is"
+              + " in status. Cache-Control: private, no-cache with an ETag (revalidate with"
+              + " If-None-Match, 304 when unchanged); no-store when status is UNAVAILABLE.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Trip weather, in whatever state it is",
+        content = @Content(schema = @Schema(implementation = TripWeatherDto.class))),
+    @APIResponse(responseCode = "304", description = "Unchanged since the ETag sent"),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or trip not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response getTripWeather(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Trip URL slug") @PathParam("tripSlug") String tripSlug,
+      @Context Request request) {
+
+    TripWeatherAnswer answer = tripService.getWeather(teamSlug, tripSlug);
+    String etag = answer.etag();
+    if (etag == null) {
+      // UNAVAILABLE offers « Réessayer »: nothing may keep it, not even to revalidate.
+      return Response.ok(answer.body()).header(HttpHeaders.CACHE_CONTROL, "no-store").build();
+    }
+    // As getRideWeather: private (who may read the trip decides), no-cache (revalidate, 304).
+    EntityTag entityTag = new EntityTag(etag, true);
+    Response.ResponseBuilder notModified = request.evaluatePreconditions(entityTag);
+    Response.ResponseBuilder builder =
+        notModified != null ? notModified : Response.ok(answer.body());
+    return builder.tag(entityTag).header(HttpHeaders.CACHE_CONTROL, "private, no-cache").build();
   }
 
   @GET

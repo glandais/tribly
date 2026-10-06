@@ -2191,5 +2191,9 @@
   "features.demo.privacy.passwordless": "Connexion sans mot de passe par clé d'accès ou code reçu par e-mail",
   "share.button": "Partager",
   "share.copied": "Lien copié",
-  "share.copyFailed": "Impossible de copier le lien"
+  "share.copyFailed": "Impossible de copier le lien",
+  "trips.weather.noLocation": "Ajoutez un parcours à cette étape pour afficher sa météo.",
+  "trips.weather.noRoute": "Cette étape n'a pas de parcours : pas de prévision le long de la route.",
+  "trips.weather.notYetAvailableNoDate": "La météo sera disponible sept jours avant le départ de l'étape.",
+  "trips.weather.speedDefault": "Heures de passage estimées à {{speed}}, vitesse par défaut (l'étape n'en indique pas)"
 }

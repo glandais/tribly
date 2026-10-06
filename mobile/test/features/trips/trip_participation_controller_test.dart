@@ -36,6 +36,10 @@ class _FakeTripRepository implements TripRepository {
   Future<TripDto> getTrip(String teamSlug, String tripSlug) async => _trip;
 
   @override
+  Future<TripWeatherDto> getTripWeather(String t, String s) =>
+      throw UnimplementedError('la météo ne concerne pas ces tests');
+
+  @override
   Future<TripParticipationDto> joinTrip(
     String teamSlug,
     String tripSlug,

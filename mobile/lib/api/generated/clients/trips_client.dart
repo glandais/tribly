@@ -12,6 +12,7 @@ import '../models/status_change_request.dart';
 import '../models/trip_dto.dart';
 import '../models/trip_participation_dto.dart';
 import '../models/trip_request.dart';
+import '../models/trip_weather_dto.dart';
 
 part 'trips_client.g.dart';
 
@@ -176,6 +177,19 @@ abstract class TripsClient {
   /// [tripSlug] - Trip URL slug.
   @POST('/api/teams/{teamSlug}/trips/{tripSlug}/undelete')
   Future<TripDto> undeleteTrip({
+    @Path('teamSlug') required String teamSlug,
+    @Path('tripSlug') required String tripSlug,
+  });
+
+  /// Get trip weather.
+  ///
+  /// The forecast for the trip, stage by stage: along each stage's route at its estimated passages (stage speed, else 25 km/h), each stage with its own state. Read from the server's cache only — the forecast is refreshed in the background, never on request. Readable by whoever may read the trip, and then always 200: the state is in status. Cache-Control: private, no-cache with an ETag (revalidate with If-None-Match, 304 when unchanged); no-store when status is UNAVAILABLE.
+  ///
+  /// [teamSlug] - Team URL slug.
+  ///
+  /// [tripSlug] - Trip URL slug.
+  @GET('/api/teams/{teamSlug}/trips/{tripSlug}/weather')
+  Future<TripWeatherDto> getTripWeather({
     @Path('teamSlug') required String teamSlug,
     @Path('tripSlug') required String tripSlug,
   });

@@ -2,11 +2,13 @@ package fr.pedalons.repository.trip;
 
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.enums.EntityType;
+import fr.pedalons.enums.Status;
 import fr.pedalons.enums.TeamEntityType;
 import fr.pedalons.repository.common.TeamEntityQueryBasic;
 import fr.pedalons.repository.common.TeamEntityRepository;
 import fr.pedalons.repository.query.PedalonsQuery;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,5 +77,20 @@ public class TripRepository implements TeamEntityRepository<Trip, TeamEntityQuer
             + "where s.trip = te and s.deleted = false and s.route.id = :routeId))",
         Map.of("routeId", routeId));
     return findAll(pedalonsQuery);
+  }
+
+  /**
+   * The weather planner's trips without any live stage — each is one leg, its own route at its own
+   * time: published live trips leaving within {@code [from, to]}, across all domains (the weather
+   * cache is global).
+   */
+  public List<Trip> findStagelessForWeather(Instant from, Instant to) {
+    return list(
+        "from Trip t where t.status = ?1 and t.deleted = false and t.team.deleted = false"
+            + " and t.dateTime >= ?2 and t.dateTime <= ?3"
+            + " and not exists (select 1 from TripStage s where s.trip = t and s.deleted = false)",
+        Status.PUBLISHED,
+        from,
+        to);
   }
 }

@@ -3,7 +3,6 @@ package fr.pedalons.service.ride;
 import static fr.pedalons.dto.error.ErrorCode.ALREADY_REGISTERED;
 import static fr.pedalons.dto.error.ErrorCode.NOT_REGISTERED;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.common.exception.BusinessException;
@@ -55,11 +54,10 @@ import fr.pedalons.service.tag.TagService;
 import fr.pedalons.service.thumbnail.ThumbnailService;
 import fr.pedalons.service.weather.RideWeatherLookup;
 import fr.pedalons.service.weather.RideWeatherService;
+import fr.pedalons.service.weather.WeatherEtag;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -153,22 +151,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
             new WeatherAttributionDto(
                 OpenMeteoGateway.ATTRIBUTION_NAME, OpenMeteoGateway.ATTRIBUTION_URL));
     return new RideWeatherAnswer(
-        body, body.status() == WeatherStatus.UNAVAILABLE ? null : weatherEtag(body));
-  }
-
-  /**
-   * A digest of the body rather than « ride version + fetchedAt »: a group's time, speed or route
-   * changes the passages without touching the ride's version, and the clock alone turns a forecast
-   * {@code STALE}. Hashing what is sent catches all of it, and is the same on every instance.
-   */
-  private String weatherEtag(RideWeatherDto body) {
-    try {
-      byte[] digest =
-          MessageDigest.getInstance("SHA-256").digest(objectMapper.writeValueAsBytes(body));
-      return HexFormat.of().formatHex(digest, 0, 16);
-    } catch (JsonProcessingException | NoSuchAlgorithmException e) {
-      throw new IllegalStateException("Cannot digest a ride's weather", e);
-    }
+        body,
+        body.status() == WeatherStatus.UNAVAILABLE ? null : WeatherEtag.of(objectMapper, body));
   }
 
   /**

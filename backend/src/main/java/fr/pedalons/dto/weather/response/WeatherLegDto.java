@@ -11,28 +11,38 @@ import org.jspecify.annotations.Nullable;
 
 @Schema(
     description =
-        "The weather along one ridden route: a group of a ride (a stage of a trip, later). Passages"
-            + " are estimated from startTime at averageSpeed.")
+        "The weather along one ridden route: a group of a ride, or a stage of a trip. Passages are"
+            + " estimated from startTime at averageSpeed.")
 @ValidateSchema
 public record WeatherLegDto(
     @Nullable
         @Schema(
             description =
-                "The ride group (TSID). Absent for a ride without groups: the leg rides the ride's"
-                    + " own route.")
+                "The ride group (TSID). Absent for a ride without groups — the leg rides the ride's"
+                    + " own route — and for a trip's legs, which TripStageWeatherDto.stageId"
+                    + " names.")
         String groupId,
     @Schema(
             description =
                 "State of this leg's forecast. NO_LOCATION when the leg has no route to sample:"
-                    + " then no checkpoint, no segment.",
+                    + " then no checkpoint, no segment. NOT_YET_AVAILABLE when it leaves beyond the"
+                    + " seven-day horizon: checkpoints and times without weather, and"
+                    + " availableFrom. OUT_OF_RANGE for a trip stage already gone: nothing to"
+                    + " show.",
             required = true)
         WeatherStatus status,
+    @Nullable
+        @Schema(
+            description =
+                "For NOT_YET_AVAILABLE: when this leg's forecast opens, seven days before it"
+                    + " leaves")
+        Instant availableFrom,
     @Schema(description = "When the leg leaves", required = true) Instant startTime,
     @Schema(description = "Speed used for the passages, km/h", required = true) double averageSpeed,
     @Schema(
             description =
-                "Whether averageSpeed is the 25 km/h default, the group having none — to be said"
-                    + " on screen",
+                "Whether averageSpeed is the 25 km/h default, the group or stage having none — to"
+                    + " be said on screen",
             required = true)
         boolean speedIsDefault,
     @Schema(description = "Length of the leg's route, metres", required = true) double distance,
@@ -60,6 +70,7 @@ public record WeatherLegDto(
     return new WeatherLegDto(
         leg.groupId() != null ? TsidUtils.toString(leg.groupId()) : null,
         leg.status(),
+        leg.availableFrom(),
         leg.startTime(),
         leg.averageSpeed(),
         leg.speedIsDefault(),

@@ -442,6 +442,137 @@ class RideWeatherCalculatorTest {
     assertNull(summary.rainAlert());
   }
 
+  // --- trip ------------------------------------------------------------------------------------
+
+  private static TripWeather.StageLeg stage(long id, WeatherLeg leg) {
+    return new TripWeather.StageLeg(id, leg);
+  }
+
+  @Test
+  void leg_beyondTheHorizon_shouldSayWhenItsForecastOpens() {
+    Instant far = NOW.plus(Duration.ofDays(9));
+    LegInput input = new LegInput(null, far, RideWeatherCalculator.speed(null), northbound(30));
+
+    WeatherLeg leg = RideWeatherCalculator.leg(input, key -> series(null, 10, 0), NOW);
+
+    assertEquals(WeatherStatus.NOT_YET_AVAILABLE, leg.status());
+    assertEquals(far.minus(Duration.ofDays(7)), leg.availableFrom());
+    assertTrue(leg.checkpoints().stream().allMatch(c -> c.weather() == null));
+  }
+
+  @Test
+  void trip_shouldCountOnlyTheStagesWithAForecastWithinRange() {
+    WeatherLeg tomorrow =
+        RideWeatherCalculator.leg(
+            new LegInput(null, DEPARTURE, RideWeatherCalculator.speed(null), northbound(30)),
+            key -> series(null, 10, 0),
+            NOW);
+    WeatherLeg noRoute =
+        RideWeatherCalculator.leg(
+            new LegInput(null, DEPARTURE, RideWeatherCalculator.speed(null), null),
+            key -> CellSeries.EMPTY,
+            NOW);
+    WeatherLeg far =
+        RideWeatherCalculator.leg(
+            new LegInput(
+                null,
+                NOW.plus(Duration.ofDays(9)),
+                RideWeatherCalculator.speed(null),
+                northbound(30)),
+            key -> CellSeries.EMPTY,
+            NOW);
+    List<WeatherLeg> legs = List.of(tomorrow, noRoute, far);
+
+    TripWeather trip =
+        RideWeatherCalculator.trip(
+            List.of(stage(1, tomorrow), stage(2, noRoute), stage(3, far)), legs);
+
+    assertEquals(WeatherStatus.OK, trip.status());
+    assertNull(trip.availableFrom());
+    assertEquals(3, trip.stages().size());
+    assertEquals(tomorrow.fetchedAt(), trip.fetchedAt());
+  }
+
+  @Test
+  void trip_withEveryLocatedStageBeyondTheHorizon_shouldOpenWithTheFirst() {
+    Instant first = NOW.plus(Duration.ofDays(9));
+    WeatherLeg a =
+        RideWeatherCalculator.leg(
+            new LegInput(null, first, RideWeatherCalculator.speed(null), northbound(30)),
+            key -> CellSeries.EMPTY,
+            NOW);
+    WeatherLeg b =
+        RideWeatherCalculator.leg(
+            new LegInput(
+                null, first.plus(Duration.ofDays(1)), RideWeatherCalculator.speed(null), null),
+            key -> CellSeries.EMPTY,
+            NOW);
+
+    TripWeather trip = RideWeatherCalculator.trip(List.of(stage(1, a), stage(2, b)), List.of(a, b));
+
+    assertEquals(WeatherStatus.NOT_YET_AVAILABLE, trip.status());
+    assertEquals(first.minus(Duration.ofDays(7)), trip.availableFrom());
+  }
+
+  @Test
+  void trip_withoutAnyRoute_shouldHaveNoLocation_andWithNothingLeft_beOutOfRange() {
+    WeatherLeg noRoute =
+        RideWeatherCalculator.leg(
+            new LegInput(null, DEPARTURE, RideWeatherCalculator.speed(null), null),
+            key -> CellSeries.EMPTY,
+            NOW);
+
+    assertEquals(
+        WeatherStatus.NO_LOCATION,
+        RideWeatherCalculator.trip(List.of(stage(1, noRoute)), List.of(noRoute)).status());
+    assertEquals(
+        WeatherStatus.OUT_OF_RANGE,
+        RideWeatherCalculator.trip(List.of(stage(1, noRoute)), List.of()).status());
+  }
+
+  @Test
+  void legSummary_shouldSpanTheCheckpoints_andKeepTheRainAlertsDistance() {
+    LegInput input =
+        new LegInput(null, DEPARTURE, RideWeatherCalculator.speed(null), northbound(92));
+    WeatherLeg leg = RideWeatherCalculator.leg(input, key -> series(70, 10, 0), NOW);
+
+    RideWeatherSummary summary = RideWeatherCalculator.legSummary(leg);
+
+    assertNotNull(summary);
+    assertEquals(WeatherStatus.OK, summary.status());
+    assertEquals(11.5, summary.temperature()); // 07:00 → 8 + 7 × 0.5
+    assertEquals(11.5, summary.temperatureMin());
+    // The finish, 92 km at 25 km/h later (10:40:48), reads the 11:00 hour.
+    assertEquals(13.5, summary.temperatureMax());
+    assertEquals(70, summary.maxPrecipitationProbability());
+    assertNotNull(summary.rainAlert());
+    assertEquals(0.0, summary.rainAlert().distance());
+  }
+
+  @Test
+  void legSummary_ofALegWithNothingToShow_shouldBeNull() {
+    WeatherLeg unavailable =
+        RideWeatherCalculator.leg(
+            new LegInput(null, DEPARTURE, RideWeatherCalculator.speed(null), northbound(30)),
+            key -> CellSeries.EMPTY,
+            NOW);
+    WeatherLeg far =
+        RideWeatherCalculator.leg(
+            new LegInput(
+                null,
+                NOW.plus(Duration.ofDays(9)),
+                RideWeatherCalculator.speed(null),
+                northbound(30)),
+            key -> CellSeries.EMPTY,
+            NOW);
+
+    assertNull(RideWeatherCalculator.legSummary(unavailable));
+    RideWeatherSummary notYet = RideWeatherCalculator.legSummary(far);
+    assertNotNull(notYet);
+    assertEquals(WeatherStatus.NOT_YET_AVAILABLE, notYet.status());
+    assertEquals(far.availableFrom(), notYet.availableFrom());
+  }
+
   @Test
   void horizon_shouldBeSevenDays() {
     Instant far = NOW.plus(Duration.ofDays(8));

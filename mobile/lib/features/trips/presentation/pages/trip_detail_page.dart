@@ -26,6 +26,7 @@ import '../../../tags/presentation/content_tags.dart';
 import '../../providers/trip_detail_provider.dart';
 import '../../providers/trip_participation_controller.dart';
 import '../../providers/trip_stage_selection_provider.dart';
+import '../../providers/trip_weather_provider.dart';
 import '../widgets/stage_card.dart';
 import '../widgets/trip_elevation.dart';
 import '../widgets/trip_map.dart';
@@ -95,6 +96,7 @@ class _TripDetailContent extends ConsumerWidget {
       // n'a pas à remonter jusqu'à l'indicateur : le détail passe en erreur et
       // l'écran d'erreur, avec son « Réessayer », prend la place.
       onRefresh: () async {
+        ref.invalidate(tripWeatherProvider(tripKey));
         try {
           ref.invalidate(tripDetailProvider(tripKey));
           await ref.read(tripDetailProvider(tripKey).future);
@@ -192,7 +194,15 @@ class _TripDetailContent extends ConsumerWidget {
             child: TripElevationSection(tripKey: tripKey, trip: trip),
           ),
         ),
-        SliverToBoxAdapter(child: _stages(context, stages, selected, select)),
+        SliverToBoxAdapter(
+          child: _stages(
+            context,
+            stages,
+            selected,
+            select,
+            _stageSummaries(ref),
+          ),
+        ),
         if (trip.media.markdown.trim().isNotEmpty)
           SliverToBoxAdapter(child: _description(context)),
         // Section à part, et non un appendice de la description : un voyage
@@ -442,11 +452,32 @@ class _TripDetailContent extends ConsumerWidget {
   };
 
   // ── 3 · Étapes ──────────────────────────────────────────────────────────
+  /// Le résumé météo de chaque étape, par `stageId` — une seule lecture pour
+  /// tout le voyage. Rien pour un voyage terminé ou annulé (sans même appeler
+  /// l'API), ni tant que la météo n'est pas là ou qu'elle a échoué : la ligne
+  /// est un enrichissement de la carte, pas un état à part.
+  Map<String, RideWeatherSummaryDto> _stageSummaries(WidgetRef ref) {
+    if (trip.isPast || trip.isCancelled) {
+      return const <String, RideWeatherSummaryDto>{};
+    }
+    final TripWeatherDto? weather = ref
+        .watch(tripWeatherProvider(tripKey))
+        .value;
+    if (weather == null || !tripWeatherShowsAnything(weather)) {
+      return const <String, RideWeatherSummaryDto>{};
+    }
+    return <String, RideWeatherSummaryDto>{
+      for (final TripStageWeatherDto s in weather.stages)
+        if (s.stageId != null && s.summary != null) s.stageId!: s.summary!,
+    };
+  }
+
   Widget _stages(
     BuildContext context,
     List<TripStageDto> stages,
     String? selected,
     ValueChanged<String> select,
+    Map<String, RideWeatherSummaryDto> summaries,
   ) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -471,6 +502,7 @@ class _TripDetailContent extends ConsumerWidget {
                 child: StageCard(
                   key: keys.trip.stageCard(stage.slug),
                   stage: stage,
+                  weather: summaries[stage.id],
                   selected: stage.id == selected,
                   onSelect: () => select(stage.id),
                   onTap: () => context.push(
