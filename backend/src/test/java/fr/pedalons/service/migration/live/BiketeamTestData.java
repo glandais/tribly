@@ -18,6 +18,7 @@ import fr.pedalons.enums.WindDirection;
 import fr.pedalons.repository.migration.BiketeamMigrationJobRepository;
 import fr.pedalons.repository.migration.BiketeamMigrationMapRepository;
 import fr.pedalons.service.migration.BiketeamMigrationService;
+import fr.pedalons.service.publication.PublicationEndCalculator;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -36,6 +37,7 @@ public class BiketeamTestData {
   @Inject BiketeamMigrationJobRepository jobRepository;
   @Inject BiketeamMigrationMapRepository mapRepository;
   @Inject EntityManager em;
+  @Inject PublicationEndCalculator endCalculator;
 
   /** Records {@code team} as migrated from biketeam team {@code biketeamTeamId}. */
   @Transactional
@@ -229,6 +231,33 @@ public class BiketeamTestData {
                         g.getLeader() == null ? null : g.getLeader().getId()))
             .toList();
     return new RideView(ride.getName(), ride.getDateTime(), ride.getCreatedBy().getId(), groups);
+  }
+
+  /** The end stored on a migrated ride or trip, and what the calculator makes of it now. */
+  public record EndView(@Nullable Instant stored, Instant computed) {}
+
+  @Transactional
+  public EndView rideEnd(long teamId, String title) {
+    Ride ride =
+        em.createQuery(
+                "select r from Ride r where r.team.id = :t and r.name = :n and r.deleted = false",
+                Ride.class)
+            .setParameter("t", teamId)
+            .setParameter("n", title)
+            .getSingleResult();
+    return new EndView(ride.getEndDateTime(), endCalculator.rideEnd(ride));
+  }
+
+  @Transactional
+  public EndView tripEnd(long teamId, String title) {
+    Trip trip =
+        em.createQuery(
+                "select t from Trip t where t.team.id = :t and t.name = :n and t.deleted = false",
+                Trip.class)
+            .setParameter("t", teamId)
+            .setParameter("n", title)
+            .getSingleResult();
+    return new EndView(trip.getEndDateTime(), endCalculator.tripEnds(trip).end());
   }
 
   public record StageView(String name, int sortOrder, Instant dateTime) {}

@@ -833,6 +833,30 @@ public class TestDataService {
     return rideRepository.findById(id);
   }
 
+  /** The stored end of a ride, a trip or a stage, as the database holds it (API-85). */
+  @Transactional
+  public @Nullable Instant getEndDateTime(Long teamEntityId) {
+    return rideRepository
+        .getEntityManager()
+        .createQuery("select te.endDateTime from TeamEntity te where te.id = :id", Instant.class)
+        .setParameter("id", teamEntityId)
+        .getSingleResult();
+  }
+
+  /**
+   * Writes a stored end directly, without the version: what an older backend leaves (null) or a
+   * stale value (API-85).
+   */
+  @Transactional
+  public void setEndDateTime(Long teamEntityId, @Nullable Instant end) {
+    rideRepository
+        .getEntityManager()
+        .createQuery("update TeamEntity te set te.endDateTime = :end where te.id = :id")
+        .setParameter("end", end)
+        .setParameter("id", teamEntityId)
+        .executeUpdate();
+  }
+
   @Transactional
   public RideTemplate getRideTemplate(Long id) {
     return rideTemplateRepository.findById(id);

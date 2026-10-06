@@ -38,6 +38,7 @@ import fr.pedalons.repository.route.RouteRepository;
 import fr.pedalons.repository.trip.TripRepository;
 import fr.pedalons.service.comment.CommentCountLookup;
 import fr.pedalons.service.common.TeamEntityService;
+import fr.pedalons.service.publication.PublicationEndCalculator;
 import fr.pedalons.service.route.response.TrackMetadata;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.security.annotation.Public;
@@ -96,6 +97,8 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   @Inject TagService tagService;
 
   @Inject TagLookup tagLookup;
+
+  @Inject PublicationEndCalculator publicationEndCalculator;
 
   @Override
   protected RouteRepository getRepository() {
@@ -402,6 +405,11 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
     } catch (Exception e) {
       gpxProcessingService.deleteRouteFiles(route);
       throw new BusinessException(ErrorCode.GPX_FAILURE, e);
+    }
+    if (gpx != null) {
+      // A new track is a new distance: every ride, group and stage riding it ends at another time
+      // (docs/LEDGER_*.md API-85).
+      publicationEndCalculator.refreshUsersOf(route);
     }
 
     updateMedia(route, request.media());

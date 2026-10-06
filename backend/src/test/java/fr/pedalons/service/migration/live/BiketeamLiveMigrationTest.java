@@ -247,6 +247,23 @@ class BiketeamLiveMigrationTest extends AbstractResourceTest {
     assertEquals(Instant.parse("2025-07-02T04:00:00Z"), stages.get(1).dateTime());
   }
 
+  /** The import goes through the same creation as the API: every end is stored (API-85). */
+  @Test
+  void importedRidesAndTrips_haveTheirEndStored() throws IOException {
+    migrate(USER4, true, false);
+    long teamId = biketeamData.team(domain, TEAM).id();
+
+    BiketeamTestData.EndView ride = biketeamData.rideEnd(teamId, "Sortie du 12");
+    assertNotNull(ride.stored());
+    assertEquals(ride.computed(), ride.stored());
+
+    BiketeamTestData.EndView trip = biketeamData.tripEnd(teamId, "Tour 2025");
+    assertNotNull(trip.stored());
+    assertEquals(trip.computed(), trip.stored());
+    // The second stage leaves on 2025-07-02 04:00 UTC: the trip cannot end before it.
+    assertTrue(trip.stored().isAfter(Instant.parse("2025-07-02T04:00:00Z")));
+  }
+
   @Test
   void urlMap_pointsAtTheFrenchRoutes_ofTheDomainBaseUrl() throws IOException {
     BiketeamJobStatusDto status = migrate(USER4, true, false);

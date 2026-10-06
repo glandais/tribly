@@ -26,6 +26,8 @@ public class PublicationPublishScheduler {
 
   @Inject NotificationPublisher notificationPublisher;
 
+  @Inject PublicationEndCalculator publicationEndCalculator;
+
   /**
    * Runs every minute to check for publications that should be auto-published. A publication is
    * auto-published if:
@@ -55,6 +57,10 @@ public class PublicationPublishScheduler {
         continue;
       }
       publicationRepository.getEntityManager().refresh(publication);
+      // A post's date moves to publishAt; a ride or a trip keeps its own, but its end is computed
+      // again all the same — a draft an older backend wrote may have none (docs/LEDGER_*.md
+      // API-85). Writes only when the value changes.
+      publicationEndCalculator.refresh(publication);
       published++;
       // Nobody pressed "publish": the author is the closest thing to an actor, and is spared
       // being told about their own publication.

@@ -41,6 +41,7 @@ import fr.pedalons.service.common.ParticipantPreviewLookup;
 import fr.pedalons.service.common.ParticipationLookup;
 import fr.pedalons.service.common.TeamEntityService;
 import fr.pedalons.service.notification.NotificationPublisher;
+import fr.pedalons.service.publication.PublicationEndCalculator;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.tag.TagLookup;
@@ -89,6 +90,8 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
   @Inject TripWeatherService tripWeatherService;
 
   @Inject ObjectMapper objectMapper;
+
+  @Inject PublicationEndCalculator publicationEndCalculator;
 
   @Override
   protected TripRepository getRepository() {
@@ -226,6 +229,8 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
       createTripStage(teamSlug, creator, trip, stageRequest, sortOrder);
       sortOrder++;
     }
+    // After the stages: the trip ends with the latest of them (docs/LEDGER_*.md API-85).
+    publicationEndCalculator.refresh(trip);
     tagService.replaceTags(trip, request.tagIds());
 
     thumbnailService.generateTripThumbnails(trip);
@@ -359,6 +364,8 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
       }
       sortOrder++;
     }
+    // Stages created, edited, dropped or reordered: all go through here (API-85).
+    publicationEndCalculator.refresh(trip);
     tagService.replaceTags(trip, request.tagIds());
 
     tripRepository.persist(trip);

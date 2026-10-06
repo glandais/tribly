@@ -47,6 +47,7 @@ import fr.pedalons.service.notification.NotificationPublisher;
 import fr.pedalons.service.notification.event.RideGroupRemoved;
 import fr.pedalons.service.notification.event.RideJoined;
 import fr.pedalons.service.notification.event.RideUpdated;
+import fr.pedalons.service.publication.PublicationEndCalculator;
 import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.tag.TagLookup;
@@ -102,6 +103,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
   @Inject RideWeatherService rideWeatherService;
 
   @Inject ObjectMapper objectMapper;
+
+  @Inject PublicationEndCalculator publicationEndCalculator;
 
   /** How long a ride edit waits before notifying — the window in which further edits fold in. */
   @ConfigProperty(name = "pedalons.notifications.update-delay-seconds", defaultValue = "300")
@@ -230,6 +233,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
       createRideGroup(teamSlug, creator, ride, groupRequest, sortOrder);
       sortOrder++;
     }
+    // After the groups: the end is the latest of them (docs/LEDGER_*.md API-85).
+    publicationEndCalculator.refresh(ride);
     // A ride created from a template arrives with the template's tags in tagIds: the client
     // prefilled the form from RideTemplateDto.tags (docs/plans/archive/2026-10-01-tags.md D14).
     tagService.replaceTags(ride, request.tagIds());
@@ -384,6 +389,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
       }
     }
     ride.getGroups().removeAll(orphanedGroups.values());
+    // Once the groups are final — departure, times, routes and speeds all count (API-85).
+    publicationEndCalculator.refresh(ride);
     // Tags notify nobody (plan D23): RideUpdated below only looks at the date and the start place.
     tagService.replaceTags(ride, request.tagIds());
 

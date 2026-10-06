@@ -66,6 +66,29 @@ class PublicationPublishSchedulerTest extends AbstractBaseTest {
     assertNull(updated.getPublishAt());
   }
 
+  /** A ride an older backend wrote has no end: publishing it stores one (API-85). */
+  @Test
+  void autoPublish_storesTheEndOfARideThatHadNone() {
+    Instant start = LocalDate.of(2030, 6, 15).atTime(7, 0).toInstant(ZoneOffset.UTC);
+    Ride ride =
+        dataService.createRide(
+            team,
+            user,
+            "Programmée",
+            "programmee",
+            start,
+            Visibility.PUBLIC,
+            Status.DRAFT,
+            Instant.now().minusSeconds(60));
+    assertNull(dataService.getEndDateTime(ride.getId()), "written without the calculator");
+
+    publishScheduler.autoPublishPublications();
+
+    assertEquals(
+        start.plus(PublicationEndCalculator.DEFAULT_DURATION),
+        dataService.getEndDateTime(ride.getId()));
+  }
+
   @Test
   void autoPublish_shouldNotPublishRideWithFuturePublishAt() {
     Ride ride =
