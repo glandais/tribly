@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../api/generated/export.dart';
 import '../features/apps/presentation/pages/apps_page.dart';
 import '../features/auth/presentation/pages/forgot_password_page.dart';
 import '../features/auth/presentation/pages/login_page.dart';
@@ -204,6 +205,14 @@ final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
   ),
   _DeepLinkHierarchy(
     patterns: PathVariants.teamMembers(':teamSlug'),
+    ancestors: [_teamsAncestor, _teamAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.teamRides(':teamSlug'),
+    ancestors: [_teamsAncestor, _teamAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.teamTrips(':teamSlug'),
     ancestors: [_teamsAncestor, _teamAncestor],
   ),
 
@@ -434,16 +443,20 @@ GoRoute _teamTree(String locale) {
   /// Every section of a team is the **same page** with another section: one
   /// owner of the team's loading and error state, and a row of sections that
   /// is content rather than a second navigation bar.
-  GoRoute section(Map<String, String> variants, TeamSectionKind kind) =>
-      GoRoute(
-        path: _underTeam(variants, locale, teamBase),
-        pageBuilder: (context, state) => NoTransitionPage(
-          child: TeamHomePage(
-            teamSlug: state.pathParameters['teamSlug']!,
-            section: kind,
-          ),
-        ),
-      );
+  GoRoute section(
+    Map<String, String> variants,
+    TeamSectionKind kind, {
+    PublicationType? feedType,
+  }) => GoRoute(
+    path: _underTeam(variants, locale, teamBase),
+    pageBuilder: (context, state) => NoTransitionPage(
+      child: TeamHomePage(
+        teamSlug: state.pathParameters['teamSlug']!,
+        section: kind,
+        feedType: feedType,
+      ),
+    ),
+  );
 
   return GoRoute(
     path: teamBase,
@@ -464,6 +477,20 @@ GoRoute _teamTree(String locale) {
       section(PathVariants.teamAds(':teamSlug'), TeamSectionKind.ads),
       section(PathVariants.teamAbout(':teamSlug'), TeamSectionKind.about),
       section(PathVariants.teamMembers(':teamSlug'), TeamSectionKind.members),
+      // Les onglets « Sorties » et « Voyages » du site (ledger `WEB-64`) : l'app
+      // n'a pas de liste par type, ils ouvrent le fil de l'équipe filtré sur ce
+      // type. Sans eux, les motifs de lien profond de l'équipe les capteraient
+      // et le lien finirait sur la page d'erreur.
+      section(
+        PathVariants.teamRides(':teamSlug'),
+        TeamSectionKind.feed,
+        feedType: PublicationType.ride,
+      ),
+      section(
+        PathVariants.teamTrips(':teamSlug'),
+        TeamSectionKind.feed,
+        feedType: PublicationType.trip,
+      ),
       GoRoute(
         path: _underTeam(
           PathVariants.teamPage(':teamSlug', ':pageSlug'),

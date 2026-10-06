@@ -1205,7 +1205,14 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   de contrat d'API). Décision de l'utilisateur : deux routes de liste par type plutôt que le seul
   fil filtré. `contracts/routes.yaml` gagne `teamRides` (`/equipes/{teamSlug}/sorties`,
   `/teams/{teamSlug}/rides`) et `teamTrips` (`/equipes/{teamSlug}/voyages`, `/teams/{teamSlug}/trips`),
-  web seulement — pas d'écran Flutter pour les recevoir, donc ni `mobile` ni `deeplink`. Les
+  en `mobile` et `deeplink` : l'app n'a pas de liste par type, mais les motifs de lien profond de
+  l'équipe (`/equipes/*` dans l'AASA, `/equipes/.*` dans le manifeste Android) captent ces chemins
+  quoi que dise `routes.yaml` — publiées web seulement, elles ouvraient l'app sur sa page d'erreur
+  (corrigé après relecture, même jour). Le `GoRouter` les rend en `TeamHomePage` section `feed`,
+  avec `feedType` (`PublicationFeedView.initialType`, type de départ que les chips peuvent
+  changer) ; elles sont dans `internalRouteTemplates` et `_deepLinkHierarchies` (équipes → équipe).
+  Test mobile : `team_kind_tab_links_test.dart` (lien interne, ancêtres, écran résolu, première
+  page déjà filtrée), `deep_link_hierarchy_test.dart`. Les
   routes `team-rides` et `team-trips` (`routes.config.ts`, publiques, sous `team-detail`) rendent
   `PublicationListPage` avec `kind` (`TeamRidesPage`, `TeamTripsPage`) : le même fil, le même
   `publicationListData.ts`, où `withListKind` impose le type de la route à la place de `?type=`
@@ -1221,7 +1228,9 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   **À ne pas défaire** : un onglet par type n'a pas de lecture à lui — il passe par
   `usePublicationListData`/`prefetchPublicationList` avec son `kind`, sinon page et prefetch
   divergent ; une sortie ou un voyage reste sous `team-detail` dans le fil d'Ariane (on y arrive
-  aussi du fil et du tableau de bord).
+  aussi du fil et du tableau de bord) ; `teamRides` et `teamTrips` restent `mobile` avec un
+  écran dans l'app tant que `/equipes/*` est un motif de lien profond — repassées web seules,
+  le lien ouvrirait de nouveau l'app sur sa page d'erreur.
 
 ## API — Contrat d'API et backend
 

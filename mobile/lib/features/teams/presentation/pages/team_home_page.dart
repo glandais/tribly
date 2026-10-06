@@ -44,10 +44,16 @@ class TeamHomePage extends ConsumerWidget {
     super.key,
     required this.teamSlug,
     required this.section,
+    this.feedType,
   });
 
   final String teamSlug;
   final TeamSectionKind section;
+
+  /// Le type imposé au fil à l'ouverture — les onglets « Sorties » et
+  /// « Voyages » du site (ledger `WEB-64`), que l'app rend en fil filtré.
+  /// Sans effet hors de [TeamSectionKind.feed].
+  final PublicationType? feedType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,12 +74,19 @@ class TeamHomePage extends ConsumerWidget {
     // encore en chargement, et proposerait « Sur invitation » à un membre.
     final String? currentSlug = teamAsync.value?.slug;
     if (currentSlug != null && currentSlug != teamSlug) {
-      return TeamHomePage(teamSlug: currentSlug, section: section);
+      return TeamHomePage(
+        teamSlug: currentSlug,
+        section: section,
+        feedType: feedType,
+      );
     }
 
     return teamAsync.when(
-      data: (TeamDetailDto team) =>
-          _TeamSectionScaffold(team: team, section: section),
+      data: (TeamDetailDto team) => _TeamSectionScaffold(
+        team: team,
+        section: section,
+        feedType: feedType,
+      ),
       loading: () => const _TeamChrome.bare(
         // Défilable : trois gabarits dépassent la hauteur d'un écran, et un
         // gabarit qui déborde rend une bande d'erreur rayée.
@@ -159,10 +172,15 @@ class _TeamChrome extends StatelessWidget {
 
 /// Dispatches to the section's body, team in hand.
 class _TeamSectionScaffold extends StatelessWidget {
-  const _TeamSectionScaffold({required this.team, required this.section});
+  const _TeamSectionScaffold({
+    required this.team,
+    required this.section,
+    this.feedType,
+  });
 
   final TeamDetailDto team;
   final TeamSectionKind section;
+  final PublicationType? feedType;
 
   @override
   Widget build(BuildContext context) {
@@ -195,6 +213,7 @@ class _TeamSectionScaffold extends StatelessWidget {
         body: TeamFeedPage(
           teamSlug: team.slug,
           team: team,
+          initialType: feedType,
           leadingSlivers: <Widget>[
             TeamHeaderSliver(team: team),
             SliverToBoxAdapter(

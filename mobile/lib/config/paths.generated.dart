@@ -255,6 +255,24 @@ class Paths {
     }
   }
 
+  static String teamRides(String teamSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/sorties';
+      default:
+        return '/teams/$teamSlug/rides';
+    }
+  }
+
+  static String teamTrips(String teamSlug) {
+    switch (getCurrentLocale()) {
+      case 'fr':
+        return '/equipes/$teamSlug/voyages';
+      default:
+        return '/teams/$teamSlug/trips';
+    }
+  }
+
   static String teamMembers(String teamSlug) {
     switch (getCurrentLocale()) {
       case 'fr':
@@ -540,6 +558,14 @@ class PathVariants {
   static Map<String, String> teamCalendar(String teamSlug) => {
     'en': '/teams/$teamSlug/calendar',
     'fr': '/equipes/$teamSlug/calendrier',
+  };
+  static Map<String, String> teamRides(String teamSlug) => {
+    'en': '/teams/$teamSlug/rides',
+    'fr': '/equipes/$teamSlug/sorties',
+  };
+  static Map<String, String> teamTrips(String teamSlug) => {
+    'en': '/teams/$teamSlug/trips',
+    'fr': '/equipes/$teamSlug/voyages',
   };
   static Map<String, String> teamMembers(String teamSlug) => {
     'en': '/teams/$teamSlug/members',

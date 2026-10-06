@@ -22,18 +22,23 @@ class TeamFeedPage extends ConsumerWidget {
   /// interpolé et les cellules chiffrées.
   final List<Widget> leadingSlivers;
 
+  /// Le type sur lequel le fil s'ouvre (voir [PublicationFeedView.initialType]).
+  final PublicationType? initialType;
+
   const TeamFeedPage({
     super.key,
     required this.teamSlug,
     required this.team,
     this.toolbar,
     this.leadingSlivers = const <Widget>[],
+    this.initialType,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PublicationFeedView(
       teamSlug: teamSlug,
+      initialType: initialType,
       emptyMessage: 'teams.feed.empty'.tr(),
       leadingSlivers: <Widget>[...leadingSlivers, ?toolbar],
     );

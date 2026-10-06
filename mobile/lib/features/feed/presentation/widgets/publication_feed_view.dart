@@ -40,6 +40,12 @@ class PublicationFeedView extends ConsumerStatefulWidget {
   /// publications · 1 248 publications » sur l'accueil.
   final bool showSectionHeader;
 
+  /// Le type sur lequel le fil s'ouvre, `null` pour « Tout ». Les chips
+  /// restent libres ensuite : c'est un point de départ, pas un filtre imposé
+  /// — les onglets « Sorties » et « Voyages » du site (ledger `WEB-64`), que
+  /// l'app rend en fil d'équipe filtré.
+  final PublicationType? initialType;
+
   const PublicationFeedView({
     super.key,
     required this.teamSlug,
@@ -47,6 +53,7 @@ class PublicationFeedView extends ConsumerStatefulWidget {
     this.leadingSlivers = const [],
     this.showSectionHeader = false,
     this.onRefreshExtras,
+    this.initialType,
   });
 
   @override
@@ -55,6 +62,27 @@ class PublicationFeedView extends ConsumerStatefulWidget {
 }
 
 class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
+  /// Vrai tant que [PublicationFeedView.initialType] n'a pas été recopié dans
+  /// `publicationFeedTypeProvider`. Un provider ne se modifie pas pendant la
+  /// construction de l'arbre : la recopie attend la fin de la première frame,
+  /// et d'ici là `build` lit le type initial directement — la première page
+  /// demandée est donc déjà la bonne, sans requête « Tout » jetée.
+  bool _initialTypePending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final PublicationType? initial = widget.initialType;
+    if (initial == null) return;
+    _initialTypePending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(publicationFeedTypeProvider(widget.teamSlug).notifier).state =
+          initial;
+      setState(() => _initialTypePending = false);
+    });
+  }
+
   /// Scrolls back to the top through the route's primary controller.
   ///
   /// The feed deliberately declares no `controller:` of its own: that is what
@@ -107,7 +135,10 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
       if (previous != next) _scrollToTop();
     });
 
-    final type = ref.watch(publicationFeedTypeProvider(widget.teamSlug));
+    final PublicationType? storedType = ref.watch(
+      publicationFeedTypeProvider(widget.teamSlug),
+    );
+    final type = _initialTypePending ? widget.initialType : storedType;
     final search = ref.watch(publicationFeedSearchProvider(widget.teamSlug));
     // La portée n'existe que sur le fil d'accueil : un fil d'équipe *est* déjà
     // une portée.

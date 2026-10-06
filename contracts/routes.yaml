@@ -372,8 +372,10 @@ routes:
     mobile: true
     deeplink: true
   # The team's rides and trips, each a tab of the team page: the team feed narrowed to one kind
-  # (docs/LEDGER_*.md WEB-64). Web only — the app has no such list, and a deeplink without a
-  # Flutter screen would swallow the link (see `invitation`). Flip mobile/deeplink with that screen.
+  # (docs/LEDGER_*.md WEB-64). `mobile` + `deeplink` although the app has no list of its own: the
+  # team's deeplink patterns (`/equipes/*` in the AASA, `/equipes/.*` in the manifest) catch these
+  # paths whatever this file says, so `web` alone would open the app on its 404. The app routes them
+  # to the team feed, filtered by kind (mobile/lib/config/router.dart).
   - id: teamRides
     path:
       en: /teams/{teamSlug}/rides
@@ -381,6 +383,8 @@ routes:
     params:
       - teamSlug
     web: true
+    mobile: true
+    deeplink: true
   - id: teamTrips
     path:
       en: /teams/{teamSlug}/trips
@@ -388,6 +392,8 @@ routes:
     params:
       - teamSlug
     web: true
+    mobile: true
+    deeplink: true
 
   # Member list of a team, shown to regular (non-admin) members. Distinct
   # from `teamAdminMembers`, which is the admin screen under /admin/members.

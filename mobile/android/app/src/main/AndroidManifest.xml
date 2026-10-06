@@ -121,6 +121,10 @@
                 <data android:pathPattern="/equipes/.*/a-propos" />
                 <data android:pathPattern="/teams/.*/calendar" />
                 <data android:pathPattern="/equipes/.*/calendrier" />
+                <data android:pathPattern="/teams/.*/rides" />
+                <data android:pathPattern="/equipes/.*/sorties" />
+                <data android:pathPattern="/teams/.*/trips" />
+                <data android:pathPattern="/equipes/.*/voyages" />
                 <data android:pathPattern="/teams/.*/members" />
                 <data android:pathPattern="/equipes/.*/membres" />
                 <data android:pathPattern="/teams/.*/rides/.*" />
