@@ -7,6 +7,7 @@ import jakarta.inject.Inject;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @ApplicationScoped
@@ -63,7 +64,9 @@ public class IcsGenerationService {
     // End date/time (optional)
     if (event.end() != null) {
       if (event.allDay()) {
-        ics.append("DTEND;VALUE=DATE:").append(ICS_DATE_FORMAT.format(event.end())).append("\r\n");
+        ics.append("DTEND;VALUE=DATE:")
+            .append(ICS_DATE_FORMAT.format(allDayEnd(event.start(), event.end())))
+            .append("\r\n");
       } else {
         ics.append("DTEND:").append(ICS_DATETIME_FORMAT.format(event.end())).append("\r\n");
       }
@@ -86,6 +89,19 @@ public class IcsGenerationService {
     }
 
     ics.append("END:VEVENT\r\n");
+  }
+
+  /**
+   * The exclusive end date of an all-day event (RFC 5545): the day after the one its end falls on,
+   * unless that end is already a midnight — so a stage ending at 17:00 occupies its own day, one
+   * ending the next morning both days (docs/LEDGER_*.md API-85). Never before the day after the
+   * start.
+   */
+  static Instant allDayEnd(Instant start, Instant end) {
+    Instant endDay = end.truncatedTo(ChronoUnit.DAYS);
+    Instant exclusive = endDay.equals(end) ? endDay : endDay.plus(1, ChronoUnit.DAYS);
+    Instant minimum = start.truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS);
+    return exclusive.isBefore(minimum) ? minimum : exclusive;
   }
 
   private String buildEventUrl(CalendarEventDto event) {

@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -157,6 +158,24 @@ class TeamDashboardResourceTest extends AbstractResourceTest {
         // « Annonces »: the null price is « Prix à négocier » on the client; no exact position.
         .body("latestAds.ads", hasSize(2))
         .body("latestAds.ads.price", contains(nullValue(), nullValue()));
+  }
+
+  /**
+   * A ride that left an hour ago is still under way (no stored end: its departure plus 3 h) — it
+   * stays first in both upcoming sections instead of vanishing at its start (API-85).
+   */
+  @Test
+  void aRideUnderWay_staysInTheUpcomingSections() {
+    var underWay =
+        dataService.createRide(
+            team1, user1, "En cours", "en-cours", Instant.now().minus(1, ChronoUnit.HOURS));
+    RideGroup group = dataService.createRideGroup(user1, underWay, "G", 0);
+    dataService.createParticipation(group, user3);
+
+    dashboardAs(USER3)
+        .body("upcomingRides.publications[0].slug", equalTo("en-cours"))
+        .body("myUpcoming.publications[0].slug", equalTo("en-cours"))
+        .body("upcomingRides.publications.slug", not(hasItem("past")));
   }
 
   @Test

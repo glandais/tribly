@@ -92,7 +92,7 @@ public class TeamDashboardService {
     PublicationListResponse myUpcoming =
         rides || trips
             ? publicationService.listTeamSection(
-                team, MY_UPCOMING_SIZE, q -> q.participating(true).from(now).ascending(true))
+                team, MY_UPCOMING_SIZE, q -> q.participating(true).notEndedAt(now).ascending(true))
             : null;
     PublicationListResponse upcomingRides = rides ? upcomingRides(team, now, false, false) : null;
     PublicationListResponse latestPosts =
@@ -151,7 +151,8 @@ public class TeamDashboardService {
   }
 
   /**
-   * The team's published rides from now on, soonest first: all of them, or only those routed
+   * The team's published rides not over yet — one under way stays (docs/LEDGER_*.md API-85) —
+   * soonest first: all of them, or only those routed
    * nowhere, or only those with a full group.
    */
   private PublicationListResponse upcomingRides(
@@ -162,7 +163,7 @@ public class TeamDashboardService {
         q ->
             q.type(PublicationType.RIDE)
                 .status(Status.PUBLISHED)
-                .from(now)
+                .notEndedAt(now)
                 .withoutRoute(withoutRoute)
                 .withFullGroup(withFullGroup)
                 .ascending(true));

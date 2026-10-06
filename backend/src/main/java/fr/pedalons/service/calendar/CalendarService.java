@@ -29,6 +29,7 @@ import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.asset.ThumbnailLookup;
 import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import fr.pedalons.service.common.ParticipationLookup;
+import fr.pedalons.service.publication.PublicationEndCalculator;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.CheckAccess;
@@ -348,7 +349,7 @@ public class CalendarService {
         TsidUtils.toString(ride.getId()),
         ride.getName(),
         ride.getDateTime(),
-        null,
+        PublicationEndCalculator.effectiveEnd(ride),
         false,
         CalendarEventType.RIDE,
         team.getSlug(),
@@ -377,7 +378,8 @@ public class CalendarService {
         TsidUtils.toString(stage.getId()),
         stage.getName(),
         stage.getDateTime(),
-        null,
+        // All day still, but up to its end: a stage that runs over midnight occupies both days.
+        PublicationEndCalculator.effectiveEnd(stage),
         true,
         CalendarEventType.TRIP_STAGE,
         team.getSlug(),

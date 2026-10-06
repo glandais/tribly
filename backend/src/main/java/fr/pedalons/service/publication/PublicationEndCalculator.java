@@ -16,6 +16,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,6 +115,29 @@ public class PublicationEndCalculator {
             .setParameter("routeId", route.getId())
             .getResultList();
     trips.forEach(this::refresh);
+  }
+
+  /**
+   * {@link #effectiveEnd} of several team entities by id, in one query — for a caller holding DTOs
+   * rather than entities. An unknown id is absent from the map.
+   */
+  public Map<Long, Instant> effectiveEnds(Collection<Long> ids) {
+    Map<Long, Instant> ends = new HashMap<>();
+    if (ids.isEmpty()) {
+      return ends;
+    }
+    List<Object[]> rows =
+        entityManager
+            .createQuery(
+                "select te.id, te.endDateTime, te.dateTime from TeamEntity te where te.id in :ids",
+                Object[].class)
+            .setParameter("ids", ids)
+            .getResultList();
+    for (Object[] row : rows) {
+      Instant end = (Instant) row[1];
+      ends.put((Long) row[0], end != null ? end : ((Instant) row[2]).plus(DEFAULT_DURATION));
+    }
+    return ends;
   }
 
   /** The end of a ride, by the rule of the class comment. */

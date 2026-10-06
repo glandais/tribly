@@ -395,13 +395,6 @@ sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` u
 
 Plan [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md) §3.
 
-- [ ] `API-85` **Une heure de fin stockée pour les sorties et les voyages, et un filtre
-      `when=UPCOMING|PAST` trié par le serveur (M)** — aucune fin n'existe : « À venir » compare
-      le départ à maintenant (`TeamEntityRepository`, filtre `from`), si bien qu'une sortie en cours
-      ou un voyage commencé disparaît, et le calendrier comme l'ICS envoient `end = null`. Colonne
-      `end_date_time` calculée par un seul service (groupes, vitesses, distances ; durée par défaut
-      sinon), recalculée à chaque point d'entrée listé au plan, remplie au démarrage, lue avec
-      `coalesce` pour le déploiement à chaud ; `endDateTime` au contrat (version mineure).
 - [ ] `API-86` **Le tableau de bord d'équipe ouvert aux visiteurs, en partie publique (S)** —
       `TeamDashboardService` répond 403 à un non-membre (`role == null`), ce qui laisse au fil la
       seule raison d'exister. Prochaines sorties, dernières publications, nouveaux parcours, sous

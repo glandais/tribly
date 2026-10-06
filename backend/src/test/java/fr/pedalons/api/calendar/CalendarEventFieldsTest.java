@@ -81,6 +81,43 @@ class CalendarEventFieldsTest extends AbstractResourceTest {
         .jsonPath();
   }
 
+  // ==================== End (API-85) ====================
+
+  @Test
+  void getEvents_rideEnd_isItsStoredEnd_orItsDeparturePlusThreeHours() {
+    Instant start = Instant.now().plus(2, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
+    dataService.createRide(team1, user1, "Sans fin", "sans-fin", start);
+    Instant end = soon.truncatedTo(ChronoUnit.SECONDS).plus(4, ChronoUnit.HOURS);
+    dataService.setEndDateTime(ride.getId(), end);
+
+    JsonPath events = getEvents();
+
+    org.junit.jupiter.api.Assertions.assertEquals(
+        end.toString(), events.getString(rideEvent("end")));
+    org.junit.jupiter.api.Assertions.assertEquals(
+        start.plus(3, ChronoUnit.HOURS).toString(),
+        events.getString("events.find { it.entitySlug == 'sans-fin' }.end"));
+  }
+
+  @Test
+  void rideIcs_carriesTheEnd_asDtend() {
+    Instant end = Instant.parse("2031-05-04T12:30:00Z");
+    dataService.setEndDateTime(ride.getId(), end);
+
+    String ics =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .when()
+            .get("/api/teams/" + team1Slug + "/rides/sortie-dimanche/ics")
+            .then()
+            .statusCode(200)
+            .extract()
+            .asString();
+
+    org.junit.jupiter.api.Assertions.assertTrue(ics.contains("DTEND:20310504T123000Z"), ics);
+  }
+
   // ==================== Render payload ====================
 
   @Test

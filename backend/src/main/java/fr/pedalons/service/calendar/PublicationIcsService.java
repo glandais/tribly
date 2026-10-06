@@ -1,5 +1,6 @@
 package fr.pedalons.service.calendar;
 
+import fr.pedalons.common.TsidUtils;
 import fr.pedalons.dto.calendar.response.CalendarEventDto;
 import fr.pedalons.dto.calendar.response.CalendarEventType;
 import fr.pedalons.dto.publications.response.TeamPublicationDto;
@@ -8,6 +9,7 @@ import fr.pedalons.dto.trips.response.TripDto;
 import fr.pedalons.enums.ActionType;
 import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.Status;
+import fr.pedalons.service.publication.PublicationEndCalculator;
 import fr.pedalons.service.ride.RideService;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.trip.TripService;
@@ -15,6 +17,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -33,6 +36,7 @@ public class PublicationIcsService {
   @Inject RideService rideService;
   @Inject TripService tripService;
   @Inject IcsGenerationService icsGenerationService;
+  @Inject PublicationEndCalculator publicationEndCalculator;
 
   @CheckAccess(entityType = EntityType.RIDE, action = ActionType.READ)
   public String rideIcs(String teamSlug, String rideSlug) {
@@ -43,6 +47,7 @@ public class PublicationIcsService {
             ride.getId(),
             ride.getName(),
             ride.getDateTime(),
+            ride.getEndDateTime(),
             false,
             CalendarEventType.RIDE,
             ride.getSlug(),
@@ -55,6 +60,10 @@ public class PublicationIcsService {
   @CheckAccess(entityType = EntityType.TRIP, action = ActionType.READ)
   public String tripIcs(String teamSlug, String tripSlug) {
     TripDto trip = tripService.getDto(teamSlug, tripSlug);
+    // Each stage up to its own end — one query for all of them (docs/LEDGER_*.md API-85).
+    Map<Long, Instant> ends =
+        publicationEndCalculator.effectiveEnds(
+            trip.getStages().stream().map(stage -> TsidUtils.toLong(stage.id())).toList());
     List<CalendarEventDto> events =
         trip.getStages().stream()
             .map(
@@ -64,6 +73,7 @@ public class PublicationIcsService {
                         stage.id(),
                         stage.name(),
                         stage.dateTime(),
+                        ends.get(TsidUtils.toLong(stage.id())),
                         true,
                         CalendarEventType.TRIP_STAGE,
                         stage.slug(),
@@ -79,6 +89,7 @@ public class PublicationIcsService {
       String id,
       String title,
       Instant start,
+      @Nullable Instant end,
       boolean allDay,
       CalendarEventType type,
       String entitySlug,
@@ -88,7 +99,7 @@ public class PublicationIcsService {
         id,
         title,
         start,
-        null,
+        end,
         allDay,
         type,
         team.slug(),

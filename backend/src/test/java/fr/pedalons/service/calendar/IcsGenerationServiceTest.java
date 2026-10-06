@@ -348,4 +348,24 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
 
     assertTrue(ics.contains("REFRESH-INTERVAL;VALUE=DURATION:PT1H"));
   }
+
+  /** An all-day event ends the day after its end falls on, exclusive (API-85). */
+  @Test
+  void allDayEnd_coversEveryDayUpToTheEnd() {
+    Instant start = Instant.parse("2024-06-15T07:00:00Z");
+    assertEquals(
+        Instant.parse("2024-06-16T00:00:00Z"),
+        IcsGenerationService.allDayEnd(start, Instant.parse("2024-06-15T17:00:00Z")));
+    assertEquals(
+        Instant.parse("2024-06-17T00:00:00Z"),
+        IcsGenerationService.allDayEnd(start, Instant.parse("2024-06-16T01:00:00Z")));
+    // Already a midnight: that day is the exclusive end.
+    assertEquals(
+        Instant.parse("2024-06-16T00:00:00Z"),
+        IcsGenerationService.allDayEnd(start, Instant.parse("2024-06-16T00:00:00Z")));
+    // Never before the day after the start.
+    assertEquals(
+        Instant.parse("2024-06-16T00:00:00Z"),
+        IcsGenerationService.allDayEnd(start, Instant.parse("2024-06-14T00:00:00Z")));
+  }
 }
