@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pedalons/api/generated/export.dart';
 import 'package:pedalons/core/preferences/user_preferences_provider.dart';
+import 'package:pedalons/core/theme/pdl_icons.dart';
 import 'package:pedalons/core/theme/pedalons_theme.dart';
 import 'package:pedalons/features/auth/data/auth_repository.dart';
 import 'package:pedalons/features/auth/data/secure_storage.dart';
@@ -277,6 +278,31 @@ void main() {
     });
   });
 
+  group('visiteur (API-86)', () {
+    testWidgets('la partie publique, sans rôle ni abonnement au calendrier', (
+      WidgetTester tester,
+    ) async {
+      final TeamDashboardDto member = _dashboard(role: 'MEMBER');
+      await renderBody(
+        tester,
+        member.copyWith(
+          team: fixtureTeam(memberCount: 128),
+          role: null,
+          myUpcoming: null,
+          latestAds: null,
+        ),
+      );
+
+      expect(find.byKey(keys.teamDashboard.summary), findsOneWidget);
+      expect(find.byKey(keys.teamDashboard.calendarButton), findsNothing);
+      expect(find.byKey(keys.teamDashboard.myUpcoming), findsNothing);
+      expect(find.byKey(keys.teamDashboard.upcomingRides), findsOneWidget);
+      expect(find.byKey(keys.teamDashboard.latestPosts), findsOneWidget);
+      expect(find.byKey(keys.teamDashboard.newRoutes), findsOneWidget);
+      expect(find.text('MEMBRE'), findsNothing);
+    });
+  });
+
   group('largeur d\'un téléphone', () {
     for (final String role in <String>['MEMBER', 'ORGANIZER', 'ADMIN']) {
       testWidgets('$role : rien ne déborde', (WidgetTester tester) async {
@@ -290,55 +316,53 @@ void main() {
     }
   });
 
-  group('section par défaut', () {
-    test('un membre ouvre le tableau de bord, un visiteur le fil', () {
+  group('sections', () {
+    test('le tableau de bord pour tout le monde (API-86)', () {
       expect(
-        resolveTeamRootSection(
-          requested: TeamSectionKind.dashboard,
-          role: 'MEMBER',
-        ),
+        resolveTeamRootSection(const <String, String>{}).kind,
         TeamSectionKind.dashboard,
       );
-      expect(
-        resolveTeamRootSection(
-          requested: TeamSectionKind.dashboard,
-          role: null,
-        ),
-        TeamSectionKind.feed,
-      );
-      expect(
-        resolveTeamRootSection(requested: TeamSectionKind.feed, role: 'ADMIN'),
-        TeamSectionKind.feed,
-      );
     });
 
-    test('un membre a la puce « Tableau de bord » en tête, et le fil passe '
-        'derrière ?tab=publications', () {
+    test('les puces suivent l\'ordre du site, avec les icônes de la charte '
+        '(BRAND-6)', () {
       final List<TeamSection> sections = buildTeamSections(
-        fixtureTeam(role: 'MEMBER'),
+        fixtureTeam(role: 'ADMIN'),
       );
 
-      expect(sections.first.kind, TeamSectionKind.dashboard);
-      final TeamSection feed = sections.firstWhere(
-        (TeamSection s) => s.kind == TeamSectionKind.feed,
-      );
-      expect(
-        feed.paths.values,
-        // L'adresse de l'onglet « Publications » du site : un lien web ouvert
-        // par lien profond doit retomber sur le fil.
-        everyElement(endsWith('?tab=publications')),
-      );
+      expect(sections.map((TeamSection s) => s.kind), <TeamSectionKind>[
+        TeamSectionKind.dashboard,
+        TeamSectionKind.agenda,
+        TeamSectionKind.posts,
+        TeamSectionKind.routes,
+        TeamSectionKind.ads,
+        TeamSectionKind.members,
+        TeamSectionKind.about,
+      ]);
+      expect(sections.map((TeamSection s) => s.icon), <IconData>[
+        PdlIcons.dashboard,
+        PdlIcons.agenda,
+        PdlIcons.post,
+        PdlIcons.route,
+        PdlIcons.ad,
+        PdlIcons.people,
+        PdlIcons.info,
+      ]);
+      // Le tableau de bord à l'adresse de l'équipe, sans paramètre.
+      expect(sections.first.paths.values, everyElement(isNot(contains('?'))));
     });
 
-    test('un visiteur n\'a pas de tableau de bord, et le fil garde '
-        'l\'adresse de l\'équipe', () {
+    test('un visiteur a le tableau de bord, l\'Agenda et les Publications, '
+        'pas les Annonces', () {
       final List<TeamSection> sections = buildTeamSections(fixtureTeam());
 
-      expect(
-        sections.map((TeamSection s) => s.kind),
-        isNot(contains(TeamSectionKind.dashboard)),
-      );
-      expect(sections.first.paths.values, everyElement(isNot(contains('?'))));
+      expect(sections.map((TeamSection s) => s.kind), <TeamSectionKind>[
+        TeamSectionKind.dashboard,
+        TeamSectionKind.agenda,
+        TeamSectionKind.posts,
+        TeamSectionKind.routes,
+        TeamSectionKind.about,
+      ]);
     });
 
     test('un administrateur garde la puce « Membres »', () {

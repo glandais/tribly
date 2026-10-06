@@ -261,15 +261,12 @@
     "about": "À propos",
     "tabs": {
       "dashboard": "Tableau de bord",
-      "feed": "Fil",
-      "calendar": "Calendrier",
+      "agenda": "Agenda",
+      "posts": "Publications",
       "routes": "Parcours",
       "ads": "Annonces",
       "members": "Membres",
       "about": "À propos"
-    },
-    "feed": {
-      "empty": "Aucune publication"
     },
     "aboutPage": {
       "createdYear": "année de création",
@@ -506,6 +503,85 @@
         "manageMembers": "Gérer les membres",
         "settings": "Paramètres de l'équipe"
       }
+    },
+    "agenda": {
+      "underWay": "En cours",
+      "returnAround": "retour vers {time}",
+      "searchPlaceholder": "Rechercher dans l'agenda…",
+      "scope": {
+        "upcoming": "À venir",
+        "participating": "Je participe",
+        "past": "Passées",
+        "all": "Tout"
+      },
+      "view": {
+        "label": "Affichage",
+        "list": "Liste",
+        "calendar": "Calendrier"
+      },
+      "empty": {
+        "title": "Rien à l'agenda pour le moment",
+        "message": "Les sorties et les voyages de l'équipe apparaîtront ici.",
+        "seePast": "Voir les passées"
+      },
+      "count": {
+        "upcoming": {
+          "all": {
+            "zero": "Aucune sortie ni aucun voyage à venir",
+            "one": "{} sortie ou voyage à venir",
+            "other": "{} sorties et voyages à venir"
+          },
+          "rides": {
+            "zero": "Aucune sortie à venir",
+            "one": "{} sortie à venir",
+            "other": "{} sorties à venir"
+          },
+          "trips": {
+            "zero": "Aucun voyage à venir",
+            "one": "{} voyage à venir",
+            "other": "{} voyages à venir"
+          }
+        },
+        "participating": {
+          "all": {
+            "zero": "Aucune sortie ni aucun voyage où vous êtes inscrit",
+            "one": "{} sortie ou voyage où vous êtes inscrit",
+            "other": "{} sorties et voyages où vous êtes inscrit"
+          },
+          "rides": {
+            "zero": "Aucune sortie où vous êtes inscrit",
+            "one": "{} sortie où vous êtes inscrit",
+            "other": "{} sorties où vous êtes inscrit"
+          },
+          "trips": {
+            "zero": "Aucun voyage où vous êtes inscrit",
+            "one": "{} voyage où vous êtes inscrit",
+            "other": "{} voyages où vous êtes inscrit"
+          }
+        },
+        "past": {
+          "all": {
+            "zero": "Aucune sortie ni aucun voyage passé",
+            "one": "{} sortie ou voyage passé",
+            "other": "{} sorties et voyages passés"
+          },
+          "rides": {
+            "zero": "Aucune sortie passée",
+            "one": "{} sortie passée",
+            "other": "{} sorties passées"
+          },
+          "trips": {
+            "zero": "Aucun voyage passé",
+            "one": "{} voyage passé",
+            "other": "{} voyages passés"
+          }
+        }
+      }
+    },
+    "posts": {
+      "empty": "Aucune publication pour le moment",
+      "emptyHint": "Les publications de l'équipe apparaîtront ici une fois publiées.",
+      "searchPlaceholder": "Rechercher une publication…"
     }
   },
   "rides": {

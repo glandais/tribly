@@ -510,19 +510,21 @@ Les maquettes doivent donc puiser dans le jeu Tabler.
 §2). Ce sont les icônes des *sections* : toutes les pages perso partagent la même. Le mobile prend
 l'équivalent de chacune dans `PdlIcons`, jamais une icône Material choisie à part.
 
-| Section | Icône web |
-|---|---|
-| Tableau de bord | `IconLayoutDashboard` |
-| Agenda (sorties et voyages) | `IconCalendarEvent` |
-| Publications | `IconArticle` |
-| Parcours | `IconRoute` |
-| Annonces | `IconTag` |
-| Membres | `IconUsers` |
-| À propos | `IconInfoCircle` |
-| Pages perso | `IconFileText` |
+| Section | Icône web | Mobile (`PdlIcons`) |
+|---|---|---|
+| Tableau de bord | `IconLayoutDashboard` | `dashboard` |
+| Agenda (sorties et voyages) | `IconCalendarEvent` | `agenda` |
+| Publications | `IconArticle` | `post` |
+| Parcours | `IconRoute` | `route` |
+| Annonces | `IconTag` | `ad` |
+| Membres | `IconUsers` | `people` |
+| À propos | `IconInfoCircle` | `info` |
+| Pages perso | `IconFileText` | `page` |
 
 Les vues d'une liste (`ListViewSwitch`) : `IconLayoutGrid` Vignettes, `IconList` Lignes, `IconMap`
 Carte, `IconCalendar` Calendrier — icônes seules, chacune avec son infobulle et son nom accessible.
+Au mobile, l'Agenda n'a que Liste (`PdlIcons.list`) et Calendrier (`PdlIcons.calendar`), en
+`PdlSegment.iconOnly`.
 
 Style : **trait uniquement, jamais de version pleine**, couleur héritée du texte
 (`currentColor`) — donc `#868e96` / `#828282` dans les statistiques atténuées, couleur du badge

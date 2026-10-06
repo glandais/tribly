@@ -79,11 +79,21 @@ class CalendarMonth {
   /// Les jours renseignés, dans l'ordre.
   List<DateTime> get days => byDay.keys.toList();
 
-  /// Le mois filtré par type. Aucun appel : le tri est en mémoire.
-  CalendarMonth filtered(CalendarTypeFilter type) {
-    if (type == CalendarTypeFilter.all) return this;
+  /// Le mois filtré par type, et sur ce où l'on est inscrit quand
+  /// [registeredOnly] (« Je participe » de l'Agenda d'une équipe). Aucun
+  /// appel : le tri est en mémoire.
+  CalendarMonth filtered(
+    CalendarTypeFilter type, {
+    bool registeredOnly = false,
+  }) {
+    if (type == CalendarTypeFilter.all && !registeredOnly) return this;
     return CalendarMonth.fromEvents(
-      events.where((CalendarEventDto e) => matchesType(e, type)).toList(),
+      events
+          .where(
+            (CalendarEventDto e) =>
+                matchesType(e, type) && (!registeredOnly || e.registered),
+          )
+          .toList(),
     );
   }
 

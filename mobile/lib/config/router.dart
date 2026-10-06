@@ -82,6 +82,10 @@ String _profileAncestor(Map<String, String> p, String locale) =>
     PathVariants.profile()[locale]!;
 String _profilePrivacyAncestor(Map<String, String> p, String locale) =>
     PathVariants.profilePrivacy()[locale]!;
+String _teamAgendaAncestor(Map<String, String> p, String locale) =>
+    PathVariants.teamAgenda(p['teamSlug']!)[locale]!;
+String _teamPostsAncestor(Map<String, String> p, String locale) =>
+    PathVariants.teamPosts(p['teamSlug']!)[locale]!;
 String _teamAdsAncestor(Map<String, String> p, String locale) =>
     PathVariants.teamAds(p['teamSlug']!)[locale]!;
 String _teamRoutesAncestor(Map<String, String> p, String locale) =>
@@ -229,21 +233,28 @@ final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
     patterns: PathVariants.teamPage(':teamSlug', ':pageSlug'),
     ancestors: [_teamsAncestor, _teamAncestor],
   ),
+  // Une sortie et un voyage sont rangés sous l'Agenda, une publication sous
+  // les Publications — comme le fil d'Ariane du site (ledger `MOB-60`).
   _DeepLinkHierarchy(
     patterns: PathVariants.ride(':teamSlug', ':rideSlug'),
-    ancestors: [_teamsAncestor, _teamAncestor],
+    ancestors: [_teamsAncestor, _teamAncestor, _teamAgendaAncestor],
   ),
   _DeepLinkHierarchy(
     patterns: PathVariants.post(':teamSlug', ':postSlug'),
-    ancestors: [_teamsAncestor, _teamAncestor],
+    ancestors: [_teamsAncestor, _teamAncestor, _teamPostsAncestor],
   ),
   _DeepLinkHierarchy(
     patterns: PathVariants.trip(':teamSlug', ':tripSlug'),
-    ancestors: [_teamsAncestor, _teamAncestor],
+    ancestors: [_teamsAncestor, _teamAncestor, _teamAgendaAncestor],
   ),
   _DeepLinkHierarchy(
     patterns: PathVariants.stage(':teamSlug', ':tripSlug', ':stageSlug'),
-    ancestors: [_teamsAncestor, _teamAncestor, _tripAncestor],
+    ancestors: [
+      _teamsAncestor,
+      _teamAncestor,
+      _teamAgendaAncestor,
+      _tripAncestor,
+    ],
   ),
   _DeepLinkHierarchy(
     patterns: PathVariants.ad(':teamSlug', ':adSlug'),
@@ -441,6 +452,15 @@ String _underTeam(
   return full.substring(teamBase.length + 1);
 }
 
+/// La page d'une équipe sur la section que l'adresse demande.
+Widget _teamPage(GoRouterState state, TeamSectionTarget target) => TeamHomePage(
+  teamSlug: state.pathParameters['teamSlug']!,
+  section: target.kind,
+  agendaType: target.type,
+  agendaScope: target.scope,
+  agendaView: target.view,
+);
+
 /// Build the team subtree for a single locale, grafted under the Teams branch.
 /// Segments are derived from [PathVariants] so no hand-maintained segment map
 /// is needed — which is why moving the tree from its own shell to a branch did
@@ -453,61 +473,71 @@ GoRoute _teamTree(String locale) {
   /// is content rather than a second navigation bar.
   GoRoute section(
     Map<String, String> variants,
-    TeamSectionKind kind, {
-    PublicationType? feedType,
-  }) => GoRoute(
+    TeamSectionTarget Function(Map<String, String> query) target,
+  ) => GoRoute(
     path: _underTeam(variants, locale, teamBase),
     pageBuilder: (context, state) => NoTransitionPage(
-      child: TeamHomePage(
-        teamSlug: state.pathParameters['teamSlug']!,
-        section: kind,
-        feedType: feedType,
-      ),
+      child: _teamPage(state, target(state.uri.queryParameters)),
     ),
+  );
+
+  TeamSectionTarget plain(TeamSectionKind kind) => (
+    kind: kind,
+    type: null,
+    scope: AgendaScope.upcoming,
+    view: AgendaView.list,
   );
 
   return GoRoute(
     path: teamBase,
-    // L'adresse nue d'une équipe : le tableau de bord pour un membre, le fil
-    // sinon — `TeamHomePage` tranche une fois l'équipe arrivée. `?tab=publications`
-    // demande le fil à tous (voir `kTeamTabParam`).
+    // L'adresse nue d'une équipe : le tableau de bord, pour tout le monde
+    // (ledger `API-86`). Les adresses de l'ancien fil (`?tab=publications`,
+    // `?type=`, `?w=`) mènent à l'Agenda ou aux Publications, comme au site —
+    // voir `resolveTeamRootSection`.
     pageBuilder: (context, state) => NoTransitionPage(
-      child: TeamHomePage(
-        teamSlug: state.pathParameters['teamSlug']!,
-        section: state.uri.queryParameters[kTeamTabParam] == kTeamTabFeed
-            ? TeamSectionKind.feed
-            : TeamSectionKind.dashboard,
+      child: _teamPage(
+        state,
+        resolveTeamRootSection(state.uri.queryParameters),
       ),
     ),
     routes: [
-      section(PathVariants.teamCalendar(':teamSlug'), TeamSectionKind.calendar),
-      section(PathVariants.routes(':teamSlug'), TeamSectionKind.routes),
-      section(PathVariants.teamAds(':teamSlug'), TeamSectionKind.ads),
-      section(PathVariants.teamAbout(':teamSlug'), TeamSectionKind.about),
-      section(PathVariants.teamMembers(':teamSlug'), TeamSectionKind.members),
-      // L'Agenda et les Publications du site (ledger `WEB-68`). En attendant
-      // leurs écrans (ledger `MOB-60`), ils ouvrent le fil de l'équipe, filtré
-      // sur les publications pour la seconde : un lien partagé depuis le site
-      // atterrit dans l'app, jamais sur sa page d'erreur.
-      section(PathVariants.teamAgenda(':teamSlug'), TeamSectionKind.feed),
+      section(
+        PathVariants.routes(':teamSlug'),
+        (_) => plain(TeamSectionKind.routes),
+      ),
+      section(
+        PathVariants.teamAds(':teamSlug'),
+        (_) => plain(TeamSectionKind.ads),
+      ),
+      section(
+        PathVariants.teamAbout(':teamSlug'),
+        (_) => plain(TeamSectionKind.about),
+      ),
+      section(
+        PathVariants.teamMembers(':teamSlug'),
+        (_) => plain(TeamSectionKind.members),
+      ),
+      // L'Agenda (sorties et voyages) et les Publications (ledger `MOB-60`).
+      section(PathVariants.teamAgenda(':teamSlug'), agendaTarget),
       section(
         PathVariants.teamPosts(':teamSlug'),
-        TeamSectionKind.feed,
-        feedType: PublicationType.post,
+        (_) => plain(TeamSectionKind.posts),
       ),
-      // Les onglets « Sorties » et « Voyages » du site (ledger `WEB-64`) : l'app
-      // n'a pas de liste par type, ils ouvrent le fil de l'équipe filtré sur ce
-      // type. Sans eux, les motifs de lien profond de l'équipe les capteraient
-      // et le lien finirait sur la page d'erreur.
+      // `teamCalendar` reste au contrat : c'est l'Agenda en vue Calendrier.
       section(
-        PathVariants.teamRides(':teamSlug'),
-        TeamSectionKind.feed,
-        feedType: PublicationType.ride,
+        PathVariants.teamCalendar(':teamSlug'),
+        (Map<String, String> query) =>
+            agendaTarget(query, view: AgendaView.calendar),
       ),
+      // Les anciens onglets « Sorties » et « Voyages » du site (ledger
+      // `WEB-64`), redirigés vers l'Agenda au site : l'app ouvre l'Agenda, sur
+      // les voyages pour le second. Sans eux, les motifs de lien profond de
+      // l'équipe les capteraient et le lien finirait sur la page d'erreur.
+      section(PathVariants.teamRides(':teamSlug'), agendaTarget),
       section(
         PathVariants.teamTrips(':teamSlug'),
-        TeamSectionKind.feed,
-        feedType: PublicationType.trip,
+        (Map<String, String> query) =>
+            agendaTarget(query, type: PublicationType.trip),
       ),
       GoRoute(
         path: _underTeam(

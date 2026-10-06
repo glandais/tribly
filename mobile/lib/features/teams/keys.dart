@@ -100,3 +100,19 @@ class TeamDashboardKeys {
   ValueKey<String> myUpcomingRow(String slug) =>
       _TeamDashboardKey('myUpcoming_$slug');
 }
+
+class _TeamAgendaKey extends ValueKey<String> {
+  const _TeamAgendaKey(String value) : super('teamAgenda_$value');
+}
+
+/// L'Agenda d'une équipe (ledger `MOB-60`) : sa période et sa vue.
+class TeamAgendaKeys {
+  /// Un segment de la période — `upcoming`, `participating`, `past`.
+  ValueKey<String> scope(String name) => _TeamAgendaKey('scope_$name');
+
+  /// Un segment de la vue — `list`, `calendar`.
+  ValueKey<String> view(String name) => _TeamAgendaKey('view_$name');
+
+  /// « Voir les passées », dans l'état vide.
+  final seePastButton = const _TeamAgendaKey('seePast');
+}

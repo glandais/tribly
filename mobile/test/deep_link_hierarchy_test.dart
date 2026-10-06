@@ -135,8 +135,8 @@ final List<_LinkCase> _cases = [
     PathVariants.teams(),
     PathVariants.team(_teamSlug),
   ]),
-  // Les onglets « Sorties » / « Voyages » du site, rendus en fil filtré
-  // (ledger `WEB-64`).
+  // Les anciens onglets « Sorties » / « Voyages » du site (ledger `WEB-64`),
+  // rendus en Agenda.
   _LinkCase('teamRides', PathVariants.teamRides(_teamSlug), [
     PathVariants.teams(),
     PathVariants.team(_teamSlug),
@@ -151,21 +151,27 @@ final List<_LinkCase> _cases = [
     PathVariants.teams(),
     PathVariants.team(_teamSlug),
   ]),
+  // Une sortie et un voyage sous l'Agenda, une publication sous les
+  // Publications (ledger `MOB-60`).
   _LinkCase('ride', PathVariants.ride(_teamSlug, _rideSlug), [
     PathVariants.teams(),
     PathVariants.team(_teamSlug),
+    PathVariants.teamAgenda(_teamSlug),
   ]),
   _LinkCase('post', PathVariants.post(_teamSlug, _postSlug), [
     PathVariants.teams(),
     PathVariants.team(_teamSlug),
+    PathVariants.teamPosts(_teamSlug),
   ]),
   _LinkCase('trip', PathVariants.trip(_teamSlug, _tripSlug), [
     PathVariants.teams(),
     PathVariants.team(_teamSlug),
+    PathVariants.teamAgenda(_teamSlug),
   ]),
   _LinkCase('stage', PathVariants.stage(_teamSlug, _tripSlug, _stageSlug), [
     PathVariants.teams(),
     PathVariants.team(_teamSlug),
+    PathVariants.teamAgenda(_teamSlug),
     PathVariants.trip(_teamSlug, _tripSlug),
   ]),
   _LinkCase('ad', PathVariants.ad(_teamSlug, _adSlug), [
@@ -196,8 +202,22 @@ final Map<String, Map<String, String>> _selfNavigating = {
 };
 
 /// `/a/b` is under `/a`, and everything is under `/`.
-bool _isAncestorPath(String ancestor, String path) =>
-    ancestor == '/' || path.startsWith('$ancestor/');
+///
+/// One parent is logical rather than a prefix: a team's Agenda holds its rides
+/// and trips (`/equipes/x/agenda` above `/equipes/x/sorties/y`), as the site's
+/// breadcrumb does (ledger `MOB-60`). It is accepted above those two only.
+bool _isAncestorPath(String ancestor, String path) {
+  if (ancestor == '/' || path.startsWith('$ancestor/')) return true;
+  const String agenda = '/agenda';
+  if (!ancestor.endsWith(agenda)) return false;
+  final String team = ancestor.substring(0, ancestor.length - agenda.length);
+  return <String>[
+    'sorties',
+    'rides',
+    'voyages',
+    'trips',
+  ].any((String segment) => path.startsWith('$team/$segment/'));
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -378,22 +398,35 @@ void main() {
       expect(ancestorsForDeepLink('/equipes/velo-club/sorties/rando'), [
         '/equipes',
         '/equipes/velo-club',
+        '/equipes/velo-club/agenda',
       ]);
       expect(ancestorsForDeepLink('/equipes/velo-club/articles/mon-article'), [
         '/equipes',
         '/equipes/velo-club',
+        '/equipes/velo-club/articles',
       ]);
       expect(ancestorsForDeepLink('/equipes/velo-club/voyages/alpes'), [
         '/equipes',
         '/equipes/velo-club',
+        '/equipes/velo-club/agenda',
       ]);
       expect(
         ancestorsForDeepLink('/equipes/velo-club/voyages/alpes/etapes/jour-1'),
-        ['/equipes', '/equipes/velo-club', '/equipes/velo-club/voyages/alpes'],
+        [
+          '/equipes',
+          '/equipes/velo-club',
+          '/equipes/velo-club/agenda',
+          '/equipes/velo-club/voyages/alpes',
+        ],
       );
       expect(
         ancestorsForDeepLink('/teams/velo-club/trips/alpes/stages/day-1'),
-        ['/teams', '/teams/velo-club', '/teams/velo-club/trips/alpes'],
+        [
+          '/teams',
+          '/teams/velo-club',
+          '/teams/velo-club/agenda',
+          '/teams/velo-club/trips/alpes',
+        ],
       );
       expect(ancestorsForDeepLink('/equipes/velo-club/parcours/galibier'), [
         '/equipes',

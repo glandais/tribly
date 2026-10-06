@@ -46,16 +46,25 @@ extension ListsSeed on BackendClient {
       }),
   ];
 
-  /// The slugs of the team feed's page [page] (0-based), as the app asks for it.
+  /// The slugs of a team list's page [page] (0-based), as the app asks for it:
+  /// the « Publications » with [type] `POST`, the « Agenda » with `when`.
   Future<List<String>> teamFeedSlugs(
     TestUser who,
     String teamSlug, {
     int page = 0,
+    String? type,
+    String? when,
   }) async {
     final list = await get(
       who,
       '/api/teams/$teamSlug/publications',
-      query: {'page': page, 'size': pageSize, 'view': 'COMPACT'},
+      query: {
+        'page': page,
+        'size': pageSize,
+        'view': 'COMPACT',
+        'type': ?type,
+        'when': ?when,
+      },
     );
     return _slugs(list['publications']);
   }

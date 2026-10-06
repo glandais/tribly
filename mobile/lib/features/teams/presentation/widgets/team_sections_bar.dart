@@ -7,7 +7,8 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import 'team_sections.dart';
 
-/// The row of team sections — Feed, Calendar, Routes, Ads, Members, About.
+/// The row of team sections — Dashboard, Agenda, Publications, Routes, Ads,
+/// Members, About.
 ///
 /// **This is content, not navigation.** It used to be a second `NavigationBar`
 /// stacked under the app one, which replaced the five global tabs as soon as
@@ -17,8 +18,8 @@ import 'team_sections.dart';
 /// Two forms, one look. [TeamSectionsToolbar] is the sliver form — a
 /// [PdlPinnedToolbar], so the row stays reachable however far the section
 /// scrolls. [TeamSectionsBar] is the box form, for the sections whose body is
-/// a page of its own rather than a list of slivers (calendar, route library,
-/// classifieds): the bar is then fixed above that body, which reads the same
+/// a page of its own rather than a list of slivers (the agenda's calendar,
+/// route library, classifieds): the bar is then fixed above that body, which reads the same
 /// since a pinned toolbar placed first in a scroll view never moves either.
 class TeamSectionsBar extends StatelessWidget {
   const TeamSectionsBar({

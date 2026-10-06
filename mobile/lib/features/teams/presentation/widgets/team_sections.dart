@@ -7,35 +7,111 @@ import '../../../../core/theme/pdl_icons.dart';
 
 /// The sections a team can show. The router names one per route, which is what
 /// lets the chip row highlight the right one without re-parsing the URL.
-enum TeamSectionKind { dashboard, feed, calendar, routes, ads, members, about }
-
-/// Le paramètre de requête qui, sous l'adresse d'une équipe, demande le fil
-/// plutôt que le tableau de bord.
 ///
-/// Le tableau de bord est la section **par défaut d'un membre**, à l'adresse
-/// même de l'équipe : c'est l'écran qu'ouvrent la carte de « Mes équipes » et
-/// un lien partagé. Le fil n'a pas d'adresse à lui au contrat des routes
-/// (`contracts/routes.yaml`) ; il garde donc celle de l'équipe, suivie de
-/// `?tab=publications` — la même adresse que l'onglet « Publications » du site
-/// (`TEAM_FEED_TAB`, `frontend/src/pages/team/teamHomeData.ts`), pour qu'un lien
-/// web ouvert dans l'app par lien profond tombe sur le fil. Un visiteur, qui
-/// n'a pas de tableau de bord, voit le fil sous les deux formes.
+/// Dans l'ordre du site (plan `2026-10-06-team-agenda.md` §2, ledger `MOB-60`) :
+/// le fil d'équipe et le calendrier ont cédé la place à l'**Agenda** (sorties
+/// et voyages, dont le calendrier est une vue) et aux **Publications**.
+enum TeamSectionKind { dashboard, agenda, posts, routes, ads, members, about }
+
+/// La période de l'Agenda (plan §2.2) : « À venir » par défaut, « Je
+/// participe », « Passées ». Pas de « Tout » : trié dans un sens, il
+/// commençait par la sortie la plus lointaine et finissait dans l'archive.
+enum AgendaScope { upcoming, participating, past }
+
+/// La vue de l'Agenda : la liste de cartes, ou le calendrier du mois — réservé
+/// aux membres (plan §7.2).
+enum AgendaView { list, calendar }
+
+/// Ce qu'une adresse d'équipe demande : une section et, pour l'Agenda, son
+/// type, sa période et sa vue de départ.
+typedef TeamSectionTarget = ({
+  TeamSectionKind kind,
+  PublicationType? type,
+  AgendaScope scope,
+  AgendaView view,
+});
+
+/// Le paramètre de requête de l'ancien fil d'équipe, `?tab=publications` —
+/// l'onglet « Publications » d'avant `WEB-68`, que portent encore des liens
+/// partagés et des notifications anciennes.
 const String kTeamTabParam = 'tab';
 const String kTeamTabFeed = 'publications';
 
-/// La section à rendre sous l'adresse nue d'une équipe : le tableau de bord
-/// pour un membre, le fil pour tout autre visiteur — et le fil pour tous quand
-/// l'adresse le demande.
-TeamSectionKind resolveTeamRootSection({
-  required TeamSectionKind requested,
-  required String? role,
-}) {
-  if (requested != TeamSectionKind.dashboard) return requested;
-  return role == null ? TeamSectionKind.feed : TeamSectionKind.dashboard;
+/// La période de l'Agenda dans son URL (`?w=me`, `?w=past`), comme au site.
+const String kAgendaScopeParam = 'w';
+
+/// Le type de l'Agenda dans son URL (`?type=ride`, `?type=trip`).
+const String kAgendaTypeParam = 'type';
+
+PublicationType? _agendaType(String? value) => switch (value) {
+  'ride' => PublicationType.ride,
+  'trip' => PublicationType.trip,
+  _ => null,
+};
+
+AgendaScope _agendaScope(String? value) => switch (value) {
+  'me' => AgendaScope.participating,
+  'past' => AgendaScope.past,
+  _ => AgendaScope.upcoming,
+};
+
+/// L'Agenda tel que le demande [query] — `?type=` et `?w=`, ce qu'écrivent le
+/// site et le tableau de bord (« Voir tout » de « Mes prochaines » :
+/// `?w=me`). Un type inconnu, `post` compris, vaut « Tout ».
+TeamSectionTarget agendaTarget(
+  Map<String, String> query, {
+  PublicationType? type,
+  AgendaView view = AgendaView.list,
+}) => (
+  kind: TeamSectionKind.agenda,
+  type: type ?? _agendaType(query[kAgendaTypeParam]),
+  scope: _agendaScope(query[kAgendaScopeParam]),
+  view: view,
+);
+
+/// La section à rendre sous l'adresse nue d'une équipe.
+///
+/// **Le tableau de bord, pour tout le monde** (ledger `API-86`) : un visiteur
+/// y voit la partie publique. Les adresses de l'ancien fil restent lues, avec
+/// les redirections du site (`teamHomeRedirect`,
+/// `frontend/src/pages/team/teamLegacyRedirects.ts`) :
+///
+/// | Ancienne adresse | Section |
+/// |---|---|
+/// | `?tab=publications&type=post` | Publications |
+/// | `?tab=publications&type=ride\|trip` | Agenda, sur ce type |
+/// | `?w=me` / `?w=upcoming` / `?w=all` | Agenda, « Je participe » / « À venir » |
+/// | `?tab=publications` seul | le tableau de bord |
+TeamSectionTarget resolveTeamRootSection(Map<String, String> query) {
+  final String? type = query[kAgendaTypeParam];
+  final String? scope = query[kAgendaScopeParam];
+  final TeamSectionTarget dashboard = (
+    kind: TeamSectionKind.dashboard,
+    type: null,
+    scope: AgendaScope.upcoming,
+    view: AgendaView.list,
+  );
+  final bool isFeed =
+      query[kTeamTabParam] == kTeamTabFeed || type != null || scope != null;
+  if (!isFeed) return dashboard;
+  if (type == 'post') {
+    return (
+      kind: TeamSectionKind.posts,
+      type: PublicationType.post,
+      scope: AgendaScope.upcoming,
+      view: AgendaView.list,
+    );
+  }
+  if (type == 'ride' || type == 'trip') return agendaTarget(query);
+  if (scope == 'me' || scope == 'upcoming' || scope == 'all') {
+    // `w=all`, que l'Agenda n'a plus, vaut « À venir ».
+    return agendaTarget(query);
+  }
+  return dashboard;
 }
 
-/// One section of a team — Dashboard, Feed, Calendar, Routes, Ads, Members,
-/// About.
+/// One section of a team — Dashboard, Agenda, Publications, Routes, Ads,
+/// Members, About.
 ///
 /// Sections used to be the destinations of a second `NavigationBar` stacked
 /// under the app one (`TeamShell`). They are now **content**: a chip row
@@ -67,11 +143,14 @@ class TeamSection {
 /// The sections visible for [team], given its feature switches and the current
 /// user's membership.
 ///
-/// Order is the reading order of the chip row. Dashboard, Members and Ads are
-/// members-only; Feed and About are always there, so the row is never empty.
-///
-/// For a member the dashboard takes the team's own address, and the feed moves
-/// to `?tab=publications` — see [kTeamTabParam].
+/// Order is the reading order of the chip row, the site's (`useTeamNavItems`):
+/// Tableau de bord, Agenda, Publications, Parcours, Annonces, Membres, À
+/// propos. The dashboard and About are always there — the dashboard for a
+/// visitor too, in its public part (ledger `API-86`) —, so the row is never
+/// empty. Each section only when the team has its module, and an agenda needs
+/// the routes too: a ride is created on a route. The icons are the brand's
+/// (`docs/BRANDING.md` §6, ledger `BRAND-6`), each section's `PdlIcons`
+/// equivalent of the site's Tabler icon.
 List<TeamSection> buildTeamSections(TeamDetailDto team) {
   final isMember = team.role != null;
   // Organisers and admins read the roster whatever the team decided; everyone
@@ -83,69 +162,63 @@ List<TeamSection> buildTeamSections(TeamDetailDto team) {
       (team.role == 'ORGANIZER' ||
           team.role == 'ADMIN' ||
           team.enableMemberDirectory);
+  final hasAgenda = (team.enableRides || team.enableTrips) && team.enableRoutes;
   final slug = team.slug;
 
-  final Map<String, String> teamPaths = PathVariants.team(slug);
-
   return [
-    // Dashboard — members only, at the team's own address.
-    if (isMember)
-      TeamSection(
-        kind: TeamSectionKind.dashboard,
-        paths: teamPaths,
-        icon: PdlIcons.dashboard,
-        label: 'teams.tabs.dashboard',
-      ),
-    // Feed — always visible. Behind `?tab=publications` once the dashboard holds the
-    // team's address.
+    // Dashboard — everyone, at the team's own address (`IconLayoutDashboard`).
     TeamSection(
-      kind: TeamSectionKind.feed,
-      paths: isMember
-          ? <String, String>{
-              for (final MapEntry<String, String> e in teamPaths.entries)
-                e.key: '${e.value}?$kTeamTabParam=$kTeamTabFeed',
-            }
-          : teamPaths,
-      icon: Icons.dynamic_feed_outlined,
-      label: 'teams.tabs.feed',
+      kind: TeamSectionKind.dashboard,
+      paths: PathVariants.team(slug),
+      icon: PdlIcons.dashboard,
+      label: 'teams.tabs.dashboard',
     ),
-    // Calendar — members only, and only if rides or trips are enabled.
-    if (isMember && (team.enableRides || team.enableTrips))
+    // Agenda — rides and trips (`IconCalendarEvent`).
+    if (hasAgenda)
       TeamSection(
-        kind: TeamSectionKind.calendar,
-        paths: PathVariants.teamCalendar(slug),
-        icon: Icons.calendar_today_outlined,
-        label: 'teams.tabs.calendar',
+        kind: TeamSectionKind.agenda,
+        paths: PathVariants.teamAgenda(slug),
+        icon: PdlIcons.agenda,
+        label: 'teams.tabs.agenda',
       ),
-    // Routes — if enabled.
+    // Publications — posts only (`IconArticle`).
+    if (team.enablePosts)
+      TeamSection(
+        kind: TeamSectionKind.posts,
+        paths: PathVariants.teamPosts(slug),
+        icon: PdlIcons.post,
+        label: 'teams.tabs.posts',
+      ),
+    // Routes — if enabled (`IconRoute`).
     if (team.enableRoutes)
       TeamSection(
         kind: TeamSectionKind.routes,
         paths: PathVariants.routes(slug),
-        icon: Icons.route_outlined,
+        icon: PdlIcons.route,
         label: 'teams.tabs.routes',
       ),
-    // Ads — members only, and only if classifieds are enabled.
+    // Ads — members only, and only if classifieds are enabled (`IconTag`).
     if (isMember && team.enableAds)
       TeamSection(
         kind: TeamSectionKind.ads,
         paths: PathVariants.teamAds(slug),
-        icon: Icons.sell_outlined,
+        icon: PdlIcons.ad,
         label: 'teams.tabs.ads',
       ),
-    // Members — never public, and not even every member: see [canSeeMembers].
+    // Members — never public, and not even every member: see [canSeeMembers]
+    // (`IconUsers`).
     if (canSeeMembers)
       TeamSection(
         kind: TeamSectionKind.members,
         paths: PathVariants.teamMembers(slug),
-        icon: Icons.people_outline,
+        icon: PdlIcons.people,
         label: 'teams.tabs.members',
       ),
-    // About — always visible.
+    // About — always visible (`IconInfoCircle`).
     TeamSection(
       kind: TeamSectionKind.about,
       paths: PathVariants.teamAbout(slug),
-      icon: Icons.info_outlined,
+      icon: PdlIcons.info,
       label: 'teams.tabs.about',
     ),
   ];
@@ -153,7 +226,7 @@ List<TeamSection> buildTeamSections(TeamDetailDto team) {
 
 /// Index of [kind] in [sections], or `-1` when that section is not visible for
 /// this team — the members section reached by a link while not a member, say.
-/// No chip is then highlighted, which is truer than highlighting the feed.
+/// No chip is then highlighted, which is truer than highlighting another.
 ///
 /// The active section follows the URL because the router names the section of
 /// every team route: no second parsing of the location, and therefore no way

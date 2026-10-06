@@ -261,15 +261,12 @@
     "about": "About",
     "tabs": {
       "dashboard": "Dashboard",
-      "feed": "Feed",
-      "calendar": "Calendar",
+      "agenda": "Agenda",
+      "posts": "Posts",
       "routes": "Routes",
       "ads": "Ads",
       "members": "Members",
       "about": "About"
-    },
-    "feed": {
-      "empty": "No publications"
     },
     "aboutPage": {
       "createdYear": "founded",
@@ -506,6 +503,85 @@
         "manageMembers": "Manage members",
         "settings": "Team settings"
       }
+    },
+    "agenda": {
+      "underWay": "Under way",
+      "returnAround": "back around {time}",
+      "searchPlaceholder": "Search the agenda…",
+      "scope": {
+        "upcoming": "Upcoming",
+        "participating": "I'm going",
+        "past": "Past",
+        "all": "All"
+      },
+      "view": {
+        "label": "View",
+        "list": "List",
+        "calendar": "Calendar"
+      },
+      "empty": {
+        "title": "Nothing on the agenda yet",
+        "message": "The team's rides and trips will show up here.",
+        "seePast": "See past ones"
+      },
+      "count": {
+        "upcoming": {
+          "all": {
+            "zero": "No upcoming ride or trip",
+            "one": "{} upcoming ride or trip",
+            "other": "{} upcoming rides and trips"
+          },
+          "rides": {
+            "zero": "No upcoming ride",
+            "one": "{} upcoming ride",
+            "other": "{} upcoming rides"
+          },
+          "trips": {
+            "zero": "No upcoming trip",
+            "one": "{} upcoming trip",
+            "other": "{} upcoming trips"
+          }
+        },
+        "participating": {
+          "all": {
+            "zero": "No ride or trip you are registered for",
+            "one": "{} ride or trip you are registered for",
+            "other": "{} rides and trips you are registered for"
+          },
+          "rides": {
+            "zero": "No ride you are registered for",
+            "one": "{} ride you are registered for",
+            "other": "{} rides you are registered for"
+          },
+          "trips": {
+            "zero": "No trip you are registered for",
+            "one": "{} trip you are registered for",
+            "other": "{} trips you are registered for"
+          }
+        },
+        "past": {
+          "all": {
+            "zero": "No past ride or trip",
+            "one": "{} past ride or trip",
+            "other": "{} past rides and trips"
+          },
+          "rides": {
+            "zero": "No past ride",
+            "one": "{} past ride",
+            "other": "{} past rides"
+          },
+          "trips": {
+            "zero": "No past trip",
+            "one": "{} past trip",
+            "other": "{} past trips"
+          }
+        }
+      }
+    },
+    "posts": {
+      "empty": "No posts yet",
+      "emptyHint": "The team's posts will show up here once published.",
+      "searchPlaceholder": "Search posts…"
     }
   },
   "rides": {

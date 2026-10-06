@@ -7,6 +7,7 @@ import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/pagination/pagination.dart';
 import '../../../../core/pdl/pdl.dart';
 import '../../../../core/theme/pdl_colors.dart';
+import '../../../../core/theme/pdl_typography.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../../keys.dart';
 import '../../../posts/domain/post_neighbours.dart';
@@ -18,14 +19,28 @@ import '../../providers/publication_feed_provider.dart';
 /// A publication feed: search, type chips, infinite scroll, pull-to-refresh
 /// and the four list states.
 ///
-/// Shared by the home feed and a team's feed so both behave identically —
-/// only the slivers above the toolbar differ.
+/// Shared by the home feed and a team's Agenda and Publications (ledger
+/// `MOB-60`) so they behave identically — only the slivers above the toolbar,
+/// the type chips offered and the date filter differ.
 class PublicationFeedView extends ConsumerStatefulWidget {
   /// Team to show the feed of, or null for the cross-team home feed.
   final String? teamSlug;
 
+  /// La clé des filtres partagés — recherche, tags, type non piloté —, par
+  /// défaut [teamSlug].
+  ///
+  /// L'Agenda et les Publications d'une même équipe en prennent chacun une à
+  /// eux (`agenda/<slug>`, `posts/<slug>`) : sans quoi un tag de sortie choisi
+  /// dans l'Agenda suivrait dans les Publications, où il ne trouverait rien,
+  /// et une recherche passerait d'une section à l'autre.
+  final String? filterScope;
+
   /// Slivers rendered above the pinned toolbar (app bar, prompts…).
   final List<Widget> leadingSlivers;
+
+  /// Posé en tête de la barre épinglée, au-dessus de la recherche : la
+  /// période et la bascule Liste / Calendrier de l'Agenda.
+  final Widget? toolbarHeader;
 
   /// Ce que le pull-to-refresh rafraîchit **en plus** du fil.
   ///
@@ -36,24 +51,63 @@ class PublicationFeedView extends ConsumerStatefulWidget {
   /// Message shown when the feed has nothing at all.
   final String emptyMessage;
 
+  /// La ligne sous [emptyMessage] ; celle du fil d'accueil par défaut.
+  final String? emptyHint;
+
+  /// Les gestes de l'état vide absolu — « Voir les passées » dans l'Agenda.
+  final List<Widget> emptyActions;
+
+  /// L'invite du champ de recherche ; celle du fil d'accueil par défaut.
+  final String? searchHint;
+
   /// En-tête de section posé juste au-dessus des cartes — « Dernières
   /// publications · 1 248 publications » sur l'accueil.
   final bool showSectionHeader;
 
-  /// Le type sur lequel le fil s'ouvre, `null` pour « Tout ». Les chips
-  /// restent libres ensuite : c'est un point de départ, pas un filtre imposé
-  /// — les onglets « Sorties » et « Voyages » du site (ledger `WEB-64`), que
-  /// l'app rend en fil d'équipe filtré.
-  final PublicationType? initialType;
+  /// Le nombre de résultats, en une ligne au-dessus des cartes : « 5 sorties
+  /// et voyages à venir » dans l'Agenda. Rien quand il est nul.
+  final String Function(int total)? countLabel;
+
+  /// Les types proposés en chips, `null` valant « Tout ». Vide : pas de chip
+  /// de type du tout — les Publications, dont le type est [selectedType].
+  final List<PublicationType?> typeOptions;
+
+  /// Le type **piloté par l'appelant**, quand [onTypeChanged] est donné.
+  ///
+  /// L'Agenda tient son type lui-même : il l'ouvre sur celui du lien
+  /// (`teamTrips`, `?type=ride`) et le garde d'une vue à l'autre. Il ne le
+  /// recopie **jamais** dans `publicationFeedTypeProvider` — leçon de
+  /// `WEB-64` : un type écrit dans l'état partagé à l'ouverture fuyait vers le
+  /// fil empilé dessous par un lien profond. Sans [onTypeChanged], le type vit
+  /// dans `publicationFeedTypeProvider` (le fil d'accueil).
+  final PublicationType? selectedType;
+  final ValueChanged<PublicationType?>? onTypeChanged;
+
+  /// Le filtre de date de l'Agenda (`when`) ; voir [PublicationFeedKey].
+  final PublicationWhen? when;
+
+  /// « Je participe » : avec [when] `UPCOMING`, seulement ce où l'on est
+  /// inscrit.
+  final bool participating;
 
   const PublicationFeedView({
     super.key,
     required this.teamSlug,
     required this.emptyMessage,
+    this.filterScope,
     this.leadingSlivers = const [],
+    this.toolbarHeader,
     this.showSectionHeader = false,
     this.onRefreshExtras,
-    this.initialType,
+    this.emptyHint,
+    this.emptyActions = const <Widget>[],
+    this.searchHint,
+    this.countLabel,
+    this.typeOptions = kFeedTypeOptions,
+    this.selectedType,
+    this.onTypeChanged,
+    this.when,
+    this.participating = false,
   });
 
   @override
@@ -61,17 +115,20 @@ class PublicationFeedView extends ConsumerStatefulWidget {
       _PublicationFeedViewState();
 }
 
+/// Les chips de type du fil d'accueil : Tout, Sorties, Publications, Voyages.
+const List<PublicationType?> kFeedTypeOptions = <PublicationType?>[
+  null,
+  PublicationType.ride,
+  PublicationType.post,
+  PublicationType.trip,
+];
+
 class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
-  /// Vrai tant que le fil affiche [PublicationFeedView.initialType], c'est-à-
-  /// dire jusqu'au premier choix sur les chips.
-  ///
-  /// Le type initial reste **local** : `publicationFeedTypeProvider` est par
-  /// équipe, partagé par tous ses fils. L'y recopier faisait passer aussi sur
-  /// « Sorties » le fil de l'équipe empilé dessous par un lien profond froid
-  /// (`ancestorsForDeepLink` : équipes → équipe → sorties), qui y restait au
-  /// retour. Local, il sert aussi la première page déjà filtrée, sans requête
-  /// « Tout » jetée. Au premier choix, le fil rejoint l'état partagé.
-  late bool _showsInitialType = widget.initialType != null;
+  /// La clé des providers de filtres de ce fil.
+  String? get _scope => widget.filterScope ?? widget.teamSlug;
+
+  /// Vrai quand l'appelant tient le type ([PublicationFeedView.onTypeChanged]).
+  bool get _typeControlled => widget.onTypeChanged != null;
 
   /// Scrolls back to the top through the route's primary controller.
   ///
@@ -84,71 +141,65 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
   }
 
   void _setType(PublicationType? value) {
-    if (_showsInitialType) {
-      // L'état partagé peut déjà valoir `value` : le listener ne verrait
-      // aucun changement, la remontée se fait donc ici.
-      setState(() => _showsInitialType = false);
-      _scrollToTop();
+    if (_typeControlled) {
+      widget.onTypeChanged!(value);
+    } else {
+      ref.read(publicationFeedTypeProvider(_scope).notifier).state = value;
     }
-    ref.read(publicationFeedTypeProvider(widget.teamSlug).notifier).state =
-        value;
     // Un jeu de tags par type (plan des tags, D3) : des tags de sortie n'ont
     // aucun sens sur la liste des publications.
     _setTags(const <String>[]);
   }
 
   void _setTags(List<String> value) {
-    if (_showsInitialType) {
-      // Les tags sont partagés par équipe : les y écrire sans le type les
-      // collerait au type du fil empilé dessous (tags de sortie sur une liste
-      // de voyages, vide au retour). Choisir un tag rejoint donc l'état
-      // partagé, type initial compris.
-      setState(() => _showsInitialType = false);
-      ref.read(publicationFeedTypeProvider(widget.teamSlug).notifier).state =
-          widget.initialType;
-    }
-    ref.read(publicationFeedTagsProvider(widget.teamSlug).notifier).state =
-        value;
+    ref.read(publicationFeedTagsProvider(_scope).notifier).state = value;
   }
 
   void _setSearch(String? value) {
-    ref.read(publicationFeedSearchProvider(widget.teamSlug).notifier).state =
-        value;
+    ref.read(publicationFeedSearchProvider(_scope).notifier).state = value;
   }
 
   void _setScope(MinRole? value) {
-    ref.read(publicationFeedScopeProvider(widget.teamSlug).notifier).state =
-        value;
+    ref.read(publicationFeedScopeProvider(_scope).notifier).state = value;
+  }
+
+  @override
+  void didUpdateWidget(PublicationFeedView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Un autre jeu de résultats : retour en haut de liste.
+    if (oldWidget.selectedType != widget.selectedType ||
+        oldWidget.when != widget.when ||
+        oldWidget.participating != widget.participating) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollToTop();
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     // Switching filter is a new result set: back to the top of the list.
-    ref.listen(publicationFeedTypeProvider(widget.teamSlug), (previous, next) {
-      if (previous != next && !_showsInitialType) _scrollToTop();
+    ref.listen(publicationFeedTypeProvider(_scope), (previous, next) {
+      if (previous != next && !_typeControlled) _scrollToTop();
     });
-    ref.listen(publicationFeedSearchProvider(widget.teamSlug), (
-      previous,
-      next,
-    ) {
+    ref.listen(publicationFeedSearchProvider(_scope), (previous, next) {
       if (previous != next) _scrollToTop();
     });
-    ref.listen(publicationFeedScopeProvider(widget.teamSlug), (previous, next) {
+    ref.listen(publicationFeedScopeProvider(_scope), (previous, next) {
       if (previous != next) _scrollToTop();
     });
-    ref.listen(publicationFeedTagsProvider(widget.teamSlug), (previous, next) {
+    ref.listen(publicationFeedTagsProvider(_scope), (previous, next) {
       if (previous != next) _scrollToTop();
     });
 
-    final PublicationType? storedType = ref.watch(
-      publicationFeedTypeProvider(widget.teamSlug),
-    );
-    final type = _showsInitialType ? widget.initialType : storedType;
-    final search = ref.watch(publicationFeedSearchProvider(widget.teamSlug));
+    final PublicationType? type = _typeControlled || widget.typeOptions.isEmpty
+        ? widget.selectedType
+        : ref.watch(publicationFeedTypeProvider(_scope));
+    final search = ref.watch(publicationFeedSearchProvider(_scope));
     // La portée n'existe que sur le fil d'accueil : un fil d'équipe *est* déjà
     // une portée.
     final minRole = widget.teamSlug == null
-        ? ref.watch(publicationFeedScopeProvider(widget.teamSlug))
+        ? ref.watch(publicationFeedScopeProvider(_scope))
         : null;
     // Le filtre par tag n'existe que sur un fil d'équipe filtré par type —
     // la liste dédiée de ce type (D13) — et que si l'équipe a des tags pour
@@ -160,21 +211,34 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
         : teamTagsOrEmpty(ref, (teamSlug: teamSlug!, type: tagTarget));
     final List<String> tagIds = tagVocabulary.isEmpty
         ? const <String>[]
-        : ref.watch(publicationFeedTagsProvider(widget.teamSlug));
-    final key = (
+        : ref.watch(publicationFeedTagsProvider(_scope));
+    final PublicationFeedKey key = (
       teamSlug: widget.teamSlug,
       type: type,
       search: search,
       minRole: minRole,
       tags: feedTagsKey(teamSlug: teamSlug, type: type, tagIds: tagIds),
+      when: widget.when,
+      participating: widget.participating,
     );
     final state = ref.watch(publicationFeedProvider(key));
     final notifier = ref.read(publicationFeedProvider(key).notifier);
+    final String? countLine = widget.countLabel == null
+        ? null
+        : ref
+              .watch(publicationFeedCountProvider(key))
+              .maybeWhen(
+                data: (int total) =>
+                    total == 0 ? null : widget.countLabel!(total),
+                orElse: () => null,
+              );
 
     return PdlRefresh(
       onRefresh: () async {
         await Future.wait<void>(<Future<void>>[
           notifier.refresh(),
+          if (widget.countLabel != null)
+            ref.refresh(publicationFeedCountProvider(key).future),
           if (widget.onRefreshExtras != null) widget.onRefreshExtras!(),
         ]);
       },
@@ -194,8 +258,11 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
           PdlPinnedToolbar(
             padding: EdgeInsets.zero,
             child: FeedToolbar(
+              header: widget.toolbarHeader,
               search: search,
+              searchHint: widget.searchHint,
               selectedType: type,
+              typeOptions: widget.typeOptions,
               selectedScope: minRole,
               showScope: widget.teamSlug == null,
               onSearchChanged: _setSearch,
@@ -220,6 +287,17 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
                         orElse: () => null,
                       ),
                   padding: EdgeInsets.zero,
+                ),
+              ),
+            ),
+          if (countLine != null && !state.isEmpty)
+            SliverToBoxAdapter(
+              child: ContentWidthConstraint(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Text(
+                  countLine,
+                  key: keys.feed.resultCount,
+                  style: context.pdlText.sub,
                 ),
               ),
             ),
@@ -328,10 +406,12 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
                     ],
                   )
                 : PdlEmptyState(
+                    key: keys.feed.emptyState,
                     variant: PdlEmptyVariant.empty,
                     icon: Icons.dynamic_feed,
                     title: widget.emptyMessage,
-                    message: 'home.feed.emptyHint'.tr(),
+                    message: widget.emptyHint ?? 'home.feed.emptyHint'.tr(),
+                    actions: widget.emptyActions,
                   ),
           ),
         ),
@@ -378,8 +458,17 @@ class _PublicationFeedViewState extends ConsumerState<PublicationFeedView> {
 /// [PdlPinnedToolbar] mesure ce qu'on lui donne, à condition qu'on ne lui
 /// donne rien de figé.
 class FeedToolbar extends StatelessWidget {
+  /// Au-dessus de la recherche : la période et la vue de l'Agenda.
+  final Widget? header;
+
   final String? search;
+
+  /// L'invite de la recherche ; celle du fil d'accueil par défaut.
+  final String? searchHint;
   final PublicationType? selectedType;
+
+  /// Les chips de type ; aucune quand la liste est vide.
+  final List<PublicationType?> typeOptions;
 
   /// Portée courante ; ignorée quand [showScope] est faux.
   final MinRole? selectedScope;
@@ -396,6 +485,9 @@ class FeedToolbar extends StatelessWidget {
     required this.onSearchChanged,
     required this.onTypeSelected,
     required this.onScopeSelected,
+    this.header,
+    this.searchHint,
+    this.typeOptions = kFeedTypeOptions,
     this.selectedScope,
     this.showScope = false,
     this.tagVocabulary = const <TagWithUsageDto>[],
@@ -414,26 +506,37 @@ class FeedToolbar extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (header != null)
+          ContentWidthConstraint(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+            child: header!,
+          ),
         ContentWidthConstraint(
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
           child: PdlSearchField(
             key: keys.feed.searchField,
             value: search,
-            hintText: 'home.feed.searchPlaceholder'.tr(),
+            hintText: searchHint ?? 'home.feed.searchPlaceholder'.tr(),
             clearTooltip: 'common.clearSearch'.tr(),
             onChanged: onSearchChanged,
           ),
         ),
-        _FilterChips(
-          selectedType: selectedType,
-          selectedScope: selectedScope,
-          showScope: showScope,
-          onTypeSelected: onTypeSelected,
-          onScopeSelected: onScopeSelected,
-          tagVocabulary: tagVocabulary,
-          selectedTags: selectedTags,
-          onTagsChanged: onTagsChanged,
-        ),
+        // Les Publications n'ont ni type à choisir ni, sans tags, de filtre :
+        // pas de rangée vide alors.
+        if (typeOptions.isNotEmpty ||
+            showScope ||
+            (tagVocabulary.isNotEmpty && onTagsChanged != null))
+          _FilterChips(
+            typeOptions: typeOptions,
+            selectedType: selectedType,
+            selectedScope: selectedScope,
+            showScope: showScope,
+            onTypeSelected: onTypeSelected,
+            onScopeSelected: onScopeSelected,
+            tagVocabulary: tagVocabulary,
+            selectedTags: selectedTags,
+            onTagsChanged: onTagsChanged,
+          ),
         const SizedBox(height: 10),
       ],
     );
@@ -441,6 +544,7 @@ class FeedToolbar extends StatelessWidget {
 }
 
 class _FilterChips extends StatelessWidget {
+  final List<PublicationType?> typeOptions;
   final PublicationType? selectedType;
   final MinRole? selectedScope;
   final bool showScope;
@@ -448,6 +552,7 @@ class _FilterChips extends StatelessWidget {
   final ValueChanged<MinRole?> onScopeSelected;
 
   const _FilterChips({
+    required this.typeOptions,
     required this.selectedType,
     required this.selectedScope,
     required this.showScope,
@@ -483,22 +588,8 @@ class _FilterChips extends StatelessWidget {
             selected: selectedScope != null,
             onTap: () => _openScopeSheet(context),
           ),
-        _chip(label: 'home.feed.all'.tr(), value: null),
-        _chip(
-          label: 'rides.title'.tr(),
-          icon: Icons.directions_bike,
-          value: PublicationType.ride,
-        ),
-        _chip(
-          label: 'posts.title'.tr(),
-          icon: Icons.article,
-          value: PublicationType.post,
-        ),
-        _chip(
-          label: 'trips.title'.tr(),
-          icon: Icons.hiking,
-          value: PublicationType.trip,
-        ),
+        for (final PublicationType? type in typeOptions)
+          _chip(label: _typeLabel(type), icon: _typeIcon(type), value: type),
         // Après les types : elle affine celui qui est choisi.
         if (tagVocabulary.isNotEmpty && onTagsChanged != null)
           TagFilterChip(
@@ -509,6 +600,20 @@ class _FilterChips extends StatelessWidget {
       ],
     );
   }
+
+  static String _typeLabel(PublicationType? type) => switch (type) {
+    PublicationType.ride => 'rides.title'.tr(),
+    PublicationType.post => 'posts.title'.tr(),
+    PublicationType.trip => 'trips.title'.tr(),
+    _ => 'home.feed.all'.tr(),
+  };
+
+  static IconData? _typeIcon(PublicationType? type) => switch (type) {
+    PublicationType.ride => Icons.directions_bike,
+    PublicationType.post => Icons.article,
+    PublicationType.trip => Icons.hiking,
+    _ => null,
+  };
 
   /// Le libellé de la chip de portée : « Toutes les équipes » par défaut, le
   /// rôle minimum sinon.

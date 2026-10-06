@@ -19,6 +19,8 @@ import '../../../rides/presentation/widgets/ride_weather_summary_line.dart';
 import '../../../rides/providers/participation_changes.dart';
 import '../../../tags/presentation/content_tags.dart';
 import '../../../../core/utils/push_location.dart';
+import '../../../../keys.dart';
+import '../../domain/publication_timing.dart';
 
 /// Les trois hauteurs de bandeau média de la charte, **partagées**.
 ///
@@ -281,6 +283,14 @@ class _RideBody extends ConsumerWidget {
     final PdlColors c = context.pdl;
     final DateTime? at = AppFormatters.tryParseDisplayTime(ride.dateTime);
     final bool isPast = ride.finished;
+    // Partie et pas rentrée : « En cours » plutôt que « Terminée », que
+    // `finished` (départ passé) aurait affiché (ledger `MOB-60`).
+    final bool underWay = isUnderWay(
+      dateTime: ride.dateTime,
+      endDateTime: ride.endDateTime,
+      status: ride.status,
+    );
+    final String? span = rideTimeSpan(ride.dateTime, ride.endDateTime);
     // Une inscription faite dans l'app depuis le chargement du fil l'emporte
     // sur la page chargée avant elle.
     final bool registered =
@@ -315,6 +325,13 @@ class _RideBody extends ConsumerWidget {
             label: 'status.cancelled'.tr(),
             tone: Status.cancelled.tone(c),
           )
+        else if (underWay)
+          PdlBadge(
+            key: keys.feed.underWayBadge(ride.slug),
+            label: 'teams.agenda.underWay'.tr(),
+            tone: PdlDerivedTones.underWay(c),
+            dot: true,
+          )
         else if (isPast)
           PdlBadge(label: 'rides.finished'.tr(), tone: PdlDerivedTones.done(c)),
         // L'apport principal de la v2 sur les listes : savoir, sans ouvrir la
@@ -347,7 +364,10 @@ class _RideBody extends ConsumerWidget {
           : null,
       stats: <PdlStat>[
         if (at != null)
-          PdlStat(value: AppFormatters.formatRideDate(at), icon: PdlIcons.date),
+          PdlStat(
+            value: span ?? AppFormatters.formatRideDate(at),
+            icon: PdlIcons.date,
+          ),
         PdlStat(
           value: 'rides.participants'.tr(
             namedArgs: <String, String>{'count': '${ride.participantCount}'},
@@ -445,9 +465,11 @@ class _TripBody extends ConsumerWidget {
         ) ??
         trip.registered;
     final DateTime? start = AppFormatters.tryParseDisplayTime(trip.dateTime);
-    final DateTime? end = trip.endDate == null
-        ? null
-        : AppFormatters.tryParseDisplayTime(trip.endDate!);
+    final bool underWay = isUnderWay(
+      dateTime: trip.dateTime,
+      endDateTime: trip.endDateTime,
+      status: trip.status,
+    );
 
     return _CardShell(
       onTap: () => context.push(Paths.trip(trip.team.slug, trip.slug)),
@@ -466,6 +488,13 @@ class _TripBody extends ConsumerWidget {
           label: 'publicationType.trip'.tr(),
           tone: PublicationType.trip.tone(c),
         ),
+        if (underWay)
+          PdlBadge(
+            key: keys.feed.underWayBadge(trip.slug),
+            label: 'teams.agenda.underWay'.tr(),
+            tone: PdlDerivedTones.underWay(c),
+            dot: true,
+          ),
         if (registered)
           PdlBadge(
             label: 'rides.registered'.tr(),
@@ -497,12 +526,11 @@ class _TripBody extends ConsumerWidget {
       stats: <PdlStat>[
         if (start != null)
           PdlStat(
-            // `endDate`, `totalDistance` et `totalElevationGain` sont des
-            // champs de la 1.3.0 : la v1 ne pouvait pas rendre cette ligne.
-            value: end == null
-                ? AppFormatters.formatDayMonth(start)
-                : '${AppFormatters.formatDayMonth(start)} → '
-                      '${AppFormatters.formatDayMonth(end)}',
+            // Du départ à la fin stockée (`endDateTime`, ledger `API-85`) :
+            // « ven. 16 → dim. 18 oct. ».
+            value:
+                tripDaySpan(trip.dateTime, trip.endDateTime) ??
+                AppFormatters.formatDayMonth(start),
             icon: PdlIcons.date,
           ),
         if (trip.stageCount > 0)

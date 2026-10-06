@@ -194,16 +194,6 @@ navigateur), et la connexion par code e-mailé (la préférence de fuseau existe
       d'échange court et à usage unique, émis par l'API pour la session de l'app et consommé par
       le site (changement de contrat), ou à défaut le dire dans l'app avant d'ouvrir la page.
 
-- [ ] `MOB-60` **L'équipe découpée en Agenda et Publications, comme au web (M)** — plan
-      [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md) §6. `TeamSectionKind` perd `feed` et `calendar`, gagne `agenda` (filtres « À venir /
-      Je participe / Passées » que le fil d'équipe mobile n'a pas du tout, bascule Liste /
-      Calendrier) et `posts` ; le tableau de bord devient la racine pour tous (`API-86`) ;
-      `teamRides`, `teamTrips`, `teamCalendar` et `?tab=publications` routés vers la bonne section.
-      Publié en même temps que `WEB-68`. En attendant, `teamAgenda` et `teamPosts` (au contrat
-      depuis `WEB-68`) ouvrent le fil de l'équipe, filtré sur les publications pour la seconde
-      (`router.dart`, `internalRouteTemplates`, `_deepLinkHierarchies`,
-      `team_kind_tab_links_test.dart`) : relais provisoire, à remplacer par les vraies sections.
-
 ### Liens profonds
 
 - [ ] `MOB-59` **Les liens vers les pages du site sans écran dans l'app ouvrent l'app sur sa page
@@ -743,14 +733,6 @@ En service en staging ; la mise en production attend biketeam
 ## BRAND — Charte
 
 Le code couleur métier a une source unique depuis `BRAND-2`.
-
-- [ ] `BRAND-6` **Les icônes des sections d'équipe suivent la charte, les mêmes sur les deux clients
-      (S)** — **le web est fait** (6 octobre 2026, avec `WEB-68`) : `useTeamNavItems` prend les
-      icônes de la table du [`BRANDING.md`](BRANDING.md) §6 (sections d'équipe), « Agenda » est au
-      lexique (§8), `useTeamNavItems.test.tsx` vérifie chaque icône. **Reste le mobile** : il prend
-      d'autres icônes Material (`dynamic_feed`, `sell`…, `team_sections.dart`) au lieu de
-      l'équivalent `PdlIcons` de chaque section (à compléter s'il en manque). Livré avec
-      `MOB-60`.
 
 ---
 

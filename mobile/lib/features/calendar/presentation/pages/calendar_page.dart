@@ -32,7 +32,29 @@ class CalendarPage extends ConsumerStatefulWidget {
   final String? teamSlug;
   final bool embedded;
 
-  const CalendarPage({super.key, this.teamSlug, this.embedded = false});
+  /// Le type **piloté par l'appelant**, quand [onTypeChanged] est donné : la
+  /// vue Calendrier de l'Agenda d'une équipe, qui garde son type d'une vue à
+  /// l'autre (ledger `MOB-60`). Sans lui, `calendarTypeFilterProvider`.
+  final CalendarTypeFilter? typeFilter;
+  final ValueChanged<CalendarTypeFilter>? onTypeChanged;
+
+  /// « Je participe » : seulement les événements où l'on est inscrit
+  /// (`CalendarEventDto.registered`), filtrés en mémoire comme le type — l'API
+  /// du calendrier n'a pas de paramètre pour cela.
+  final bool registeredOnly;
+
+  /// Lève « Je participe » depuis l'état vide filtré.
+  final VoidCallback? onClearRegisteredOnly;
+
+  const CalendarPage({
+    super.key,
+    this.teamSlug,
+    this.embedded = false,
+    this.typeFilter,
+    this.onTypeChanged,
+    this.registeredOnly = false,
+    this.onClearRegisteredOnly,
+  });
 
   @override
   ConsumerState<CalendarPage> createState() => _CalendarPageState();
@@ -55,7 +77,9 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
     final CalendarMonthKey monthKey = ref.watch(
       calendarMonthKeyProvider(widget.teamSlug),
     );
-    final CalendarTypeFilter typeFilter = ref.watch(calendarTypeFilterProvider);
+    final CalendarTypeFilter typeFilter = widget.onTypeChanged != null
+        ? widget.typeFilter ?? CalendarTypeFilter.all
+        : ref.watch(calendarTypeFilterProvider);
     final AsyncValue<CalendarMonth> month = ref.watch(
       calendarMonthProvider(monthKey),
     );
@@ -72,9 +96,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
               monthKey: monthKey,
               onMonthChanged: _setMonth,
               typeFilter: typeFilter,
-              onTypeChanged: (CalendarTypeFilter next) {
-                ref.read(calendarTypeFilterProvider.notifier).state = next;
-              },
+              onTypeChanged: _setType,
               showScope: widget.teamSlug == null,
               // Sans app bar à elle, la section d'équipe perdrait le raccourci
               // « Aujourd'hui » : il descend alors dans la barre d'outils.
@@ -85,8 +107,14 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
         Divider(height: 1, color: context.pdl.borderSubtle),
         Expanded(
           child: month.when(
-            data: (CalendarMonth loaded) =>
-                _content(monthKey, loaded.filtered(typeFilter), typeFilter),
+            data: (CalendarMonth loaded) => _content(
+              monthKey,
+              loaded.filtered(
+                typeFilter,
+                registeredOnly: widget.registeredOnly,
+              ),
+              typeFilter,
+            ),
             loading: _skeletons,
             error: (Object error, StackTrace stack) => Center(
               child: PdlEmptyState(
@@ -127,6 +155,14 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
       ),
       body: body,
     );
+  }
+
+  void _setType(CalendarTypeFilter next) {
+    if (widget.onTypeChanged != null) {
+      widget.onTypeChanged!(next);
+    } else {
+      ref.read(calendarTypeFilterProvider.notifier).state = next;
+    }
   }
 
   // ── Contenu ───────────────────────────────────────────────────────────────
@@ -320,7 +356,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
     // Deux vides bien distincts : « rien ce mois-ci » et « rien *avec ces
     // filtres* ». Le second se résout en effaçant les filtres, jamais en
     // changeant de mois.
-    if (type != CalendarTypeFilter.all) {
+    if (type != CalendarTypeFilter.all || widget.registeredOnly) {
       return Padding(
         padding: const EdgeInsets.all(PdlSpacing.section),
         child: PdlEmptyState(
@@ -334,8 +370,10 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
               variant: PdlButtonVariant.outline,
               size: PdlButtonSize.sm,
               onPressed: () {
-                ref.read(calendarTypeFilterProvider.notifier).state =
-                    CalendarTypeFilter.all;
+                _setType(CalendarTypeFilter.all);
+                if (widget.registeredOnly) {
+                  widget.onClearRegisteredOnly?.call();
+                }
               },
             ),
           ],

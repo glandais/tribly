@@ -16,12 +16,21 @@ import '../../../core/pagination/pagination.dart';
 /// une liste : un record compare ses champs par `==`, et deux `List` égales
 /// n'y sont pas égales — chaque reconstruction aurait créé un notifier neuf.
 /// Le serveur accepte d'ailleurs `?tags=a,b` tel quel.
+///
+/// `when` et `participating` sont les filtres de date de l'Agenda d'une équipe
+/// (ledger `MOB-60`, contrat 10.15.0) : « À venir » (`UPCOMING`), « Je
+/// participe » (`UPCOMING` + `participating`) et « Passées » (`PAST`). Le
+/// serveur en déduit le tri — le plus proche d'abord pour l'avenir, le plus
+/// récent d'abord pour le passé — et en écarte les publications, qui n'ont pas
+/// de fin. `null` et `false` ailleurs : le fil d'accueil et les Publications.
 typedef PublicationFeedKey = ({
   String? teamSlug,
   PublicationType? type,
   String? search,
   MinRole? minRole,
   String? tags,
+  PublicationWhen? when,
+  bool participating,
 });
 
 /// Filtre de type courant, par portée. Le fil d'accueil et un fil d'équipe
@@ -101,6 +110,8 @@ final publicationFeedCountProvider = FutureProvider.autoDispose
               type: key.type,
               search: search,
               tags: _tagList(key.tags),
+              whenField: key.when,
+              participating: key.participating,
             );
       return response.total;
     });
@@ -139,6 +150,8 @@ class PublicationFeedNotifier extends PagedListNotifier<PublicationDto> {
             type: _key.type,
             search: _trimmed(_key.search),
             tags: _tagList(_key.tags),
+            whenField: _key.when,
+            participating: _key.participating,
             view: ListViewMode.compact,
           );
     return PageResult<PublicationDto>(

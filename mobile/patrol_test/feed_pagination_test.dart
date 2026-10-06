@@ -1,14 +1,13 @@
-import 'package:pedalons/api/generated/export.dart';
-
 import 'api/lists_seed.dart';
 import 'common.dart';
 
-/// Web counterparts: `pagination.e2e.ts` (team and home feeds, one page and one entry) and
-/// `list-filters.e2e.ts` (type chips, the filtered empty state). The app has no page numbers:
-/// scrolling reaches the entry the API puts on page 2. Which one that is is asked of the API.
+/// Web counterparts: `pagination.e2e.ts` (team posts and home feed, one page and one entry) and
+/// `list-filters.e2e.ts` (the filtered empty state). The app has no page numbers: scrolling reaches
+/// the entry the API puts on page 2. Which one that is is asked of the API. A team's posts and its
+/// rides live in two sections since `MOB-60`: « Publications » and « Agenda ».
 void main() {
   testApp(
-    'The team feed and the home feed scroll into their second page; the type chips and the search filter the feed, down to its filtered empty state',
+    'A team\'s posts and the home feed scroll into their second page; the agenda holds the ride and no post; the search filters down to the filtered empty state',
     ($, modules, apiClients) async {
       final backend = apiClients.backend;
       final owner = await backend.newUser('Feed owner');
@@ -20,31 +19,37 @@ void main() {
       final rideSlug = ride['slug'] as String;
       await backend.newPosts(owner, teamSlug, 'Article du fil', 21);
 
-      final teamPage2 = await backend.teamFeedSlugs(member, teamSlug, page: 1);
-      expect(teamPage2, isNot(isEmpty));
-      final teamPage1 = await backend.teamFeedSlugs(member, teamSlug);
-      final firstPost = teamPage1.firstWhere((slug) => slug != rideSlug);
+      final postsPage2 = await backend.teamFeedSlugs(
+        member,
+        teamSlug,
+        page: 1,
+        type: 'POST',
+      );
+      expect(postsPage2, isNot(isEmpty));
+      final postsPage1 = await backend.teamFeedSlugs(
+        member,
+        teamSlug,
+        type: 'POST',
+      );
+      final firstPost = postsPage1.first;
       final homePage2 = await backend.homeFeedSlugs(member, page: 1);
       expect(homePage2, isNot(isEmpty));
 
       await openAppSignedIn($, member);
 
-      // The team feed: the entry of page 2 is reached by scrolling.
-      await openLink($, Paths.team(teamSlug));
-      await modules.lists.waitUntilFeedHas(firstPost);
-      await modules.lists.scrollFeedTo(teamPage2.first);
-
-      // « Sorties »: the ride, and no post.
-      await modules.lists.selectFeedType(PublicationType.ride);
-      await modules.lists.waitUntilFeedHas(rideSlug);
-      await modules.lists.waitUntilFeedLacks(firstPost);
-      // « Articles »: the posts, and not the ride.
-      await modules.lists.selectFeedType(PublicationType.post);
+      // « Publications »: the posts alone, page 2 reached by scrolling.
+      await openLink($, Paths.teamPosts(teamSlug));
       await modules.lists.waitUntilFeedHas(firstPost);
       expect(modules.lists.feedHas(rideSlug), isFalse);
-      // A search that matches nothing: the filtered empty state, not the empty feed.
+      await modules.lists.scrollFeedTo(postsPage2.first);
+      // A search that matches nothing: the filtered empty state, not the empty list.
       await modules.lists.searchFeed(unique('introuvable'));
       await modules.lists.waitUntilFeedFilteredEmpty();
+      expect(modules.lists.feedHas(firstPost), isFalse);
+
+      // « Agenda »: the upcoming ride, and no post.
+      await openLink($, Paths.teamAgenda(teamSlug));
+      await modules.lists.waitUntilFeedHas(rideSlug);
       expect(modules.lists.feedHas(firstPost), isFalse);
 
       // The home feed: its page 2 too.

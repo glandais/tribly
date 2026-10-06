@@ -24,7 +24,9 @@ import '../widgets/dashboard/dashboard_section.dart';
 import '../widgets/dashboard/dashboard_todo.dart';
 import '../widgets/team_sections.dart';
 
-/// Le tableau de bord d'une équipe — la section par défaut d'un membre.
+/// Le tableau de bord d'une équipe — la section par défaut, **pour tout le
+/// monde** (ledger `API-86`) : un visiteur y lit les prochaines sorties, les
+/// dernières publications et les nouveaux parcours, chacun avec « Voir tout ».
 ///
 /// **Un appel, un écran, trois rôles.** `GET /api/teams/{slug}/dashboard`
 /// renvoie toutes les sections d'un coup, déjà découpées par le rôle de
@@ -34,7 +36,7 @@ import '../widgets/team_sections.dart';
 /// déduit rien du rôle par lui-même — il n'y a donc qu'un endroit, le serveur,
 /// où « qui voit quoi » se décide.
 ///
-/// Comme le fil et « À propos », c'est une liste de slivers : l'en-tête
+/// Comme l'Agenda et « À propos », c'est une liste de slivers : l'en-tête
 /// d'équipe interpolé et la rangée de sections lui sont passés par
 /// `TeamHomePage`, qui garde la charge et l'erreur de l'équipe.
 class TeamDashboardPage extends ConsumerWidget {
@@ -145,19 +147,25 @@ class TeamDashboardBody extends StatelessWidget {
         _Summary(team: team, role: d.role, organizer: organizer != null),
         if (organizer != null)
           DashboardTodo(teamSlug: team.slug, data: organizer),
-        if (d.myUpcoming != null) DashboardMyUpcoming(list: d.myUpcoming!),
+        // « Voir tout » mène à l'Agenda et aux Publications, comme au site
+        // (ledger `MOB-60`) : « Je participe » pour « Mes prochaines ».
+        if (d.myUpcoming != null)
+          DashboardMyUpcoming(
+            list: d.myUpcoming!,
+            onViewAll: () => context.go(
+              '${Paths.teamAgenda(team.slug)}?$kAgendaScopeParam=me',
+            ),
+          ),
         if (d.upcomingRides != null)
           DashboardUpcomingRides(
             list: d.upcomingRides!,
             canEdit: organizer != null,
-            onViewAll: () => context.go(Paths.teamCalendar(team.slug)),
+            onViewAll: () => context.go(Paths.teamAgenda(team.slug)),
           ),
         if (d.latestPosts != null)
           DashboardLatestPosts(
             list: d.latestPosts!,
-            onViewAll: () => context.go(
-              '${Paths.team(team.slug)}?$kTeamTabParam=$kTeamTabFeed',
-            ),
+            onViewAll: () => context.go(Paths.teamPosts(team.slug)),
           ),
         if (d.admin != null) DashboardAdmin(team: team, data: d.admin!),
         if (organizer?.rideTemplates != null)
@@ -201,7 +209,10 @@ class _Summary extends StatelessWidget {
   Widget build(BuildContext context) {
     final PdlColors c = context.pdl;
     final String? role = this.role;
-    final bool hasCalendar = team.enableRides || team.enableTrips;
+    // L'abonnement au calendrier est celui d'un membre : un visiteur n'a ni
+    // calendrier d'équipe ni jeton (ledger `MOB-60`, comme au site).
+    final bool hasCalendar =
+        role != null && (team.enableRides || team.enableTrips);
     // Comme le site : une sortie se crée sur un parcours, il faut donc les
     // deux modules.
     final bool canCreateRide =

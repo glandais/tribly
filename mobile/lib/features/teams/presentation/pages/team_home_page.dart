@@ -10,7 +10,7 @@ import '../../../../core/theme/pdl_colors.dart';
 import '../../../../core/theme/pdl_tokens.dart';
 import '../../../../core/utils/api_error_handler.dart';
 import '../../../ads/presentation/pages/ads_page.dart';
-import '../../../calendar/presentation/pages/calendar_page.dart';
+import '../../../feed/presentation/widgets/publication_feed_view.dart';
 import '../../../routes/domain/route_filters.dart';
 import '../../../routes/presentation/pages/routes_page.dart';
 import '../../../routes/providers/route_list_provider.dart';
@@ -21,7 +21,7 @@ import '../widgets/team_sections.dart';
 import '../widgets/team_sections_bar.dart';
 import 'team_about_page.dart';
 import 'team_dashboard_page.dart';
-import 'team_feed_page.dart';
+import 'team_agenda_page.dart';
 import 'team_members_page.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
 import '../../../../keys.dart';
@@ -44,16 +44,24 @@ class TeamHomePage extends ConsumerWidget {
     super.key,
     required this.teamSlug,
     required this.section,
-    this.feedType,
+    this.agendaType,
+    this.agendaScope = AgendaScope.upcoming,
+    this.agendaView = AgendaView.list,
   });
 
   final String teamSlug;
   final TeamSectionKind section;
 
-  /// Le type imposé au fil à l'ouverture — les onglets « Sorties » et
-  /// « Voyages » du site (ledger `WEB-64`), que l'app rend en fil filtré.
-  /// Sans effet hors de [TeamSectionKind.feed].
-  final PublicationType? feedType;
+  /// Le type sur lequel l'Agenda s'ouvre — `teamTrips`, `?type=ride` —, puis
+  /// libre. Sans effet hors de [TeamSectionKind.agenda].
+  final PublicationType? agendaType;
+
+  /// La période sur laquelle l'Agenda s'ouvre (`?w=me` : « Je participe »).
+  final AgendaScope agendaScope;
+
+  /// La vue sur laquelle l'Agenda s'ouvre : `teamCalendar` l'ouvre en
+  /// calendrier.
+  final AgendaView agendaView;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -77,7 +85,9 @@ class TeamHomePage extends ConsumerWidget {
       return TeamHomePage(
         teamSlug: currentSlug,
         section: section,
-        feedType: feedType,
+        agendaType: agendaType,
+        agendaScope: agendaScope,
+        agendaView: agendaView,
       );
     }
 
@@ -85,7 +95,9 @@ class TeamHomePage extends ConsumerWidget {
       data: (TeamDetailDto team) => _TeamSectionScaffold(
         team: team,
         section: section,
-        feedType: feedType,
+        agendaType: agendaType,
+        agendaScope: agendaScope,
+        agendaView: agendaView,
       ),
       loading: () => const _TeamChrome.bare(
         // Défilable : trois gabarits dépassent la hauteur d'un écran, et un
@@ -133,7 +145,7 @@ class TeamHomePage extends ConsumerWidget {
 class _TeamChrome extends StatelessWidget {
   /// L'équipe est là : son en-tête porte déjà la flèche de retour, l'action
   /// d'adhésion et le partage. [header] est `null` quand cet en-tête vit dans
-  /// les slivers du corps (fil, à propos) — **pas** de barre de plus alors,
+  /// les slivers du corps (Agenda en liste, Publications, à propos) — **pas** de barre de plus alors,
   /// sans quoi l'écran affiche deux retours l'un sous l'autre.
   const _TeamChrome({required this.header, required this.body})
     : ownBar = false;
@@ -175,28 +187,35 @@ class _TeamSectionScaffold extends StatelessWidget {
   const _TeamSectionScaffold({
     required this.team,
     required this.section,
-    this.feedType,
+    required this.agendaType,
+    required this.agendaScope,
+    required this.agendaView,
   });
 
   final TeamDetailDto team;
   final TeamSectionKind section;
-  final PublicationType? feedType;
+  final PublicationType? agendaType;
+  final AgendaScope agendaScope;
+  final AgendaView agendaView;
 
   @override
   Widget build(BuildContext context) {
     final List<TeamSection> sections = buildTeamSections(team);
-    // L'adresse nue d'une équipe demande le tableau de bord ; un visiteur qui
-    // n'en est pas membre n'en a pas, et y voit le fil.
-    final TeamSectionKind section = resolveTeamRootSection(
-      requested: this.section,
-      role: team.role,
-    );
+    final List<Widget> headerSlivers = <Widget>[
+      TeamHeaderSliver(team: team),
+      SliverToBoxAdapter(
+        child: _TeamStats(team: team, section: section),
+      ),
+      SliverToBoxAdapter(child: _MembershipBanner(team: team)),
+    ];
 
     // Les sections qui sont **une liste de slivers** portent l'en-tête
     // interpolé : il se rétracte de 112 à 56 px sous le doigt. Les autres
     // possèdent leur propre défileur et reçoivent l'en-tête déjà
     // rétracté — voir [TeamHeaderSliver].
     return switch (section) {
+      // Le tableau de bord, pour tout le monde : un visiteur y lit la partie
+      // publique (ledger `API-86`).
       TeamSectionKind.dashboard => _TeamChrome(
         header: null,
         body: TeamDashboardPage(
@@ -208,20 +227,32 @@ class _TeamSectionScaffold extends StatelessWidget {
           toolbar: TeamSectionsToolbar(sections: sections, current: section),
         ),
       ),
-      TeamSectionKind.feed => _TeamChrome(
+      TeamSectionKind.agenda => TeamAgendaPage(
+        team: team,
+        sections: sections,
+        leadingSlivers: headerSlivers,
+        initialType: agendaType,
+        initialScope: agendaScope,
+        initialView: agendaView,
+        chrome: ({required Widget? header, required Widget body}) =>
+            _TeamChrome(header: header, body: body),
+      ),
+      // Les publications seules, la plus récente d'abord : pas de filtre de
+      // date, pas de chip de type (plan §2).
+      TeamSectionKind.posts => _TeamChrome(
         header: null,
-        body: TeamFeedPage(
+        body: PublicationFeedView(
           teamSlug: team.slug,
-          team: team,
-          initialType: feedType,
+          filterScope: 'posts/${team.slug}',
           leadingSlivers: <Widget>[
-            TeamHeaderSliver(team: team),
-            SliverToBoxAdapter(
-              child: _TeamStats(team: team, section: section),
-            ),
-            SliverToBoxAdapter(child: _MembershipBanner(team: team)),
+            ...headerSlivers,
+            TeamSectionsToolbar(sections: sections, current: section),
           ],
-          toolbar: TeamSectionsToolbar(sections: sections, current: section),
+          typeOptions: const <PublicationType?>[],
+          selectedType: PublicationType.post,
+          searchHint: 'teams.posts.searchPlaceholder'.tr(),
+          emptyMessage: 'teams.posts.empty'.tr(),
+          emptyHint: 'teams.posts.emptyHint'.tr(),
         ),
       ),
       TeamSectionKind.about => _TeamChrome(
@@ -229,22 +260,8 @@ class _TeamSectionScaffold extends StatelessWidget {
         body: TeamAboutPage(
           teamSlug: team.slug,
           team: team,
-          leadingSlivers: <Widget>[
-            TeamHeaderSliver(team: team),
-            SliverToBoxAdapter(
-              child: _TeamStats(team: team, section: section),
-            ),
-            SliverToBoxAdapter(child: _MembershipBanner(team: team)),
-          ],
+          leadingSlivers: headerSlivers,
           toolbar: TeamSectionsToolbar(sections: sections, current: section),
-        ),
-      ),
-      TeamSectionKind.calendar => _TeamChrome(
-        header: TeamHeaderBar(team: team),
-        body: _WithSectionsBar(
-          sections: sections,
-          current: section,
-          child: CalendarPage(teamSlug: team.slug, embedded: true),
         ),
       ),
       TeamSectionKind.routes => _TeamChrome(
@@ -283,10 +300,10 @@ class _TeamSectionScaffold extends StatelessWidget {
 /// Les trois cellules chiffrées — et c'est ici que le silo se casse.
 ///
 /// Elles ne mènent pas à des écrans dupliqués par équipe mais à des **surfaces
-/// racine pré-filtrées** : le trombinoscope de l'équipe, le calendrier de
-/// portée équipe, et l'onglet Parcours global dont la portée est réglée sur
-/// cette équipe. Une application qui recopie ses écrans par équipe finit avec
-/// deux parcothèques qui divergent.
+/// racine pré-filtrées** : le trombinoscope de l'équipe, son Agenda, et
+/// l'onglet Parcours global dont la portée est réglée sur cette équipe. Une
+/// application qui recopie ses écrans par équipe finit avec deux parcothèques
+/// qui divergent.
 ///
 /// Sur « À propos », deux cellules seulement : membres et année de création.
 /// Il n'y a pas de `foundedYear` au contrat — c'est `createdAt`, et le dire
@@ -326,7 +343,8 @@ class _TeamStats extends ConsumerWidget {
             PdlStatCell(
               value: '${team.upcomingRideCount}',
               label: 'teams.stats.upcomingRides'.tr(),
-              onTap: () => context.go(Paths.teamCalendar(team.slug)),
+              // L'Agenda, « À venir » : les sorties que la cellule compte.
+              onTap: () => context.go(Paths.teamAgenda(team.slug)),
             ),
             PdlStatCell(
               value: '${team.routeCount}',

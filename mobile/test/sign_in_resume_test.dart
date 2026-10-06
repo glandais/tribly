@@ -88,6 +88,8 @@ void main() {
       expect(router.calls, [
         'go ${PathVariants.teams()['fr']}',
         'push ${PathVariants.team('velo-club')['fr']}',
+        // Une sortie est rangée sous l'Agenda (ledger `MOB-60`).
+        'push ${PathVariants.teamAgenda('velo-club')['fr']}',
         'push $ride',
       ]);
       expect(pending.location, isNull);

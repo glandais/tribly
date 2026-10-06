@@ -16,6 +16,15 @@ class FeedKeys {
 
   final searchField = const _FeedKey('searchField');
 
+  /// Le badge « En cours » d'une sortie ou d'un voyage, par son slug.
+  ValueKey<String> underWayBadge(String slug) => _FeedKey('underWay_$slug');
+
+  /// L'état vide absolu (« Rien à l'agenda pour le moment »).
+  final emptyState = const _FeedKey('emptyState');
+
+  /// La ligne du nombre de résultats (« 5 sorties et voyages à venir »).
+  final resultCount = const _FeedKey('resultCount');
+
   /// La puce d'un type de publication ; `null` pour « Tout ».
   ValueKey<String> typeChip(PublicationType? type) =>
       _FeedKey('typeChip_${type?.json ?? 'all'}');
