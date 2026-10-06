@@ -32,11 +32,19 @@ class RideWeatherSummaryLine extends ConsumerWidget {
   const RideWeatherSummaryLine({
     super.key,
     required this.summary,
+    required this.timezone,
     this.finished = false,
     this.cancelled = false,
   });
 
   final RideWeatherSummaryDto? summary;
+
+  /// Le fuseau de la sortie ou de l'étape (`RideDto.timezone`…), où se lit
+  /// l'heure de l'alerte pluie — sans mention : la carte la porte déjà
+  /// (docs/LEDGER_*.md API-60). Celui du résumé (`RideWeatherSummaryDto.timezone`)
+  /// l'emporte quand il est là : sur la carte d'un voyage, la ligne est celle
+  /// de sa prochaine étape, pas de sa première.
+  final String? timezone;
   final bool finished;
   final bool cancelled;
 
@@ -107,7 +115,7 @@ class RideWeatherSummaryLine extends ConsumerWidget {
         ? 'rides.weather.rainAlertShort'.tr(
             namedArgs: <String, String>{
               'probability': AppFormatters.formatPercent(alert.probability),
-              'time': formatWeatherTime(alert.time),
+              'time': formatWeatherTime(alert.time, s.timezone ?? timezone),
             },
           )
         : (s.maxPrecipitationProbability == null

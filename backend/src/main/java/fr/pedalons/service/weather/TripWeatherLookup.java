@@ -80,6 +80,7 @@ public class TripWeatherLookup {
       byTrip.computeIfAbsent(hour.tripId(), k -> new ArrayList<>()).add(hour);
     }
     Map<Long, RideWeatherSummary> result = new HashMap<>();
+    Map<Long, String> zones = new HashMap<>();
     for (Map.Entry<Long, List<TripLegHour>> entry : byTrip.entrySet()) {
       TripLegHour first = entry.getValue().getFirst();
       RideWeatherSummary summary;
@@ -98,8 +99,9 @@ public class TripWeatherLookup {
       }
       if (summary != null) {
         result.put(entry.getKey(), summary);
+        zones.put(entry.getKey(), first.zone());
       }
     }
-    return result.isEmpty() ? RideWeatherSummaries.NONE : new RideWeatherSummaries(result);
+    return result.isEmpty() ? RideWeatherSummaries.NONE : new RideWeatherSummaries(result, zones);
   }
 }

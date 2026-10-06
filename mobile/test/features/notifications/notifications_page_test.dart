@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pedalons/api/generated/export.dart';
 import 'package:pedalons/core/pagination/pagination.dart';
 import 'package:pedalons/core/theme/pedalons_theme.dart';
+import 'package:pedalons/core/utils/formatters.dart';
 import 'package:pedalons/features/notifications/data/notifications_repository.dart';
 import 'package:pedalons/features/notifications/presentation/notification_display.dart';
 import 'package:pedalons/features/notifications/presentation/pages/notifications_page.dart';
@@ -91,6 +92,8 @@ NotificationDto _notification({
   List<NotificationChange> changes = const <NotificationChange>[],
   String? excerpt,
   String subjectName = 'Sortie du dimanche',
+  String? subjectDateTime,
+  String? subjectTimezone,
 }) {
   return NotificationDto(
     id: id,
@@ -108,6 +111,8 @@ NotificationDto _notification({
     subjectName: subjectName,
     changes: changes,
     excerpt: excerpt,
+    subjectDateTime: subjectDateTime,
+    subjectTimezone: subjectTimezone,
   );
 }
 
@@ -292,6 +297,90 @@ void main() {
       title(<NotificationChange>[NotificationChange.$unknown]),
       'Une sortie a été modifiée',
     );
+  });
+
+  group('la date du sujet, un rendez-vous (docs/LEDGER_*.md API-60)', () {
+    // 2026-10-11T23:00Z : lundi 12 octobre, 08:00 à Tokyo, 01:00 à Paris.
+    const String at = '2026-10-11T23:00:00Z';
+
+    setUp(() => AppFormatters.setDisplayTimezone('Europe/Paris'));
+    tearDown(() => AppFormatters.setDisplayTimezone(null));
+
+    test('un rappel se lit dans le fuseau de la sortie, avec la mention', () {
+      expect(
+        _notification(
+          type: NotificationType.rideReminder,
+          subjectDateTime: at,
+          subjectTimezone: 'Asia/Tokyo',
+        ).subjectDateLine(),
+        'Départ : lundi 12 octobre à 08:00 · heure de Tokyo '
+        '(01:00 chez vous)',
+      );
+    });
+
+    test('le même décalage ne dit rien de plus', () {
+      expect(
+        _notification(
+          type: NotificationType.rideReminder,
+          subjectDateTime: at,
+          subjectTimezone: 'Europe/Brussels',
+        ).subjectDateLine(),
+        'Départ : lundi 12 octobre à 01:00',
+      );
+    });
+
+    test('une notification sans fuseau figé se lit chez le lecteur', () {
+      expect(
+        _notification(
+          type: NotificationType.rideReminder,
+          subjectDateTime: at,
+        ).subjectDateLine(),
+        'Départ : lundi 12 octobre à 01:00',
+      );
+    });
+
+    test('une nouvelle date se dit, un autre changement non', () {
+      expect(
+        _notification(
+          type: NotificationType.rideUpdated,
+          changes: <NotificationChange>[NotificationChange.dateTime],
+          subjectDateTime: at,
+          subjectTimezone: 'Asia/Tokyo',
+        ).subjectDateLine(),
+        startsWith('Nouvelle date : lundi 12 octobre à 08:00 · '),
+      );
+      expect(
+        _notification(
+          type: NotificationType.rideUpdated,
+          changes: <NotificationChange>[NotificationChange.startPlace],
+          subjectDateTime: at,
+          subjectTimezone: 'Asia/Tokyo',
+        ).subjectDateLine(),
+        isNull,
+      );
+      expect(
+        _notification(
+          subjectDateTime: at,
+          subjectTimezone: 'Asia/Tokyo',
+        ).subjectDateLine(),
+        isNull,
+      );
+    });
+
+    testWidgets('la ligne apparaît dans la boîte', (WidgetTester tester) async {
+      await open(
+        tester,
+        _StubRepository(<NotificationDto>[
+          _notification(
+            type: NotificationType.rideReminder,
+            subjectDateTime: at,
+            subjectTimezone: 'Asia/Tokyo',
+          ),
+        ]),
+      );
+
+      expect(find.textContaining('heure de Tokyo'), findsOneWidget);
+    });
   });
 
   testWidgets('une invitation nomme l\'invitant et l\'équipe', (

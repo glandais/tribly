@@ -64,8 +64,14 @@ class WeatherStaleBanner extends StatelessWidget {
 }
 
 /// Le corps d'un leg sous son en-tête : alerte pluie, exposition, frise —
-/// ou un seul bandeau quand il n'y a rien à dérouler.
-List<Widget> weatherLegBody(WeatherLegDto leg, Widget Function(Widget) padded) {
+/// ou un seul bandeau quand il n'y a rien à dérouler. Les heures se lisent
+/// dans le fuseau [timezone] de la sortie ou de l'étape (docs/LEDGER_*.md
+/// API-60).
+List<Widget> weatherLegBody(
+  WeatherLegDto leg,
+  Widget Function(Widget) padded,
+  String? timezone,
+) {
   final WeatherStatus legStatus = WeatherStatus.fromJson(leg.status);
   if (legStatus == WeatherStatus.noLocation) {
     return <Widget>[
@@ -97,9 +103,11 @@ List<Widget> weatherLegBody(WeatherLegDto leg, Widget Function(Widget) padded) {
     ];
   }
   return <Widget>[
-    if (leg.rainAlert != null) padded(_RainAlertBanner(alert: leg.rainAlert!)),
+    if (leg.rainAlert != null)
+      padded(_RainAlertBanner(alert: leg.rainAlert!, timezone: timezone)),
     if (leg.segments.isNotEmpty) padded(_WindSection(leg: leg)),
-    if (leg.checkpoints.isNotEmpty) padded(_Timeline(leg: leg)),
+    if (leg.checkpoints.isNotEmpty)
+      padded(_Timeline(leg: leg, timezone: timezone)),
   ];
 }
 
@@ -110,10 +118,14 @@ class WeatherLegHeader extends ConsumerWidget {
     super.key,
     required this.leg,
     required this.title,
+    required this.timezone,
     this.speedDefaultKey = 'rides.weather.legSpeedDefault',
   });
 
   final WeatherLegDto leg;
+
+  /// Le fuseau de la sortie ou de l'étape, où se lisent départ et arrivée.
+  final String? timezone;
 
   /// Le nom du groupe ou de l'étape ; à défaut, « Météo du parcours ».
   final String? title;
@@ -141,8 +153,8 @@ class WeatherLegHeader extends ConsumerWidget {
         Text(
           'rides.weather.legTimes'.tr(
             namedArgs: <String, String>{
-              'start': formatWeatherTime(leg.startTime),
-              'arrival': formatWeatherTime(leg.arrivalTime),
+              'start': formatWeatherTime(leg.startTime, timezone),
+              'arrival': formatWeatherTime(leg.arrivalTime, timezone),
             },
           ),
           style: t.body,
@@ -171,9 +183,10 @@ class WeatherLegHeader extends ConsumerWidget {
 }
 
 class _RainAlertBanner extends ConsumerWidget {
-  const _RainAlertBanner({required this.alert});
+  const _RainAlertBanner({required this.alert, required this.timezone});
 
   final WeatherRainAlertDto alert;
+  final String? timezone;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -181,7 +194,7 @@ class _RainAlertBanner extends ConsumerWidget {
     return PdlBanner(
       tone: PdlBannerTone.warn,
       icon: weatherConditionOf(alert.condition).icon(daylight: true),
-      message: formatRainAlert(alert, units),
+      message: formatRainAlert(alert, units, timezone),
     );
   }
 }
@@ -232,9 +245,10 @@ class _WindSection extends ConsumerWidget {
 // ───────────────────────────────────────────────────── frise des passages
 
 class _Timeline extends StatelessWidget {
-  const _Timeline({required this.leg});
+  const _Timeline({required this.leg, required this.timezone});
 
   final WeatherLegDto leg;
+  final String? timezone;
 
   @override
   Widget build(BuildContext context) {
@@ -247,6 +261,7 @@ class _Timeline extends StatelessWidget {
           _CheckpointRow(
             key: keys.ride.weatherCheckpoint(points[i].indexField),
             checkpoint: points[i],
+            timezone: timezone,
             first: i == 0,
             last: i == points.length - 1,
           ),
@@ -259,11 +274,13 @@ class _CheckpointRow extends ConsumerWidget {
   const _CheckpointRow({
     super.key,
     required this.checkpoint,
+    required this.timezone,
     required this.first,
     required this.last,
   });
 
   final WeatherCheckpointDto checkpoint;
+  final String? timezone;
   final bool first;
   final bool last;
 
@@ -276,7 +293,7 @@ class _CheckpointRow extends ConsumerWidget {
     final WeatherConditionsDto? w = p.weather;
     final RelativeWind? relative = relativeWindOf(p.relativeWind);
 
-    final String time = formatWeatherTime(p.time);
+    final String time = formatWeatherTime(p.time, timezone);
     final String distance = AppFormatters.formatDistance(p.distance, units);
     final String kind = _kindLabel(p.kind);
     final String? temperature = w == null

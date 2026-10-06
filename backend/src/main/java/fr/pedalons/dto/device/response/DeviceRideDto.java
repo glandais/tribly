@@ -14,5 +14,11 @@ public record DeviceRideDto(
     @Schema(description = "Ride slug", required = true) String rideSlug,
     @Schema(description = "Ride name", required = true) String rideName,
     @Schema(description = "Start date/time") Instant startDateTime,
+    @Schema(
+            description =
+                "IANA zone of the ride, as RideDto.timezone; devices may ignore it and render in"
+                    + " their own zone",
+            required = true)
+        String timezone,
     @Schema(description = "Route entries for this ride", required = true)
         List<DeviceRideEntryDto> entries) {}

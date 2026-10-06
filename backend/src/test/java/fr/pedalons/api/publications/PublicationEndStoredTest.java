@@ -163,8 +163,8 @@ class PublicationEndStoredTest extends AbstractResourceTest {
                         20f,
                         null,
                         route.getSlug()))));
-    // The route starts at 45.0 N 5.0 E (Europe/Paris, UTC+2 in June): 10:00 local is 08:00 UTC,
-    // plus 100 km at 20 km/h.
+    // No start place nor ride route: the ride's zone is the team's (Europe/Paris, UTC+2 in June),
+    // so the group's start_at is 10:00 local, 08:00 UTC; plus 100 km at 20 km/h.
     assertEquals(
         Instant.parse("2030-06-02T08:00:00Z").plus(Duration.ofHours(5)),
         storedEnd(ride.getString("id")));
@@ -458,6 +458,11 @@ class PublicationEndStoredTest extends AbstractResourceTest {
   // ==================== Event timezones (API-60) ====================
 
   private static RideRequest wallRideRequest(String wallTime, @Nullable Place start) {
+    return wallRideRequest(wallTime, start, List.of());
+  }
+
+  private static RideRequest wallRideRequest(
+      String wallTime, @Nullable Place start, List<GroupRequest> groups) {
     return new RideRequest(
         "Sortie murale",
         MediaDto.builder().build(),
@@ -468,8 +473,98 @@ class PublicationEndStoredTest extends AbstractResourceTest {
         start == null ? null : TsidUtils.toString(start.getId()),
         null,
         null,
-        List.of(),
+        groups,
         null);
+  }
+
+  /**
+   * One departure for every reader (docs/LEDGER_*.md API-60, plan §4): a group whose own route
+   * starts in Tokyo, on a ride that has no place, leaves at its stored {@code start_at} — its time
+   * in the ride's zone, the team's — and the end follows it, not the zone of the route's start.
+   */
+  @Test
+  void aTimedGroupRoutedElsewhere_endsFromItsStartAt_inTheRidesZone() {
+    Route tokyo =
+        dataService.createRouteWithProperties(
+            team1,
+            user1,
+            "Tokyo",
+            Visibility.PUBLIC,
+            50_000,
+            100,
+            SurfaceType.ROAD,
+            WindDirection.NORTH,
+            35.68,
+            139.76,
+            35.7,
+            139.8);
+    JsonPath ride =
+        postRide(
+            wallRideRequest(
+                "2030-06-02T09:00:00",
+                null,
+                List.of(
+                    new GroupRequest(
+                        null, "G", java.time.LocalTime.of(10, 0), 25f, null, tokyo.getSlug()))));
+
+    assertEquals("Europe/Paris", ride.getString("timezone"));
+    Instant groupStart = Instant.parse("2030-06-02T08:00:00Z");
+    assertEquals(groupStart, Instant.parse(ride.getString("groups[0].startAt")));
+    // 50 km at 25 km/h.
+    assertEquals(groupStart.plus(Duration.ofHours(2)), storedEnd(ride.getString("id")));
+  }
+
+  /**
+   * Plan §9 with a timed group: the team's new zone rewrites the group's start_at at constant wall
+   * time, and the end follows that start — the group's route, located in France, says nothing.
+   */
+  @Test
+  void changingTheTeamsZone_movesTheEndOfATimedGroup_withItsStartAt() {
+    Route route = route("Boucle 100", 100_000);
+    JsonPath ride =
+        postRide(
+            wallRideRequest(
+                "2030-06-02T09:30:00",
+                null,
+                List.of(
+                    new GroupRequest(
+                        null, "G", java.time.LocalTime.of(10, 0), 20f, null, route.getSlug()))));
+    // 10:00 Paris is 08:00 UTC, plus 100 km at 20 km/h.
+    assertEquals(
+        Instant.parse("2030-06-02T08:00:00Z").plus(Duration.ofHours(5)),
+        storedEnd(ride.getString("id")));
+
+    putTeamZone("America/Montreal");
+
+    // 10:00 in Montreal (UTC-4 in June).
+    assertEquals(
+        Instant.parse("2030-06-02T14:00:00Z").plus(Duration.ofHours(5)),
+        storedEnd(ride.getString("id")));
+  }
+
+  private void putTeamZone(String zone) {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(
+            new TeamRequest(
+                "Team 1",
+                MediaDto.builder().build(),
+                Visibility.PUBLIC,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                null,
+                null,
+                zone))
+        .when()
+        .put("/api/teams/" + team1Slug)
+        .then()
+        .statusCode(200);
   }
 
   /** Plan §2.5: a new start place keeps the wall time, moves the instant, and the end with it. */

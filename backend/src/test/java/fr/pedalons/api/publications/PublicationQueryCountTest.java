@@ -339,6 +339,9 @@ class PublicationQueryCountTest extends AbstractQueryCountTest {
           dataService.createTripStage(
               user1, trip, "Weather Trip " + i + " Day 2", 1, now.plus(1, ChronoUnit.DAYS));
       dataService.setTripStageRoute(next, route);
+      // The next stage is read in a zone of its own, not the trip's (its first stage's): the
+      // card's times follow it (docs/LEDGER_*.md API-60).
+      dataService.setTimezone(next.getId(), "Asia/Tokyo");
     }
     QuarkusTransaction.requiringNew()
         .run(
@@ -372,6 +375,7 @@ class PublicationQueryCountTest extends AbstractQueryCountTest {
     for (Map<String, Object> line : weather) {
       assertEquals("OK", line.get("status"), weather.toString());
       assertEquals(14.0f, ((Number) line.get("temperature")).floatValue(), weather.toString());
+      assertEquals("Asia/Tokyo", line.get("timezone"), weather.toString());
     }
     assertFlatQueryCount(
         "GET /api/teams/{teamSlug}/publications?type=TRIP in forecast window",

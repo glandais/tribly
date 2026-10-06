@@ -168,19 +168,32 @@ String formatWind(WindDto wind, UnitSystem units, {bool gusts = true}) {
   return '$base, $g';
 }
 
-/// L'heure d'un instant du contrat (24 h ou 12 h selon le téléphone), dans le
-/// fuseau d'affichage ; `—` s'il est illisible. La météo passe sur `start_at`
-/// au lot 4 (docs/LEDGER_*.md API-60).
-String formatWeatherTime(String iso) {
+/// L'heure d'un passage météo (24 h ou 12 h selon le téléphone) ; `—` s'il est
+/// illisible.
+///
+/// Un passage — départ et arrivée d'un leg, point de la frise, alerte pluie,
+/// lever et coucher du soleil — est un **rendez-vous** : il se lit dans le
+/// fuseau [zone] de la sortie ou de l'étape (`RideDto.timezone`,
+/// `TripStageDto.timezone`), comme son heure de départ, et **sans mention** —
+/// la carte ou l'en-tête de l'entité la porte déjà, une fois. Un fuseau absent
+/// ou inconnu retombe sur le fuseau d'affichage. Les legs partent du
+/// `start_at` stocké de leur groupe (docs/LEDGER_*.md API-60).
+String formatWeatherTime(String iso, String? zone) {
   final DateTime? at = DateTime.tryParse(iso);
-  return at == null ? '—' : AppFormatters.formatTime(at);
+  return at == null
+      ? '—'
+      : AppFormatters.formatTime(AppFormatters.toZoneTime(at, zone));
 }
 
-/// L'alerte pluie, en une phrase.
-String formatRainAlert(WeatherRainAlertDto alert, UnitSystem units) {
+/// L'alerte pluie, en une phrase, son heure dans le fuseau [zone] de l'entité.
+String formatRainAlert(
+  WeatherRainAlertDto alert,
+  UnitSystem units,
+  String? zone,
+) {
   final Map<String, String> args = <String, String>{
     'probability': AppFormatters.formatPercent(alert.probability),
-    'time': formatWeatherTime(alert.time),
+    'time': formatWeatherTime(alert.time, zone),
   };
   if (alert.distance == null) {
     return 'rides.weather.rainAlert'.tr(namedArgs: args);

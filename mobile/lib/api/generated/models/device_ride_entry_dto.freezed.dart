@@ -20,7 +20,7 @@ mixin _$DeviceRideEntryDto {
  String get routeSlug;/// Route name
  String get routeName;/// Distance in meters
  double get distance;/// Elevation gain in meters
- double get elevationGain;/// When this entry leaves, as an absolute instant (UTC): the group's time read at the ride's departure point local time, on the ride's local date; the ride's own startDateTime for the ride-level route and for a group without a time. Devices render it in their own zone.
+ double get elevationGain;/// When this entry leaves, as an absolute instant (UTC): the group's startAt (its time on the ride's local date, in the ride's zone); the ride's own startDateTime for the ride-level route and for a group without a time. Devices render it in their own zone.
  String get startDateTime;/// Group name (null for ride-level route)
  String? get groupName;/// Start latitude
  double? get startLat;/// Start longitude
@@ -241,7 +241,7 @@ class _DeviceRideEntryDto implements DeviceRideEntryDto {
 @override final  double distance;
 /// Elevation gain in meters
 @override final  double elevationGain;
-/// When this entry leaves, as an absolute instant (UTC): the group's time read at the ride's departure point local time, on the ride's local date; the ride's own startDateTime for the ride-level route and for a group without a time. Devices render it in their own zone.
+/// When this entry leaves, as an absolute instant (UTC): the group's startAt (its time on the ride's local date, in the ride's zone); the ride's own startDateTime for the ride-level route and for a group without a time. Devices render it in their own zone.
 @override final  String startDateTime;
 /// Group name (null for ride-level route)
 @override final  String? groupName;

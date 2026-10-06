@@ -22,6 +22,7 @@ _NotificationDto _$NotificationDtoFromJson(Map<String, dynamic> json) =>
           .toList(),
       actorName: json['actorName'] as String?,
       subjectDateTime: json['subjectDateTime'] as String?,
+      subjectTimezone: json['subjectTimezone'] as String?,
       excerpt: json['excerpt'] as String?,
     );
 
@@ -39,5 +40,6 @@ Map<String, dynamic> _$NotificationDtoToJson(_NotificationDto instance) =>
       'changes': instance.changes.map((e) => e.toJson()).toList(),
       'actorName': instance.actorName,
       'subjectDateTime': instance.subjectDateTime,
+      'subjectTimezone': instance.subjectTimezone,
       'excerpt': instance.excerpt,
     };

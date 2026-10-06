@@ -4,14 +4,12 @@ import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.route.Route;
-import fr.pedalons.infrastructure.timezone.TimezoneService;
 import fr.pedalons.repository.route.GpxTrackRepository;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
 import fr.pedalons.service.weather.RideWeatherCalculator.LegInput;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -37,20 +35,16 @@ public class RideWeatherPlans {
 
   @Inject GpxTrackRepository gpxTrackRepository;
   @Inject RouteSampleLookup routeSampleLookup;
-  @Inject TimezoneService timezoneService;
 
   /**
    * A ride, located.
    *
    * @param departure null when the ride has no point at all ({@code NO_LOCATION})
-   * @param zone the departure's zone — where a group's {@code time} is read; UTC without a departure
+   * @param legs one per group, each starting at the group's stored {@code start_at}
+   *     (docs/LEDGER_*.md API-60)
    */
   public record RidePlan(
-      long rideId,
-      Instant departureTime,
-      @Nullable Departure departure,
-      ZoneId zone,
-      List<LegInput> legs) {
+      long rideId, Instant departureTime, @Nullable Departure departure, List<LegInput> legs) {
 
     /** The earliest start among the ride and its legs. */
     public Instant earliest() {
@@ -104,10 +98,6 @@ public class RideWeatherPlans {
 
   private RidePlan plan(Ride ride, Map<Long, List<Long>> trackIds) {
     Departure departure = departure(ride);
-    ZoneId zone =
-        departure == null
-            ? ZoneOffset.UTC
-            : timezoneService.getZoneId(departure.lat(), departure.lon());
     List<LegInput> legs = new ArrayList<>();
     List<RideGroup> groups = sortedGroups(ride);
     if (groups.isEmpty()) {
@@ -126,21 +116,21 @@ public class RideWeatherPlans {
         legs.add(
             new LegInput(
                 group.getId(),
-                RideWeatherCalculator.legStart(ride.getDateTime(), group.getTime(), zone),
+                EventTimezoneResolver.startAt(group),
                 RideWeatherCalculator.speed(group.getAverageSpeed()),
                 samples(route, trackIds)));
       }
     }
-    return new RidePlan(ride.getId(), ride.getDateTime(), departure, zone, List.copyOf(legs));
+    return new RidePlan(ride.getId(), ride.getDateTime(), departure, List.copyOf(legs));
   }
 
   /**
    * The meeting point, else the start of the ride's route, else the start of the first group's
    * route — deleted routes skipped. Kept in step with the SQL of {@code
-   * WeatherHourlyRepository#findRideWindowHours}. Public for the device feed, which reads its
-   * groups' times at the same zone (docs/LEDGER_*.md API-84).
+   * WeatherHourlyRepository#findRideWindowHours}. It only locates the weather cell: no zone is read
+   * from it, a group leaves at its stored {@code start_at} (docs/LEDGER_*.md API-60).
    */
-  public static @Nullable Departure departure(Ride ride) {
+  static @Nullable Departure departure(Ride ride) {
     Place start = ride.getStart();
     Departure point = start == null ? null : point(start.getGeometry());
     if (point != null) {

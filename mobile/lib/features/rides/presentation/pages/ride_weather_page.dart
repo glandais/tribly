@@ -201,10 +201,18 @@ class RideWeatherPage extends ConsumerWidget {
           ),
         ),
       if (stale) padded(WeatherStaleBanner(fetchedAt: fetchedAt)),
-      padded(_DepartureSection(departure: dto.departure)),
+      padded(
+        _DepartureSection(departure: dto.departure, timezone: ride?.timezone),
+      ),
       if (leg != null) ...<Widget>[
-        padded(WeatherLegHeader(leg: leg, title: _groupName(ride, leg))),
-        ...weatherLegBody(leg, padded),
+        padded(
+          WeatherLegHeader(
+            leg: leg,
+            title: _groupName(ride, leg),
+            timezone: ride?.timezone,
+          ),
+        ),
+        ...weatherLegBody(leg, padded, ride?.timezone),
       ],
       padded(
         WeatherAttributionBlock(
@@ -267,9 +275,12 @@ class _GroupSelector extends StatelessWidget {
 // ──────────────────────────────────────────────────────────────── le départ
 
 class _DepartureSection extends ConsumerWidget {
-  const _DepartureSection({required this.departure});
+  const _DepartureSection({required this.departure, required this.timezone});
 
   final DepartureWeatherDto departure;
+
+  /// Le fuseau de la sortie : lever et coucher du soleil s'y lisent.
+  final String? timezone;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -290,6 +301,7 @@ class _DepartureSection extends ConsumerWidget {
                   units: units,
                   sunrise: departure.sunrise,
                   sunset: departure.sunset,
+                  timezone: timezone,
                 ),
         ),
       ],
@@ -303,12 +315,14 @@ class _ConditionsBlock extends StatelessWidget {
     required this.units,
     this.sunrise,
     this.sunset,
+    this.timezone,
   });
 
   final WeatherConditionsDto conditions;
   final UnitSystem units;
   final String? sunrise;
   final String? sunset;
+  final String? timezone;
 
   @override
   Widget build(BuildContext context) {
@@ -350,12 +364,16 @@ class _ConditionsBlock extends StatelessWidget {
     final String? rise = sunrise == null
         ? null
         : 'rides.weather.sunrise'.tr(
-            namedArgs: <String, String>{'time': formatWeatherTime(sunrise!)},
+            namedArgs: <String, String>{
+              'time': formatWeatherTime(sunrise!, timezone),
+            },
           );
     final String? set = sunset == null
         ? null
         : 'rides.weather.sunset'.tr(
-            namedArgs: <String, String>{'time': formatWeatherTime(sunset!)},
+            namedArgs: <String, String>{
+              'time': formatWeatherTime(sunset!, timezone),
+            },
           );
 
     return Semantics(

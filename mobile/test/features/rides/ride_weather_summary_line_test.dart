@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pedalons/api/generated/export.dart';
 import 'package:pedalons/core/preferences/user_preferences_provider.dart';
 import 'package:pedalons/core/theme/pedalons_theme.dart';
+import 'package:pedalons/core/utils/formatters.dart';
 import 'package:pedalons/features/rides/presentation/widgets/ride_weather_summary_line.dart';
 import 'package:pedalons/features/rides/presentation/widgets/ride_weather_widgets.dart';
 import 'package:pedalons/keys.dart';
@@ -21,6 +22,7 @@ void main() {
     RideWeatherSummaryDto? summary, {
     bool finished = false,
     UnitSystem units = UnitSystem.metric,
+    String? timezone,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -28,7 +30,11 @@ void main() {
         child: MaterialApp(
           theme: PedalonsTheme.build(Brightness.light),
           home: Scaffold(
-            body: RideWeatherSummaryLine(summary: summary, finished: finished),
+            body: RideWeatherSummaryLine(
+              summary: summary,
+              timezone: timezone,
+              finished: finished,
+            ),
           ),
         ),
       ),
@@ -71,6 +77,54 @@ void main() {
 
     expect(find.textContaining('Pluie 60 % vers'), findsOneWidget);
     expect(find.text('Pluie 20 %'), findsNothing);
+  });
+
+  testWidgets('l\'heure de l\'alerte se lit dans le fuseau de la sortie, '
+      'sans mention', (WidgetTester tester) async {
+    // Un lecteur à Paris, une sortie à Tokyo : 10:00Z = 19:00 à Tokyo, 12:00
+    // chez lui. Le passage est un rendez-vous (docs/LEDGER_*.md API-60).
+    AppFormatters.setDisplayTimezone('Europe/Paris');
+    addTearDown(() => AppFormatters.setDisplayTimezone(null));
+    await pump(
+      tester,
+      ok.copyWith(
+        rainAlert: const WeatherRainAlertDto(
+          probability: 60,
+          time: '2099-07-29T10:00:00Z',
+          condition: 'RAIN',
+        ),
+      ),
+      timezone: 'Asia/Tokyo',
+    );
+
+    expect(find.textContaining('vers 19:00'), findsOneWidget);
+    expect(find.textContaining('12:00'), findsNothing);
+    expect(find.textContaining('Tokyo'), findsNothing);
+  });
+
+  testWidgets('le fuseau du résumé l\'emporte sur celui de la carte', (
+    WidgetTester tester,
+  ) async {
+    // La carte d'un voyage dont la première étape est à Paris et la prochaine
+    // à Tokyo : la ligne est celle de la prochaine, son heure se lit à Tokyo
+    // (docs/LEDGER_*.md API-60).
+    AppFormatters.setDisplayTimezone('Europe/Paris');
+    addTearDown(() => AppFormatters.setDisplayTimezone(null));
+    await pump(
+      tester,
+      ok.copyWith(
+        timezone: 'Asia/Tokyo',
+        rainAlert: const WeatherRainAlertDto(
+          probability: 60,
+          time: '2099-07-29T10:00:00Z',
+          condition: 'RAIN',
+        ),
+      ),
+      timezone: 'Europe/Paris',
+    );
+
+    expect(find.textContaining('vers 19:00'), findsOneWidget);
+    expect(find.textContaining('12:00'), findsNothing);
   });
 
   testWidgets('STALE se signale, OK non', (WidgetTester tester) async {
@@ -142,7 +196,10 @@ void main() {
     testWidgets('le vent de la ligne de résumé ne déborde pas', (
       WidgetTester tester,
     ) async {
-      await pumpNarrow(tester, const RideWeatherSummaryLine(summary: ok));
+      await pumpNarrow(
+        tester,
+        const RideWeatherSummaryLine(summary: ok, timezone: null),
+      );
 
       expect(find.text('Vent NO 18\u00a0km/h'), findsOneWidget);
       expect(tester.takeException(), isNull);

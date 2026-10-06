@@ -21,10 +21,10 @@ import { RideWeatherSummaryLine } from './RideWeatherSummaryLine'
 // Intl and the locale files separate value and unit with a no-break space; compare on plain spaces.
 const plain = (s: string | null | undefined) => (s ?? '').replace(/[  ]/g, ' ')
 
-function renderLine(summary: RideWeatherSummaryDto | undefined) {
+function renderLine(summary: RideWeatherSummaryDto | undefined, timezone?: string) {
   return render(
     <MantineProvider>
-      <RideWeatherSummaryLine summary={summary} />
+      <RideWeatherSummaryLine summary={summary} timezone={timezone} />
     </MantineProvider>
   )
 }
@@ -54,6 +54,19 @@ describe('RideWeatherSummaryLine', () => {
     expect(text).toContain('SO 18 km/h')
     expect(text).toMatch(/Averses dès \d{1,2}:\d{2}/)
     expect(screen.getByRole('img', { name: 'Averses' })).toBeTruthy()
+  })
+
+  it("reads the alert in the summary's own zone over the card's (a trip's next stage)", () => {
+    // 10:00Z: 12:00 in Paris (the trip's first stage), 19:00 in Tokyo (its next one) —
+    // docs/LEDGER_*.md API-60.
+    renderLine({ ...okSummary, timezone: 'Asia/Tokyo' }, 'Europe/Paris')
+    const text = plain(screen.getByTestId('ride-weather-summary').textContent)
+    expect(text).toContain('Averses dès 19:00')
+    cleanup()
+    renderLine(okSummary, 'Europe/Paris')
+    expect(plain(screen.getByTestId('ride-weather-summary').textContent)).toContain(
+      'Averses dès 12:00'
+    )
   })
 
   it('names the rain badge after what falls, its probability in the tooltip', () => {

@@ -15,7 +15,6 @@ import fr.pedalons.enums.EntityType;
 import fr.pedalons.enums.GpsServiceType;
 import fr.pedalons.enums.Status;
 import fr.pedalons.infrastructure.exception.NotFoundException;
-import fr.pedalons.infrastructure.timezone.TimezoneService;
 import fr.pedalons.repository.common.TeamEntityQueryBasic;
 import fr.pedalons.repository.gps.GpsServiceConnectionRepository;
 import fr.pedalons.repository.ride.RideRepository;
@@ -25,8 +24,7 @@ import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.route.GpxProcessingService;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
-import fr.pedalons.service.weather.RideWeatherCalculator;
-import fr.pedalons.service.weather.RideWeatherPlans;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.InputStream;
@@ -66,7 +64,6 @@ public class DeviceRouteService {
   @Inject RouteRepository routeRepository;
   @Inject GpsServiceConnectionRepository gpsServiceConnectionRepository;
   @Inject GpxProcessingService gpxProcessingService;
-  @Inject TimezoneService timezoneService;
 
   /** Internal record for sorting routes by distance while keeping DTO separate. */
   private record RouteWithDistance(DeviceRouteDto dto, @Nullable Double distanceFromUser) {}
@@ -185,24 +182,15 @@ public class DeviceRouteService {
         entries.add(toRideEntry(ride.getRoute(), null, ride.getDateTime()));
       }
 
-      // Group-level routes. A group's time has no zone: it is read at the departure's local
-      // time, the rule of RideWeatherPlans (docs/LEDGER_*.md API-84). The zone lookup is
-      // in-memory and done at most once per ride, only when a group has a time.
-      ZoneId zone = null;
+      // Group-level routes, each from the group's stored start_at — the instant the weather and
+      // the stored end read too (docs/LEDGER_*.md API-60).
       for (RideGroup group : ride.getGroups()) {
         Route groupRoute = group.getRoute();
         if (groupRoute == null || groupRoute.isDeleted()) {
           continue;
         }
 
-        Instant groupStart = ride.getDateTime();
-        if (group.getTime() != null) {
-          if (zone == null) {
-            zone = departureZone(ride);
-          }
-          groupStart = RideWeatherCalculator.legStart(ride.getDateTime(), group.getTime(), zone);
-        }
-        entries.add(toRideEntry(groupRoute, group.getName(), groupStart));
+        entries.add(toRideEntry(groupRoute, group.getName(), EventTimezoneResolver.startAt(group)));
       }
 
       // Only include rides that have at least one route entry
@@ -215,20 +203,15 @@ public class DeviceRouteService {
                 // An absolute instant, as stored: the devices render it in their own zone
                 // (docs/LEDGER_*.md API-78). No reading at the departure's local time here.
                 .startDateTime(ride.getDateTime())
+                // The stored zone, the team's on a row an older backend wrote (docs/LEDGER_*.md
+                // API-60).
+                .timezone(ride.zone().getId())
                 .entries(entries)
                 .build());
       }
     }
 
     return result;
-  }
-
-  /** The zone of the ride's departure point, as the weather reads it; UTC without one. */
-  private ZoneId departureZone(Ride ride) {
-    RideWeatherPlans.Departure departure = RideWeatherPlans.departure(ride);
-    return departure == null
-        ? ZoneOffset.UTC
-        : timezoneService.getZoneId(departure.lat(), departure.lon());
   }
 
   private DeviceRideEntryDto toRideEntry(

@@ -8,10 +8,10 @@ import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.trip.TripStage;
 import fr.pedalons.infrastructure.timezone.TimezoneService;
-import fr.pedalons.service.weather.RideWeatherCalculator;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -41,9 +41,9 @@ import org.jspecify.annotations.Nullable;
  * is what a change of the team's zone looks for (plan §9). Deleted routes and empty points are
  * skipped.
  *
- * <p>Known lot-1 divergence: the weather, the devices and {@code PublicationEndCalculator} still
- * read a group's departure through {@code RideWeatherPlans.departure()}, which also looks at the
- * first group's route and falls back on UTC; they move to the stored {@code start_at} with lot 4.
+ * <p>A group's departure has one reader, {@link #startAt(RideGroup)}: the weather, the devices, the
+ * stored end and the DTOs all start from the same instant (plan §4, « une seule source de fuseau
+ * par lieu »).
  */
 @ApplicationScoped
 public class EventTimezoneResolver {
@@ -156,7 +156,35 @@ public class EventTimezoneResolver {
   }
 
   public static Instant groupStart(Instant rideDateTime, RideGroup group, ZoneId zone) {
-    return RideWeatherCalculator.legStart(rideDateTime, group.getTime(), zone);
+    return groupStart(rideDateTime, group.getTime(), zone);
+  }
+
+  /**
+   * A group's departure from its wall time: {@code time} on the ride's local date in {@code zone},
+   * the ride's own instant when the group has none. A time in the spring gap moves forward by the
+   * gap, one in the autumn overlap takes the earlier offset ({@link java.time.ZonedDateTime}).
+   */
+  public static Instant groupStart(Instant rideDateTime, @Nullable LocalTime time, ZoneId zone) {
+    if (time == null) {
+      return rideDateTime;
+    }
+    return rideDateTime.atZone(zone).toLocalDate().atTime(time).atZone(zone).toInstant();
+  }
+
+  /**
+   * When a group leaves — the one reader every consumer shares (docs/LEDGER_*.md API-60): its stored
+   * {@code start_at}, else, for a row an older backend wrote without it, its time on the ride's
+   * local date in the ride's stored zone (the team's when the ride has none) — the backfill's
+   * formula, so both agree.
+   */
+  public static Instant startAt(RideGroup group) {
+    Instant stored = group.getStartAt();
+    if (stored != null) {
+      return stored;
+    }
+    Ride ride = group.getRide();
+    LocalTime time = group.getTime();
+    return time == null ? ride.getDateTime() : groupStart(ride.getDateTime(), time, ride.zone());
   }
 
   /**

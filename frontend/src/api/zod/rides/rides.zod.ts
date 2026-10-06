@@ -945,6 +945,12 @@ export const CreateRideResponse = zod
           .describe(
             "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
+          ),
       })
       .optional()
       .describe(
@@ -1899,6 +1905,12 @@ export const UpdateRideResponse = zod
           .describe(
             "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
+          ),
       })
       .optional()
       .describe(
@@ -2578,6 +2590,12 @@ export const GetRideResponse = zod
           .optional()
           .describe(
             "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
+          ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
           ),
       })
       .optional()
@@ -3370,6 +3388,12 @@ export const ChangeRideSlugResponse = zod
           .describe(
             "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
+          ),
       })
       .optional()
       .describe(
@@ -4056,6 +4080,12 @@ export const ChangeRideStatusResponse = zod
           .describe(
             "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
+          ),
       })
       .optional()
       .describe(
@@ -4735,6 +4765,12 @@ export const UndeleteRideResponse = zod
           .optional()
           .describe(
             "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
+          ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
           ),
       })
       .optional()

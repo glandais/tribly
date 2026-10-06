@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Box, Group, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/core'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useFormattedDate } from '@/utils/dateFormat'
+import { useRendezvousFormat } from '@/hooks/useRendezvousFormat'
 import type { NotificationDto } from '@/api/dto'
 import { NotificationChange, NotificationType } from '@/api/dto'
 import { notificationColor, notificationIcon, notificationPath } from './notificationDisplay'
@@ -24,7 +25,12 @@ interface NotificationItemProps {
  */
 export function NotificationItem({ notification, onOpen, compact = false }: NotificationItemProps) {
   const { t } = useTranslation()
-  const { formatRelative, formatDateTime, isGuessedTimezone } = useFormattedDate()
+  // `createdAt` is a timestamp, read in the reader's zone; `subjectDateTime` is a rendezvous, read
+  // in the subject's own zone with the « heure de Tokyo (…) » mention (docs/LEDGER_*.md API-60).
+  // A notification sent before 10.20.0 has no `subjectTimezone`: the hook then falls back to the
+  // reader's zone, without mention.
+  const { formatRelative } = useFormattedDate()
+  const rendezvous = useRendezvousFormat(notification.subjectTimezone)
 
   const Icon = notificationIcon(notification.type)
   const color = notificationColor(notification.type)
@@ -41,17 +47,26 @@ export function NotificationItem({ notification, onOpen, compact = false }: Noti
   )
 
   // What moved, for RIDE_UPDATED: the snapshot says which fields changed, and `subjectDateTime` is
-  // already the new date. A reminder carries no change but reads better with its start time.
-  const details =
+  // already the new date. A reminder carries no change but reads better with its start time. The
+  // dated clause goes last, so the zone mention that closes the line sits right after its date.
+  const date = notification.subjectDateTime
+    ? rendezvous.formatDateTime(notification.subjectDateTime)
+    : ''
+  const clauses =
     notification.type === NotificationType.RIDE_REMINDER && notification.subjectDateTime
-      ? t('notifications.item.startsAt', { date: formatDateTime(notification.subjectDateTime) })
-      : notification.changes
-          .map((change) =>
-            t(`notifications.change.${change satisfies NotificationChange}`, {
-              date: formatDateTime(notification.subjectDateTime),
-            })
-          )
-          .join(' · ')
+      ? [t('notifications.item.startsAt', { date })]
+      : [
+          ...notification.changes.filter((change) => change !== NotificationChange.DATE_TIME),
+          ...notification.changes.filter((change) => change === NotificationChange.DATE_TIME),
+        ].map((change) =>
+          t(`notifications.change.${change satisfies NotificationChange}`, { date })
+        )
+  const dated =
+    notification.type === NotificationType.RIDE_REMINDER ||
+    notification.changes.includes(NotificationChange.DATE_TIME)
+  const mention = dated ? rendezvous.mention(notification.subjectDateTime) : null
+  if (mention && clauses.length > 0) clauses.push(mention.full)
+  const details = clauses.join(' · ')
 
   // The excerpt is a quoted comment — except for a join or a removed group, where it is the group's
   // name.
@@ -83,7 +98,9 @@ export function NotificationItem({ notification, onOpen, compact = false }: Noti
             {notification.subjectName}
           </Text>
           {details && (
-            <Text size="xs" c="dimmed" suppressHydrationWarning={isGuessedTimezone}>
+            // The mention depends on the reader's zone, and so does the date without a subject
+            // zone (`isGuessedText` implies `isGuessedTimezone`).
+            <Text size="xs" c="dimmed" suppressHydrationWarning={rendezvous.isGuessedTimezone}>
               {details}
             </Text>
           )}

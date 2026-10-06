@@ -6,16 +6,13 @@ import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.trip.TripStage;
-import fr.pedalons.infrastructure.timezone.TimezoneService;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
 import fr.pedalons.service.weather.RideWeatherCalculator;
-import fr.pedalons.service.weather.RideWeatherPlans;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -29,8 +26,9 @@ import org.jspecify.annotations.Nullable;
  * docs/plans/archive/2026-10-06-team-agenda.md} §3.1).
  *
  * <ul>
- *   <li><b>Ride</b>: the latest of its groups, each one its departure ({@code RideGroup.time} read
- *       at the departure point's local time, else the ride's) plus the distance of its route (the
+ *   <li><b>Ride</b>: the latest of its groups, each one its departure (its stored {@code
+ *       start_at}, else its time on the ride's local date in the ride's zone — {@link
+ *       EventTimezoneResolver#startAt}) plus the distance of its route (the
  *       group's, else the ride's) at its {@code averageSpeed}. A group with no speed or no route, and
  *       a ride with no group, take the departure plus {@link #DEFAULT_DURATION}.
  *   <li><b>Trip</b>: the same rule applied to its live stages — each stage's own end is stored too
@@ -55,8 +53,6 @@ public class PublicationEndCalculator {
    * adds to {@code dateTime} when {@code endDateTime} is still null.
    */
   public static final Duration DEFAULT_DURATION = Duration.ofHours(3);
-
-  @Inject TimezoneService timezoneService;
 
   @Inject EntityManager entityManager;
 
@@ -147,19 +143,11 @@ public class PublicationEndCalculator {
     if (groups.isEmpty()) {
       return departure.plus(DEFAULT_DURATION);
     }
-    // A group's time has no zone: it is read at the departure's local time, as the weather and the
-    // devices read it (docs/LEDGER_*.md API-84). One in-memory lookup, only when a group has a
-    // time.
-    ZoneId zone = null;
+    // Each group from its stored start_at, the instant the weather and the devices read too
+    // (docs/LEDGER_*.md API-60).
     Instant end = departure;
     for (RideGroup group : groups) {
-      Instant start = departure;
-      if (group.getTime() != null) {
-        if (zone == null) {
-          zone = departureZone(ride);
-        }
-        start = RideWeatherCalculator.legStart(departure, group.getTime(), zone);
-      }
+      Instant start = EventTimezoneResolver.startAt(group);
       Route route = live(group.getRoute());
       if (route == null) {
         route = live(ride.getRoute());
@@ -214,13 +202,6 @@ public class PublicationEndCalculator {
       return start.plus(DEFAULT_DURATION);
     }
     return RideWeatherCalculator.passage(start, distance, averageSpeed);
-  }
-
-  private ZoneId departureZone(Ride ride) {
-    RideWeatherPlans.Departure departure = RideWeatherPlans.departure(ride);
-    return departure == null
-        ? ZoneOffset.UTC
-        : timezoneService.getZoneId(departure.lat(), departure.lon());
   }
 
   private static @Nullable Route live(@Nullable Route route) {

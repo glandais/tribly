@@ -104,7 +104,11 @@ public class TeamWebhookDeliveryService {
         continue;
       }
       posts.add(
-          new Post(delivery.getId(), url, messages.forEvent(event, url, webhook.getLanguage())));
+          new Post(
+              delivery.getId(),
+              url,
+              messages.forEvent(
+                  event, url, webhook.getLanguage(), webhook.getTeam().getTimezone())));
     }
     return posts;
   }

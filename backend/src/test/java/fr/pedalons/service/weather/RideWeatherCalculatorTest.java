@@ -17,8 +17,6 @@ import fr.pedalons.service.weather.RideWeatherCalculator.CellSeries;
 import fr.pedalons.service.weather.RideWeatherCalculator.LegInput;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
@@ -81,16 +79,6 @@ class RideWeatherCalculatorTest {
   }
 
   @Test
-  void legStart_shouldReadTheGroupTimeAtTheDepartureLocalTime() {
-    ZoneId paris = ZoneId.of("Europe/Paris");
-    // 09:30 Paris on the ride's day (CEST, UTC+2) — not 09:30 UTC.
-    assertEquals(
-        Instant.parse("2026-10-06T07:30:00Z"),
-        RideWeatherCalculator.legStart(DEPARTURE, LocalTime.of(9, 30), paris));
-    assertEquals(DEPARTURE, RideWeatherCalculator.legStart(DEPARTURE, null, paris));
-  }
-
-  @Test
   void speed_givenByTheGroup_shouldNeverBeReplacedByTheDefault() {
     // Slower or faster than 25 km/h, a speed the organisers entered is the one used.
     assertEquals(new RideWeatherCalculator.Speed(18, false), RideWeatherCalculator.speed(18f));
@@ -101,54 +89,10 @@ class RideWeatherCalculatorTest {
   }
 
   @Test
-  void legStart_onTheNightClocksGoBack_shouldUseTheWinterOffset() {
-    ZoneId paris = ZoneId.of("Europe/Paris");
-    // 25 October 2026: 03:00 CEST becomes 02:00 CET. A 09:30 group leaves at 08:30 UTC that day…
-    assertEquals(
-        Instant.parse("2026-10-25T08:30:00Z"),
-        RideWeatherCalculator.legStart(
-            Instant.parse("2026-10-25T07:00:00Z"), LocalTime.of(9, 30), paris));
-    // …and at 07:30 UTC the day before, still in summer time.
-    assertEquals(
-        Instant.parse("2026-10-24T07:30:00Z"),
-        RideWeatherCalculator.legStart(
-            Instant.parse("2026-10-24T06:00:00Z"), LocalTime.of(9, 30), paris));
-  }
-
-  @Test
-  void legStart_onTheNightClocksGoForward_shouldUseTheSummerOffset() {
-    ZoneId paris = ZoneId.of("Europe/Paris");
-    // 28 March 2027: 02:00 CET becomes 03:00 CEST.
-    assertEquals(
-        Instant.parse("2027-03-28T07:30:00Z"),
-        RideWeatherCalculator.legStart(
-            Instant.parse("2027-03-28T06:00:00Z"), LocalTime.of(9, 30), paris));
-    // 02:30 does not exist that night: read as 03:30 CEST, never as an instant before the gap.
-    assertEquals(
-        Instant.parse("2027-03-28T01:30:00Z"),
-        RideWeatherCalculator.legStart(
-            Instant.parse("2027-03-28T06:00:00Z"), LocalTime.of(2, 30), paris));
-  }
-
-  @Test
-  void legStart_shouldTakeTheLocalDayOfTheRide_notItsUtcDay() {
-    ZoneId paris = ZoneId.of("Europe/Paris");
-    // 22:30 UTC on the 5th is 00:30 on the 6th in Paris: a 07:00 group rides on the 6th.
-    assertEquals(
-        Instant.parse("2026-10-06T05:00:00Z"),
-        RideWeatherCalculator.legStart(
-            Instant.parse("2026-10-05T22:30:00Z"), LocalTime.of(7, 0), paris));
-  }
-
-  @Test
   void passage_acrossTheNightClocksGoBack_shouldCountRealElapsedTime() {
-    ZoneId paris = ZoneId.of("Europe/Paris");
     // A 01:30 CEST start on 25 October 2026, 60 km at 25 km/h: 2 h 24 min of riding, so 01:54 UTC
     // (02:54 CET) — not 03:54 local, which adding hours to a wall clock would give.
-    Instant start =
-        RideWeatherCalculator.legStart(
-            Instant.parse("2026-10-24T22:00:00Z"), LocalTime.of(1, 30), paris);
-    assertEquals(Instant.parse("2026-10-24T23:30:00Z"), start);
+    Instant start = Instant.parse("2026-10-24T23:30:00Z");
     assertEquals(
         Instant.parse("2026-10-25T01:54:00Z"), RideWeatherCalculator.passage(start, 60_000, 25));
   }
@@ -320,8 +264,7 @@ class RideWeatherCalculatorTest {
   @Test
   void leg_withAGroupTime_shouldStartAtThatTimeAndReadTheMatchingHours() {
     // A 10:00 group (08:00 UTC) on a ride announced for 09:00 Paris.
-    Instant start =
-        RideWeatherCalculator.legStart(DEPARTURE, LocalTime.of(10, 0), ZoneId.of("Europe/Paris"));
+    Instant start = Instant.parse("2026-10-06T08:00:00Z");
     LegInput input = new LegInput(9L, start, RideWeatherCalculator.speed(null), northbound(30));
 
     WeatherLeg leg = RideWeatherCalculator.leg(input, key -> series(null, 10, 0), NOW);

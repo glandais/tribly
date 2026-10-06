@@ -23,7 +23,7 @@ import org.jboss.logging.Logger;
  * Fills {@code team_entities.timezone} and {@code ride_groups.start_at} where they are null: the
  * rows the previous release writes during a start-first deploy, and the groups V64 left to it: those
  * on a ride's DST-transition day, where PostgreSQL resolves an ambiguous wall time to the later
- * offset and {@code legStart} to the earlier one. V64 filled every other older row in SQL.
+ * offset and {@code EventTimezoneResolver.groupStart} to the earlier one. V64 filled every other older row in SQL.
  * docs/LEDGER_*.md API-60, plan §8 step 4.
  *
  * <p>The shape of {@code PublicationEndBackfill}: idempotent and resumable, by batches of {@value
@@ -33,8 +33,10 @@ import org.jboss.logging.Logger;
  *
  * <p>A ride, a trip or a stage gets the zone its chain resolves, at constant instant (the instant
  * is the only truth an old row has); everything else the team's. The zones first, so that the
- * groups' starts are read in their ride's. A moved {@code start_at} changes no end in this version:
- * {@code PublicationEndCalculator} still reads {@code legStart} until lot 4.
+ * groups' starts are read in their ride's. A filled {@code start_at} moves no end: {@code
+ * PublicationEndCalculator} reads it, and for a null one falls back on this very formula and zone
+ * ({@code EventTimezoneResolver.startAt}). Ends stored under the former departure-point rule were
+ * cleared by V65 and refilled by {@code PublicationEndBackfill}.
  *
  * <p>The residual risk is the one docs/LEDGER_*.md API-89 accepted for the end: a row
  * <em>modified</em> by the previous release during the switch keeps a stale value until its next

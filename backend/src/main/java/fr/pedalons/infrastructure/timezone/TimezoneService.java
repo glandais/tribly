@@ -19,19 +19,8 @@ public class TimezoneService {
   }
 
   /**
-   * Get the timezone for the given GPS coordinates.
-   *
-   * @param lat latitude
-   * @param lon longitude
-   * @return the ZoneId for the coordinates, or UTC if not found
-   */
-  public ZoneId getZoneId(double lat, double lon) {
-    return findZoneId(lat, lon).orElse(ZoneId.of("UTC"));
-  }
-
-  /**
-   * The timezone of the given GPS coordinates, empty at sea or anywhere outside every zone — for a
-   * caller whose fallback is not UTC.
+   * The timezone of the given GPS coordinates, empty at sea or anywhere outside every zone. No UTC
+   * fallback: the caller's is the team's zone (docs/LEDGER_*.md API-60, plan §4).
    */
   public Optional<ZoneId> findZoneId(double lat, double lon) {
     return engine.query(lat, lon);

@@ -49,6 +49,14 @@ public record NotificationDto(
         @Nullable Instant subjectDateTime,
     @Schema(
             description =
+                "IANA zone subjectDateTime reads in — the subject's own, as RideDto.timezone: a"
+                    + " rendezvous, shown in it with a mention when the reader's differs. Present"
+                    + " when subjectDateTime is, except on notifications sent before 10.20.0, which"
+                    + " read in the reader's zone",
+            examples = "Asia/Tokyo")
+        @Nullable String subjectTimezone,
+    @Schema(
+            description =
                 "A short quote: the comment, for COMMENT_REPLY and COMMENT_ON_MY_PUBLICATION; the"
                     + " name of the group joined, for RIDE_JOINED")
         @Nullable String excerpt,
@@ -70,6 +78,7 @@ public record NotificationDto(
         Objects.requireNonNull(event.getSubjectSlug()),
         Objects.requireNonNull(event.getSubjectName()),
         event.getSubjectDateTime(),
+        event.getSubjectTimezone(),
         event.getExcerpt(),
         event.changeList());
   }

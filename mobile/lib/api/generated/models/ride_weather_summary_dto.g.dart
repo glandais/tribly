@@ -25,6 +25,7 @@ _RideWeatherSummaryDto _$RideWeatherSummaryDtoFromJson(
   rainAlert: json['rainAlert'] == null
       ? null
       : WeatherRainAlertDto.fromJson(json['rainAlert'] as Map<String, dynamic>),
+  timezone: json['timezone'] as String?,
 );
 
 Map<String, dynamic> _$RideWeatherSummaryDtoToJson(
@@ -41,4 +42,5 @@ Map<String, dynamic> _$RideWeatherSummaryDtoToJson(
   'maxPrecipitationProbability': instance.maxPrecipitationProbability,
   'wind': instance.wind?.toJson(),
   'rainAlert': instance.rainAlert?.toJson(),
+  'timezone': instance.timezone,
 };

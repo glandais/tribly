@@ -505,8 +505,9 @@ serveur et client, seule la mention dépend du lecteur.
 l'entité avec la mention (en ligne au détail, en seconde ligne sur les cartes), l'heure d'un groupe
 vient de `startAt`, et l'heure suit le réglage 12 h / 24 h du téléphone
 (`MediaQuery.alwaysUse24HourFormat`) au lieu de `DateFormat.Hm`. Un fuseau inconnu se lit dans
-celui du lecteur, sans mention. Les heures de la météo et les étapes « journée entière » du
-calendrier restent dans le fuseau du lecteur (lot 4). Tests : `display_timezone_test.dart` étendu
+celui du lecteur, sans mention. Les heures de la météo restaient dans le fuseau du lecteur
+(passées au fuseau de l'entité par le lot 4) ; la grille du calendrier y reste, journées entières
+comprises. Tests : `display_timezone_test.dart` étendu
 (Paris lu depuis Bruxelles muet, Tokyo lu depuis Paris avec le jour qui change), détail d'article,
 fin de voyage par l'étape la plus tardive.
 
@@ -525,11 +526,43 @@ clients (icône à infobulle, focalisable au clavier, sur le web ; seconde ligne
 d'un voyage se lit dans le fuseau de l'étape **la plus tardive par instant**, pas la dernière par
 ordre, sur les deux clients (`tripEndZone`, `TripTiming.endTimezone`).
 
-**Divergence acceptée le temps du lot 1** : la météo, les appareils et `PublicationEndCalculator`
-lisent encore le départ d'un groupe par `RideWeatherPlans.departure()` + `legStart`, avec repli UTC
-et le parcours du premier groupe ; `start_at` suit la chaîne du §4 avec repli équipe. Pour une
-sortie sans lieu dont un groupe a une heure, ou située seulement par le parcours d'un groupe, la fin
-stockée et la météo peuvent donc différer de `start_at` jusqu'au lot 4.
+**Lot 4 (consommateurs backend) livré le 7 octobre 2026** (contrat 10.19.0 → 10.21.0). **Une
+seule source de départ** : la météo (détail et liste en SQL), les appareils
+(`DeviceRouteService.departureZone`) et `PublicationEndCalculator` partent de `ride_groups.start_at`
+via `EventTimezoneResolver.startAt` (repli, pour une ligne d'une version antérieure : `time` à la
+date locale de la sortie dans son fuseau stocké, sinon celui de l'équipe) ; `legStart`,
+`RideWeatherPlans.departure()` et `TimezoneService.getZoneId` (repli UTC) disparaissent, le fuseau de
+`weather_cells` ne date plus que ses lignes journalières. `V65__ride_end_from_group_start.sql` vide
+la fin stockée des sorties à venir ayant un groupe à l'heure, recalculée au démarrage par
+`PublicationEndBackfill`. **10.19.0** : `DeviceRideDto.timezone` (Karoo et Garmin peuvent l'ignorer).
+**10.20.0** : `NotificationDto.subjectTimezone`, figé au fan-out dans
+`notification_events.subject_timezone` (`V66`, nullable sans défaut ni rattrapage : sûr en
+déploiement start-first) ; `NotificationTexts` écrit l'heure du sujet dans son fuseau, nommé
+(« heure de Tokyo », `ZoneLabels`) avec l'équivalent du lecteur quand il a un fuseau et qu'il
+diffère. Les webhooks d'équipe écrivent dans le fuseau du sujet (plus Paris en dur), nommé quand ce
+n'est pas celui de l'équipe, et le `subject.timezone` du format `GENERIC`. iCal : les étapes
+« journée entière » sont datées dans le fuseau de `CalendarEventDto.timezone` (fin de
+`StageTimezones`), `X-WR-TIMEZONE` vaut le fuseau de l'équipe pour un flux d'équipe, celui de la
+sortie ou du voyage pour un ICS unitaire, et disparaît du flux personnel (plusieurs équipes). **10.21.0** :
+`RideWeatherSummaryDto.timezone`, posé sur la carte d'un voyage — le fuseau de sa prochaine étape,
+calculé dans la même requête de page (`findTripNextLegHours`), qui n'est pas `TripDto.timezone`
+(la première) ; les deux clients le préfèrent au fuseau de la carte. Clients : `NotificationItem`
+(web) et `subjectDateLine` (mobile) lisent la date du sujet dans `subjectTimezone` avec la mention ;
+les heures de la météo mobile (départ, arrivée, passages, alerte pluie, chronologie, lever et
+coucher du soleil) dans le fuseau de la sortie ou de l'étape, sans mention. Tests :
+`NotificationTextsTest` (`rendezvousAbroad_readsInItsZone_withTheReadersEquivalent`,
+`subjectWithoutAZone_readsInParis`…), `ZoneLabelsTest`, `NotificationPipelineTest`
+(`publishedRide_freezesItsZone_andTheInboxCarriesIt`), `NotificationPhase5Test`
+(`webhook_writesTheRideInItsZone_namedWhenNotTheTeams`), `IcsGenerationServiceTest`,
+`CalendarServiceTest` (`icsFeeds_dateAnAllDayStage_inItsStoredZone`), `EventTimezoneResolverTest`
+(`startAt_*`), `PublicationEndCalculatorTest`, `PublicationEndStoredTest`, `RideWeatherCalculatorTest`,
+`WeatherCacheTest` (`forRides_aTimedGroup_startsWhereTheDetailStartsIt`),
+`DeviceRoutesResourceTest`, `PublicationQueryCountTest` (le fuseau de la prochaine étape sur la
+carte d'un voyage), `NotificationItem.test.tsx`, `RideWeatherSummaryLine.test.tsx`,
+`ride_weather_summary_line_test.dart`, `notifications_page_test.dart`. Arbitré à la relecture : la
+**grille** du calendrier reste celle du lecteur sur les deux clients, journées entières comprises
+(plan §7 : une grille ne porte qu'un fuseau) — seule la date iCal d'une journée entière suit le
+fuseau de l'étape (`calendar_month_test.dart`).
 
 **Rattrapage du §8.3 non écrit, à mesurer d'abord** : la requête de mesure est en commentaire à la
 fin de `V64__event_timezones.sql` (sorties à venir dont le lieu de départ ou le parcours a un point ;
@@ -539,12 +572,8 @@ instant constant, puis `start_at` et fin recalculés) que si elle en trouve.
 Reste :
 
 - **Lot 2** (web) : le scénario Playwright du §11 (équipe à Paris, navigateur à Tokyo).
-- **Lot 3** : `NotificationItem` (« commence le … ») reste dans le fuseau du lecteur faute de
-  fuseau dans `NotificationDto` (lot 4) ; les heures de la météo sur mobile suivent au lot 4.
-- **Lot 4** (backend, web) : notifications, webhooks, iCal (`StageTimezones` lit le fuseau stocké)
-  — la date SEO est déjà livrée avec le lot 3 web ; météo, appareils et `PublicationEndCalculator` sur `start_at` (fin de `legStart` et de
-  `TimezoneService.getZoneId`) ; `DeviceRideDto.timezone`, `NotificationDto.subjectTimezone`
-  (nouvelle colonne d'instantané).
+- **Lot 4, restes** : l'export RGPD (`NotificationExport`, `UserExportBuilder`) ne porte pas
+  `subjectTimezone` à côté de `subjectDateTime`.
 - **Lot 5 = version N+1** : dernier rattrapage puis `team_entities.timezone` et
   `ride_groups.start_at` `NOT NULL`, suppression de `ride_groups.time`, refus en 400 des instants
   avec offset dans `EventDateTime.parse` (et retrait des surcharges `Instant` des requêtes, des
@@ -552,6 +581,20 @@ Reste :
 
 À ne pas défaire :
 
+- **Un seul lecteur du départ d'un groupe** : `EventTimezoneResolver.startAt` (`start_at`, sinon
+  le repli) pour la météo, les appareils, la fin stockée et le détail — jamais un fuseau tiré du
+  point de départ ni un repli UTC, sans quoi la fin, la météo et l'heure affichée divergent.
+- **`X-WR-TIMEZONE` seulement sur un flux d'équipe ou un ICS unitaire**, jamais sur le flux
+  personnel, qui mêle des équipes de fuseaux différents.
+- **`subject_timezone` nul se lit à Paris dans les textes du serveur** (toutes les équipes l'étaient
+  avant `V66`), dans le fuseau de l'équipe pour un webhook, dans celui du lecteur côté client ; ne
+  pas le rattraper ni lui donner de défaut (sûreté du déploiement start-first).
+- **`ZoneLabels` est la troisième copie de la table des villes**, après `zoneLabel.ts` et
+  `zone_label.dart` : les trois restent en phase.
+- **La ligne météo d'un voyage se lit dans le fuseau de sa prochaine étape**
+  (`RideWeatherSummaryDto.timezone`), pas dans `TripDto.timezone`.
+- **La grille du calendrier est dans le fuseau du lecteur**, journées entières comprises, sur le
+  web comme sur mobile ; la date de l'étape dans son propre fuseau ne vaut que pour iCal.
 - **Le fuseau stocké est un fuseau de saisie, pas un cache** : figé à l'enregistrement de l'entité,
   recalculé seulement par un nouvel enregistrement (ou un changement de fuseau d'équipe, §9) ;
   jamais par effet de bord — un GPX remplacé, un lieu modifié ne déplacent ni fuseau ni départ

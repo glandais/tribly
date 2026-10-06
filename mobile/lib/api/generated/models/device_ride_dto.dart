@@ -23,6 +23,9 @@ abstract class DeviceRideDto with _$DeviceRideDto {
     /// Ride name
     required String rideName,
 
+    /// IANA zone of the ride, as RideDto.timezone; devices may ignore it and render in their own zone
+    required String timezone,
+
     /// Route entries for this ride
     required List<DeviceRideEntryDto> entries,
 

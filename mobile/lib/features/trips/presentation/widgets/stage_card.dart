@@ -154,7 +154,10 @@ class StageCard extends ConsumerWidget {
                 if (RideWeatherSummaryLine.shows(weather))
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: RideWeatherSummaryLine(summary: weather),
+                    child: RideWeatherSummaryLine(
+                      summary: weather,
+                      timezone: stage.timezone,
+                    ),
                   ),
               ],
             ),

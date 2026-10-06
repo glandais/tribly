@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import '../../../api/generated/export.dart';
 import '../../../config/paths.dart';
 import '../../../core/theme/pdl_icons.dart';
+import '../../../core/utils/formatters.dart';
 
 /// Ce qu'une notification dit, montre, et où elle mène.
 ///
@@ -49,6 +50,37 @@ extension NotificationDisplay on NotificationDto {
     if (date) return 'dateTime';
     if (place) return 'startPlace';
     return 'other';
+  }
+
+  /// La date du sujet, quand elle dit quelque chose : « Départ : samedi 11
+  /// octobre à 08:00 » pour un rappel, « Nouvelle date : … » pour une sortie
+  /// qui en change ; `null` sinon.
+  ///
+  /// `subjectDateTime` est un **rendez-vous** figé à l'envoi : il se lit dans
+  /// le fuseau du sujet (`subjectTimezone`), avec la mention « heure de Tokyo
+  /// (ven. 01:00 chez vous) » quand son décalage diffère de celui du lecteur
+  /// (docs/LEDGER_*.md API-60). Une notification envoyée avant que le serveur
+  /// ne fige ce fuseau n'en porte pas : elle se lit alors chez le lecteur, sans
+  /// mention. `createdAt`, lui, reste un horodatage.
+  String? subjectDateLine() {
+    final String? iso = subjectDateTime;
+    if (iso == null) return null;
+    final String key;
+    if (typeEnum == NotificationType.rideReminder) {
+      key = 'notifications.startsAt';
+    } else if (typeEnum == NotificationType.rideUpdated &&
+        changes.contains(NotificationChange.dateTime)) {
+      key = 'notifications.newDate';
+    } else {
+      return null;
+    }
+    final DateTime? at = DateTime.tryParse(iso);
+    if (at == null) return null;
+    return key.tr(
+      namedArgs: <String, String>{
+        'date': AppFormatters.formatRendezvous(at, subjectTimezone),
+      },
+    );
   }
 
   /// La ligne sous le sujet, ou `null` s'il n'y a rien à ajouter.

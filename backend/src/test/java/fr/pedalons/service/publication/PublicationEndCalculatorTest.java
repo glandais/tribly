@@ -95,12 +95,33 @@ class PublicationEndCalculatorTest {
   }
 
   @Test
-  void theRideEnds_withItsLatestGroup_eachFromItsOwnTime() {
+  void theRideEnds_withItsLatestGroup_eachFromItsOwnStart() {
     Ride ride = ride();
     group(ride, null, route(50_000), 25f); // 07:00 → 09:00
-    // No departure point: the group's time is read in UTC — 08:00 → 10:00 at 30 km/h.
-    group(ride, LocalTime.of(8, 0), route(60_000), 30f);
+    // Its stored start_at: 08:00 → 10:00 at 30 km/h.
+    group(ride, LocalTime.of(10, 0), route(60_000), 30f)
+        .setStartAt(Instant.parse("2026-06-07T08:00:00Z"));
     assertEquals(Instant.parse("2026-06-07T10:00:00Z"), calculator.rideEnd(ride));
+  }
+
+  /** The stored start_at is the one departure every reader shares (docs/LEDGER_*.md API-60). */
+  @Test
+  void aGroupsStoredStart_winsOverItsTime() {
+    Ride ride = ride();
+    ride.setTimezone("Europe/Paris");
+    RideGroup group = group(ride, LocalTime.of(9, 0), route(50_000), 25f);
+    group.setStartAt(Instant.parse("2026-06-07T11:00:00Z"));
+    assertEquals(Instant.parse("2026-06-07T13:00:00Z"), calculator.rideEnd(ride));
+  }
+
+  /** A row an older backend wrote without start_at: its time in the ride's stored zone. */
+  @Test
+  void aGroupWithoutStoredStart_readsItsTimeInTheRidesZone() {
+    Ride ride = ride();
+    ride.setTimezone("Asia/Tokyo");
+    // 16:00 Tokyo (UTC+9) on June 7th is 07:00 UTC; 50 km at 25 km/h → 09:00 UTC.
+    group(ride, LocalTime.of(16, 0), route(50_000), 25f);
+    assertEquals(Instant.parse("2026-06-07T09:00:00Z"), calculator.rideEnd(ride));
   }
 
   @Test

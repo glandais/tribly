@@ -103,6 +103,7 @@ class RideWeatherCard extends ConsumerWidget {
                 stale:
                     WeatherStatus.fromJson(dto.status) == WeatherStatus.stale,
                 leg: weatherLegFor(dto.legs, selectedGroupId),
+                timezone: ride.timezone,
                 onOpen: () => RideWeatherPage.open(context, rideKey),
               ),
             );
@@ -147,6 +148,7 @@ class WeatherForecastCard extends ConsumerWidget {
     required this.attribution,
     required this.stale,
     required this.leg,
+    required this.timezone,
     required this.onOpen,
   });
 
@@ -154,6 +156,10 @@ class WeatherForecastCard extends ConsumerWidget {
   final WeatherAttributionDto attribution;
   final bool stale;
   final WeatherLegDto? leg;
+
+  /// Le fuseau de la sortie ou de l'étape, où se lit l'heure de l'alerte
+  /// pluie (docs/LEDGER_*.md API-60).
+  final String? timezone;
   final VoidCallback onOpen;
 
   @override
@@ -203,7 +209,7 @@ class WeatherForecastCard extends ConsumerWidget {
                 const SizedBox(width: PdlSpacing.badgeGap),
                 Expanded(
                   child: Text(
-                    formatRainAlert(rain, units),
+                    formatRainAlert(rain, units, timezone),
                     style: t.xs.copyWith(color: c.text),
                   ),
                 ),

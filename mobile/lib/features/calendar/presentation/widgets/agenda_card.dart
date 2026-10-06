@@ -66,7 +66,8 @@ class AgendaCard extends ConsumerWidget {
 
   /// L'heure de l'événement dans le fuseau de son entité — un rendez-vous
   /// (docs/LEDGER_*.md API-60). La grille et le regroupement par jour, eux,
-  /// restent au fuseau du lecteur (`calendarDayOf`).
+  /// restent au fuseau du lecteur (`CalendarMonth.dayOf`), sauf la date
+  /// d'une journée entière, qui reste celle de son fuseau.
   DateTime get _start =>
       AppFormatters.toZoneTime(DateTime.parse(event.start), event.timezone);
 

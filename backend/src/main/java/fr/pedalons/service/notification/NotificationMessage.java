@@ -25,6 +25,7 @@ public record NotificationMessage(
     String recipientEmail,
     String recipientName,
     @Nullable String recipientLanguage,
+    /** The reader's own zone, null when they have none: the « chez vous » of a rendezvous. */
     @Nullable String recipientTimezone,
     @Nullable String actorName,
     String teamSlug,
@@ -33,6 +34,11 @@ public record NotificationMessage(
     String subjectSlug,
     String subjectName,
     @Nullable Instant subjectDateTime,
+    /**
+     * The zone the subject's rendezvous reads in, frozen with {@code subjectDateTime}; null on a row
+     * fanned out before it was (docs/LEDGER_*.md API-60).
+     */
+    @Nullable String subjectTimezone,
     @Nullable String excerpt,
     String baseUrl,
     String siteName,

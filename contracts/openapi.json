@@ -1799,7 +1799,7 @@
       "DeviceRideDto" : {
         "description" : "Ride information for device applications",
         "type" : "object",
-        "required" : [ "teamSlug", "rideSlug", "rideName", "entries" ],
+        "required" : [ "teamSlug", "rideSlug", "rideName", "timezone", "entries" ],
         "properties" : {
           "teamSlug" : {
             "type" : "string",
@@ -1817,6 +1817,10 @@
             "description" : "Start date/time",
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
+          },
+          "timezone" : {
+            "type" : "string",
+            "description" : "IANA zone of the ride, as RideDto.timezone; devices may ignore it and render in their own zone"
           },
           "entries" : {
             "type" : "array",
@@ -1865,7 +1869,7 @@
             "description" : "Start longitude"
           },
           "startDateTime" : {
-            "description" : "When this entry leaves, as an absolute instant (UTC): the group's time read at the ride's departure point local time, on the ride's local date; the ride's own startDateTime for the ride-level route and for a group without a time. Devices render it in their own zone.",
+            "description" : "When this entry leaves, as an absolute instant (UTC): the group's startAt (its time on the ride's local date, in the ride's zone); the ride's own startDateTime for the ride-level route and for a group without a time. Devices render it in their own zone.",
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
           }
@@ -3095,6 +3099,11 @@
             "description" : "Date of the ride or trip, publication date of a post",
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
+          },
+          "subjectTimezone" : {
+            "type" : "string",
+            "description" : "IANA zone subjectDateTime reads in — the subject's own, as RideDto.timezone: a rendezvous, shown in it with a mention when the reader's differs. Present when subjectDateTime is, except on notifications sent before 10.20.0, which read in the reader's zone",
+            "examples" : [ "Asia/Tokyo" ]
           },
           "excerpt" : {
             "type" : "string",
@@ -4839,6 +4848,10 @@
             "description" : "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)",
             "type" : "object",
             "$ref" : "#/components/schemas/WeatherRainAlertDto"
+          },
+          "timezone" : {
+            "type" : "string",
+            "description" : "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
           }
         }
       },
@@ -23549,7 +23562,7 @@
   },
   "info" : {
     "title" : "Pedalons API",
-    "version" : "10.18.0",
+    "version" : "10.21.0",
     "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {

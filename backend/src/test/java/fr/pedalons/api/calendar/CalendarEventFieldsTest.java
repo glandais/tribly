@@ -118,6 +118,25 @@ class CalendarEventFieldsTest extends AbstractResourceTest {
     org.junit.jupiter.api.Assertions.assertTrue(ics.contains("DTEND:20310504T123000Z"), ics);
   }
 
+  /** One ride's calendar announces the ride's own zone (docs/LEDGER_*.md API-60). */
+  @Test
+  void rideIcs_announcesTheRidesZone() {
+    dataService.setTimezone(ride.getId(), "Asia/Tokyo");
+
+    String ics =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .when()
+            .get("/api/teams/" + team1Slug + "/rides/sortie-dimanche/ics")
+            .then()
+            .statusCode(200)
+            .extract()
+            .asString();
+
+    org.junit.jupiter.api.Assertions.assertTrue(ics.contains("X-WR-TIMEZONE:Asia/Tokyo\r\n"), ics);
+  }
+
   // ==================== Render payload ====================
 
   @Test

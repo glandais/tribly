@@ -292,6 +292,7 @@ public class NotificationDispatchService {
     entry.setSubjectSlug(resolution.subjectSlug());
     entry.setSubjectName(resolution.subjectName());
     entry.setSubjectDateTime(resolution.subjectDateTime());
+    entry.setSubjectTimezone(resolution.subjectTimezone());
     entry.setExcerpt(resolution.excerpt());
     entry.setChangeList(resolution.changes());
     // A publication speaks for the team: the API never names its author, so neither does its

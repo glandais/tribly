@@ -27,15 +27,24 @@ public class TeamWebhookMessages {
   @Inject NotificationTexts texts;
   @Inject ObjectMapper objectMapper;
 
-  /** The event, as the snapshot the fan-out froze on it. Expects a fanned-out event. */
-  public String forEvent(NotificationEventEntry event, URI url, String language) {
+  /**
+   * The event, as the snapshot the fan-out froze on it. Expects a fanned-out event.
+   *
+   * <p>Its date reads in the subject's own zone, named when it is not the team's — the webhook's
+   * audience is the team, and nobody's « chez vous » applies (docs/LEDGER_*.md API-60).
+   * {@code teamTimezone} also dates a row fanned out before the subject's zone was frozen.
+   */
+  public String forEvent(
+      NotificationEventEntry event, URI url, String language, @Nullable String teamTimezone) {
+    NotificationTexts.Zones zones =
+        NotificationTexts.Zones.forTeam(event.getSubjectTimezone(), teamTimezone);
     String teamName = Objects.requireNonNull(event.getTeamName());
     String subjectName = Objects.requireNonNull(event.getSubjectName());
     NotificationTexts.Rendered rendered =
         texts.render(
             event.getType(),
             language,
-            null,
+            zones,
             event.getActorName(),
             teamName,
             subjectName,
@@ -68,6 +77,8 @@ public class TeamWebhookMessages {
         subject.put(
             "dateTime",
             event.getSubjectDateTime() == null ? null : event.getSubjectDateTime().toString());
+        subject.put(
+            "timezone", event.getSubjectDateTime() == null ? null : zones.subject().getId());
         subject.put("url", link);
         root.put("actorName", event.getActorName());
         ArrayNode changes = root.putArray("changes");

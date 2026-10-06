@@ -130,6 +130,14 @@ public class NotificationEventEntry {
   @Column(name = "subject_date_time")
   private @Nullable Instant subjectDateTime;
 
+  /**
+   * The IANA zone the subject's rendezvous reads in, frozen with {@code subjectDateTime}: null for a
+   * TEAM or REPORT subject, and on a row fanned out by a backend that predates the column
+   * (docs/LEDGER_*.md API-60).
+   */
+  @Column(name = "subject_timezone", length = 64)
+  private @Nullable String subjectTimezone;
+
   /** A short quote — the reply, for {@code COMMENT_REPLY}. */
   @Column(name = "excerpt", length = 500)
   private @Nullable String excerpt;

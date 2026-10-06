@@ -130,6 +130,29 @@ class NotificationPipelineTest extends AbstractResourceTest {
     assertTrue(notifications.notificationTypesFor(user4).isEmpty(), "not a member");
   }
 
+  /**
+   * The ride's zone is frozen next to its date, and the inbox hands it out (docs/LEDGER_*.md
+   * API-60).
+   */
+  @Test
+  void publishedRide_freezesItsZone_andTheInboxCarriesIt() {
+    dataService.setTeamTimezone(team1, "Asia/Tokyo");
+    createRide(Status.PUBLISHED, nextWeek);
+    drain();
+
+    NotificationEventEntry event = notifications.eventEntries().getFirst();
+    assertEquals("Asia/Tokyo", event.getSubjectTimezone());
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .when()
+        .get("/api/notifications")
+        .then()
+        .statusCode(200)
+        .body("items[0].subjectTimezone", org.hamcrest.Matchers.equalTo("Asia/Tokyo"));
+  }
+
   @Test
   void publishedRide_isSignedByTheTeam_notByItsAuthor() {
     createRide(Status.PUBLISHED, nextWeek);

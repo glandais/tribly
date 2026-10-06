@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -61,7 +60,7 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             Status.PUBLISHED);
 
-    String ics = icsGenerationService.generateIcs(List.of(event), "My Calendar");
+    String ics = icsGenerationService.generateIcs(List.of(event), "My Calendar", null);
 
     assertTrue(ics.startsWith("BEGIN:VCALENDAR\r\n"));
     assertTrue(ics.endsWith("END:VCALENDAR\r\n"));
@@ -94,7 +93,7 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             Status.PUBLISHED);
 
-    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
+    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar", null);
 
     assertTrue(ics.contains("BEGIN:VEVENT"));
     assertTrue(ics.contains("END:VEVENT"));
@@ -128,7 +127,7 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             Status.PUBLISHED);
 
-    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
+    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar", null);
 
     assertTrue(ics.contains("DTSTART;VALUE=DATE:20240615"));
     assertTrue(ics.contains("DTEND;VALUE=DATE:20240616"));
@@ -159,7 +158,7 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             Status.PUBLISHED);
 
-    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
+    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar", null);
 
     assertTrue(ics.contains("DTSTART:20240615T083000Z"));
     assertTrue(ics.contains("DTEND:20240615T123000Z"));
@@ -189,7 +188,7 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             Status.PUBLISHED);
 
-    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
+    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar", null);
 
     assertTrue(ics.contains("URL:"));
     assertTrue(ics.contains("/teams/cycling-club/rides/sunday-ride"));
@@ -219,7 +218,7 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             Status.PUBLISHED);
 
-    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
+    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar", null);
 
     assertTrue(ics.contains("URL:"));
     assertTrue(ics.contains("/teams/cycling-club/trips/summer-trip/stages/stage-1"));
@@ -249,7 +248,7 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             Status.PUBLISHED);
 
-    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar; Test, Name");
+    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar; Test, Name", null);
 
     assertTrue(ics.contains("SUMMARY:Ride with\\, commas\\; and semicolons"));
     assertTrue(ics.contains("DESCRIPTION:Team\\, Name\\; Test"));
@@ -302,7 +301,7 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             Status.PUBLISHED);
 
-    String ics = icsGenerationService.generateIcs(List.of(event1, event2), "Calendar");
+    String ics = icsGenerationService.generateIcs(List.of(event1, event2), "Calendar", null);
 
     // Count VEVENT blocks
     int eventCount = ics.split("BEGIN:VEVENT").length - 1;
@@ -314,7 +313,7 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
 
   @Test
   void generateIcs_shouldHandleEmptyEventList() {
-    String ics = icsGenerationService.generateIcs(List.of(), "Empty Calendar");
+    String ics = icsGenerationService.generateIcs(List.of(), "Empty Calendar", null);
 
     assertTrue(ics.contains("BEGIN:VCALENDAR"));
     assertTrue(ics.contains("END:VCALENDAR"));
@@ -347,7 +346,8 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
                     false,
                     null,
                     Status.PUBLISHED)),
-            "Calendar");
+            "Calendar",
+            null);
 
     assertTrue(ics.contains("REFRESH-INTERVAL;VALUE=DURATION:PT1H"));
   }
@@ -389,40 +389,63 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
 
   /**
    * A stage leaving at 00:30 and ending at 23:30, Paris time, is that one day — not the eve, and
-   * not two days (API-90).
+   * not two days (API-90): its stored zone counts the days, not UTC's.
    */
   @Test
-  void generateIcs_allDayStage_isDatedInParisByDefault() {
+  void generateIcs_allDayStage_isDatedInItsStoredZone_Paris() {
     CalendarEventDto event =
         stage(
-            "night", Instant.parse("2024-06-14T22:30:00Z"), Instant.parse("2024-06-15T21:30:00Z"));
+            "night",
+            Instant.parse("2024-06-14T22:30:00Z"),
+            Instant.parse("2024-06-15T21:30:00Z"),
+            "Europe/Paris");
 
-    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
+    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar", null);
 
     assertTrue(ics.contains("DTSTART;VALUE=DATE:20240615"), ics);
     assertTrue(ics.contains("DTEND;VALUE=DATE:20240616"), ics);
   }
 
-  /** A stage abroad is dated in the zone it is given, its start place's (API-90). */
+  /**
+   * A stage abroad is dated in the zone its event carries — the stage's stored zone — whatever the
+   * calendar's own zone (docs/LEDGER_*.md API-60).
+   */
   @Test
   void generateIcs_allDayStage_isDatedInItsOwnZone() {
-    // 08:00 to 18:00 in Tokyo (UTC+9) is still the 14th in UTC and in Paris.
+    // 00:30 to 23:30 in Tokyo (UTC+9): the 14th then the 15th in UTC and in Paris.
     CalendarEventDto event =
         stage(
-            "tokyo", Instant.parse("2024-06-14T23:00:00Z"), Instant.parse("2024-06-15T09:00:00Z"));
+            "tokyo",
+            Instant.parse("2024-06-14T15:30:00Z"),
+            Instant.parse("2024-06-15T14:30:00Z"),
+            "Asia/Tokyo");
 
-    String ics =
-        icsGenerationService.generateIcs(
-            List.of(event), "Calendar", Map.of("tokyo", ZoneId.of("Asia/Tokyo")));
+    String ics = icsGenerationService.generateIcs(List.of(event), "Calendar", PARIS);
 
     assertTrue(ics.contains("DTSTART;VALUE=DATE:20240615"), ics);
     assertTrue(ics.contains("DTEND;VALUE=DATE:20240616"), ics);
+  }
+
+  /** A feed mixing teams has no zone of its own: no X-WR-TIMEZONE (docs/LEDGER_*.md API-60). */
+  @Test
+  void generateIcs_withoutACalendarZone_announcesNone() {
+    String ics = icsGenerationService.generateIcs(List.of(), "Mine", null);
+
+    assertFalse(ics.contains("X-WR-TIMEZONE"), ics);
+  }
+
+  /** A team feed announces the team's zone, not Paris in hard (docs/LEDGER_*.md API-60). */
+  @Test
+  void generateIcs_withACalendarZone_announcesIt() {
+    String ics = icsGenerationService.generateIcs(List.of(), "Team", ZoneId.of("Asia/Tokyo"));
+
+    assertTrue(ics.contains("X-WR-TIMEZONE:Asia/Tokyo\r\n"), ics);
   }
 
   private static final ZoneId UTC = ZoneId.of("UTC");
   private static final ZoneId PARIS = ZoneId.of("Europe/Paris");
 
-  private static CalendarEventDto stage(String id, Instant start, Instant end) {
+  private static CalendarEventDto stage(String id, Instant start, Instant end, String timezone) {
     return new CalendarEventDto(
         id,
         "Stage",
@@ -442,6 +465,7 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
         null,
         false,
         null,
-        Status.PUBLISHED);
+        Status.PUBLISHED,
+        timezone);
   }
 }

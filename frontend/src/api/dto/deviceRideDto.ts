@@ -13,6 +13,8 @@ export interface DeviceRideDto {
   rideName: string
   /** Start date/time */
   startDateTime?: Instant
+  /** IANA zone of the ride, as RideDto.timezone; devices may ignore it and render in their own zone */
+  timezone: string
   /** Route entries for this ride */
   entries: DeviceRideEntryDto[]
 }

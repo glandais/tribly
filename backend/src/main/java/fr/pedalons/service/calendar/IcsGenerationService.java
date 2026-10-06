@@ -11,7 +11,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class IcsGenerationService {
@@ -23,18 +23,17 @@ public class IcsGenerationService {
 
   @Inject DomainResolver domainResolver;
 
-  /** A calendar whose all-day events are all counted in {@link StageTimezones#FALLBACK}. */
-  public String generateIcs(List<CalendarEventDto> events, String calendarName) {
-    return generateIcs(events, calendarName, Map.of());
-  }
-
   /**
-   * @param allDayZones the zone each all-day event's dates are counted in, keyed by event id —
-   *     {@link StageTimezones#FALLBACK} for an event it lacks. Timed events are written in UTC and
-   *     need none.
+   * A calendar of {@code events}. Timed events are written in UTC and need no zone; an all-day
+   * event's dates are counted in its own {@link CalendarEventDto#timezone()} — the stage's stored
+   * zone, else its team's (docs/LEDGER_*.md API-60).
+   *
+   * @param calendarZone the zone announced as {@code X-WR-TIMEZONE}: the team's for a team feed,
+   *     the publication's for a single one, {@code null} — no header — for a feed mixing teams,
+   *     which has no zone of its own.
    */
   public String generateIcs(
-      List<CalendarEventDto> events, String calendarName, Map<String, ZoneId> allDayZones) {
+      List<CalendarEventDto> events, String calendarName, @Nullable ZoneId calendarZone) {
     StringBuilder ics = new StringBuilder();
 
     // VCALENDAR header with Apple/Google compatibility
@@ -44,12 +43,14 @@ public class IcsGenerationService {
     ics.append("CALSCALE:GREGORIAN\r\n");
     ics.append("METHOD:PUBLISH\r\n");
     ics.append("X-WR-CALNAME:").append(escapeIcs(calendarName)).append("\r\n");
-    ics.append("X-WR-TIMEZONE:Europe/Paris\r\n");
+    if (calendarZone != null) {
+      ics.append("X-WR-TIMEZONE:").append(calendarZone.getId()).append("\r\n");
+    }
     ics.append("REFRESH-INTERVAL;VALUE=DURATION:PT1H\r\n");
 
     // Add each event
     for (CalendarEventDto event : events) {
-      appendEvent(ics, event, allDayZones.getOrDefault(event.id(), StageTimezones.FALLBACK));
+      appendEvent(ics, event, ZoneId.of(event.timezone()));
     }
 
     ics.append("END:VCALENDAR\r\n");
@@ -108,7 +109,8 @@ public class IcsGenerationService {
    * The exclusive end date of an all-day event (RFC 5545): the day after the one its end falls on,
    * unless that end is already a midnight — so a stage ending at 17:00 occupies its own day, one
    * ending the next morning both days (docs/LEDGER_*.md API-85). Never before the day after the
-   * start. Days and midnights are those of {@code zone}, the stage's (docs/LEDGER_*.md API-90).
+   * start. Days and midnights are those of {@code zone}, the stage's (docs/LEDGER_*.md API-90,
+   * API-60).
    */
   static LocalDate allDayEnd(Instant start, Instant end, ZoneId zone) {
     ZonedDateTime local = end.atZone(zone);

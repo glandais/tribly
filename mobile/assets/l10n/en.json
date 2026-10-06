@@ -1376,6 +1376,8 @@
       "both": "A ride has a new date and meeting point",
       "other": "A ride was changed"
     },
+    "startsAt": "Starts: {date}",
+    "newDate": "New date: {date}",
     "joinedGroup": "Group “{group}”",
     "settings": "Notification settings"
   },

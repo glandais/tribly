@@ -8,7 +8,7 @@ import fr.pedalons.dto.validation.ValidateSchema;
 import fr.pedalons.repository.ride.RideGroupRepository.GroupRow;
 import fr.pedalons.service.asset.ThumbnailLookup.ThemedThumbnail;
 import fr.pedalons.service.common.ParticipantPreviewLookup.ParticipantPreview;
-import fr.pedalons.service.weather.RideWeatherCalculator;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -105,7 +105,7 @@ public record RideGroupDto(
         group.getTime(),
         group.getStartAt() != null
             ? group.getStartAt()
-            : RideWeatherCalculator.legStart(
+            : EventTimezoneResolver.groupStart(
                 group.getRide().getDateTime(), group.getTime(), rideZone),
         route != null ? route.getSlug() : null,
         group.getAverageSpeed(),
@@ -131,7 +131,7 @@ public record RideGroupDto(
       @Nullable Instant stored, Instant rideDateTime, @Nullable LocalTime time, String rideZone) {
     return stored != null
         ? stored
-        : RideWeatherCalculator.legStart(rideDateTime, time, ZoneId.of(rideZone));
+        : EventTimezoneResolver.groupStart(rideDateTime, time, ZoneId.of(rideZone));
   }
 
   /**

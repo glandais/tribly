@@ -46,9 +46,23 @@ public record RideWeatherSummaryDto(
             description =
                 "The first hour of the window with rain likely (50 % or more). Its distance is"
                     + " absent on a ride's summary, present on a trip stage's (the checkpoint's)")
-        WeatherRainAlertDto rainAlert) {
+        WeatherRainAlertDto rainAlert,
+    @Nullable
+        @Schema(
+            description =
+                "IANA zone the times of this summary (rain alert) are read in, as rendezvous with"
+                    + " no zone mention. Set on a trip's card, where it is its next stage's zone —"
+                    + " not TripDto.timezone, the first stage's. Absent elsewhere: the owner's"
+                    + " timezone (RideDto, TripStageDto) applies.")
+        String timezone) {
 
   public static @Nullable RideWeatherSummaryDto fromNullable(@Nullable RideWeatherSummary summary) {
+    return fromNullable(summary, null);
+  }
+
+  /** {@code timezone}: the zone of the summary's leg, when it is not its owner's (a trip's card). */
+  public static @Nullable RideWeatherSummaryDto fromNullable(
+      @Nullable RideWeatherSummary summary, @Nullable String timezone) {
     return summary == null
         ? null
         : new RideWeatherSummaryDto(
@@ -62,6 +76,7 @@ public record RideWeatherSummaryDto(
             summary.temperatureMax(),
             summary.maxPrecipitationProbability(),
             WindDto.fromNullable(summary.wind()),
-            WeatherRainAlertDto.fromNullable(summary.rainAlert()));
+            WeatherRainAlertDto.fromNullable(summary.rainAlert()),
+            timezone);
   }
 }

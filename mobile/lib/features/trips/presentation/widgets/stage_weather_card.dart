@@ -110,6 +110,7 @@ class StageWeatherCard extends ConsumerWidget {
                 stale:
                     WeatherStatus.fromJson(leg.status) == WeatherStatus.stale,
                 leg: leg,
+                timezone: stage.timezone,
                 onOpen: () => StageWeatherPage.open(context, tripKey, stage),
               ),
             );

@@ -148,14 +148,15 @@ class DeviceRoutesResourceTest extends AbstractResourceTest {
   }
 
   /**
-   * Each entry carries its own start (docs/LEDGER_*.md API-84). The route starts in Nantes
-   * (Europe/Paris): the ride leaves at 7:30 Paris, a group without a time leaves with it, a group at
-   * 9:00 leaves at 9:00 Paris on the ride's local date — expressed in UTC, so one or two hours
-   * earlier depending on the date's offset (the DST edges themselves are covered by {@code
-   * RideWeatherCalculatorTest}). The ride's own startDateTime stays the ride's instant.
+   * Each entry carries its own start: the group's stored {@code start_at}, the departure the weather
+   * and the stored end read too (docs/LEDGER_*.md API-60). The ride is in Europe/Paris: it leaves
+   * at 7:30 Paris, a group without a time leaves with it, a group at 9:00 leaves at 9:00 Paris on the
+   * ride's local date — expressed in UTC, so one or two hours earlier depending on the date's offset
+   * (the DST edges themselves are covered by {@code EventTimezoneResolverTest}). The ride's own
+   * startDateTime stays the ride's instant, and its zone goes along with it.
    */
   @Test
-  void getRoutes_entryStart_isTheGroupTimeAtTheDepartureZone() {
+  void getRoutes_entryStart_isTheGroupsStoredStartAt() {
     ZoneId paris = ZoneId.of("Europe/Paris");
     LocalDate day = LocalDate.now(paris).plusDays(2);
     Instant rideStart = day.atTime(LocalTime.of(7, 30)).atZone(paris).toInstant();
@@ -204,6 +205,7 @@ class DeviceRoutesResourceTest extends AbstractResourceTest {
             .jsonPath();
 
     assertEquals(rideStart, Instant.parse(json.getString(ride + ".startDateTime")));
+    assertEquals("Europe/Paris", json.getString(ride + ".timezone"));
     assertEquals(
         rideStart,
         Instant.parse(

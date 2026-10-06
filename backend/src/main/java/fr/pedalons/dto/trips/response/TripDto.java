@@ -308,7 +308,8 @@ public class TripDto implements PublicationDto {
         participations.isRegisteredToTrip(trip.getId()),
         commentCounts.forEntity(trip.getId()),
         tags.forContent(trip.getId()),
-        RideWeatherSummaryDto.fromNullable(weather.forTrip(trip.getId())),
+        RideWeatherSummaryDto.fromNullable(
+            weather.forTrip(trip.getId()), weather.zoneForTrip(trip.getId())),
         thumbnails.get(trip.getId()),
         view);
   }

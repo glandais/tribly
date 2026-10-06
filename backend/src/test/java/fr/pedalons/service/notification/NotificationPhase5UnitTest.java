@@ -87,7 +87,7 @@ class NotificationPhase5UnitTest {
         texts.render(
             NotificationType.RIDE_UPDATED,
             "fr",
-            "Europe/Paris",
+            NotificationTexts.Zones.forReader("Europe/Paris", "Europe/Paris"),
             "Alice",
             "Le Club",
             "Col du Galibier",

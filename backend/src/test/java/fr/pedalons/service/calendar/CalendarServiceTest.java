@@ -25,7 +25,11 @@ import fr.pedalons.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -242,6 +246,8 @@ class CalendarServiceTest extends AbstractBaseTest {
     assertTrue(ics.contains("BEGIN:VCALENDAR"));
     assertTrue(ics.contains("Test Ride"));
     assertTrue(ics.contains("END:VCALENDAR"));
+    // The personal feed mixes teams: it announces no zone of its own (docs/LEDGER_*.md API-60).
+    assertFalse(ics.contains("X-WR-TIMEZONE"), ics);
   }
 
   @Test
@@ -265,6 +271,50 @@ class CalendarServiceTest extends AbstractBaseTest {
     assertTrue(ics.contains("BEGIN:VCALENDAR"));
     assertTrue(ics.contains("Team Ride"));
     assertTrue(ics.contains("Pedalons - Team One"));
+    assertTrue(ics.contains("X-WR-TIMEZONE:Europe/Paris\r\n"), ics);
+  }
+
+  /** A team feed announces the team's zone, not Paris in hard (docs/LEDGER_*.md API-60). */
+  @Test
+  void generateIcsForTeam_announcesTheTeamsZone() {
+    dataService.setTeamTimezone(team1, "America/New_York");
+    CalendarToken token = dataService.createCalendarToken(user1, "team-token-ny");
+
+    queryContext.setUserForTest(user1);
+    String ics =
+        calendarService.generateIcsForTeam(AuthMode.TOKEN, token.getToken(), team1.getSlug());
+
+    assertTrue(ics.contains("X-WR-TIMEZONE:America/New_York\r\n"), ics);
+  }
+
+  /**
+   * A stage with no place at all, whose stored zone is Tokyo in a Paris team, leaving at 00:30 and
+   * ending at 23:30 Tokyo time: one day, that day in Tokyo — neither the eve nor two days, as
+   * counting in Paris or UTC would give (docs/LEDGER_*.md API-60).
+   */
+  @Test
+  void icsFeeds_dateAnAllDayStage_inItsStoredZone() {
+    ZoneId tokyo = ZoneId.of("Asia/Tokyo");
+    LocalDate day = LocalDate.ofInstant(now, tokyo).plusDays(10);
+    Instant start = day.atTime(0, 30).atZone(tokyo).toInstant();
+    Instant end = day.atTime(23, 30).atZone(tokyo).toInstant();
+    Trip trip = dataService.createTrip(team1, user1, "Japan", start);
+    TripStage stage = dataService.createTripStage(user1, trip, "Stage 1", start);
+    dataService.setTimezone(stage.getId(), "Asia/Tokyo");
+    dataService.setEndDateTime(stage.getId(), end);
+    CalendarToken token = dataService.createCalendarToken(user1, "tokyo-token");
+
+    queryContext.setUserForTest(user1);
+    String dtStart = "DTSTART;VALUE=DATE:" + DateTimeFormatter.BASIC_ISO_DATE.format(day);
+    String dtEnd = "DTEND;VALUE=DATE:" + DateTimeFormatter.BASIC_ISO_DATE.format(day.plusDays(1));
+    for (String ics :
+        List.of(
+            calendarService.generateIcs(AuthMode.TOKEN, token.getToken()),
+            calendarService.generateIcsForTeam(
+                AuthMode.TOKEN, token.getToken(), team1.getSlug()))) {
+      assertTrue(ics.contains(dtStart), ics);
+      assertTrue(ics.contains(dtEnd), ics);
+    }
   }
 
   @Test

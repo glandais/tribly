@@ -27,11 +27,16 @@ class StageWeatherPage extends ConsumerWidget {
     required this.tripKey,
     required this.stageId,
     required this.stageName,
+    required this.timezone,
   });
 
   final TripKey tripKey;
   final String stageId;
   final String stageName;
+
+  /// Le fuseau de l'étape (`TripStageDto.timezone`) : ses passages s'y lisent
+  /// (docs/LEDGER_*.md API-60).
+  final String? timezone;
 
   static Future<void> open(
     BuildContext context,
@@ -43,6 +48,7 @@ class StageWeatherPage extends ConsumerWidget {
         tripKey: tripKey,
         stageId: stage.id,
         stageName: stage.name,
+        timezone: stage.timezone,
       ),
     ),
   );
@@ -181,10 +187,11 @@ class StageWeatherPage extends ConsumerWidget {
         WeatherLegHeader(
           leg: leg,
           title: stageName,
+          timezone: timezone,
           speedDefaultKey: 'trips.weather.legSpeedDefault',
         ),
       ),
-      ...weatherLegBody(leg, padded),
+      ...weatherLegBody(leg, padded, timezone),
       padded(
         WeatherAttributionBlock(
           attribution: dto.attribution,

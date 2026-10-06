@@ -2,6 +2,7 @@ package fr.pedalons.service.notification;
 
 import fr.pedalons.enums.NotificationChange;
 import fr.pedalons.enums.NotificationType;
+import fr.pedalons.service.timezone.ZoneLabels;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,17 +43,59 @@ public class NotificationTexts {
           "fr", DateTimeFormatter.ofPattern("EEEE d MMMM 'à' HH'h'mm", Locale.FRENCH),
           "en", DateTimeFormatter.ofPattern("EEEE, MMMM d 'at' h:mm a", Locale.ENGLISH));
 
+  /** The reader's equivalent of a rendezvous, when its day is the rendezvous' own. */
+  private static final Map<String, DateTimeFormatter> TIME_FORMATS =
+      Map.of(
+          "fr", DateTimeFormatter.ofPattern("HH'h'mm", Locale.FRENCH),
+          "en", DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH));
+
+  /** The reader's equivalent of a rendezvous, when it falls on another day (« ven. 01h00 »). */
+  private static final Map<String, DateTimeFormatter> DAY_TIME_FORMATS =
+      Map.of(
+          "fr", DateTimeFormatter.ofPattern("EEE HH'h'mm", Locale.FRENCH),
+          "en", DateTimeFormatter.ofPattern("EEE h:mm a", Locale.ENGLISH));
+
   private static final Pattern PLACEHOLDER = Pattern.compile("\\{(\\w+)}");
 
   private final Map<String, Properties> bundles = new ConcurrentHashMap<>();
 
   public record Rendered(String subject, String title, String body, String cta) {}
 
+  /**
+   * The zones a rendezvous is written with (docs/LEDGER_*.md API-60, plan §7): it reads in {@code
+   * subject}'s, the rendezvous' own; that zone is named when its offset differs from {@code
+   * reference}'s at the rendezvous; and the {@code reader}'s equivalent is added when there is a
+   * reader with a zone of their own.
+   */
+  public record Zones(ZoneId subject, @Nullable ZoneId reader, ZoneId reference) {
+
+    /**
+     * A person: the subject's zone — Paris for a row fanned out before the column existed, when
+     * every team was Paris — compared with theirs, else with Paris, the zone their messages read
+     * in so far.
+     */
+    public static Zones forReader(
+        @Nullable String subjectTimezone, @Nullable String readerTimezone) {
+      ZoneId reader = parse(readerTimezone);
+      return new Zones(
+          zoneOr(subjectTimezone, DEFAULT_ZONE), reader, reader != null ? reader : DEFAULT_ZONE);
+    }
+
+    /**
+     * A team webhook: nobody's own zone, the team's as the reference — and as the subject's for a
+     * row fanned out before the column existed.
+     */
+    public static Zones forTeam(@Nullable String subjectTimezone, @Nullable String teamTimezone) {
+      ZoneId team = zoneOr(teamTimezone, DEFAULT_ZONE);
+      return new Zones(zoneOr(subjectTimezone, team), null, team);
+    }
+  }
+
   public Rendered render(NotificationMessage message) {
     return render(
         message.type(),
         message.recipientLanguage(),
-        message.recipientTimezone(),
+        Zones.forReader(message.subjectTimezone(), message.recipientTimezone()),
         message.actorName(),
         message.teamName(),
         message.subjectName(),
@@ -64,12 +107,12 @@ public class NotificationTexts {
 
   /**
    * The same wording for a reader who is not a member — a team webhook, which has a language of its
-   * own and no time zone but the default.
+   * own and no time zone but its team's ({@link Zones#forTeam}).
    */
   public Rendered render(
       NotificationType type,
       @Nullable String languageTag,
-      @Nullable String timezone,
+      Zones zones,
       @Nullable String actorName,
       String teamName,
       String subjectName,
@@ -79,8 +122,7 @@ public class NotificationTexts {
       List<NotificationChange> changes) {
     String language = language(languageTag);
     Properties texts = bundle(language);
-    String date =
-        subjectDateTime == null ? "" : formatDateTime(subjectDateTime, language, timezone);
+    String date = subjectDateTime == null ? "" : formatRendezvous(subjectDateTime, language, zones);
     Map<String, String> values = new HashMap<>();
     values.put("actor", actorName != null ? actorName : teamName);
     values.put("team", teamName);
@@ -125,6 +167,39 @@ public class NotificationTexts {
     return DATE_FORMATS.get(language(languageTag)).withZone(zone(timezone)).format(instant);
   }
 
+  /**
+   * A rendezvous as every message writes it (docs/LEDGER_*.md API-60, plan §7): in its own zone,
+   * that zone named when its offset differs from the reference's, and the reader's equivalent when
+   * they have a zone — with the day when it changes. « samedi 11 octobre à 08h00, heure de Tokyo
+   * (ven. 01h00 chez vous) »; « samedi 11 octobre à 08h00 » when the offsets agree.
+   */
+  String formatRendezvous(Instant instant, @Nullable String languageTag, Zones zones) {
+    String language = language(languageTag);
+    ZoneId subject = zones.subject();
+    String date = DATE_FORMATS.get(language).withZone(subject).format(instant);
+    if (ZoneLabels.sameOffsetAt(instant, subject, zones.reference())) {
+      return date;
+    }
+    Properties texts = bundle(language);
+    String zone =
+        fill(
+            texts,
+            "zone.name",
+            Map.of(
+                "city", ZoneLabels.cityName(subject.getId(), language),
+                "ofCity", ZoneLabels.cityOf(subject.getId(), language)));
+    ZoneId reader = zones.reader();
+    if (reader == null) {
+      return fill(texts, "zone.date", Map.of("date", date, "zone", zone));
+    }
+    boolean otherDay =
+        !instant.atZone(subject).toLocalDate().equals(instant.atZone(reader).toLocalDate());
+    String time =
+        (otherDay ? DAY_TIME_FORMATS : TIME_FORMATS).get(language).withZone(reader).format(instant);
+    String local = fill(texts, "zone.local", Map.of("time", time));
+    return fill(texts, "zone.dateWithLocal", Map.of("date", date, "zone", zone, "local", local));
+  }
+
   /** "fr-CA" reads the French file; a language nobody translated reads the default. */
   static String language(@Nullable String tag) {
     if (tag == null) {
@@ -135,13 +210,23 @@ public class NotificationTexts {
   }
 
   static ZoneId zone(@Nullable String timezone) {
+    return zoneOr(timezone, DEFAULT_ZONE);
+  }
+
+  private static ZoneId zoneOr(@Nullable String timezone, ZoneId fallback) {
+    ZoneId zone = parse(timezone);
+    return zone != null ? zone : fallback;
+  }
+
+  /** The zone {@code timezone} names, or null when it is absent or unknown. */
+  private static @Nullable ZoneId parse(@Nullable String timezone) {
     if (timezone == null) {
-      return DEFAULT_ZONE;
+      return null;
     }
     try {
       return ZoneId.of(timezone);
     } catch (DateTimeException e) {
-      return DEFAULT_ZONE;
+      return null;
     }
   }
 
@@ -180,7 +265,7 @@ public class NotificationTexts {
     return DATE_FORMATS.keySet();
   }
 
-  /** The keys outside the per-type blocks: change clauses, digest frame, webhook test. */
+  /** The keys outside the per-type blocks: change clauses, zone mention, digest, webhook test. */
   static boolean isFrameComplete(Properties texts) {
     for (NotificationChange change : NotificationChange.values()) {
       if (texts.getProperty("change." + change.name()) == null) {
@@ -189,6 +274,10 @@ public class NotificationTexts {
     }
     for (String key :
         new String[] {
+          "zone.name",
+          "zone.date",
+          "zone.dateWithLocal",
+          "zone.local",
           "digest.subject",
           "digest.title",
           "digest.intro",

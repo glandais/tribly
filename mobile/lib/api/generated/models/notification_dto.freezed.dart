@@ -28,7 +28,8 @@ mixin _$NotificationDto {
  String get subjectName;/// What changed, for RIDE_UPDATED; empty otherwise
  List<NotificationChange> get changes;/// Display name of whoever caused it, when someone did (a scheduled publication has no actor)
  String? get actorName;/// Date of the ride or trip, publication date of a post
- String? get subjectDateTime;/// A short quote: the comment, for COMMENT_REPLY and COMMENT_ON_MY_PUBLICATION; the name of the group joined, for RIDE_JOINED
+ String? get subjectDateTime;/// IANA zone subjectDateTime reads in — the subject's own, as RideDto.timezone: a rendezvous, shown in it with a mention when the reader's differs. Present when subjectDateTime is, except on notifications sent before 10.20.0, which read in the reader's zone
+ String? get subjectTimezone;/// A short quote: the comment, for COMMENT_REPLY and COMMENT_ON_MY_PUBLICATION; the name of the group joined, for RIDE_JOINED
  String? get excerpt;
 /// Create a copy of NotificationDto
 /// with the given fields replaced by the non-null parameter values.
@@ -43,20 +44,20 @@ $NotificationDtoCopyWith<NotificationDto> get copyWith => _$NotificationDtoCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as NotificationDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotificationDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.read, _this.read) || other.read == _this.read)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.teamSlug, _this.teamSlug) || other.teamSlug == _this.teamSlug)&&(identical(other.teamName, _this.teamName) || other.teamName == _this.teamName)&&(identical(other.subjectType, _this.subjectType) || other.subjectType == _this.subjectType)&&(identical(other.subjectSlug, _this.subjectSlug) || other.subjectSlug == _this.subjectSlug)&&(identical(other.subjectName, _this.subjectName) || other.subjectName == _this.subjectName)&&const DeepCollectionEquality().equals(other.changes, _this.changes)&&(identical(other.actorName, _this.actorName) || other.actorName == _this.actorName)&&(identical(other.subjectDateTime, _this.subjectDateTime) || other.subjectDateTime == _this.subjectDateTime)&&(identical(other.excerpt, _this.excerpt) || other.excerpt == _this.excerpt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotificationDto&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.read, _this.read) || other.read == _this.read)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.teamSlug, _this.teamSlug) || other.teamSlug == _this.teamSlug)&&(identical(other.teamName, _this.teamName) || other.teamName == _this.teamName)&&(identical(other.subjectType, _this.subjectType) || other.subjectType == _this.subjectType)&&(identical(other.subjectSlug, _this.subjectSlug) || other.subjectSlug == _this.subjectSlug)&&(identical(other.subjectName, _this.subjectName) || other.subjectName == _this.subjectName)&&const DeepCollectionEquality().equals(other.changes, _this.changes)&&(identical(other.actorName, _this.actorName) || other.actorName == _this.actorName)&&(identical(other.subjectDateTime, _this.subjectDateTime) || other.subjectDateTime == _this.subjectDateTime)&&(identical(other.subjectTimezone, _this.subjectTimezone) || other.subjectTimezone == _this.subjectTimezone)&&(identical(other.excerpt, _this.excerpt) || other.excerpt == _this.excerpt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as NotificationDto;
-  return Object.hash(runtimeType,_this.id,_this.type,_this.read,_this.createdAt,_this.teamSlug,_this.teamName,_this.subjectType,_this.subjectSlug,_this.subjectName,const DeepCollectionEquality().hash(_this.changes),_this.actorName,_this.subjectDateTime,_this.excerpt);
+  return Object.hash(runtimeType,_this.id,_this.type,_this.read,_this.createdAt,_this.teamSlug,_this.teamName,_this.subjectType,_this.subjectSlug,_this.subjectName,const DeepCollectionEquality().hash(_this.changes),_this.actorName,_this.subjectDateTime,_this.subjectTimezone,_this.excerpt);
 }
 
 @override
 String toString() {
   final _this = this as NotificationDto;
-  return 'NotificationDto(id: ${_this.id}, type: ${_this.type}, read: ${_this.read}, createdAt: ${_this.createdAt}, teamSlug: ${_this.teamSlug}, teamName: ${_this.teamName}, subjectType: ${_this.subjectType}, subjectSlug: ${_this.subjectSlug}, subjectName: ${_this.subjectName}, changes: ${_this.changes}, actorName: ${_this.actorName}, subjectDateTime: ${_this.subjectDateTime}, excerpt: ${_this.excerpt})';
+  return 'NotificationDto(id: ${_this.id}, type: ${_this.type}, read: ${_this.read}, createdAt: ${_this.createdAt}, teamSlug: ${_this.teamSlug}, teamName: ${_this.teamName}, subjectType: ${_this.subjectType}, subjectSlug: ${_this.subjectSlug}, subjectName: ${_this.subjectName}, changes: ${_this.changes}, actorName: ${_this.actorName}, subjectDateTime: ${_this.subjectDateTime}, subjectTimezone: ${_this.subjectTimezone}, excerpt: ${_this.excerpt})';
 }
 
 
@@ -67,7 +68,7 @@ abstract mixin class $NotificationDtoCopyWith<$Res>  {
   factory $NotificationDtoCopyWith(NotificationDto value, $Res Function(NotificationDto) _then) = _$NotificationDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String type, bool read, String createdAt, String teamSlug, String teamName, String subjectType, String subjectSlug, String subjectName, List<NotificationChange> changes, String? actorName, String? subjectDateTime, String? excerpt
+ String id, String type, bool read, String createdAt, String teamSlug, String teamName, String subjectType, String subjectSlug, String subjectName, List<NotificationChange> changes, String? actorName, String? subjectDateTime, String? subjectTimezone, String? excerpt
 });
 
 
@@ -84,7 +85,7 @@ class _$NotificationDtoCopyWithImpl<$Res>
 
 /// Create a copy of NotificationDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? read = null,Object? createdAt = null,Object? teamSlug = null,Object? teamName = null,Object? subjectType = null,Object? subjectSlug = null,Object? subjectName = null,Object? changes = null,Object? actorName = freezed,Object? subjectDateTime = freezed,Object? excerpt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? read = null,Object? createdAt = null,Object? teamSlug = null,Object? teamName = null,Object? subjectType = null,Object? subjectSlug = null,Object? subjectName = null,Object? changes = null,Object? actorName = freezed,Object? subjectDateTime = freezed,Object? subjectTimezone = freezed,Object? excerpt = freezed,}) {
   return _then(NotificationDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -98,6 +99,7 @@ as String,subjectName: null == subjectName ? _self.subjectName : subjectName // 
 as String,changes: null == changes ? _self.changes : changes // ignore: cast_nullable_to_non_nullable
 as List<NotificationChange>,actorName: freezed == actorName ? _self.actorName : actorName // ignore: cast_nullable_to_non_nullable
 as String?,subjectDateTime: freezed == subjectDateTime ? _self.subjectDateTime : subjectDateTime // ignore: cast_nullable_to_non_nullable
+as String?,subjectTimezone: freezed == subjectTimezone ? _self.subjectTimezone : subjectTimezone // ignore: cast_nullable_to_non_nullable
 as String?,excerpt: freezed == excerpt ? _self.excerpt : excerpt // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -184,10 +186,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String type,  bool read,  String createdAt,  String teamSlug,  String teamName,  String subjectType,  String subjectSlug,  String subjectName,  List<NotificationChange> changes,  String? actorName,  String? subjectDateTime,  String? excerpt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String type,  bool read,  String createdAt,  String teamSlug,  String teamName,  String subjectType,  String subjectSlug,  String subjectName,  List<NotificationChange> changes,  String? actorName,  String? subjectDateTime,  String? subjectTimezone,  String? excerpt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _NotificationDto() when $default != null:
-return $default(_that.id,_that.type,_that.read,_that.createdAt,_that.teamSlug,_that.teamName,_that.subjectType,_that.subjectSlug,_that.subjectName,_that.changes,_that.actorName,_that.subjectDateTime,_that.excerpt);case _:
+return $default(_that.id,_that.type,_that.read,_that.createdAt,_that.teamSlug,_that.teamName,_that.subjectType,_that.subjectSlug,_that.subjectName,_that.changes,_that.actorName,_that.subjectDateTime,_that.subjectTimezone,_that.excerpt);case _:
   return orElse();
 
 }
@@ -205,10 +207,10 @@ return $default(_that.id,_that.type,_that.read,_that.createdAt,_that.teamSlug,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String type,  bool read,  String createdAt,  String teamSlug,  String teamName,  String subjectType,  String subjectSlug,  String subjectName,  List<NotificationChange> changes,  String? actorName,  String? subjectDateTime,  String? excerpt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String type,  bool read,  String createdAt,  String teamSlug,  String teamName,  String subjectType,  String subjectSlug,  String subjectName,  List<NotificationChange> changes,  String? actorName,  String? subjectDateTime,  String? subjectTimezone,  String? excerpt)  $default,) {final _that = this;
 switch (_that) {
 case _NotificationDto():
-return $default(_that.id,_that.type,_that.read,_that.createdAt,_that.teamSlug,_that.teamName,_that.subjectType,_that.subjectSlug,_that.subjectName,_that.changes,_that.actorName,_that.subjectDateTime,_that.excerpt);case _:
+return $default(_that.id,_that.type,_that.read,_that.createdAt,_that.teamSlug,_that.teamName,_that.subjectType,_that.subjectSlug,_that.subjectName,_that.changes,_that.actorName,_that.subjectDateTime,_that.subjectTimezone,_that.excerpt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -225,10 +227,10 @@ return $default(_that.id,_that.type,_that.read,_that.createdAt,_that.teamSlug,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String type,  bool read,  String createdAt,  String teamSlug,  String teamName,  String subjectType,  String subjectSlug,  String subjectName,  List<NotificationChange> changes,  String? actorName,  String? subjectDateTime,  String? excerpt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String type,  bool read,  String createdAt,  String teamSlug,  String teamName,  String subjectType,  String subjectSlug,  String subjectName,  List<NotificationChange> changes,  String? actorName,  String? subjectDateTime,  String? subjectTimezone,  String? excerpt)?  $default,) {final _that = this;
 switch (_that) {
 case _NotificationDto() when $default != null:
-return $default(_that.id,_that.type,_that.read,_that.createdAt,_that.teamSlug,_that.teamName,_that.subjectType,_that.subjectSlug,_that.subjectName,_that.changes,_that.actorName,_that.subjectDateTime,_that.excerpt);case _:
+return $default(_that.id,_that.type,_that.read,_that.createdAt,_that.teamSlug,_that.teamName,_that.subjectType,_that.subjectSlug,_that.subjectName,_that.changes,_that.actorName,_that.subjectDateTime,_that.subjectTimezone,_that.excerpt);case _:
   return null;
 
 }
@@ -240,7 +242,7 @@ return $default(_that.id,_that.type,_that.read,_that.createdAt,_that.teamSlug,_t
 @JsonSerializable()
 
 class _NotificationDto implements NotificationDto {
-  const _NotificationDto({required this.id, required this.type, required this.read, required this.createdAt, required this.teamSlug, required this.teamName, required this.subjectType, required this.subjectSlug, required this.subjectName, required  List<NotificationChange> changes, this.actorName, this.subjectDateTime, this.excerpt}): _changes = changes;
+  const _NotificationDto({required this.id, required this.type, required this.read, required this.createdAt, required this.teamSlug, required this.teamName, required this.subjectType, required this.subjectSlug, required this.subjectName, required  List<NotificationChange> changes, this.actorName, this.subjectDateTime, this.subjectTimezone, this.excerpt}): _changes = changes;
   factory _NotificationDto.fromJson(Map<String, dynamic> json) => _$NotificationDtoFromJson(json);
 
 /// Notification identifier
@@ -274,6 +276,8 @@ class _NotificationDto implements NotificationDto {
 @override final  String? actorName;
 /// Date of the ride or trip, publication date of a post
 @override final  String? subjectDateTime;
+/// IANA zone subjectDateTime reads in — the subject's own, as RideDto.timezone: a rendezvous, shown in it with a mention when the reader's differs. Present when subjectDateTime is, except on notifications sent before 10.20.0, which read in the reader's zone
+@override final  String? subjectTimezone;
 /// A short quote: the comment, for COMMENT_REPLY and COMMENT_ON_MY_PUBLICATION; the name of the group joined, for RIDE_JOINED
 @override final  String? excerpt;
 
@@ -290,18 +294,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotificationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.read, read) || other.read == read)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.teamName, teamName) || other.teamName == teamName)&&(identical(other.subjectType, subjectType) || other.subjectType == subjectType)&&(identical(other.subjectSlug, subjectSlug) || other.subjectSlug == subjectSlug)&&(identical(other.subjectName, subjectName) || other.subjectName == subjectName)&&const DeepCollectionEquality().equals(other.changes, _changes)&&(identical(other.actorName, actorName) || other.actorName == actorName)&&(identical(other.subjectDateTime, subjectDateTime) || other.subjectDateTime == subjectDateTime)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotificationDto&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.read, read) || other.read == read)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.teamName, teamName) || other.teamName == teamName)&&(identical(other.subjectType, subjectType) || other.subjectType == subjectType)&&(identical(other.subjectSlug, subjectSlug) || other.subjectSlug == subjectSlug)&&(identical(other.subjectName, subjectName) || other.subjectName == subjectName)&&const DeepCollectionEquality().equals(other.changes, _changes)&&(identical(other.actorName, actorName) || other.actorName == actorName)&&(identical(other.subjectDateTime, subjectDateTime) || other.subjectDateTime == subjectDateTime)&&(identical(other.subjectTimezone, subjectTimezone) || other.subjectTimezone == subjectTimezone)&&(identical(other.excerpt, excerpt) || other.excerpt == excerpt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,type,read,createdAt,teamSlug,teamName,subjectType,subjectSlug,subjectName,const DeepCollectionEquality().hash(_changes),actorName,subjectDateTime,excerpt);
+    return Object.hash(runtimeType,id,type,read,createdAt,teamSlug,teamName,subjectType,subjectSlug,subjectName,const DeepCollectionEquality().hash(_changes),actorName,subjectDateTime,subjectTimezone,excerpt);
 }
 
 @override
 String toString() {
-    return 'NotificationDto(id: $id, type: $type, read: $read, createdAt: $createdAt, teamSlug: $teamSlug, teamName: $teamName, subjectType: $subjectType, subjectSlug: $subjectSlug, subjectName: $subjectName, changes: $changes, actorName: $actorName, subjectDateTime: $subjectDateTime, excerpt: $excerpt)';
+    return 'NotificationDto(id: $id, type: $type, read: $read, createdAt: $createdAt, teamSlug: $teamSlug, teamName: $teamName, subjectType: $subjectType, subjectSlug: $subjectSlug, subjectName: $subjectName, changes: $changes, actorName: $actorName, subjectDateTime: $subjectDateTime, subjectTimezone: $subjectTimezone, excerpt: $excerpt)';
 }
 
 
@@ -312,7 +316,7 @@ abstract mixin class _$NotificationDtoCopyWith<$Res> implements $NotificationDto
   factory _$NotificationDtoCopyWith(_NotificationDto value, $Res Function(_NotificationDto) _then) = __$NotificationDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String type, bool read, String createdAt, String teamSlug, String teamName, String subjectType, String subjectSlug, String subjectName, List<NotificationChange> changes, String? actorName, String? subjectDateTime, String? excerpt
+ String id, String type, bool read, String createdAt, String teamSlug, String teamName, String subjectType, String subjectSlug, String subjectName, List<NotificationChange> changes, String? actorName, String? subjectDateTime, String? subjectTimezone, String? excerpt
 });
 
 
@@ -329,7 +333,7 @@ class __$NotificationDtoCopyWithImpl<$Res>
 
 /// Create a copy of NotificationDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? read = null,Object? createdAt = null,Object? teamSlug = null,Object? teamName = null,Object? subjectType = null,Object? subjectSlug = null,Object? subjectName = null,Object? changes = null,Object? actorName = freezed,Object? subjectDateTime = freezed,Object? excerpt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? read = null,Object? createdAt = null,Object? teamSlug = null,Object? teamName = null,Object? subjectType = null,Object? subjectSlug = null,Object? subjectName = null,Object? changes = null,Object? actorName = freezed,Object? subjectDateTime = freezed,Object? subjectTimezone = freezed,Object? excerpt = freezed,}) {
   return _then(_NotificationDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -343,6 +347,7 @@ as String,subjectName: null == subjectName ? _self.subjectName : subjectName // 
 as String,changes: null == changes ? _self._changes : changes // ignore: cast_nullable_to_non_nullable
 as List<NotificationChange>,actorName: freezed == actorName ? _self.actorName : actorName // ignore: cast_nullable_to_non_nullable
 as String?,subjectDateTime: freezed == subjectDateTime ? _self.subjectDateTime : subjectDateTime // ignore: cast_nullable_to_non_nullable
+as String?,subjectTimezone: freezed == subjectTimezone ? _self.subjectTimezone : subjectTimezone // ignore: cast_nullable_to_non_nullable
 as String?,excerpt: freezed == excerpt ? _self.excerpt : excerpt // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

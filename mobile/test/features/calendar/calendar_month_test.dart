@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pedalons/api/generated/export.dart';
+import 'package:pedalons/core/utils/formatters.dart';
 import 'package:pedalons/features/calendar/presentation/widgets/calendar_subscription_card.dart';
 import 'package:pedalons/features/calendar/providers/calendar_month_provider.dart';
 
@@ -9,12 +10,14 @@ CalendarEventDto event({
   bool registered = false,
   String status = 'PUBLISHED',
   String? groupName,
+  bool allDay = false,
+  String timezone = 'Europe/Paris',
 }) => CalendarEventDto(
-  timezone: 'Europe/Paris',
+  timezone: timezone,
   id: start,
   title: 'Sortie $start',
   start: start,
-  allDay: false,
+  allDay: allDay,
   type: type,
   teamSlug: 'n-peloton',
   teamName: 'N-Peloton',
@@ -67,6 +70,29 @@ void main() {
       expect(day.month, expected.month);
       expect(day.day, expected.day);
       expect(day.hour, 0);
+    });
+  });
+
+  group('la grille est dans le fuseau du lecteur, même en journée entière', () {
+    tearDown(() => AppFormatters.setDisplayTimezone(null));
+
+    test('une étape du 12 à Tokyo tombe le 11 lue depuis Paris', () {
+      // Plan §7 : une même grille ne porte qu'un fuseau, celui du lecteur —
+      // parité avec la grille web (docs/LEDGER_*.md API-60). 00:30 le 12 à
+      // Tokyo = 15:30Z le 11 = 17:30 le 11 à Paris.
+      AppFormatters.setDisplayTimezone('Europe/Paris');
+      const String start = '2026-10-11T15:30:00Z';
+
+      expect(
+        CalendarMonth.dayOf(
+          event(start: start, allDay: true, timezone: 'Asia/Tokyo'),
+        ),
+        DateTime(2026, 10, 11),
+      );
+      expect(
+        CalendarMonth.dayOf(event(start: start, timezone: 'Asia/Tokyo')),
+        DateTime(2026, 10, 11),
+      );
     });
   });
 

@@ -64,6 +64,12 @@ export const ListMyNotificationsResponse = zod
               .datetime({ offset: true })
               .optional()
               .describe('Date of the ride or trip, publication date of a post'),
+            subjectTimezone: zod
+              .string()
+              .optional()
+              .describe(
+                "IANA zone subjectDateTime reads in — the subject's own, as RideDto.timezone: a rendezvous, shown in it with a mention when the reader's differs. Present when subjectDateTime is, except on notifications sent before 10.20.0, which read in the reader's zone"
+              ),
             excerpt: zod
               .string()
               .optional()

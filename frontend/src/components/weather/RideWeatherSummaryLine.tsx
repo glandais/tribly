@@ -13,7 +13,10 @@ import { rainAlertCondition, showsSummary, temperatureRange } from './weatherDis
 
 interface RideWeatherSummaryLineProps {
   summary: RideWeatherSummaryDto | undefined
-  /** The ride's or stage's zone: passages are rendezvous read in it (docs/LEDGER_*.md API-60). */
+  /**
+   * The ride's or stage's zone: passages are rendezvous read in it (docs/LEDGER_*.md API-60). The
+   * summary's own `timezone` wins when set — a trip's card, whose line is its next stage's.
+   */
   timezone?: string
 }
 
@@ -33,7 +36,7 @@ export function RideWeatherSummaryLine({ summary, timezone }: RideWeatherSummary
   const { t } = useTranslation()
   const { temperature, unitSystem } = useUnits()
   const { formatDate, isGuessedTimezone } = useFormattedDate()
-  const passage = useRendezvousFormat(timezone)
+  const passage = useRendezvousFormat(summary?.timezone ?? timezone)
   const labels = useWeatherLabels()
 
   if (!summary || !showsSummary(summary)) return null

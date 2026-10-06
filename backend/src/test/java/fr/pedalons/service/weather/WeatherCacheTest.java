@@ -18,6 +18,7 @@ import static org.mockito.Mockito.when;
 import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.ride.Ride;
+import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.route.GpxTrack.TrackPoint;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.weather.WeatherCell;
@@ -32,6 +33,7 @@ import fr.pedalons.repository.place.PlaceRepository;
 import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.weather.WeatherCellRepository;
 import fr.pedalons.repository.weather.WeatherHourlyRepository;
+import fr.pedalons.repository.weather.WeatherHourlyRepository.RideWindowHour;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -39,6 +41,8 @@ import jakarta.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -206,6 +210,76 @@ class WeatherCacheTest extends AbstractResourceTest {
                 });
 
     assertEquals(1, statements);
+  }
+
+  /**
+   * The list's SQL and the detail start a timed group from the same instant (docs/LEDGER_*.md
+   * API-60): its stored start_at, else its time on the ride's local date in the <em>ride's</em> zone
+   * — here Tokyo, while the departure cell's zone is Paris, which dates only its daily rows.
+   */
+  @Test
+  void forRides_aTimedGroup_startsWhereTheDetailStartsIt() {
+    ZoneId tokyo = ZoneId.of("Asia/Tokyo");
+    Instant departure = ride.getDateTime();
+    RideGroup group = dataService.createRideGroup(user1, ride, "Groupe");
+    QuarkusTransaction.requiringNew()
+        .run(
+            () -> {
+              Ride managed = rideRepository.findById(ride.getId());
+              managed.setTimezone(tokyo.getId());
+              // The list reads the route's stored length; the detail, its samples (30 km).
+              managed.getRoute().setDistance(30_000f);
+              RideGroup g = rideRepository.getEntityManager().find(RideGroup.class, group.getId());
+              // Its wall time is the ride's own, in Tokyo; no start_at, as an older backend left
+              // it.
+              g.setTime(LocalTime.from(departure.atZone(tokyo)));
+              g.setAverageSpeed(30f);
+              g.setStartAt(null);
+            });
+    planner.plan(Instant.now());
+    worker.fetchDue();
+
+    // 30 km at 30 km/h from the ride's own instant: Paris would have read it 7 hours off.
+    assertEquals(departure.plus(Duration.ofHours(1)), listLastArrival());
+    assertEquals(departure.plus(Duration.ofHours(1)), detailArrival(group.getId()));
+
+    // A stored start_at wins over the time, in both.
+    Instant stored = departure.plus(Duration.ofHours(3));
+    QuarkusTransaction.requiringNew()
+        .run(
+            () ->
+                rideRepository
+                    .getEntityManager()
+                    .find(RideGroup.class, group.getId())
+                    .setStartAt(stored));
+    assertEquals(stored.plus(Duration.ofHours(1)), listLastArrival());
+    assertEquals(stored.plus(Duration.ofHours(1)), detailArrival(group.getId()));
+  }
+
+  private Instant listLastArrival() {
+    List<RideWindowHour> hours =
+        QuarkusTransaction.requiringNew()
+            .call(
+                () ->
+                    hourlyRepository.findRideWindowHours(
+                        List.of(ride.getId()),
+                        CellKey.SQL_LAT_IDX,
+                        CellKey.SQL_LON_IDX,
+                        RideWeatherCalculator.DEFAULT_SPEED_KMH,
+                        RideWeatherLookup.SLACK));
+    assertTrue(!hours.isEmpty());
+    return hours.getFirst().lastArrival();
+  }
+
+  private Instant detailArrival(Long groupId) {
+    RideWeather weather =
+        QuarkusTransaction.requiringNew()
+            .call(() -> rideWeatherService.forRide(rideRepository.findById(ride.getId())));
+    return weather.legs().stream()
+        .filter(leg -> groupId.equals(leg.groupId()))
+        .findFirst()
+        .orElseThrow()
+        .arrivalTime();
   }
 
   @Test

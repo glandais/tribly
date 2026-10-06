@@ -27,7 +27,8 @@ mixin _$RideWeatherSummaryDto {
  double? get temperatureMax;/// Highest probability of precipitation over the window, %. Absent when the model gives none.
  int? get maxPrecipitationProbability;/// Wind at the departure hour
  WindDto? get wind;/// The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)
- WeatherRainAlertDto? get rainAlert;
+ WeatherRainAlertDto? get rainAlert;/// IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies.
+ String? get timezone;
 /// Create a copy of RideWeatherSummaryDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -41,20 +42,20 @@ $RideWeatherSummaryDtoCopyWith<RideWeatherSummaryDto> get copyWith => _$RideWeat
 @override
 bool operator ==(Object other) {
   final _this = this as RideWeatherSummaryDto;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideWeatherSummaryDto&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.availableFrom, _this.availableFrom) || other.availableFrom == _this.availableFrom)&&(identical(other.weatherCode, _this.weatherCode) || other.weatherCode == _this.weatherCode)&&(identical(other.condition, _this.condition) || other.condition == _this.condition)&&(identical(other.daylight, _this.daylight) || other.daylight == _this.daylight)&&(identical(other.temperature, _this.temperature) || other.temperature == _this.temperature)&&(identical(other.temperatureMin, _this.temperatureMin) || other.temperatureMin == _this.temperatureMin)&&(identical(other.temperatureMax, _this.temperatureMax) || other.temperatureMax == _this.temperatureMax)&&(identical(other.maxPrecipitationProbability, _this.maxPrecipitationProbability) || other.maxPrecipitationProbability == _this.maxPrecipitationProbability)&&(identical(other.wind, _this.wind) || other.wind == _this.wind)&&(identical(other.rainAlert, _this.rainAlert) || other.rainAlert == _this.rainAlert));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RideWeatherSummaryDto&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.availableFrom, _this.availableFrom) || other.availableFrom == _this.availableFrom)&&(identical(other.weatherCode, _this.weatherCode) || other.weatherCode == _this.weatherCode)&&(identical(other.condition, _this.condition) || other.condition == _this.condition)&&(identical(other.daylight, _this.daylight) || other.daylight == _this.daylight)&&(identical(other.temperature, _this.temperature) || other.temperature == _this.temperature)&&(identical(other.temperatureMin, _this.temperatureMin) || other.temperatureMin == _this.temperatureMin)&&(identical(other.temperatureMax, _this.temperatureMax) || other.temperatureMax == _this.temperatureMax)&&(identical(other.maxPrecipitationProbability, _this.maxPrecipitationProbability) || other.maxPrecipitationProbability == _this.maxPrecipitationProbability)&&(identical(other.wind, _this.wind) || other.wind == _this.wind)&&(identical(other.rainAlert, _this.rainAlert) || other.rainAlert == _this.rainAlert)&&(identical(other.timezone, _this.timezone) || other.timezone == _this.timezone));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as RideWeatherSummaryDto;
-  return Object.hash(runtimeType,_this.status,_this.availableFrom,_this.weatherCode,_this.condition,_this.daylight,_this.temperature,_this.temperatureMin,_this.temperatureMax,_this.maxPrecipitationProbability,_this.wind,_this.rainAlert);
+  return Object.hash(runtimeType,_this.status,_this.availableFrom,_this.weatherCode,_this.condition,_this.daylight,_this.temperature,_this.temperatureMin,_this.temperatureMax,_this.maxPrecipitationProbability,_this.wind,_this.rainAlert,_this.timezone);
 }
 
 @override
 String toString() {
   final _this = this as RideWeatherSummaryDto;
-  return 'RideWeatherSummaryDto(status: ${_this.status}, availableFrom: ${_this.availableFrom}, weatherCode: ${_this.weatherCode}, condition: ${_this.condition}, daylight: ${_this.daylight}, temperature: ${_this.temperature}, temperatureMin: ${_this.temperatureMin}, temperatureMax: ${_this.temperatureMax}, maxPrecipitationProbability: ${_this.maxPrecipitationProbability}, wind: ${_this.wind}, rainAlert: ${_this.rainAlert})';
+  return 'RideWeatherSummaryDto(status: ${_this.status}, availableFrom: ${_this.availableFrom}, weatherCode: ${_this.weatherCode}, condition: ${_this.condition}, daylight: ${_this.daylight}, temperature: ${_this.temperature}, temperatureMin: ${_this.temperatureMin}, temperatureMax: ${_this.temperatureMax}, maxPrecipitationProbability: ${_this.maxPrecipitationProbability}, wind: ${_this.wind}, rainAlert: ${_this.rainAlert}, timezone: ${_this.timezone})';
 }
 
 
@@ -65,7 +66,7 @@ abstract mixin class $RideWeatherSummaryDtoCopyWith<$Res>  {
   factory $RideWeatherSummaryDtoCopyWith(RideWeatherSummaryDto value, $Res Function(RideWeatherSummaryDto) _then) = _$RideWeatherSummaryDtoCopyWithImpl;
 @useResult
 $Res call({
- String status, String? availableFrom, int? weatherCode, String? condition, bool? daylight, double? temperature, double? temperatureMin, double? temperatureMax, int? maxPrecipitationProbability, WindDto? wind, WeatherRainAlertDto? rainAlert
+ String status, String? availableFrom, int? weatherCode, String? condition, bool? daylight, double? temperature, double? temperatureMin, double? temperatureMax, int? maxPrecipitationProbability, WindDto? wind, WeatherRainAlertDto? rainAlert, String? timezone
 });
 
 
@@ -82,7 +83,7 @@ class _$RideWeatherSummaryDtoCopyWithImpl<$Res>
 
 /// Create a copy of RideWeatherSummaryDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? availableFrom = freezed,Object? weatherCode = freezed,Object? condition = freezed,Object? daylight = freezed,Object? temperature = freezed,Object? temperatureMin = freezed,Object? temperatureMax = freezed,Object? maxPrecipitationProbability = freezed,Object? wind = freezed,Object? rainAlert = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? availableFrom = freezed,Object? weatherCode = freezed,Object? condition = freezed,Object? daylight = freezed,Object? temperature = freezed,Object? temperatureMin = freezed,Object? temperatureMax = freezed,Object? maxPrecipitationProbability = freezed,Object? wind = freezed,Object? rainAlert = freezed,Object? timezone = freezed,}) {
   return _then(RideWeatherSummaryDto(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,availableFrom: freezed == availableFrom ? _self.availableFrom : availableFrom // ignore: cast_nullable_to_non_nullable
@@ -95,7 +96,8 @@ as double?,temperatureMax: freezed == temperatureMax ? _self.temperatureMax : te
 as double?,maxPrecipitationProbability: freezed == maxPrecipitationProbability ? _self.maxPrecipitationProbability : maxPrecipitationProbability // ignore: cast_nullable_to_non_nullable
 as int?,wind: freezed == wind ? _self.wind : wind // ignore: cast_nullable_to_non_nullable
 as WindDto?,rainAlert: freezed == rainAlert ? _self.rainAlert : rainAlert // ignore: cast_nullable_to_non_nullable
-as WeatherRainAlertDto?,
+as WeatherRainAlertDto?,timezone: freezed == timezone ? _self.timezone : timezone // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 /// Create a copy of RideWeatherSummaryDto
@@ -204,10 +206,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String status,  String? availableFrom,  int? weatherCode,  String? condition,  bool? daylight,  double? temperature,  double? temperatureMin,  double? temperatureMax,  int? maxPrecipitationProbability,  WindDto? wind,  WeatherRainAlertDto? rainAlert)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String status,  String? availableFrom,  int? weatherCode,  String? condition,  bool? daylight,  double? temperature,  double? temperatureMin,  double? temperatureMax,  int? maxPrecipitationProbability,  WindDto? wind,  WeatherRainAlertDto? rainAlert,  String? timezone)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RideWeatherSummaryDto() when $default != null:
-return $default(_that.status,_that.availableFrom,_that.weatherCode,_that.condition,_that.daylight,_that.temperature,_that.temperatureMin,_that.temperatureMax,_that.maxPrecipitationProbability,_that.wind,_that.rainAlert);case _:
+return $default(_that.status,_that.availableFrom,_that.weatherCode,_that.condition,_that.daylight,_that.temperature,_that.temperatureMin,_that.temperatureMax,_that.maxPrecipitationProbability,_that.wind,_that.rainAlert,_that.timezone);case _:
   return orElse();
 
 }
@@ -225,10 +227,10 @@ return $default(_that.status,_that.availableFrom,_that.weatherCode,_that.conditi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String status,  String? availableFrom,  int? weatherCode,  String? condition,  bool? daylight,  double? temperature,  double? temperatureMin,  double? temperatureMax,  int? maxPrecipitationProbability,  WindDto? wind,  WeatherRainAlertDto? rainAlert)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String status,  String? availableFrom,  int? weatherCode,  String? condition,  bool? daylight,  double? temperature,  double? temperatureMin,  double? temperatureMax,  int? maxPrecipitationProbability,  WindDto? wind,  WeatherRainAlertDto? rainAlert,  String? timezone)  $default,) {final _that = this;
 switch (_that) {
 case _RideWeatherSummaryDto():
-return $default(_that.status,_that.availableFrom,_that.weatherCode,_that.condition,_that.daylight,_that.temperature,_that.temperatureMin,_that.temperatureMax,_that.maxPrecipitationProbability,_that.wind,_that.rainAlert);case _:
+return $default(_that.status,_that.availableFrom,_that.weatherCode,_that.condition,_that.daylight,_that.temperature,_that.temperatureMin,_that.temperatureMax,_that.maxPrecipitationProbability,_that.wind,_that.rainAlert,_that.timezone);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -245,10 +247,10 @@ return $default(_that.status,_that.availableFrom,_that.weatherCode,_that.conditi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String status,  String? availableFrom,  int? weatherCode,  String? condition,  bool? daylight,  double? temperature,  double? temperatureMin,  double? temperatureMax,  int? maxPrecipitationProbability,  WindDto? wind,  WeatherRainAlertDto? rainAlert)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String status,  String? availableFrom,  int? weatherCode,  String? condition,  bool? daylight,  double? temperature,  double? temperatureMin,  double? temperatureMax,  int? maxPrecipitationProbability,  WindDto? wind,  WeatherRainAlertDto? rainAlert,  String? timezone)?  $default,) {final _that = this;
 switch (_that) {
 case _RideWeatherSummaryDto() when $default != null:
-return $default(_that.status,_that.availableFrom,_that.weatherCode,_that.condition,_that.daylight,_that.temperature,_that.temperatureMin,_that.temperatureMax,_that.maxPrecipitationProbability,_that.wind,_that.rainAlert);case _:
+return $default(_that.status,_that.availableFrom,_that.weatherCode,_that.condition,_that.daylight,_that.temperature,_that.temperatureMin,_that.temperatureMax,_that.maxPrecipitationProbability,_that.wind,_that.rainAlert,_that.timezone);case _:
   return null;
 
 }
@@ -260,7 +262,7 @@ return $default(_that.status,_that.availableFrom,_that.weatherCode,_that.conditi
 @JsonSerializable()
 
 class _RideWeatherSummaryDto implements RideWeatherSummaryDto {
-  const _RideWeatherSummaryDto({required this.status, this.availableFrom, this.weatherCode, this.condition, this.daylight, this.temperature, this.temperatureMin, this.temperatureMax, this.maxPrecipitationProbability, this.wind, this.rainAlert});
+  const _RideWeatherSummaryDto({required this.status, this.availableFrom, this.weatherCode, this.condition, this.daylight, this.temperature, this.temperatureMin, this.temperatureMax, this.maxPrecipitationProbability, this.wind, this.rainAlert, this.timezone});
   factory _RideWeatherSummaryDto.fromJson(Map<String, dynamic> json) => _$RideWeatherSummaryDtoFromJson(json);
 
 /// OK, STALE or NOT_YET_AVAILABLE
@@ -285,6 +287,8 @@ class _RideWeatherSummaryDto implements RideWeatherSummaryDto {
 @override final  WindDto? wind;
 /// The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)
 @override final  WeatherRainAlertDto? rainAlert;
+/// IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies.
+@override final  String? timezone;
 
 /// Create a copy of RideWeatherSummaryDto
 /// with the given fields replaced by the non-null parameter values.
@@ -299,18 +303,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideWeatherSummaryDto&&(identical(other.status, status) || other.status == status)&&(identical(other.availableFrom, availableFrom) || other.availableFrom == availableFrom)&&(identical(other.weatherCode, weatherCode) || other.weatherCode == weatherCode)&&(identical(other.condition, condition) || other.condition == condition)&&(identical(other.daylight, daylight) || other.daylight == daylight)&&(identical(other.temperature, temperature) || other.temperature == temperature)&&(identical(other.temperatureMin, temperatureMin) || other.temperatureMin == temperatureMin)&&(identical(other.temperatureMax, temperatureMax) || other.temperatureMax == temperatureMax)&&(identical(other.maxPrecipitationProbability, maxPrecipitationProbability) || other.maxPrecipitationProbability == maxPrecipitationProbability)&&(identical(other.wind, wind) || other.wind == wind)&&(identical(other.rainAlert, rainAlert) || other.rainAlert == rainAlert));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RideWeatherSummaryDto&&(identical(other.status, status) || other.status == status)&&(identical(other.availableFrom, availableFrom) || other.availableFrom == availableFrom)&&(identical(other.weatherCode, weatherCode) || other.weatherCode == weatherCode)&&(identical(other.condition, condition) || other.condition == condition)&&(identical(other.daylight, daylight) || other.daylight == daylight)&&(identical(other.temperature, temperature) || other.temperature == temperature)&&(identical(other.temperatureMin, temperatureMin) || other.temperatureMin == temperatureMin)&&(identical(other.temperatureMax, temperatureMax) || other.temperatureMax == temperatureMax)&&(identical(other.maxPrecipitationProbability, maxPrecipitationProbability) || other.maxPrecipitationProbability == maxPrecipitationProbability)&&(identical(other.wind, wind) || other.wind == wind)&&(identical(other.rainAlert, rainAlert) || other.rainAlert == rainAlert)&&(identical(other.timezone, timezone) || other.timezone == timezone));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,status,availableFrom,weatherCode,condition,daylight,temperature,temperatureMin,temperatureMax,maxPrecipitationProbability,wind,rainAlert);
+    return Object.hash(runtimeType,status,availableFrom,weatherCode,condition,daylight,temperature,temperatureMin,temperatureMax,maxPrecipitationProbability,wind,rainAlert,timezone);
 }
 
 @override
 String toString() {
-    return 'RideWeatherSummaryDto(status: $status, availableFrom: $availableFrom, weatherCode: $weatherCode, condition: $condition, daylight: $daylight, temperature: $temperature, temperatureMin: $temperatureMin, temperatureMax: $temperatureMax, maxPrecipitationProbability: $maxPrecipitationProbability, wind: $wind, rainAlert: $rainAlert)';
+    return 'RideWeatherSummaryDto(status: $status, availableFrom: $availableFrom, weatherCode: $weatherCode, condition: $condition, daylight: $daylight, temperature: $temperature, temperatureMin: $temperatureMin, temperatureMax: $temperatureMax, maxPrecipitationProbability: $maxPrecipitationProbability, wind: $wind, rainAlert: $rainAlert, timezone: $timezone)';
 }
 
 
@@ -321,7 +325,7 @@ abstract mixin class _$RideWeatherSummaryDtoCopyWith<$Res> implements $RideWeath
   factory _$RideWeatherSummaryDtoCopyWith(_RideWeatherSummaryDto value, $Res Function(_RideWeatherSummaryDto) _then) = __$RideWeatherSummaryDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String status, String? availableFrom, int? weatherCode, String? condition, bool? daylight, double? temperature, double? temperatureMin, double? temperatureMax, int? maxPrecipitationProbability, WindDto? wind, WeatherRainAlertDto? rainAlert
+ String status, String? availableFrom, int? weatherCode, String? condition, bool? daylight, double? temperature, double? temperatureMin, double? temperatureMax, int? maxPrecipitationProbability, WindDto? wind, WeatherRainAlertDto? rainAlert, String? timezone
 });
 
 
@@ -338,7 +342,7 @@ class __$RideWeatherSummaryDtoCopyWithImpl<$Res>
 
 /// Create a copy of RideWeatherSummaryDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? availableFrom = freezed,Object? weatherCode = freezed,Object? condition = freezed,Object? daylight = freezed,Object? temperature = freezed,Object? temperatureMin = freezed,Object? temperatureMax = freezed,Object? maxPrecipitationProbability = freezed,Object? wind = freezed,Object? rainAlert = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? availableFrom = freezed,Object? weatherCode = freezed,Object? condition = freezed,Object? daylight = freezed,Object? temperature = freezed,Object? temperatureMin = freezed,Object? temperatureMax = freezed,Object? maxPrecipitationProbability = freezed,Object? wind = freezed,Object? rainAlert = freezed,Object? timezone = freezed,}) {
   return _then(_RideWeatherSummaryDto(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,availableFrom: freezed == availableFrom ? _self.availableFrom : availableFrom // ignore: cast_nullable_to_non_nullable
@@ -351,7 +355,8 @@ as double?,temperatureMax: freezed == temperatureMax ? _self.temperatureMax : te
 as double?,maxPrecipitationProbability: freezed == maxPrecipitationProbability ? _self.maxPrecipitationProbability : maxPrecipitationProbability // ignore: cast_nullable_to_non_nullable
 as int?,wind: freezed == wind ? _self.wind : wind // ignore: cast_nullable_to_non_nullable
 as WindDto?,rainAlert: freezed == rainAlert ? _self.rainAlert : rainAlert // ignore: cast_nullable_to_non_nullable
-as WeatherRainAlertDto?,
+as WeatherRainAlertDto?,timezone: freezed == timezone ? _self.timezone : timezone // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

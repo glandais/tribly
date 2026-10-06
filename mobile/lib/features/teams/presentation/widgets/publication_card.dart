@@ -367,6 +367,7 @@ class _RideBody extends ConsumerWidget {
           )
           ? RideWeatherSummaryLine(
               summary: ride.weather,
+              timezone: ride.timezone,
               finished: isPast,
               cancelled: ride.status == 'CANCELLED',
             )
@@ -545,6 +546,7 @@ class _TripBody extends ConsumerWidget {
           )
           ? RideWeatherSummaryLine(
               summary: trip.weather,
+              timezone: trip.timezone,
               finished: trip.finished,
               cancelled: trip.status == 'CANCELLED',
             )

@@ -34,6 +34,7 @@ import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.CheckAccess;
 import fr.pedalons.service.team.TeamService;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -41,7 +42,6 @@ import jakarta.transaction.Transactional;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.Optional;
@@ -74,8 +74,6 @@ public class CalendarService {
 
   @Inject ThumbnailLookup thumbnailLookup;
 
-  @Inject StageTimezones stageTimezones;
-
   /**
    * Days a feed token survives without being fetched (docs/LEDGER_*.md SEC-17). Calendar apps poll
    * several times a day, so a live subscription is never near it.
@@ -87,15 +85,16 @@ public class CalendarService {
   public CalendarEventsResponse getEventsForUser(
       AuthMode authMode, @Nullable Instant from, @Nullable Instant to) {
     User user = pedalonsQueryContext.getUser();
-    return getEventsForUserInternal(user, resolveFrom(from), resolveTo(to)).response();
+    return getEventsForUserInternal(user, resolveFrom(from), resolveTo(to));
   }
 
   @CheckAccess(entityType = EntityType.CALENDAR, action = ActionType.LIST_ALL_TEAMS)
   public String generateIcs(AuthMode authMode, String token) {
     User user = validateToken(token);
-    Feed feed = getEventsForUserInternal(user, getDefaultFrom(), getDefaultTo());
-    return icsGenerationService.generateIcs(
-        feed.response().events(), "Pedalons - Mes sorties", feed.allDayZones());
+    CalendarEventsResponse feed = getEventsForUserInternal(user, getDefaultFrom(), getDefaultTo());
+    // Several teams, so no zone of the calendar's own: X-WR-TIMEZONE is left out and the
+    // reader's agenda shows every UTC instant in its own zone (docs/LEDGER_*.md API-60).
+    return icsGenerationService.generateIcs(feed.events(), "Pedalons - Mes sorties", null);
   }
 
   @CheckAccess(entityType = EntityType.CALENDAR, action = ActionType.LIST)
@@ -103,16 +102,16 @@ public class CalendarService {
       AuthMode authMode, String teamSlug, @Nullable Instant from, @Nullable Instant to) {
     Team team = teamService.getTeam(teamSlug);
     User user = pedalonsQueryContext.getUser();
-    return getTeamEvents(team, user, resolveFrom(from), resolveTo(to)).response();
+    return getTeamEvents(team, user, resolveFrom(from), resolveTo(to));
   }
 
   @CheckAccess(entityType = EntityType.CALENDAR, action = ActionType.LIST)
   public String generateIcsForTeam(AuthMode authMode, String token, String teamSlug) {
     User user = validateToken(token);
     Team team = teamService.getTeam(teamSlug);
-    Feed feed = getTeamEvents(team, user, getDefaultFrom(), getDefaultTo());
+    CalendarEventsResponse feed = getTeamEvents(team, user, getDefaultFrom(), getDefaultTo());
     return icsGenerationService.generateIcs(
-        feed.response().events(), "Pedalons - " + team.getName(), feed.allDayZones());
+        feed.events(), "Pedalons - " + team.getName(), EventTimezoneResolver.teamZone(team));
   }
 
   private Instant resolveFrom(@Nullable Instant from) {
@@ -211,11 +210,11 @@ public class CalendarService {
   }
 
   @Transactional
-  protected Feed getTeamEvents(Team team, User user, Instant from, Instant to) {
+  protected CalendarEventsResponse getTeamEvents(Team team, User user, Instant from, Instant to) {
     return buildEvents(Set.of(team.getId()), user, from, to);
   }
 
-  private Feed getEventsForUserInternal(User user, Instant from, Instant to) {
+  private CalendarEventsResponse getEventsForUserInternal(User user, Instant from, Instant to) {
     Set<Long> teamIds =
         userTeamRepository.findByUserId(user.getId()).stream()
             .map(UserTeam::getTeam)
@@ -225,7 +224,7 @@ public class CalendarService {
     // An empty teamIds set means "no team filter" downstream, which would turn a personal calendar
     // into a domain-wide one.
     if (teamIds.isEmpty()) {
-      return new Feed(new CalendarEventsResponse(List.of()), Map.of());
+      return new CalendarEventsResponse(List.of());
     }
 
     return buildEvents(teamIds, user, from, to);
@@ -241,7 +240,8 @@ public class CalendarService {
    * places cost nothing extra — {@code Ride.route}, {@code Ride.start} and the stage equivalents are
    * eager to-ones already loaded with the publication.
    */
-  private Feed buildEvents(Set<Long> teamIds, User user, Instant from, Instant to) {
+  private CalendarEventsResponse buildEvents(
+      Set<Long> teamIds, User user, Instant from, Instant to) {
     List<Ride> rides =
         getPublications(teamIds, user, from, to, PublicationType.RIDE).stream()
             .map(Ride.class::cast)
@@ -266,16 +266,8 @@ public class CalendarService {
     for (TripStage stage : stages) {
       events.add(toCalendarEvent(stage, participations, thumbnails));
     }
-    Map<String, ZoneId> allDayZones = new HashMap<>();
-    stageTimezones.of(stages).forEach((id, zone) -> allDayZones.put(TsidUtils.toString(id), zone));
-    return new Feed(new CalendarEventsResponse(events), allDayZones);
+    return new CalendarEventsResponse(events);
   }
-
-  /**
-   * The events of a window, and the zone each stage's calendar days are counted in — read by the
-   * ICS feeds only, for their all-day events (docs/LEDGER_*.md API-90).
-   */
-  protected record Feed(CalendarEventsResponse response, Map<String, ZoneId> allDayZones) {}
 
   private static List<Long> ids(List<? extends Publication> publications) {
     return publications.stream().map(Publication::getId).toList();

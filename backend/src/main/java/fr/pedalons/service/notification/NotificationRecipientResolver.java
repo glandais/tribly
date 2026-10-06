@@ -95,6 +95,8 @@ public class NotificationRecipientResolver {
       String subjectSlug,
       String subjectName,
       @Nullable Instant subjectDateTime,
+      /** The zone {@code subjectDateTime} reads in — the subject's (docs/LEDGER_*.md API-60). */
+      @Nullable String subjectTimezone,
       @Nullable String excerpt,
       List<NotificationChange> changes,
       List<User> recipients) {
@@ -110,6 +112,8 @@ public class NotificationRecipientResolver {
           subject.getSlug(),
           subject.getName(),
           subject.getDateTime(),
+          // The stored zone, else the team's for a row an older backend wrote without one.
+          subject.getDateTime() != null ? subject.zone().getId() : null,
           excerpt,
           List.of(),
           recipients);
@@ -199,6 +203,7 @@ public class NotificationRecipientResolver {
             registered.subjectSlug(),
             registered.subjectName(),
             registered.subjectDateTime(),
+            registered.subjectTimezone(),
             null,
             List.copyOf(changes),
             registered.recipients()));
@@ -307,6 +312,7 @@ public class NotificationRecipientResolver {
             team.getName(),
             null,
             null,
+            null,
             List.of(),
             recipients));
   }
@@ -355,6 +361,7 @@ public class NotificationRecipientResolver {
             NotificationSubjectType.REPORT,
             team.getSlug(),
             team.getName(),
+            null,
             null,
             null,
             List.of(),

@@ -1430,6 +1430,12 @@ export const CreateTripResponse = zod
           .describe(
             "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
+          ),
       })
       .optional()
       .describe(
@@ -2869,6 +2875,12 @@ export const UpdateTripResponse = zod
           .describe(
             "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
+          ),
       })
       .optional()
       .describe(
@@ -3843,6 +3855,12 @@ export const GetTripResponse = zod
           .optional()
           .describe(
             "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
+          ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
           ),
       })
       .optional()
@@ -4924,6 +4942,12 @@ export const ChangeTripSlugResponse = zod
           .describe(
             "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
+          ),
       })
       .optional()
       .describe(
@@ -5905,6 +5929,12 @@ export const ChangeTripStatusResponse = zod
           .describe(
             "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
+          ),
       })
       .optional()
       .describe(
@@ -6880,6 +6910,12 @@ export const UndeleteTripResponse = zod
           .describe(
             "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
           ),
+        timezone: zod
+          .string()
+          .optional()
+          .describe(
+            "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
+          ),
       })
       .optional()
       .describe(
@@ -7036,6 +7072,12 @@ export const GetTripWeatherResponse = zod
                   .optional()
                   .describe(
                     "The first hour of the window with rain likely (50 % or more). Its distance is absent on a ride's summary, present on a trip stage's (the checkpoint's)"
+                  ),
+                timezone: zod
+                  .string()
+                  .optional()
+                  .describe(
+                    "IANA zone the times of this summary (rain alert) are read in, as rendezvous with no zone mention. Set on a trip's card, where it is its next stage's zone — not TripDto.timezone, the first stage's. Absent elsewhere: the owner's timezone (RideDto, TripStageDto) applies."
                   ),
               })
               .optional()

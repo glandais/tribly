@@ -160,6 +160,7 @@ class NextRideCard extends ConsumerWidget {
                       const SizedBox(height: PdlSpacing.chipGap),
                       RideWeatherSummaryLine(
                         summary: ride.weather,
+                        timezone: ride.timezone,
                         finished: ride.isPast,
                         cancelled: ride.isCancelled,
                       ),

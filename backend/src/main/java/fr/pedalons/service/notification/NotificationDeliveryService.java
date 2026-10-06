@@ -142,6 +142,7 @@ public class NotificationDeliveryService {
         event.getSubjectSlug(),
         event.getSubjectName(),
         event.getSubjectDateTime(),
+        event.getSubjectTimezone(),
         event.getExcerpt(),
         event.getBaseUrl(),
         event.getSiteName(),

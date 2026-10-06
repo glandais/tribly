@@ -72,6 +72,13 @@ class NotificationTile extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      if (notification.subjectDateLine() case final String date)
+                        Text(
+                          date,
+                          style: t.xs,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       if (notification.detail() case final String detail)
                         Text(
                           detail,

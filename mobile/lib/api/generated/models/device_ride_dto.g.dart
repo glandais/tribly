@@ -11,6 +11,7 @@ _DeviceRideDto _$DeviceRideDtoFromJson(Map<String, dynamic> json) =>
       teamSlug: json['teamSlug'] as String,
       rideSlug: json['rideSlug'] as String,
       rideName: json['rideName'] as String,
+      timezone: json['timezone'] as String,
       entries: (json['entries'] as List<dynamic>)
           .map((e) => DeviceRideEntryDto.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -22,6 +23,7 @@ Map<String, dynamic> _$DeviceRideDtoToJson(_DeviceRideDto instance) =>
       'teamSlug': instance.teamSlug,
       'rideSlug': instance.rideSlug,
       'rideName': instance.rideName,
+      'timezone': instance.timezone,
       'entries': instance.entries.map((e) => e.toJson()).toList(),
       'startDateTime': instance.startDateTime,
     };

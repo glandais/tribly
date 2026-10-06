@@ -289,6 +289,56 @@ class EventTimezoneResolverTest {
         EventTimezoneResolver.groupStart(ride, group, PARIS));
   }
 
+  // ─── startAt, the one reader of a group's departure (docs/LEDGER_*.md API-60) ──
+
+  @Test
+  void startAt_theStoredInstantWins_overTheTime() {
+    Ride ride = new Ride();
+    ride.setTeam(team(PARIS));
+    ride.setTimezone(PARIS.getId());
+    ride.setDateTime(Instant.parse("2030-06-02T07:00:00Z"));
+    RideGroup group = new RideGroup();
+    group.setRide(ride);
+    group.setTime(LocalTime.of(10, 0));
+    group.setStartAt(Instant.parse("2030-06-02T09:15:00Z"));
+    assertEquals(Instant.parse("2030-06-02T09:15:00Z"), EventTimezoneResolver.startAt(group));
+  }
+
+  @Test
+  void startAt_withoutStoredInstant_readsTheTimeInTheRidesStoredZone() {
+    Ride ride = new Ride();
+    ride.setTeam(team(PARIS));
+    ride.setTimezone(TOKYO.getId());
+    ride.setDateTime(Instant.parse("2030-06-01T23:30:00Z"));
+    RideGroup group = new RideGroup();
+    group.setRide(ride);
+    group.setTime(LocalTime.of(10, 0));
+    // June 2nd in Tokyo, the ride's zone, not the team's.
+    assertEquals(Instant.parse("2030-06-02T01:00:00Z"), EventTimezoneResolver.startAt(group));
+  }
+
+  @Test
+  void startAt_onARowWithoutZone_readsTheTimeInTheTeamsZone() {
+    Ride ride = new Ride();
+    ride.setTeam(team(MONTREAL));
+    ride.setTimezone(null);
+    ride.setDateTime(Instant.parse("2030-06-02T12:00:00Z"));
+    RideGroup group = new RideGroup();
+    group.setRide(ride);
+    group.setTime(LocalTime.of(10, 0));
+    // 10:00 in Montreal (EDT, UTC-4) — never UTC.
+    assertEquals(Instant.parse("2030-06-02T14:00:00Z"), EventTimezoneResolver.startAt(group));
+  }
+
+  @Test
+  void startAt_withoutTimeNorStoredInstant_isTheRidesStart() {
+    Ride ride = new Ride();
+    ride.setDateTime(Instant.parse("2030-06-02T07:00:00Z"));
+    RideGroup group = new RideGroup();
+    group.setRide(ride);
+    assertEquals(ride.getDateTime(), EventTimezoneResolver.startAt(group));
+  }
+
   @Test
   void applyGroupStarts_writesEveryGroup() {
     Ride ride = new Ride();

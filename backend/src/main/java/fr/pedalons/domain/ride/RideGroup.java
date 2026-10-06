@@ -39,7 +39,8 @@ public class RideGroup extends BaseEntity {
    * When the group leaves: {@link #time} on the ride's local date, in the ride's zone; the ride's
    * own start when the group has no time. Written with {@code time} on every save of the ride, so
    * a date change moves every group. Null only on a row an older backend wrote: readers fall back
-   * on {@code RideWeatherCalculator.legStart} in the ride's stored zone (docs/LEDGER_*.md API-60).
+   * on {@code EventTimezoneResolver.startAt}, the time in the ride's stored zone (docs/LEDGER_*.md
+   * API-60).
    */
   @Nullable
   @Column(name = "start_at")

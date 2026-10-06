@@ -157,9 +157,10 @@ public class WeatherHourlyRepository
    *       first group's route (by {@code sort_order}) — deleted routes skipped;
    *   <li>its cell, by {@code cellLatIdxSql} / {@code cellLonIdxSql} ({@code CellKey.SQL_*_IDX}),
    *       without elevation band;
-   *   <li>each group's start: its {@code time} at the departure's local date, in the departure
-   *       cell's zone as the provider reported it (the detail uses {@code TimezoneService}; the two
-   *       agree but for a border village), else the ride's;
+   *   <li>each group's start: its stored {@code start_at}, else (a row an older backend wrote) its
+   *       {@code time} on the ride's local date in the ride's zone — its stored one, else the
+   *       team's — else the ride's own start: {@code EventTimezoneResolver.startAt}, which the detail
+   *       reads (docs/LEDGER_*.md API-60). The cell's zone only dates its daily rows;
    *   <li>its arrival: the start plus the distance of its route (else the ride's) at its average
    *       speed (else {@code defaultSpeed}); a ride without groups rides its own route at the
    *       default speed.
@@ -181,23 +182,24 @@ public class WeatherHourlyRepository
     }
     String latIdx = cellLatIdxSql.replace("?1", "r.geom");
     String lonIdx = cellLonIdxSql.replace("?1", "r.geom");
-    String zone = "coalesce(rc.timezone, 'UTC')";
     String sql =
         """
         with r as (
           select te.id as ride_id, te.date_time as departure, rr.distance as ride_distance,
+                 coalesce(te.timezone, t.timezone) as zone,
                  coalesce(p.geometry, rr."start",
                    (select gr."start" from ride_groups g
                       join team_entities gr on gr.id = g.route_id and gr.deleted = false
                      where g.ride_id = te.id and gr."start" is not null
                      order by g.sort_order, g.id limit 1)) as geom
           from team_entities te
+          join teams t on t.id = te.team_id
           left join places p on p.id = te.place_start_id
           left join team_entities rr on rr.id = te.route_id and rr.deleted = false
           where te.id in (:rideIds)
         ),
         rc as (
-          select r.ride_id, r.departure, r.ride_distance, c.id as cell_id, c.timezone, c.fetched_at
+          select r.ride_id, r.departure, r.ride_distance, r.zone, c.id as cell_id, c.fetched_at
           from r join weather_cells c
             on c.lat_idx = %1$s and c.lon_idx = %2$s and c.ele_band is null
           where r.geom is not null
@@ -205,9 +207,11 @@ public class WeatherHourlyRepository
         w as (
           select rc.*, greatest(rc.departure, coalesce(
             (select max(
-                case when g.time is null then rc.departure
-                     else (cast(rc.departure at time zone %3$s as date) + g.time) at time zone %3$s
-                end
+                coalesce(g.start_at,
+                  case when g.time is null then rc.departure
+                       else (cast(rc.departure at time zone rc.zone as date) + g.time)
+                         at time zone rc.zone
+                  end)
                 + make_interval(secs => coalesce(gr.distance, rc.ride_distance, 0) * 3.6
                     / case when g.average_speed > 0 then g.average_speed else :defaultSpeed end))
                from ride_groups g
@@ -217,16 +221,16 @@ public class WeatherHourlyRepository
           )) as last_arrival
           from rc
         )
-        select w.ride_id, w.departure, w.last_arrival, w.fetched_at, %4$s
+        select w.ride_id, w.departure, w.last_arrival, w.fetched_at, %3$s
         from w
         join weather_hourly h on h.cell_id = w.cell_id
           and h.time >= w.departure - make_interval(secs => :slack)
           and h.time <= w.last_arrival + make_interval(secs => :slack)
         join weather_cells c on c.id = w.cell_id
-        %5$s
+        %4$s
         order by w.ride_id, h.time
         """
-            .formatted(latIdx, lonIdx, zone, HOUR_COLUMNS, DAILY_JOIN);
+            .formatted(latIdx, lonIdx, HOUR_COLUMNS, DAILY_JOIN);
     @SuppressWarnings("unchecked")
     List<Object[]> rows =
         getEntityManager()
@@ -252,6 +256,9 @@ public class WeatherHourlyRepository
    * One trip's next leg for the list summary, and one hour of its departure cell within it.
    *
    * @param arrival the estimated arrival of that leg
+   * @param zone the IANA zone of that leg — the stage's stored one, else the trip's, else the
+   *     team's: the zone its times read in, which is not the trip's when the next stage is elsewhere
+   *     (docs/LEDGER_*.md API-60)
    * @param fetchedAt when the departure cell was last fetched; null when it never was
    * @param hour null on the single row of a leg beyond {@code horizonEnd} or without a cached hour
    */
@@ -259,6 +266,7 @@ public class WeatherHourlyRepository
       long tripId,
       Instant departure,
       Instant arrival,
+      String zone,
       @Nullable Instant fetchedAt,
       @Nullable WeatherHourRow hour) {}
 
@@ -305,28 +313,33 @@ public class WeatherHourlyRepository
     String sql =
         """
         with t as (
-          select te.id as trip_id, te.date_time as trip_time, te.route_id as trip_route_id
+          select te.id as trip_id, te.date_time as trip_time, te.route_id as trip_route_id,
+                 te.timezone as trip_zone, tm.timezone as team_zone
           from team_entities te
+          join teams tm on tm.id = te.team_id
           where te.id in (:tripIds)
         ),
         n as (
-          select t.trip_id, leg.departure, leg.route_id, leg.speed
+          select t.trip_id, leg.departure, leg.route_id, leg.speed,
+                 coalesce(leg.zone, t.trip_zone, t.team_zone) as zone
           from t
           cross join lateral (
-            (select s.date_time as departure, s.route_id, s.average_speed as speed
+            (select s.date_time as departure, s.route_id, s.average_speed as speed,
+                    s.timezone as zone
                from team_entities s
               where s.trip_id = t.trip_id and s.deleted = false and s.date_time >= :now
               order by s.date_time, s.sort_order, s.id
               limit 1)
             union all
-            (select t.trip_time, t.trip_route_id, cast(null as float4)
+            (select t.trip_time, t.trip_route_id, cast(null as float4), cast(null as varchar)
               where t.trip_time >= :now
                 and not exists (select 1 from team_entities s
                                  where s.trip_id = t.trip_id and s.deleted = false))
           ) leg
         ),
         p as (
-          select n.trip_id, n.departure, n.speed, r.distance, g.track_points -> 0 as p0,
+          select n.trip_id, n.departure, n.speed, n.zone, r.distance,
+                 g.track_points -> 0 as p0,
                  g.track_points
           from n
           join team_entities r on r.id = n.route_id and r.deleted = false
@@ -338,7 +351,7 @@ public class WeatherHourlyRepository
           ) g
         ),
         l as (
-          select p.trip_id, p.departure,
+          select p.trip_id, p.departure, p.zone,
                  p.departure + make_interval(secs => coalesce(p.distance, 0) * 3.6
                    / case when p.speed > 0 then p.speed else :defaultSpeed end) as arrival,
                  %1$s as lat_idx,
@@ -350,7 +363,7 @@ public class WeatherHourlyRepository
                  end as ele_band
           from p
         )
-        select l.trip_id, l.departure, l.arrival, c.fetched_at, %3$s
+        select l.trip_id, l.departure, l.arrival, l.zone, c.fetched_at, %3$s
         from l
         left join weather_cells c
           on c.lat_idx = l.lat_idx and c.lon_idx = l.lon_idx
@@ -384,8 +397,9 @@ public class WeatherHourlyRepository
               ((Number) row[0]).longValue(),
               instant(row[1]),
               instant(row[2]),
-              nullableInstant(row[3]),
-              row[4] == null ? null : hourRow(row, 0, 4)));
+              (String) row[3],
+              nullableInstant(row[4]),
+              row[5] == null ? null : hourRow(row, 0, 5)));
     }
     return hours;
   }

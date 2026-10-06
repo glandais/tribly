@@ -601,6 +601,39 @@ class NotificationPhase5Test extends AbstractResourceTest {
             argThat((String json) -> json.startsWith("{\"text\":\"*Nouvelle sortie")));
   }
 
+  /**
+   * The subject's zone is frozen at fan-out, carried by the generic payload, and named in the text
+   * when it is not the team's — no reader's « chez vous » on a team channel (docs/LEDGER_*.md
+   * API-60).
+   */
+  @Test
+  void webhook_writesTheRideInItsZone_namedWhenNotTheTeams() throws Exception {
+    when(webhookHttp.post(any(), anyString())).thenReturn(200);
+    saveWebhook(USER1, "https://example.org/hook", 200);
+    // A ride without a place takes its team's zone: Tokyo, then the team moves back to Paris.
+    dataService.setTeamTimezone(team1, "Asia/Tokyo");
+    createRide(USER2);
+    drain();
+    dataService.setTeamTimezone(team1, "Europe/Paris");
+
+    NotificationEventEntry event =
+        notifications.eventEntries().stream()
+            .filter(e -> e.getType() == NotificationType.RIDE_PUBLISHED)
+            .findFirst()
+            .orElseThrow();
+    assertEquals("Asia/Tokyo", event.getSubjectTimezone());
+
+    assertEquals(1, webhookDeliveryService.sendDue());
+    verify(webhookHttp)
+        .post(
+            any(),
+            argThat(
+                (String json) ->
+                    json.contains("\"timezone\":\"Asia/Tokyo\"")
+                        && json.contains(", heure de Tokyo")
+                        && !json.contains("chez vous")));
+  }
+
   @Test
   void webhook_ignoresPersonalTypes_andRejectedPostsAreNotRetried() throws Exception {
     when(webhookHttp.post(any(), anyString())).thenReturn(404);

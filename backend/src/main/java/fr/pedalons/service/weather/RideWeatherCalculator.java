@@ -8,8 +8,6 @@ import fr.pedalons.enums.WeatherStatus;
 import fr.pedalons.repository.weather.WeatherHourRow;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -59,17 +57,6 @@ public final class RideWeatherCalculator {
     return averageSpeed != null && averageSpeed > 0
         ? new Speed(averageSpeed, false)
         : new Speed(DEFAULT_SPEED_KMH, true);
-  }
-
-  /**
-   * When a group leaves: its {@code time} read at the departure point's local time, on the local
-   * date of the ride; the ride's own time when the group has none.
-   */
-  public static Instant legStart(Instant rideDateTime, @Nullable LocalTime groupTime, ZoneId zone) {
-    if (groupTime == null) {
-      return rideDateTime;
-    }
-    return rideDateTime.atZone(zone).toLocalDate().atTime(groupTime).atZone(zone).toInstant();
   }
 
   /** The passage {@code distanceMeters} from the start at {@code speedKmh}. */

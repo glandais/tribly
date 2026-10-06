@@ -1376,6 +1376,8 @@
       "both": "Une sortie change de date et de point de départ",
       "other": "Une sortie a été modifiée"
     },
+    "startsAt": "Départ : {date}",
+    "newDate": "Nouvelle date : {date}",
     "joinedGroup": "Groupe « {group} »",
     "settings": "Réglages des notifications"
   },
