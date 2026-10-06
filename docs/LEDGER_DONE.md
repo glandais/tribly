@@ -1181,7 +1181,29 @@ l'app. Ne pas déduire les rôles ou l'accès côté client pour élargir ce que
   mutation qui change ce que montre le tableau de bord l'invalide (`lib/teamDashboardCache.ts`,
   `routeCacheInvalidation`, `moderationCacheInvalidation`) ; `prefetchTeamHome` s'arrête quand
   l'équipe n'a pas pu être lue — sinon le fil la relit et une 404 est demandée deux fois
-  (`error-states.e2e.ts`) ; pas de route nouvelle dans `contracts/routes.yaml`.
+  (`error-states.e2e.ts`) ; pas de route nouvelle dans `contracts/routes.yaml` (levé pour les
+  deux listes par type de `WEB-64`).
+- `WEB-64` **Onglets « Sorties » et « Voyages » de la maquette** (6 octobre 2026, sans changement
+  de contrat d'API). Décision de l'utilisateur : deux routes de liste par type plutôt que le seul
+  fil filtré. `contracts/routes.yaml` gagne `teamRides` (`/equipes/{teamSlug}/sorties`,
+  `/teams/{teamSlug}/rides`) et `teamTrips` (`/equipes/{teamSlug}/voyages`, `/teams/{teamSlug}/trips`),
+  web seulement — pas d'écran Flutter pour les recevoir, donc ni `mobile` ni `deeplink`. Les
+  routes `team-rides` et `team-trips` (`routes.config.ts`, publiques, sous `team-detail`) rendent
+  `PublicationListPage` avec `kind` (`TeamRidesPage`, `TeamTripsPage`) : le même fil, le même
+  `publicationListData.ts`, où `withListKind` impose le type de la route à la place de `?type=`
+  côté page comme côté prefetch — mêmes clés de requête. Sur un onglet, le sélecteur de type
+  disparaît, le titre, l'état vide et le total (`ResultCount` `rides`/`trips`) suivent le type,
+  le bouton de création ne propose que ce type, et un module coupé renvoie à la page de l'équipe.
+  Les onglets suivent « Fil d'actualités » dans `useTeamNavItems`, pour tous les visiteurs,
+  gardés comme le sélecteur de type et le backend (`enableRides`/`enableTrips` **et**
+  `enableRoutes`). « Voir tout » des sorties à venir du tableau de bord mène à
+  `/sorties?w=upcoming`. Les anciens liens `?tab=publications&type=ride` marchent toujours : le
+  fil garde son sélecteur. Tests : `useTeamNavItems.test.tsx` ; e2e `team-dashboard.e2e.ts`
+  (onglet « Sorties », lien « Voir tout ») et `routes-render.e2e.ts` (`teamRides`, `teamTrips`).
+  **À ne pas défaire** : un onglet par type n'a pas de lecture à lui — il passe par
+  `usePublicationListData`/`prefetchPublicationList` avec son `kind`, sinon page et prefetch
+  divergent ; une sortie ou un voyage reste sous `team-detail` dans le fil d'Ariane (on y arrive
+  aussi du fil et du tableau de bord).
 
 ## API — Contrat d'API et backend
 

@@ -313,6 +313,24 @@ const screens: Record<string, Screen> = {
     guards: (page) =>
       titled('Calendrier')(page).or(page.getByRole('textbox', { name: "URL du flux d'équipe" })),
   },
+  // The feed narrowed to one kind, each on its own tab (docs/LEDGER_*.md WEB-64): public, like
+  // the feed it narrows.
+  teamRides: {
+    roles: EVERYONE,
+    sees: async (main, d, page) => {
+      await currentTab(page, "Navigation de l'équipe", 'Sorties')
+      await expect(main.getByRole('link', { name: d.ride.name }).first()).toBeVisible()
+      await expect(main.getByRole('link', { name: d.post.name, exact: true })).toHaveCount(0)
+    },
+  },
+  teamTrips: {
+    roles: EVERYONE,
+    sees: async (main, d, page) => {
+      await currentTab(page, "Navigation de l'équipe", 'Voyages')
+      await expect(main.getByRole('link', { name: d.trip.name }).first()).toBeVisible()
+      await expect(main.getByRole('link', { name: d.ride.name, exact: true })).toHaveCount(0)
+    },
+  },
   teamPage: {
     roles: EVERYONE,
     sees: async (main, d) => {

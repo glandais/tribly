@@ -57,6 +57,7 @@ import { prefetchCreateRideForm, prefetchEditRideForm } from '@/pages/ride/rideF
 import { prefetchHomeFeed } from '@/pages/home/homeFeedData'
 import { prefetchTeamList } from '@/pages/team/teamListData'
 import { prefetchTeamHome } from '@/pages/team/teamHomeData'
+import { prefetchPublicationList } from '@/pages/publication/publicationListData'
 import { prefetchAdList } from '@/pages/ad/adListData'
 import { prefetchAllRouteList, prefetchAllRoutesMap } from '@/pages/route/allRouteListData'
 import {
@@ -501,6 +502,29 @@ export const routesConfig: RoutesConfig = [
     prefetch: (queryClient, params, url) => prefetchTeamHome(queryClient, params.teamSlug!, url),
     meta: teamDetailMeta,
   },
+  // The « Sorties » and « Voyages » tabs (docs/LEDGER_*.md WEB-64): the team feed narrowed to one
+  // kind by the route, read and prefetched through publicationListData.ts with that kind. A ride
+  // or a trip itself stays under team-detail: it is reached from the feed and the dashboard too.
+  {
+    id: 'team-rides',
+    paths: pathVariants.teamRides(':teamSlug'),
+    component: pages.TeamRidesPage,
+    auth: 'public',
+    parentId: 'team-detail',
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.tabs.rides') },
+    prefetch: (queryClient, params, url) =>
+      prefetchPublicationList(queryClient, params.teamSlug!, url, 'ride'),
+  },
+  {
+    id: 'team-trips',
+    paths: pathVariants.teamTrips(':teamSlug'),
+    component: pages.TeamTripsPage,
+    auth: 'public',
+    parentId: 'team-detail',
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.tabs.trips') },
+    prefetch: (queryClient, params, url) =>
+      prefetchPublicationList(queryClient, params.teamSlug!, url, 'trip'),
+  },
   {
     id: 'team-about',
     paths: pathVariants.teamAbout(':teamSlug'),
@@ -632,7 +656,7 @@ export const routesConfig: RoutesConfig = [
   },
 
   // === Ride Routes ===
-  // Note: rides have parent team-detail (no rides list page)
+  // Note: rides have parent team-detail, not team-rides — reached from the feed and the dashboard too
   {
     id: 'ride-new',
     paths: pathVariants.rideNew(':teamSlug'),
@@ -699,7 +723,7 @@ export const routesConfig: RoutesConfig = [
   },
 
   // === Trip Routes ===
-  // Note: trips have parent team-detail (no trips list page)
+  // Note: trips have parent team-detail, not team-trips — reached from the feed and the dashboard too
   {
     id: 'trip-new',
     paths: pathVariants.tripNew(':teamSlug'),

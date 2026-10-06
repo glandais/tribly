@@ -154,6 +154,35 @@ test.describe('the dashboard page', () => {
     await expect(admin.getByText(world.member.user.displayName)).toBeVisible()
   })
 
+  test('the « Sorties » tab lists the rides alone, on its own route', async ({ context, page }) => {
+    await signIn(context, world.member)
+    await page.goto(`/equipes/${world.team.slug}`)
+
+    const tabs = page.getByRole('navigation', { name: "Navigation de l'équipe" })
+    await tabs.getByRole('link', { name: 'Sorties', exact: true }).click()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${world.team.slug}/sorties$`))
+    await expect(tabs.getByRole('link', { name: 'Sorties', exact: true })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Sorties', exact: true })
+    ).toBeVisible()
+    await expect(page.getByText(world.fullRide.name).first()).toBeVisible()
+    await expect(page.getByText(world.post.name)).toHaveCount(0)
+    // The tab is the kind: no type select to contradict it.
+    await expect(page.getByRole('combobox', { name: 'Type', exact: true })).toHaveCount(0)
+  })
+
+  test("the dashboard's upcoming rides open the « Sorties » tab", async ({ context, page }) => {
+    await signIn(context, world.member)
+    await page.goto(`/equipes/${world.team.slug}`)
+
+    await section(page, 'Sorties à venir').getByRole('link', { name: 'Voir tout' }).click()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${world.team.slug}/sorties\\?w=upcoming$`))
+    await expect(page.getByText(world.fullRide.name).first()).toBeVisible()
+  })
+
   test('a member reaches the feed at ?tab=publications', async ({ context, page }) => {
     await signIn(context, world.member)
     await page.goto(`/equipes/${world.team.slug}?tab=publications`)

@@ -314,13 +314,6 @@ notifications n'a pas de test e2e : c'est `NOTIF-4`.
   - Transverse : navigation mobile (tiroir, entrée Admin selon le rôle, fil d'Ariane « Plus ») ;
     restauration du défilement au retour.
 
-### Tableau de bord d'équipe
-
-- `WEB-64` **Onglets « Sorties » et « Voyages » de la maquette** — la maquette du tableau de bord
-  (`WEB-63`) les place dans la barre de l'équipe ; ils n'ont pas été ajoutés faute de route dans
-  `contracts/routes.yaml` (le fil filtré `?tab=publications&type=ride` en tient lieu). À trancher :
-  deux routes de liste par type, ou rester sur le fil filtré.
-
 ---
 
 ## API — Contrat d'API et backend

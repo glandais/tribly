@@ -213,6 +213,18 @@ export const paths = {
       default: return `/teams/${teamSlug}/calendar`
     }
   },
+  teamRides: (teamSlug: string) => {
+    switch (getCurrentLocale()) {
+      case 'fr': return `/equipes/${teamSlug}/sorties`
+      default: return `/teams/${teamSlug}/rides`
+    }
+  },
+  teamTrips: (teamSlug: string) => {
+    switch (getCurrentLocale()) {
+      case 'fr': return `/equipes/${teamSlug}/voyages`
+      default: return `/teams/${teamSlug}/trips`
+    }
+  },
   teamMembers: (teamSlug: string) => {
     switch (getCurrentLocale()) {
       case 'fr': return `/equipes/${teamSlug}/membres`
@@ -503,6 +515,8 @@ export const pathVariants = {
   team: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}`, fr: `/equipes/${teamSlug}` }),
   teamAbout: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/about`, fr: `/equipes/${teamSlug}/a-propos` }),
   teamCalendar: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/calendar`, fr: `/equipes/${teamSlug}/calendrier` }),
+  teamRides: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/rides`, fr: `/equipes/${teamSlug}/sorties` }),
+  teamTrips: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/trips`, fr: `/equipes/${teamSlug}/voyages` }),
   teamMembers: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/members`, fr: `/equipes/${teamSlug}/membres` }),
   teamPage: (teamSlug: string, pageSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/pages/${pageSlug}`, fr: `/equipes/${teamSlug}/pages/${pageSlug}` }),
   teamAdmin: (teamSlug: string): Record<Locale, string> => ({ en: `/teams/${teamSlug}/admin`, fr: `/equipes/${teamSlug}/admin` }),

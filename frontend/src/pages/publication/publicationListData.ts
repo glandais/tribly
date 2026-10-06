@@ -14,6 +14,7 @@ import {
   teamPublicationFiltersAlias,
   teamPublicationApiParams,
   publicationFilterToType,
+  type TeamPublicationFilters,
 } from '@/hooks/filters/publicationFilters'
 import { prefetchPageWindow, prefetchTeamTags } from '@/config/prefetchHelpers'
 import { hourAlignedNowIso } from '@/utils/nowIso'
@@ -39,13 +40,29 @@ export const publicationListFilterOptions = {
 } as const
 
 /**
+ * A team list narrowed to one kind by its route — `teamRides`, `teamTrips`, the « Sorties » and
+ * « Voyages » tabs (docs/LEDGER_*.md WEB-64) — rather than by `?type=`. Same feed, same query: the
+ * kind only overrides the `filter` read from the URL, on both sides, so the keys still match.
+ */
+export type PublicationListKind = 'ride' | 'trip'
+
+/** The URL's filters, with the route's kind in place of `?type=` on a narrowed list. */
+export function withListKind(
+  filters: TeamPublicationFilters,
+  kind: PublicationListKind | undefined
+): TeamPublicationFilters {
+  return kind ? { ...filters, filter: kind } : filters
+}
+
+/**
  * The team's own publication feed: the team, the filtered page the URL asks for, and the
  * neighbouring pages `usePaginatedQuery` fetches ahead. Returns the filter state as
  * `useUrlFilters` gives it (the page reads `filters` and calls `setFilters` directly, unlike the
  * route list there's no dedicated wrapper hook here) plus the raw query results.
  */
-export function usePublicationListData(teamSlug?: string) {
-  const { filters, setFilters } = useUrlFilters(publicationListFilterOptions)
+export function usePublicationListData(teamSlug?: string, kind?: PublicationListKind) {
+  const { filters: urlFilters, setFilters } = useUrlFilters(publicationListFilterOptions)
+  const filters = useMemo(() => withListKind(urlFilters, kind), [urlFilters, kind])
 
   // Hour-aligned and frozen per mount so `from` does not change the query key on every render.
   const nowIso = useMemo(() => hourAlignedNowIso(), [])
@@ -84,9 +101,10 @@ export function usePublicationListData(teamSlug?: string) {
 export async function prefetchPublicationList(
   queryClient: QueryClient,
   teamSlug: string,
-  url: URL
+  url: URL,
+  kind?: PublicationListKind
 ): Promise<void> {
-  const filters = readUrlFilters(url.searchParams, publicationListFilterOptions)
+  const filters = withListKind(readUrlFilters(url.searchParams, publicationListFilterOptions), kind)
   // The tag filter only shows on a feed narrowed to one kind (`TagFilter` in the page).
   const tagTarget = publicationFilterToType[filters.filter]
   await Promise.all([

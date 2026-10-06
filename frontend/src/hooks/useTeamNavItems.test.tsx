@@ -8,6 +8,7 @@ vi.mock('react-i18next', () => ({
 }))
 
 import { useTeamNavItems } from './useNavItems'
+import { paths } from '@/config/paths'
 
 function team(role?: TeamRole): TeamDetailDto {
   return {
@@ -38,6 +39,22 @@ describe('team tabs', () => {
     expect(result.current[0].id).toBe('dashboard')
     expect(result.current.find((i) => i.id === 'publications')?.path).toContain('?tab=publications')
     expect(result.current.map((i) => i.id)).not.toContain('members')
+  })
+
+  it('rides and trips each get their own route, gated on their module and the routes', () => {
+    const { result } = renderHook(() => useTeamNavItems(team('MEMBER')))
+    expect(result.current.find((i) => i.id === 'rides')?.path).toBe(paths.teamRides('vc-craponne'))
+    // The fixture's team has trips switched off.
+    expect(result.current.map((i) => i.id)).not.toContain('trips')
+
+    const withTrips = { ...team(), enableTrips: true } as TeamDetailDto
+    const visitor = renderHook(() => useTeamNavItems(withTrips)).result.current
+    expect(visitor.find((i) => i.id === 'trips')?.path).toBe(paths.teamTrips('vc-craponne'))
+
+    const noRoutes = { ...withTrips, enableRoutes: false } as TeamDetailDto
+    const ids = renderHook(() => useTeamNavItems(noRoutes)).result.current.map((i) => i.id)
+    expect(ids).not.toContain('rides')
+    expect(ids).not.toContain('trips')
   })
 
   it('an administrator also gets the « Membres » tab', () => {

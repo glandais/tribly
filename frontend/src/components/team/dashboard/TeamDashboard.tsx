@@ -61,7 +61,7 @@ export function TeamDashboard({ dashboard, team: teamOverride }: TeamDashboardPr
             <DashboardSection
               id="dashboard-upcoming-rides"
               title={t('teams.dashboard.upcomingRides.title')}
-              seeAllTo={teamFeedPath(slug, { type: 'ride', w: 'upcoming' })}
+              seeAllTo={`${paths.teamRides(slug)}?w=upcoming`}
               isEmpty={upcoming.length === 0}
               empty={t('teams.dashboard.upcomingRides.empty')}
             >

@@ -38,13 +38,26 @@ import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { QueryStateBoundary } from '../../components/common/QueryStateBoundary'
 import { apiErrorStatus } from '@/lib/apiError'
-import { usePublicationListData } from './publicationListData'
+import type { TeamDetailDto } from '@/api/dto'
+import { type PublicationListKind, usePublicationListData } from './publicationListData'
 
-export function PublicationListPage() {
+interface PublicationListPageProps {
+  /**
+   * Set on the « Sorties » and « Voyages » tabs (`teamRides`, `teamTrips`): the same feed, narrowed
+   * to one kind by the route instead of `?type=`, so the type select gives way to the tab. Without
+   * it, the team's feed (`team-detail`), whose `?type=ride` links keep working.
+   */
+  kind?: PublicationListKind
+}
+
+export function PublicationListPage({ kind }: PublicationListPageProps = {}) {
   const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
-  const { filters, setFilters, team, publications, totalPages } = usePublicationListData(teamSlug)
+  const { filters, setFilters, team, publications, totalPages } = usePublicationListData(
+    teamSlug,
+    kind
+  )
   const commitSearch = useCallback(
     (value: string) => setFilters({ search: value || undefined }),
     [setFilters]
@@ -55,10 +68,29 @@ export function PublicationListPage() {
   const { data: teamData, isLoading: isLoadingTeam } = team
   const { data: publicationsData, isLoading: isLoadingPublications } = publications
 
-  useCanonicalPath(teamData ? paths.team(teamData.slug) : undefined)
+  useCanonicalPath(teamData ? listPath(teamData.slug, kind) : undefined)
+
+  const text =
+    kind === 'ride'
+      ? {
+          title: t('teams.detail.tabs.rides'),
+          empty: t('teams.rides.list.empty'),
+          emptyDescription: t('teams.rides.list.emptyDescription'),
+        }
+      : kind === 'trip'
+        ? {
+            title: t('teams.detail.tabs.trips'),
+            empty: t('teams.trips.list.empty'),
+            emptyDescription: t('teams.trips.list.emptyDescription'),
+          }
+        : {
+            title: t('teams.publications.list.title'),
+            empty: t('teams.publications.list.empty'),
+            emptyDescription: t('teams.publications.list.emptyDescription'),
+          }
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('teams.publications.list.title')} />
+    return <LoadingPage message={text.title} />
   }
 
   if (!teamData) {
@@ -82,22 +114,32 @@ export function PublicationListPage() {
     return <Navigate to={paths.teams()} replace />
   }
 
+  // A tab whose module the team switched off has nothing to list: back to the team page, as its
+  // tab bar no longer offers it (useTeamNavItems).
+  if (kind && !kindEnabled(teamData, kind)) {
+    return <Navigate to={paths.team(teamData.slug)} replace />
+  }
+
   const canCreate = teamData.role === 'ADMIN' || teamData.role === 'ORGANIZER'
 
-  const createMenuItems = [
+  const allCreateMenuItems = [
     ...(teamData.enableRides && teamData.enableRoutes
-      ? [{ path: paths.rideNew(teamSlug!), label: t('rides.create.title') }]
+      ? [{ kind: 'ride', path: paths.rideNew(teamSlug!), label: t('rides.create.title') }]
       : []),
     ...(teamData.enablePosts
-      ? [{ path: paths.postNew(teamSlug!), label: t('posts.create.title') }]
+      ? [{ kind: 'post', path: paths.postNew(teamSlug!), label: t('posts.create.title') }]
       : []),
     ...(teamData.enableTrips && teamData.enableRoutes
-      ? [{ path: paths.tripNew(teamSlug!), label: t('trips.create.title') }]
+      ? [{ kind: 'trip', path: paths.tripNew(teamSlug!), label: t('trips.create.title') }]
       : []),
     ...(teamData.enableRoutes
-      ? [{ path: paths.routeNew(teamSlug!), label: t('routes.create.title') }]
+      ? [{ kind: 'route', path: paths.routeNew(teamSlug!), label: t('routes.create.title') }]
       : []),
   ]
+  // On a tab, only that kind is created from its header.
+  const createMenuItems = kind
+    ? allCreateMenuItems.filter((item) => item.kind === kind)
+    : allCreateMenuItems
 
   const primaryCreate = createMenuItems[0]
 
@@ -107,8 +149,11 @@ export function PublicationListPage() {
   // The type and scope selects narrow the feed just as much as the search box does, so an empty
   // result under either of them is a filtered state — and must offer a way out. A `?tags=` on the
   // mixed feed is neither sent nor shown, so it filters nothing and does not count.
+  // On a tab, the kind is the page's own, not a filter to clear.
   const hasNonSearchFilters =
-    filters.filter !== 'all' || filters.scope !== 'all' || (!!tagTarget && !!filters.tags?.length)
+    (!kind && filters.filter !== 'all') ||
+    filters.scope !== 'all' ||
+    (!!tagTarget && !!filters.tags?.length)
   const hasFiltersOrSearch = !!search || hasNonSearchFilters
   const clearFilters = () => {
     setSearch('')
@@ -116,10 +161,10 @@ export function PublicationListPage() {
   }
 
   return (
-    <TeamLayout team={teamData} currentTab="publications">
+    <TeamLayout team={teamData} currentTab={kind ? `${kind}s` : 'publications'}>
       <Stack gap="lg">
         <Group justify="space-between" align="center" wrap="wrap">
-          <Title order={2}>{t('teams.publications.list.title')}</Title>
+          <Title order={2}>{text.title}</Title>
           <Group gap="xs">
             {canCreate && primaryCreate && (
               <Button.Group>
@@ -166,30 +211,32 @@ export function PublicationListPage() {
               value={filters.scope}
               onChange={(scope) => setFilters({ scope, page: 0 })}
             />
-            <Select
-              value={filters.filter}
-              onChange={(value) => {
-                if (value) {
-                  // A ride tag means nothing to a post: switching kind drops the selection.
-                  setFilters({ filter: value as PublicationFilterValue, tags: undefined })
-                }
-              }}
-              data={[
-                { value: 'all', label: t('teams.publications.list.filter.all') },
-                ...(teamData?.enableRides && teamData?.enableRoutes
-                  ? [{ value: 'ride', label: t('teams.publications.list.filter.ride') }]
-                  : []),
-                ...(teamData?.enablePosts
-                  ? [{ value: 'post', label: t('teams.publications.list.filter.post') }]
-                  : []),
-                ...(teamData?.enableTrips && teamData?.enableRoutes
-                  ? [{ value: 'trip', label: t('teams.publications.list.filter.trip') }]
-                  : []),
-              ]}
-              aria-label={t('teams.publications.list.filter.label')}
-              w={{ base: 120, xs: 150 }}
-              allowDeselect={false}
-            />
+            {!kind && (
+              <Select
+                value={filters.filter}
+                onChange={(value) => {
+                  if (value) {
+                    // A ride tag means nothing to a post: switching kind drops the selection.
+                    setFilters({ filter: value as PublicationFilterValue, tags: undefined })
+                  }
+                }}
+                data={[
+                  { value: 'all', label: t('teams.publications.list.filter.all') },
+                  ...(teamData?.enableRides && teamData?.enableRoutes
+                    ? [{ value: 'ride', label: t('teams.publications.list.filter.ride') }]
+                    : []),
+                  ...(teamData?.enablePosts
+                    ? [{ value: 'post', label: t('teams.publications.list.filter.post') }]
+                    : []),
+                  ...(teamData?.enableTrips && teamData?.enableRoutes
+                    ? [{ value: 'trip', label: t('teams.publications.list.filter.trip') }]
+                    : []),
+                ]}
+                aria-label={t('teams.publications.list.filter.label')}
+                w={{ base: 120, xs: 150 }}
+                allowDeselect={false}
+              />
+            )}
           </Group>
         </Group>
 
@@ -202,7 +249,10 @@ export function PublicationListPage() {
           />
         )}
 
-        <ResultCount total={publicationsData?.total} resource="publications" />
+        <ResultCount
+          total={publicationsData?.total}
+          resource={kind ? `${kind}s` : 'publications'}
+        />
 
         {/* Publications List */}
         {isLoadingPublications ? (
@@ -243,11 +293,11 @@ export function PublicationListPage() {
           <EmptyState
             variant={hasFiltersOrSearch ? 'filtered' : 'absolute'}
             icon={hasFiltersOrSearch ? <IconSearchOff size={48} /> : <IconNews size={48} />}
-            title={hasFiltersOrSearch ? t('noResults') : t('teams.publications.list.empty')}
+            title={hasFiltersOrSearch ? t('noResults') : text.empty}
             description={
               hasFiltersOrSearch
                 ? t('teams.publications.list.search.noResultsDescription')
-                : t('teams.publications.list.emptyDescription')
+                : text.emptyDescription
             }
             actions={
               hasFiltersOrSearch ? (
@@ -261,4 +311,28 @@ export function PublicationListPage() {
       </Stack>
     </TeamLayout>
   )
+}
+
+/** Where a list lives: the team page for the feed, its own tab for one kind. */
+function listPath(teamSlug: string, kind: PublicationListKind | undefined): string {
+  if (kind === 'ride') return paths.teamRides(teamSlug)
+  if (kind === 'trip') return paths.teamTrips(teamSlug)
+  return paths.team(teamSlug)
+}
+
+/** Same gate as the feed's type select and the team's tab bar: a ride or a trip needs a route. */
+function kindEnabled(team: TeamDetailDto, kind: PublicationListKind): boolean {
+  return kind === 'ride'
+    ? !!team.enableRides && !!team.enableRoutes
+    : !!team.enableTrips && !!team.enableRoutes
+}
+
+/** The « Sorties » tab of a team (`teamRides`). */
+export function TeamRidesPage() {
+  return <PublicationListPage kind="ride" />
+}
+
+/** The « Voyages » tab of a team (`teamTrips`). */
+export function TeamTripsPage() {
+  return <PublicationListPage kind="trip" />
 }

@@ -11,6 +11,8 @@ import {
   IconFileText,
   IconSparkles,
   IconLayoutDashboard,
+  IconBike,
+  IconMap2,
 } from '@tabler/icons-react'
 import { paths } from '@/config/paths'
 import { teamFeedPath } from '@/pages/team/teamHomeData'
@@ -160,6 +162,28 @@ export function useTeamNavItems(team: TeamDetailDto | undefined): NavButtonItem[
         label: t('teams.publications.list.title'),
         icon: IconNews,
       },
+      // The feed narrowed to one kind, each on its own route (WEB-64) — gated like the feed's
+      // type select: a ride or a trip needs the routes module.
+      ...(team.enableRides && team.enableRoutes
+        ? [
+            {
+              id: 'rides',
+              path: paths.teamRides(team.slug),
+              label: t('teams.detail.tabs.rides'),
+              icon: IconBike,
+            },
+          ]
+        : []),
+      ...(team.enableTrips && team.enableRoutes
+        ? [
+            {
+              id: 'trips',
+              path: paths.teamTrips(team.slug),
+              label: t('teams.detail.tabs.trips'),
+              icon: IconMap2,
+            },
+          ]
+        : []),
       ...(isMember && (team.enableRides || team.enableTrips)
         ? [
             {
