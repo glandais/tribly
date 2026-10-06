@@ -134,6 +134,12 @@ public enum ErrorCode {
   TAG_INVALID,
   /** More than 10 tags on one content. */
   TOO_MANY_TAGS,
+  // Assets (docs/LEDGER_*.md API-68)
+  /**
+   * A content cites an asset it cannot take: unknown, of another team, or already attached to
+   * another content — one answer for all three, so it reveals nothing of who holds the asset.
+   */
+  ASSET_NOT_AVAILABLE,
   // Biketeam live migration (docs/plans/2026-09-22-biketeam-live-migration.md)
   /** The signed biketeam request is malformed, forged, or not for this site. */
   BIKETEAM_REQUEST_INVALID,

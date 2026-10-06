@@ -14,6 +14,7 @@ import fr.pedalons.dto.assets.response.DownloadableAsset;
 import fr.pedalons.dto.common.asset.AssetDto;
 import fr.pedalons.dto.common.asset.AssetsDto;
 import fr.pedalons.dto.common.asset.MediaDto;
+import fr.pedalons.dto.error.AssetNotAvailableDetails;
 import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.AssetType;
 import fr.pedalons.enums.TeamRole;
@@ -913,8 +914,9 @@ class AssetServiceTest extends AbstractBaseTest {
       assertDoesNotThrow(() -> assetService.updateAssets(post, mediaDto));
     }
 
+    /** docs/LEDGER_*.md API-68: refused by name, never skipped in silence. */
     @Test
-    void shouldNotAddAssetFromDifferentTeam() {
+    void shouldRefuseAssetFromDifferentTeam() {
       Post post =
           dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
       Asset foreignAsset =
@@ -925,10 +927,32 @@ class AssetServiceTest extends AbstractBaseTest {
           AssetsDto.builder().logo(AssetDto.builder().id(foreignId).build()).build();
       MediaDto mediaDto = new MediaDto("markdown", assetsDto);
 
-      assetService.updateAssets(post, mediaDto);
+      assertAssetNotAvailable(foreignId, () -> assetService.updateAssets(post, mediaDto));
+    }
 
-      // Foreign asset should not be added
-      assertFalse(post.getAssets().stream().anyMatch(a -> a.getId().equals(foreignAsset.getId())));
+    /** docs/LEDGER_*.md API-68: an unknown id gets the very answer of a held one — no oracle. */
+    @Test
+    void shouldRefuseUnknownAssetLikeAHeldOne() {
+      Post post =
+          dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+      String unknownId = TsidUtils.toString(1L);
+
+      AssetsDto assetsDto =
+          AssetsDto.builder()
+              .attachments(List.of(AssetDto.builder().id(unknownId).build()))
+              .build();
+      MediaDto mediaDto = new MediaDto("markdown", assetsDto);
+
+      assertAssetNotAvailable(unknownId, () -> assetService.updateAssets(post, mediaDto));
+    }
+
+    private void assertAssetNotAvailable(String assetId, Runnable update) {
+      PedalonsException e = assertThrows(PedalonsException.class, update::run);
+      assertEquals(ErrorCode.ASSET_NOT_AVAILABLE, e.getErrorCode());
+      assertEquals(400, e.getStatus().getStatusCode());
+      AssetNotAvailableDetails details =
+          assertInstanceOf(AssetNotAvailableDetails.class, e.getErrorDetails());
+      assertEquals(assetId, details.getAssetId());
     }
 
     @Test
@@ -952,8 +976,8 @@ class AssetServiceTest extends AbstractBaseTest {
     }
 
     @Test
-    void shouldNotAddAssetAssignedToDifferentEntity() {
-      // Branch: same team + asset.teamEntity == different entity → don't add
+    void shouldRefuseAssetAssignedToDifferentEntity() {
+      // Branch: same team + asset.teamEntity == different entity → refused (API-68)
       Post post1 = dataService.createPost(team, admin, "Post 1", Instant.now(), Visibility.PUBLIC);
       Post post2 = dataService.createPost(team, admin, "Post 2", Instant.now(), Visibility.PUBLIC);
       Asset image = dataService.createAsset(team, admin, AssetType.IMAGE, "other-post-image.png");
@@ -966,10 +990,7 @@ class AssetServiceTest extends AbstractBaseTest {
       String markdown = "::asset{id=\"" + imageId + "\"}";
       MediaDto mediaDto = new MediaDto(markdown, assetsDto);
 
-      assetService.updateAssets(post2, mediaDto);
-
-      // Asset assigned to post1 should not be added to post2
-      assertFalse(post2.getAssets().stream().anyMatch(a -> a.getId().equals(image.getId())));
+      assertAssetNotAvailable(imageId, () -> assetService.updateAssets(post2, mediaDto));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package fr.pedalons.service.asset;
 
 import fr.pedalons.common.TsidUtils;
+import fr.pedalons.common.exception.BadRequestException;
 import fr.pedalons.domain.asset.Asset;
 import fr.pedalons.domain.common.TeamEntity;
 import fr.pedalons.domain.team.Team;
@@ -10,6 +11,8 @@ import fr.pedalons.dto.common.asset.AssetDimensionsDto;
 import fr.pedalons.dto.common.asset.AssetDto;
 import fr.pedalons.dto.common.asset.AssetsDto;
 import fr.pedalons.dto.common.asset.MediaDto;
+import fr.pedalons.dto.error.AssetNotAvailableDetails;
+import fr.pedalons.dto.error.ErrorCode;
 import fr.pedalons.enums.*;
 import fr.pedalons.infrastructure.exception.NotFoundException;
 import fr.pedalons.infrastructure.filetype.DetectedFileType;
@@ -583,22 +586,47 @@ public class AssetService {
     return order;
   }
 
+  /**
+   * An asset belongs to one content only: one of another team, one already attached to another
+   * content, or an unknown id is refused with ASSET_NOT_AVAILABLE naming the id as cited — the same
+   * answer in all three cases, so the API is no oracle of what other contents hold. It used to be
+   * skipped in silence, and the client believed the file attached (docs/LEDGER_*.md API-68). The
+   * request's transaction rolls back, so the content's assets are left as they were.
+   */
   private int addAssetToEntity(
       int order, TeamEntity teamEntity, AssetType assetType, @Nullable AssetDto assetRequest) {
     if (assetRequest == null) {
       return order;
     }
-    Long assetId = TsidUtils.toLong(assetRequest.id());
-    Asset asset = getAsset(assetId);
-    if (asset.getTeam().getId().equals(teamEntity.getTeam().getId())
-        && (asset.getTeamEntity() == null
-            || asset.getTeamEntity().getId().equals(teamEntity.getId()))) {
-      asset.setTeamEntity(teamEntity);
-      asset.setType(assetType);
-      asset.setSortOrder(order);
-      assetRepository.persist(asset);
-      teamEntity.getAssets().add(asset);
-    }
+    Asset asset = findAvailableAsset(teamEntity, assetRequest.id());
+    asset.setTeamEntity(teamEntity);
+    asset.setType(assetType);
+    asset.setSortOrder(order);
+    assetRepository.persist(asset);
+    teamEntity.getAssets().add(asset);
     return order + 1;
+  }
+
+  private Asset findAvailableAsset(TeamEntity teamEntity, String assetId) {
+    Long id;
+    try {
+      id = TsidUtils.toLong(assetId);
+    } catch (IllegalArgumentException e) {
+      throw assetNotAvailable(assetId);
+    }
+    Asset asset =
+        assetRepository.findByIdOptional(id).orElseThrow(() -> assetNotAvailable(assetId));
+    boolean sameTeam = asset.getTeam().getId().equals(teamEntity.getTeam().getId());
+    boolean freeOrOurs =
+        asset.getTeamEntity() == null || asset.getTeamEntity().getId().equals(teamEntity.getId());
+    if (!sameTeam || !freeOrOurs) {
+      throw assetNotAvailable(assetId);
+    }
+    return asset;
+  }
+
+  private static BadRequestException assetNotAvailable(String assetId) {
+    return new BadRequestException(
+        ErrorCode.ASSET_NOT_AVAILABLE, new AssetNotAvailableDetails(assetId), null);
   }
 }

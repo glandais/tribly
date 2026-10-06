@@ -198,6 +198,8 @@ enum ErrorCode {
   tagInvalid('TAG_INVALID'),
   @JsonValue('TOO_MANY_TAGS')
   tooManyTags('TOO_MANY_TAGS'),
+  @JsonValue('ASSET_NOT_AVAILABLE')
+  assetNotAvailable('ASSET_NOT_AVAILABLE'),
   @JsonValue('BIKETEAM_REQUEST_INVALID')
   biketeamRequestInvalid('BIKETEAM_REQUEST_INVALID'),
   @JsonValue('BIKETEAM_REQUEST_EXPIRED')

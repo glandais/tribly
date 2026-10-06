@@ -851,6 +851,19 @@ components:
           format: int64
           description: Size in bytes of the file a download returns (an image as re-encoded
             on upload); null while not yet known. Ignored in requests.
+    AssetNotAvailableDetails:
+      type: object
+      required:
+      - type
+      - assetId
+      properties:
+        type:
+          description: Type
+          type: string
+          $ref: "#/components/schemas/ErrorCode"
+        assetId:
+          type: string
+          description: "Id of the asset, as the request cited it"
     AssetTypeRequest:
       type: string
       enum:
@@ -859,6 +872,10 @@ components:
       - ATTACHMENT
     AssetsDto:
       type: object
+      description: "Assets of a content. On a write, the logo, images and attachments\
+        \ must each be an asset uploaded to this team and attached to no other content,\
+        \ else 400 ASSET_NOT_AVAILABLE naming the asset id — the same answer whether\
+        \ the id is unknown, of another team or held by another content."
       properties:
         logo:
           description: Logo
@@ -2038,6 +2055,7 @@ components:
       - TAG_LIMIT_REACHED
       - TAG_INVALID
       - TOO_MANY_TAGS
+      - ASSET_NOT_AVAILABLE
       - BIKETEAM_REQUEST_INVALID
       - BIKETEAM_REQUEST_EXPIRED
       - BIKETEAM_REQUEST_ALREADY_USED
@@ -2053,12 +2071,14 @@ components:
       oneOf:
       - $ref: "#/components/schemas/ErrorValidationDetails"
       - $ref: "#/components/schemas/NotFoundDetails"
+      - $ref: "#/components/schemas/AssetNotAvailableDetails"
       description: Error details
       discriminator:
         propertyName: type
         mapping:
           VALIDATION: "#/components/schemas/ErrorValidationDetails"
           NOT_FOUND: "#/components/schemas/NotFoundDetails"
+          ASSET_NOT_AVAILABLE: "#/components/schemas/AssetNotAvailableDetails"
       type: object
       properties:
         type:
@@ -18628,7 +18648,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 10.11.0
+  version: 10.12.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

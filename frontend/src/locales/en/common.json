@@ -453,6 +453,7 @@
   "errors.api.failedToLoad": "Failed to load data",
   "errors.api.ALREADY_REGISTERED": "You are already registered for this ride",
   "errors.api.AUTHORIZATION_PENDING": "Authorization pending, please wait",
+  "errors.api.ASSET_NOT_AVAILABLE": "One of the attachments is no longer available for this content. Upload it again.",
   "errors.api.BAD_REQUEST": "Invalid request",
   "errors.api.BUSINESS_RULE": "This action is not allowed",
   "errors.api.DOMAIN_NOT_FOUND": "Domain not found",

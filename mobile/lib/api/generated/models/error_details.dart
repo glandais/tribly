@@ -4,6 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'asset_not_available_details.dart';
 import 'entity_type.dart';
 import 'error_code.dart';
 import 'error_validation_details.dart';
@@ -34,6 +35,12 @@ sealed class ErrorDetails with _$ErrorDetails {
     /// id/slug
     required String id,
   }) = ErrorDetailsNotFound;
+
+  @FreezedUnionValue('ASSET_NOT_AVAILABLE')
+  const factory ErrorDetails.assetNotAvailable({
+    /// Id of the asset, as the request cited it
+    required String assetId,
+  }) = ErrorDetailsAssetNotAvailable;
 
   factory ErrorDetails.fromJson(Map<String, Object?> json) =>
       _$ErrorDetailsFromJson(json);

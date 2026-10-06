@@ -8,6 +8,12 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 @Builder
+@Schema(
+    description =
+        "Assets of a content. On a write, the logo, images and attachments must each be an asset"
+            + " uploaded to this team and attached to no other content, else 400"
+            + " ASSET_NOT_AVAILABLE naming the asset id — the same answer whether the id is"
+            + " unknown, of another team or held by another content.")
 public record AssetsDto(
     @Nullable @Schema(description = "Logo") @Valid AssetDto logo,
     @Schema(description = "Images", required = true) List<@Valid AssetDto> images,

@@ -24,6 +24,10 @@ ErrorDetails _$ErrorDetailsFromJson(
           return ErrorDetailsNotFound.fromJson(
             json
           );
+                case 'ASSET_NOT_AVAILABLE':
+          return ErrorDetailsAssetNotAvailable.fromJson(
+            json
+          );
         
           default:
             throw CheckedFromJsonException(
@@ -82,12 +86,13 @@ extension ErrorDetailsPatterns on ErrorDetails {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( ErrorDetailsValidation value)?  validation,TResult Function( ErrorDetailsNotFound value)?  notFound,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( ErrorDetailsValidation value)?  validation,TResult Function( ErrorDetailsNotFound value)?  notFound,TResult Function( ErrorDetailsAssetNotAvailable value)?  assetNotAvailable,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case ErrorDetailsValidation() when validation != null:
 return validation(_that);case ErrorDetailsNotFound() when notFound != null:
-return notFound(_that);case _:
+return notFound(_that);case ErrorDetailsAssetNotAvailable() when assetNotAvailable != null:
+return assetNotAvailable(_that);case _:
   return orElse();
 
 }
@@ -105,12 +110,13 @@ return notFound(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( ErrorDetailsValidation value)  validation,required TResult Function( ErrorDetailsNotFound value)  notFound,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( ErrorDetailsValidation value)  validation,required TResult Function( ErrorDetailsNotFound value)  notFound,required TResult Function( ErrorDetailsAssetNotAvailable value)  assetNotAvailable,}){
 final _that = this;
 switch (_that) {
 case ErrorDetailsValidation():
 return validation(_that);case ErrorDetailsNotFound():
-return notFound(_that);}
+return notFound(_that);case ErrorDetailsAssetNotAvailable():
+return assetNotAvailable(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -124,12 +130,13 @@ return notFound(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( ErrorDetailsValidation value)?  validation,TResult? Function( ErrorDetailsNotFound value)?  notFound,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( ErrorDetailsValidation value)?  validation,TResult? Function( ErrorDetailsNotFound value)?  notFound,TResult? Function( ErrorDetailsAssetNotAvailable value)?  assetNotAvailable,}){
 final _that = this;
 switch (_that) {
 case ErrorDetailsValidation() when validation != null:
 return validation(_that);case ErrorDetailsNotFound() when notFound != null:
-return notFound(_that);case _:
+return notFound(_that);case ErrorDetailsAssetNotAvailable() when assetNotAvailable != null:
+return assetNotAvailable(_that);case _:
   return null;
 
 }
@@ -146,11 +153,12 @@ return notFound(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( List<FieldError> fieldErrors)?  validation,TResult Function( String entityType,  String searchedBy,  String id)?  notFound,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( List<FieldError> fieldErrors)?  validation,TResult Function( String entityType,  String searchedBy,  String id)?  notFound,TResult Function( String assetId)?  assetNotAvailable,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case ErrorDetailsValidation() when validation != null:
 return validation(_that.fieldErrors);case ErrorDetailsNotFound() when notFound != null:
-return notFound(_that.entityType,_that.searchedBy,_that.id);case _:
+return notFound(_that.entityType,_that.searchedBy,_that.id);case ErrorDetailsAssetNotAvailable() when assetNotAvailable != null:
+return assetNotAvailable(_that.assetId);case _:
   return orElse();
 
 }
@@ -168,11 +176,12 @@ return notFound(_that.entityType,_that.searchedBy,_that.id);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( List<FieldError> fieldErrors)  validation,required TResult Function( String entityType,  String searchedBy,  String id)  notFound,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( List<FieldError> fieldErrors)  validation,required TResult Function( String entityType,  String searchedBy,  String id)  notFound,required TResult Function( String assetId)  assetNotAvailable,}) {final _that = this;
 switch (_that) {
 case ErrorDetailsValidation():
 return validation(_that.fieldErrors);case ErrorDetailsNotFound():
-return notFound(_that.entityType,_that.searchedBy,_that.id);}
+return notFound(_that.entityType,_that.searchedBy,_that.id);case ErrorDetailsAssetNotAvailable():
+return assetNotAvailable(_that.assetId);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -186,11 +195,12 @@ return notFound(_that.entityType,_that.searchedBy,_that.id);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( List<FieldError> fieldErrors)?  validation,TResult? Function( String entityType,  String searchedBy,  String id)?  notFound,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( List<FieldError> fieldErrors)?  validation,TResult? Function( String entityType,  String searchedBy,  String id)?  notFound,TResult? Function( String assetId)?  assetNotAvailable,}) {final _that = this;
 switch (_that) {
 case ErrorDetailsValidation() when validation != null:
 return validation(_that.fieldErrors);case ErrorDetailsNotFound() when notFound != null:
-return notFound(_that.entityType,_that.searchedBy,_that.id);case _:
+return notFound(_that.entityType,_that.searchedBy,_that.id);case ErrorDetailsAssetNotAvailable() when assetNotAvailable != null:
+return assetNotAvailable(_that.assetId);case _:
   return null;
 
 }
@@ -356,6 +366,82 @@ class _$ErrorDetailsNotFoundCopyWithImpl<$Res>
 entityType: null == entityType ? _self.entityType : entityType // ignore: cast_nullable_to_non_nullable
 as String,searchedBy: null == searchedBy ? _self.searchedBy : searchedBy // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class ErrorDetailsAssetNotAvailable implements ErrorDetails {
+  const ErrorDetailsAssetNotAvailable({required this.assetId,  String? $type}): $type = $type ?? 'ASSET_NOT_AVAILABLE';
+  factory ErrorDetailsAssetNotAvailable.fromJson(Map<String, dynamic> json) => _$ErrorDetailsAssetNotAvailableFromJson(json);
+
+/// Id of the asset, as the request cited it
+ final  String assetId;
+
+@JsonKey(name: 'type')
+final String $type;
+
+
+/// Create a copy of ErrorDetails
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ErrorDetailsAssetNotAvailableCopyWith<ErrorDetailsAssetNotAvailable> get copyWith => _$ErrorDetailsAssetNotAvailableCopyWithImpl<ErrorDetailsAssetNotAvailable>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$ErrorDetailsAssetNotAvailableToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ErrorDetailsAssetNotAvailable&&(identical(other.assetId, assetId) || other.assetId == assetId));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,assetId);
+}
+
+@override
+String toString() {
+    return 'ErrorDetails.assetNotAvailable(assetId: $assetId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ErrorDetailsAssetNotAvailableCopyWith<$Res> implements $ErrorDetailsCopyWith<$Res> {
+  factory $ErrorDetailsAssetNotAvailableCopyWith(ErrorDetailsAssetNotAvailable value, $Res Function(ErrorDetailsAssetNotAvailable) _then) = _$ErrorDetailsAssetNotAvailableCopyWithImpl;
+@useResult
+$Res call({
+ String assetId
+});
+
+
+
+
+}
+/// @nodoc
+class _$ErrorDetailsAssetNotAvailableCopyWithImpl<$Res>
+    implements $ErrorDetailsAssetNotAvailableCopyWith<$Res> {
+  _$ErrorDetailsAssetNotAvailableCopyWithImpl(this._self, this._then);
+
+  final ErrorDetailsAssetNotAvailable _self;
+  final $Res Function(ErrorDetailsAssetNotAvailable) _then;
+
+/// Create a copy of ErrorDetails
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? assetId = null,}) {
+  return _then(ErrorDetailsAssetNotAvailable(
+assetId: null == assetId ? _self.assetId : assetId // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

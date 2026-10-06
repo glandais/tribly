@@ -9,6 +9,7 @@ import 'asset_dto.dart';
 part 'assets_dto.freezed.dart';
 part 'assets_dto.g.dart';
 
+/// Assets of a content. On a write, the logo, images and attachments must each be an asset uploaded to this team and attached to no other content, else 400 ASSET_NOT_AVAILABLE naming the asset id — the same answer whether the id is unknown, of another team or held by another content.
 @Freezed()
 abstract class AssetsDto with _$AssetsDto {
   const factory AssetsDto({

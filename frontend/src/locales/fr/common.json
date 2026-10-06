@@ -453,6 +453,7 @@
   "errors.api.failedToLoad": "Échec du chargement des données",
   "errors.api.ALREADY_REGISTERED": "Vous participez déjà à cette sortie",
   "errors.api.AUTHORIZATION_PENDING": "Autorisation en attente, veuillez patienter",
+  "errors.api.ASSET_NOT_AVAILABLE": "Une des pièces jointes n'est plus disponible pour ce contenu. Téléversez-la à nouveau.",
   "errors.api.BAD_REQUEST": "Requête invalide",
   "errors.api.BUSINESS_RULE": "Cette action n'est pas autorisée",
   "errors.api.DOMAIN_NOT_FOUND": "Domaine introuvable",

@@ -512,16 +512,6 @@ décision produit : `RideTemplateGroupRequest` reste sans champ.
       émettre `<time>` quand l'instant est `EPOCH` donnerait des fichiers plus propres. Changement de
       bibliothèque, pas de Pédalons ; `GpxSanitizationBackfill.isDirty` accepte déjà l'absence de
       `<time>`. Taille : S.
-- [ ] `API-68` **Un asset déjà attaché ailleurs est ignoré sans erreur** — relevé pendant la recette
-      mobile du 4 octobre 2026 (`MOB-18`) : un `MediaDto` qui cite dans `assets` une pièce jointe
-      appartenant déjà à un autre contenu de l'équipe est accepté (201/200), mais le contenu ne la porte
-      pas. `AssetService.addAssetToEntity` saute en silence tout asset d'une autre équipe ou d'un autre
-      `TeamEntity`. Le garde-fou est juste (un asset n'a qu'un propriétaire, et on ne doit pas pouvoir
-      s'approprier celui d'un autre contenu ni d'une autre équipe) ; c'est le silence qui trompe : un
-      client d'API (script de seed, migration, futur « dupliquer ») croit avoir joint le fichier. Aucun
-      client actuel ne réutilise un asset (le web et l'app téléversent pour chaque contenu). Correctif :
-      refuser par un 400 `ASSET_NOT_AVAILABLE` nommant l'id, sans révéler à quel contenu il appartient
-      — changement de contrat, bump d'API. Petit.
 
 ---
 

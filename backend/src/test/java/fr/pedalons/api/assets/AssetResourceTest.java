@@ -702,4 +702,84 @@ class AssetResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(403);
   }
+
+  // ==================== Attaching (docs/LEDGER_*.md API-68) ====================
+
+  private AssetDto uploadGpx(String teamSlug) {
+    return given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("file", new File("src/test/resources/example.gpx"), "application/gpx+xml")
+        .when()
+        .queryParam("assetType", "ATTACHMENT")
+        .post("/api/teams/" + teamSlug + "/assets")
+        .then()
+        .statusCode(201)
+        .extract()
+        .as(AssetDto.class);
+  }
+
+  private void assertRefusedOnNewPost(String assetId) {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(createPostRequest("second", AssetDto.builder().id(assetId).build()))
+        .when()
+        .post("/api/teams/" + team1Slug + "/posts")
+        .then()
+        .statusCode(400)
+        .body("code", equalTo("ASSET_NOT_AVAILABLE"))
+        .body("errorDetails.type", equalTo("ASSET_NOT_AVAILABLE"))
+        .body("errorDetails.assetId", equalTo(assetId))
+        // Nothing of who holds it: only the type and the id cited.
+        .body("errorDetails.size()", equalTo(2));
+  }
+
+  @Test
+  void attachAsset_alreadyHeldByAnotherContent_shouldReturn400NamingTheId() {
+    AssetDto assetDto = uploadGpx(team1Slug);
+    PostDto first = createTestPost("first", assetDto);
+
+    assertRefusedOnNewPost(assetDto.id());
+
+    // The first post still holds it.
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .get("/api/teams/" + team1Slug + "/posts/" + first.getSlug())
+        .then()
+        .statusCode(200)
+        .body("media.assets.attachments[0].id", equalTo(assetDto.id()));
+  }
+
+  @Test
+  void attachAsset_ofAnotherTeam_shouldReturnTheSame400() {
+    AssetDto assetDto = uploadGpx(team2Slug);
+
+    assertRefusedOnNewPost(assetDto.id());
+  }
+
+  @Test
+  void attachAsset_unknown_shouldReturnTheSame400() {
+    assertRefusedOnNewPost(TsidUtils.toString(1L));
+  }
+
+  @Test
+  void attachAsset_reCitedByItsOwnContent_shouldSucceed() {
+    AssetDto assetDto = uploadGpx(team1Slug);
+    PostDto post = createTestPost("own", assetDto);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(createPostRequest("own", assetDto))
+        .when()
+        .put("/api/teams/" + team1Slug + "/posts/" + post.getSlug())
+        .then()
+        .statusCode(200)
+        .body("media.assets.attachments[0].id", equalTo(assetDto.id()));
+  }
 }

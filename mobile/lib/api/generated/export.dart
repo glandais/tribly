@@ -73,6 +73,7 @@ export 'models/admin_user_dto.dart';
 export 'models/admin_user_list_response.dart';
 export 'models/asset_dimensions_dto.dart';
 export 'models/asset_dto.dart';
+export 'models/asset_not_available_details.dart';
 export 'models/asset_type_request.dart';
 export 'models/assets_dto.dart';
 export 'models/assign_platform_role_request.dart';

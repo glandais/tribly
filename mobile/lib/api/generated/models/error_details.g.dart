@@ -39,3 +39,14 @@ Map<String, dynamic> _$ErrorDetailsNotFoundToJson(
   'id': instance.id,
   'type': instance.$type,
 };
+
+ErrorDetailsAssetNotAvailable _$ErrorDetailsAssetNotAvailableFromJson(
+  Map<String, dynamic> json,
+) => ErrorDetailsAssetNotAvailable(
+  assetId: json['assetId'] as String,
+  $type: json['type'] as String?,
+);
+
+Map<String, dynamic> _$ErrorDetailsAssetNotAvailableToJson(
+  ErrorDetailsAssetNotAvailable instance,
+) => <String, dynamic>{'assetId': instance.assetId, 'type': instance.$type};
