@@ -122,5 +122,5 @@ right after `setFilters({ page })`.
 ## Gotchas elsewhere
 
 - **`useCanonicalPath` must preserve the query string.** It redirects with `navigate(path + search + hash)`. Passing only `path` silently wipes every filter on a canonical redirect.
-- **`RouteViewToggle` carries `location.search`** so the list ↔ map toggle keeps the filters.
+- **`RouteViewSwitch` carries `location.search`** so the list ↔ map switch keeps the filters (it drops the page and sets or drops `view`, the density).
 - **`usePaginatedQuery` never owns the page.** It receives `page` and returns `totalPages`. Nothing to change when adding filters.

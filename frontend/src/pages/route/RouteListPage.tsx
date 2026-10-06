@@ -11,9 +11,8 @@ import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
 import { RouteCardActions } from '../../components/card'
 import { ResultCount } from '@/components/common/ResultCount'
-import { RouteDensityToggle } from '@/components/route/RouteDensityToggle'
 import { RouteDeadEnd } from '@/components/route/RouteDeadEnd'
-import { RouteViewToggle } from '../../components/route/RouteViewToggle'
+import { RouteViewSwitch } from '@/components/route/RouteViewSwitch'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { UploadGpxFiles } from '../../components/route/UploadGpxFiles'
 import { TagFilter } from '../../components/tag'
@@ -55,21 +54,18 @@ export function RouteListPage() {
       <Stack py="lg">
         <Group justify="space-between">
           <Title order={2}>{t('routes.list.title')}</Title>
-          <Group gap="sm">
-            {canCreateRoute && (
-              <>
-                <UploadGpxFiles team={team} />
-                <Button
-                  component="a"
-                  href={paths.routeNew(teamSlug!)}
-                  leftSection={<IconPlus size={16} />}
-                >
-                  {t('routes.create.title')}
-                </Button>
-              </>
-            )}
-            <RouteViewToggle current="list" teamSlug={team.slug} />
-          </Group>
+          {canCreateRoute && (
+            <Group gap="sm">
+              <UploadGpxFiles team={team} />
+              <Button
+                component="a"
+                href={paths.routeNew(teamSlug!)}
+                leftSection={<IconPlus size={16} />}
+              >
+                {t('routes.create.title')}
+              </Button>
+            </Group>
+          )}
         </Group>
 
         <RouteFilterPanel
@@ -86,11 +82,12 @@ export function RouteListPage() {
           onChange={(tags) => setFilters({ tags })}
         />
 
-        <Group justify="space-between" align="center">
+        <Group justify="space-between" align="center" wrap="wrap">
           <ResultCount total={routesData?.total} resource="routes" />
-          <RouteDensityToggle
-            value={density}
-            onChange={(value) => setFilters({ density: value })}
+          <RouteViewSwitch
+            current={density}
+            teamSlug={team.slug}
+            onDensityChange={(value) => setFilters({ density: value })}
           />
         </Group>
 

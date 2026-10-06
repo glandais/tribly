@@ -6,7 +6,7 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RoutesTileMap } from '../../components/route/RoutesTileMap'
-import { RouteViewToggle } from '../../components/route/RouteViewToggle'
+import { RouteViewSwitch } from '@/components/route/RouteViewSwitch'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useRoutesMapData } from './routesMapData'
 import { TagFilter } from '../../components/tag'
@@ -39,12 +39,7 @@ export function RoutesMapPage() {
   return (
     <TeamLayout team={team} currentTab="routes">
       <Stack py="lg">
-        <Group justify="space-between">
-          <Title order={2}>{t('routes.list.title')}</Title>
-          <Group gap="sm">
-            <RouteViewToggle current="map" teamSlug={team.slug} />
-          </Group>
-        </Group>
+        <Title order={2}>{t('routes.list.title')}</Title>
 
         <RouteFilterPanel
           filters={filters}
@@ -60,6 +55,10 @@ export function RoutesMapPage() {
           value={filters.tags}
           onChange={(tags) => setFilters({ tags })}
         />
+
+        <Group justify="flex-end">
+          <RouteViewSwitch current="map" teamSlug={team.slug} />
+        </Group>
 
         <RoutesTileMap
           tilesUrl={tilesUrl}

@@ -27,14 +27,14 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 })
 
-// Mock ResizeObserver
-;(globalThis as typeof globalThis & { ResizeObserver: unknown }).ResizeObserver = vi
-  .fn()
-  .mockImplementation(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-  }))
+// Mock ResizeObserver — a class, since Mantine calls it with `new` (SegmentedControl's floating
+// indicator) and an arrow-function `vi.fn` implementation is not a constructor.
+class ResizeObserverMock {
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+}
+;(globalThis as typeof globalThis & { ResizeObserver: unknown }).ResizeObserver = ResizeObserverMock
 
 // Mock IntersectionObserver
 ;(globalThis as typeof globalThis & { IntersectionObserver: unknown }).IntersectionObserver = vi

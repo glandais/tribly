@@ -1,9 +1,9 @@
-import { Box, Group, Stack } from '@mantine/core'
+import { Group, Stack } from '@mantine/core'
 import { useAllRoutesMapData } from './allRouteListData'
 import { MembershipSelect } from '../../components/common/MembershipSelect'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RoutesTileMap } from '../../components/route/RoutesTileMap'
-import { RouteViewToggle } from '../../components/route/RouteViewToggle'
+import { RouteViewSwitch } from '@/components/route/RouteViewSwitch'
 
 export function AllRoutesMapPage() {
   const {
@@ -18,15 +18,10 @@ export function AllRoutesMapPage() {
 
   return (
     <Stack my="lg">
-      <Group justify="space-between" wrap="wrap">
-        <MembershipSelect
-          value={filters.membership}
-          onChange={(membership) => setFilters({ membership })}
-        />
-        <Box ml="auto">
-          <RouteViewToggle current="map" />
-        </Box>
-      </Group>
+      <MembershipSelect
+        value={filters.membership}
+        onChange={(membership) => setFilters({ membership })}
+      />
 
       <RouteFilterPanel
         filters={filters}
@@ -35,6 +30,10 @@ export function AllRoutesMapPage() {
         onOpenChange={setFiltersOpen}
         showSort={false}
       />
+
+      <Group justify="flex-end">
+        <RouteViewSwitch current="map" />
+      </Group>
 
       <RoutesTileMap
         tilesUrl={tilesUrl}

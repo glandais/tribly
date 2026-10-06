@@ -129,7 +129,7 @@ const routeList = (why: string): Outcome => ({
   why,
   lands: pathTo('routes'),
   sees: async (main, d) => {
-    await expect(main.getByRole('radio', { name: 'Liste' })).toBeChecked()
+    await expect(main.getByRole('radio', { name: 'Vignettes' })).toBeChecked()
     await expect(main.getByRole('link', { name: d.route.name }).first()).toBeVisible()
   },
 })
@@ -231,7 +231,8 @@ const screens: Record<string, Screen> = {
   calendar: { roles: SIGNED_IN, sees: heading('Calendrier') },
   allRoutes: {
     roles: EVERYONE,
-    sees: (main) => expect(main.getByRole('radio', { name: 'Liste' })).toBeChecked(),
+    // Vignettes or Lignes: the density follows the size of the whole stack's library (WEB-69).
+    sees: (main) => expect(main.getByRole('radio', { name: 'Carte' })).not.toBeChecked(),
   },
   allRoutesMap: {
     roles: EVERYONE,
@@ -515,7 +516,7 @@ const screens: Record<string, Screen> = {
   routes: {
     roles: EVERYONE,
     sees: async (main, d) => {
-      await expect(main.getByRole('radio', { name: 'Liste' })).toBeChecked()
+      await expect(main.getByRole('radio', { name: 'Vignettes' })).toBeChecked()
       await expect(main.getByRole('link', { name: d.route.name }).first()).toBeVisible()
     },
   },

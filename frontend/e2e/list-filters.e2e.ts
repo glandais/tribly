@@ -50,11 +50,18 @@ async function pick(page: Page, select: Locator, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-/** Picks `label` in a SegmentedControl (the feed's scope, the route list's density). */
+/**
+ * Picks `label` in a SegmentedControl (the feed's scope, the route list's view). Its radios are
+ * visually hidden inputs and the view switch's labels are icons (the name is visually hidden text):
+ * a person clicks the segment's `<label>`, and so does the test.
+ */
 async function segment(page: Page, group: string, label: string) {
   const control = page.getByRole('radiogroup', { name: group })
   await hydrated(control.getByRole('radio', { name: label }))
-  await control.getByText(label, { exact: true }).click()
+  await control
+    .locator('label')
+    .filter({ hasText: new RegExp(`^${escapeRegExp(label)}$`) })
+    .click()
 }
 
 const noReadsAfterHydration = (reads: URLSearchParams[]) =>
@@ -173,7 +180,7 @@ test('team routes: distance, surface, sort and density from the URL, server-rend
     dmin: String(minKm * 1000),
     sort: 'DISTANCE',
     dir: 'ASC',
-    d: 'row',
+    view: 'row',
   }
   const { markup, reads } = await openServerRendered(
     page,
@@ -187,7 +194,7 @@ test('team routes: distance, surface, sort and density from the URL, server-rend
   )
   noReadsAfterHydration(reads)
   await expectNames([mid, long])
-  await expect(page.getByRole('radio', { name: 'Compact' })).toBeChecked()
+  await expect(page.getByRole('radio', { name: 'Lignes' })).toBeChecked()
 
   // The panel shows what the URL says.
   const toggle = main.getByRole('button', { name: 'Filtres', exact: true })
@@ -210,17 +217,17 @@ test('team routes: distance, surface, sort and density from the URL, server-rend
     ascending.locator('xpath=ancestor::div[@aria-hidden="false"][1]')
   ).not.toHaveAttribute('style', /height/)
   await ascending.click()
-  await expectQuery(page, { surf: 'GRAVEL', dmin: filtered.dmin, sort: 'DISTANCE', d: 'row' })
+  await expectQuery(page, { surf: 'GRAVEL', dmin: filtered.dmin, sort: 'DISTANCE', view: 'row' })
   await expectNames([long, mid])
 
   // « Effacer » drops the filters and the sort, and keeps the density (not a filter).
   await main.getByRole('button', { name: 'Effacer', exact: true }).click()
-  await expectQuery(page, { d: 'row' })
+  await expectQuery(page, { view: 'row' })
   await expectNames([road, long, mid, short])
-  await expect(page.getByRole('radio', { name: 'Compact' })).toBeChecked()
+  await expect(page.getByRole('radio', { name: 'Lignes' })).toBeChecked()
 
-  await segment(page, 'Densité de la liste', 'Vignettes')
-  await expectQuery(page, { d: 'card' })
+  await segment(page, 'Affichage', 'Vignettes')
+  await expectQuery(page, { view: 'card' })
   await expectNames([road, long, mid, short])
 })
 

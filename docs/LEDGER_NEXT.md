@@ -337,11 +337,16 @@ Plan [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md).
       `teamAgenda` et `teamPosts`, redirections des anciennes adresses (`?tab=publications`,
       `teamRides`, `teamTrips`), tableau de bord à la racine pour tous. Défait en partie `WEB-64`.
       Dépend de `API-85` et `API-86`.
-- [ ] `WEB-69` **Un seul sélecteur de vue pour Parcours et Agenda (S–M)** — `RouteViewToggle`
-      (« Liste / Carte », change de page, ligne du titre) et `RouteDensityToggle` (« Vignettes /
-      Compact », au-dessus des résultats) répondent à la même question à deux endroits. Un
-      composant `ListViewSwitch` : Vignettes · Lignes · Carte, et Vignettes · Lignes · Calendrier
-      pour l'Agenda. Plan §4.
+- [ ] `WEB-69` **Un seul sélecteur de vue pour Parcours et Agenda (S–M)** — la partie Parcours est
+      faite (6 octobre 2026) : `ListViewSwitch` (`components/common/`, icônes seules dans un
+      `SegmentedControl` libellé « Affichage », chaque vue nommée par un texte masqué) remplace
+      `RouteViewToggle` et `RouteDensityToggle` sur les quatre pages de parcours, via
+      `RouteViewSwitch` (Vignettes · Lignes · Carte, à droite du nombre de résultats ; la densité
+      vit dans `?view=card|row`, qui remplace `?d=` ; Carte garde `routesMap`/`allRoutesMap` et le
+      sélecteur y navigue en gardant les filtres). Couvert par `ListViewSwitch.test.tsx`,
+      `RouteViewSwitch.test.tsx` et les e2e `list-filters`, `flow-routes`, `routes-render`.
+      **Reste l'Agenda** : Vignettes · Lignes · Calendrier, Calendrier naviguant vers
+      `teamCalendar` et absent pour un visiteur — à brancher avec `WEB-68`. Plan §4.
 
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 

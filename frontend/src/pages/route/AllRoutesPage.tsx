@@ -1,13 +1,12 @@
-import { Box, Group, Stack } from '@mantine/core'
+import { Group, Stack } from '@mantine/core'
 import { useAllRouteListData } from './allRouteListData'
 import { isSingleTeam } from '../../config/appConfig'
 import { MembershipSelect } from '../../components/common/MembershipSelect'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
 import { ResultCount } from '@/components/common/ResultCount'
-import { RouteDensityToggle } from '@/components/route/RouteDensityToggle'
 import { RouteDeadEnd } from '@/components/route/RouteDeadEnd'
-import { RouteViewToggle } from '../../components/route/RouteViewToggle'
+import { RouteViewSwitch } from '@/components/route/RouteViewSwitch'
 
 export function AllRoutesPage() {
   const {
@@ -28,15 +27,10 @@ export function AllRoutesPage() {
 
   return (
     <Stack my="lg">
-      <Group justify="space-between" wrap="wrap">
-        <MembershipSelect
-          value={filters.membership}
-          onChange={(membership) => setFilters({ membership })}
-        />
-        <Box ml="auto">
-          <RouteViewToggle current="list" />
-        </Box>
-      </Group>
+      <MembershipSelect
+        value={filters.membership}
+        onChange={(membership) => setFilters({ membership })}
+      />
 
       <RouteFilterPanel
         filters={filters}
@@ -45,9 +39,12 @@ export function AllRoutesPage() {
         onOpenChange={setFiltersOpen}
       />
 
-      <Group justify="space-between" align="center">
+      <Group justify="space-between" align="center" wrap="wrap">
         <ResultCount total={routesData?.total} resource="routes" />
-        <RouteDensityToggle value={density} onChange={(value) => setFilters({ density: value })} />
+        <RouteViewSwitch
+          current={density}
+          onDensityChange={(value) => setFilters({ density: value })}
+        />
       </Group>
 
       <RouteListContent

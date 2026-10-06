@@ -474,14 +474,13 @@ test.describe('the platform-wide list (/parcours)', () => {
     main.getByText(`${count} parcours`, { exact: true })
 
   /** The list/map toggle: a SegmentedControl, named since 2026-09-25 (test below). */
-  const viewToggleGroup = (main: Locator) =>
-    main.getByRole('radiogroup', { name: 'Affichage des parcours' })
+  const viewToggleGroup = (main: Locator) => main.getByRole('radiogroup', { name: 'Affichage' })
 
   /**
    * One side of the list/map toggle, whose radios are visually hidden inputs — a person clicks the
    * label, and so does the test.
    */
-  const viewToggle = (main: Locator, label: 'Liste' | 'Carte') =>
+  const viewToggle = (main: Locator, label: 'Vignettes' | 'Lignes' | 'Carte') =>
     viewToggleGroup(main)
       .locator('label')
       .filter({ hasText: new RegExp(`^${label}$`) })
@@ -565,8 +564,8 @@ test.describe('the platform-wide list (/parcours)', () => {
     // Back to the list, the search still applied.
     await page.goto(`${ALL_ROUTES_MAP}?q=${encodeURIComponent(name)}`)
     await expect(canvas).toBeVisible()
-    await hydrated(main.getByRole('radio', { name: 'Liste' }))
-    await viewToggle(main, 'Liste').click()
+    await hydrated(main.getByRole('radio', { name: 'Vignettes' }))
+    await viewToggle(main, 'Vignettes').click()
     await expect(page).toHaveURL(new RegExp(`${ALL_ROUTES}\\?.*q=`))
     await expect(resultCount(main, 1)).toBeVisible()
     await expect(routeCard(main, name)).toBeVisible()
@@ -618,14 +617,16 @@ test.describe('the platform-wide list (/parcours)', () => {
     )
   })
 
-  test('the list/map toggle has an accessible name', async ({ page }) => {
+  test('the view switch has an accessible name, and so has each of its icons', async ({ page }) => {
     // The SegmentedControl was an unnamed radiogroup: a screen reader announced two radios with no
-    // hint of what they switch (fixed 2026-09-25).
-    await page.goto(ALL_ROUTES)
+    // hint of what they switch (fixed 2026-09-25). Since WEB-69 its views are icons only: each
+    // radio keeps its name through a visually hidden label.
+    await page.goto(`${ALL_ROUTES}?view=row`)
     const main = page.getByRole('main')
     const toggle = viewToggleGroup(main)
     await expect(toggle).toBeVisible()
-    await expect(toggle.getByRole('radio', { name: 'Liste' })).toBeChecked()
+    await expect(toggle.getByRole('radio', { name: 'Lignes' })).toBeChecked()
+    await expect(toggle.getByRole('radio', { name: 'Vignettes' })).not.toBeChecked()
     await expect(toggle.getByRole('radio', { name: 'Carte' })).not.toBeChecked()
   })
 })

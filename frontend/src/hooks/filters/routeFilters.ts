@@ -78,7 +78,7 @@ export const routeFiltersAlias = {
   windDirection: 'wind',
   sortBy: 'sort',
   sortDir: 'dir',
-  density: 'd',
+  density: 'view',
 } as const
 
 /**
