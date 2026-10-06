@@ -57,7 +57,13 @@ import { prefetchCreateRideForm, prefetchEditRideForm } from '@/pages/ride/rideF
 import { prefetchHomeFeed } from '@/pages/home/homeFeedData'
 import { prefetchTeamList } from '@/pages/team/teamListData'
 import { prefetchTeamHome } from '@/pages/team/teamHomeData'
-import { prefetchPublicationList } from '@/pages/publication/publicationListData'
+import { prefetchTeamAgenda } from '@/pages/team/teamAgendaData'
+import { prefetchTeamPosts } from '@/pages/team/teamPostsData'
+import {
+  teamHomeRedirect,
+  teamRidesRedirect,
+  teamTripsRedirect,
+} from '@/pages/team/teamLegacyRedirects'
 import { prefetchAdList } from '@/pages/ad/adListData'
 import { prefetchAllRouteList, prefetchAllRoutesMap } from '@/pages/route/allRouteListData'
 import {
@@ -495,35 +501,51 @@ export const routesConfig: RoutesConfig = [
     parentId: 'teams',
     navGroup: 'team',
     breadcrumb: { type: 'dynamic', entity: 'team' },
-    // TeamHomePage shows a member the dashboard and anyone else (or a member on
-    // `?tab=publications`) the feed: the prefetch resolves the team first, then fills the branch
-    // that will render — see pages/team/teamHomeData.ts. The feed's keys still come from
-    // publicationListData.ts (including `view`), so they match PublicationListPage's exactly.
-    prefetch: (queryClient, params, url) => prefetchTeamHome(queryClient, params.teamSlug!, url),
+    // The dashboard, for everyone (API-86): a member gets their own blocks on top of the public
+    // part — see pages/team/teamHomeData.ts. The former feed's addresses (`?tab=publications`, a
+    // visitor's `?type=…`) lead to the agenda or the posts (ledger WEB-68).
+    redirect: (params, url) => teamHomeRedirect(params.teamSlug!, url.searchParams),
+    prefetch: (queryClient, params) => prefetchTeamHome(queryClient, params.teamSlug!),
     meta: teamDetailMeta,
   },
-  // The « Sorties » and « Voyages » tabs (docs/LEDGER_*.md WEB-64): the team feed narrowed to one
-  // kind by the route, read and prefetched through publicationListData.ts with that kind. A ride
-  // or a trip itself stays under team-detail: it is reached from the feed and the dashboard too.
+  // « Agenda » — the team's rides and trips, upcoming first — and « Publications », its posts,
+  // newest first (ledger WEB-68, plan docs/plans/2026-10-06-team-agenda.md). A ride's and a trip's
+  // page hang under the agenda, a post's under the posts.
+  {
+    id: 'team-agenda',
+    paths: pathVariants.teamAgenda(':teamSlug'),
+    component: pages.TeamAgendaPage,
+    auth: 'public',
+    parentId: 'team-detail',
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.tabs.agenda') },
+    prefetch: (queryClient, params, url) => prefetchTeamAgenda(queryClient, params.teamSlug!, url),
+  },
+  {
+    id: 'team-posts',
+    paths: pathVariants.teamPosts(':teamSlug'),
+    component: pages.TeamPostsPage,
+    auth: 'public',
+    parentId: 'team-detail',
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.tabs.posts') },
+    prefetch: (queryClient, params, url) => prefetchTeamPosts(queryClient, params.teamSlug!, url),
+  },
+  // The former « Sorties » and « Voyages » tabs (WEB-64), kept for the links already out there:
+  // their loader redirects to the agenda, so the page never renders.
   {
     id: 'team-rides',
     paths: pathVariants.teamRides(':teamSlug'),
-    component: pages.TeamRidesPage,
+    component: pages.TeamAgendaPage,
     auth: 'public',
     parentId: 'team-detail',
-    breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.tabs.rides') },
-    prefetch: (queryClient, params, url) =>
-      prefetchPublicationList(queryClient, params.teamSlug!, url, 'ride'),
+    redirect: (params, url) => teamRidesRedirect(params.teamSlug!, url.searchParams),
   },
   {
     id: 'team-trips',
     paths: pathVariants.teamTrips(':teamSlug'),
-    component: pages.TeamTripsPage,
+    component: pages.TeamAgendaPage,
     auth: 'public',
     parentId: 'team-detail',
-    breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.tabs.trips') },
-    prefetch: (queryClient, params, url) =>
-      prefetchPublicationList(queryClient, params.teamSlug!, url, 'trip'),
+    redirect: (params, url) => teamTripsRedirect(params.teamSlug!, url.searchParams),
   },
   {
     id: 'team-about',
@@ -553,8 +575,9 @@ export const routesConfig: RoutesConfig = [
     component: pages.TeamCalendarPage,
     // Member-only server-side: `@PermitAll` on TeamCalendarResource only lets the token-authed ICS
     // feed through, while `CalendarAccessChecker` LIST requires a signed-in user *and* a team role.
+    // The agenda's calendar view (WEB-69): its own path, under the agenda.
     auth: 'authenticated',
-    parentId: 'team-detail',
+    parentId: 'team-agenda',
     breadcrumb: { type: 'static', i18nKey: tRegister('calendar.title') },
     prefetch: (queryClient, params) => prefetchTeamCalendar(queryClient, params.teamSlug!),
   },
@@ -656,7 +679,7 @@ export const routesConfig: RoutesConfig = [
   },
 
   // === Ride Routes ===
-  // Note: rides have parent team-detail, not team-rides — reached from the feed and the dashboard too
+  // A ride's page hangs under the agenda (WEB-68), its creation under the team.
   {
     id: 'ride-new',
     paths: pathVariants.rideNew(':teamSlug'),
@@ -672,7 +695,7 @@ export const routesConfig: RoutesConfig = [
     paths: pathVariants.ride(':teamSlug', ':rideSlug'),
     component: pages.RideDetailPage,
     auth: 'public',
-    parentId: 'team-detail',
+    parentId: 'team-agenda',
     breadcrumb: { type: 'dynamic', entity: 'ride' },
     prefetch: (queryClient, params) =>
       prefetchRideDetail(queryClient, params.teamSlug!, params.rideSlug!),
@@ -723,7 +746,7 @@ export const routesConfig: RoutesConfig = [
   },
 
   // === Trip Routes ===
-  // Note: trips have parent team-detail, not team-trips — reached from the feed and the dashboard too
+  // A trip's page hangs under the agenda (WEB-68), its creation under the team.
   {
     id: 'trip-new',
     paths: pathVariants.tripNew(':teamSlug'),
@@ -739,7 +762,7 @@ export const routesConfig: RoutesConfig = [
     paths: pathVariants.trip(':teamSlug', ':tripSlug'),
     component: pages.TripDetailPage,
     auth: 'public',
-    parentId: 'team-detail',
+    parentId: 'team-agenda',
     breadcrumb: { type: 'dynamic', entity: 'trip' },
     prefetch: (queryClient, params) =>
       prefetchTripDetail(queryClient, params.teamSlug!, params.tripSlug!),
@@ -783,7 +806,7 @@ export const routesConfig: RoutesConfig = [
   },
 
   // === Post Routes ===
-  // Note: posts have parent team-detail (no posts list page)
+  // A post's page hangs under the team's « Publications » (WEB-68), its creation under the team.
   {
     id: 'post-new',
     paths: pathVariants.postNew(':teamSlug'),
@@ -799,7 +822,7 @@ export const routesConfig: RoutesConfig = [
     paths: pathVariants.post(':teamSlug', ':postSlug'),
     component: pages.PostDetailPage,
     auth: 'public',
-    parentId: 'team-detail',
+    parentId: 'team-posts',
     breadcrumb: { type: 'dynamic', entity: 'post' },
     prefetch: (queryClient, params) =>
       prefetchPostDetail(queryClient, params.teamSlug!, params.postSlug!),

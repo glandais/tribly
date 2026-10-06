@@ -1,20 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { readUrlFilters } from '@/hooks/useUrlFilters'
-import {
-  teamPublicationApiParams,
-  teamPublicationFiltersAlias,
-  teamPublicationFiltersSchema,
-  publicationFiltersSchema,
-} from './publicationFilters'
+import { publicationFiltersSchema } from './publicationFilters'
+import { agendaApiParams, agendaFiltersAlias, agendaFiltersSchema } from './agendaFilters'
+import { teamPostApiParams, teamPostFiltersSchema } from './teamPostFilters'
 import { adFiltersSchema, isAdFiltered } from './adFilters'
 import { teamRouteFiltersSchema, routeApiParams } from './routeFilters'
 
-const NOW = '2026-10-01T10:00:00Z'
-
 const readFeed = (query: string) =>
   readUrlFilters(new URLSearchParams(query), {
-    schema: teamPublicationFiltersSchema,
-    alias: teamPublicationFiltersAlias,
+    schema: agendaFiltersSchema,
+    alias: agendaFiltersAlias,
   })
 
 describe('tag filter in the URL', () => {
@@ -28,12 +23,19 @@ describe('tag filter in the URL', () => {
     expect(readFeed('type=ride').tags).toBeUndefined()
   })
 
-  it('sends the tags only on a feed narrowed to one kind (D13)', () => {
-    expect(teamPublicationApiParams(readFeed('type=ride&tags=0abc'), NOW)).toMatchObject({
+  it('sends the agenda tags only once a kind is picked (D13)', () => {
+    expect(agendaApiParams(readFeed('type=ride&tags=0abc'))).toMatchObject({
       type: 'RIDE',
       tags: ['0abc'],
     })
-    expect(teamPublicationApiParams(readFeed('tags=0abc'), NOW)).not.toHaveProperty('tags')
+    expect(agendaApiParams(readFeed('tags=0abc'))).not.toHaveProperty('tags')
+  })
+
+  it('sends the post tags with the posts list, always narrowed to posts', () => {
+    expect(teamPostApiParams(teamPostFiltersSchema.parse({ tags: '0abc' }))).toMatchObject({
+      type: 'POST',
+      tags: ['0abc'],
+    })
   })
 
   it('leaves the home feed schema without tags (D7)', () => {

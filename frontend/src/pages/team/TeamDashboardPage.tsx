@@ -12,17 +12,18 @@ import { paths } from '@/config/paths'
 import { useTeamDashboardData } from './teamHomeData'
 
 /**
- * « Tableau de bord »: the default tab of the team page for a member (see `TeamHomePage`). The
- * header and the tabs come from the team, already in the cache; the sections from the one
- * dashboard call.
+ * « Tableau de bord »: the team page, for everyone (see `TeamHomePage`). The header and the tabs
+ * come from the team, already in the cache; the sections from the one dashboard call — its public
+ * part for a visitor, whose `role` is null (API-86).
  */
 export function TeamDashboardPage({ team }: { team: TeamDetailDto }) {
-  const { dashboard } = useTeamDashboardData(team.slug, !!team.role)
+  const { dashboard } = useTeamDashboardData(team.slug, true)
 
   useCanonicalPath(paths.team(team.slug))
 
-  // The role the sections were built for; the team's own until the response is there.
-  const role = dashboard.data?.role ?? team.role!
+  // The role the sections were built for; the team's own until the response is there. None for a
+  // visitor.
+  const role = dashboard.data ? (dashboard.data.role ?? undefined) : team.role
 
   return (
     <TeamLayout

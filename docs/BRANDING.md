@@ -505,6 +505,25 @@ Les maquettes doivent donc puiser dans le jeu Tabler.
 | `IconArrowsMaximize` | Carte en plein écran |
 | `IconArrowLeft` | Retour |
 
+**Icônes des sections d'équipe** (onglets de l'équipe, menu du fil d'Ariane ; décision du
+6 octobre 2026, ledger `BRAND-6`, plan [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md)
+§2). Ce sont les icônes des *sections* : toutes les pages perso partagent la même. Le mobile prend
+l'équivalent de chacune dans `PdlIcons`, jamais une icône Material choisie à part.
+
+| Section | Icône web |
+|---|---|
+| Tableau de bord | `IconLayoutDashboard` |
+| Agenda (sorties et voyages) | `IconCalendarEvent` |
+| Publications | `IconArticle` |
+| Parcours | `IconRoute` |
+| Annonces | `IconTag` |
+| Membres | `IconUsers` |
+| À propos | `IconInfoCircle` |
+| Pages perso | `IconFileText` |
+
+Les vues d'une liste (`ListViewSwitch`) : `IconLayoutGrid` Vignettes, `IconList` Lignes, `IconMap`
+Carte, `IconCalendar` Calendrier — icônes seules, chacune avec son infobulle et son nom accessible.
+
 Style : **trait uniquement, jamais de version pleine**, couleur héritée du texte
 (`currentColor`) — donc `#868e96` / `#828282` dans les statistiques atténuées, couleur du badge
 quand l'icône est en `leftSection`.
@@ -644,6 +663,8 @@ aucune formule enthousiaste (« Génial ! », « C'est parti ! » sont hors marq
 | Route | **parcours** | « itinéraire », « trace » |
 | Post | **publication** | « article », « news » |
 | Trip | **voyage** ; ses composants sont des **étapes** | « séjour », « tour » |
+| Rides + trips of a team | **Agenda** (section : sorties et voyages ; filtres « À venir », « Je participe », « Passées ») ; état vide « Rien à l'agenda pour le moment » | « événements », « programme », « activités » |
+| Ride or trip under way | **En cours** (badge dérivé, comme « Inscrit ») | « en direct », « live » |
 | Ad | **annonce** (rubrique : **Annonces**) | « petite annonce » dans l'UI |
 | Team | **équipe** | « club », « groupe » |
 | Group (dans une sortie) | **groupe** | « niveau », « peloton » |

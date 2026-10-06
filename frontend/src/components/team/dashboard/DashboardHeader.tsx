@@ -10,14 +10,19 @@ import type { TeamDetailDto, TeamRole } from '@/api/dto'
 import { paths } from '@/config/paths'
 import { useResponsive } from '@/hooks/useResponsive'
 
-/** Under the team's name on the dashboard: the reader's role and the member count. */
-export function DashboardHeaderMeta({ team, role }: { team: TeamDetailDto; role: TeamRole }) {
+/**
+ * Under the team's name on the dashboard: the reader's role — a member's only — and the member
+ * count.
+ */
+export function DashboardHeaderMeta({ team, role }: { team: TeamDetailDto; role?: TeamRole }) {
   const { t } = useTranslation()
   return (
     <Group gap="xs" mt={4}>
-      <RoleBadge role={role}>
-        {t(`roles.${role satisfies 'ADMIN' | 'ORGANIZER' | 'MEMBER'}`)}
-      </RoleBadge>
+      {role && (
+        <RoleBadge role={role}>
+          {t(`roles.${role satisfies 'ADMIN' | 'ORGANIZER' | 'MEMBER'}`)}
+        </RoleBadge>
+      )}
       <Text size="sm" c="dimmed">
         {t('memberCount', { count: team.memberCount })}
       </Text>
@@ -26,12 +31,13 @@ export function DashboardHeaderMeta({ team, role }: { team: TeamDetailDto; role:
 }
 
 /**
- * The dashboard's shortcuts in the team header: the team calendar feed for everyone, and the two
- * creations an organizer makes most — each only when the team has that module. Below `sm` they
- * collapse to icon buttons (labelled for assistive tech, with a tooltip) so they don't crowd the
- * team's name in TeamLayout's header.
+ * The dashboard's shortcuts in the team header: the team calendar feed for every member — the feed
+ * is the members' (CalendarAccessChecker), a visitor gets none — and the two creations an
+ * organizer makes most, each only when the team has that module. Below `sm` they collapse to icon
+ * buttons (labelled for assistive tech, with a tooltip) so they don't crowd the team's name in
+ * TeamLayout's header.
  */
-export function DashboardHeaderActions({ team, role }: { team: TeamDetailDto; role: TeamRole }) {
+export function DashboardHeaderActions({ team, role }: { team: TeamDetailDto; role?: TeamRole }) {
   const { t } = useTranslation()
   const { isMobile } = useResponsive()
   const isOrganizer = role === 'ADMIN' || role === 'ORGANIZER'
@@ -39,7 +45,7 @@ export function DashboardHeaderActions({ team, role }: { team: TeamDetailDto; ro
 
   return (
     <>
-      {hasEvents && <SubscribeCalendarButton teamSlug={team.slug} compact={isMobile} />}
+      {role && hasEvents && <SubscribeCalendarButton teamSlug={team.slug} compact={isMobile} />}
       {isOrganizer && team.enablePosts && (
         <HeaderLinkAction
           to={paths.postNew(team.slug)}

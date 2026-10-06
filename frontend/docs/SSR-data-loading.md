@@ -119,7 +119,9 @@ added to the page and forgotten in the prefetch. Don't reintroduce the exception
 |---|---|---|
 | `pages/home/homeFeedData.ts` | `home` | membership-defaulted filter schema, `publicationApiParams`, the `hourAlignedNowIso()` boundary |
 | `pages/team/teamListData.ts` | `teams` | membership-defaulted filter schema, `teamApiParams`, page window |
-| `pages/publication/publicationListData.ts` | `team-detail` | publication filters + `view`, the `hourAlignedNowIso()` boundary |
+| `pages/team/teamHomeData.ts` | `team-detail` | the team and its dashboard, side by side (the dashboard answers everyone, API-86) |
+| `pages/team/teamAgendaData.ts` | `team-agenda` | agenda filters (`when`, no clock in the key), `agendaApiParams`, page window, the tags of the chosen kind |
+| `pages/team/teamPostsData.ts` | `team-posts` | post filters, `teamPostApiParams`, page window, the post tags |
 | `pages/route/routeListData.ts` | `routes` | route filters schema/alias, page window |
 | `pages/route/allRouteListData.ts` | `all-routes`, `all-routes-map` | cross-team filters + `minRole` projection |
 | `pages/ad/adListData.ts` | `ads` | ad filters schema/alias, page window |

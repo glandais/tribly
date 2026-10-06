@@ -31,7 +31,7 @@ vi.mock('react-i18next', () => ({
 }))
 
 import { TeamDashboard } from './TeamDashboard'
-import { showsTeamDashboard } from '@/pages/team/teamHomeData'
+import { paths } from '@/config/paths'
 
 // Mantine's Menu and Progress build a ResizeObserver with `new`.
 globalThis.ResizeObserver = class {
@@ -353,13 +353,43 @@ describe('team dashboard, by role', () => {
   })
 })
 
-describe('team home', () => {
-  it('shows the dashboard to a member only, and the feed on ?tab=publications', () => {
-    expect(showsTeamDashboard({ role: 'MEMBER' }, new URLSearchParams())).toBe(true)
-    expect(showsTeamDashboard({ role: 'ADMIN' }, new URLSearchParams('tab=publications'))).toBe(
-      false
+describe('team dashboard, for a visitor (API-86)', () => {
+  afterEach(cleanup)
+
+  /** What the API builds for a reader with no role: the public sections, nothing else. */
+  function visitorDashboard(): TeamDashboardDto {
+    return {
+      ...dashboard('MEMBER'),
+      role: undefined,
+      myUpcoming: undefined,
+      latestAds: undefined,
+      organizer: undefined,
+      admin: undefined,
+    } as unknown as TeamDashboardDto
+  }
+
+  it('shows the public sections only', () => {
+    renderDashboard(visitorDashboard())
+
+    expect(heading('teams.dashboard.upcomingRides.title')).toBeInTheDocument()
+    expect(heading('teams.dashboard.posts.title')).toBeInTheDocument()
+    expect(heading('teams.dashboard.myUpcoming.title')).not.toBeInTheDocument()
+    expect(heading('teams.dashboard.ads.title')).not.toBeInTheDocument()
+    expect(heading('teams.dashboard.todo.title')).not.toBeInTheDocument()
+    expect(heading('teams.dashboard.admin.title')).not.toBeInTheDocument()
+  })
+
+  it('leads each « Voir tout » to the list behind it (WEB-68)', () => {
+    renderDashboard(dashboard('MEMBER'))
+
+    const seeAll = (section: string) =>
+      within(screen.getByRole('region', { name: section }))
+        .getByRole('link', { name: 'teams.dashboard.seeAll' })
+        .getAttribute('href')
+    expect(seeAll('teams.dashboard.myUpcoming.title')).toBe(
+      `${paths.teamAgenda('vc-craponne')}?w=me`
     )
-    expect(showsTeamDashboard({ role: undefined }, new URLSearchParams())).toBe(false)
-    expect(showsTeamDashboard(undefined, new URLSearchParams())).toBe(false)
+    expect(seeAll('teams.dashboard.upcomingRides.title')).toBe(paths.teamAgenda('vc-craponne'))
+    expect(seeAll('teams.dashboard.posts.title')).toBe(paths.teamPosts('vc-craponne'))
   })
 })

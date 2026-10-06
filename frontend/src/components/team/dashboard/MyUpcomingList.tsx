@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Anchor, Badge, Box, Button, Group, Paper, Stack, Text } from '@mantine/core'
+import { Anchor, Badge, Button, Group, Paper, Stack } from '@mantine/core'
 import {
   IconCalendar,
   IconCheck,
@@ -9,6 +9,7 @@ import {
   IconRoute,
 } from '@tabler/icons-react'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
+import { DayBox } from '@/components/common/DayBox'
 import { Stat, TypeBadge } from '@/components/card/common'
 import type { PublicationDto, RideDto, TripDto } from '@/api/dto'
 import { useUnits } from '@/hooks/useUnits'
@@ -32,34 +33,6 @@ export function MyUpcomingList({ publications }: { publications: PublicationDto[
         ) : null
       )}
     </Stack>
-  )
-}
-
-/** The day box on the left of a row: « sam. / 10 / oct. ». */
-function DayBox({ date }: { date: string }) {
-  const { formatPattern } = useFormattedDate()
-  return (
-    <Box
-      w={60}
-      py={8}
-      ta="center"
-      style={{
-        flex: '0 0 60px',
-        borderRadius: 'var(--mantine-radius-md)',
-        background: 'var(--mantine-color-primary-light)',
-        color: 'var(--mantine-color-primary-light-color)',
-      }}
-    >
-      <Text size="xs" tt="uppercase" fw={600} suppressHydrationWarning>
-        {formatPattern(date, 'EEE')}
-      </Text>
-      <Text fz={22} fw={700} lh={1.1} suppressHydrationWarning>
-        {formatPattern(date, 'd')}
-      </Text>
-      <Text size="xs" tt="uppercase" suppressHydrationWarning>
-        {formatPattern(date, 'MMM')}
-      </Text>
-    </Box>
   )
 }
 

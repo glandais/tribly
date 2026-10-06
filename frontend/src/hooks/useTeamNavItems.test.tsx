@@ -1,5 +1,13 @@
 import { describe, it, expect, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
+import {
+  IconArticle,
+  IconCalendarEvent,
+  IconFileText,
+  IconLayoutDashboard,
+  IconRoute,
+  IconTag,
+} from '@tabler/icons-react'
 import type { TeamDetailDto, TeamRole } from '@/api/dto'
 
 vi.mock('@/config/appConfig', () => ({ isSingleTeam: () => false }))
@@ -10,7 +18,7 @@ vi.mock('react-i18next', () => ({
 import { useTeamNavItems } from './useNavItems'
 import { paths } from '@/config/paths'
 
-function team(role?: TeamRole): TeamDetailDto {
+function team(role?: TeamRole, overrides: Partial<TeamDetailDto> = {}): TeamDetailDto {
   return {
     id: 't1',
     name: 'VC Craponne',
@@ -20,45 +28,57 @@ function team(role?: TeamRole): TeamDetailDto {
     enableRoutes: true,
     enableTrips: false,
     enablePosts: true,
-    enableAds: false,
-    pages: [],
+    enableAds: true,
+    pages: [{ slug: 'histoire', title: 'Histoire', visibility: 'PUBLIC' }],
     role,
+    ...overrides,
   } as unknown as TeamDetailDto
 }
 
-describe('team tabs', () => {
-  it('a visitor keeps the feed on the team URL, with no dashboard', () => {
-    const { result } = renderHook(() => useTeamNavItems(team()))
-    const ids = result.current.map((i) => i.id)
-    expect(ids).not.toContain('dashboard')
-    expect(result.current.find((i) => i.id === 'publications')?.path).not.toContain('tab=')
+const ids = (t: TeamDetailDto) =>
+  renderHook(() => useTeamNavItems(t)).result.current.map((i) => i.id)
+
+describe('team tabs (WEB-68, BRAND-6)', () => {
+  it('opens on the dashboard for everyone, then the agenda and the posts', () => {
+    expect(ids(team())).toEqual(['dashboard', 'agenda', 'posts', 'routes', 'about', 'histoire'])
+    expect(ids(team('ADMIN'))).toEqual([
+      'dashboard',
+      'agenda',
+      'posts',
+      'routes',
+      'ads',
+      'members',
+      'about',
+      'histoire',
+    ])
   })
 
-  it('a member opens on the dashboard, the feed moves to ?tab=publications', () => {
-    const { result } = renderHook(() => useTeamNavItems(team('MEMBER')))
-    expect(result.current[0].id).toBe('dashboard')
-    expect(result.current.find((i) => i.id === 'publications')?.path).toContain('?tab=publications')
-    expect(result.current.map((i) => i.id)).not.toContain('members')
+  it('leads each section to its own route, with no feed and no calendar tab', () => {
+    const items = renderHook(() => useTeamNavItems(team('MEMBER'))).result.current
+    const path = (id: string) => items.find((i) => i.id === id)?.path
+    expect(path('dashboard')).toBe(paths.team('vc-craponne'))
+    expect(path('agenda')).toBe(paths.teamAgenda('vc-craponne'))
+    expect(path('posts')).toBe(paths.teamPosts('vc-craponne'))
+    expect(items.map((i) => i.id)).not.toContain('calendar')
+    expect(items.map((i) => i.id)).not.toContain('publications')
+    expect(items.map((i) => i.id)).not.toContain('members')
   })
 
-  it('rides and trips each get their own route, gated on their module and the routes', () => {
-    const { result } = renderHook(() => useTeamNavItems(team('MEMBER')))
-    expect(result.current.find((i) => i.id === 'rides')?.path).toBe(paths.teamRides('vc-craponne'))
-    // The fixture's team has trips switched off.
-    expect(result.current.map((i) => i.id)).not.toContain('trips')
-
-    const withTrips = { ...team(), enableTrips: true } as TeamDetailDto
-    const visitor = renderHook(() => useTeamNavItems(withTrips)).result.current
-    expect(visitor.find((i) => i.id === 'trips')?.path).toBe(paths.teamTrips('vc-craponne'))
-
-    const noRoutes = { ...withTrips, enableRoutes: false } as TeamDetailDto
-    const ids = renderHook(() => useTeamNavItems(noRoutes)).result.current.map((i) => i.id)
-    expect(ids).not.toContain('rides')
-    expect(ids).not.toContain('trips')
+  it('gates the agenda on rides or trips with the routes, the posts on their module', () => {
+    expect(ids(team('MEMBER', { enableRoutes: false }))).not.toContain('agenda')
+    expect(ids(team('MEMBER', { enableRides: false }))).not.toContain('agenda')
+    expect(ids(team('MEMBER', { enableRides: false, enableTrips: true }))).toContain('agenda')
+    expect(ids(team('MEMBER', { enablePosts: false }))).not.toContain('posts')
   })
 
-  it('an administrator also gets the « Membres » tab', () => {
-    const { result } = renderHook(() => useTeamNavItems(team('ADMIN')))
-    expect(result.current.map((i) => i.id)).toContain('members')
+  it('wears the brand icons (docs/BRANDING.md §6)', () => {
+    const items = renderHook(() => useTeamNavItems(team('MEMBER'))).result.current
+    const icon = (id: string) => items.find((i) => i.id === id)?.icon
+    expect(icon('dashboard')).toBe(IconLayoutDashboard)
+    expect(icon('agenda')).toBe(IconCalendarEvent)
+    expect(icon('posts')).toBe(IconArticle)
+    expect(icon('routes')).toBe(IconRoute)
+    expect(icon('ads')).toBe(IconTag)
+    expect(icon('histoire')).toBe(IconFileText)
   })
 })

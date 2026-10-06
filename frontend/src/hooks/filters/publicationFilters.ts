@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ListViewMode, PublicationType } from '@/api/dto'
-import { COMMON_ALIAS, pageField, searchField, sizeField, tagIdsField } from './common'
+import { COMMON_ALIAS, pageField, searchField, sizeField } from './common'
 
 export const PUBLICATION_PAGE_SIZE = 12
 
@@ -47,8 +47,9 @@ export const publicationFiltersSchema = z.object({
 export const publicationFiltersAlias = { ...COMMON_ALIAS, filter: 'type', scope: 'w' } as const
 
 /**
- * Projects the page's filters onto the list endpoint's params — the one place the two publication
- * lists (home feed, team feed) and their route `prefetch`es all go through.
+ * Projects the home feed's filters onto the list endpoint's params — the one place the page and
+ * its route `prefetch` both go through. A team's lists have their own: the agenda
+ * (`agendaFilters.ts`, scoped by `when`) and the posts (`teamPostFilters.ts`, ledger WEB-68).
  *
  * It exists because the prefetch has to produce a **byte-identical query key**, and it used to
  * rebuild the params by hand: `{ minRole, page, size, view }`. That worked only as long as the
@@ -71,34 +72,6 @@ export function publicationApiParams(
     ...publicationScopeToParams(filters.scope, nowIso),
     view: ListViewMode.COMPACT,
   }
-}
-
-/**
- * A team's own feed adds the tag filter. Not the home feed, which spans teams (plan D7), hence an
- * extension rather than a field of the shared schema.
- *
- * The filter only exists once the feed is narrowed to one kind (`?type=ride&tags=…`): tags belong
- * to one kind of content (D3), and the mixed feed has no tag filter (D13) — the API ignores `tags`
- * without `type`, and {@link teamPublicationApiParams} does not even send it.
- */
-export const teamPublicationFiltersSchema = publicationFiltersSchema.extend({
-  tags: tagIdsField,
-  /**
-   * `?tab=publications`: the feed itself, for a member whose team page opens on the dashboard
-   * (`pages/team/teamHomeData.ts`). Held in the schema so that changing a filter, which rewrites
-   * the whole query string, keeps the visitor on the feed. Never sent to the API.
-   */
-  tab: z.enum(['publications']).optional().catch(undefined),
-})
-
-export type TeamPublicationFilters = z.infer<typeof teamPublicationFiltersSchema>
-
-export const teamPublicationFiltersAlias = publicationFiltersAlias
-
-/** Same projection as {@link publicationApiParams}, plus the tags when the feed is one kind. */
-export function teamPublicationApiParams(filters: TeamPublicationFilters, nowIso: string) {
-  const params = publicationApiParams(filters, nowIso)
-  return params.type && filters.tags ? { ...params, tags: filters.tags } : params
 }
 
 /** The params a bare URL produces — what a route `prefetch` must fill the cache with. */

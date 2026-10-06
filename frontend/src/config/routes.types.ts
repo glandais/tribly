@@ -124,6 +124,16 @@ export interface RouteConfig {
   prefetch?: (queryClient: QueryClient, params: RouteParams, url: URL) => Promise<void>
 
   /**
+   * Optional redirect, checked by the route's loader before its `prefetch`: a non-empty return is
+   * where the URL now lives. The loader throws React Router's `replace()`, so the server answers a
+   * real redirect and a client navigation replaces its history entry instead of stacking the old
+   * address under the new one. For former addresses kept for the links already out there — the
+   * team feed and its tabs (pages/team/teamLegacyRedirects.ts, ledger `WEB-68`). Must be a pure
+   * function of the URL, and return `undefined` for the URL it leads to.
+   */
+  redirect?: (params: RouteParams, url: URL) => string | undefined
+
+  /**
    * Optional server-side link-preview (Open Graph / Twitter) descriptor. Invoked in entry-server
    * AFTER `prefetch` has populated the per-request QueryClient, so it only READS the cache (zero
    * extra fetches). Returns undefined to fall back to site-wide default tags. Attached to each

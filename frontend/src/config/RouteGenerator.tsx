@@ -1,9 +1,9 @@
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { Navigate, redirect, type RouteObject } from 'react-router-dom'
+import { Navigate, redirect, replace, type RouteObject } from 'react-router-dom'
 import type { QueryClient } from '@tanstack/react-query'
 import { routesConfig } from './routes.config'
 import { runRoutePrefetch } from './runRoutePrefetch'
-import type { RouteConfig, AuthRequirement } from './routes.types'
+import type { RouteConfig, RouteParams, AuthRequirement } from './routes.types'
 import { AuthenticatedRoute, UnauthenticatedRoute } from '../components/auth/ProtectedRoute'
 import { Layout } from '../components/common/Layout'
 import { NotFoundPage } from '../pages/NotFoundPage'
@@ -38,7 +38,11 @@ function makeLoader(config: RouteConfig, queryClient: QueryClient) {
     request: Request
     params: Record<string, string | undefined>
   }) => {
-    await runRoutePrefetch(config, queryClient, params, new URL(request.url), 'loader')
+    const url = new URL(request.url)
+    // A former address: leave it before fetching anything for a page that will not render.
+    const target = config.redirect?.(params as RouteParams, url)
+    if (target) throw replace(target)
+    await runRoutePrefetch(config, queryClient, params, url, 'loader')
     return null
   }
 }
@@ -65,7 +69,8 @@ function buildRoutesForConfig(config: RouteConfig, queryClient: QueryClient): Ro
   )
 
   // Gated redirects carry no prefetch: the component never renders here.
-  const loader = config.prefetch && !gated ? makeLoader(config, queryClient) : undefined
+  const loader =
+    (config.prefetch || config.redirect) && !gated ? makeLoader(config, queryClient) : undefined
 
   // Expose the route's SSR meta() (link previews) on `handle` so the static handler's matched leaf
   // carries it — entry-server reads leafMatch.route.handle.meta after the loaders have run. `routeId`

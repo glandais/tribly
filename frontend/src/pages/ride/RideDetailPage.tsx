@@ -1,6 +1,5 @@
 import { useState, useMemo, lazy, Suspense } from 'react'
 import { getGetTeamDashboardQueryKey } from '@/api/endpoints/teams/teams'
-import { teamFeedPath } from '@/pages/team/teamHomeData'
 import { useLocation, useParams, useNavigate } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
@@ -248,7 +247,7 @@ export function RideDetailPage() {
           queryClient.invalidateQueries({ queryKey: getGetTeamDashboardQueryKey(teamSlug!) })
           notifications.show({ message: t('rides.notifications.deleted'), color: 'green' })
           // Back to the feed, not the dashboard: the reader was managing publications.
-          navigate(teamFeedPath(teamSlug!))
+          navigate(paths.teamAgenda(teamSlug!))
         },
       }
     )

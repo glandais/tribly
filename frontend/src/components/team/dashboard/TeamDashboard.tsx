@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next'
 import { Box, Flex, Stack } from '@mantine/core'
 import type { TeamDashboardDto, TeamDetailDto } from '@/api/dto'
 import { paths } from '@/config/paths'
-import { teamFeedPath } from '@/pages/team/teamHomeData'
 import { DashboardSection } from './DashboardSection'
 import { TodoBand } from './TodoBand'
 import { MyUpcomingList } from './MyUpcomingList'
@@ -19,7 +18,10 @@ interface TeamDashboardProps {
 }
 
 /**
- * The body of the team dashboard. What it shows follows the API, never a guess from the client:
+ * The body of the team dashboard, for everyone (API-86): a visitor's response carries the public
+ * sections only — upcoming rides, latest posts, new routes — and a null `role`. Each « Voir tout »
+ * leads to the list behind it: the agenda (« Je participe » for « Mes prochaines »), the posts, the
+ * routes (ledger WEB-68). What it shows follows the API, never a guess from the client:
  * a section is drawn when the response carries it — `null` means the team disabled that module —
  * and the organizer and admin blocks only exist in the response for those roles. The role is
  * still checked here, so that a block can never leak to a lower role through a stale cache.
@@ -49,7 +51,7 @@ export function TeamDashboard({ dashboard, team: teamOverride }: TeamDashboardPr
             <DashboardSection
               id="dashboard-my-upcoming"
               title={t('teams.dashboard.myUpcoming.title')}
-              seeAllTo={teamFeedPath(slug, { w: 'me' })}
+              seeAllTo={`${paths.teamAgenda(slug)}?w=me`}
               isEmpty={myUpcoming.publications.length === 0}
               empty={t('teams.dashboard.myUpcoming.empty')}
             >
@@ -61,7 +63,7 @@ export function TeamDashboard({ dashboard, team: teamOverride }: TeamDashboardPr
             <DashboardSection
               id="dashboard-upcoming-rides"
               title={t('teams.dashboard.upcomingRides.title')}
-              seeAllTo={`${paths.teamRides(slug)}?w=upcoming`}
+              seeAllTo={paths.teamAgenda(slug)}
               isEmpty={upcoming.length === 0}
               empty={t('teams.dashboard.upcomingRides.empty')}
             >
@@ -83,7 +85,7 @@ export function TeamDashboard({ dashboard, team: teamOverride }: TeamDashboardPr
             <DashboardSection
               id="dashboard-posts"
               title={t('teams.dashboard.posts.title')}
-              seeAllTo={teamFeedPath(slug, { type: 'post' })}
+              seeAllTo={paths.teamPosts(slug)}
               isEmpty={posts.length === 0}
               empty={t('teams.dashboard.posts.empty')}
             >

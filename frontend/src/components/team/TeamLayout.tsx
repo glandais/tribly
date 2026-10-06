@@ -24,7 +24,7 @@ import { paths } from '@/config/paths'
 
 interface TeamLayoutProps {
   team: TeamDetailDto
-  /** Tab identifier: 'publications', 'routes', 'about', or a page slug for dynamic pages */
+  /** Tab identifier (`useTeamNavItems`): 'dashboard', 'agenda', 'posts', 'routes', 'about'…, or a page slug */
   currentTab: string
   children: React.ReactNode
   /** Under the name: the dashboard puts the reader's role and the member count there. */

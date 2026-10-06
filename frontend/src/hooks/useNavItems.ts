@@ -4,18 +4,17 @@ import { useTranslation } from 'react-i18next'
 import {
   IconNews,
   IconCalendar,
+  IconCalendarEvent,
+  IconArticle,
   IconRoute,
   IconUsers,
-  IconTags,
+  IconTag,
   IconInfoCircle,
   IconFileText,
   IconSparkles,
   IconLayoutDashboard,
-  IconBike,
-  IconMap2,
 } from '@tabler/icons-react'
 import { paths } from '@/config/paths'
-import { teamFeedPath } from '@/pages/team/teamHomeData'
 import { findMatchingRoute, getRouteById } from '@/config/routeUtils'
 import { isSingleTeam } from '@/config/appConfig'
 import { useAuth } from './useAuth'
@@ -131,10 +130,13 @@ export function useActiveMainNavId(items: MainNavItem[]): string | undefined {
 }
 
 /**
- * Navigation items for a team section, gated exactly like the tab bar: calendar/ads require
- * membership and the relevant feature flag, routes require the feature flag, plus each visible
- * dynamic team page. Single source of truth shared by TeamLayout and the breadcrumb dropdown.
- * Returns [] until the team is loaded.
+ * Navigation items for a team section, in the order of the plan (2026-10-06 §2): « Tableau de
+ * bord » (for everyone, API-86), « Agenda » (rides and trips — their calendar view is reached
+ * from it, for a member), « Publications », « Parcours », « Annonces » (members), « Membres »
+ * (administrators), « À propos », then each visible custom page. Each section only when the team
+ * has its module — a ride or a trip needs the routes too. The icons are the brand's
+ * (docs/BRANDING.md §6, ledger BRAND-6); custom pages all share one. Single source of truth shared
+ * by TeamLayout and the breadcrumb dropdown. Returns [] until the team is loaded.
  */
 export function useTeamNavItems(team: TeamDetailDto | undefined): NavButtonItem[] {
   const { t } = useTranslation()
@@ -143,54 +145,31 @@ export function useTeamNavItems(team: TeamDetailDto | undefined): NavButtonItem[
     if (!team) return []
 
     const isMember = !!team.role
+    const hasAgenda = (!!team.enableRides || !!team.enableTrips) && !!team.enableRoutes
     const baseTabs: NavButtonItem[] = [
-      // A member's team page opens on the dashboard; the feed moves to `?tab=publications`
-      // (pages/team/teamHomeData.ts). A visitor keeps the feed at the team's own URL.
-      ...(isMember
-        ? [
-            {
-              id: 'dashboard',
-              path: paths.team(team.slug),
-              label: t('teams.dashboard.title'),
-              icon: IconLayoutDashboard,
-            },
-          ]
-        : []),
       {
-        id: 'publications',
-        path: isMember ? teamFeedPath(team.slug) : paths.team(team.slug),
-        label: t('teams.publications.list.title'),
-        icon: IconNews,
+        id: 'dashboard',
+        path: paths.team(team.slug),
+        label: t('teams.dashboard.title'),
+        icon: IconLayoutDashboard,
       },
-      // The feed narrowed to one kind, each on its own route (WEB-64) — gated like the feed's
-      // type select: a ride or a trip needs the routes module.
-      ...(team.enableRides && team.enableRoutes
+      ...(hasAgenda
         ? [
             {
-              id: 'rides',
-              path: paths.teamRides(team.slug),
-              label: t('teams.detail.tabs.rides'),
-              icon: IconBike,
+              id: 'agenda',
+              path: paths.teamAgenda(team.slug),
+              label: t('teams.detail.tabs.agenda'),
+              icon: IconCalendarEvent,
             },
           ]
         : []),
-      ...(team.enableTrips && team.enableRoutes
+      ...(team.enablePosts
         ? [
             {
-              id: 'trips',
-              path: paths.teamTrips(team.slug),
-              label: t('teams.detail.tabs.trips'),
-              icon: IconMap2,
-            },
-          ]
-        : []),
-      ...(isMember && (team.enableRides || team.enableTrips)
-        ? [
-            {
-              id: 'calendar',
-              path: paths.teamCalendar(team.slug),
-              label: t('teams.detail.tabs.calendar'),
-              icon: IconCalendar,
+              id: 'posts',
+              path: paths.teamPosts(team.slug),
+              label: t('teams.detail.tabs.posts'),
+              icon: IconArticle,
             },
           ]
         : []),
@@ -210,16 +189,10 @@ export function useTeamNavItems(team: TeamDetailDto | undefined): NavButtonItem[
               id: 'ads',
               path: paths.ads(team.slug),
               label: t('ads.title'),
-              icon: IconTags,
+              icon: IconTag,
             },
           ]
         : []),
-      {
-        id: 'about',
-        path: paths.teamAbout(team.slug),
-        label: t('teams.detail.tabs.about'),
-        icon: IconInfoCircle,
-      },
       // An administrator always reads the directory (API-39), so it earns a tab of its own.
       ...(team.role === 'ADMIN'
         ? [
@@ -231,6 +204,12 @@ export function useTeamNavItems(team: TeamDetailDto | undefined): NavButtonItem[
             },
           ]
         : []),
+      {
+        id: 'about',
+        path: paths.teamAbout(team.slug),
+        label: t('teams.detail.tabs.about'),
+        icon: IconInfoCircle,
+      },
     ]
 
     // Add dynamic pages - filter by visibility (PUBLIC pages or member can see TEAM pages)

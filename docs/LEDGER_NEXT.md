@@ -199,7 +199,10 @@ navigateur), et la connexion par code e-mailé (la préférence de fuseau existe
       Je participe / Passées » que le fil d'équipe mobile n'a pas du tout, bascule Liste /
       Calendrier) et `posts` ; le tableau de bord devient la racine pour tous (`API-86`) ;
       `teamRides`, `teamTrips`, `teamCalendar` et `?tab=publications` routés vers la bonne section.
-      Publié en même temps que `WEB-68`.
+      Publié en même temps que `WEB-68`. En attendant, `teamAgenda` et `teamPosts` (au contrat
+      depuis `WEB-68`) ouvrent le fil de l'équipe, filtré sur les publications pour la seconde
+      (`router.dart`, `internalRouteTemplates`, `_deepLinkHierarchies`,
+      `team_kind_tab_links_test.dart`) : relais provisoire, à remplacer par les vraies sections.
 
 ### Liens profonds
 
@@ -325,28 +328,6 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       les clés nouvelles. Au passage : le mock partagé de `ResizeObserver` (`src/test/setup.ts`)
       est une fonction fléchée, que `new` refuse avec `ScrollArea` et `SegmentedControl` de
       Mantine — `RideWeatherSection.test.tsx` le remplace localement par `vi.stubGlobal`.
-
-### Agenda et Publications
-
-Plan [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md).
-
-- [ ] `WEB-68` **Le fil d'équipe remplacé par « Agenda » (sorties et voyages) et « Publications »
-      (M)** — le fil mélange deux temporalités : « À venir » y trie du plus lointain au plus proche,
-      « Je participe » ne borne pas la date, et ces filtres s'appliquent à des publications pour
-      qui ils ne veulent rien dire (`PublicationListPage`, `publicationScopeToParams`). Routes
-      `teamAgenda` et `teamPosts`, redirections des anciennes adresses (`?tab=publications`,
-      `teamRides`, `teamTrips`), tableau de bord à la racine pour tous. Défait en partie `WEB-64`.
-      Dépend de `API-85` et `API-86`.
-- [ ] `WEB-69` **Un seul sélecteur de vue pour Parcours et Agenda (S–M)** — la partie Parcours est
-      faite (6 octobre 2026) : `ListViewSwitch` (`components/common/`, icônes seules dans un
-      `SegmentedControl` libellé « Affichage », chaque vue nommée par un texte masqué) remplace
-      `RouteViewToggle` et `RouteDensityToggle` sur les quatre pages de parcours, via
-      `RouteViewSwitch` (Vignettes · Lignes · Carte, à droite du nombre de résultats ; la densité
-      vit dans `?view=card|row`, qui remplace `?d=` ; Carte garde `routesMap`/`allRoutesMap` et le
-      sélecteur y navigue en gardant les filtres). Couvert par `ListViewSwitch.test.tsx`,
-      `RouteViewSwitch.test.tsx` et les e2e `list-filters`, `flow-routes`, `routes-render`.
-      **Reste l'Agenda** : Vignettes · Lignes · Calendrier, Calendrier naviguant vers
-      `teamCalendar` et absent pour un visiteur — à brancher avec `WEB-68`. Plan §4.
 
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
@@ -764,10 +745,12 @@ En service en staging ; la mise en production attend biketeam
 Le code couleur métier a une source unique depuis `BRAND-2`.
 
 - [ ] `BRAND-6` **Les icônes des sections d'équipe suivent la charte, les mêmes sur les deux clients
-      (S)** — le web montre `IconNews`, `IconMap2`, `IconTags` où la charte (§6) dit `IconArticle`,
-      `IconRoute`, `IconTag`, et le mobile prend d'autres icônes Material (`team_sections.dart`).
-      Table section → icône au plan [`2026-10-06-team-agenda.md`](plans/2026-10-06-team-agenda.md) §2, et « Agenda » ajouté au lexique (§8). Livré avec
-      `WEB-68` et `MOB-60`.
+      (S)** — **le web est fait** (6 octobre 2026, avec `WEB-68`) : `useTeamNavItems` prend les
+      icônes de la table du [`BRANDING.md`](BRANDING.md) §6 (sections d'équipe), « Agenda » est au
+      lexique (§8), `useTeamNavItems.test.tsx` vérifie chaque icône. **Reste le mobile** : il prend
+      d'autres icônes Material (`dynamic_feed`, `sell`…, `team_sections.dart`) au lieu de
+      l'équivalent `PdlIcons` de chaque section (à compléter s'il en manque). Livré avec
+      `MOB-60`.
 
 ---
 

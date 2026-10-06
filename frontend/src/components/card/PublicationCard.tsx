@@ -26,6 +26,9 @@ import { PublicationCardProgress } from './PublicationCardProgress'
 import { RouteThumbnail } from '../route/RouteThumbnail'
 import { TagList } from '../tag/TagList'
 import { RideWeatherSummaryLine } from '../weather/RideWeatherSummaryLine'
+import { InProgressBadge } from '../agenda/InProgressBadge'
+import { PublicationTimeSpan } from '../agenda/PublicationTimeSpan'
+import { isUnderWay } from '@/utils/publicationTiming'
 import type { PublicationDto, RideDto, TripDto } from '@/api/dto'
 
 interface PublicationCardProps {
@@ -98,7 +101,9 @@ export function PublicationCard({ publication, showTeam, actions }: PublicationC
         const ride = publication as RideDto
         return (
           <StatGroup>
-            <Stat icon={calendarIcon}>{formattedDate}</Stat>
+            <Stat icon={calendarIcon}>
+              <PublicationTimeSpan publication={ride} />
+            </Stat>
             <Stat icon={participantsIcon}>
               {t('participantCount', { count: ride.participantCount })}
             </Stat>
@@ -111,7 +116,9 @@ export function PublicationCard({ publication, showTeam, actions }: PublicationC
         const trip = publication as TripDto
         return (
           <StatGroup>
-            <Stat icon={calendarIcon}>{formattedDate}</Stat>
+            <Stat icon={calendarIcon}>
+              <PublicationTimeSpan publication={trip} />
+            </Stat>
             <Stat icon={participantsIcon}>
               {t('participantCount', { count: trip.participantCount })}
             </Stat>
@@ -200,6 +207,8 @@ export function PublicationCard({ publication, showTeam, actions }: PublicationC
             {/* First in the stack: deletion outranks type, status and visibility, which all
                 describe an entity one still believes exists. */}
             {publication.deleted && <DeletedBadge />}
+            {/* Derived on the client, like « Inscrit »: started, not over yet (API-85). */}
+            {isUnderWay(publication) && <InProgressBadge />}
             {isRegistered && (
               <Badge
                 size="sm"

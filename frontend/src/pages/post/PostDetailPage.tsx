@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { getGetTeamDashboardQueryKey } from '@/api/endpoints/teams/teams'
-import { teamFeedPath } from '@/pages/team/teamHomeData'
 import { useParams, useNavigate } from 'react-router-dom'
 import { PrefetchLink } from '@/components/common/PrefetchLink'
 import { useTranslation } from 'react-i18next'
@@ -164,7 +163,7 @@ export function PostDetailPage() {
           notifications.show({ message: i18next.t('posts.notifications.deleted'), color: 'green' })
           setShowDeleteConfirm(false)
           // Back to the feed, not the dashboard: the reader was managing publications.
-          navigate(teamFeedPath(teamSlug!))
+          navigate(paths.teamPosts(teamSlug!))
         },
       }
     )
