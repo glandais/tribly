@@ -208,6 +208,14 @@ final List<_DeepLinkHierarchy> _deepLinkHierarchies = [
     ancestors: [_teamsAncestor, _teamAncestor],
   ),
   _DeepLinkHierarchy(
+    patterns: PathVariants.teamAgenda(':teamSlug'),
+    ancestors: [_teamsAncestor, _teamAncestor],
+  ),
+  _DeepLinkHierarchy(
+    patterns: PathVariants.teamPosts(':teamSlug'),
+    ancestors: [_teamsAncestor, _teamAncestor],
+  ),
+  _DeepLinkHierarchy(
     patterns: PathVariants.teamRides(':teamSlug'),
     ancestors: [_teamsAncestor, _teamAncestor],
   ),
@@ -477,6 +485,16 @@ GoRoute _teamTree(String locale) {
       section(PathVariants.teamAds(':teamSlug'), TeamSectionKind.ads),
       section(PathVariants.teamAbout(':teamSlug'), TeamSectionKind.about),
       section(PathVariants.teamMembers(':teamSlug'), TeamSectionKind.members),
+      // L'Agenda et les Publications du site (ledger `WEB-68`). En attendant
+      // leurs écrans (ledger `MOB-60`), ils ouvrent le fil de l'équipe, filtré
+      // sur les publications pour la seconde : un lien partagé depuis le site
+      // atterrit dans l'app, jamais sur sa page d'erreur.
+      section(PathVariants.teamAgenda(':teamSlug'), TeamSectionKind.feed),
+      section(
+        PathVariants.teamPosts(':teamSlug'),
+        TeamSectionKind.feed,
+        feedType: PublicationType.post,
+      ),
       // Les onglets « Sorties » et « Voyages » du site (ledger `WEB-64`) : l'app
       // n'a pas de liste par type, ils ouvrent le fil de l'équipe filtré sur ce
       // type. Sans eux, les motifs de lien profond de l'équipe les capteraient

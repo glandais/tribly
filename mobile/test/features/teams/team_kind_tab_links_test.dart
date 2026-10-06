@@ -42,6 +42,7 @@ void main() {
   tabs = <String, (Map<String, String>, PublicationType)>{
     'teamRides': (PathVariants.teamRides('velo-club'), PublicationType.ride),
     'teamTrips': (PathVariants.teamTrips('velo-club'), PublicationType.trip),
+    'teamPosts': (PathVariants.teamPosts('velo-club'), PublicationType.post),
   };
 
   tabs.forEach((String id, (Map<String, String>, PublicationType) tab) {

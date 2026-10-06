@@ -126,6 +126,15 @@ final List<_LinkCase> _cases = [
     PathVariants.teams(),
     PathVariants.team(_teamSlug),
   ]),
+  // L'Agenda et les Publications du site (ledger `WEB-68`).
+  _LinkCase('teamAgenda', PathVariants.teamAgenda(_teamSlug), [
+    PathVariants.teams(),
+    PathVariants.team(_teamSlug),
+  ]),
+  _LinkCase('teamPosts', PathVariants.teamPosts(_teamSlug), [
+    PathVariants.teams(),
+    PathVariants.team(_teamSlug),
+  ]),
   // Les onglets « Sorties » / « Voyages » du site, rendus en fil filtré
   // (ledger `WEB-64`).
   _LinkCase('teamRides', PathVariants.teamRides(_teamSlug), [
