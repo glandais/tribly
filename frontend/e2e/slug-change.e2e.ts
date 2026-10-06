@@ -264,7 +264,12 @@ test.describe("the old team slug's deep links", () => {
       {
         from: `/equipes/${team.slug}/calendrier`,
         to: `/equipes/${teamSlug}/calendrier`,
-        landmark: (page) => main(page).getByRole('heading', { name: 'Calendrier', exact: true }),
+        landmark: (page) => main(page).getByRole('radio', { name: 'Calendrier' }),
+      },
+      {
+        from: `/equipes/${team.slug}/agenda`,
+        to: `/equipes/${teamSlug}/agenda`,
+        landmark: (page) => main(page).getByRole('heading', { level: 2, name: 'Agenda' }),
       },
       {
         from: `/equipes/${team.slug}/parcours`,

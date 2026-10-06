@@ -300,37 +300,68 @@ const screens: Record<string, Screen> = {
     },
     guards: (page) => page.getByRole('main').getByRole('searchbox', { name: 'Rechercher' }),
   },
+  // The agenda's calendar view (WEB-69): for the members, an outsider gets the agenda's lists.
   teamCalendar: {
     roles: MEMBERS,
     sees: async (main, d) => {
       await expect(main.getByRole('heading', { level: 1, name: d.team.name })).toBeVisible()
-      await heading('Calendrier')(main)
+      await heading('Agenda')(main)
+      await expect(main.getByRole('radio', { name: 'Calendrier' })).toBeChecked()
     },
     denied: {
       outsider: {
-        ...teamHome('the team calendar is for its members'),
+        why: 'the team calendar is for its members',
+        lands: pathTo('teamAgenda'),
+        sees: async (main) => {
+          await heading('Agenda')(main)
+          await expect(main.getByRole('radio', { name: 'Calendrier' })).toHaveCount(0)
+        },
       },
     },
     guards: (page) =>
       titled('Calendrier')(page).or(page.getByRole('textbox', { name: "URL du flux d'équipe" })),
   },
-  // The feed narrowed to one kind, each on its own tab (docs/LEDGER_*.md WEB-64): public, like
-  // the feed it narrows.
-  teamRides: {
+  // The agenda — rides and trips — and the posts, each a tab of the team (WEB-68): public.
+  teamAgenda: {
     roles: EVERYONE,
     sees: async (main, d, page) => {
-      await currentTab(page, "Navigation de l'équipe", 'Sorties')
+      await currentTab(page, "Navigation de l'équipe", 'Agenda')
       await expect(main.getByRole('link', { name: d.ride.name }).first()).toBeVisible()
       await expect(main.getByRole('link', { name: d.post.name, exact: true })).toHaveCount(0)
     },
   },
-  teamTrips: {
+  teamPosts: {
     roles: EVERYONE,
     sees: async (main, d, page) => {
-      await currentTab(page, "Navigation de l'équipe", 'Voyages')
-      await expect(main.getByRole('link', { name: d.trip.name }).first()).toBeVisible()
+      await currentTab(page, "Navigation de l'équipe", 'Publications')
+      await expect(main.getByRole('link', { name: d.post.name }).first()).toBeVisible()
       await expect(main.getByRole('link', { name: d.ride.name, exact: true })).toHaveCount(0)
     },
+  },
+  // The former « Sorties » and « Voyages » tabs (WEB-64): their loader redirects to the agenda,
+  // for everyone (`teamTrips` with `?type=trip`).
+  teamRides: {
+    roles: [],
+    sees: async () => {},
+    otherwise: redirects(EVERYONE, {
+      why: 'the former « Sorties » tab is the agenda now',
+      lands: pathTo('teamAgenda'),
+      sees: async (main, d) => {
+        await expect(main.getByRole('link', { name: d.ride.name }).first()).toBeVisible()
+      },
+    }),
+  },
+  teamTrips: {
+    roles: [],
+    sees: async () => {},
+    otherwise: redirects(EVERYONE, {
+      why: 'the former « Voyages » tab is the agenda narrowed to trips now',
+      lands: pathTo('teamAgenda'),
+      sees: async (main, d) => {
+        await expect(main.getByRole('link', { name: d.trip.name }).first()).toBeVisible()
+        await expect(main.getByRole('link', { name: d.ride.name, exact: true })).toHaveCount(0)
+      },
+    }),
   },
   teamPage: {
     roles: EVERYONE,

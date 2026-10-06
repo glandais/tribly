@@ -98,8 +98,10 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
   const feedCard = (name: string, scope: Locator = main) => entityCard(scope, name)
 
   await test.step('the author writes the post in the rich-text editor and publishes it', async () => {
-    await page.goto(`/equipes/${team.slug}?tab=publications`)
-    await expect(main.getByRole('heading', { name: "Fil d'actualités" })).toBeVisible()
+    await page.goto(`/equipes/${team.slug}/articles`)
+    await expect(
+      main.getByRole('heading', { level: 2, name: 'Publications', exact: true })
+    ).toBeVisible()
     const create = main.getByRole('link', { name: 'Nouvelle publication' })
     await hydrated(create)
     await create.click()
@@ -209,7 +211,7 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
   })
 
   await test.step('it shows in the team feed', async () => {
-    await page.goto(`/equipes/${team.slug}?tab=publications`)
+    await page.goto(`/equipes/${team.slug}/articles`)
     const card = feedCard(title)
     await expect(card).toBeVisible()
     await expect(card.getByText('Publication', { exact: true })).toBeVisible()
@@ -252,7 +254,7 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
     expect(comments.items[0].author.id).toBe(member.user.id)
 
     // The count on the feed card follows.
-    await memberPage.goto(`/equipes/${team.slug}?tab=publications`)
+    await memberPage.goto(`/equipes/${team.slug}/articles`)
     await expect(
       feedCard(title, memberMain).getByText('1 commentaire', { exact: true })
     ).toBeVisible()
@@ -336,7 +338,7 @@ test('a post goes from the editor to the feeds, gets a comment, is edited, then 
     await dialog.getByRole('button', { name: 'Supprimer' }).click()
 
     await expect(page.getByText('Publication supprimée avec succès')).toBeVisible()
-    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}\\?tab=publications$`))
+    await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/articles$`))
     // A team admin still sees it in the feed, flagged — deletion is soft, and restorable.
     await expect(feedCard(newTitle).getByText('Supprimé', { exact: true })).toBeVisible()
     expect((await fetchPost(author, team.slug, postSlug)).deleted).toBe(true)
@@ -377,8 +379,10 @@ test('a post saved as a draft is hidden from members until it is published from 
   const main = page.getByRole('main')
 
   await signIn(page.context(), author)
-  await page.goto(`/equipes/${team.slug}?tab=publications`)
-  await expect(main.getByRole('heading', { name: "Fil d'actualités" })).toBeVisible()
+  await page.goto(`/equipes/${team.slug}/articles`)
+  await expect(
+    main.getByRole('heading', { level: 2, name: 'Publications', exact: true })
+  ).toBeVisible()
   const create = main.getByRole('link', { name: 'Nouvelle publication' })
   await hydrated(create)
   await create.click()
@@ -400,8 +404,10 @@ test('a post saved as a draft is hidden from members until it is published from 
   const reader = await pageAs(browser, member)
   const memberMain = reader.page.getByRole('main')
   const openMemberFeed = async () => {
-    await reader.page.goto(`/equipes/${team.slug}?tab=publications`)
-    await expect(memberMain.getByRole('heading', { name: "Fil d'actualités" })).toBeVisible()
+    await reader.page.goto(`/equipes/${team.slug}/articles`)
+    await expect(
+      memberMain.getByRole('heading', { level: 2, name: 'Publications', exact: true })
+    ).toBeVisible()
     await expect(memberMain.getByText(/^\d+ publications?$/)).toBeVisible()
   }
   try {
@@ -682,7 +688,7 @@ test.describe('restoring', () => {
       await expect(
         toasts(page).filter({ hasText: 'Publication supprimée avec succès' })
       ).toBeVisible()
-      await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}\\?tab=publications$`))
+      await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/articles$`))
       await expect(entityCard(main, post.name).getByText('Supprimé', { exact: true })).toBeVisible()
       expect(await findPost(member, team.slug, post.slug)).toBeNull()
 
@@ -882,7 +888,7 @@ test.describe('comment replies', () => {
     // Reached from the team feed, so that the browser reads the comments itself: the server's
     // prefetch of a page opened by URL would embed the replies.
     await signIn(page.context(), writer)
-    await page.goto(`/equipes/${team.slug}?tab=publications`)
+    await page.goto(`/equipes/${team.slug}/articles`)
     const main = page.getByRole('main')
     const card = entityCard(main, post.name)
     await hydrated(card)

@@ -68,43 +68,71 @@ const noReadsAfterHydration = (reads: URLSearchParams[]) =>
   expect(readsOf(reads), 'list reads sent by the browser after the server render').toEqual([])
 
 test.describe('publication feeds', () => {
-  test('team feed: type and scope from the URL, server-rendered, then « Effacer les filtres »', async ({
+  test('team agenda: kind and period from the URL, server-rendered, then « Effacer les filtres »', async ({
     page,
     context,
   }) => {
-    const { owner, team, ride, post } = await teamWithFeed('filters-team-feed')
+    const { owner, team, ride, post } = await teamWithFeed('filters-team-agenda')
+    const past = await newRide(owner, team.slug, unique('Sortie passée filtrée'), {
+      dateTime: new Date(Date.now() - 2 * DAY).toISOString(),
+    })
     await signIn(context, owner)
     const main = page.getByRole('main')
-    const typeSelect = page.getByRole('combobox', { name: 'Type', exact: true })
+    const typeRadio = (label: string) =>
+      main
+        .getByRole('radiogroup', { name: 'Type', exact: true })
+        .getByRole('radio', { name: label })
+    const periodRadio = (label: string) =>
+      main.getByRole('radiogroup', { name: 'Période' }).getByRole('radio', { name: label })
 
-    // The owner is a member: the team's own URL opens on the dashboard, the feed is its
-    // « Publications » tab — kept through every filter change below.
+    // The agenda holds rides and trips, never posts; « À venir » by default (when=UPCOMING).
     const { markup, reads } = await openServerRendered(
       page,
-      `/equipes/${team.slug}?tab=publications&type=ride`,
+      `/equipes/${team.slug}/agenda?type=ride`,
       `/api/teams/${team.slug}/publications`
     )
-    expectInMarkup(markup, [ride], [post])
+    expectInMarkup(markup, [ride], [post, past.name])
     noReadsAfterHydration(reads)
     await expect(entityCard(main, ride)).toBeVisible()
-    await expect(entityCard(main, post)).toHaveCount(0)
-    await expect(typeSelect).toHaveValue('Sorties')
+    await expect(entityCard(main, past.name)).toHaveCount(0)
+    await expect(typeRadio('Sorties')).toBeChecked()
+    await expect(periodRadio('À venir')).toBeChecked()
 
-    await pick(page, typeSelect, 'Publications')
-    await expectQuery(page, { tab: 'publications', type: 'post' })
-    await expect(entityCard(main, post)).toBeVisible()
+    await segment(page, 'Période', 'Passées')
+    await expectQuery(page, { type: 'ride', w: 'past' })
+    await expect(entityCard(main, past.name)).toBeVisible()
     await expect(entityCard(main, ride)).toHaveCount(0)
 
-    // The post is two days old: nothing upcoming is a post — the filtered dead end.
-    await segment(page, 'Portée du fil', 'À venir')
-    await expectQuery(page, { tab: 'publications', type: 'post', w: 'upcoming' })
+    // No past trip: the filtered dead end.
+    await segment(page, 'Type', 'Voyages')
+    await expectQuery(page, { type: 'trip', w: 'past' })
     await expect(main.getByText('Aucun résultat ne correspond à votre recherche.')).toBeVisible()
 
     await main.getByRole('button', { name: 'Effacer les filtres' }).click()
-    await expectQuery(page, { tab: 'publications' })
+    await expectQuery(page, {})
     await expect(entityCard(main, ride)).toBeVisible()
+    await expect(entityCard(main, past.name)).toHaveCount(0)
+    await expect(entityCard(main, post)).toHaveCount(0)
+    await expect(typeRadio('Tout')).toBeChecked()
+  })
+
+  test('team posts: the posts alone, server-rendered, with no period', async ({
+    page,
+    context,
+  }) => {
+    const { owner, team, ride, post } = await teamWithFeed('filters-team-posts')
+    await signIn(context, owner)
+    const main = page.getByRole('main')
+
+    const { markup, reads } = await openServerRendered(
+      page,
+      `/equipes/${team.slug}/articles`,
+      `/api/teams/${team.slug}/publications`
+    )
+    expectInMarkup(markup, [post], [ride])
+    noReadsAfterHydration(reads)
     await expect(entityCard(main, post)).toBeVisible()
-    await expect(typeSelect).toHaveValue('Tous')
+    await expect(main.getByRole('radiogroup', { name: 'Période' })).toHaveCount(0)
   })
 
   test('home feed: type and membership from the URL, server-rendered, then « Effacer les filtres »', async ({

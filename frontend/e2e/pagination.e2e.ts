@@ -165,26 +165,28 @@ async function teamWithPosts(label: string) {
 const publicationNames = (response: PublicationListResponse) =>
   response.publications.map((publication) => publication.name)
 
-test('team feed: page 2 from the server, back to it, p=abc, p=99', async ({ page, context }) => {
-  const { owner, team } = await teamWithPosts('pagination-team-feed')
+test('team posts: page 2 from the server, back to it, p=abc, p=99', async ({ page, context }) => {
+  const { owner, team } = await teamWithPosts('pagination-team-posts')
   const endpoint = `/api/teams/${team.slug}/publications`
   const heads = await pageHeads(
     async (p) =>
       publicationNames(
-        await apiGet<PublicationListResponse>(owner, endpoint, { page: p, size: PAGE_SIZE })
+        await apiGet<PublicationListResponse>(owner, endpoint, {
+          type: 'POST',
+          page: p,
+          size: PAGE_SIZE,
+        })
       ),
     (name) => name
   )
 
   await signIn(context, owner)
-  // The owner is a member: the team's own URL opens on the dashboard, the feed is its
-  // « Publications » tab, which the pagination keeps in the URL.
+  // The team's « Publications » (WEB-68): the posts alone, newest first.
   await paginate(page, {
-    path: `/equipes/${team.slug}?tab=publications`,
+    path: `/equipes/${team.slug}/articles`,
     endpoint,
-    query: { tab: 'publications' },
     ...heads,
-    empty: 'Aucune activité pour le moment',
+    empty: 'Aucune publication pour le moment',
     open: openCard,
   })
 })

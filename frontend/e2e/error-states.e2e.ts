@@ -72,7 +72,8 @@ const TARGETS: Target[] = [
     kind: 'team',
     path: (team) => `/equipes/${team}`,
     api: (team) => `/api/teams/${team}`,
-    // PublicationListPage has no « not found » state: an unknown team sends to the team list.
+    // The team page has no « not found » state: an unknown team sends to the team list
+    // (TeamUnavailable).
     notFound: '',
   },
 ]
@@ -156,7 +157,7 @@ for (const target of TARGETS) {
     test(`a 500 on the ${target.kind} shows « ${ERROR_TITLE} », and « ${RETRY} » loads it`, async ({
       page,
     }) => {
-      // Regression (b43994e2): a failing team was taken for an unknown one — PublicationListPage
+      // Regression (b43994e2): a failing team was taken for an unknown one — the team page
       // <Navigate>d to the team list instead of saying the server failed.
 
       const entity = setup.entities[target.kind]

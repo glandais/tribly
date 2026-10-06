@@ -71,13 +71,14 @@ async function ridingTeam(label: string) {
 
 const main = (page: Page) => page.getByRole('main')
 
-/** The team feed, loaded: its heading is there before any presence or absence check. */
+/**
+ * The team agenda (WEB-68), loaded: its heading and its count are there before any presence or
+ * absence check.
+ */
 async function openFeed(page: Page, teamSlug: string) {
-  await page.goto(`/equipes/${teamSlug}?tab=publications`)
-  await expect(
-    main(page).getByRole('heading', { name: "Fil d'actualités", level: 2 })
-  ).toBeVisible()
-  await expect(main(page).getByText(/^\d+ publications?$/)).toBeVisible()
+  await page.goto(`/equipes/${teamSlug}/agenda`)
+  await expect(main(page).getByRole('heading', { name: 'Agenda', level: 2 })).toBeVisible()
+  await expect(main(page).getByText(/^\d+ sorties? (et|ou) voyages? à venir$/)).toBeVisible()
 }
 
 const feedCard = (page: Page, name: string) => entityCard(main(page), name)
@@ -196,7 +197,9 @@ test.describe('ride journey', () => {
     const { context: memberContext, page: memberPage } = await pageAs(browser, member)
     try {
       await openFeed(memberPage, team.slug)
-      await expect(main(memberPage).getByText('0 publication', { exact: true })).toBeVisible()
+      await expect(
+        main(memberPage).getByText('0 sortie ou voyage à venir', { exact: true })
+      ).toBeVisible()
       await expect(feedCard(memberPage, rideName)).toHaveCount(0)
       expect(await findRide(member, team.slug, rideSlug), 'a draft is 404 to a member').toBeNull()
 
@@ -283,17 +286,19 @@ test.describe('ride journey', () => {
         confirm.getByText('Êtes-vous sûr de vouloir supprimer cette sortie ?')
       ).toBeVisible()
       await confirm.getByRole('button', { name: 'Supprimer' }).click()
-      await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}\\?tab=publications$`))
-      await expect(
-        main(page).getByRole('heading', { name: "Fil d'actualités", level: 2 })
-      ).toBeVisible()
+      await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/agenda$`))
+      await expect(main(page).getByRole('heading', { name: 'Agenda', level: 2 })).toBeVisible()
       // An organizer is not a team admin: deleted rides are not listed back to them.
-      await expect(main(page).getByText('0 publication', { exact: true })).toBeVisible()
+      await expect(
+        main(page).getByText('0 sortie ou voyage à venir', { exact: true })
+      ).toBeVisible()
       await expect(feedCard(page, rideName)).toHaveCount(0)
 
       expect(await findRide(member, team.slug, rideSlug), 'the API answers 404').toBeNull()
       await openFeed(memberPage, team.slug)
-      await expect(main(memberPage).getByText('0 publication', { exact: true })).toBeVisible()
+      await expect(
+        main(memberPage).getByText('0 sortie ou voyage à venir', { exact: true })
+      ).toBeVisible()
       await expect(feedCard(memberPage, rideName)).toHaveCount(0)
       // The calendar's events come with the page, prefetched by the server: another ride of the
       // same day, shown, is what says they are in (see support/calendar.ts).
@@ -420,7 +425,9 @@ test.describe('publication states', () => {
       // Members see nothing of it yet.
       expect(await findRide(member, team.slug, rideSlug), 'a draft is 404 to a member').toBeNull()
       await openFeed(memberPage, team.slug)
-      await expect(main(memberPage).getByText('0 publication', { exact: true })).toBeVisible()
+      await expect(
+        main(memberPage).getByText('0 sortie ou voyage à venir', { exact: true })
+      ).toBeVisible()
       await expect(feedCard(memberPage, rideName)).toHaveCount(0)
 
       // --- The date comes. The stack's clock cannot be moved, but the backend takes a scheduled
@@ -475,14 +482,14 @@ test.describe('regressions', () => {
     await expect(menu.getByRole('menuitem', { name: 'Annuler la sortie' })).toBeVisible()
     await page.keyboard.press('Escape')
 
-    // The feed's create button, whose chevron offers the other kinds of publication.
+    // The agenda's create button, whose chevron offers the other kind it lists, the trip.
     await openFeed(page, team.slug)
     await expect(main(page).getByRole('link', { name: 'Créer une sortie' })).toBeVisible()
     const createOther = main(page).getByRole('button', { name: 'Créer autre chose', exact: true })
     await hydrated(createOther)
     await createOther.click()
     await expect(
-      page.getByRole('menu').getByRole('menuitem', { name: 'Nouvelle publication' })
+      page.getByRole('menu').getByRole('menuitem', { name: 'Créer un voyage' })
     ).toBeVisible()
   })
 

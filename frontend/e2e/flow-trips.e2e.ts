@@ -61,12 +61,12 @@ async function tripTeamWithMember(label: string) {
   return { teamAdmin, team, member }
 }
 
-/** The team feed, loaded — its publication count shown — before any presence or absence check. */
+/** The team agenda (WEB-68), loaded — its count shown — before any presence or absence check. */
 async function openFeed(page: Page, teamSlug: string) {
-  await page.goto(`/equipes/${teamSlug}?tab=publications`)
+  await page.goto(`/equipes/${teamSlug}/agenda`)
   const main = page.getByRole('main')
-  await expect(main.getByRole('heading', { name: "Fil d'actualités", level: 2 })).toBeVisible()
-  await expect(main.getByText(/^\d+ publications?$/)).toBeVisible()
+  await expect(main.getByRole('heading', { name: 'Agenda', level: 2 })).toBeVisible()
+  await expect(main.getByText(/^\d+ sorties? (et|ou) voyages? à venir$/)).toBeVisible()
   return main
 }
 
@@ -328,7 +328,7 @@ test('a team admin edits a stage, deletes the other one, then deletes the trip',
   await expect(confirm).toContainText('Êtes-vous sûr de vouloir supprimer ce voyage ?')
   await confirm.getByRole('button', { name: 'Supprimer' }).click()
   await expect(toasts(page).filter({ hasText: 'Voyage supprimé avec succès' })).toBeVisible()
-  await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}\\?tab=publications$`))
+  await expect(page).toHaveURL(new RegExp(`/equipes/${team.slug}/agenda$`))
 
   // Soft-deleted: gone for the members, still readable (and restorable) by the team's admins.
   expect(await fetchTrip(member, team.slug, trip.slug)).toBeNull()
@@ -380,7 +380,9 @@ test.describe('publication states', () => {
       // --- A draft: members see nothing of it.
       expect(await fetchTrip(member, team.slug, tripSlug), 'a draft is 404 to a member').toBeNull()
       let memberMain = await openFeed(reader.page, team.slug)
-      await expect(memberMain.getByText('0 publication', { exact: true })).toBeVisible()
+      await expect(
+        memberMain.getByText('0 sortie ou voyage à venir', { exact: true })
+      ).toBeVisible()
       await expect(entityCard(memberMain, tripName)).toHaveCount(0)
 
       // --- Published from the trip page's menu.
@@ -540,7 +542,9 @@ test.describe('publication states', () => {
       // Gone for the member.
       expect(await fetchTrip(member, team.slug, trip.slug), 'a draft is 404 to a member').toBeNull()
       memberMain = await openFeed(reader.page, team.slug)
-      await expect(memberMain.getByText('0 publication', { exact: true })).toBeVisible()
+      await expect(
+        memberMain.getByText('0 sortie ou voyage à venir', { exact: true })
+      ).toBeVisible()
       await expect(entityCard(memberMain, trip.name)).toHaveCount(0)
     } finally {
       await reader.context.close()

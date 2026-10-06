@@ -51,16 +51,11 @@ test.beforeAll(async () => {
 const ridePathOnPin = () => `/sorties/${ride.slug}`
 
 /**
- * The team's home narrowed to this run's ride: the pinned team outlives the runs and collects a
- * ride per worker each time, which would push an unfiltered card off the feed's first page.
+ * The team's agenda narrowed to this run's ride: the pinned team outlives the runs and collects a
+ * ride per worker each time, which would push an unfiltered card off the agenda's first page. The
+ * team's home is its dashboard (WEB-68), whose short lists offer no search.
  */
-const homeWithRide = () => `/?q=${encodeURIComponent(ride.name)}`
-
-/**
- * The same feed for a member of the team, whose home opens on the dashboard: the feed is its
- * `?tab=publications`.
- */
-const memberFeedWithRide = () => `/?tab=publications&q=${encodeURIComponent(ride.name)}`
+const agendaWithRide = () => `/agenda?q=${encodeURIComponent(ride.name)}`
 
 /** The hrefs of every link of `main` — the page's own content. */
 const mainHrefs = (page: Page) =>
@@ -75,14 +70,28 @@ const markupHrefs = (html: string) =>
 
 test("« / » is the pinned team's home, under the alias's own name", async ({ page }) => {
   const watch = await watchHydration(page)
-  await page.goto(`${origin}${homeWithRide()}`)
+  await page.goto(`${origin}/`)
 
   await expect(page.getByRole('banner').getByRole('link', { name: PINNED_NAME })).toBeVisible()
   const main = page.getByRole('main')
   await expect(main.getByRole('heading', { name: team.name, exact: true })).toBeVisible()
+  await pageHydrated(page)
+  await expect(page).toHaveURL(`${origin}/`)
+  expect(watch.hydrationErrors).toEqual([])
+  expect(watch.pageErrors).toEqual([])
+})
+
+test('the agenda opens at its unprefixed URL with the ride, without a mismatch', async ({
+  page,
+}) => {
+  const watch = await watchHydration(page)
+  await page.goto(`${origin}${agendaWithRide()}`)
+
+  const main = page.getByRole('main')
+  await expect(main.getByRole('heading', { name: team.name, exact: true })).toBeVisible()
   await expect(entityCard(main, ride.name)).toBeVisible()
   await pageHydrated(page)
-  await expect(page).toHaveURL(`${origin}${homeWithRide()}`)
+  await expect(page).toHaveURL(`${origin}${agendaWithRide()}`)
   expect(watch.hydrationErrors).toEqual([])
   expect(watch.pageErrors).toEqual([])
 })
@@ -108,21 +117,23 @@ test('a ride opens at its unprefixed URL, hydrates without a mismatch and stays 
   expect(ogTags(document.html)['og:url']).toEqual([`${origin}${ridePathOnPin()}`])
 })
 
-test('a feed card opens the ride on its clean URL, and « back » returns home', async ({ page }) => {
-  await page.goto(`${origin}${homeWithRide()}`)
+test('an agenda card opens the ride on its clean URL, and « back » returns to the agenda', async ({
+  page,
+}) => {
+  await page.goto(`${origin}${agendaWithRide()}`)
   await pageHydrated(page)
 
   await entityCard(page.getByRole('main'), ride.name).click()
   await expect(page).toHaveURL(`${origin}${ridePathOnPin()}`)
   const main = page.getByRole('main')
-  // « Groupes »: the ride page itself — the feed card also holds a heading with the ride's name.
+  // « Groupes »: the ride page itself — the agenda card also holds a heading with the ride's name.
   await expect(main.getByRole('heading', { name: 'Groupes', exact: true })).toBeVisible()
   await expect(main.getByRole('heading', { name: ride.name, exact: true })).toBeVisible()
   // Rendered by the client: its links are in browser space.
   expect((await mainHrefs(page)).filter((href) => href.startsWith(PREFIX))).toEqual([])
 
   await page.goBack()
-  await expect(page).toHaveURL(`${origin}${homeWithRide()}`)
+  await expect(page).toHaveURL(`${origin}${agendaWithRide()}`)
   await expect(main.getByRole('heading', { name: team.name, exact: true })).toBeVisible()
 })
 
@@ -149,6 +160,14 @@ test('a prefixed deep link is replaced by the clean URL once, and stays there', 
   expect(await watch.removed()).toEqual([])
 })
 
+test('a former feed address leads to the agenda, unprefixed (WEB-68)', async ({ page }) => {
+  // The loader's redirect leaves router space for browser space on the server (entry-server).
+  await page.goto(`${origin}/?tab=publications&type=ride`)
+  await expect(page).toHaveURL(`${origin}/agenda?type=ride`)
+  await page.goto(`${origin}/sorties`)
+  await expect(page).toHaveURL(`${origin}/agenda`)
+})
+
 test('the global pages keep their own path, the team list leads home', async ({ page }) => {
   await page.goto(`${origin}/connexion`)
   await expect(
@@ -169,7 +188,7 @@ test('server-rendered links carry no team prefix', async ({ page }) => {
   // sides — before, StaticRouterProvider's own navigator ignored the wrapped createHref, so every
   // server-rendered href kept the /equipes/<team> prefix, which hydration does not patch.
 
-  for (const path of ['/', ridePathOnPin()]) {
+  for (const path of ['/', '/agenda', ridePathOnPin()]) {
     const document = await hostDocument(PINNED_HOST, path)
     expect(document.status).toBe(200)
     expect(
@@ -190,7 +209,7 @@ test.describe('signed in', () => {
   }) => {
     // An alias shares its domain's users: the localhost session is a session here too.
     await signInOn(context, PINNED_HOST, await roleSession('admin'))
-    await page.goto(`${origin}${memberFeedWithRide()}`)
+    await page.goto(`${origin}${agendaWithRide()}`)
     await pageHydrated(page)
 
     // Client-side navigation, so the links below are the client's, not the server's.

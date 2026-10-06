@@ -115,7 +115,7 @@ test.describe('creating a team', () => {
     // The creator runs it: « Gérer » is there, and the modules follow the form.
     await expect(page.getByRole('link', { name: 'Gérer', exact: true })).toBeVisible()
     await expect(teamNav(page).getByRole('link', { name: 'Parcours' })).toBeVisible()
-    await expect(teamNav(page).getByRole('link', { name: 'Calendrier' })).toBeVisible()
+    await expect(teamNav(page).getByRole('link', { name: 'Agenda', exact: true })).toBeVisible()
     await expect(teamNav(page).getByRole('link', { name: 'Annonces' })).toHaveCount(0)
 
     // The description is the team's « À propos ».
@@ -164,7 +164,7 @@ test.describe('team settings', () => {
       teamNav(page).getByRole('link', { name: 'Parcours' }),
       'precondition: the routes module starts on'
     ).toBeVisible()
-    await expect(teamNav(page).getByRole('link', { name: 'Calendrier' })).toBeVisible()
+    await expect(teamNav(page).getByRole('link', { name: 'Agenda', exact: true })).toBeVisible()
 
     // « Gérer », then the settings tab of the team's admin area.
     const manage = page.getByRole('link', { name: 'Gérer', exact: true })
@@ -207,7 +207,7 @@ test.describe('team settings', () => {
       'precondition: the team nav is rendered'
     ).toBeVisible()
     await expect(teamNav(page).getByRole('link', { name: 'Parcours' })).toHaveCount(0)
-    await expect(teamNav(page).getByRole('link', { name: 'Calendrier' })).toHaveCount(0)
+    await expect(teamNav(page).getByRole('link', { name: 'Agenda', exact: true })).toHaveCount(0)
     await expect(teamNav(page).getByRole('link', { name: 'Annonces' })).toBeVisible()
 
     await teamNav(page).getByRole('link', { name: 'À propos' }).click()

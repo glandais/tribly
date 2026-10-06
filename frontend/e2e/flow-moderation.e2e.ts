@@ -38,9 +38,12 @@ import { entityCard, hydrated, pageAs } from './support/ui'
 
 const REPORT_MESSAGE = 'Propos déplacés envers un membre du club.'
 
-/** The team feed, loaded — `visible` is on it, so an absence check that follows is meaningful. */
+/**
+ * The team's « Publications » (WEB-68), loaded — `visible` is on it, so an absence check that
+ * follows is meaningful.
+ */
 async function openFeed(page: Page, teamSlug: string, visible: string) {
-  await page.goto(`/equipes/${teamSlug}?tab=publications`)
+  await page.goto(`/equipes/${teamSlug}/articles`)
   await expect(entityCard(page.getByRole('main'), visible)).toBeVisible()
 }
 

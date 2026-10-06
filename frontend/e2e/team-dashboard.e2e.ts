@@ -9,10 +9,11 @@ import { newPost } from './support/posts'
 import { joinGroup, newRide } from './support/rides'
 
 /**
- * The team dashboard (GET /api/teams/{slug}/dashboard): the team page's default tab for a member,
- * whose blocks follow the viewer's role — member sections for everyone, « À traiter » and the
- * templates for organizers and admins, « Administration » for admins only. Visitors and non-members
- * keep the feed, which members reach at `?tab=publications`.
+ * The team dashboard (GET /api/teams/{slug}/dashboard): the team page for everyone (API-86), whose
+ * blocks follow the viewer's role — the public part (upcoming rides, latest posts, new routes) for
+ * a visitor, the member sections on top for a member, « À traiter » and the templates for
+ * organizers and admins, « Administration » for admins only. The former feed gave way to the
+ * « Agenda » and the « Publications » (WEB-68): its addresses redirect there.
  */
 
 interface World {
@@ -101,7 +102,7 @@ test.describe('the dashboard API', () => {
     expect(asAdmin.admin?.newestMembers.members.length).toBeGreaterThan(0)
   })
 
-  test('refuses a non-member', async () => {
+  test('refuses a non-member of a members-only team', async () => {
     const error = await apiGet(world.outsider, `/api/teams/${world.team.slug}/dashboard`).then(
       () => null,
       (e: unknown) => e
@@ -154,40 +155,104 @@ test.describe('the dashboard page', () => {
     await expect(admin.getByText(world.member.user.displayName)).toBeVisible()
   })
 
-  test('the « Sorties » tab lists the rides alone, on its own route', async ({ context, page }) => {
+  test('a visitor of a public team gets the public part of the dashboard (API-86)', async ({
+    page,
+  }) => {
+    const team = await newTeam(world.admin, unique('Équipe publique'), { visibility: 'PUBLIC' })
+    const ride = await newRide(world.admin, team.slug, unique('Sortie publique'), {
+      visibility: 'PUBLIC',
+    })
+    const hidden = await newRide(world.admin, team.slug, unique('Sortie des membres'))
+    const post = await newPost(world.admin, team.slug, unique('Publication publique'), {
+      visibility: 'PUBLIC',
+    })
+
+    await page.goto(`/equipes/${team.slug}`)
+
+    await expect(section(page, 'Sorties à venir').getByText(ride.name)).toBeVisible()
+    await expect(page.getByText(hidden.name)).toHaveCount(0)
+    await expect(section(page, 'Dernières publications').getByText(post.name)).toBeVisible()
+    await expect(section(page, 'Vos prochaines sorties')).toHaveCount(0)
+    await expect(section(page, 'Annonces')).toHaveCount(0)
+    await expect(section(page, 'À traiter')).toHaveCount(0)
+    // No calendar for a visitor: the agenda offers its two lists only.
+    await page
+      .getByRole('navigation', { name: "Navigation de l'équipe" })
+      .getByRole('link', { name: 'Agenda', exact: true })
+      .click()
+    await expect(page.getByText(ride.name).first()).toBeVisible()
+    await expect(page.getByRole('radio', { name: 'Calendrier' })).toHaveCount(0)
+    await expect(page.getByRole('radio', { name: 'Je participe' })).toHaveCount(0)
+  })
+
+  test('the « Agenda » tab lists the rides, not the posts, on its own route', async ({
+    context,
+    page,
+  }) => {
     await signIn(context, world.member)
     await page.goto(`/equipes/${world.team.slug}`)
 
     const tabs = page.getByRole('navigation', { name: "Navigation de l'équipe" })
-    await tabs.getByRole('link', { name: 'Sorties', exact: true }).click()
-    await expect(page).toHaveURL(new RegExp(`/equipes/${world.team.slug}/sorties$`))
-    await expect(tabs.getByRole('link', { name: 'Sorties', exact: true })).toHaveAttribute(
+    await tabs.getByRole('link', { name: 'Agenda', exact: true }).click()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${world.team.slug}/agenda$`))
+    await expect(tabs.getByRole('link', { name: 'Agenda', exact: true })).toHaveAttribute(
       'aria-current',
       'page'
     )
-    await expect(
-      page.getByRole('heading', { level: 2, name: 'Sorties', exact: true })
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { level: 2, name: 'Agenda', exact: true })).toBeVisible()
+    await expect(page.getByRole('radio', { name: 'À venir' })).toBeChecked()
     await expect(page.getByText(world.fullRide.name).first()).toBeVisible()
     await expect(page.getByText(world.post.name)).toHaveCount(0)
-    // The tab is the kind: no type select to contradict it.
-    await expect(page.getByRole('combobox', { name: 'Type', exact: true })).toHaveCount(0)
   })
 
-  test("the dashboard's upcoming rides open the « Sorties » tab", async ({ context, page }) => {
+  test('the « Publications » tab lists the posts alone', async ({ context, page }) => {
+    await signIn(context, world.member)
+    await page.goto(`/equipes/${world.team.slug}`)
+
+    const tabs = page.getByRole('navigation', { name: "Navigation de l'équipe" })
+    await tabs.getByRole('link', { name: 'Publications', exact: true }).click()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${world.team.slug}/articles$`))
+    await expect(page.getByText(world.post.name).first()).toBeVisible()
+    await expect(page.getByText(world.fullRide.name)).toHaveCount(0)
+  })
+
+  test("the dashboard's « Voir tout » open the agenda and the posts", async ({ context, page }) => {
     await signIn(context, world.member)
     await page.goto(`/equipes/${world.team.slug}`)
 
     await section(page, 'Sorties à venir').getByRole('link', { name: 'Voir tout' }).click()
-    await expect(page).toHaveURL(new RegExp(`/equipes/${world.team.slug}/sorties\\?w=upcoming$`))
+    await expect(page).toHaveURL(new RegExp(`/equipes/${world.team.slug}/agenda$`))
     await expect(page.getByText(world.fullRide.name).first()).toBeVisible()
+
+    await page.goto(`/equipes/${world.team.slug}`)
+    await section(page, 'Vos prochaines sorties').getByRole('link', { name: 'Voir tout' }).click()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${world.team.slug}/agenda\\?w=me$`))
+    await expect(page.getByRole('radio', { name: 'Je participe' })).toBeChecked()
+    await expect(page.getByText(world.fullRide.name).first()).toBeVisible()
+
+    await page.goto(`/equipes/${world.team.slug}`)
+    await section(page, 'Dernières publications').getByRole('link', { name: 'Voir tout' }).click()
+    await expect(page).toHaveURL(new RegExp(`/equipes/${world.team.slug}/articles$`))
   })
 
-  test('a member reaches the feed at ?tab=publications', async ({ context, page }) => {
+  test('the former feed addresses redirect (WEB-68, plan §5)', async ({ context, page }) => {
     await signIn(context, world.member)
-    await page.goto(`/equipes/${world.team.slug}?tab=publications`)
+    const team = `/equipes/${world.team.slug}`
 
-    await expect(page.getByText(world.post.name).first()).toBeVisible()
-    await expect(section(page, 'Vos prochaines sorties')).toHaveCount(0)
+    await page.goto(`${team}?tab=publications`)
+    await expect(page).toHaveURL(new RegExp(`${team}$`))
+    await expect(section(page, 'Vos prochaines sorties')).toBeVisible()
+
+    await page.goto(`${team}?tab=publications&type=post`)
+    await expect(page).toHaveURL(new RegExp(`${team}/articles$`))
+
+    await page.goto(`${team}?tab=publications&type=ride&w=me`)
+    await expect(page).toHaveURL(new RegExp(`${team}/agenda\\?type=ride&w=me$`))
+
+    await page.goto(`${team}/sorties?w=upcoming`)
+    await expect(page).toHaveURL(new RegExp(`${team}/agenda$`))
+
+    await page.goto(`${team}/voyages`)
+    await expect(page).toHaveURL(new RegExp(`${team}/agenda\\?type=trip$`))
   })
 })
