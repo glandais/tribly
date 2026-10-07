@@ -575,7 +575,6 @@ instant constant, puis `start_at` et fin recalculés) que si elle en trouve.
 
 Reste :
 
-- **Lot 2** (web) : le scénario Playwright du §11 (équipe à Paris, navigateur à Tokyo).
 - **Lot 4, restes** : l'export RGPD (`NotificationExport`, `UserExportBuilder`) ne porte pas
   `subjectTimezone` à côté de `subjectDateTime`.
 - **Lot 5 = version N+1** : dernier rattrapage puis `team_entities.timezone` et
