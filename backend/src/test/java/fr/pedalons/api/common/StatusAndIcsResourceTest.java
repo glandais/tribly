@@ -1,5 +1,6 @@
 package fr.pedalons.api.common;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -277,16 +278,17 @@ class StatusAndIcsResourceTest extends AbstractResourceTest {
             new RideRequest(
                 name,
                 MediaDto.builder().build(),
-                Instant.now().plus(10, ChronoUnit.DAYS),
+                wall(Instant.now().plus(10, ChronoUnit.DAYS)),
                 status,
                 visibility,
                 null,
                 null,
                 null,
-                publishAt,
+                wall(publishAt),
                 List.of(
                     new GroupRequest(null, "G1", null, null, null, null),
-                    new GroupRequest(null, "G2", null, null, null, null))))
+                    new GroupRequest(null, "G2", null, null, null, null)),
+                null))
         .when()
         .post("/api/teams/" + team1Slug + "/rides")
         .then()
@@ -304,7 +306,7 @@ class StatusAndIcsResourceTest extends AbstractResourceTest {
             new TripRequest(
                 name,
                 MediaDto.builder().build(),
-                Instant.now().plus(30, ChronoUnit.DAYS),
+                wall(Instant.now().plus(30, ChronoUnit.DAYS)),
                 status,
                 visibility,
                 null,
@@ -312,14 +314,15 @@ class StatusAndIcsResourceTest extends AbstractResourceTest {
                 List.of(
                     StageRequest.builder()
                         .name("Stage 1")
-                        .dateTime(Instant.now().plus(30, ChronoUnit.DAYS))
+                        .dateTime(wall(Instant.now().plus(30, ChronoUnit.DAYS)))
                         .media(MediaDto.builder().build())
                         .build(),
                     StageRequest.builder()
                         .name("Stage 2")
-                        .dateTime(Instant.now().plus(31, ChronoUnit.DAYS))
+                        .dateTime(wall(Instant.now().plus(31, ChronoUnit.DAYS)))
                         .media(MediaDto.builder().build())
-                        .build())))
+                        .build()),
+                null))
         .when()
         .post("/api/teams/" + team1Slug + "/trips")
         .then()
@@ -337,9 +340,10 @@ class StatusAndIcsResourceTest extends AbstractResourceTest {
             new PostRequest(
                 name,
                 MediaDto.builder().markdown("Post content").build(),
-                Instant.now().plus(7, ChronoUnit.DAYS),
+                wall(Instant.now().plus(7, ChronoUnit.DAYS)),
                 Status.PUBLISHED,
                 Visibility.PUBLIC,
+                null,
                 null,
                 null))
         .when()

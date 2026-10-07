@@ -1,5 +1,6 @@
 package fr.pedalons.service.ride;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.AbstractBaseTest;
@@ -102,14 +103,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Sunday Ride",
             MediaDto.builder().markdown("A nice ride").build(),
-            Instant.now().plusSeconds(24 * 3600 * 7),
+            wall(Instant.now().plusSeconds(24 * 3600 * 7)),
             Status.DRAFT,
             Visibility.TEAM,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.createRide(team.getSlug(), request);
@@ -127,14 +129,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.createRide(team.getSlug(), request);
@@ -151,14 +154,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Group Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of(group1, group2));
+            List.of(group1, group2),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.createRide(team.getSlug(), request);
@@ -174,14 +178,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(member);
     assertThrows(PedalonsException.class, () -> rideService.createRide(team.getSlug(), request));
@@ -197,14 +202,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Public Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     PedalonsException exception =
@@ -224,14 +230,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Team Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.TEAM,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.createRide(privateTeam.getSlug(), request);
@@ -249,14 +256,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Ride with Route",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             route.getSlug(),
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.createRide(team.getSlug(), request);
@@ -272,14 +280,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Ride with Invalid Route",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             "nonexistent-route",
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     assertThrows(PedalonsException.class, () -> rideService.createRide(team.getSlug(), request));
@@ -295,14 +304,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Ride with Foreign Route",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             foreignRoute.getSlug(),
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     assertThrows(PedalonsException.class, () -> rideService.createRide(team.getSlug(), request));
@@ -316,14 +326,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Public Ride with Private Route",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             privateRoute.getSlug(),
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     PedalonsException exception =
@@ -341,14 +352,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Team Ride with Team Route",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.TEAM,
             teamRoute.getSlug(),
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.createRide(team.getSlug(), request);
@@ -368,14 +380,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Ride with Places",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             startPlaceId,
             endPlaceId,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.createRide(team.getSlug(), request);
@@ -393,14 +406,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Ride with Invalid Start",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             TsidUtils.toString(9999L),
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     assertThrows(PedalonsException.class, () -> rideService.createRide(team.getSlug(), request));
@@ -412,14 +426,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Ride with Invalid End",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             TsidUtils.toString(9999L),
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     assertThrows(PedalonsException.class, () -> rideService.createRide(team.getSlug(), request));
@@ -435,14 +450,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Ride with Foreign Place",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             foreignPlaceId,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     assertThrows(PedalonsException.class, () -> rideService.createRide(team.getSlug(), request));
@@ -457,14 +473,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Updated Title",
             MediaDto.builder().markdown("Updated description").build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.CANCELLED,
             Visibility.TEAM,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "original", request);
@@ -482,14 +499,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "New Title",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.PUBLISHED,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "original", request);
@@ -512,14 +530,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Updated Title",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.PUBLISHED,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "published-ride", request);
@@ -535,14 +554,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "New",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(member);
     assertThrows(
@@ -567,14 +587,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Title",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     PedalonsException exception =
@@ -603,14 +624,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Updated Title",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.TEAM,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(privateTeam.getSlug(), "team-ride", request);
@@ -628,14 +650,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of(newGroup));
+            List.of(newGroup),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
@@ -656,14 +679,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of(updatedGroup));
+            List.of(updatedGroup),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
@@ -684,14 +708,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
@@ -714,14 +739,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of(reorderedGroup1, reorderedGroup2));
+            List.of(reorderedGroup1, reorderedGroup2),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
@@ -744,14 +770,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of(keepExisting, addNew));
+            List.of(keepExisting, addNew),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
@@ -771,14 +798,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of(invalidGroup));
+            List.of(invalidGroup),
+            null);
 
     userService.setUserForTest(organizer);
     PedalonsException exception =
@@ -801,14 +829,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             startPlaceId,
             endPlaceId,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
@@ -827,14 +856,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             TsidUtils.toString(9999L),
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     assertThrows(
@@ -850,14 +880,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             TsidUtils.toString(9999L),
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     assertThrows(
@@ -876,14 +907,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             foreignPlaceId,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     assertThrows(
@@ -903,14 +935,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
@@ -928,14 +961,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             route.getSlug(),
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
@@ -952,14 +986,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             "nonexistent-route",
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     assertThrows(
@@ -978,14 +1013,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             foreignRoute.getSlug(),
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     assertThrows(
@@ -1002,14 +1038,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             privateRoute.getSlug(),
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     PedalonsException exception =
@@ -1031,14 +1068,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Team Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.TEAM,
             teamRoute.getSlug(),
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "team-ride", request);
@@ -1057,14 +1095,15 @@ class RideServiceTest extends AbstractBaseTest {
         new RideRequest(
             "Test Ride",
             MediaDto.builder().build(),
-            Instant.now().plusSeconds(24 * 3600),
+            wall(Instant.now().plusSeconds(24 * 3600)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     userService.setUserForTest(organizer);
     RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);

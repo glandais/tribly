@@ -24,7 +24,6 @@ import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.service.route.GpxProcessingService;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.security.annotation.Logged;
-import fr.pedalons.service.timezone.EventTimezoneResolver;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.InputStream;
@@ -190,7 +189,7 @@ public class DeviceRouteService {
           continue;
         }
 
-        entries.add(toRideEntry(groupRoute, group.getName(), EventTimezoneResolver.startAt(group)));
+        entries.add(toRideEntry(groupRoute, group.getName(), group.getStartAt()));
       }
 
       // Only include rides that have at least one route entry

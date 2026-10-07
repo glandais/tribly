@@ -1,5 +1,6 @@
 package fr.pedalons.api.publications;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -83,14 +84,15 @@ class PublicationEndStoredTest extends AbstractResourceTest {
     return new RideRequest(
         "Sortie du dimanche",
         MediaDto.builder().build(),
-        dateTime,
+        wall(dateTime),
         Status.PUBLISHED,
         Visibility.PUBLIC,
         null,
         null,
         null,
         null,
-        groups);
+        groups,
+        null);
   }
 
   private JsonPath postRide(RideRequest request) {
@@ -214,7 +216,7 @@ class PublicationEndStoredTest extends AbstractResourceTest {
     return StageRequest.builder()
         .id(id)
         .name(name)
-        .dateTime(dateTime)
+        .dateTime(wall(dateTime))
         .averageSpeed(speed)
         .routeSlug(routeSlug)
         .media(MediaDto.builder().build())
@@ -225,12 +227,13 @@ class PublicationEndStoredTest extends AbstractResourceTest {
     return new TripRequest(
         "Tour des Alpes",
         MediaDto.builder().build(),
-        START,
+        wall(START),
         Status.PUBLISHED,
         Visibility.PUBLIC,
         null,
         null,
-        stages);
+        stages,
+        null);
   }
 
   private JsonPath postTrip(TripRequest request) {

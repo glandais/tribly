@@ -5,7 +5,6 @@ import fr.pedalons.domain.ride.Ride;
 import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.repository.route.GpxTrackRepository;
-import fr.pedalons.service.timezone.EventTimezoneResolver;
 import fr.pedalons.service.weather.RideWeatherCalculator.LegInput;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -116,7 +115,7 @@ public class RideWeatherPlans {
         legs.add(
             new LegInput(
                 group.getId(),
-                EventTimezoneResolver.startAt(group),
+                group.getStartAt(),
                 RideWeatherCalculator.speed(group.getAverageSpeed()),
                 samples(route, trackIds)));
       }

@@ -65,22 +65,4 @@ class PostTimezoneTest extends AbstractResourceTest {
         dataService.getPublishAt(TsidUtils.toLong(post.getString("id"))));
     assertEquals("Asia/Tokyo", dataService.getTimezone(TsidUtils.toLong(post.getString("id"))));
   }
-
-  @Test
-  void theOldFormat_isKeptAsTheInstantItIs() {
-    JsonPath post =
-        create(
-            new PostRequest(
-                "Ancien format",
-                MediaDto.builder().build(),
-                Instant.parse("2030-06-02T06:00:00Z"),
-                Status.PUBLISHED,
-                Visibility.PUBLIC,
-                null,
-                null,
-                null));
-
-    assertEquals("Europe/Paris", post.getString("timezone"));
-    assertEquals("2030-06-02T06:00:00Z", post.getString("dateTime"));
-  }
 }

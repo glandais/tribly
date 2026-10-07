@@ -1,5 +1,6 @@
 package fr.pedalons.api.posts;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
@@ -31,9 +32,10 @@ class PostResourceTest extends AbstractResourceTest {
     return new PostRequest(
         name,
         MediaDto.builder().markdown("Post content").build(),
-        Instant.now().plus(7, ChronoUnit.DAYS),
+        wall(Instant.now().plus(7, ChronoUnit.DAYS)),
         Status.PUBLISHED,
         Visibility.PUBLIC,
+        null,
         null,
         null);
   }
@@ -153,10 +155,11 @@ class PostResourceTest extends AbstractResourceTest {
         new PostRequest(
             "Scheduled Post",
             MediaDto.builder().markdown("Scheduled content").build(),
-            Instant.now().plus(14, ChronoUnit.DAYS),
+            wall(Instant.now().plus(14, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
+            null,
             null);
 
     given()
@@ -179,9 +182,10 @@ class PostResourceTest extends AbstractResourceTest {
         new PostRequest(
             "Long Post",
             MediaDto.builder().markdown("a".repeat(MediaDto.MAX_MARKDOWN_LENGTH)).build(),
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
             Status.PUBLISHED,
             Visibility.PUBLIC,
+            null,
             null,
             null);
     given()
@@ -198,9 +202,10 @@ class PostResourceTest extends AbstractResourceTest {
         new PostRequest(
             "Too Long Post",
             MediaDto.builder().markdown("a".repeat(MediaDto.MAX_MARKDOWN_LENGTH + 1)).build(),
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
             Status.PUBLISHED,
             Visibility.PUBLIC,
+            null,
             null,
             null);
     given()
@@ -310,11 +315,12 @@ class PostResourceTest extends AbstractResourceTest {
         new PostRequest(
             name,
             MediaDto.builder().markdown("Post content").build(),
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
             Status.PUBLISHED,
             Visibility.PUBLIC,
             null,
-            signedAsTeam);
+            signedAsTeam,
+            null);
     return given()
         .auth()
         .oauth2(getAccessToken(USER2))
@@ -411,11 +417,12 @@ class PostResourceTest extends AbstractResourceTest {
         new PostRequest(
             "Default Post",
             MediaDto.builder().markdown("Post content").build(),
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
             Status.PUBLISHED,
             Visibility.PUBLIC,
             null,
-            true);
+            true,
+            null);
     as(USER2)
         .contentType("application/json")
         .body(toTeam)
@@ -428,9 +435,10 @@ class PostResourceTest extends AbstractResourceTest {
         new PostRequest(
             "Default Post",
             MediaDto.builder().markdown("Post content").build(),
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
             Status.PUBLISHED,
             Visibility.PUBLIC,
+            null,
             null,
             null);
     as(USER2)
@@ -467,9 +475,10 @@ class PostResourceTest extends AbstractResourceTest {
         new PostRequest(
             "Updated Post",
             MediaDto.builder().markdown("Updated content").build(),
-            Instant.now().plus(14, ChronoUnit.DAYS),
+            wall(Instant.now().plus(14, ChronoUnit.DAYS)),
             Status.PUBLISHED,
             Visibility.PUBLIC,
+            null,
             null,
             null);
 
@@ -495,9 +504,10 @@ class PostResourceTest extends AbstractResourceTest {
         new PostRequest(
             "Updated by Organizer",
             MediaDto.builder().markdown("Organizer updated").build(),
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
             null,
             null);
 
@@ -521,9 +531,10 @@ class PostResourceTest extends AbstractResourceTest {
         new PostRequest(
             "Hacked by Member",
             MediaDto.builder().build(),
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
             null,
             null);
 
@@ -546,9 +557,10 @@ class PostResourceTest extends AbstractResourceTest {
         new PostRequest(
             "Unauthorized Update",
             MediaDto.builder().build(),
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
             null,
             null);
 
@@ -569,9 +581,10 @@ class PostResourceTest extends AbstractResourceTest {
         new PostRequest(
             "Hacked by NonMember",
             MediaDto.builder().build(),
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
             null,
             null);
 
@@ -592,9 +605,10 @@ class PostResourceTest extends AbstractResourceTest {
         new PostRequest(
             "Nonexistent",
             MediaDto.builder().build(),
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
             null,
             null);
 

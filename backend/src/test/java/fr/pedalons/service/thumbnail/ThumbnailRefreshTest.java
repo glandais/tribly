@@ -1,5 +1,6 @@
 package fr.pedalons.service.thumbnail;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -71,26 +72,28 @@ class ThumbnailRefreshTest extends AbstractResourceTest {
     return new RideRequest(
         name,
         MediaDto.builder().build(),
-        nextWeek,
+        wall(nextWeek),
         Status.PUBLISHED,
         Visibility.PUBLIC,
         routeSlug,
         null,
         null,
         null,
-        List.of(new GroupRequest(null, "G1", null, null, null, null)));
+        List.of(new GroupRequest(null, "G1", null, null, null, null)),
+        null);
   }
 
   private TripRequest trip(String name, @Nullable String routeSlug) {
     return new TripRequest(
         name,
         MediaDto.builder().build(),
-        nextWeek,
+        wall(nextWeek),
         Status.PUBLISHED,
         Visibility.PUBLIC,
         routeSlug,
         null,
-        List.of());
+        List.of(),
+        null);
   }
 
   @Test
@@ -118,7 +121,7 @@ class ThumbnailRefreshTest extends AbstractResourceTest {
         new RideRequest(
             "Sortie renommée",
             MediaDto.builder().build(),
-            nextWeek,
+            wall(nextWeek),
             Status.PUBLISHED,
             Visibility.PUBLIC,
             first.getSlug(),
@@ -127,7 +130,8 @@ class ThumbnailRefreshTest extends AbstractResourceTest {
             null,
             List.of(
                 new GroupRequest(
-                    created.getGroups().getFirst().id(), "G1", null, null, null, null)));
+                    created.getGroups().getFirst().id(), "G1", null, null, null, null)),
+            null);
     given()
         .auth()
         .oauth2(getAccessToken(USER1))

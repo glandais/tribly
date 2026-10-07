@@ -250,6 +250,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             false,
             null,
+            null,
             null);
     given()
         .auth()
@@ -278,6 +279,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             true,
             false,
+            null,
             null,
             null);
     given()
@@ -341,6 +343,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             false,
             null,
+            null,
             null);
 
     given()
@@ -369,6 +372,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             true,
             false,
+            null,
             null,
             null);
 
@@ -440,6 +444,7 @@ class TeamResourceTest extends AbstractResourceTest {
             true,
             true,
             false,
+            null,
             null,
             null);
     String firstSlug =

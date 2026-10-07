@@ -41,9 +41,9 @@ import org.jspecify.annotations.Nullable;
  * is what a change of the team's zone looks for (plan §9). Deleted routes and empty points are
  * skipped.
  *
- * <p>A group's departure has one reader, {@link #startAt(RideGroup)}: the weather, the devices, the
- * stored end and the DTOs all start from the same instant (plan §4, « une seule source de fuseau
- * par lieu »).
+ * <p>A group's departure is stored once, {@code RideGroup.startAt}, written by {@link #setStart}:
+ * the weather, the devices, the stored end and the DTOs all start from that instant (plan §4,
+ * « une seule source de fuseau par lieu »).
  */
 @ApplicationScoped
 public class EventTimezoneResolver {
@@ -145,18 +145,15 @@ public class EventTimezoneResolver {
   // ─── Instants ─────────────────────────────────────────────────────────────
 
   /**
-   * Writes {@code start_at} of every group of the ride: its time on the ride's local date in
-   * {@code zone}, the ride's start when it has none. Run after every save of the ride, so that a
-   * date change moves the groups the request kept as they were.
+   * Sets when a group leaves from the wall time a request gives it: {@code time} on the ride's
+   * local date in {@code zone}, the ride's start when it has none. Run on every save of the ride,
+   * once its date and zone are final, so that a date change moves every group. Also writes the
+   * legacy {@code time} column the previous release still reads.
    */
-  public static void applyGroupStarts(Ride ride, ZoneId zone) {
-    for (RideGroup group : ride.getGroups()) {
-      group.setStartAt(groupStart(ride.getDateTime(), group, zone));
-    }
-  }
-
-  public static Instant groupStart(Instant rideDateTime, RideGroup group, ZoneId zone) {
-    return groupStart(rideDateTime, group.getTime(), zone);
+  public static void setStart(
+      RideGroup group, Instant rideDateTime, @Nullable LocalTime time, ZoneId zone) {
+    group.setStartAt(groupStart(rideDateTime, time, zone));
+    group.setLegacyTime(time);
   }
 
   /**
@@ -172,19 +169,12 @@ public class EventTimezoneResolver {
   }
 
   /**
-   * When a group leaves — the one reader every consumer shares (docs/LEDGER_*.md API-60): its stored
-   * {@code start_at}, else, for a row an older backend wrote without it, its time on the ride's
-   * local date in the ride's stored zone (the team's when the ride has none) — the backfill's
-   * formula, so both agree.
+   * The group's own wall time, read back from its stored start: null when it leaves with the ride,
+   * else its start in the ride's zone — what a client edits and sends back as {@code
+   * GroupRequest.time}, which {@link #groupStart} turns into the same instant.
    */
-  public static Instant startAt(RideGroup group) {
-    Instant stored = group.getStartAt();
-    if (stored != null) {
-      return stored;
-    }
-    Ride ride = group.getRide();
-    LocalTime time = group.getTime();
-    return time == null ? ride.getDateTime() : groupStart(ride.getDateTime(), time, ride.zone());
+  public static @Nullable LocalTime ownTime(Instant rideDateTime, Instant startAt, ZoneId zone) {
+    return startAt.equals(rideDateTime) ? null : startAt.atZone(zone).toLocalTime();
   }
 
   /**

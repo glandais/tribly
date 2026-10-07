@@ -568,25 +568,56 @@ carte d'un voyage), `NotificationItem.test.tsx`, `RideWeatherSummaryLine.test.ts
 (plan §7 : une grille ne porte qu'un fuseau) — seule la date iCal d'une journée entière suit le
 fuseau de l'étape (`calendar_month_test.dart`).
 
-**Rattrapage du §8.3 non écrit, à mesurer d'abord** : la requête de mesure est en commentaire à la
-fin de `V64__event_timezones.sql` (sorties à venir dont le lieu de départ ou le parcours a un point ;
-étapes et voyages de même). Attendu à zéro ligne en production ; n'écrire le rattrapage Java (à
-instant constant, puis `start_at` et fin recalculés) que si elle en trouve.
+**Rattrapage du §8.3 mesuré le 7 octobre 2026, inutile** : en production comme en staging (V66,
+`8fa64c44`), aucun `team_entities.timezone` ni `ride_groups.start_at` nul, et aucune sortie ni étape
+à venir n'a de lieu de départ ou de parcours hors de la France métropolitaine (197 sorties et 18
+étapes en production) : la requête en commentaire à la fin de `V64__event_timezones.sql` ne trouve
+rien à ré-résoudre. Le rattrapage Java n'a pas été écrit.
+
+**Lot 5 (version N+1) livré le 7 octobre 2026, contrat `11.0.0`** (majeure : l'ancien format de
+requête est refusé). `V67__event_timezones_not_null.sql` refait le remplissage SQL de V64 (filet de
+sécurité, zéro ligne attendue) puis pose `NOT NULL` sur `team_entities.timezone` et
+`ride_groups.start_at` ; `EventTimezoneBackfill` et tous les replis disparaissent (`TeamEntity.zone()`
+sans l'équipe, `EventTimezoneResolver.startAt` et `applyGroupStarts` retirés : chaque lecteur prend
+`RideGroup.startAt`, que la météo SQL lit sans `coalesce`). `EventDateTime.parse` n'accepte plus
+qu'une heure murale (`ISO_LOCAL_DATE_TIME`) : un instant avec `Z` ou un offset est un 400. Retirés :
+les surcharges `Instant` de `RideRequest`, `TripRequest`, `PostRequest` et du builder de
+`StageRequest`, les constructeurs de compatibilité de `TeamRequest` et `CalendarEventDto` (les tests
+passent par `WallTimes.wall`). Le départ d'un groupe s'écrit au moment où la requête le donne
+(`EventTimezoneResolver.setStart`, dans `RideService.setProperties`) ; l'heure propre d'un groupe se
+relit depuis `startAt` (`EventTimezoneResolver.ownTime` : nulle quand le groupe part avec la sortie)
+pour `RideGroupDto.time`, `RideGroupSummaryDto.time` et l'export RGPD (qui gagne `startAt`) ; un
+changement de fuseau d'équipe garde l'heure propre de chaque groupe d'une sortie à venir.
+**Écart au plan** : `ride_groups.time` n'est **pas** supprimée par ce lot. La version précédente la
+mappe encore pendant la minute de bascule start-first (la supprimer ferait échouer chacune de ses
+requêtes sur `ride_groups`) et après un retour arrière : elle est écrite (`RideGroup.legacyTime`) et
+jamais lue, jusqu'au lot 6. Conséquence acceptée : un groupe dont l'heure saisie égale le départ de
+la sortie se relit « part avec la sortie », et suit donc la sortie si son heure change ensuite (le
+test de migration biketeam le dit). Tests (lancés le 7 octobre 2026, suite backend verte) : `EventDateTimeTest` (Z, offset et
+`[Europe/Paris]` refusés, JSON en `InvalidFormatException`), `RideTimezoneTest`
+(`anInstantWithZ_is400`, `anInstantWithAnOffset_is400`), `EventTimezoneResolverTest` (`setStart`,
+`ownTime`, aller-retour), `PublicationEndCalculatorTest`, `WeatherCacheTest`, `WeatherPlannerTest`,
+`TeamTimezoneChangeTest`, `BiketeamLiveMigrationTest` ; supprimés : `EventTimezoneBackfillTest` et
+les tests des replis (groupe sans `start_at`, entité sans fuseau).
 
 Reste :
 
 - **Lot 4, restes** : l'export RGPD (`NotificationExport`, `UserExportBuilder`) ne porte pas
   `subjectTimezone` à côté de `subjectDateTime`.
-- **Lot 5 = version N+1** : dernier rattrapage puis `team_entities.timezone` et
-  `ride_groups.start_at` `NOT NULL`, suppression de `ride_groups.time`, refus en 400 des instants
-  avec offset dans `EventDateTime.parse` (et retrait des surcharges `Instant` des requêtes, des
-  constructeurs de compatibilité de `TeamRequest` et `CalendarEventDto`).
+- **Lot 6 = version N+2** (une fois le lot 5 en production) : supprimer `ride_groups.time`
+  (`ALTER TABLE ride_groups DROP COLUMN time`) et le champ `RideGroup.legacyTime` avec ses
+  écritures (`EventTimezoneResolver.setStart`, `TeamTimezoneChange.rewriteRide`). Sûr en start-first :
+  la version N+1 ne lit jamais la colonne et Hibernate ne la sélectionne plus une fois le champ
+  retiré. (S)
 
 À ne pas défaire :
 
-- **Un seul lecteur du départ d'un groupe** : `EventTimezoneResolver.startAt` (`start_at`, sinon
-  le repli) pour la météo, les appareils, la fin stockée et le détail — jamais un fuseau tiré du
-  point de départ ni un repli UTC, sans quoi la fin, la météo et l'heure affichée divergent.
+- **Un seul départ d'un groupe** : `RideGroup.startAt` (`NOT NULL` depuis V67), écrit par
+  `EventTimezoneResolver.setStart`, lu par la météo, les appareils, la fin stockée et le détail —
+  jamais un fuseau tiré du point de départ ni un repli UTC, sans quoi la fin, la météo et l'heure
+  affichée divergent. L'heure d'un groupe se relit de `startAt` (`ownTime`), jamais de `time`.
+- **Une requête ne porte que des heures murales** : `EventDateTime` refuse `Z` et les offsets
+  (400) ; le client ne décide jamais du fuseau d'un rendez-vous.
 - **`X-WR-TIMEZONE` seulement sur un flux d'équipe ou un ICS unitaire**, jamais sur le flux
   personnel, qui mêle des équipes de fuseaux différents.
 - **`subject_timezone` nul se lit à Paris dans les textes du serveur** (toutes les équipes l'étaient

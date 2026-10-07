@@ -1,5 +1,6 @@
 package fr.pedalons.api.rides;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
@@ -43,14 +44,15 @@ class RideResourceTest extends AbstractResourceTest {
             new RideRequest(
                 "Sunday Morning Ride",
                 MediaDto.builder().build(),
-                LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                 Status.DRAFT,
                 Visibility.PUBLIC,
                 null,
                 null,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                null))
         .when()
         .post("/api/teams/" + team1Slug + "/rides")
         .then()
@@ -71,14 +73,15 @@ class RideResourceTest extends AbstractResourceTest {
             new RideRequest(
                 "Sunday Morning Ride",
                 MediaDto.builder().build(),
-                LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                 Status.DRAFT,
                 Visibility.PUBLIC,
                 null,
                 null,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                null))
         .when()
         .post("/api/teams/" + team1Slug + "/rides")
         .then()
@@ -93,14 +96,15 @@ class RideResourceTest extends AbstractResourceTest {
             new RideRequest(
                 "Sunday Morning Ride",
                 MediaDto.builder().build(),
-                LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                 Status.DRAFT,
                 Visibility.PUBLIC,
                 null,
                 null,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                null))
         .when()
         .post("/api/teams/" + team1Slug + "/rides")
         .then()
@@ -113,7 +117,7 @@ class RideResourceTest extends AbstractResourceTest {
         new RideRequest(
             "Multi-Group Ride",
             MediaDto.builder().build(),
-            LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+            wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -123,7 +127,8 @@ class RideResourceTest extends AbstractResourceTest {
             List.of(
                 new GroupRequest(null, "Fast", null, 32.0f, 10, null),
                 new GroupRequest(null, "Fase", null, 28.0f, 15, null),
-                new GroupRequest(null, "Social", null, 25.0f, null, null)));
+                new GroupRequest(null, "Social", null, 25.0f, null, null)),
+            null);
 
     given()
         .auth()
@@ -150,7 +155,7 @@ class RideResourceTest extends AbstractResourceTest {
             {
               "name": "Sparse Media Ride",
               "media": {"markdown": "Hello", "assets": {}},
-              "dateTime": "2025-01-20T00:00:00Z",
+              "dateTime": "2025-01-20T00:00:00",
               "status": "DRAFT",
               "visibility": "PUBLIC",
               "groups": [{"name": "G1"}]
@@ -177,7 +182,7 @@ class RideResourceTest extends AbstractResourceTest {
             {
               "name": "No Media Ride",
               "media": {},
-              "dateTime": "2025-01-20T00:00:00Z",
+              "dateTime": "2025-01-20T00:00:00",
               "status": "DRAFT",
               "visibility": "PUBLIC",
               "groups": [{"name": "G1"}]
@@ -202,14 +207,15 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Get Test Ride",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-22").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.parse("2025-01-22").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -269,14 +275,15 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Get Test Ride",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-22").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.parse("2025-01-22").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.PUBLISHED,
                     Visibility.TEAM,
                     null,
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -298,7 +305,7 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Sunday Morning Ride",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
@@ -307,7 +314,8 @@ class RideResourceTest extends AbstractResourceTest {
                     null,
                     List.of(
                         new GroupRequest(null, "G1", null, null, null, null),
-                        new GroupRequest(null, "G0", null, null, null, null))))
+                        new GroupRequest(null, "G0", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -325,7 +333,7 @@ class RideResourceTest extends AbstractResourceTest {
             new RideRequest(
                 "Updated Title",
                 MediaDto.builder().build(),
-                LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                 Status.PUBLISHED,
                 Visibility.PUBLIC,
                 null,
@@ -334,7 +342,8 @@ class RideResourceTest extends AbstractResourceTest {
                 null,
                 List.of(
                     new GroupRequest(groupId, "G1 modified", null, null, null, null),
-                    new GroupRequest(null, "G2", null, null, null, null))))
+                    new GroupRequest(null, "G2", null, null, null, null)),
+                null))
         .when()
         .put("/api/teams/" + team1Slug + "/rides/" + rideSlug)
         .then()
@@ -354,7 +363,7 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Sunday Morning Ride",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
@@ -363,7 +372,8 @@ class RideResourceTest extends AbstractResourceTest {
                     null,
                     List.of(
                         new GroupRequest(null, "G1", null, null, null, null),
-                        new GroupRequest(null, "G0", null, null, null, null))))
+                        new GroupRequest(null, "G0", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -392,14 +402,15 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "To be deleted",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -436,14 +447,15 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "To be deleted",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -466,14 +478,15 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Ride",
                     MediaDto.builder().build(),
-                    LocalDate.now().plusDays(7).atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.now().plusDays(7).atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -506,14 +519,15 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Ride",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -546,14 +560,15 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Ride",
                     MediaDto.builder().build(),
-                    LocalDate.now().plusDays(7).atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.now().plusDays(7).atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -596,14 +611,15 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Ride",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -634,14 +650,15 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Slug Change Ride",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -672,14 +689,15 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Organizer Slug Ride",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -710,14 +728,15 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Member Slug Ride",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -747,14 +766,15 @@ class RideResourceTest extends AbstractResourceTest {
                 new RideRequest(
                     "Unauth Slug Ride",
                     MediaDto.builder().build(),
-                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    wall(LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC)),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                    null))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()

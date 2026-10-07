@@ -18,7 +18,7 @@ mixin _$RideRequest {
 
 /// Ride name
  String get name;/// Ride media
- MediaDto get media;/// Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team). An instant with an offset is still tolerated.
+ MediaDto get media;/// Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team).
  String get dateTime;/// Ride status
  String get status;/// Visibility level
  String get visibility;/// Ride groups to create
@@ -252,7 +252,7 @@ class _RideRequest implements RideRequest {
 @override final  String name;
 /// Ride media
 @override final  MediaDto media;
-/// Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team). An instant with an offset is still tolerated.
+/// Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team).
 @override final  String dateTime;
 /// Ride status
 @override final  String status;

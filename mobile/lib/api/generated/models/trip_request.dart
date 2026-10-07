@@ -23,7 +23,7 @@ abstract class TripRequest with _$TripRequest {
     /// Trip media
     required MediaDto media,
 
-    /// Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team). An instant with an offset is still tolerated.
+    /// Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team).
     required String dateTime,
 
     /// Trip status

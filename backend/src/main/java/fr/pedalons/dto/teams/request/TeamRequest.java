@@ -62,33 +62,4 @@ public record TeamRequest(
                     + " rides, trips and posts that no place locates.",
             examples = "Europe/Paris")
         @Size(max = 64)
-        String timezone) {
-
-  /** Without a zone: the shape this record had before docs/LEDGER_*.md API-60. */
-  public TeamRequest(
-      String name,
-      MediaDto media,
-      Visibility visibility,
-      boolean enableTrips,
-      boolean enableAds,
-      boolean enablePosts,
-      boolean enableRides,
-      boolean enableRoutes,
-      boolean enableMemberDirectory,
-      @Nullable Boolean postsAsTeamByDefault,
-      @Nullable Point<G2D> geometry) {
-    this(
-        name,
-        media,
-        visibility,
-        enableTrips,
-        enableAds,
-        enablePosts,
-        enableRides,
-        enableRoutes,
-        enableMemberDirectory,
-        postsAsTeamByDefault,
-        geometry,
-        null);
-  }
-}
+        String timezone) {}

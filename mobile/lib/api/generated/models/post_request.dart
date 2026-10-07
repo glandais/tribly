@@ -22,7 +22,7 @@ abstract class PostRequest with _$PostRequest {
     /// Post description
     required MediaDto media,
 
-    /// Post date/time: a wall time without offset, read in the team's zone. An instant with an offset is still tolerated.
+    /// Post date/time: a wall time without offset, read in the team's zone.
     required String dateTime,
 
     /// Post status

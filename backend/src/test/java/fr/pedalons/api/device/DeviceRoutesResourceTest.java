@@ -1,5 +1,6 @@
 package fr.pedalons.api.device;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -112,14 +113,15 @@ class DeviceRoutesResourceTest extends AbstractResourceTest {
         new RideRequest(
             "Sortie appareils",
             MediaDto.builder().markdown("Sortie").build(),
-            rideStart,
+            wall(rideStart),
             Status.PUBLISHED,
             Visibility.TEAM,
             routeSlug,
             null,
             null,
             null,
-            List.of(GroupRequest.builder().name("Groupe tardif").time(LocalTime.of(9, 0)).build()));
+            List.of(GroupRequest.builder().name("Groupe tardif").time(LocalTime.of(9, 0)).build()),
+            null);
     String rideSlug =
         given()
             .auth()
@@ -165,7 +167,7 @@ class DeviceRoutesResourceTest extends AbstractResourceTest {
         new RideRequest(
             "Sortie deux groupes",
             MediaDto.builder().markdown("Sortie").build(),
-            rideStart,
+            wall(rideStart),
             Status.PUBLISHED,
             Visibility.TEAM,
             routeSlug,
@@ -178,7 +180,8 @@ class DeviceRoutesResourceTest extends AbstractResourceTest {
                     .name("Groupe de 9 h")
                     .time(LocalTime.of(9, 0))
                     .routeSlug(routeSlug)
-                    .build()));
+                    .build()),
+            null);
     String rideSlug =
         given()
             .auth()

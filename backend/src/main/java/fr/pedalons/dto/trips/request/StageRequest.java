@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import java.time.Instant;
 import lombok.Builder;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -27,7 +26,7 @@ public record StageRequest(
             description =
                 "Stage date/time: a wall time without offset, read in the stage's zone (start"
                     + " place, else route, else the previous stage's, else the trip route's, else"
-                    + " the team's). An instant with an offset is still tolerated.",
+                    + " the team's).",
             required = true)
         EventDateTime dateTime,
     @Nullable @Schema(description = "Average speed in km/h", examples = "22") @Positive
@@ -35,22 +34,4 @@ public record StageRequest(
     @Nullable @Schema(description = "Route slug for this stage") String routeSlug,
     @Nullable @Schema(description = "Start place ID (TSID)") String startPlaceId,
     @Nullable @Schema(description = "End place ID (TSID)") String endPlaceId,
-    @Schema(description = "Stage media", required = true) @Valid MediaDto media) {
-
-  /** Lombok fills in the rest of the builder. */
-  public static class StageRequestBuilder {
-    private EventDateTime dateTime;
-
-    public StageRequestBuilder dateTime(EventDateTime dateTime) {
-      this.dateTime = dateTime;
-      return this;
-    }
-
-    /**
-     * An instant: the format before docs/LEDGER_*.md API-60, still tolerated for one version.
-     */
-    public StageRequestBuilder dateTime(Instant dateTime) {
-      return dateTime(EventDateTime.legacy(dateTime));
-    }
-  }
-}
+    @Schema(description = "Stage media", required = true) @Valid MediaDto media) {}

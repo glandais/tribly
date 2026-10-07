@@ -4,6 +4,7 @@ import static org.geolatte.geom.builder.DSL.g;
 import static org.geolatte.geom.builder.DSL.point;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.pedalons.domain.place.Place;
@@ -254,104 +255,71 @@ class EventTimezoneResolverTest {
   void groupStart_itsTimeOnTheRidesLocalDate_inTheRidesZone() {
     // 23:30 UTC on June 1st is already June 2nd in Tokyo.
     Instant ride = Instant.parse("2030-06-01T23:30:00Z");
-    RideGroup group = new RideGroup();
-    group.setTime(LocalTime.of(10, 0));
     assertEquals(
         Instant.parse("2030-06-02T01:00:00Z"),
-        EventTimezoneResolver.groupStart(ride, group, TOKYO));
+        EventTimezoneResolver.groupStart(ride, LocalTime.of(10, 0), TOKYO));
   }
 
   @Test
   void groupStart_withoutTime_isTheRidesStart() {
     Instant ride = Instant.parse("2030-06-02T07:00:00Z");
-    assertEquals(ride, EventTimezoneResolver.groupStart(ride, new RideGroup(), TOKYO));
+    assertEquals(ride, EventTimezoneResolver.groupStart(ride, null, TOKYO));
   }
 
   /** Paris springs forward on 2030-03-31: 02:30 does not exist, it moves by the gap (03:30). */
   @Test
   void groupStart_inTheSpringGap_isShiftedByTheGap() {
     Instant ride = Instant.parse("2030-03-31T06:00:00Z");
-    RideGroup group = new RideGroup();
-    group.setTime(LocalTime.of(2, 30));
     assertEquals(
         Instant.parse("2030-03-31T01:30:00Z"),
-        EventTimezoneResolver.groupStart(ride, group, PARIS));
+        EventTimezoneResolver.groupStart(ride, LocalTime.of(2, 30), PARIS));
   }
 
   /** Paris falls back on 2030-10-27: 02:30 exists twice, the earlier offset (+02:00) wins. */
   @Test
   void groupStart_inTheAutumnOverlap_takesTheEarlierOffset() {
     Instant ride = Instant.parse("2030-10-27T08:00:00Z");
-    RideGroup group = new RideGroup();
-    group.setTime(LocalTime.of(2, 30));
     assertEquals(
         Instant.parse("2030-10-27T00:30:00Z"),
-        EventTimezoneResolver.groupStart(ride, group, PARIS));
+        EventTimezoneResolver.groupStart(ride, LocalTime.of(2, 30), PARIS));
   }
 
-  // ─── startAt, the one reader of a group's departure (docs/LEDGER_*.md API-60) ──
+  // ─── The stored start and the time read back from it (docs/LEDGER_*.md API-60) ──
 
   @Test
-  void startAt_theStoredInstantWins_overTheTime() {
-    Ride ride = new Ride();
-    ride.setTeam(team(PARIS));
-    ride.setTimezone(PARIS.getId());
-    ride.setDateTime(Instant.parse("2030-06-02T07:00:00Z"));
-    RideGroup group = new RideGroup();
-    group.setRide(ride);
-    group.setTime(LocalTime.of(10, 0));
-    group.setStartAt(Instant.parse("2030-06-02T09:15:00Z"));
-    assertEquals(Instant.parse("2030-06-02T09:15:00Z"), EventTimezoneResolver.startAt(group));
-  }
-
-  @Test
-  void startAt_withoutStoredInstant_readsTheTimeInTheRidesStoredZone() {
-    Ride ride = new Ride();
-    ride.setTeam(team(PARIS));
-    ride.setTimezone(TOKYO.getId());
-    ride.setDateTime(Instant.parse("2030-06-01T23:30:00Z"));
-    RideGroup group = new RideGroup();
-    group.setRide(ride);
-    group.setTime(LocalTime.of(10, 0));
-    // June 2nd in Tokyo, the ride's zone, not the team's.
-    assertEquals(Instant.parse("2030-06-02T01:00:00Z"), EventTimezoneResolver.startAt(group));
-  }
-
-  @Test
-  void startAt_onARowWithoutZone_readsTheTimeInTheTeamsZone() {
-    Ride ride = new Ride();
-    ride.setTeam(team(MONTREAL));
-    ride.setTimezone(null);
-    ride.setDateTime(Instant.parse("2030-06-02T12:00:00Z"));
-    RideGroup group = new RideGroup();
-    group.setRide(ride);
-    group.setTime(LocalTime.of(10, 0));
-    // 10:00 in Montreal (EDT, UTC-4) — never UTC.
-    assertEquals(Instant.parse("2030-06-02T14:00:00Z"), EventTimezoneResolver.startAt(group));
-  }
-
-  @Test
-  void startAt_withoutTimeNorStoredInstant_isTheRidesStart() {
-    Ride ride = new Ride();
-    ride.setDateTime(Instant.parse("2030-06-02T07:00:00Z"));
-    RideGroup group = new RideGroup();
-    group.setRide(ride);
-    assertEquals(ride.getDateTime(), EventTimezoneResolver.startAt(group));
-  }
-
-  @Test
-  void applyGroupStarts_writesEveryGroup() {
-    Ride ride = new Ride();
-    ride.setDateTime(Instant.parse("2030-06-02T07:00:00Z"));
+  void setStart_storesTheStart_fromTheRequestsTime() {
+    Instant ride = Instant.parse("2030-06-02T07:00:00Z");
     RideGroup early = new RideGroup();
     RideGroup late = new RideGroup();
-    late.setTime(LocalTime.of(11, 0));
-    ride.getGroups().addAll(List.of(early, late));
 
-    EventTimezoneResolver.applyGroupStarts(ride, PARIS);
+    EventTimezoneResolver.setStart(early, ride, null, PARIS);
+    EventTimezoneResolver.setStart(late, ride, LocalTime.of(11, 0), PARIS);
 
-    assertEquals(Instant.parse("2030-06-02T07:00:00Z"), early.getStartAt());
+    assertEquals(ride, early.getStartAt());
     assertEquals(Instant.parse("2030-06-02T09:00:00Z"), late.getStartAt());
+  }
+
+  @Test
+  void ownTime_isNull_whenTheGroupLeavesWithTheRide() {
+    Instant ride = Instant.parse("2030-06-02T07:00:00Z");
+    assertNull(EventTimezoneResolver.ownTime(ride, ride, TOKYO));
+  }
+
+  @Test
+  void ownTime_isTheStart_asAWallTimeOfTheRidesZone() {
+    Instant ride = Instant.parse("2030-06-01T23:30:00Z");
+    assertEquals(
+        LocalTime.of(10, 0),
+        EventTimezoneResolver.ownTime(ride, Instant.parse("2030-06-02T01:00:00Z"), TOKYO));
+  }
+
+  /** What an editor reads and sends back gives the same start: the round trip moves nothing. */
+  @Test
+  void ownTime_roundTrips_throughGroupStart() {
+    Instant ride = Instant.parse("2030-06-01T23:30:00Z");
+    Instant start = Instant.parse("2030-06-02T01:00:00Z");
+    LocalTime own = EventTimezoneResolver.ownTime(ride, start, TOKYO);
+    assertEquals(start, EventTimezoneResolver.groupStart(ride, own, TOKYO));
   }
 
   @Test

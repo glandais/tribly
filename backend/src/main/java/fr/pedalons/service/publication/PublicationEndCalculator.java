@@ -6,7 +6,6 @@ import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.trip.TripStage;
-import fr.pedalons.service.timezone.EventTimezoneResolver;
 import fr.pedalons.service.weather.RideWeatherCalculator;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -27,8 +26,7 @@ import org.jspecify.annotations.Nullable;
  *
  * <ul>
  *   <li><b>Ride</b>: the latest of its groups, each one its departure (its stored {@code
- *       start_at}, else its time on the ride's local date in the ride's zone — {@link
- *       EventTimezoneResolver#startAt}) plus the distance of its route (the
+ *       start_at}) plus the distance of its route (the
  *       group's, else the ride's) at its {@code averageSpeed}. A group with no speed or no route, and
  *       a ride with no group, take the departure plus {@link #DEFAULT_DURATION}.
  *   <li><b>Trip</b>: the same rule applied to its live stages — each stage's own end is stored too
@@ -147,7 +145,7 @@ public class PublicationEndCalculator {
     // (docs/LEDGER_*.md API-60).
     Instant end = departure;
     for (RideGroup group : groups) {
-      Instant start = EventTimezoneResolver.startAt(group);
+      Instant start = group.getStartAt();
       Route route = live(group.getRoute());
       if (route == null) {
         route = live(ride.getRoute());

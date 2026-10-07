@@ -218,9 +218,7 @@ export const CreatePostBody = zod
       .describe('Post description'),
     dateTime: zod
       .string()
-      .describe(
-        "Post date/time: a wall time without offset, read in the team's zone. An instant with an offset is still tolerated."
-      ),
+      .describe("Post date/time: a wall time without offset, read in the team's zone."),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Post status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod
@@ -744,9 +742,7 @@ export const UpdatePostBody = zod
       .describe('Post description'),
     dateTime: zod
       .string()
-      .describe(
-        "Post date/time: a wall time without offset, read in the team's zone. An instant with an offset is still tolerated."
-      ),
+      .describe("Post date/time: a wall time without offset, read in the team's zone."),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Post status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
     publishAt: zod

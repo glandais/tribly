@@ -226,7 +226,7 @@ export const CreateTripBody = zod
     dateTime: zod
       .string()
       .describe(
-        "Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team). An instant with an offset is still tolerated."
+        "Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team)."
       ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Trip status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
@@ -251,7 +251,7 @@ export const CreateTripBody = zod
             dateTime: zod
               .string()
               .describe(
-                "Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's). An instant with an offset is still tolerated."
+                "Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's)."
               ),
             averageSpeed: zod
               .number()
@@ -1671,7 +1671,7 @@ export const UpdateTripBody = zod
     dateTime: zod
       .string()
       .describe(
-        "Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team). An instant with an offset is still tolerated."
+        "Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team)."
       ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Trip status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
@@ -1696,7 +1696,7 @@ export const UpdateTripBody = zod
             dateTime: zod
               .string()
               .describe(
-                "Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's). An instant with an offset is still tolerated."
+                "Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's)."
               ),
             averageSpeed: zod
               .number()

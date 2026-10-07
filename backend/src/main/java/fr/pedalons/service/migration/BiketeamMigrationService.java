@@ -87,6 +87,7 @@ import fr.pedalons.service.route.RouteService;
 import fr.pedalons.service.security.DomainResolver;
 import fr.pedalons.service.security.PedalonsQueryContext;
 import fr.pedalons.service.tag.TagService;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
 import fr.pedalons.service.trip.TripService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -992,14 +993,19 @@ public class BiketeamMigrationService {
     Long mapped = mapRepo.findTriblyId(T_POST, bt.id());
     Post existing =
         mapped != null ? owned(postRepository.findByIdOptional(mapped).orElse(null), team) : null;
+    // A post is read in its team's zone: its biketeam instant as a wall time there, which the
+    // backend reads back to the same instant (docs/LEDGER_*.md API-60).
+    Instant publishedAt = bt.publishedAt() != null ? bt.publishedAt() : Instant.now();
     PostRequest req =
         new PostRequest(
             bt.title(),
             mediaWithExisting(biketeamToMarkdown(bt.content()), existing),
-            bt.publishedAt() != null ? bt.publishedAt() : Instant.now(),
+            EventDateTime.local(
+                LocalDateTime.ofInstant(publishedAt, EventTimezoneResolver.teamZone(team))),
             mapStatus(bt.publishedStatus()),
             // Publications carry no listed_in_feed flag: biketeam always lists them.
             contentVisibility(team.getVisibility()),
+            null,
             null,
             null);
     Post post;

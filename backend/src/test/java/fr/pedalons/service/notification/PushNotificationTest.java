@@ -1,5 +1,6 @@
 package fr.pedalons.service.notification;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -80,14 +81,15 @@ class PushNotificationTest extends AbstractResourceTest {
             new RideRequest(
                 "Sortie du dimanche",
                 MediaDto.builder().build(),
-                nextWeek,
+                wall(nextWeek),
                 Status.PUBLISHED,
                 Visibility.PUBLIC,
                 null,
                 null,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null, null)),
+                null))
         .when()
         .post("/api/teams/" + team1Slug + "/rides")
         .then()

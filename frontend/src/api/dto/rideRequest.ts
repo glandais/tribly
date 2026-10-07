@@ -17,7 +17,7 @@ export interface RideRequest {
   name: string
   /** Ride media */
   media: MediaDto
-  /** Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team). An instant with an offset is still tolerated. */
+  /** Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team). */
   dateTime: EventDateTime
   /** Ride status */
   status: Status

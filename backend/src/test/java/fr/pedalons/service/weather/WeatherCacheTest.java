@@ -41,7 +41,6 @@ import jakarta.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
@@ -213,9 +212,9 @@ class WeatherCacheTest extends AbstractResourceTest {
   }
 
   /**
-   * The list's SQL and the detail start a timed group from the same instant (docs/LEDGER_*.md
-   * API-60): its stored start_at, else its time on the ride's local date in the <em>ride's</em> zone
-   * — here Tokyo, while the departure cell's zone is Paris, which dates only its daily rows.
+   * The list's SQL and the detail start a group from the same instant (docs/LEDGER_*.md API-60): its
+   * stored start_at — the ride being in Tokyo, while the departure cell's zone is Paris, which dates
+   * only its daily rows.
    */
   @Test
   void forRides_aTimedGroup_startsWhereTheDetailStartsIt() {
@@ -230,11 +229,8 @@ class WeatherCacheTest extends AbstractResourceTest {
               // The list reads the route's stored length; the detail, its samples (30 km).
               managed.getRoute().setDistance(30_000f);
               RideGroup g = rideRepository.getEntityManager().find(RideGroup.class, group.getId());
-              // Its wall time is the ride's own, in Tokyo; no start_at, as an older backend left
-              // it.
-              g.setTime(LocalTime.from(departure.atZone(tokyo)));
+              // It leaves with the ride.
               g.setAverageSpeed(30f);
-              g.setStartAt(null);
             });
     planner.plan(Instant.now());
     worker.fetchDue();
@@ -243,7 +239,7 @@ class WeatherCacheTest extends AbstractResourceTest {
     assertEquals(departure.plus(Duration.ofHours(1)), listLastArrival());
     assertEquals(departure.plus(Duration.ofHours(1)), detailArrival(group.getId()));
 
-    // A stored start_at wins over the time, in both.
+    // Its own start, three hours later, in both.
     Instant stored = departure.plus(Duration.ofHours(3));
     QuarkusTransaction.requiringNew()
         .run(

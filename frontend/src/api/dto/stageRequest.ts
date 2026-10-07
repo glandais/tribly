@@ -14,7 +14,7 @@ export interface StageRequest {
    * @pattern \S
    */
   name: string
-  /** Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's). An instant with an offset is still tolerated. */
+  /** Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's). */
   dateTime: EventDateTime
   /**
    * Average speed in km/h

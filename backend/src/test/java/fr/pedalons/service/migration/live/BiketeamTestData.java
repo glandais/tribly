@@ -19,6 +19,7 @@ import fr.pedalons.repository.migration.BiketeamMigrationJobRepository;
 import fr.pedalons.repository.migration.BiketeamMigrationMapRepository;
 import fr.pedalons.service.migration.BiketeamMigrationService;
 import fr.pedalons.service.publication.PublicationEndCalculator;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -227,7 +228,8 @@ public class BiketeamTestData {
                     new GroupView(
                         g.getName(),
                         g.getSortOrder(),
-                        g.getTime(),
+                        EventTimezoneResolver.ownTime(
+                            ride.getDateTime(), g.getStartAt(), ride.zone()),
                         g.getLeader() == null ? null : g.getLeader().getId()))
             .toList();
     return new RideView(ride.getName(), ride.getDateTime(), ride.getCreatedBy().getId(), groups);

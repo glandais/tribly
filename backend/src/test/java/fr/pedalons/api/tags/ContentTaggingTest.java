@@ -1,5 +1,6 @@
 package fr.pedalons.api.tags;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
@@ -52,7 +53,7 @@ class ContentTaggingTest extends AbstractResourceTest {
     return new PostRequest(
         name,
         MediaDto.builder().markdown("Contenu").build(),
-        Instant.now().minus(1, ChronoUnit.HOURS),
+        wall(Instant.now().minus(1, ChronoUnit.HOURS)),
         Status.PUBLISHED,
         Visibility.PUBLIC,
         null,
@@ -233,7 +234,7 @@ class ContentTaggingTest extends AbstractResourceTest {
                 new RideRequest(
                     "Samedi 4",
                     MediaDto.builder().build(),
-                    Instant.now().plus(3, ChronoUnit.DAYS),
+                    wall(Instant.now().plus(3, ChronoUnit.DAYS)),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,

@@ -16,7 +16,7 @@ export interface PostRequest {
   name: string
   /** Post description */
   media: MediaDto
-  /** Post date/time: a wall time without offset, read in the team's zone. An instant with an offset is still tolerated. */
+  /** Post date/time: a wall time without offset, read in the team's zone. */
   dateTime: EventDateTime
   /** Post status */
   status: Status

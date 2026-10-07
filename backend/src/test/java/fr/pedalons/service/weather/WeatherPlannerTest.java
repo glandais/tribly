@@ -28,6 +28,7 @@ import fr.pedalons.repository.ride.RideRepository;
 import fr.pedalons.repository.trip.TripStageRepository;
 import fr.pedalons.repository.weather.WeatherCellRepository;
 import fr.pedalons.service.security.DomainResolver;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -109,7 +110,8 @@ class WeatherPlannerTest extends AbstractResourceTest {
             () -> {
               RideGroup managed =
                   rideRepository.getEntityManager().find(RideGroup.class, group.getId());
-              managed.setTime(time);
+              Ride ride = managed.getRide();
+              EventTimezoneResolver.setStart(managed, ride.getDateTime(), time, ride.zone());
               managed.setAverageSpeed(averageSpeed);
             });
   }

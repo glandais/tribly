@@ -1,5 +1,6 @@
 package fr.pedalons.api.publications;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
@@ -44,9 +45,10 @@ class PublicationResourceTest extends AbstractResourceTest {
         new PostRequest(
             name,
             MediaDto.builder().markdown("Post content").build(),
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
             Status.PUBLISHED,
             getVisibility(teamSlug),
+            null,
             null,
             null);
 

@@ -17,7 +17,7 @@ T _$identity<T>(T value) => value;
 mixin _$StageRequest {
 
 /// Stage name
- String get name;/// Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's). An instant with an offset is still tolerated.
+ String get name;/// Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's).
  String get dateTime;/// Stage media
  MediaDto get media;/// Stage ID (for updates)
  String? get id;/// Average speed in km/h
@@ -244,7 +244,7 @@ class _StageRequest implements StageRequest {
 
 /// Stage name
 @override final  String name;
-/// Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's). An instant with an offset is still tolerated.
+/// Stage date/time: a wall time without offset, read in the stage's zone (start place, else route, else the previous stage's, else the trip route's, else the team's).
 @override final  String dateTime;
 /// Stage media
 @override final  MediaDto media;

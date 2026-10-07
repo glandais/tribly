@@ -10,7 +10,6 @@ import fr.pedalons.enums.Visibility;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -27,8 +26,7 @@ public record TripRequest(
     @Schema(
             description =
                 "Trip start date/time: a wall time without offset, read in the trip's zone (first"
-                    + " stage, else route, else team). An instant with an offset is still"
-                    + " tolerated.",
+                    + " stage, else route, else team).",
             required = true)
         EventDateTime dateTime,
     @Schema(description = "Trip status", required = true) Status status,
@@ -50,53 +48,4 @@ public record TripRequest(
                     + " TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a"
                     + " creation, left as they are on an update.")
         List<String> tagIds)
-    implements WithVisibility {
-
-  /**
-   * With instants: the format before docs/LEDGER_*.md API-60, still tolerated for one version and
-   * kept as the instants they are.
-   */
-  public TripRequest(
-      String name,
-      MediaDto media,
-      Instant dateTime,
-      Status status,
-      Visibility visibility,
-      @Nullable String routeSlug,
-      @Nullable Instant publishAt,
-      List<StageRequest> stages,
-      @Nullable List<String> tagIds) {
-    this(
-        name,
-        media,
-        EventDateTime.legacy(dateTime),
-        status,
-        visibility,
-        routeSlug,
-        EventDateTime.legacyNullable(publishAt),
-        stages,
-        tagIds);
-  }
-
-  /** Without tags: the shape this record had before API-59 — leaves the tags as they are. */
-  public TripRequest(
-      String name,
-      MediaDto media,
-      Instant dateTime,
-      Status status,
-      Visibility visibility,
-      @Nullable String routeSlug,
-      @Nullable Instant publishAt,
-      List<StageRequest> stages) {
-    this(
-        name,
-        media,
-        dateTime,
-        status,
-        visibility,
-        routeSlug,
-        publishAt,
-        stages,
-        (List<String>) null);
-  }
-}
+    implements WithVisibility {}

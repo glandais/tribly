@@ -1,5 +1,6 @@
 package fr.pedalons.service.post;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.AbstractBaseTest;
@@ -113,9 +114,10 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "New Post",
               MediaDto.builder().markdown("Content").build(),
-              dateTime,
+              wall(dateTime),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null,
               null);
 
@@ -135,9 +137,10 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "Draft Post",
               MediaDto.builder().build(),
-              dateTime,
+              wall(dateTime),
               Status.DRAFT,
               Visibility.PUBLIC,
+              null,
               null,
               null);
 
@@ -155,10 +158,11 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "Scheduled Post",
               MediaDto.builder().build(),
-              dateTime,
+              wall(dateTime),
               Status.DRAFT,
               Visibility.PUBLIC,
-              publishAt,
+              wall(publishAt),
+              null,
               null);
 
       userService.setUserForTest(organizer);
@@ -173,9 +177,10 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "Post",
               MediaDto.builder().build(),
-              Instant.now(),
+              wall(Instant.now()),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null,
               null);
 
@@ -190,9 +195,10 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "Public Post",
               MediaDto.builder().build(),
-              Instant.now(),
+              wall(Instant.now()),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null,
               null);
 
@@ -207,9 +213,10 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "Team Post",
               MediaDto.builder().build(),
-              Instant.now(),
+              wall(Instant.now()),
               Status.PUBLISHED,
               Visibility.TEAM,
+              null,
               null,
               null);
 
@@ -227,18 +234,20 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "Same Name",
               MediaDto.builder().build(),
-              now,
+              wall(now),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null,
               null);
       PostRequest request2 =
           new PostRequest(
               "Same Name",
               MediaDto.builder().build(),
-              now,
+              wall(now),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null,
               null);
 
@@ -263,9 +272,10 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "Updated",
               MediaDto.builder().markdown("New content").build(),
-              newDateTime,
+              wall(newDateTime),
               Status.DRAFT,
               Visibility.TEAM,
+              null,
               null,
               null);
 
@@ -285,9 +295,10 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "Test",
               MediaDto.builder().build(),
-              Instant.now(),
+              wall(Instant.now()),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null,
               null);
 
@@ -305,9 +316,10 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "Updated",
               MediaDto.builder().build(),
-              Instant.now(),
+              wall(Instant.now()),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null,
               null);
 
@@ -325,9 +337,10 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "Test",
               MediaDto.builder().build(),
-              Instant.now(),
+              wall(Instant.now()),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null,
               null);
 
@@ -345,9 +358,10 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "Updated Title",
               MediaDto.builder().build(),
-              Instant.now(),
+              wall(Instant.now()),
               Status.PUBLISHED,
               Visibility.TEAM,
+              null,
               null,
               null);
 
@@ -366,9 +380,10 @@ class PostServiceTest extends AbstractBaseTest {
           new PostRequest(
               "Test",
               MediaDto.builder().build(),
-              Instant.now(),
+              wall(Instant.now()),
               Status.PUBLISHED,
               Visibility.PUBLIC,
+              null,
               null,
               null);
 

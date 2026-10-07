@@ -234,7 +234,10 @@ class BiketeamLiveMigrationTest extends AbstractResourceTest {
     // Biketeam displays groups by meeting time, then name: Z (08:00) before A (09:30).
     assertEquals(
         List.of("Z", "A"), ride.groups().stream().map(BiketeamTestData.GroupView::name).toList());
-    assertEquals(LocalTime.of(8, 0), ride.groups().get(0).time());
+    // Z meets when the ride does (the earliest meeting time): it leaves with the ride, which is
+    // all its stored start says (docs/LEDGER_*.md API-60). A keeps its own time.
+    assertNull(ride.groups().get(0).time());
+    assertEquals(LocalTime.of(9, 30), ride.groups().get(1).time());
     // RideGroupDto.leader: null, never derived from createdBy.
     ride.groups().forEach(g -> assertNull(g.leaderId(), g.name()));
     // 2025-04-12 08:00 in Indian/Reunion (UTC+4), not in Paris.

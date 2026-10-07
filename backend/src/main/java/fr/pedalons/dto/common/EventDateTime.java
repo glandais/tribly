@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.util.Objects;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -29,82 +28,64 @@ import org.jspecify.annotations.Nullable;
  * 2026-10-11T08:00:00}), read by the backend in the zone it resolves for the entity — the start
  * place's, else the route's, else the team's (docs/LEDGER_*.md API-60).
  *
- * <p><b>Transition</b> (version N of docs/plans/2026-10-06-event-timezones.md §8): an instant with
- * {@code Z} or an offset — what the SPA sent before — is still accepted, and kept <em>as the
- * instant it is</em>. Round-tripping it through the wall time would move an instant that falls in
- * the second occurrence of a DST overlap by an hour. Version N+1 refuses it with a 400.
+ * <p>An instant with {@code Z} or an offset — what the SPA sent before — is refused with a 400
+ * since version N+1 (docs/plans/2026-10-06-event-timezones.md §8): the client never decides the
+ * zone of a rendezvous.
  *
  * <p>Deliberately not a {@link LocalDateTime} field: Jackson's lenient {@code
  * LocalDateTimeDeserializer} silently drops a trailing {@code Z} (06:30Z would be read as 06:30
- * wall time) and refuses {@code +02:00}. And the schema is a plain string, without {@code format:
- * date-time}, so that the generated clients accept both forms.
+ * wall time) where this refuses it. And the schema is a plain string, without {@code format:
+ * date-time}, which would announce an offset.
  */
 @Schema(
     type = SchemaType.STRING,
     implementation = String.class,
     description =
         "Wall time without offset (2026-10-11T08:00:00), in the zone the backend resolves for the"
-            + " entity. An instant with Z or an offset is still accepted during the transition and"
-            + " kept as that instant.",
+            + " entity. An instant with Z or an offset is refused with a 400.",
     examples = "2026-10-11T08:00:00")
 @ValidateSchema
 @JsonSerialize(using = EventDateTime.Serializer.class)
 @JsonDeserialize(using = EventDateTime.Deserializer.class)
 public final class EventDateTime {
 
-  private final @Nullable LocalDateTime local;
-  private final @Nullable Instant instant;
+  private final LocalDateTime local;
 
-  private EventDateTime(@Nullable LocalDateTime local, @Nullable Instant instant) {
+  private EventDateTime(LocalDateTime local) {
     this.local = local;
-    this.instant = instant;
   }
 
   /** A wall time, read in the entity's zone. */
   public static EventDateTime local(LocalDateTime local) {
-    return new EventDateTime(Objects.requireNonNull(local), null);
+    return new EventDateTime(Objects.requireNonNull(local));
   }
 
-  /** An instant in the old format, kept as is. */
-  public static EventDateTime legacy(Instant instant) {
-    return new EventDateTime(null, Objects.requireNonNull(instant));
-  }
-
-  public static @Nullable EventDateTime legacyNullable(@Nullable Instant instant) {
-    return instant == null ? null : legacy(instant);
+  public static @Nullable EventDateTime localNullable(@Nullable LocalDateTime local) {
+    return local == null ? null : local(local);
   }
 
   /**
-   * Parses either form.
+   * Parses a wall time.
    *
-   * @throws DateTimeException when the text is neither
+   * @throws DateTimeException when the text is not one — an instant with {@code Z} or an offset
+   *     included
    */
   public static EventDateTime parse(String text) {
-    TemporalAccessor parsed =
-        DateTimeFormatter.ISO_DATE_TIME.parseBest(
-            text.trim(), ZonedDateTime::from, LocalDateTime::from);
-    return switch (parsed) {
-      case ZonedDateTime zoned -> legacy(zoned.toInstant());
-      case LocalDateTime wall -> local(wall);
-      default -> throw new DateTimeException("Not a date-time: " + text);
-    };
+    return local(LocalDateTime.parse(text.trim(), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
   }
 
-  /** Whether this came in the old format, with an offset. */
-  public boolean isLegacy() {
-    return instant != null;
+  /** The wall time itself. */
+  public LocalDateTime wallTime() {
+    return local;
   }
 
   /**
-   * The instant this designates in {@code zone}: a legacy instant as it is; a wall time as {@link
-   * ZonedDateTime#of(LocalDateTime, ZoneId)} resolves it — shifted by the length of the gap when it
-   * does not exist, at the earlier offset when it exists twice (plan §6).
+   * The instant this designates in {@code zone}, as {@link ZonedDateTime#of(LocalDateTime, ZoneId)}
+   * resolves it — shifted by the length of the gap when it does not exist, at the earlier offset
+   * when it exists twice (plan §6).
    */
   public Instant toInstant(ZoneId zone) {
-    if (instant != null) {
-      return instant;
-    }
-    return Objects.requireNonNull(local).atZone(zone).toInstant();
+    return local.atZone(zone).toInstant();
   }
 
   public static @Nullable Instant toInstant(@Nullable EventDateTime value, ZoneId zone) {
@@ -119,19 +100,17 @@ public final class EventDateTime {
   @JsonValue
   @Override
   public String toString() {
-    return instant != null ? instant.toString() : Objects.requireNonNull(local).toString();
+    return local.toString();
   }
 
   @Override
   public boolean equals(Object o) {
-    return o instanceof EventDateTime other
-        && Objects.equals(local, other.local)
-        && Objects.equals(instant, other.instant);
+    return o instanceof EventDateTime other && local.equals(other.local);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(local, instant);
+    return local.hashCode();
   }
 
   static final class Serializer extends JsonSerializer<EventDateTime> {
@@ -154,7 +133,9 @@ public final class EventDateTime {
       } catch (DateTimeException e) {
         // An InvalidFormatException, so a 400 like any other malformed body.
         throw ctxt.weirdStringException(
-            text, EventDateTime.class, "expected a date-time such as 2026-10-11T08:00:00");
+            text,
+            EventDateTime.class,
+            "expected a wall time without offset, such as 2026-10-11T08:00:00");
       }
     }
   }

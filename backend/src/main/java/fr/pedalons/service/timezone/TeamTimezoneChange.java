@@ -12,6 +12,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -52,14 +53,13 @@ public class TeamTimezoneChange {
     if (from.equals(to)) {
       return List.of();
     }
-    // Trips whatever their stored zone: their stages may be stored in another one. A row without a
-    // zone reads the team's, which is still `from` here.
+    // Trips whatever their stored zone: their stages may be stored in another one.
     List<TeamEntity> candidates =
         entityManager
             .createQuery(
                 "select te from TeamEntity te where te.team.id = :teamId and te.deleted = false"
                     + " and TYPE(te) in (Ride, Trip, Post)"
-                    + " and (TYPE(te) = Trip or te.timezone is null or te.timezone = :from)",
+                    + " and (TYPE(te) = Trip or te.timezone = :from)",
                 TeamEntity.class)
             .setParameter("teamId", team.getId())
             .setParameter("from", from.getId())
@@ -129,22 +129,22 @@ public class TeamTimezoneChange {
   }
 
   /**
-   * A ride and its groups. Upcoming, the ride keeps its wall time and so do its groups' times; past
-   * or under way, the ride keeps its instant and each group's time becomes its departure's wall
-   * time in the new zone — exact as long as that departure stays on the ride's local date there.
+   * A ride and its groups. Upcoming, the ride keeps its wall time and so does each group's own
+   * time; past or under way, the ride and its groups keep their instants (only the legacy time
+   * column follows, as the new zone reads it).
    */
   private static void rewriteRide(Ride ride, ZoneId from, ZoneId to, Instant now) {
-    boolean upcoming = !ride.getDateTime().isBefore(now);
-    if (!upcoming) {
-      for (RideGroup group : ride.getGroups()) {
-        if (group.getTime() != null) {
-          Instant start = EventTimezoneResolver.groupStart(ride.getDateTime(), group, from);
-          group.setTime(start.atZone(to).toLocalTime());
-        }
+    Instant previousDateTime = ride.getDateTime();
+    boolean upcoming = !previousDateTime.isBefore(now);
+    rewrite(ride, from, to, now);
+    for (RideGroup group : ride.getGroups()) {
+      LocalTime own = EventTimezoneResolver.ownTime(previousDateTime, group.getStartAt(), from);
+      if (upcoming) {
+        EventTimezoneResolver.setStart(group, ride.getDateTime(), own, to);
+      } else {
+        group.setLegacyTime(own == null ? null : group.getStartAt().atZone(to).toLocalTime());
       }
     }
-    rewrite(ride, from, to, now);
-    EventTimezoneResolver.applyGroupStarts(ride, to);
   }
 
   /**

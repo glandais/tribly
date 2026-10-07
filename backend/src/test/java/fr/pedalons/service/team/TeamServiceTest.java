@@ -73,6 +73,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             false,
             null,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -102,6 +103,7 @@ class TeamServiceTest extends AbstractBaseTest {
             false,
             true,
             null,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -129,6 +131,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             false,
             null,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -151,6 +154,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             false,
             null,
+            null,
             null);
     TeamRequest request2 =
         new TeamRequest(
@@ -163,6 +167,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null,
             null);
 
@@ -190,6 +195,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             false,
             null,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -212,6 +218,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             false,
             null,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -228,6 +235,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null,
             null);
     BusinessException ex =
@@ -442,6 +450,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             false,
             null,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -482,6 +491,7 @@ class TeamServiceTest extends AbstractBaseTest {
         team.enableRoutes(),
         team.enableMemberDirectory(),
         value,
+        null,
         null);
   }
 
@@ -556,6 +566,7 @@ class TeamServiceTest extends AbstractBaseTest {
         true,
         false,
         null,
+        null,
         null);
   }
 
@@ -574,6 +585,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null,
             null);
 
@@ -598,6 +610,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null,
             null);
 
@@ -624,6 +637,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             false,
             null,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -646,6 +660,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null,
             null);
 
@@ -671,6 +686,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             false,
             null,
+            null,
             null);
 
     queryContext.setUserForTest(user1);
@@ -695,6 +711,7 @@ class TeamServiceTest extends AbstractBaseTest {
             true,
             true,
             false,
+            null,
             null,
             null);
 

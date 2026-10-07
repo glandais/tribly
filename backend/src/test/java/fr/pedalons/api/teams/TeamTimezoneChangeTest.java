@@ -181,19 +181,6 @@ class TeamTimezoneChangeTest extends AbstractResourceTest {
     assertEquals("04:00:00", ride.getString("groups[0].time"));
   }
 
-  /** The previous release's row has no zone: it reads the team's, so it is rewritten too. */
-  @Test
-  void anUpcomingRideWithoutStoredZone_isRewritten() {
-    Instant start = Instant.parse("2030-06-02T07:30:00Z");
-    Ride ride = dataService.createRide(team1, user1, "Ancienne", "ancienne", start);
-    dataService.setTimezone(ride.getId(), null);
-
-    changeTeamZone("America/Montreal");
-
-    assertEquals(sameWallTime(start), dataService.getDateTime(ride.getId()));
-    assertEquals("America/Montreal", dataService.getTimezone(ride.getId()));
-  }
-
   /** Stored in a zone that is not the team's: its time was not typed against the team's label. */
   @Test
   void anUpcomingRideStoredInAnotherZone_isLeftAlone() {

@@ -1,5 +1,6 @@
 package fr.pedalons.service.notification;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
@@ -91,14 +92,15 @@ class NotificationPhase5Test extends AbstractResourceTest {
     return new RideRequest(
         "Sortie du dimanche",
         MediaDto.builder().build(),
-        dateTime,
+        wall(dateTime),
         status,
         Visibility.PUBLIC,
         null,
         startPlaceId,
         null,
         null,
-        List.of(new GroupRequest(groupId, "G1", null, null, null, null)));
+        List.of(new GroupRequest(groupId, "G1", null, null, null, null)),
+        null);
   }
 
   private void createRide(String token) {
@@ -187,14 +189,15 @@ class NotificationPhase5Test extends AbstractResourceTest {
     return new RideRequest(
         "Sortie du dimanche",
         MediaDto.builder().build(),
-        nextWeek,
+        wall(nextWeek),
         Status.PUBLISHED,
         Visibility.PUBLIC,
         null,
         null,
         null,
         null,
-        List.of(new GroupRequest(null, "G2", null, null, null, null)));
+        List.of(new GroupRequest(null, "G2", null, null, null, null)),
+        null);
   }
 
   @Test

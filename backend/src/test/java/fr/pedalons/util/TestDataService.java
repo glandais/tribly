@@ -874,7 +874,7 @@ public class TestDataService {
    * during a start-first deploy.
    */
   @Transactional
-  public void setTimezone(Long teamEntityId, @Nullable String timezone) {
+  public void setTimezone(Long teamEntityId, String timezone) {
     rideRepository
         .getEntityManager()
         .createQuery("update TeamEntity te set te.timezone = :zone where te.id = :id")
@@ -903,36 +903,14 @@ public class TestDataService {
         .getSingleResult();
   }
 
-  /** The stored start of a ride group (null: an older backend's row). */
+  /** The stored start of a ride group. */
   @Transactional
-  public @Nullable Instant getGroupStartAt(Long groupId) {
+  public Instant getGroupStartAt(Long groupId) {
     return rideRepository
         .getEntityManager()
         .createQuery("select g.startAt from RideGroup g where g.id = :id", Instant.class)
         .setParameter("id", groupId)
         .getSingleResult();
-  }
-
-  /** Writes a group's stored start directly, without the version. */
-  @Transactional
-  public void setGroupStartAt(Long groupId, @Nullable Instant startAt) {
-    rideRepository
-        .getEntityManager()
-        .createQuery("update RideGroup g set g.startAt = :start where g.id = :id")
-        .setParameter("start", startAt)
-        .setParameter("id", groupId)
-        .executeUpdate();
-  }
-
-  /** Sets a group's wall time ({@code ride_groups.time}) directly, leaving its start alone. */
-  @Transactional
-  public void setGroupTime(Long groupId, java.time.@Nullable LocalTime time) {
-    rideRepository
-        .getEntityManager()
-        .createQuery("update RideGroup g set g.time = :time where g.id = :id")
-        .setParameter("time", time)
-        .setParameter("id", groupId)
-        .executeUpdate();
   }
 
   /** Sets a team's zone directly, without rewriting its content as an update through the API does. */

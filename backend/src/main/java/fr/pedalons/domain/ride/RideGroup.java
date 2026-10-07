@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -31,20 +32,25 @@ public class RideGroup extends BaseEntity {
   @Column(name = "name", nullable = false, length = 250)
   private String name;
 
-  @Nullable
-  @Column(name = "time")
-  protected LocalTime time;
+  /**
+   * When the group leaves: the time the request gives it on the ride's local date, in the ride's
+   * zone; the ride's own start when it gives none. Written on every save of the ride, so a date
+   * change moves every group. The one value every reader takes (docs/LEDGER_*.md API-60): the time
+   * a client edits is read back from it ({@code EventTimezoneResolver.ownTime}).
+   */
+  @Column(name = "start_at", nullable = false)
+  private Instant startAt;
 
   /**
-   * When the group leaves: {@link #time} on the ride's local date, in the ride's zone; the ride's
-   * own start when the group has no time. Written with {@code time} on every save of the ride, so
-   * a date change moves every group. Null only on a row an older backend wrote: readers fall back
-   * on {@code EventTimezoneResolver.startAt}, the time in the ride's stored zone (docs/LEDGER_*.md
-   * API-60).
+   * The group's own wall time, as {@code ride_groups.time} held it before {@link #startAt}.
+   * <b>Written, never read</b>: kept for the previous release, which still maps the column during a
+   * start-first deploy and after a rollback. Dropped with the column by docs/LEDGER_*.md API-60,
+   * lot 6.
    */
+  @Getter(AccessLevel.NONE)
   @Nullable
-  @Column(name = "start_at")
-  private Instant startAt;
+  @Column(name = "time")
+  private LocalTime legacyTime;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "route_id")
@@ -85,6 +91,8 @@ public class RideGroup extends BaseEntity {
     super(creator);
     this.ride = ride;
     this.name = name;
+    // It leaves with its ride until the ride's save gives it its own time.
+    this.startAt = ride.getDateTime();
   }
 
   public void addParticipation(RideParticipation participation) {

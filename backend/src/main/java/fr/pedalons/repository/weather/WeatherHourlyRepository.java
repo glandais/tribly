@@ -157,10 +157,8 @@ public class WeatherHourlyRepository
    *       first group's route (by {@code sort_order}) — deleted routes skipped;
    *   <li>its cell, by {@code cellLatIdxSql} / {@code cellLonIdxSql} ({@code CellKey.SQL_*_IDX}),
    *       without elevation band;
-   *   <li>each group's start: its stored {@code start_at}, else (a row an older backend wrote) its
-   *       {@code time} on the ride's local date in the ride's zone — its stored one, else the
-   *       team's — else the ride's own start: {@code EventTimezoneResolver.startAt}, which the detail
-   *       reads (docs/LEDGER_*.md API-60). The cell's zone only dates its daily rows;
+   *   <li>each group's start: its stored {@code start_at}, which the detail reads too
+   *       (docs/LEDGER_*.md API-60). The cell's zone only dates its daily rows;
    *   <li>its arrival: the start plus the distance of its route (else the ride's) at its average
    *       speed (else {@code defaultSpeed}); a ride without groups rides its own route at the
    *       default speed.
@@ -186,20 +184,18 @@ public class WeatherHourlyRepository
         """
         with r as (
           select te.id as ride_id, te.date_time as departure, rr.distance as ride_distance,
-                 coalesce(te.timezone, t.timezone) as zone,
                  coalesce(p.geometry, rr."start",
                    (select gr."start" from ride_groups g
                       join team_entities gr on gr.id = g.route_id and gr.deleted = false
                      where g.ride_id = te.id and gr."start" is not null
                      order by g.sort_order, g.id limit 1)) as geom
           from team_entities te
-          join teams t on t.id = te.team_id
           left join places p on p.id = te.place_start_id
           left join team_entities rr on rr.id = te.route_id and rr.deleted = false
           where te.id in (:rideIds)
         ),
         rc as (
-          select r.ride_id, r.departure, r.ride_distance, r.zone, c.id as cell_id, c.fetched_at
+          select r.ride_id, r.departure, r.ride_distance, c.id as cell_id, c.fetched_at
           from r join weather_cells c
             on c.lat_idx = %1$s and c.lon_idx = %2$s and c.ele_band is null
           where r.geom is not null
@@ -207,11 +203,7 @@ public class WeatherHourlyRepository
         w as (
           select rc.*, greatest(rc.departure, coalesce(
             (select max(
-                coalesce(g.start_at,
-                  case when g.time is null then rc.departure
-                       else (cast(rc.departure at time zone rc.zone as date) + g.time)
-                         at time zone rc.zone
-                  end)
+                g.start_at
                 + make_interval(secs => coalesce(gr.distance, rc.ride_distance, 0) * 3.6
                     / case when g.average_speed > 0 then g.average_speed else :defaultSpeed end))
                from ride_groups g
@@ -256,8 +248,8 @@ public class WeatherHourlyRepository
    * One trip's next leg for the list summary, and one hour of its departure cell within it.
    *
    * @param arrival the estimated arrival of that leg
-   * @param zone the IANA zone of that leg — the stage's stored one, else the trip's, else the
-   *     team's: the zone its times read in, which is not the trip's when the next stage is elsewhere
+   * @param zone the IANA zone of that leg — the stage's stored one, the trip's for a trip without
+   *     stage: the zone its times read in, which is not the trip's when the next stage is elsewhere
    *     (docs/LEDGER_*.md API-60)
    * @param fetchedAt when the departure cell was last fetched; null when it never was
    * @param hour null on the single row of a leg beyond {@code horizonEnd} or without a cached hour
@@ -314,14 +306,13 @@ public class WeatherHourlyRepository
         """
         with t as (
           select te.id as trip_id, te.date_time as trip_time, te.route_id as trip_route_id,
-                 te.timezone as trip_zone, tm.timezone as team_zone
+                 te.timezone as trip_zone
           from team_entities te
-          join teams tm on tm.id = te.team_id
           where te.id in (:tripIds)
         ),
         n as (
           select t.trip_id, leg.departure, leg.route_id, leg.speed,
-                 coalesce(leg.zone, t.trip_zone, t.team_zone) as zone
+                 coalesce(leg.zone, t.trip_zone) as zone
           from t
           cross join lateral (
             (select s.date_time as departure, s.route_id, s.average_speed as speed,

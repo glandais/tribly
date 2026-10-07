@@ -1,5 +1,6 @@
 package fr.pedalons.api.rides;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -35,7 +36,7 @@ class RideGroupLeaderTest extends AbstractResourceTest {
     return new RideRequest(
         name,
         MediaDto.builder().markdown("Sortie du dimanche").build(),
-        Instant.parse("2026-09-06T07:30:00Z"),
+        wall(Instant.parse("2026-09-06T07:30:00Z")),
         Status.PUBLISHED,
         Visibility.TEAM,
         null,
@@ -47,7 +48,8 @@ class RideGroupLeaderTest extends AbstractResourceTest {
                 .name("Groupe rapide")
                 .time(LocalTime.of(7, 30))
                 .leaderId(leaderId)
-                .build()));
+                .build()),
+        null);
   }
 
   private io.restassured.response.Response create(RideRequest request) {
@@ -160,7 +162,7 @@ class RideGroupLeaderTest extends AbstractResourceTest {
         new RideRequest(
             "Sortie meneur parti",
             MediaDto.builder().markdown("Sortie du dimanche").build(),
-            Instant.parse("2026-09-06T07:30:00Z"),
+            wall(Instant.parse("2026-09-06T07:30:00Z")),
             Status.CANCELLED,
             Visibility.TEAM,
             null,
@@ -173,7 +175,8 @@ class RideGroupLeaderTest extends AbstractResourceTest {
                     .name("Groupe rapide")
                     .time(LocalTime.of(7, 30))
                     .leaderId(leaderId)
-                    .build()));
+                    .build()),
+            null);
 
     given()
         .auth()

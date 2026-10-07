@@ -23,7 +23,7 @@ abstract class RideRequest with _$RideRequest {
     /// Ride media
     required MediaDto media,
 
-    /// Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team). An instant with an offset is still tolerated.
+    /// Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team).
     required String dateTime,
 
     /// Ride status

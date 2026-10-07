@@ -1,5 +1,6 @@
 package fr.pedalons.api.assets;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -46,9 +47,10 @@ class AssetResourceTest extends AbstractResourceTest {
             .markdown("Post content")
             .assets(AssetsDto.builder().attachments(List.of(assetDto)).build())
             .build(),
-        Instant.now().plus(7, ChronoUnit.DAYS),
+        wall(Instant.now().plus(7, ChronoUnit.DAYS)),
         Status.PUBLISHED,
         Visibility.PUBLIC,
+        null,
         null,
         null);
   }

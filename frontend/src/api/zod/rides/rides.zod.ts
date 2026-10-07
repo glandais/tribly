@@ -227,7 +227,7 @@ export const CreateRideBody = zod
     dateTime: zod
       .string()
       .describe(
-        "Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team). An instant with an offset is still tolerated."
+        "Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team)."
       ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ride status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
@@ -540,7 +540,7 @@ export const CreateRideResponse = zod
               .string()
               .optional()
               .describe(
-                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                "Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time."
               ),
             startAt: zod.iso
               .datetime({ offset: true })
@@ -746,7 +746,7 @@ export const CreateRideResponse = zod
           .string()
           .optional()
           .describe(
-            "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+            "Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time."
           ),
         startAt: zod.iso
           .datetime({ offset: true })
@@ -1187,7 +1187,7 @@ export const UpdateRideBody = zod
     dateTime: zod
       .string()
       .describe(
-        "Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team). An instant with an offset is still tolerated."
+        "Ride date/time: a wall time without offset, read in the ride's zone (start place, else route, else team)."
       ),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']).describe('Ride status'),
     visibility: zod.enum(['TEAM', 'PUBLIC_UNLISTED', 'PUBLIC']).describe('Visibility level'),
@@ -1500,7 +1500,7 @@ export const UpdateRideResponse = zod
               .string()
               .optional()
               .describe(
-                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                "Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time."
               ),
             startAt: zod.iso
               .datetime({ offset: true })
@@ -1706,7 +1706,7 @@ export const UpdateRideResponse = zod
           .string()
           .optional()
           .describe(
-            "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+            "Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time."
           ),
         startAt: zod.iso
           .datetime({ offset: true })
@@ -2186,7 +2186,7 @@ export const GetRideResponse = zod
               .string()
               .optional()
               .describe(
-                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                "Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time."
               ),
             startAt: zod.iso
               .datetime({ offset: true })
@@ -2392,7 +2392,7 @@ export const GetRideResponse = zod
           .string()
           .optional()
           .describe(
-            "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+            "Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time."
           ),
         startAt: zod.iso
           .datetime({ offset: true })
@@ -2983,7 +2983,7 @@ export const ChangeRideSlugResponse = zod
               .string()
               .optional()
               .describe(
-                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                "Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time."
               ),
             startAt: zod.iso
               .datetime({ offset: true })
@@ -3189,7 +3189,7 @@ export const ChangeRideSlugResponse = zod
           .string()
           .optional()
           .describe(
-            "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+            "Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time."
           ),
         startAt: zod.iso
           .datetime({ offset: true })
@@ -3675,7 +3675,7 @@ export const ChangeRideStatusResponse = zod
               .string()
               .optional()
               .describe(
-                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                "Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time."
               ),
             startAt: zod.iso
               .datetime({ offset: true })
@@ -3881,7 +3881,7 @@ export const ChangeRideStatusResponse = zod
           .string()
           .optional()
           .describe(
-            "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+            "Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time."
           ),
         startAt: zod.iso
           .datetime({ offset: true })
@@ -4361,7 +4361,7 @@ export const UndeleteRideResponse = zod
               .string()
               .optional()
               .describe(
-                "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+                "Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time."
               ),
             startAt: zod.iso
               .datetime({ offset: true })
@@ -4567,7 +4567,7 @@ export const UndeleteRideResponse = zod
           .string()
           .optional()
           .describe(
-            "Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride."
+            "Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time."
           ),
         startAt: zod.iso
           .datetime({ offset: true })

@@ -244,10 +244,9 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
     int sortOrder = 0;
     for (GroupRequest groupRequest : request.groups()) {
-      createRideGroup(teamSlug, creator, ride, groupRequest, sortOrder);
+      createRideGroup(teamSlug, creator, ride, groupRequest, sortOrder, zone);
       sortOrder++;
     }
-    EventTimezoneResolver.applyGroupStarts(ride, zone);
     // After the groups: the end is the latest of them (docs/LEDGER_*.md API-85).
     publicationEndCalculator.refresh(ride);
     // A ride created from a template arrives with the template's tags in tagIds: the client
@@ -261,9 +260,14 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
   }
 
   private void createRideGroup(
-      String teamSlug, User user, Ride ride, GroupRequest groupRequest, int sortOrder) {
+      String teamSlug,
+      User user,
+      Ride ride,
+      GroupRequest groupRequest,
+      int sortOrder,
+      ZoneId zone) {
     RideGroup group = new RideGroup(user, ride, groupRequest.name());
-    setProperties(teamSlug, ride, group, groupRequest, sortOrder, user);
+    setProperties(teamSlug, ride, group, groupRequest, sortOrder, user, zone);
     ride.addGroup(group);
     rideGroupRepository.persist(group);
   }
@@ -274,10 +278,12 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
       RideGroup group,
       GroupRequest groupRequest,
       int sortOrder,
-      User user) {
+      User user,
+      ZoneId zone) {
     group.setRide(ride);
     group.setName(groupRequest.name());
-    group.setTime(groupRequest.time());
+    // The ride's date and zone are final by now: its groups leave on its local date, in its zone.
+    EventTimezoneResolver.setStart(group, ride.getDateTime(), groupRequest.time(), zone);
     Route groupRoute = getRoute(teamSlug, groupRequest.routeSlug(), ride.getVisibility());
     group.setAverageSpeed(groupRequest.averageSpeed());
     group.setMaxParticipants(groupRequest.maxParticipants());
@@ -383,13 +389,13 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     for (GroupRequest groupRequest : request.groups()) {
       Long groupId = TsidUtils.toLongNullable(groupRequest.id());
       if (groupId == null) {
-        createRideGroup(teamSlug, user, ride, groupRequest, sortOrder);
+        createRideGroup(teamSlug, user, ride, groupRequest, sortOrder, zone);
       } else {
         RideGroup existingRideGroup = orphanedGroups.remove(groupId);
         if (existingRideGroup == null) {
           throw new NotFoundException(EntityType.RIDE_GROUP, groupRequest.id());
         }
-        setProperties(teamSlug, ride, existingRideGroup, groupRequest, sortOrder, user);
+        setProperties(teamSlug, ride, existingRideGroup, groupRequest, sortOrder, user, zone);
       }
       sortOrder++;
     }
@@ -408,7 +414,6 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
       }
     }
     ride.getGroups().removeAll(orphanedGroups.values());
-    EventTimezoneResolver.applyGroupStarts(ride, zone);
     // Once the groups are final — departure, times, routes and speeds all count (API-85).
     publicationEndCalculator.refresh(ride);
     // Tags notify nobody (plan D23): RideUpdated below only looks at the date and the start place.

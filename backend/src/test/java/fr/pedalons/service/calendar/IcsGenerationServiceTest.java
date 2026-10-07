@@ -58,7 +58,8 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             false,
             null,
-            Status.PUBLISHED);
+            Status.PUBLISHED,
+            "Europe/Paris");
 
     String ics = icsGenerationService.generateIcs(List.of(event), "My Calendar", null);
 
@@ -91,7 +92,8 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             false,
             null,
-            Status.PUBLISHED);
+            Status.PUBLISHED,
+            "Europe/Paris");
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar", null);
 
@@ -125,7 +127,8 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             false,
             null,
-            Status.PUBLISHED);
+            Status.PUBLISHED,
+            "Europe/Paris");
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar", null);
 
@@ -156,7 +159,8 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             false,
             null,
-            Status.PUBLISHED);
+            Status.PUBLISHED,
+            "Europe/Paris");
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar", null);
 
@@ -186,7 +190,8 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             false,
             null,
-            Status.PUBLISHED);
+            Status.PUBLISHED,
+            "Europe/Paris");
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar", null);
 
@@ -216,7 +221,8 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             false,
             null,
-            Status.PUBLISHED);
+            Status.PUBLISHED,
+            "Europe/Paris");
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar", null);
 
@@ -246,7 +252,8 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             false,
             null,
-            Status.PUBLISHED);
+            Status.PUBLISHED,
+            "Europe/Paris");
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar; Test, Name", null);
 
@@ -277,7 +284,8 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             false,
             null,
-            Status.PUBLISHED);
+            Status.PUBLISHED,
+            "Europe/Paris");
 
     CalendarEventDto event2 =
         new CalendarEventDto(
@@ -299,7 +307,8 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
             null,
             false,
             null,
-            Status.PUBLISHED);
+            Status.PUBLISHED,
+            "Europe/Paris");
 
     String ics = icsGenerationService.generateIcs(List.of(event1, event2), "Calendar", null);
 
@@ -345,7 +354,8 @@ class IcsGenerationServiceTest extends AbstractBaseTest {
                     null,
                     false,
                     null,
-                    Status.PUBLISHED)),
+                    Status.PUBLISHED,
+                    "Europe/Paris")),
             "Calendar",
             null);
 

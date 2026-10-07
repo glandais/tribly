@@ -1,5 +1,6 @@
 package fr.pedalons.api.trips;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
@@ -30,7 +31,7 @@ class TripResourceTest extends AbstractResourceTest {
     return new TripRequest(
         name,
         MediaDto.builder().markdown("Trip description").build(),
-        Instant.now().plus(30, ChronoUnit.DAYS),
+        wall(Instant.now().plus(30, ChronoUnit.DAYS)),
         status,
         visibility,
         null,
@@ -38,9 +39,10 @@ class TripResourceTest extends AbstractResourceTest {
         List.of(
             StageRequest.builder()
                 .name("Stage 1")
-                .dateTime(Instant.now().plus(30, ChronoUnit.DAYS))
+                .dateTime(wall(Instant.now().plus(30, ChronoUnit.DAYS)))
                 .media(MediaDto.builder().build())
-                .build()));
+                .build()),
+        null);
   }
 
   private TripRequest createTripRequest(String name) {
@@ -166,7 +168,7 @@ class TripResourceTest extends AbstractResourceTest {
         new TripRequest(
             "Multi-Stage Trip",
             MediaDto.builder().markdown("Trip with stages").build(),
-            Instant.now().plus(30, ChronoUnit.DAYS),
+            wall(Instant.now().plus(30, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -174,19 +176,20 @@ class TripResourceTest extends AbstractResourceTest {
             List.of(
                 StageRequest.builder()
                     .name("Day 1")
-                    .dateTime(Instant.now().plus(30, ChronoUnit.DAYS))
+                    .dateTime(wall(Instant.now().plus(30, ChronoUnit.DAYS)))
                     .media(MediaDto.builder().build())
                     .build(),
                 StageRequest.builder()
                     .name("Day 2")
-                    .dateTime(Instant.now().plus(31, ChronoUnit.DAYS))
+                    .dateTime(wall(Instant.now().plus(31, ChronoUnit.DAYS)))
                     .media(MediaDto.builder().build())
                     .build(),
                 StageRequest.builder()
                     .name("Day 3")
-                    .dateTime(Instant.now().plus(32, ChronoUnit.DAYS))
+                    .dateTime(wall(Instant.now().plus(32, ChronoUnit.DAYS)))
                     .media(MediaDto.builder().build())
-                    .build()));
+                    .build()),
+            null);
 
     given()
         .auth()
@@ -207,17 +210,18 @@ class TripResourceTest extends AbstractResourceTest {
         new TripRequest(
             "Scheduled Trip",
             MediaDto.builder().markdown("Scheduled content").build(),
-            Instant.now().plus(30, ChronoUnit.DAYS),
+            wall(Instant.now().plus(30, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
-            Instant.now().plus(7, ChronoUnit.DAYS),
+            wall(Instant.now().plus(7, ChronoUnit.DAYS)),
             List.of(
                 StageRequest.builder()
                     .name("Stage 1")
-                    .dateTime(Instant.now().plus(30, ChronoUnit.DAYS))
+                    .dateTime(wall(Instant.now().plus(30, ChronoUnit.DAYS)))
                     .media(MediaDto.builder().build())
-                    .build()));
+                    .build()),
+            null);
 
     given()
         .auth()
@@ -306,7 +310,7 @@ class TripResourceTest extends AbstractResourceTest {
         new TripRequest(
             "Updated Trip",
             MediaDto.builder().markdown("Updated description").build(),
-            Instant.now().plus(45, ChronoUnit.DAYS),
+            wall(Instant.now().plus(45, ChronoUnit.DAYS)),
             Status.PUBLISHED,
             Visibility.PUBLIC,
             null,
@@ -314,9 +318,10 @@ class TripResourceTest extends AbstractResourceTest {
             List.of(
                 StageRequest.builder()
                     .name("Updated Stage")
-                    .dateTime(Instant.now().plus(45, ChronoUnit.DAYS))
+                    .dateTime(wall(Instant.now().plus(45, ChronoUnit.DAYS)))
                     .media(MediaDto.builder().build())
-                    .build()));
+                    .build()),
+            null);
 
     given()
         .auth()
@@ -340,7 +345,7 @@ class TripResourceTest extends AbstractResourceTest {
         new TripRequest(
             "Updated by Organizer",
             MediaDto.builder().markdown("Organizer updated").build(),
-            Instant.now().plus(45, ChronoUnit.DAYS),
+            wall(Instant.now().plus(45, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -348,9 +353,10 @@ class TripResourceTest extends AbstractResourceTest {
             List.of(
                 StageRequest.builder()
                     .name("Stage")
-                    .dateTime(Instant.now().plus(45, ChronoUnit.DAYS))
+                    .dateTime(wall(Instant.now().plus(45, ChronoUnit.DAYS)))
                     .media(MediaDto.builder().build())
-                    .build()));
+                    .build()),
+            null);
 
     given()
         .auth()
@@ -372,7 +378,7 @@ class TripResourceTest extends AbstractResourceTest {
         new TripRequest(
             "Hacked by Member",
             MediaDto.builder().build(),
-            Instant.now().plus(45, ChronoUnit.DAYS),
+            wall(Instant.now().plus(45, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -380,9 +386,10 @@ class TripResourceTest extends AbstractResourceTest {
             List.of(
                 StageRequest.builder()
                     .name("Stage")
-                    .dateTime(Instant.now().plus(45, ChronoUnit.DAYS))
+                    .dateTime(wall(Instant.now().plus(45, ChronoUnit.DAYS)))
                     .media(MediaDto.builder().build())
-                    .build()));
+                    .build()),
+            null);
 
     given()
         .auth()
@@ -403,7 +410,7 @@ class TripResourceTest extends AbstractResourceTest {
         new TripRequest(
             "Unauthorized Update",
             MediaDto.builder().build(),
-            Instant.now().plus(45, ChronoUnit.DAYS),
+            wall(Instant.now().plus(45, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -411,9 +418,10 @@ class TripResourceTest extends AbstractResourceTest {
             List.of(
                 StageRequest.builder()
                     .name("Stage")
-                    .dateTime(Instant.now().plus(45, ChronoUnit.DAYS))
+                    .dateTime(wall(Instant.now().plus(45, ChronoUnit.DAYS)))
                     .media(MediaDto.builder().build())
-                    .build()));
+                    .build()),
+            null);
 
     given()
         .contentType("application/json")
@@ -432,7 +440,7 @@ class TripResourceTest extends AbstractResourceTest {
         new TripRequest(
             "Hacked by NonMember",
             MediaDto.builder().build(),
-            Instant.now().plus(45, ChronoUnit.DAYS),
+            wall(Instant.now().plus(45, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -440,9 +448,10 @@ class TripResourceTest extends AbstractResourceTest {
             List.of(
                 StageRequest.builder()
                     .name("Stage")
-                    .dateTime(Instant.now().plus(45, ChronoUnit.DAYS))
+                    .dateTime(wall(Instant.now().plus(45, ChronoUnit.DAYS)))
                     .media(MediaDto.builder().build())
-                    .build()));
+                    .build()),
+            null);
 
     given()
         .auth()
@@ -461,7 +470,7 @@ class TripResourceTest extends AbstractResourceTest {
         new TripRequest(
             "Nonexistent",
             MediaDto.builder().build(),
-            Instant.now().plus(45, ChronoUnit.DAYS),
+            wall(Instant.now().plus(45, ChronoUnit.DAYS)),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -469,9 +478,10 @@ class TripResourceTest extends AbstractResourceTest {
             List.of(
                 StageRequest.builder()
                     .name("Stage")
-                    .dateTime(Instant.now().plus(45, ChronoUnit.DAYS))
+                    .dateTime(wall(Instant.now().plus(45, ChronoUnit.DAYS)))
                     .media(MediaDto.builder().build())
-                    .build()));
+                    .build()),
+            null);
 
     given()
         .auth()

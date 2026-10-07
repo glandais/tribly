@@ -1,5 +1,6 @@
 package fr.pedalons.service.trip;
 
+import static fr.pedalons.util.WallTimes.wall;
 import static org.junit.jupiter.api.Assertions.*;
 
 import fr.pedalons.AbstractBaseTest;
@@ -129,12 +130,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Summer Tour",
               MediaDto.builder().markdown("A nice trip").build(),
-              Instant.now().plusSeconds(24 * 3600 * 7),
+              wall(Instant.now().plusSeconds(24 * 3600 * 7)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.createTrip(team.getSlug(), request);
@@ -152,12 +154,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.createTrip(team.getSlug(), request);
@@ -174,12 +177,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Trip with Route",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               route.getSlug(),
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.createTrip(team.getSlug(), request);
@@ -193,14 +197,14 @@ class TripServiceTest extends AbstractBaseTest {
       StageRequest stage1 =
           StageRequest.builder()
               .name("Stage 1")
-              .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(24 * 3600)))
               .averageSpeed(22f)
               .media(MediaDto.builder().build())
               .build();
       StageRequest stage2 =
           StageRequest.builder()
               .name("Stage 2")
-              .dateTime(Instant.now().plusSeconds(48 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(48 * 3600)))
               .media(MediaDto.builder().build())
               .build();
 
@@ -208,12 +212,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Multi-Stage Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(stage1, stage2));
+              List.of(stage1, stage2),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.createTrip(team.getSlug(), request);
@@ -231,12 +236,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(member);
       assertThrows(PedalonsException.class, () -> tripService.createTrip(team.getSlug(), request));
@@ -251,12 +257,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Public Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       PedalonsException exception =
@@ -277,12 +284,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Trip with Foreign Route",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               foreignRoute.getSlug(),
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       assertThrows(PedalonsException.class, () -> tripService.createTrip(team.getSlug(), request));
@@ -296,12 +304,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Public Trip with Private Route",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               privateRoute.getSlug(),
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       PedalonsException exception =
@@ -319,12 +328,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Team Trip with Team Route",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.TEAM,
               teamRoute.getSlug(),
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.createTrip(team.getSlug(), request);
@@ -339,12 +349,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Trip with Invalid Route",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               "nonexistent-route",
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       assertThrows(PedalonsException.class, () -> tripService.createTrip(team.getSlug(), request));
@@ -359,12 +370,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Team Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.TEAM,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.createTrip(privateTeam.getSlug(), request);
@@ -381,7 +393,7 @@ class TripServiceTest extends AbstractBaseTest {
       StageRequest stage =
           StageRequest.builder()
               .name("Stage with Places")
-              .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(24 * 3600)))
               .media(MediaDto.builder().build())
               .startPlaceId(TsidUtils.toString(startPlace.getId()))
               .endPlaceId(TsidUtils.toString(endPlace.getId()))
@@ -391,12 +403,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Trip with Stage Places",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(stage));
+              List.of(stage),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.createTrip(team.getSlug(), request);
@@ -414,7 +427,7 @@ class TripServiceTest extends AbstractBaseTest {
       StageRequest stage =
           StageRequest.builder()
               .name("Stage with Invalid Start")
-              .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(24 * 3600)))
               .media(MediaDto.builder().build())
               .startPlaceId(TsidUtils.toString(9999L))
               .build();
@@ -423,12 +436,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(stage));
+              List.of(stage),
+              null);
 
       userService.setUserForTest(organizer);
       assertThrows(PedalonsException.class, () -> tripService.createTrip(team.getSlug(), request));
@@ -439,7 +453,7 @@ class TripServiceTest extends AbstractBaseTest {
       StageRequest stage =
           StageRequest.builder()
               .name("Stage with Invalid End")
-              .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(24 * 3600)))
               .media(MediaDto.builder().build())
               .endPlaceId(TsidUtils.toString(9999L))
               .build();
@@ -448,12 +462,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(stage));
+              List.of(stage),
+              null);
 
       userService.setUserForTest(organizer);
       assertThrows(PedalonsException.class, () -> tripService.createTrip(team.getSlug(), request));
@@ -467,7 +482,7 @@ class TripServiceTest extends AbstractBaseTest {
       StageRequest stage =
           StageRequest.builder()
               .name("Stage with Foreign Place")
-              .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(24 * 3600)))
               .media(MediaDto.builder().build())
               .startPlaceId(TsidUtils.toString(foreignPlace.getId()))
               .build();
@@ -476,12 +491,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(stage));
+              List.of(stage),
+              null);
 
       userService.setUserForTest(organizer);
       assertThrows(PedalonsException.class, () -> tripService.createTrip(team.getSlug(), request));
@@ -501,12 +517,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Updated Title",
               MediaDto.builder().markdown("Updated description").build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.CANCELLED,
               Visibility.TEAM,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.updateTrip(team.getSlug(), trip.getSlug(), request);
@@ -525,12 +542,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               route.getSlug(),
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.updateTrip(team.getSlug(), trip.getSlug(), request);
@@ -548,12 +566,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.updateTrip(team.getSlug(), trip.getSlug(), request);
@@ -572,12 +591,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               foreignRoute.getSlug(),
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       assertThrows(
@@ -594,12 +614,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               privateRoute.getSlug(),
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       PedalonsException exception =
@@ -621,12 +642,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Team Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.TEAM,
               teamRoute.getSlug(),
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.updateTrip(team.getSlug(), trip.getSlug(), request);
@@ -643,12 +665,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Updated",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(member);
       assertThrows(
@@ -674,12 +697,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Title",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       PedalonsException exception =
@@ -708,12 +732,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Updated Team Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.PUBLISHED,
               Visibility.TEAM,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.updateTrip(privateTeam.getSlug(), trip.getSlug(), request);
@@ -731,7 +756,7 @@ class TripServiceTest extends AbstractBaseTest {
       StageRequest newStage =
           StageRequest.builder()
               .name("New Stage")
-              .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(24 * 3600)))
               .media(MediaDto.builder().build())
               .build();
 
@@ -739,12 +764,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(newStage));
+              List.of(newStage),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.updateTrip(team.getSlug(), trip.getSlug(), request);
@@ -763,7 +789,7 @@ class TripServiceTest extends AbstractBaseTest {
           StageRequest.builder()
               .id(stageId)
               .name("Updated Stage")
-              .dateTime(Instant.now().plusSeconds(48 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(48 * 3600)))
               .media(MediaDto.builder().build())
               .build();
 
@@ -771,12 +797,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(updatedStage));
+              List.of(updatedStage),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.updateTrip(team.getSlug(), trip.getSlug(), request);
@@ -795,12 +822,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.updateTrip(team.getSlug(), trip.getSlug(), request);
@@ -817,7 +845,7 @@ class TripServiceTest extends AbstractBaseTest {
       StageRequest stage =
           StageRequest.builder()
               .name("Stage with Places")
-              .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(24 * 3600)))
               .media(MediaDto.builder().build())
               .startPlaceId(TsidUtils.toString(startPlace.getId()))
               .endPlaceId(TsidUtils.toString(endPlace.getId()))
@@ -827,12 +855,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(stage));
+              List.of(stage),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.updateTrip(team.getSlug(), trip.getSlug(), request);
@@ -851,7 +880,7 @@ class TripServiceTest extends AbstractBaseTest {
       StageRequest stage =
           StageRequest.builder()
               .name("Stage with Invalid Start")
-              .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(24 * 3600)))
               .media(MediaDto.builder().build())
               .startPlaceId(TsidUtils.toString(9999L))
               .build();
@@ -860,12 +889,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(stage));
+              List.of(stage),
+              null);
 
       userService.setUserForTest(organizer);
       assertThrows(
@@ -880,7 +910,7 @@ class TripServiceTest extends AbstractBaseTest {
       StageRequest stage =
           StageRequest.builder()
               .name("Stage with Invalid End")
-              .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(24 * 3600)))
               .media(MediaDto.builder().build())
               .endPlaceId(TsidUtils.toString(9999L))
               .build();
@@ -889,12 +919,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(stage));
+              List.of(stage),
+              null);
 
       userService.setUserForTest(organizer);
       assertThrows(
@@ -911,7 +942,7 @@ class TripServiceTest extends AbstractBaseTest {
       StageRequest stage =
           StageRequest.builder()
               .name("Stage with Foreign Place")
-              .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(24 * 3600)))
               .media(MediaDto.builder().build())
               .startPlaceId(TsidUtils.toString(foreignPlace.getId()))
               .build();
@@ -920,12 +951,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(stage));
+              List.of(stage),
+              null);
 
       userService.setUserForTest(organizer);
       assertThrows(
@@ -947,7 +979,7 @@ class TripServiceTest extends AbstractBaseTest {
           StageRequest.builder()
               .id(stageId)
               .name("Stage")
-              .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(24 * 3600)))
               .media(MediaDto.builder().build())
               .startPlaceId(null)
               .endPlaceId(null)
@@ -957,12 +989,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(stage));
+              List.of(stage),
+              null);
 
       userService.setUserForTest(organizer);
       TripDto result = tripService.updateTrip(team.getSlug(), trip.getSlug(), request);
@@ -980,7 +1013,7 @@ class TripServiceTest extends AbstractBaseTest {
           StageRequest.builder()
               .id(TsidUtils.toString(9999L))
               .name("Stage with Invalid ID")
-              .dateTime(Instant.now().plusSeconds(24 * 3600))
+              .dateTime(wall(Instant.now().plusSeconds(24 * 3600)))
               .media(MediaDto.builder().build())
               .build();
 
@@ -988,12 +1021,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of(stage));
+              List.of(stage),
+              null);
 
       userService.setUserForTest(organizer);
       PedalonsException exception =
@@ -1192,12 +1226,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Test Trip",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       PedalonsException exception =
@@ -1222,12 +1257,13 @@ class TripServiceTest extends AbstractBaseTest {
           new TripRequest(
               "Updated Title",
               MediaDto.builder().build(),
-              Instant.now().plusSeconds(24 * 3600),
+              wall(Instant.now().plusSeconds(24 * 3600)),
               Status.DRAFT,
               Visibility.PUBLIC,
               null,
               null,
-              List.of());
+              List.of(),
+              null);
 
       userService.setUserForTest(organizer);
       PedalonsException exception =

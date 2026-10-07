@@ -24,8 +24,9 @@ public record RideGroupDto(
     @Nullable
         @Schema(
             description =
-                "Deprecated in favour of startAt: the group's start as a wall time of the ride's"
-                    + " zone, null when the group leaves with the ride.")
+                "Deprecated in favour of startAt, for display: the group's start as a wall time of"
+                    + " the ride's zone, null when it leaves with the ride. What an editor sends"
+                    + " back as GroupRequest.time.")
         LocalTime time,
     @Schema(
             description =
@@ -102,11 +103,8 @@ public record RideGroupDto(
     return new RideGroupDto(
         TsidUtils.toString(group.getId()),
         group.getName(),
-        group.getTime(),
-        group.getStartAt() != null
-            ? group.getStartAt()
-            : EventTimezoneResolver.groupStart(
-                group.getRide().getDateTime(), group.getTime(), rideZone),
+        EventTimezoneResolver.ownTime(group.getRide().getDateTime(), group.getStartAt(), rideZone),
+        group.getStartAt(),
         route != null ? route.getSlug() : null,
         group.getAverageSpeed(),
         group.getMaxParticipants(),
@@ -121,17 +119,6 @@ public record RideGroupDto(
         routeThumbnail != null ? routeThumbnail.light() : null,
         routeThumbnail != null ? routeThumbnail.dark() : null,
         routeThumbnail != null ? routeThumbnail.collapsed() : null);
-  }
-
-  /**
-   * The stored start of a group, else — on a row an older backend wrote — its time on the ride's
-   * local date in the ride's zone (docs/LEDGER_*.md API-60).
-   */
-  public static Instant startAt(
-      @Nullable Instant stored, Instant rideDateTime, @Nullable LocalTime time, String rideZone) {
-    return stored != null
-        ? stored
-        : EventTimezoneResolver.groupStart(rideDateTime, time, ZoneId.of(rideZone));
   }
 
   /**

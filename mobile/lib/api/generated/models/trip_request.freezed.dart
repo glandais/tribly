@@ -18,7 +18,7 @@ mixin _$TripRequest {
 
 /// Trip name
  String get name;/// Trip media
- MediaDto get media;/// Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team). An instant with an offset is still tolerated.
+ MediaDto get media;/// Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team).
  String get dateTime;/// Trip status
  String get status;/// Visibility level
  String get visibility;/// Trip stages to create
@@ -248,7 +248,7 @@ class _TripRequest implements TripRequest {
 @override final  String name;
 /// Trip media
 @override final  MediaDto media;
-/// Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team). An instant with an offset is still tolerated.
+/// Trip start date/time: a wall time without offset, read in the trip's zone (first stage, else route, else team).
 @override final  String dateTime;
 /// Trip status
 @override final  String status;

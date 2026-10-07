@@ -8,7 +8,6 @@ import fr.pedalons.api.AbstractResourceTest;
 import fr.pedalons.common.TsidUtils;
 import fr.pedalons.domain.place.Place;
 import fr.pedalons.domain.ride.Ride;
-import fr.pedalons.domain.ride.RideGroup;
 import fr.pedalons.domain.route.Route;
 import fr.pedalons.dto.common.EventDateTime;
 import fr.pedalons.dto.common.asset.MediaDto;
@@ -282,47 +281,6 @@ class RideTimezoneTest extends AbstractResourceTest {
         Instant.parse("2030-06-09T08:00:00Z"), dataService.getGroupStartAt(TsidUtils.toLong(late)));
   }
 
-  /**
-   * A group written by the previous release has no {@code start_at}: the response falls back on
-   * its time on the ride's local date, in the ride's stored zone, on the detail and in the list.
-   */
-  @Test
-  void aGroupWithoutStoredStart_isServedWithTheFallback() {
-    Ride ride =
-        dataService.createRide(
-            team1, user1, "Ancienne", "ancienne", Instant.parse("2030-06-02T06:00:00Z"));
-    RideGroup group = dataService.createRideGroup(user1, ride, "G");
-    dataService.setGroupTime(group.getId(), LocalTime.of(10, 0));
-    dataService.setGroupStartAt(group.getId(), null);
-
-    JsonPath detail = get("ancienne");
-    assertEquals("Europe/Paris", detail.getString("timezone"));
-    assertEquals("2030-06-02T08:00:00Z", detail.getString("groups[0].startAt"));
-
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER1))
-        .queryParam("type", "RIDE")
-        .when()
-        .get("/api/teams/" + team1Slug + "/publications")
-        .then()
-        .statusCode(200)
-        .body("publications[0].timezone", equalTo("Europe/Paris"))
-        .body("publications[0].groupSummaries[0].startAt", equalTo("2030-06-02T08:00:00Z"));
-  }
-
-  /** A row without a stored zone (the previous release's) reads the team's. */
-  @Test
-  void aRideWithoutStoredZone_isServedInTheTeamsZone() {
-    Ride ride =
-        dataService.createRide(
-            team1, user1, "Sans fuseau", "sans-fuseau", Instant.parse("2030-06-02T06:00:00Z"));
-    dataService.setTimezone(ride.getId(), null);
-    dataService.setTeamTimezone(team1, "America/Montreal");
-
-    assertEquals("America/Montreal", get("sans-fuseau").getString("timezone"));
-  }
-
   // ─── Daylight saving time (plan §6: ZonedDateTime.ofLocal) ─────────────────
 
   /** Paris springs forward on 2030-03-31: 02:30 does not exist and moves by the gap, to 03:30. */
@@ -353,21 +311,17 @@ class RideTimezoneTest extends AbstractResourceTest {
     assertEquals("2030-10-27T00:45:00Z", ride.getString("groups[0].startAt"));
   }
 
-  // ─── The old format, tolerated for one version (plan §5, §8) ───────────────
+  // ─── The old format, refused since version N+1 (plan §5, §8) ──────────────
 
+  /** The client never decides the zone of a rendezvous: an instant is a 400, nothing is created. */
   @Test
-  void anInstantWithZ_isStillAccepted_andStoredAtThatInstant() {
-    JsonPath ride = create(rawRide("2030-06-02T06:00:00Z", tokyo));
-
-    assertEquals("2030-06-02T06:00:00Z", ride.getString("dateTime"));
-    assertEquals("Asia/Tokyo", ride.getString("timezone"));
+  void anInstantWithZ_is400() {
+    post400(rawRide("2030-06-02T06:00:00Z", tokyo));
   }
 
   @Test
-  void anInstantWithAnOffset_isStillAccepted_andStoredAtThatInstant() {
-    JsonPath ride = create(rawRide("2030-06-02T08:00:00+02:00", null));
-
-    assertEquals("2030-06-02T06:00:00Z", ride.getString("dateTime"));
+  void anInstantWithAnOffset_is400() {
+    post400(rawRide("2030-06-02T08:00:00+02:00", null));
   }
 
   @Test
@@ -379,11 +333,15 @@ class RideTimezoneTest extends AbstractResourceTest {
 
   @Test
   void aMalformedDate_is400() {
+    post400(rawRide("samedi prochain", null));
+  }
+
+  private void post400(String body) {
     given()
         .auth()
         .oauth2(getAccessToken(USER1))
         .contentType("application/json")
-        .body(rawRide("samedi prochain", null))
+        .body(body)
         .when()
         .post("/api/teams/" + team1Slug + "/rides")
         .then()

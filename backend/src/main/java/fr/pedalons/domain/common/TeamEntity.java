@@ -64,11 +64,9 @@ public abstract class TeamEntity extends BaseEntity {
    * ride, a trip or a stage, the team's for everything else. <b>Not a cache</b>: it is frozen when
    * the entity is saved and only a new save recomputes it, never a side effect (a route whose GPX
    * is replaced moves nobody's zone). With {@code dateTime} it gives back the wall time that was
-   * typed. Null only on a row written by a backend that predates the column — read it through
-   * {@link #zone()} (docs/LEDGER_*.md API-60).
+   * typed (docs/LEDGER_*.md API-60).
    */
-  @Nullable
-  @Column(name = "timezone", length = 64)
+  @Column(name = "timezone", length = 64, nullable = false)
   protected String timezone;
 
   @Enumerated(EnumType.STRING)
@@ -120,15 +118,12 @@ public abstract class TeamEntity extends BaseEntity {
     this.slug = slug;
     this.visibility = visibility;
     // The team's zone until a service resolves a better one (rides, trips, stages).
-    this.timezone = team != null ? team.getTimezone() : null;
+    this.timezone = team != null ? team.getTimezone() : Team.DEFAULT_TIMEZONE;
   }
 
-  /**
-   * The stored zone, or the team's for a row an older backend wrote without one (docs/LEDGER_*.md
-   * API-60).
-   */
+  /** The stored zone, as a {@link ZoneId} (docs/LEDGER_*.md API-60). */
   public ZoneId zone() {
-    return ZoneId.of(timezone != null ? timezone : team.getTimezone());
+    return ZoneId.of(timezone);
   }
 
   public abstract EntityType getEntityType();

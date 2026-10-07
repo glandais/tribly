@@ -2161,8 +2161,8 @@ components:
     EventDateTime:
       type: string
       description: "Wall time without offset (2026-10-11T08:00:00), in the zone the\
-        \ backend resolves for the entity. An instant with Z or an offset is still\
-        \ accepted during the transition and kept as that instant."
+        \ backend resolves for the entity. An instant with Z or an offset is refused\
+        \ with a 400."
       examples:
       - 2026-10-11T08:00:00
     FeedbackKind:
@@ -3702,7 +3702,7 @@ components:
           $ref: "#/components/schemas/MediaDto"
         dateTime:
           description: "Post date/time: a wall time without offset, read in the team's\
-            \ zone. An instant with an offset is still tolerated."
+            \ zone."
           type: string
           $ref: "#/components/schemas/EventDateTime"
         status:
@@ -4316,8 +4316,9 @@ components:
           type: string
           description: Group name
         time:
-          description: "Deprecated in favour of startAt: the group's start as a wall\
-            \ time of the ride's zone, null when the group leaves with the ride."
+          description: "Deprecated in favour of startAt, for display: the group's\
+            \ start as a wall time of the ride's zone, null when it leaves with the\
+            \ ride. What an editor sends back as GroupRequest.time."
           type: string
           $ref: "#/components/schemas/LocalTime"
         startAt:
@@ -4515,8 +4516,7 @@ components:
           $ref: "#/components/schemas/MediaDto"
         dateTime:
           description: "Ride date/time: a wall time without offset, read in the ride's\
-            \ zone (start place, else route, else team). An instant with an offset\
-            \ is still tolerated."
+            \ zone (start place, else route, else team)."
           type: string
           $ref: "#/components/schemas/EventDateTime"
         status:
@@ -5341,7 +5341,7 @@ components:
         dateTime:
           description: "Stage date/time: a wall time without offset, read in the stage's\
             \ zone (start place, else route, else the previous stage's, else the trip\
-            \ route's, else the team's). An instant with an offset is still tolerated."
+            \ route's, else the team's)."
           type: string
           $ref: "#/components/schemas/EventDateTime"
         averageSpeed:
@@ -6757,8 +6757,7 @@ components:
           $ref: "#/components/schemas/MediaDto"
         dateTime:
           description: "Trip start date/time: a wall time without offset, read in\
-            \ the trip's zone (first stage, else route, else team). An instant with\
-            \ an offset is still tolerated."
+            \ the trip's zone (first stage, else route, else team)."
           type: string
           $ref: "#/components/schemas/EventDateTime"
         status:
@@ -19061,7 +19060,7 @@ paths:
                 $ref: "#/components/schemas/VersionDto"
 info:
   title: Pedalons API
-  version: 10.21.0
+  version: 11.0.0
   description: API for Pedalons Cycling Team Management Platform
 servers:
 - url: http://localhost:8080

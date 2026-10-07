@@ -24,7 +24,7 @@ mixin _$RideGroupDto {
  List<PublicUserDto> get participants;/// Sort order
  int get sortOrder;/// Whether the current user is registered in THIS group. False if anonymous.
  bool get registered;/// Whether the group has reached maxParticipants. False when maxParticipants is not set.
- bool get full;/// Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride.
+ bool get full;/// Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time.
  String? get time;/// Route slug
  String? get routeSlug;/// Average speed in km/h
  double? get averageSpeed;/// Maximum participants
@@ -288,7 +288,7 @@ class _RideGroupDto implements RideGroupDto {
 @override final  bool registered;
 /// Whether the group has reached maxParticipants. False when maxParticipants is not set.
 @override final  bool full;
-/// Deprecated in favour of startAt: the group's start as a wall time of the ride's zone, null when the group leaves with the ride.
+/// Deprecated in favour of startAt, for display: the group's start as a wall time of the ride's zone, null when it leaves with the ride. What an editor sends back as GroupRequest.time.
 @override final  String? time;
 /// Route slug
 @override final  String? routeSlug;

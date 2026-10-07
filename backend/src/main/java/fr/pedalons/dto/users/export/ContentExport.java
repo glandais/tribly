@@ -19,6 +19,7 @@ import fr.pedalons.domain.team.Team;
 import fr.pedalons.domain.team.TeamPage;
 import fr.pedalons.domain.trip.Trip;
 import fr.pedalons.domain.trip.TripStage;
+import fr.pedalons.service.timezone.EventTimezoneResolver;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalTime;
@@ -280,6 +281,7 @@ public final class ContentExport {
       String rideSlug,
       String name,
       @Nullable LocalTime time,
+      Instant startAt,
       @Nullable String routeSlug,
       @Nullable Float averageSpeed,
       @Nullable Integer maxParticipants,
@@ -292,7 +294,9 @@ public final class ContentExport {
           TsidUtils.toString(g.getId()),
           g.getRide().getSlug(),
           g.getName(),
-          g.getTime(),
+          EventTimezoneResolver.ownTime(
+              g.getRide().getDateTime(), g.getStartAt(), g.getRide().zone()),
+          g.getStartAt(),
           g.getRoute() == null ? null : g.getRoute().getSlug(),
           g.getAverageSpeed(),
           g.getMaxParticipants(),

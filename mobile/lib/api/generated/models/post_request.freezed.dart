@@ -18,7 +18,7 @@ mixin _$PostRequest {
 
 /// Post name
  String get name;/// Post description
- MediaDto get media;/// Post date/time: a wall time without offset, read in the team's zone. An instant with an offset is still tolerated.
+ MediaDto get media;/// Post date/time: a wall time without offset, read in the team's zone.
  String get dateTime;/// Post status
  String get status;/// Visibility level
  String get visibility;/// Publication time (for scheduled publishing), a wall time in the team's zone like dateTime.
@@ -246,7 +246,7 @@ class _PostRequest implements PostRequest {
 @override final  String name;
 /// Post description
 @override final  MediaDto media;
-/// Post date/time: a wall time without offset, read in the team's zone. An instant with an offset is still tolerated.
+/// Post date/time: a wall time without offset, read in the team's zone.
 @override final  String dateTime;
 /// Post status
 @override final  String status;

@@ -247,6 +247,9 @@ lisible et écrivable par la version précédente.
 **Version N+1** : `team_entities.timezone` et `ride_groups.start_at` passent `NOT NULL` (après un
 dernier rattrapage des lignes écrites par l'ancienne version), `ride_groups.time` est supprimée, le
 backend refuse les instants avec offset en requête.
+**Rectifié à l'exécution (7 octobre 2026)** : supprimer `ride_groups.time` dans la même version
+casserait la version N, qui la mappe encore pendant la minute de bascule. N+1 l'écrit sans la lire ;
+la suppression passe à une version N+2 (lot 6).
 
 ## 9. Changer le fuseau d'une équipe
 
@@ -286,7 +289,8 @@ Deux alternatives écartées :
 | 2 | Saisie en heure murale, étiquette, appel pendant l'édition, réglage du fuseau d'équipe | web |
 | 3 | Affichage rendez-vous / horodatage, mention « chez vous », 12 h / 24 h du téléphone sur mobile | web, mobile |
 | 4 | Notifications, webhooks, iCal, SEO ; météo, appareils et `PublicationEndCalculator` sur `start_at` (fin de `legStart`) ; `DeviceRideDto.timezone` | backend, web |
-| 5 | Version N+1 (`NOT NULL`, suppression de `time`, refus de l'offset) | backend |
+| 5 | Version N+1 (`NOT NULL`, refus de l'offset ; `time` écrite, plus lue) | backend |
+| 6 | Version N+2 : suppression de `ride_groups.time` (la version N la lit encore pendant la bascule du lot 5) | backend |
 
 ## 11. Tests
 

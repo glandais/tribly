@@ -10,7 +10,6 @@ import fr.pedalons.enums.Visibility;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -27,7 +26,7 @@ public record RideRequest(
     @Schema(
             description =
                 "Ride date/time: a wall time without offset, read in the ride's zone (start place,"
-                    + " else route, else team). An instant with an offset is still tolerated.",
+                    + " else route, else team).",
             required = true)
         EventDateTime dateTime,
     @Schema(description = "Ride status", required = true) Status status,
@@ -51,61 +50,4 @@ public record RideRequest(
                     + " TOO_MANY_TAGS). An empty list removes them all. Omitted: none on a"
                     + " creation, left as they are on an update.")
         List<String> tagIds)
-    implements WithVisibility {
-
-  /**
-   * With instants: the format before docs/LEDGER_*.md API-60, still tolerated for one version and
-   * kept as the instants they are.
-   */
-  public RideRequest(
-      String name,
-      MediaDto media,
-      Instant dateTime,
-      Status status,
-      Visibility visibility,
-      @Nullable String routeSlug,
-      @Nullable String startPlaceId,
-      @Nullable String endPlaceId,
-      @Nullable Instant publishAt,
-      List<GroupRequest> groups,
-      @Nullable List<String> tagIds) {
-    this(
-        name,
-        media,
-        EventDateTime.legacy(dateTime),
-        status,
-        visibility,
-        routeSlug,
-        startPlaceId,
-        endPlaceId,
-        EventDateTime.legacyNullable(publishAt),
-        groups,
-        tagIds);
-  }
-
-  /** Without tags: the shape this record had before API-59 — leaves the tags as they are. */
-  public RideRequest(
-      String name,
-      MediaDto media,
-      Instant dateTime,
-      Status status,
-      Visibility visibility,
-      @Nullable String routeSlug,
-      @Nullable String startPlaceId,
-      @Nullable String endPlaceId,
-      @Nullable Instant publishAt,
-      List<GroupRequest> groups) {
-    this(
-        name,
-        media,
-        EventDateTime.legacy(dateTime),
-        status,
-        visibility,
-        routeSlug,
-        startPlaceId,
-        endPlaceId,
-        EventDateTime.legacyNullable(publishAt),
-        groups,
-        (List<String>) null);
-  }
-}
+    implements WithVisibility {}
