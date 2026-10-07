@@ -187,7 +187,7 @@ export const prefetchListTemplatesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListTemplatesQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -523,7 +523,7 @@ export const prefetchGetTemplateQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetTemplateQueryOptions(teamSlug, templateSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

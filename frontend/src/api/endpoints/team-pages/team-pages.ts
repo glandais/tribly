@@ -181,7 +181,7 @@ export const prefetchListPagesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListPagesQueryOptions(teamSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -601,7 +601,7 @@ export const prefetchGetPageQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetPageQueryOptions(teamSlug, pageSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

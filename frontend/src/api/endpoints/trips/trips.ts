@@ -371,7 +371,7 @@ export const prefetchGetTripQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetTripQueryOptions(teamSlug, tripSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -603,7 +603,7 @@ export const prefetchDownloadTripIcsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getDownloadTripIcsQueryOptions(teamSlug, tripSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -937,7 +937,7 @@ export const prefetchGetTripParticipantsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetTripParticipantsQueryOptions(teamSlug, tripSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -1355,7 +1355,7 @@ export const prefetchGetTripWeatherQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetTripWeatherQueryOptions(teamSlug, tripSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

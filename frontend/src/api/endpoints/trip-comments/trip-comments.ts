@@ -206,7 +206,7 @@ export const prefetchListTripCommentsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListTripCommentsQueryOptions(teamSlug, entitySlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

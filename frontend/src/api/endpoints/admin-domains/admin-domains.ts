@@ -185,7 +185,7 @@ export const prefetchListDomainsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListDomainsQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -399,7 +399,7 @@ export const prefetchGetStatsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetStatsQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -632,7 +632,7 @@ export const prefetchGetDomainQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetDomainQueryOptions(domainId, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -777,7 +777,7 @@ export const prefetchListDomainAliasesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListDomainAliasesQueryOptions(domainId, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -1294,7 +1294,7 @@ export const prefetchListDomainGpsCredentialsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListDomainGpsCredentialsQueryOptions(domainId, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

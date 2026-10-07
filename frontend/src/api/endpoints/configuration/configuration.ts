@@ -153,7 +153,7 @@ export const prefetchGetConfigQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetConfigQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -284,7 +284,7 @@ export const prefetchGetStyleQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetStyleQueryOptions(id, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

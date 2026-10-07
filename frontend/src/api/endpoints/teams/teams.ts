@@ -183,7 +183,7 @@ export const prefetchListTeamsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListTeamsQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -499,7 +499,7 @@ export const prefetchGetTeamQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetTeamQueryOptions(teamSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -719,7 +719,7 @@ export const prefetchGetTeamDashboardQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetTeamDashboardQueryOptions(teamSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -959,7 +959,7 @@ export const prefetchGetTeamTimezoneQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetTeamTimezoneQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -1127,7 +1127,7 @@ export const prefetchPreviewTeamTimezoneChangeQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getPreviewTeamTimezoneChangeQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

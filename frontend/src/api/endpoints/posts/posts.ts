@@ -367,7 +367,7 @@ export const prefetchGetPostQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetPostQueryOptions(teamSlug, postSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

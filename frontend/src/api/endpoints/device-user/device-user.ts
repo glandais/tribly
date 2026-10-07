@@ -159,7 +159,7 @@ export const prefetchDeviceGetMeQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getDeviceGetMeQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

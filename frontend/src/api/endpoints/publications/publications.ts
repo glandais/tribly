@@ -182,7 +182,7 @@ export const prefetchListAllPublicationsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListAllPublicationsQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -336,7 +336,7 @@ export const prefetchCountAllPublicationsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getCountAllPublicationsQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -486,7 +486,7 @@ export const prefetchListPublicationsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListPublicationsQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -641,7 +641,7 @@ export const prefetchCountPublicationsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getCountPublicationsQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

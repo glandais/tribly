@@ -156,7 +156,7 @@ export const prefetchGetSitemapQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetSitemapQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

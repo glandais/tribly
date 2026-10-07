@@ -167,7 +167,7 @@ export const prefetchListPasskeysQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListPasskeysQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -579,7 +579,7 @@ export const prefetchGetRegistrationOptionsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetRegistrationOptionsQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

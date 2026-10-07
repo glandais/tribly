@@ -269,7 +269,7 @@ export const prefetchGetTeamWebhookQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetTeamWebhookQueryOptions(teamSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

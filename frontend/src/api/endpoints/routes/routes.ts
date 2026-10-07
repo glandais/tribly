@@ -192,7 +192,7 @@ export const prefetchListAllRoutesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListAllRoutesQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -336,7 +336,7 @@ export const prefetchGetAllRoutesBoundsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetAllRoutesBoundsQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -476,7 +476,7 @@ export const prefetchCountAllRoutesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getCountAllRoutesQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -651,7 +651,7 @@ export const prefetchAllRoutesTileQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getAllRoutesTileQueryOptions(z, x, y, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -801,7 +801,7 @@ export const prefetchListRoutesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListRoutesQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -1046,7 +1046,7 @@ export const prefetchGetRoutesBoundsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetRoutesBoundsQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -1196,7 +1196,7 @@ export const prefetchGetRoutesBulkQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetRoutesBulkQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -1346,7 +1346,7 @@ export const prefetchCountRoutesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getCountRoutesQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -1539,7 +1539,7 @@ export const prefetchRoutesTileQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getRoutesTileQueryOptions(teamSlug, z, x, y, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -1790,7 +1790,7 @@ export const prefetchGetRouteQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetRouteQueryOptions(teamSlug, routeSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -2195,7 +2195,7 @@ export const prefetchGetRouteUsagesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetRouteUsagesQueryOptions(teamSlug, routeSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

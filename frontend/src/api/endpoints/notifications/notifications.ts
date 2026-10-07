@@ -186,7 +186,7 @@ export const prefetchListMyNotificationsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListMyNotificationsQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -426,7 +426,7 @@ export const prefetchGetMyNotificationPreferencesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetMyNotificationPreferencesQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -649,7 +649,7 @@ export const prefetchCountMyUnreadNotificationsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getCountMyUnreadNotificationsQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

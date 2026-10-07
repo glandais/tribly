@@ -168,7 +168,7 @@ export const prefetchListBetaSignupsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListBetaSignupsQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

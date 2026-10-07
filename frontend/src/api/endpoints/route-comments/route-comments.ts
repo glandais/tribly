@@ -208,7 +208,7 @@ export const prefetchListRouteCommentsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListRouteCommentsQueryOptions(teamSlug, entitySlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

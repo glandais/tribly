@@ -156,7 +156,7 @@ export const prefetchGetVersionQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetVersionQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

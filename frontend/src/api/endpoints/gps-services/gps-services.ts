@@ -181,7 +181,7 @@ export const prefetchGetAvailableServicesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetAvailableServicesQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -334,7 +334,7 @@ export const prefetchHandleCallbackQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getHandleCallbackQueryOptions(serviceType, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -487,7 +487,7 @@ export const prefetchGetConnectUrlQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetConnectUrlQueryOptions(serviceType, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

@@ -177,7 +177,7 @@ export const prefetchDeviceListRoutesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getDeviceListRoutesQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -330,7 +330,7 @@ export const prefetchDeviceDownloadFitQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getDeviceDownloadFitQueryOptions(teamSlug, routeSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -483,7 +483,7 @@ export const prefetchDeviceDownloadGpxQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getDeviceDownloadGpxQueryOptions(teamSlug, routeSlug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

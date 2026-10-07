@@ -342,7 +342,7 @@ export const prefetchListMyInvitationsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListMyInvitationsQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

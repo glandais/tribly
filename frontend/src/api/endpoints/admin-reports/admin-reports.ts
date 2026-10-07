@@ -176,7 +176,7 @@ export const prefetchListAdminReportsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListAdminReportsQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

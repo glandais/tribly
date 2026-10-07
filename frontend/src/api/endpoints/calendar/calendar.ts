@@ -179,7 +179,7 @@ export const prefetchGetEventsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetEventsQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -316,7 +316,7 @@ export const prefetchGetGlobalIcsFeedQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetGlobalIcsFeedQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -444,7 +444,7 @@ export const prefetchGetTokenQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetTokenQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -652,7 +652,7 @@ export const prefetchGetTeamEventsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetTeamEventsQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -802,7 +802,7 @@ export const prefetchGetTeamIcsFeedQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetTeamIcsFeedQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

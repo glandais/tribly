@@ -177,7 +177,7 @@ export const prefetchListUsersQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListUsersQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -320,7 +320,7 @@ export const prefetchGetAdminUserQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetAdminUserQueryOptions(userId, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

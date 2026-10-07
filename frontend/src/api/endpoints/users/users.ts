@@ -188,7 +188,7 @@ export const prefetchDownloadDataExportQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getDownloadDataExportQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -399,7 +399,7 @@ export const prefetchGetMeQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetMeQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -739,7 +739,7 @@ export const prefetchGetMyDeletionImpactQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetMyDeletionImpactQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -872,7 +872,7 @@ export const prefetchListPairedDevicesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListPairedDevicesQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -1136,7 +1136,7 @@ export const prefetchGetLatestExportQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetLatestExportQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -1279,7 +1279,7 @@ export const prefetchGetExportQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetExportQueryOptions(exportId, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -1433,7 +1433,7 @@ export const prefetchListMyParticipationsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListMyParticipationsQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -1661,7 +1661,7 @@ export const prefetchGetMyProfileSummaryQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetMyProfileSummaryQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

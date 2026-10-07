@@ -188,7 +188,7 @@ export const prefetchGetMembersQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetMembersQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

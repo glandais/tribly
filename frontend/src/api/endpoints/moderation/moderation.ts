@@ -274,7 +274,7 @@ export const prefetchListTeamReportsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListTeamReportsQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -501,7 +501,7 @@ export const prefetchListMyBlockedUsersQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListMyBlockedUsersQueryOptions(options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

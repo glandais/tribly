@@ -525,7 +525,7 @@ export const prefetchVerifyQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getVerifyQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

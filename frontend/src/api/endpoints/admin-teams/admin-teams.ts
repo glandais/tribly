@@ -177,7 +177,7 @@ export const prefetchAdminListTeamsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getAdminListTeamsQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -320,7 +320,7 @@ export const prefetchAdminGetTeamQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getAdminGetTeamQueryOptions(teamId, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

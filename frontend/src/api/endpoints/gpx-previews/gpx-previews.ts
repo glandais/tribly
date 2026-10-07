@@ -183,7 +183,7 @@ export const prefetchListMyPreviewsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListMyPreviewsQueryOptions(params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -608,7 +608,7 @@ export const prefetchGetPreviewQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetPreviewQueryOptions(previewId, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

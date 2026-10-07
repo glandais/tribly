@@ -187,7 +187,7 @@ export const prefetchListPlacesQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListPlacesQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -517,7 +517,7 @@ export const prefetchGetPlaceQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetPlaceQueryOptions(teamSlug, placeId, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

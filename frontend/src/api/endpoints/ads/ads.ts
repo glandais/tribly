@@ -193,7 +193,7 @@ export const prefetchListAdsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListAdsQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -430,7 +430,7 @@ export const prefetchCountAdsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getCountAdsQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -672,7 +672,7 @@ export const prefetchGetAdQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetAdQueryOptions(teamSlug, slug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
@@ -995,7 +995,7 @@ export const prefetchGetAdEditQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getGetAdEditQueryOptions(teamSlug, slug, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }

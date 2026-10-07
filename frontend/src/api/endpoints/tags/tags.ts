@@ -188,7 +188,7 @@ export const prefetchListTeamTagsQuery = async <
 ): Promise<QueryClient> => {
   const queryOptions = getListTeamTagsQueryOptions(teamSlug, params, options)
 
-  await queryClient.prefetchQuery(queryOptions)
+  await queryClient.query(queryOptions).catch(() => {})
 
   return queryClient
 }
