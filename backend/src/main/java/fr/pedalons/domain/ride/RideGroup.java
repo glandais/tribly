@@ -5,10 +5,8 @@ import fr.pedalons.domain.route.Route;
 import fr.pedalons.domain.user.User;
 import jakarta.persistence.*;
 import java.time.Instant;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,17 +38,6 @@ public class RideGroup extends BaseEntity {
    */
   @Column(name = "start_at", nullable = false)
   private Instant startAt;
-
-  /**
-   * The group's own wall time, as {@code ride_groups.time} held it before {@link #startAt}.
-   * <b>Written, never read</b>: kept for the previous release, which still maps the column during a
-   * start-first deploy and after a rollback. Dropped with the column by docs/LEDGER_*.md API-60,
-   * lot 6.
-   */
-  @Getter(AccessLevel.NONE)
-  @Nullable
-  @Column(name = "time")
-  private LocalTime legacyTime;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "route_id")

@@ -93,6 +93,8 @@ public class NotificationTestData {
       event.setSubjectSlug("ride-" + i);
       event.setSubjectName("Ride " + i);
       event.setSubjectDateTime(now.plus(1, ChronoUnit.DAYS));
+      // Frozen at fan-out with the subject's date (docs/LEDGER_*.md API-60): a placeless ride's.
+      event.setSubjectTimezone(team.getTimezone());
       event.setBaseUrl("http://localhost:5173");
       event.setSiteName("Pedalons");
       eventRepository.persist(event);

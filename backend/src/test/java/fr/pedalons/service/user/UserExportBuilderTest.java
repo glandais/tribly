@@ -270,6 +270,8 @@ class UserExportBuilderTest extends AbstractBaseTest {
       String exported = ZipReader.text(entries, "notifications/inbox.json");
       assertTrue(exported.contains("Ride 0") && exported.contains("Ride 1"), exported);
       assertTrue(exported.contains("\"channel\" : \"EMAIL\""), exported);
+      // The zone the subject's date reads in travels with it (docs/LEDGER_*.md API-60).
+      assertTrue(exported.contains("\"subjectTimezone\" : \"Europe/Paris\""), exported);
       assertTrue(
           ZipReader.text(entries, "account/notification-preferences.json")
               .contains("RIDE_CANCELLED"));

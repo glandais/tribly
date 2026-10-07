@@ -130,20 +130,18 @@ public class TeamTimezoneChange {
 
   /**
    * A ride and its groups. Upcoming, the ride keeps its wall time and so does each group's own
-   * time; past or under way, the ride and its groups keep their instants (only the legacy time
-   * column follows, as the new zone reads it).
+   * time; past or under way, the ride and its groups keep their instants.
    */
   private static void rewriteRide(Ride ride, ZoneId from, ZoneId to, Instant now) {
     Instant previousDateTime = ride.getDateTime();
     boolean upcoming = !previousDateTime.isBefore(now);
     rewrite(ride, from, to, now);
+    if (!upcoming) {
+      return;
+    }
     for (RideGroup group : ride.getGroups()) {
       LocalTime own = EventTimezoneResolver.ownTime(previousDateTime, group.getStartAt(), from);
-      if (upcoming) {
-        EventTimezoneResolver.setStart(group, ride.getDateTime(), own, to);
-      } else {
-        group.setLegacyTime(own == null ? null : group.getStartAt().atZone(to).toLocalTime());
-      }
+      EventTimezoneResolver.setStart(group, ride.getDateTime(), own, to);
     }
   }
 

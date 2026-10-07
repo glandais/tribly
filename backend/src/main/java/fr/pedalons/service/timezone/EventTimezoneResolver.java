@@ -147,13 +147,11 @@ public class EventTimezoneResolver {
   /**
    * Sets when a group leaves from the wall time a request gives it: {@code time} on the ride's
    * local date in {@code zone}, the ride's start when it has none. Run on every save of the ride,
-   * once its date and zone are final, so that a date change moves every group. Also writes the
-   * legacy {@code time} column the previous release still reads.
+   * once its date and zone are final, so that a date change moves every group.
    */
   public static void setStart(
       RideGroup group, Instant rideDateTime, @Nullable LocalTime time, ZoneId zone) {
     group.setStartAt(groupStart(rideDateTime, time, zone));
-    group.setLegacyTime(time);
   }
 
   /**

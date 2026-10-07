@@ -600,15 +600,27 @@ test de migration biketeam le dit). Tests (lancés le 7 octobre 2026, suite back
 `TeamTimezoneChangeTest`, `BiketeamLiveMigrationTest` ; supprimés : `EventTimezoneBackfillTest` et
 les tests des replis (groupe sans `start_at`, entité sans fuseau).
 
+**Lot 5 vérifié en production et en staging le 7 octobre 2026** (`5fb6003e`, `/api/version`
+`11.0.0`, V67 appliquée : les deux colonnes `NOT NULL`, aucune erreur au démarrage).
+
+**Lot 6 livré le 7 octobre 2026** (sans changement de contrat ni migration) : `RideGroup.legacyTime`
+retiré, Hibernate ne lit ni n'écrit plus `ride_groups.time` ; `EventTimezoneResolver.setStart` ne
+pose plus que `startAt`, et `TeamTimezoneChange.rewriteRide` ne touche plus aux groupes d'une sortie
+passée. La colonne reste en base, nullable et ignorée : un retour au lot 5 la retrouve (il ne la
+lit pas non plus). Sa suppression est le lot 7, dans un déploiement suivant.
+
+**Reste du lot 4 livré le 7 octobre 2026** (sans changement de contrat : l'export RGPD n'est pas
+au contrat) : `notifications/inbox.json` porte `subjectTimezone` à côté de `subjectDateTime`
+(`NotificationExport.InboxEntry`), nul pour une entrée antérieure à `V66`, comme dans la boîte de
+réception. Test : `UserExportBuilderTest.build_shouldIncludeTheNotificationInboxWithItsDeliveries`.
+
 Reste :
 
-- **Lot 4, restes** : l'export RGPD (`NotificationExport`, `UserExportBuilder`) ne porte pas
-  `subjectTimezone` à côté de `subjectDateTime`.
-- **Lot 6 = version N+2** (une fois le lot 5 en production) : supprimer `ride_groups.time`
-  (`ALTER TABLE ride_groups DROP COLUMN time`) et le champ `RideGroup.legacyTime` avec ses
-  écritures (`EventTimezoneResolver.setStart`, `TeamTimezoneChange.rewriteRide`). Sûr en start-first :
-  la version N+1 ne lit jamais la colonne et Hibernate ne la sélectionne plus une fois le champ
-  retiré. (S)
+- **Lot 7 = suppression de `ride_groups.time`** (une fois le lot 6 en production, jamais dans le
+  même déploiement) : `V68` avec `ALTER TABLE ride_groups DROP COLUMN time`. Sûr en start-first
+  seulement quand la version qui tourne ne mappe plus la colonne, ce que fait le lot 6 — supprimée
+  sous le lot 5, qui la mappait encore, elle aurait fait échouer chacune de ses requêtes sur
+  `ride_groups` pendant la bascule. (S)
 
 À ne pas défaire :
 

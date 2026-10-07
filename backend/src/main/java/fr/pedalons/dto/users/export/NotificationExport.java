@@ -21,7 +21,8 @@ public final class NotificationExport {
 
   /**
    * {@code notifications/inbox.json}. The snapshot the entry renders from, not a pre-rendered text
-   * — the same fields the inbox itself reads.
+   * — the same fields the inbox itself reads. {@code subjectTimezone} is the zone the subject's
+   * date reads in, frozen at fan-out (docs/LEDGER_*.md API-60); null on an entry from before it.
    */
   public record InboxEntry(
       String id,
@@ -32,6 +33,7 @@ public final class NotificationExport {
       @Nullable String subjectType,
       @Nullable String subjectName,
       @Nullable Instant subjectDateTime,
+      @Nullable String subjectTimezone,
       @Nullable String actorName,
       @Nullable String excerpt,
       List<Delivery> deliveries) {
@@ -47,6 +49,7 @@ public final class NotificationExport {
           e.getSubjectType() == null ? null : e.getSubjectType().name(),
           e.getSubjectName(),
           e.getSubjectDateTime(),
+          e.getSubjectTimezone(),
           e.getActorName(),
           e.getExcerpt(),
           deliveries);

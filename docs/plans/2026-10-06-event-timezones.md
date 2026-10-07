@@ -249,7 +249,8 @@ dernier rattrapage des lignes écrites par l'ancienne version), `ride_groups.tim
 backend refuse les instants avec offset en requête.
 **Rectifié à l'exécution (7 octobre 2026)** : supprimer `ride_groups.time` dans la même version
 casserait la version N, qui la mappe encore pendant la minute de bascule. N+1 l'écrit sans la lire ;
-la suppression passe à une version N+2 (lot 6).
+la colonne cesse d'être mappée en N+2 (lot 6) et n'est supprimée qu'en N+3 (lot 7) : une
+version qui mappe une colonne casse si elle disparaît pendant qu'elle tourne encore.
 
 ## 9. Changer le fuseau d'une équipe
 
@@ -290,7 +291,8 @@ Deux alternatives écartées :
 | 3 | Affichage rendez-vous / horodatage, mention « chez vous », 12 h / 24 h du téléphone sur mobile | web, mobile |
 | 4 | Notifications, webhooks, iCal, SEO ; météo, appareils et `PublicationEndCalculator` sur `start_at` (fin de `legStart`) ; `DeviceRideDto.timezone` | backend, web |
 | 5 | Version N+1 (`NOT NULL`, refus de l'offset ; `time` écrite, plus lue) | backend |
-| 6 | Version N+2 : suppression de `ride_groups.time` (la version N la lit encore pendant la bascule du lot 5) | backend |
+| 6 | Version N+2 : `ride_groups.time` n'est plus mappée (ni lue ni écrite), la colonne reste | backend |
+| 7 | Version N+3 : `DROP COLUMN ride_groups.time`, une fois le lot 6 en production | backend |
 
 ## 11. Tests
 
