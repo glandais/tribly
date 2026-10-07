@@ -158,12 +158,15 @@ test.describe('the dashboard page', () => {
   test('a visitor of a public team gets the public part of the dashboard (API-86)', async ({
     page,
   }) => {
-    const team = await newTeam(world.admin, unique('Équipe publique'), { visibility: 'PUBLIC' })
-    const ride = await newRide(world.admin, team.slug, unique('Sortie publique'), {
+    // An owner of its own: world.admin already holds the one team a user may create
+    // (USER_TEAM_LIMIT_REACHED).
+    const owner = await newUser(unique('Propriétaire publique'))
+    const team = await newTeam(owner, unique('Équipe publique'), { visibility: 'PUBLIC' })
+    const ride = await newRide(owner, team.slug, unique('Sortie publique'), {
       visibility: 'PUBLIC',
     })
-    const hidden = await newRide(world.admin, team.slug, unique('Sortie des membres'))
-    const post = await newPost(world.admin, team.slug, unique('Publication publique'), {
+    const hidden = await newRide(owner, team.slug, unique('Sortie des membres'))
+    const post = await newPost(owner, team.slug, unique('Publication publique'), {
       visibility: 'PUBLIC',
     })
 

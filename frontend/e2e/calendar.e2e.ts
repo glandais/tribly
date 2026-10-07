@@ -179,7 +179,8 @@ test.describe('the team calendar feed', () => {
     const { member, foreign } = await threeTeams('outsider', day)
     await signIn(page.context(), member)
     await page.goto(teamCalendarPath(foreign.slug))
-    await expect(page).toHaveURL(new RegExp(`/equipes/${foreign.slug}$`))
+    // To the agenda's lists, which a non-member may read (WEB-68).
+    await expect(page).toHaveURL(new RegExp(`/equipes/${foreign.slug}/agenda$`))
     await expect(
       page.getByRole('main').getByRole('textbox', { name: "URL du flux d'équipe" })
     ).toHaveCount(0)

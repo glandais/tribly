@@ -264,7 +264,8 @@ test.describe("the old team slug's deep links", () => {
       {
         from: `/equipes/${team.slug}/calendrier`,
         to: `/equipes/${teamSlug}/calendrier`,
-        landmark: (page) => main(page).getByRole('radio', { name: 'Calendrier' }),
+        // Its view picker's radios are visually hidden: the member's feed URL is the calendar's own.
+        landmark: (page) => main(page).getByRole('textbox', { name: "URL du flux d'équipe" }),
       },
       {
         from: `/equipes/${team.slug}/agenda`,

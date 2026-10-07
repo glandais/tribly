@@ -11,7 +11,7 @@ import {
   signIn,
 } from './support/data'
 import { expect, test, unique } from './support/fixtures'
-import { frenchDateTime } from './support/dates'
+import { clockText, frenchDateTime } from './support/dates'
 import { stack } from './support/stack'
 import {
   addPasskeyFromProfile,
@@ -1429,6 +1429,9 @@ test.describe('?next= after signing in stays on the site', () => {
 
 test.describe('time zone', () => {
   const ZONE = 'Asia/Tokyo'
+  // TimezoneSelect names each zone by its city first (API-60): « Tokyo · Asia/Tokyo ».
+  const PARIS_LABEL = 'Paris · Europe/Paris'
+  const ZONE_LABEL = `Tokyo · ${ZONE}`
 
   /**
    * The timezone picker of « Préférences » (a searchable combobox), found through the text that stands
@@ -1447,13 +1450,16 @@ test.describe('time zone', () => {
     const user = await newUser(unique('Fuseau'))
     const team = await newTeam(user, unique('Équipe fuseau'))
     // 08:30 UTC two days ahead: 10:30 or 09:30 in Paris, 17:30 in Tokyo — never the same text.
+    // A departure reads in the ride's zone, the team's Paris, whatever the reader's (API-60): the
+    // preference shows in the « chez vous » mention that follows it.
     const start = new Date(Date.now() + 2 * 24 * 3600 * 1000)
     start.setUTCHours(8, 30, 0, 0)
     const ride = await newRide(user, team.slug, unique('Sortie fuseau'), {
       dateTime: start.toISOString(),
     })
     const inParis = frenchDateTime(wallClockIn(ride.dateTime, 'Europe/Paris'))
-    const inTokyo = frenchDateTime(wallClockIn(ride.dateTime, ZONE))
+    const tokyo = wallClockIn(ride.dateTime, ZONE)
+    const mention = `${inParis} · heure de Paris (${clockText(tokyo)} chez vous)`
     const path = ridePath(team.slug, ride.slug)
     await signIn(context, user)
 
@@ -1461,36 +1467,38 @@ test.describe('time zone', () => {
     expect((await meFromSession(user)).timezone ?? null).toBeNull()
     await openRide(page, team.slug, ride)
     const main = page.getByRole('main')
-    await expect(main.getByText(inParis).first()).toBeVisible()
+    await expect(main.getByText(inParis, { exact: true }).first()).toBeVisible()
+    await expect(main.getByText('chez vous')).toHaveCount(0)
 
     // Chosen from the profile: a partial PATCH of the preferences.
     await openProfilePage(page, '/profil/preferences', 'Préférences')
     const field = zoneField(page)
-    await expect(field).toHaveValue('Europe/Paris')
+    await expect(field).toHaveValue(PARIS_LABEL)
     await hydrated(field)
     await field.click()
     await field.fill(ZONE)
     const saved = page.waitForResponse(
       (r) => r.request().method() === 'PATCH' && r.url().endsWith('/api/users/me/preferences')
     )
-    await page.getByRole('option', { name: ZONE, exact: true }).click()
+    await page.getByRole('option', { name: ZONE_LABEL, exact: true }).click()
     const response = await saved
     expect(response.ok()).toBe(true)
     expect(response.request().postDataJSON()).toEqual({ timezone: ZONE })
-    await expect(field).toHaveValue(ZONE)
+    await expect(field).toHaveValue(ZONE_LABEL)
     expect((await meFromSession(user)).timezone).toBe(ZONE)
 
-    // The ride now reads in Tokyo time, in a browser that is still in Paris…
+    // The ride still reads in Paris time, now with its Tokyo equivalent, in a browser that is still
+    // in Paris…
     await openRide(page, team.slug, ride)
-    await expect(main.getByText(inTokyo).first()).toBeVisible()
-    await expect(main.getByText(inParis)).toHaveCount(0)
+    await expect(main.getByText(mention, { exact: true })).toBeVisible()
     // …and already in the server's markup, before any JavaScript.
     const document = await rawDocument(path, { cookie: ssrCookie(user) })
     expect(document.status).toBe(200)
     const markup = ssrOutlet(document.html)
     expect(markup).toContain(ride.name)
-    expect(markup).toContain(inTokyo)
-    expect(markup).not.toContain(inParis)
+    // A chosen zone is no guess: the server states the mention too.
+    expect(markup).toContain(inParis)
+    expect(markup).toContain(`heure de Paris (${clockText(tokyo)} chez vous)`)
   })
 
   // Regression (02bd4525): the time zone Select carries its `label`.
@@ -1501,7 +1509,7 @@ test.describe('time zone', () => {
     await expect(zoneField(page)).toBeVisible()
     await expect(
       page.getByRole('main').getByRole('combobox', { name: 'Fuseau horaire' })
-    ).toHaveValue('Europe/Paris', { timeout: 2_000 })
+    ).toHaveValue(PARIS_LABEL, { timeout: 2_000 })
   })
 })
 
