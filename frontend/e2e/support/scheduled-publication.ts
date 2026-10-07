@@ -1,6 +1,13 @@
 import type { Locator, Page } from '@playwright/test'
 import type { Status } from '../../src/api/dto'
-import { monthName, openPicker, parisWallClock, pickerText, type WallClock } from './dates'
+import {
+  wallTimeOf,
+  monthName,
+  openPicker,
+  parisWallClock,
+  pickerText,
+  type WallClock,
+} from './dates'
 import { expect } from './fixtures'
 
 /**
@@ -40,9 +47,12 @@ export async function pickIntoEmptyPicker(page: Page, field: Locator, when: Wall
   await expect(field).toHaveText(pickerText(when))
 }
 
-/** A `publishAt` a minute ago, to the second: the scheduler's next run takes it. */
-export const pastPublishAt = () =>
+/** The instant a minute ago, to the second: a `publishAt` the scheduler's next run takes. */
+export const pastPublishInstant = () =>
   new Date(Math.floor((Date.now() - 60_000) / 1000) * 1000).toISOString()
+
+/** `pastPublishInstant` as the request carries it: a Paris wall time (contract 11.0.0). */
+export const pastPublishAt = () => wallTimeOf(pastPublishInstant())
 
 /** Waits until `read` says the publication was published by the scheduler. */
 export async function waitForAutoPublish(read: () => Promise<{ status: Status } | null>) {

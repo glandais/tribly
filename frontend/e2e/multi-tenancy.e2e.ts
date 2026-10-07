@@ -31,6 +31,7 @@ import { newRide, ridePath, rideRequest } from './support/rides'
 import { authState, dehydratedQuery, sessionCookie, ssrOutlet } from './support/ssr'
 import { stack } from './support/stack'
 import { entityCard } from './support/ui'
+import { wallTimeOf } from './support/dates'
 
 /**
  * Multi-tenancy (docs/plans/archive/2026-09-27-e2e-coverage-audit.md, P1): one stack, several sites. The backend resolves the
@@ -98,7 +99,7 @@ test.beforeAll(async () => {
     hostPost<PostDto>(OTHER_HOST, otherOwner, `/api/teams/${otherTeam.slug}/posts`, {
       name: `${tag} article autre`,
       media: markdownMedia(),
-      dateTime: new Date().toISOString(),
+      dateTime: wallTimeOf(Date.now()),
       visibility: 'PUBLIC',
       status: 'PUBLISHED',
     } satisfies PostRequest),

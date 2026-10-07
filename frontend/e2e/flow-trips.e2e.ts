@@ -11,6 +11,7 @@ import {
   parisWallClock,
   pickDateTime,
   twoDaysThisMonth,
+  wallTimeOf,
 } from './support/dates'
 import { letEditorSettle, richText } from './support/editor'
 import { expect, test, unique } from './support/fixtures'
@@ -83,15 +84,15 @@ async function openTrip(page: Page, teamSlug: string, tripSlug: string, name: st
 const requestOf = (trip: TripDto, changes: Partial<TripRequest>): TripRequest => ({
   name: trip.name,
   media: trip.media,
-  dateTime: trip.dateTime,
+  dateTime: wallTimeOf(trip.dateTime, trip.timezone),
   status: trip.status,
   visibility: trip.visibility,
   routeSlug: trip.routeSlug,
-  publishAt: trip.publishAt,
+  publishAt: trip.publishAt && wallTimeOf(trip.publishAt, trip.timezone),
   stages: trip.stages.map((stage) => ({
     id: stage.id,
     name: stage.name,
-    dateTime: stage.dateTime,
+    dateTime: wallTimeOf(stage.dateTime, stage.timezone ?? trip.timezone),
     routeSlug: stage.route?.slug,
     media: stage.media,
   })),

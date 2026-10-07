@@ -101,6 +101,30 @@ const pad = (n: number) => String(n).padStart(2, '0')
 export const wallTime = (w: WallClock) =>
   `${w.year}-${pad(w.month)}-${pad(w.day)}T${pad(w.hour)}:${pad(w.minute)}:00`
 
+/**
+ * « 2026-10-10T20:30:15 » — `instant` as a wall time in `zone` (the team's, Paris by default), to
+ * the second: what a request body carries since contract 11.0.0, whose `EventDateTime` refuses an
+ * instant with `Z` or an offset (docs/LEDGER_*.md API-60). An instant read back from a DTO goes
+ * through here with that entity's `timezone`.
+ */
+export function wallTimeOf(instant: Date | string | number, zone: string = TZ): string {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-GB', {
+      timeZone: zone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23',
+    })
+      .formatToParts(new Date(instant))
+      .map((part) => [part.type, part.value])
+  )
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`
+}
+
 /** « 20:30 ». */
 export const clockText = (w: Pick<WallClock, 'hour' | 'minute'>) =>
   `${pad(w.hour)}:${pad(w.minute)}`

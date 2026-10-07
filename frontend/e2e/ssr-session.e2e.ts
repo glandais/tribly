@@ -37,6 +37,7 @@ import {
 } from './support/ssr'
 import { stack } from './support/stack'
 import { entityCard, homeFeed, pageAs, pageHydrated, watchHydration } from './support/ui'
+import { wallTimeOf } from './support/dates'
 
 /**
  * docs/LEDGER_*.md WEB-14 — authenticated SSR (frontend/docs/SSR.md, "Session-aware SSR"): for a document
@@ -722,7 +723,7 @@ test.describe('link previews of public content', () => {
       {
         name: unique('Article ailleurs'),
         media: withPicture(otherPicture, 'Un article sur un autre site.'),
-        dateTime: new Date().toISOString(),
+        dateTime: wallTimeOf(Date.now()),
         visibility: 'PUBLIC',
         status: 'PUBLISHED',
       } satisfies PostRequest

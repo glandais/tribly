@@ -7,7 +7,7 @@ import {
   openCalendarAt,
   teamCalendarPath,
 } from './support/calendar'
-import { parisDaysAhead, parisInstant, type WallClock } from './support/dates'
+import { wallTime, parisDaysAhead, type WallClock } from './support/dates'
 import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
 import { calendarTokenOf, fetchFeed, parseIcs } from './support/flow-account'
@@ -36,7 +36,7 @@ async function threeTeams(label: string, day: WallClock) {
   const foreign = await newTeam(admin, unique(`Équipe voisine ${label}`), { visibility: 'PUBLIC' })
   await addMember(admin, mine.slug, member)
   await addMember(admin, alsoMine.slug, member)
-  const at = (hour: number) => ({ dateTime: parisInstant({ ...day, hour, minute: 0 }) })
+  const at = (hour: number) => ({ dateTime: wallTime({ ...day, hour, minute: 0 }) })
   const joined = await newRide(admin, mine.slug, unique('Sortie inscrite'), at(9))
   const other = await newRide(admin, alsoMine.slug, unique('Sortie non inscrite'), at(14))
   const outside = await newRide(admin, foreign.slug, unique('Sortie voisine'), {

@@ -11,7 +11,7 @@ import {
   signIn,
 } from './support/data'
 import { expect, test, unique } from './support/fixtures'
-import { clockText, frenchDateTime } from './support/dates'
+import { wallTimeOf, clockText, frenchDateTime } from './support/dates'
 import { stack } from './support/stack'
 import {
   addPasskeyFromProfile,
@@ -1455,7 +1455,7 @@ test.describe('time zone', () => {
     const start = new Date(Date.now() + 2 * 24 * 3600 * 1000)
     start.setUTCHours(8, 30, 0, 0)
     const ride = await newRide(user, team.slug, unique('Sortie fuseau'), {
-      dateTime: start.toISOString(),
+      dateTime: wallTimeOf(start),
     })
     const inParis = frenchDateTime(wallClockIn(ride.dateTime, 'Europe/Paris'))
     const tokyo = wallClockIn(ride.dateTime, ZONE)

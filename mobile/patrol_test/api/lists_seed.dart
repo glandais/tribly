@@ -21,7 +21,7 @@ extension ListsSeed on BackendClient {
         await post(by, '/api/teams/$teamSlug/posts', {
           'name': unique('$label $i'),
           'media': markdownMedia(),
-          'dateTime': now.subtract(Duration(minutes: i)).toIso8601String(),
+          'dateTime': wallTimeOf(now.subtract(Duration(minutes: i))),
           'visibility': 'TEAM',
           'status': 'PUBLISHED',
         }),

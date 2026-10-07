@@ -19,7 +19,7 @@ extension RidesHomeTripsSeed on BackendClient {
   }) => post(by, '/api/teams/$teamSlug/rides', {
     'name': unique(label),
     'media': markdownMedia(),
-    'dateTime': dateTime.toUtc().toIso8601String(),
+    'dateTime': wallTimeOf(dateTime),
     'status': 'PUBLISHED',
     'visibility': 'TEAM',
     'groups':
@@ -50,14 +50,14 @@ extension RidesHomeTripsSeed on BackendClient {
   }) => post(by, '/api/teams/$teamSlug/trips', {
     'name': unique(label),
     'media': markdownMedia(),
-    'dateTime': dateTime.toUtc().toIso8601String(),
+    'dateTime': wallTimeOf(dateTime),
     'status': 'PUBLISHED',
     'visibility': 'TEAM',
     'stages': [
       for (final stage in stages)
         {
           'name': stage.name,
-          'dateTime': stage.at.toUtc().toIso8601String(),
+          'dateTime': wallTimeOf(stage.at),
           'media': markdownMedia(),
         },
     ],
@@ -101,7 +101,10 @@ extension RidesHomeTripsSeed on BackendClient {
     return put(by, '/api/teams/$teamSlug/trips/$tripSlug', {
       'name': current['name'],
       'media': current['media'],
-      'dateTime': current['dateTime'],
+      'dateTime': wallTimeOf(
+        current['dateTime'] as String,
+        current['timezone'] as String?,
+      ),
       'status': 'CANCELLED',
       'visibility': current['visibility'],
       'routeSlug': current['routeSlug'],
@@ -110,7 +113,10 @@ extension RidesHomeTripsSeed on BackendClient {
           {
             'id': stage['id'],
             'name': stage['name'],
-            'dateTime': stage['dateTime'],
+            'dateTime': wallTimeOf(
+              stage['dateTime'] as String,
+              (stage['timezone'] ?? current['timezone']) as String?,
+            ),
             'routeSlug': (stage['route'] as Json?)?['slug'],
             'media': stage['media'],
           },

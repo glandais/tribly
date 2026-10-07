@@ -4,9 +4,10 @@ import { calendarEvent } from './support/calendar'
 import {
   monthName,
   parisDaysAhead,
-  parisInstant,
   parisWallClock,
   type WallClock,
+  wallTime,
+  wallTimeOf,
 } from './support/dates'
 import { addMember, newTeam, newUser, roleSession, signIn } from './support/data'
 import { expect, test, unique } from './support/fixtures'
@@ -266,7 +267,7 @@ test.describe('a past ride', () => {
     const first = unique('Groupe A')
     const second = unique('Groupe B')
     const ride = await newRide(organizer, team.slug, unique('Sortie passée'), {
-      dateTime: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+      dateTime: wallTimeOf(Date.now() - 24 * 3600 * 1000),
       groups: [
         { name: first, maxParticipants: 10 },
         { name: second, maxParticipants: 10 },
@@ -297,7 +298,7 @@ test.describe('a past ride', () => {
     const { team, organizer, member } = await ridingTeam('past-api')
     const name = unique('Groupe A')
     const ride = await newRide(organizer, team.slug, unique('Sortie passée'), {
-      dateTime: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+      dateTime: wallTimeOf(Date.now() - 24 * 3600 * 1000),
       groups: [{ name }],
     })
     const answer = await joinGroup(member, team.slug, ride, name).then(
@@ -473,7 +474,7 @@ test.describe('leaving a ride, seen from the home page and the calendar', () => 
     const day = parisDaysAhead(2, 10, 0)
     const group = unique('Groupe A')
     const ride = await newRide(organizer, team.slug, unique('Sortie prochaine'), {
-      dateTime: parisInstant(day),
+      dateTime: wallTime(day),
       groups: [{ name: group, maxParticipants: 10 }],
     })
     await joinGroup(member, team.slug, ride, group)

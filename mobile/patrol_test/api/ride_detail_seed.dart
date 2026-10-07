@@ -19,7 +19,10 @@ extension RideDetailSeed on BackendClient {
     return put(by, '/api/teams/$teamSlug/rides/$rideSlug', {
       'name': current['name'],
       'media': current['media'],
-      'dateTime': current['dateTime'],
+      'dateTime': wallTimeOf(
+        current['dateTime'] as String,
+        current['timezone'] as String?,
+      ),
       'status': 'CANCELLED',
       'visibility': current['visibility'],
       'routeSlug': current['routeSlug'],

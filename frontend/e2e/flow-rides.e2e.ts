@@ -22,6 +22,8 @@ import {
   pickDateTime,
   pickerText,
   type WallClock,
+  wallTime,
+  wallTimeOf,
 } from './support/dates'
 import { addMember, markdownMedia, newTeam, newUser, roleSession, signIn } from './support/data'
 import { richText } from './support/editor'
@@ -111,11 +113,11 @@ async function pickIntoEmptyPicker(page: Page, field: Locator, when: WallClock) 
 const rideAsRequest = (ride: RideDto, changes: Partial<RideRequest>): RideRequest => ({
   name: ride.name,
   media: ride.media,
-  dateTime: ride.dateTime,
+  dateTime: wallTimeOf(ride.dateTime, ride.timezone),
   status: ride.status,
   visibility: ride.visibility,
   routeSlug: ride.routeSlug,
-  publishAt: ride.publishAt,
+  publishAt: ride.publishAt && wallTimeOf(ride.publishAt, ride.timezone),
   groups: ride.groups.map((g) => ({
     id: g.id,
     name: g.name,
@@ -303,7 +305,7 @@ test.describe('ride journey', () => {
       // The calendar's events come with the page, prefetched by the server: another ride of the
       // same day, shown, is what says they are in (see support/calendar.ts).
       const anchor = await newRide(organizer, team.slug, unique('Sortie repère'), {
-        dateTime: parisInstant({ ...day, hour: 10, minute: 0 }),
+        dateTime: wallTime({ ...day, hour: 10, minute: 0 }),
       })
       await openCalendar(memberPage, team.slug, day)
       await expect(calendarEvent(memberPage, anchor.name)).toBeVisible()
@@ -436,7 +438,7 @@ test.describe('publication states', () => {
       await apiPut(
         organizer,
         `/api/teams/${team.slug}/rides/${rideSlug}`,
-        rideAsRequest(saved, { publishAt: new Date(Date.now() - 60_000).toISOString() })
+        rideAsRequest(saved, { publishAt: wallTimeOf(Date.now() - 60_000) })
       )
       await expect
         .poll(async () => (await readRide(organizer, team.slug, rideSlug)).status, {

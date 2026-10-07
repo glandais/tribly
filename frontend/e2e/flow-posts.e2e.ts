@@ -3,7 +3,7 @@ import type { CommentListResponse, MediaDto, PostRequest } from '../src/api/dto'
 import { solidPng, uploadImage } from './support/ads'
 import { ApiError, apiDelete, apiGet, apiPut } from './support/api'
 import { addMember, markdownMedia, newTeam, newUser, signIn } from './support/data'
-import { frenchDateTime, parisDaysAhead, parisInstant } from './support/dates'
+import { wallTimeOf, frenchDateTime, parisDaysAhead, parisInstant } from './support/dates'
 import {
   addImage,
   caretToBlockEnd,
@@ -28,7 +28,7 @@ import {
   readPostComments,
 } from './support/posts'
 import {
-  pastPublishAt,
+  pastPublishInstant,
   pickIntoEmptyPicker,
   waitForAutoPublish,
 } from './support/scheduled-publication'
@@ -503,13 +503,14 @@ test.describe('scheduled publication', () => {
       expect(await findPost(member, team.slug, postSlug), 'a draft is 404 to a member').toBeNull()
     })
 
-    const publishAt = pastPublishAt()
+    const due = pastPublishInstant()
+    const publishAt = wallTimeOf(due)
     await test.step('the date comes: the scheduler publishes it, dated then', async () => {
       const saved = await fetchPost(author, team.slug, postSlug)
       await apiPut(author, `/api/teams/${team.slug}/posts/${postSlug}`, {
         name: saved.name,
         media: saved.media,
-        dateTime: saved.dateTime,
+        dateTime: wallTimeOf(saved.dateTime, saved.timezone),
         status: saved.status,
         visibility: saved.visibility,
         publishAt,
@@ -519,7 +520,7 @@ test.describe('scheduled publication', () => {
       expect(published.publishAt, 'the schedule is spent').toBeUndefined()
       // A post, unlike a ride or a trip, takes its publication date as its own
       // (PublicationPublishScheduler).
-      expect(new Date(published.dateTime).toISOString()).toBe(publishAt)
+      expect(new Date(published.dateTime).toISOString()).toBe(due)
 
       await page.reload()
       await expect(main.getByText('Publié', { exact: true })).toBeVisible()

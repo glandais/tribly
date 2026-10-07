@@ -8,6 +8,7 @@ import { newPost } from './support/posts'
 import { newRide } from './support/rides'
 import { newRoute, windingTrack } from './support/routes'
 import { entityCard, escapeRegExp, homeFeed, hydrated } from './support/ui'
+import { wallTimeOf } from './support/dates'
 
 /**
  * docs/plans/archive/2026-09-27-e2e-coverage-audit.md, P1 « Filtres portés par l'URL et cohérents avec le SSR » — a list's
@@ -38,7 +39,7 @@ async function teamWithFeed(label: string) {
   const { owner, team } = await ownTeam(label)
   const ride = await newRide(owner, team.slug, unique('Sortie filtrée'))
   const post = await newPost(owner, team.slug, unique('Article filtré'), {
-    dateTime: new Date(Date.now() - 2 * DAY).toISOString(),
+    dateTime: wallTimeOf(Date.now() - 2 * DAY),
   })
   return { owner, team, ride: ride.name, post: post.name }
 }
@@ -74,7 +75,7 @@ test.describe('publication feeds', () => {
   }) => {
     const { owner, team, ride, post } = await teamWithFeed('filters-team-agenda')
     const past = await newRide(owner, team.slug, unique('Sortie passée filtrée'), {
-      dateTime: new Date(Date.now() - 2 * DAY).toISOString(),
+      dateTime: wallTimeOf(Date.now() - 2 * DAY),
     })
     await signIn(context, owner)
     const main = page.getByRole('main')

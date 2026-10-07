@@ -6,18 +6,20 @@ import 'api/profile_seed.dart';
 import 'api/rides_home_trips_seed.dart';
 import 'common.dart';
 
-/// Web counterpart: `flow-account.e2e.ts` › the profile's timezone picker — the web renders every
-/// date in `UserDto.timezone` when it is set, and the app applies the same preference
-/// (docs/LEDGER_*.md API-15). Choosing it in the app is `profile_timezone_test`.
+/// Web counterpart: `flow-account.e2e.ts` › time zone. A member's preference (`UserDto.timezone`,
+/// docs/LEDGER_*.md API-15) is the zone of *their* clock: since API-60 a rendezvous reads in its
+/// entity's zone, and the preference shows in the mention after it. Choosing it in the app is
+/// `profile_timezone_test`.
 ///
-/// A stage at 08:00 in Auckland is set on the server as an instant; a member whose preference is
-/// `Pacific/Auckland` reads « 08:00 » and that day — whatever the device's own zone, which would
-/// put it on another hour, and often another day.
+/// A stage at 08:00 in its team's Paris, read by a member whose preference is `Pacific/Auckland`:
+/// « 08:00 » and that day in Paris, then « heure de Paris (… chez vous) » with the Auckland time —
+/// not the device's, which would read the same instant otherwise.
 void main() {
   const String zone = 'Pacific/Auckland';
+  const String teamZone = 'Europe/Paris';
 
   testApp(
-    'A member who chose a timezone reads a stage’s date and time in it, not in the device’s',
+    'A member who chose a timezone reads a stage at its own time, with their time in the mention',
     ($, modules, apiClients) async {
       final backend = apiClients.backend;
       final owner = await backend.newUser('Timezone owner');
@@ -28,19 +30,22 @@ void main() {
       await backend.setTimezone(member, zone);
 
       tz_data.initializeTimeZones();
-      final tz.Location auckland = tz.getLocation(zone);
       final DateTime inTen = DateTime.now().add(const Duration(days: 10));
       final tz.TZDateTime start = tz.TZDateTime(
-        auckland,
+        tz.getLocation(teamZone),
         inTen.year,
         inTen.month,
         inTen.day,
         8,
       );
+      final tz.TZDateTime inAuckland = tz.TZDateTime.from(
+        start,
+        tz.getLocation(zone),
+      );
       // The device's reading of the same instant: the test only means something if it differs.
       final DateTime onDevice = start.toUtc().toLocal();
       expect(
-        onDevice.hour != 8 || onDevice.day != start.day,
+        onDevice.hour != inAuckland.hour || onDevice.day != inAuckland.day,
         isTrue,
         reason: 'the device runs in a zone that reads like $zone',
       );
@@ -61,10 +66,18 @@ void main() {
       await openLink($, Paths.stage(teamSlug, tripSlug, stageSlug));
       await modules.trip.waitUntilStageIs(stageName);
 
-      // A wall clock is never converted again: the app's own formatter gives the expected label.
+      // The stage's own clock, in Paris.
       final DateTime wall = DateTime(start.year, start.month, start.day, 8);
       expect($(AppFormatters.formatLongDate(wall)).exists, isTrue);
       expect($(RegExp(r'\b08:00\b')).exists, isTrue);
+      // The member's, in Auckland: the day only when it is not the stage's.
+      final String hour =
+          '${inAuckland.hour.toString().padLeft(2, '0')}:'
+          '${inAuckland.minute.toString().padLeft(2, '0')}';
+      expect(
+        $(RegExp('heure de Paris \\((\\S+\\. )?$hour chez vous\\)')).exists,
+        isTrue,
+      );
     },
   );
 }

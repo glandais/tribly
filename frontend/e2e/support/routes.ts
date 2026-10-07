@@ -10,6 +10,7 @@ import type {
 } from '../../src/api/dto'
 import { apiGet, apiGetOrNull, apiPost, expectOk, withApi, type AuthResponse } from './api'
 import { markdownMedia } from './data'
+import { wallTimeOf } from './dates'
 
 /**
  * Routes, trips and stages seeded through the REST API, and what a page read of a route's
@@ -112,13 +113,13 @@ export async function newTrip(
   const request: TripRequest = {
     name,
     media: markdownMedia(),
-    dateTime: new Date(start).toISOString(),
+    dateTime: wallTimeOf(start),
     status: 'PUBLISHED',
     visibility: 'TEAM',
     ...overrides,
     stages: stages.map((stage, i) => ({
       ...stage,
-      dateTime: new Date(start + i * 24 * 3600 * 1000).toISOString(),
+      dateTime: wallTimeOf(start + i * 24 * 3600 * 1000),
       media: markdownMedia(),
     })),
   }

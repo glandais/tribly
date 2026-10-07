@@ -7,6 +7,7 @@ import type {
 } from '../../src/api/dto'
 import { apiGet, apiGetOrNull, apiPost, type AuthResponse } from './api'
 import { markdownMedia } from './data'
+import { wallTimeOf } from './dates'
 
 /** Publications (posts) seeded and read back through the REST API. */
 
@@ -20,7 +21,7 @@ export const newPost = (
   apiPost<PostDto>(who, `/api/teams/${teamSlug}/posts`, {
     name,
     media: markdownMedia(),
-    dateTime: new Date().toISOString(),
+    dateTime: wallTimeOf(Date.now()),
     visibility: 'TEAM',
     status: 'PUBLISHED',
     ...overrides,

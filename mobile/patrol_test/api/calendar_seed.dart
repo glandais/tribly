@@ -15,7 +15,7 @@ extension CalendarSeed on BackendClient {
   ) => post(by, '/api/teams/$teamSlug/rides', {
     'name': unique(label),
     'media': markdownMedia(),
-    'dateTime': dateTime.toUtc().toIso8601String(),
+    'dateTime': wallTimeOf(dateTime),
     'status': 'PUBLISHED',
     'visibility': 'PUBLIC',
     'groups': [

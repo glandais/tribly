@@ -22,6 +22,7 @@ import {
 import { newPost } from './support/posts'
 import { gpxOf, windingTrack } from './support/routes'
 import { entityCard, hydrated } from './support/ui'
+import { wallTimeOf } from './support/dates'
 
 /**
  * docs/plans/archive/2026-09-27-e2e-coverage-audit.md, P1 « Pagination » — the page lives in the query string (`p`, zero-based)
@@ -156,7 +157,7 @@ async function teamWithPosts(label: string) {
   const day = 24 * 3600 * 1000
   for (let i = 0; i < COUNT; i++) {
     await newPost(owner, team.slug, unique(`Article ${String(i + 1).padStart(2, '0')}`), {
-      dateTime: new Date(Date.now() - (i + 1) * day).toISOString(),
+      dateTime: wallTimeOf(Date.now() - (i + 1) * day),
     })
   }
   return { owner, team }

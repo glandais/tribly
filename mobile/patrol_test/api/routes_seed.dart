@@ -58,10 +58,7 @@ extension RoutesSeed on BackendClient {
   }) => post(by, '/api/teams/$teamSlug/rides', {
     'name': unique(label),
     'media': markdownMedia(),
-    'dateTime': DateTime.now()
-        .toUtc()
-        .add(const Duration(days: 2))
-        .toIso8601String(),
+    'dateTime': wallTimeOf(DateTime.now().add(const Duration(days: 2))),
     'status': 'PUBLISHED',
     'visibility': visibility,
     'groups': [
@@ -82,13 +79,13 @@ extension RoutesSeed on BackendClient {
     return post(by, '/api/teams/$teamSlug/trips', {
       'name': unique(label),
       'media': markdownMedia(),
-      'dateTime': at.toIso8601String(),
+      'dateTime': wallTimeOf(at),
       'status': 'PUBLISHED',
       'visibility': 'TEAM',
       'stages': [
         {
           'name': stageName,
-          'dateTime': at.toIso8601String(),
+          'dateTime': wallTimeOf(at),
           'routeSlug': routeSlug,
           'media': markdownMedia(),
         },

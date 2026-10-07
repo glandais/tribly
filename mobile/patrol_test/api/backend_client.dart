@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
 
 import '../config.dart';
 import 'mailpit_client.dart';
@@ -214,10 +216,7 @@ final class BackendClient {
   }) => post(by, '/api/teams/$teamSlug/rides', {
     'name': unique(label),
     'media': markdownMedia(),
-    'dateTime': DateTime.now()
-        .toUtc()
-        .add(const Duration(days: 2))
-        .toIso8601String(),
+    'dateTime': wallTimeOf(DateTime.now().add(const Duration(days: 2))),
     'status': 'PUBLISHED',
     'visibility': 'TEAM',
     'groups':
@@ -250,7 +249,7 @@ final class BackendClient {
       post(by, '/api/teams/$teamSlug/posts', {
         'name': unique(label),
         'media': markdownMedia(),
-        'dateTime': DateTime.now().toUtc().toIso8601String(),
+        'dateTime': wallTimeOf(DateTime.now()),
         'visibility': 'TEAM',
         'status': 'PUBLISHED',
       });
@@ -466,6 +465,24 @@ final class BackendClient {
 }
 
 /// The `media` of a request body: [markdown], and no picture nor attachment.
+/// [instant] as a wall time in [zone] — the team's, Paris unless a test chose another —
+/// `2026-10-11T08:00:00`: what a request body carries since contract 11.0.0, whose
+/// `EventDateTime` refuses an instant with `Z` or an offset (docs/LEDGER_*.md API-60). A date
+/// read back from a DTO goes through here with that entity's `timezone`.
+String wallTimeOf(Object instant, [String? zone]) {
+  if (tz.timeZoneDatabase.locations.isEmpty) tz_data.initializeTimeZones();
+  final DateTime at = instant is DateTime
+      ? instant
+      : DateTime.parse(instant as String);
+  final tz.TZDateTime wall = tz.TZDateTime.from(
+    at,
+    tz.getLocation(zone ?? 'Europe/Paris'),
+  );
+  String two(int n) => n.toString().padLeft(2, '0');
+  return '${wall.year.toString().padLeft(4, '0')}-${two(wall.month)}-${two(wall.day)}'
+      'T${two(wall.hour)}:${two(wall.minute)}:${two(wall.second)}';
+}
+
 Json markdownMedia([String markdown = '']) => {
   'markdown': markdown,
   'assets': {'images': <Object>[], 'attachments': <Object>[]},

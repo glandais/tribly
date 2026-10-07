@@ -16,6 +16,7 @@ import {
 import { commentOnPost, newPost } from './support/posts'
 import { joinGroup, newRide, readRide, rideRequest, ridePath } from './support/rides'
 import { hydrated, toasts } from './support/ui'
+import { wallTimeOf } from './support/dates'
 
 /**
  * Notifications, end to end: a publication or a reply queues an event, the backend's dispatcher
@@ -322,7 +323,10 @@ test.describe('personal notifications', () => {
 
     // What the ride editor sends when « Annuler la sortie » is confirmed: the ride, cancelled.
     await apiPut(owner, `/api/teams/${team.slug}/rides/${ride.slug}`, {
-      ...rideRequest(ride.name, { dateTime: ride.dateTime, status: 'CANCELLED' }),
+      ...rideRequest(ride.name, {
+        dateTime: wallTimeOf(ride.dateTime, ride.timezone),
+        status: 'CANCELLED',
+      }),
       groups: ride.groups.map((g) => ({ id: g.id, name: g.name, leaderId: g.leader?.id })),
     } satisfies RideRequest)
     expect((await readRide(owner, team.slug, ride.slug)).status).toBe('CANCELLED')

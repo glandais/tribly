@@ -11,6 +11,7 @@ import type {
 } from '../../src/api/dto'
 import { apiGet, apiGetOrNull, apiPost, type AuthResponse } from './api'
 import { markdownMedia } from './data'
+import { wallTimeOf } from './dates'
 
 /**
  * Rides seeded through the REST API as the ride editor creates them, participations, comments, and
@@ -27,7 +28,7 @@ export function rideRequest(name: string, overrides: Partial<RideRequest> = {}):
   return {
     name,
     media: markdownMedia(),
-    dateTime: new Date(Date.now() + 2 * 24 * 3600 * 1000).toISOString(),
+    dateTime: wallTimeOf(Date.now() + 2 * 24 * 3600 * 1000),
     status: 'PUBLISHED',
     visibility: 'TEAM',
     groups: [group],
