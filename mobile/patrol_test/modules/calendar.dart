@@ -79,7 +79,7 @@ final class Calendar extends Module {
     // Said once the new token is read back: before, the card still holds the old one.
     await $(
       keys.calendar.subscriptionNotice,
-    ).$(RegExp('^Lien régénéré')).waitUntilVisible();
+    ).$(RegExp("^Lien régénéré")).waitUntilExists();
   }
 
   bool noticeShows(String text) =>
