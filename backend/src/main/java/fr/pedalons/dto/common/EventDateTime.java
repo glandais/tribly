@@ -29,7 +29,7 @@ import org.jspecify.annotations.Nullable;
  * place's, else the route's, else the team's (docs/LEDGER_*.md API-60).
  *
  * <p>An instant with {@code Z} or an offset — what the SPA sent before — is refused with a 400
- * since version N+1 (docs/plans/2026-10-06-event-timezones.md §8): the client never decides the
+ * since version N+1 (docs/plans/archive/2026-10-06-event-timezones.md §8): the client never decides the
  * zone of a rendezvous.
  *
  * <p>Deliberately not a {@link LocalDateTime} field: Jackson's lenient {@code
