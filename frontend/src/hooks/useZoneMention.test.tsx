@@ -34,11 +34,10 @@ describe('useZoneMention', () => {
   })
 
   it('compares offsets at the event’s own date', () => {
-    // Paris has left summer time on 25 October 2026, Casablanca stays at UTC+1 all year: same
-    // offset in winter, different in summer.
-    expect(mention('Africa/Casablanca', '2026-12-05T08:00:00')).toBeNull()
-    expect(mention('Africa/Casablanca', '2026-07-04T08:00:00')).toBe(
-      'timezone.zoneMention:de Casablanca'
-    )
+    // Paris has left summer time on 25 October 2026, Lagos stays at UTC+1 all year: same offset in
+    // winter, different in summer. Not Casablanca: tzdata 2026c put Morocco back on UTC+0 outside
+    // summer, and the tzdata bundled with Node differs between macOS and Linux builds.
+    expect(mention('Africa/Lagos', '2026-12-05T08:00:00')).toBeNull()
+    expect(mention('Africa/Lagos', '2026-07-04T08:00:00')).toBe('timezone.zoneMention:de Lagos')
   })
 })
