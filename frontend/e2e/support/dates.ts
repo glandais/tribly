@@ -18,11 +18,11 @@ export interface WallClock {
   minute: number
 }
 
-/** How `instant` reads on a Paris wall clock. */
-export function parisWallClock(instant: Date | string): WallClock {
+/** How `instant` reads on a wall clock in `zone`. */
+export function wallClockIn(instant: Date | string, zone: string): WallClock {
   const parts = Object.fromEntries(
     new Intl.DateTimeFormat('en-GB', {
-      timeZone: TZ,
+      timeZone: zone,
       year: 'numeric',
       month: 'numeric',
       day: 'numeric',
@@ -42,13 +42,19 @@ export function parisWallClock(instant: Date | string): WallClock {
   }
 }
 
-/** The instant (ISO) a Paris wall clock shows `w` at. */
-export function parisInstant(w: WallClock): string {
+/** The instant (ISO) a wall clock in `zone` shows `w` at. */
+export function instantIn(w: WallClock, zone: string): string {
   const asUtc = Date.UTC(w.year, w.month - 1, w.day, w.hour, w.minute)
-  const seen = parisWallClock(new Date(asUtc))
+  const seen = wallClockIn(new Date(asUtc), zone)
   const offset = Date.UTC(seen.year, seen.month - 1, seen.day, seen.hour, seen.minute) - asUtc
   return new Date(asUtc - offset).toISOString()
 }
+
+/** How `instant` reads on a Paris wall clock. */
+export const parisWallClock = (instant: Date | string) => wallClockIn(instant, TZ)
+
+/** The instant (ISO) a Paris wall clock shows `w` at. */
+export const parisInstant = (w: WallClock) => instantIn(w, TZ)
 
 /** Plain calendar arithmetic on a UTC date: no zone, no DST jump in the way. */
 function shiftDays(from: WallClock, days: number, hour: number, minute: number): WallClock {
@@ -62,10 +68,14 @@ function shiftDays(from: WallClock, days: number, hour: number, minute: number):
   }
 }
 
-/** The day `days` after today in Paris, at `hour`:`minute`. */
-export function parisDaysAhead(days: number, hour: number, minute: number): WallClock {
-  return shiftDays(parisWallClock(new Date()), days, hour, minute)
+/** The day `days` after today in `zone`, at `hour`:`minute`. */
+export function daysAheadIn(zone: string, days: number, hour: number, minute: number): WallClock {
+  return shiftDays(wallClockIn(new Date(), zone), days, hour, minute)
 }
+
+/** The day `days` after today in Paris, at `hour`:`minute`. */
+export const parisDaysAhead = (days: number, hour: number, minute: number) =>
+  daysAheadIn(TZ, days, hour, minute)
 
 /** Whether `a` and `b` fall in the same calendar month. */
 export const sameMonth = (a: WallClock, b: WallClock) => a.year === b.year && a.month === b.month
@@ -83,6 +93,17 @@ export function twoDaysThisMonth(): [WallClock, WallClock] {
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
+
+/**
+ * « 2026-10-10T20:30:00 » — a wall time without offset, as an editor sends a departure: the API
+ * reads it in the zone it resolves for the entity (docs/LEDGER_*.md API-60).
+ */
+export const wallTime = (w: WallClock) =>
+  `${w.year}-${pad(w.month)}-${pad(w.day)}T${pad(w.hour)}:${pad(w.minute)}:00`
+
+/** « 20:30 ». */
+export const clockText = (w: Pick<WallClock, 'hour' | 'minute'>) =>
+  `${pad(w.hour)}:${pad(w.minute)}`
 
 /** « 26/09/2026 08:00 » — how the picker's own button shows its value. */
 export const pickerText = (w: WallClock) =>

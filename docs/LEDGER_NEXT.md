@@ -474,7 +474,11 @@ peuvent pas diverger. Vitest tourne en `Europe/Paris`. Tests : `wallTime.test.ts
 réécrit, 403, 400). **À ne pas défaire** : le front ne calcule jamais le fuseau d'une donnée — il
 envoie des heures murales et le backend résout ; le fuseau qu'il demande ou déduit ne sert qu'à
 l'étiquette (et au contrôle « publication dans le futur »), et l'aperçu du §9 vient du backend, pas
-d'un calcul client. Reste du lot 2 : le scénario Playwright `timezoneId: 'Asia/Tokyo'` du §11.
+d'un calcul client. Le scénario Playwright du §11 a suivi le 7 octobre 2026 :
+`event-timezones.e2e.ts` (une équipe à Paris lue depuis un navigateur à Tokyo — heure de Paris,
+mention avec le jour qui change, absente du rendu serveur et sans erreur d'hydratation, heure du
+groupe seulement quand il part à la sienne, saisie de l'éditeur rendue telle quelle ; et l'inverse,
+une équipe à Tokyo lue depuis Paris).
 
 **Lot 3 (web) livré le 7 octobre 2026** (sans changement de contrat). Les rendez-vous se lisent dans
 le fuseau de l'entité, les horodatages restent dans celui du lecteur : `useRendezvousFormat(zone)`
