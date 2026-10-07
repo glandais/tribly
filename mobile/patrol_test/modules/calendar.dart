@@ -76,6 +76,10 @@ final class Calendar extends Module {
     await (await scrolledTo(keys.calendar.subscriptionRegenerateButton)).tap();
     await $(keys.calendar.subscriptionRegenerateConfirmButton).tap();
     await waitUntilGone(keys.calendar.subscriptionRegenerateConfirmButton);
+    // Said once the new token is read back: before, the card still holds the old one.
+    await $(
+      keys.calendar.subscriptionNotice,
+    ).$(RegExp('^Lien régénéré')).waitUntilVisible();
   }
 
   bool noticeShows(String text) =>

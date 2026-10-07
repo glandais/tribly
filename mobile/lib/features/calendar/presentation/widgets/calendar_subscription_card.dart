@@ -104,10 +104,14 @@ class _CalendarSubscriptionCardState
           ),
           const SizedBox(height: PdlSpacing.cardTight),
           switch (token) {
+            // Pendant une relecture (après « Régénérer »), Riverpod garde
+            // l'ancien jeton en `AsyncData` avec `isLoading` : affiché, mais
+            // ni copiable ni proposé à l'abonnement — il ne marche plus.
             AsyncData<CalendarTokenDto>(:final CalendarTokenDto value) => _body(
               c,
               t,
               value,
+              stale: token.isLoading,
             ),
             AsyncError<CalendarTokenDto>(:final Object error) => PdlBanner(
               tone: PdlBannerTone.danger,
@@ -135,7 +139,12 @@ class _CalendarSubscriptionCardState
     );
   }
 
-  Widget _body(PdlColors c, PdlTypography t, CalendarTokenDto token) {
+  Widget _body(
+    PdlColors c,
+    PdlTypography t,
+    CalendarTokenDto token, {
+    required bool stale,
+  }) {
     final String url = _feedUrl(token);
 
     return Column(
@@ -170,7 +179,7 @@ class _CalendarSubscriptionCardState
               key: keys.calendar.subscriptionCopyButton,
               icon: PdlIcons.copy,
               semanticLabel: 'calendar.subscription.copy'.tr(),
-              onPressed: () => _copy(url),
+              onPressed: stale ? null : () => _copy(url),
             ),
           ],
         ),
@@ -184,7 +193,7 @@ class _CalendarSubscriptionCardState
                 icon: PdlIcons.calendar,
                 label: 'calendar.subscription.subscribe'.tr(),
                 fullWidth: true,
-                onPressed: () => _subscribe(url),
+                onPressed: stale ? null : () => _subscribe(url),
               ),
             ),
             const SizedBox(width: PdlSpacing.chipGap),
@@ -261,8 +270,12 @@ class _CalendarSubscriptionCardState
 
     try {
       await ref.read(calendarRepositoryProvider).regenerateToken();
-      // Le jeton neuf se relit, il ne se garde pas.
-      ref.invalidate(calendarTokenProvider);
+      if (!mounted) return;
+      // Le jeton neuf se relit, il ne se garde pas — et l'issue ne s'annonce
+      // qu'une fois relu : jusque-là, l'URL affichée est celle de l'ancien.
+      final CalendarTokenDto _ = await ref.refresh(
+        calendarTokenProvider.future,
+      );
       if (!mounted) return;
       _notify('calendar.subscription.regenerated'.tr(), PdlBannerTone.info);
     } catch (error) {
