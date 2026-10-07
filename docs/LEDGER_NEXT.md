@@ -110,8 +110,8 @@ données en prod), `MOB-15` pas faite, et le 500 du contact vendeur (`MOB-47`).
       appareils » est câblé. **Notifications** : une ligne par type, une puce par canal déclaré par
       le serveur — à recetter dans les deux états, aucun canal configurable (le défaut en dev ; la
       ligne d'état dit alors que tout reste dans l'app) et push actif (le cas en prod). La cloche reste sur
-      l'Accueil (`MOB-50`). Les mêmes parcours sont automatisés dans Patrol (`MOB-49`), pas encore
-      lancés.
+      l'Accueil (`MOB-50`). Les mêmes parcours sont automatisés dans Patrol, verts depuis le
+      6 octobre 2026 (`MOB-49`).
 - [ ] `MOB-20` **Performance** — liste de 200 items : rester au-dessus de 55 fps. Si le
       `BackdropFilter` des barres épinglées coûte trop cher, le repli prévu (non implémenté à ce
       jour — `blurToolbar` est une constante fixe à 12, aucune branche conditionnelle) serait **un
@@ -153,34 +153,21 @@ navigateur), et la connexion par code e-mailé (la préférence de fuseau existe
       lance : `ci.yml` ne passe que les tests unitaires. Il faudrait un runner macOS (simulateur) ou un
       émulateur Android, plus la stack e2e (`scripts/e2e.sh up`) dans le job. Pendant web : `AUD-3`.
 
-- [ ] `MOB-49` **Profil refondu (`MOB-48`, `WEB-57`) : Patrol et recette (S)** — écrit le
-      4 octobre 2026, vérifié seulement par `flutter analyze` et `flutter test` (782 verts). Les trois
-      choix sont tranchés avec le propriétaire (ligne « Mon compte » ajoutée, pas de cloche dans
-      l'en-tête du Profil — `MOB-50` —, Utilisateurs bloqués sous Confidentialité) et livrés dans
-      `MOB-48` ; il ne reste que l'exécution.
-      - **Patrol à lancer** sur la pile e2e (`scripts/e2e.sh up`, puis depuis `mobile/`
-        `bash e2e.sh -t patrol_test/<test>.dart`) : `notification_settings_test`,
-        `profile_timezone_test`, `profile_preferences_test` (`Profile.backToOverview` touche
-        désormais `keys.profile.backButton`), `profile_data_export_test`,
-        `profile_logout_all_test`, `profile_paired_devices_test`,
-        `profile_participations_count_test`, `profile_participations_list_test`,
-        `account_deletion_test`, `expired_access_token_test`, `notification_mute_test`,
-        `block_user_test` (lien froid vers `/profil/vie-privee/bloques`, retour sur Confidentialité
-        par `Moderation.backToPrivacy`), `report_problem_test`, `apps_beta_signup_test`
-        (« Adresse e-mail invalide », `WEB-57`), et par prudence `login_with_password_test`,
-        `sign_up_verify_test`, `password_reset_test` (libellés d'authentification renommés). La
-        pile e2e ne déclare aucun canal (e-mail coupé, pas de FCM) : la bascule d'une puce n'y est
-        pas exercée (`NOTIF-4`).
+- [ ] `MOB-62` **Profil refondu (`MOB-48`, `WEB-57`) : recette sur appareil et finitions (S)** —
+      reste de `MOB-49`, dont les tests Patrol sont verts depuis le 6 octobre 2026.
       - **Recette sur appareil**, clair et sombre : vue d'ensemble (ligne Mon compte, tirer pour
         rafraîchir), sous-pages, Confidentialité › Utilisateurs bloqués et retour, puces (la cible
-        de 44 px de `PdlChip` vaut pour toutes les puces de filtre de l'app).
+        de 44 px de `PdlChip` vaut pour toutes les puces de filtre de l'app). Recoupe `MOB-15`.
+      - La bascule d'une puce de canal n'est exercée nulle part : la pile e2e ne déclare aucun canal
+        (e-mail coupé, pas de FCM, `NOTIF-4`).
       - Mineurs : la ligne d'état de Mon compte (« Photo, nom affiché, suppression du compte ») et
         la carte d'identité (« Photo, nom et compte ») se répètent un peu ; `Moderation.goBack()`
         (`patrol_test/modules/moderation.dart`) n'a plus d'appelant et repose sur
         `$.tester.pageBack()`, que `PdlAppBar` ne satisfait pas — à retirer. Clés de traduction
-        devenues inutiles : `profile.security`, `profile.community`, `profile.participations.count`,
-        `profile.passkeys.enabled` / `notConfigured` / `replace`,
-        `notifications.preferences.inAppAlwaysOn`.
+        sans appel littéral relevé le 6 octobre 2026 (à revérifier contre une clé construite avant
+        de supprimer) : `profile.security`, `profile.community`, `profile.passkeys.enabled` /
+        `notConfigured` / `replace`, `notifications.preferences.inAppAlwaysOn`.
+        **`profile.participations.count` reste** : `my_participations_page.dart` l'emploie.
 
 ### Tableau de bord d'équipe
 
@@ -364,10 +351,12 @@ refait le parcours : un seul QR, l'étape Hammerhead enchaînée sur le téléph
 un retour d'OAuth paramétré (`returnTo`, contrat `10.4.0`) et un Karoo qui suit `/api/device/me`
 au lieu de redemander. Hammerhead y est **obligatoire** (décision du 2 octobre 2026).
 
-**État au 2 octobre 2026 : code écrit sur les quatre modules, pas encore recetté.** Les tests
-backend (`GpsResourceTest`) sont verts depuis le 4 octobre ; restent les e2e web (`flow-device.e2e.ts`) et Patrol
-(`device_link_test`, `device_hammerhead_test`) à lancer sur la pile e2e, et la recette manuelle
-sur Karoo et téléphone du §4 du plan. L'entrée passe dans `LEDGER_DONE.md` une fois tout cela vert.
+**État au 7 octobre 2026 : tous les tests automatisés sont verts, reste la recette manuelle.**
+Backend (`GpsResourceTest`) vert depuis le 4 octobre ; e2e web (`flow-device.e2e.ts`) et Patrol
+(`device_link_test`, `device_hammerhead_test`, `device_link_signed_out_test`,
+`device_manual_code_test`) verts sur la pile e2e les 6 et 7 octobre (runs complets, deux projets
+Playwright). Reste la recette manuelle sur Karoo et téléphone du §4 du plan ; l'entrée passe dans
+`LEDGER_DONE.md` une fois celle-ci faite.
 
 - [ ] `API-72` **Contraintes CHECK des enums vérifiées contre Flyway (S)** — les tests construisent
       le schéma depuis les entités (`%test.quarkus.flyway.migrate-at-start=false`) : un enum persisté
