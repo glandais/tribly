@@ -68,7 +68,8 @@ fichier garde **ce qui est fait**, et ce qu'il ne faut pas défaire.
     « Vos prochaines … » tronqué sur l'iPhone le plus large, « Voir tout » décollé du bord droit
     sur iPad. Titre et compteur prennent désormais tout ce que l'action laisse.
   `capture.sh` ne cherche plus le simulateur iPad pour une capture iPhone seule. Pas de test
-  automatisé : relecture des 28 captures. **À ne pas défaire** : la troisième carte suppose une
+  automatisé : relecture des 28 captures. Poussé le jour même : `asc metadata apply` (description et
+  mots-clés, FR/EN), puis `asc screenshots upload --replace` sur les quatre jeux. **À ne pas défaire** : la troisième carte suppose une
   sortie à moins de sept jours — le seed la place au samedi suivant, capturer juste après lui.
 
 ### Recette sur une application qui tourne — 4 octobre 2026

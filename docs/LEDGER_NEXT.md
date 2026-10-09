@@ -130,15 +130,12 @@ données en prod), `MOB-15` pas faite, et le 500 du contact vendeur (`MOB-47`).
 
 ### Fiches des stores
 
-- [ ] `MOB-64` **Pousser la fiche App Store de `MOB-63`, refaire celle de Google Play (S)** — la
-      description, les mots-clés (`mobile/metadata/`) et les 28 captures (`screenshots/appstore/`)
-      sont dans le dépôt, pas encore chez Apple : `asc metadata plan` / `apply`, puis le
-      téléversement des captures, qui remplace les six anciennes cartes par type d'écran. Côté Play,
-      `android/fastlane/metadata/` date du 2 août 2026 : description sans météo, tableau de bord ni
-      Agenda, et les captures anglaises restent les françaises (« TODO » de
-      `store-metadata/README.md`). `seed.py` et `capture.sh` ne visent que des simulateurs iOS : il
-      faudrait l'équivalent émulateur Android, ou des captures téléphone Android prises à la main
-      sur le même jeu de démo.
+- [ ] `MOB-64` **Refaire la fiche Google Play sur l'app d'octobre (S)** — l'App Store est à jour
+      depuis `MOB-63`, pas Play : `android/fastlane/metadata/` date du 2 août 2026 (description
+      sans météo, tableau de bord ni Agenda), et les captures anglaises restent les françaises
+      (« TODO » de `store-metadata/README.md`). `seed.py` et `capture.sh` ne visent que des
+      simulateurs iOS : il faudrait l'équivalent émulateur Android, ou des captures téléphone
+      prises à la main sur le même jeu de démo.
 
 ### Couverture e2e Patrol — ce que les tests ne couvrent pas encore
 
