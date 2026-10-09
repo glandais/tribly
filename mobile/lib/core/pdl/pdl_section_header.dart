@@ -35,19 +35,27 @@ class PdlSectionHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Flexible(
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: t.sectionTitle,
+          // Titre et compteur prennent toute la place que l'action laisse. Un
+          // `Flexible` à côté d'un `Spacer` lui en cédait la moitié, et tronquait
+          // « Vos prochaines sorties » sur l'écran le plus large.
+          Expanded(
+            child: Row(
+              children: <Widget>[
+                Flexible(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: t.sectionTitle,
+                  ),
+                ),
+                if (count != null) ...<Widget>[
+                  const SizedBox(width: 8),
+                  Text(count!, style: t.count),
+                ],
+              ],
             ),
           ),
-          if (count != null) ...<Widget>[
-            const SizedBox(width: 8),
-            Text(count!, style: t.count),
-          ],
-          const Spacer(),
           ?action,
         ],
       ),

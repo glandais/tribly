@@ -70,9 +70,9 @@ from zoneinfo import ZoneInfo
 
 HERE = Path(__file__).resolve().parent
 TARGETS = {
-    "staging": {"api": "https://staging.pedalons.fr", "db": "pedalons-staging-postgres",
+    "staging": {"api": "https://staging.pedalons.fr", "env": "pedalons-staging",
                 "accounts": HERE / "accounts.local.json"},
-    "prod": {"api": "https://www.pedalons.fr", "db": "pedalons-prod-postgres",
+    "prod": {"api": "https://www.pedalons.fr", "env": "pedalons-prod",
              "accounts": HERE / "accounts.prod.local.json"},
 }
 TARGET = sys.argv[sys.argv.index("--target") + 1] if "--target" in sys.argv else "staging"
@@ -82,7 +82,7 @@ PROD = TARGET == "prod"
 
 API = TARGETS[TARGET]["api"]
 SSH = "pedalons@pedalons.fr"
-DB_CONTAINER = TARGETS[TARGET]["db"]
+ENV_NAME = TARGETS[TARGET]["env"]
 INBOX = "gabriel.landais+pdl-demo-{key}@gmail.com"
 TZ = ZoneInfo("Europe/Paris")
 
@@ -199,9 +199,16 @@ def call(method: str, path: str, body=None, token: str | None = None):
 
 
 def sql(statement: str) -> str:
-    cmd = ["ssh", "-o", "BatchMode=yes", SSH, f'docker exec -i {DB_CONTAINER} sh -c '
+    # A Swarm task container has no fixed name: found by its service label, then by the
+    # compose name — scripts/_backup_common.sh container_of.
+    container = (f'"$(docker ps -q --filter label=com.docker.swarm.service.name={ENV_NAME}_postgres | head -n1)"'
+                 f'; [ "$c" != "" ] || c="$(docker ps -q --filter name=^{ENV_NAME}-postgres$ | head -n1)"')
+    cmd = ["ssh", "-o", "BatchMode=yes", SSH,
+           f'c={container}; docker exec -i "$c" sh -c '
            f'\'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -v ON_ERROR_STOP=1\'']
-    out = subprocess.run(cmd, input=statement, capture_output=True, text=True, check=True)
+    out = subprocess.run(cmd, input=statement, capture_output=True, text=True)
+    if out.returncode != 0:
+        sys.exit(f"✖ SQL on {ENV_NAME} failed: {out.stderr.strip()}")
     return out.stdout.strip()
 
 
@@ -400,6 +407,12 @@ def iso(dt: datetime) -> str:
     return dt.astimezone(ZoneInfo("UTC")).isoformat().replace("+00:00", "Z")
 
 
+def wall(dt: datetime) -> str:
+    """An event's `dateTime`: wall-clock time in the team's zone (Paris), no offset — the
+    API refuses an instant since contract 11.0.0 (API-60)."""
+    return dt.astimezone(TZ).strftime("%Y-%m-%dT%H:%M:%S")
+
+
 def instant(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(TZ)
 
@@ -431,7 +444,7 @@ def create_ride(base: str, acc: dict, fr: bool, routes: dict, places: dict, spec
     """Publishes one `rides_spec` entry and registers `joins` (member -> group index)."""
     route, place, when, leaders, title, text = spec
     ride = call("POST", f"{base}/rides", {
-        "name": title, "media": media(text), "dateTime": iso(when), "status": "PUBLISHED",
+        "name": title, "media": media(text), "dateTime": wall(when), "status": "PUBLISHED",
         "visibility": "TEAM", "routeSlug": routes[route], "startPlaceId": places[place],
         "endPlaceId": places[place], "groups": ride_groups(acc, fr, routes[route], leaders, when)},
                 acc["julien"]["token"])
@@ -458,13 +471,13 @@ def create_trip(base: str, acc: dict, fr: bool, routes: dict, places: dict, day:
         "name": "Week-end dans le Beaufortain" if fr else "Beaufortain weekend",
         "media": media("Deux jours, deux étapes, une nuit à Beaufort. Voiture d'assistance pour les sacs." if fr
                        else "Two days, two stages, one night in Beaufort. A support car carries the bags."),
-        "dateTime": iso(day), "status": "PUBLISHED", "visibility": "TEAM",
+        "dateTime": wall(day), "status": "PUBLISHED", "visibility": "TEAM",
         "stages": [
-            {"name": "Annecy – Beaufort" if fr else "Annecy to Beaufort", "dateTime": iso(day),
+            {"name": "Annecy – Beaufort" if fr else "Annecy to Beaufort", "dateTime": wall(day),
              "routeSlug": routes["beaufort"], "startPlaceId": places["paquier"],
              "media": media("Pique-nique à Albertville." if fr else "Picnic lunch in Albertville.")},
             {"name": "Cormet de Roselend" if fr else "Cormet de Roselend",
-             "dateTime": iso(day + timedelta(days=1)), "routeSlug": routes["roselend"],
+             "dateTime": wall(day + timedelta(days=1)), "routeSlug": routes["roselend"],
              "media": media("Retour en train depuis Bourg-Saint-Maurice." if fr
                             else "Train back from Bourg-Saint-Maurice.")},
         ]}, acc["julien"]["token"])
@@ -643,7 +656,7 @@ def seed_club(locale: str, acc: dict, viewer: dict) -> list:
     ]
     post_slugs = []
     for title, text, when in posts:
-        post = call("POST", f"{base}/posts", {"name": title, "media": media(text), "dateTime": iso(when),
+        post = call("POST", f"{base}/posts", {"name": title, "media": media(text), "dateTime": wall(when),
                                               "status": "PUBLISHED", "visibility": "TEAM"}, org)
         post_slugs.append(post["slug"])
 
@@ -694,14 +707,18 @@ def seed_club(locale: str, acc: dict, viewer: dict) -> list:
     # arriving after the frame first looks still. The iPad home is left out: its
     # wide layout adds "latest publications" from every public club on staging,
     # real people's content a store page must not show; the trip takes its place.
+    # `push`: a screen without a URL, pushed by the app over `path` once loaded
+    # (lib/screenshots/screenshot_mode.dart). The weather needs ride0 within
+    # seven days — next Saturday, so capture right after seeding.
     return [
         {"id": "01-home", "path": "/", "devices": ["iphone"]},
         {"id": "01-trip", "path": f"{prefix}/{slug}/{voyages}/{trip_slug}", "devices": ["ipad"], "wait": 12},
         {"id": "02-ride", "path": f"{prefix}/{slug}/{sorties}/{ride0}", "wait": 12},
-        {"id": "03-route", "path": f"{prefix}/{slug}/{parcours}/{routes['forclaz']}", "wait": 12},
-        {"id": "04-routes", "path": f"{prefix}/{slug}/{parcours}"},
-        {"id": "05-calendar", "path": "/calendrier" if fr else "/calendar"},
-        {"id": "06-team", "path": f"{prefix}/{slug}"},
+        {"id": "03-weather", "path": f"{prefix}/{slug}/{sorties}/{ride0}", "push": "rideWeather", "wait": 12},
+        {"id": "04-route", "path": f"{prefix}/{slug}/{parcours}/{routes['forclaz']}", "wait": 12},
+        {"id": "05-dashboard", "path": f"{prefix}/{slug}"},
+        {"id": "06-routes", "path": f"{prefix}/{slug}/{parcours}"},
+        {"id": "07-calendar", "path": "/calendrier" if fr else "/calendar"},
     ]
 
 
@@ -820,7 +837,7 @@ def refresh_club(locale: str, acc: dict, viewer: dict) -> None:
     month = today.replace(day=1)
     if not listing(base, org, type="POST", **{"from": iso(datetime.combine(month, time(0), TZ))}):
         title, text = month_post(fr, month)
-        call("POST", f"{base}/posts", {"name": title, "media": media(text), "dateTime": iso(now),
+        call("POST", f"{base}/posts", {"name": title, "media": media(text), "dateTime": wall(now),
                                        "status": "PUBLISHED", "visibility": "TEAM"}, org)
         print(f"  post {title!r}")
 

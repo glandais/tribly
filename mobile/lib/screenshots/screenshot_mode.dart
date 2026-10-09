@@ -63,3 +63,13 @@ Future<void> screenshotSignIn(WidgetRef ref) async {
     debugPrint('[screenshots] sign-in failed: $error');
   }
 }
+
+/// The screen to push over [screenshotInitialPath] once it has loaded, for a
+/// page that has no URL of its own — `rideWeather`, the « Météo du parcours »
+/// pushed from a ride's detail. True once for [name], so a rebuild of the page
+/// underneath does not push it a second time.
+bool screenshotTakePush(String name) {
+  if (!kScreenshotMode || _launch['push'] != name) return false;
+  _launch = Map<String, String>.of(_launch)..remove('push');
+  return true;
+}

@@ -128,6 +128,18 @@ données en prod), `MOB-15` pas faite, et le 500 du contact vendeur (`MOB-47`).
       (`NOT_YET_AVAILABLE`) sur les cartes du fil, qui ajoute une ligne à toutes les sorties à plus
       de 7 jours (`RideWeatherSummaryLine.shows`).
 
+### Fiches des stores
+
+- [ ] `MOB-64` **Pousser la fiche App Store de `MOB-63`, refaire celle de Google Play (S)** — la
+      description, les mots-clés (`mobile/metadata/`) et les 28 captures (`screenshots/appstore/`)
+      sont dans le dépôt, pas encore chez Apple : `asc metadata plan` / `apply`, puis le
+      téléversement des captures, qui remplace les six anciennes cartes par type d'écran. Côté Play,
+      `android/fastlane/metadata/` date du 2 août 2026 : description sans météo, tableau de bord ni
+      Agenda, et les captures anglaises restent les françaises (« TODO » de
+      `store-metadata/README.md`). `seed.py` et `capture.sh` ne visent que des simulateurs iOS : il
+      faudrait l'équivalent émulateur Android, ou des captures téléphone Android prises à la main
+      sur le même jeu de démo.
+
 ### Couverture e2e Patrol — ce que les tests ne couvrent pas encore
 
 `mobile/patrol_test/` couvre les P0 de l'audit de couverture e2e (`WEB-26`) transposés à l'app, et
@@ -656,7 +668,8 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
 - [ ] `OPS-30` **Check Healthchecks du rafraîchissement des données des relecteurs des stores**
       (scindé de `OPS-28`) — `~/.config/pedalons/store-demo.env` n'a pas de `STORE_DEMO_PING_URL` :
       le cron tourne sans que personne ne voie qu'il échoue, et il a échoué sans bruit du 3 au
-      6 octobre 2026. Créer le check (quotidien, 05:00 Europe/Paris, avec une marge) et ajouter son
+      6 octobre 2026, puis de nouveau depuis le contrat 11.0.0 (réparé par `MOB-63`, effectif une
+      fois `~/prod` à jour). Créer le check (quotidien, 05:00 Europe/Paris, avec une marge) et ajouter son
       URL au fichier ([`OPERATIONS.md`](OPERATIONS.md#store-reviewers-demo-data)). Taille : XS.
 
 ---

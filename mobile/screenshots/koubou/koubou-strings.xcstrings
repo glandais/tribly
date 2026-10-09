@@ -2,38 +2,6 @@
   "sourceLanguage": "en-US",
   "version": "1.0",
   "strings": {
-    "Your next ride at a glance": {
-      "localizations": {
-        "en-US": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your next ride at a glance"
-          }
-        },
-        "fr-FR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Votre prochaine sortie en un coup d'œil"
-          }
-        }
-      }
-    },
-    "Where, when, and which group you're riding in.": {
-      "localizations": {
-        "en-US": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Where, when, and which group you're riding in."
-          }
-        },
-        "fr-FR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Où, quand, et dans quel groupe vous roulez."
-          }
-        }
-      }
-    },
     "Multi-day trips, stage by stage": {
       "localizations": {
         "en-US": {
@@ -46,22 +14,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Des voyages étape par étape"
-          }
-        }
-      }
-    },
-    "Every stage with its route, its date and who's coming.": {
-      "localizations": {
-        "en-US": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Every stage with its route, its date and who's coming."
-          }
-        },
-        "fr-FR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chaque étape avec son parcours, sa date et ses participants."
           }
         }
       }
@@ -178,38 +130,6 @@
         }
       }
     },
-    "Your club's own space": {
-      "localizations": {
-        "en-US": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your club's own space"
-          }
-        },
-        "fr-FR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "L'espace de votre club"
-          }
-        }
-      }
-    },
-    "Rides, routes, posts and ads, among members.": {
-      "localizations": {
-        "en-US": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rides, routes, posts and ads, among members."
-          }
-        },
-        "fr-FR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sorties, parcours, publications et annonces, entre membres."
-          }
-        }
-      }
-    },
     "Sort and filter by distance, climbing or hilliness.": {
       "localizations": {
         "en-US": {
@@ -222,6 +142,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "Triez et filtrez par distance, dénivelé ou relief."
+          }
+        }
+      }
+    },
+    "Your week on the bike": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your week on the bike"
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre semaine à vélo"
+          }
+        }
+      }
+    },
+    "Your next ride, this week's outings and your teams.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your next ride, this week's outings and your teams."
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre prochaine sortie, celles de la semaine et vos équipes."
+          }
+        }
+      }
+    },
+    "Weather along the route": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather along the route"
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La météo tout le long du parcours"
+          }
+        }
+      }
+    },
+    "Rain, wind and temperature, at your group's pace.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rain, wind and temperature, at your group's pace."
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pluie, vent et température, à l'allure de votre groupe."
+          }
+        }
+      }
+    },
+    "Your club at a glance": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your club at a glance"
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre club en un coup d'œil"
+          }
+        }
+      }
+    },
+    "Your next rides, the latest posts, new routes and ads.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your next rides, the latest posts, new routes and ads."
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vos prochaines sorties, les nouvelles, les parcours et les annonces."
+          }
+        }
+      }
+    },
+    "Every stage with its route, its date and who's coming.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every stage with its route, its date and who's coming."
+          }
+        },
+        "fr-FR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque étape avec son parcours, sa date et qui vient."
           }
         }
       }

@@ -24,21 +24,27 @@
           "wait": 12
         },
         {
-          "id": "03-route",
+          "id": "03-weather",
+          "path": "/equipes/vc-du-lac-d-annecy/sorties/sortie-du-samedi-la-forclaz",
+          "push": "rideWeather",
+          "wait": 12
+        },
+        {
+          "id": "04-route",
           "path": "/equipes/vc-du-lac-d-annecy/parcours/col-de-la-forclaz-par-talloires",
           "wait": 12
         },
         {
-          "id": "04-routes",
+          "id": "05-dashboard",
+          "path": "/equipes/vc-du-lac-d-annecy"
+        },
+        {
+          "id": "06-routes",
           "path": "/equipes/vc-du-lac-d-annecy/parcours"
         },
         {
-          "id": "05-calendar",
+          "id": "07-calendar",
           "path": "/calendrier"
-        },
-        {
-          "id": "06-team",
-          "path": "/equipes/vc-du-lac-d-annecy"
         }
       ]
     },
@@ -65,21 +71,27 @@
           "wait": 12
         },
         {
-          "id": "03-route",
+          "id": "03-weather",
+          "path": "/teams/annecy-lakeside-cycling/rides/saturday-ride-the-forclaz",
+          "push": "rideWeather",
+          "wait": 12
+        },
+        {
+          "id": "04-route",
           "path": "/teams/annecy-lakeside-cycling/routes/col-de-la-forclaz-via-talloires",
           "wait": 12
         },
         {
-          "id": "04-routes",
+          "id": "05-dashboard",
+          "path": "/teams/annecy-lakeside-cycling"
+        },
+        {
+          "id": "06-routes",
           "path": "/teams/annecy-lakeside-cycling/routes"
         },
         {
-          "id": "05-calendar",
+          "id": "07-calendar",
           "path": "/calendar"
-        },
-        {
-          "id": "06-team",
-          "path": "/teams/annecy-lakeside-cycling"
         }
       ]
     }

@@ -31,10 +31,12 @@ import '../widgets/ride_elevation_section.dart';
 import '../widgets/ride_groups_map.dart';
 import '../widgets/ride_groups_section.dart';
 import '../widgets/ride_weather_card.dart';
+import 'ride_weather_page.dart';
 import '../../../feedback/presentation/report_problem_button.dart';
 import '../../../../keys.dart';
 import '../../../../core/utils/push_location.dart';
 import '../../../../core/widgets/zone_mention_line.dart';
+import '../../../../screenshots/screenshot_mode.dart';
 
 /// L'écran 12 — détail d'une sortie et inscription à un groupe.
 ///
@@ -95,6 +97,14 @@ class _RideDetailContent extends ConsumerWidget {
 
     void select(String id) =>
         ref.read(selectedRideGroupProvider(rideKey).notifier).state = id;
+
+    // Captures des stores seulement : la météo du parcours n'a pas d'URL, le
+    // mode capture la pousse par-dessus le détail une fois celui-ci chargé.
+    if (screenshotTakePush('rideWeather')) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) RideWeatherPage.open(context, rideKey);
+      });
+    }
 
     return PdlScreenScaffold(
       // Le détail **et** la météo : la prévision vit dans son propre provider,

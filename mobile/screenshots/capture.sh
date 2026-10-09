@@ -65,8 +65,10 @@ for devices in json.load(sys.stdin)["devices"].values():
             print(d["udid"]); sys.exit(0)
 sys.exit(1)' "$1" || { echo "✖ no available simulator named « $1 »" >&2; exit 1; }
 }
+# Only the devices asked for: a machine without an iPad simulator can still take the iPhone set.
 IPHONE_UDID=$(udid_named "$IPHONE_NAME")
-IPAD_UDID=$(udid_named "$IPAD_NAME")
+IPAD_UDID=""
+[[ " ${devices[*]} " == *" ipad "* ]] && IPAD_UDID=$(udid_named "$IPAD_NAME")
 
 # ------------------------------------------------------------------ simulators
 
@@ -83,8 +85,8 @@ write_launch() {
   local file
   file=$(launch_file)
   mkdir -p "$(dirname "$file")"
-  python3 -c 'import json,sys; json.dump({"screen": sys.argv[1], "email": sys.argv[2], "password": sys.argv[3]}, open(sys.argv[4], "w"))' \
-    "$1" "$2" "$3" "$file"
+  python3 -c 'import json,sys; json.dump({k: v for k, v in zip(("screen", "email", "password", "push"), sys.argv[1:5]) if v}, open(sys.argv[5], "w"))' \
+    "$1" "$2" "$3" "$4" "$file"
 }
 clear_launch() {
   rm -f "$(launch_file 2>/dev/null)" 2>/dev/null || true
@@ -95,7 +97,7 @@ restore() {
     clear_launch
     xcrun simctl status_bar "$CURRENT" clear >/dev/null 2>&1 || true
     xcrun simctl terminate "$CURRENT" "$BUNDLE_ID" >/dev/null 2>&1 || true
-    if [ "$CURRENT" = "$IPAD_UDID" ]; then
+    if [ -n "$IPAD_UDID" ] && [ "$CURRENT" = "$IPAD_UDID" ]; then
       echo "▸ shutting the iPad down"
       xcrun simctl shutdown "$CURRENT" >/dev/null 2>&1 || true
     fi
@@ -181,10 +183,10 @@ for device in "${devices[@]}"; do
     mkdir -p "$OUT/$device/$locale"
     email=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]]["email"])' "$ACCOUNTS" "$locale")
     password=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]]["password"])' "$ACCOUNTS" "$locale")
-    while IFS=$'\t' read -r id path wait; do
+    while IFS=$'\t' read -r id path wait push; do
       echo "▸ $device $locale $id  ($path)"
       xcrun simctl terminate "$CURRENT" "$BUNDLE_ID" >/dev/null 2>&1 || true
-      write_launch "$path" "$email" "$password"
+      write_launch "$path" "$email" "$password" "$push"
       xcrun simctl launch "$CURRENT" "$BUNDLE_ID" >/dev/null
       settle_and_capture "$OUT/$device/$locale/$id.png" "$wait"
     done < <(python3 -c '
@@ -192,7 +194,7 @@ import json, sys
 plan = json.load(open(sys.argv[1]))
 for s in plan["locales"][sys.argv[2]]["screens"]:
     if sys.argv[3] in s.get("devices", ["iphone", "ipad"]):
-        print(s["id"] + "\t" + s["path"] + "\t" + str(s.get("wait", 4)))' "$PLAN" "$locale" "$device")
+        print(s["id"] + "\t" + s["path"] + "\t" + str(s.get("wait", 4)) + "\t" + s.get("push", ""))' "$PLAN" "$locale" "$device")
   done
 done
 

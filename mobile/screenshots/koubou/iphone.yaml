@@ -19,8 +19,8 @@ screenshots:
   01-home:
     template: "templates/hero.html"
     variables:
-      headline: "Your next ride at a glance"
-      subtitle: "Where, when, and which group you're riding in."
+      headline: "Your week on the bike"
+      subtitle: "Your next ride, this week's outings and your teams."
     assets:
       app_screenshot: "../flat/iphone/01-home.png"
 
@@ -32,34 +32,42 @@ screenshots:
     assets:
       app_screenshot: "../flat/iphone/02-ride.png"
 
-  03-route:
+  03-weather:
+    template: "templates/hero.html"
+    variables:
+      headline: "Weather along the route"
+      subtitle: "Rain, wind and temperature, at your group's pace."
+    assets:
+      app_screenshot: "../flat/iphone/03-weather.png"
+
+  04-route:
     template: "templates/hero.html"
     variables:
       headline: "Profile, climbs and gradients"
       subtitle: "Every climb of the route, then off to your GPS."
     assets:
-      app_screenshot: "../flat/iphone/03-route.png"
+      app_screenshot: "../flat/iphone/04-route.png"
 
-  04-routes:
+  05-dashboard:
+    template: "templates/hero.html"
+    variables:
+      headline: "Your club at a glance"
+      subtitle: "Your next rides, the latest posts, new routes and ads."
+    assets:
+      app_screenshot: "../flat/iphone/05-dashboard.png"
+
+  06-routes:
     template: "templates/hero.html"
     variables:
       headline: "All your club's routes"
       subtitle: "Sort and filter by distance, climbing or hilliness."
     assets:
-      app_screenshot: "../flat/iphone/04-routes.png"
+      app_screenshot: "../flat/iphone/06-routes.png"
 
-  05-calendar:
+  07-calendar:
     template: "templates/hero.html"
     variables:
       headline: "The whole season in one calendar"
       subtitle: "Rides and trips, and the ones you signed up for."
     assets:
-      app_screenshot: "../flat/iphone/05-calendar.png"
-
-  06-team:
-    template: "templates/hero.html"
-    variables:
-      headline: "Your club's own space"
-      subtitle: "Rides, routes, posts and ads, among members."
-    assets:
-      app_screenshot: "../flat/iphone/06-team.png"
+      app_screenshot: "../flat/iphone/07-calendar.png"
