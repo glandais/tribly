@@ -25,7 +25,7 @@ Tout ce que la branche `fixes` apporte au-dessus de `develop`. Les IDs renvoient
    nullables ou avec défaut, nouvelle table).
 4. **Vérifications sur l'hôte**, au déploiement :
    - les healthchecks de `AUD-5` sous Swarm ;
-   - le ratelimit Traefik de `SEC-28` (procédure dans [OPERATIONS.md](OPERATIONS.md), « Rate
+   - le ratelimit Traefik de `SEC-28` (procédure dans [OPERATIONS.md](../../OPERATIONS.md), « Rate
      limiting ») — il suppose Caddy seul devant Traefik ;
    - `OPS-24` : appliquer `replace next REDACTED` et la suppression du `Referer` au Caddy de l'hôte ;
    - `SEC-19` : `select max(length(markdown))` sur `team_entities` et `ride_templates` avant de
