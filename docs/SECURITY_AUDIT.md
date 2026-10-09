@@ -126,7 +126,7 @@ changement de statut ici se reporte là-bas.
 | L8 | Un paramètre n'est pas encodé dans une redirection | Corrigé (ledger `SEC-20`) |
 | L9 | Un nom de fichier n'est pas encodé dans une URL | Corrigé (ledger `SEC-20`) |
 | L10 | Karoo : les tokens sont stockés sans chiffrement et inclus dans les sauvegardes | Ouvert |
-| L11 | GitHub Actions : durcissement des workflows | Partiellement corrigé : `ci.yml` est en `permissions: contents: read` par défaut (commit `09c65ecd`) ; le reste est ouvert |
+| L11 | GitHub Actions : durcissement des workflows | Partiellement corrigé : permissions minimales sur les quatre workflows — `ci.yml`, `codeql.yml` et `e2e.yml` en `permissions: contents: read` par défaut (commits `09c65ecd`, `e8fbc3be`, `8bf6fa9f`), `karoo-release.yml` limite son seul job à `contents: write` ; l'épinglage des actions par SHA reste ouvert |
 | L12 | Des jokers ne sont pas échappés dans des recherches (audit de février, S9) | Corrigé (ledger `SEC-22`) |
 | L13 | Un en-tête de réponse est construit sans encodage (audit de février, S10) | Corrigé (ledger `SEC-22`) |
 | L14 | Les échecs de connexion ne sont pas journalisés (audit de février, S11) | Corrigé (ledger `SEC-23`) |

@@ -41,7 +41,8 @@ Drive engagement and reduce friction for organizers.
 - [X] Multi-GPX upload (one route per file) — Huge time saver
 - [X] Team location (init route planner) — Better defaults
 - [X] Card CTAs (modify, publish, delete, add to calendar) — ledger `WEB-33`
-- [ ] Team dashboard (drafts count, what's next, activity feed)
+- [x] Team dashboard (drafts count, what's next, activity feed) — ledger `API-79`, `WEB-63`,
+      `MOB-53`; the "latest content" blocks stand in for an activity feed
 
 ### Member Engagement
 - [X] Calendar view (rides, trips) + sync URL export
@@ -51,7 +52,7 @@ Drive engagement and reduce friction for organizers.
     `Status` rather than in it (a past cancelled ride is both). See ledger `API-16`
 
 ### Content System
-- [ ] Markdown image improvements:
+- [x] Markdown image improvements:
   - [X] Use image asset endpoint in display
   - [X] Allow any image format (heic, ...)
   - [x] Drag/drop image support — drop or paste into the editor (ledger `WEB-32`)
@@ -65,15 +66,16 @@ Drive engagement and reduce friction for organizers.
 Features that differentiate and deepen engagement.
 
 ### Discovery & Search
-- [ ] Global full-text search (priority: my teams → public)
+- [ ] Global full-text search (priority: my teams → public) — ledger `API-19`
 - [ ] All trips view with search filters
 - [ ] User favorite routes + dedicated tab
 
 ### Route Features
 - [ ] Route basket (collect routes, display on single map)
 - [ ] Team/global route heatmap
-- [ ] Router profile selection
-- [ ] Custom cycling map style (Maplibre)
+- [x] Router profile selection — six Valhalla profiles in the web planner (`RouterProfileSelector`)
+- [ ] Custom cycling map style (Maplibre) — CyclOSM (third-party raster) is among the base maps
+      in the meantime
 
 ### Visibility Controls
 - [x] PUBLIC_UNLISTED visibility — Shareable but not indexed
@@ -83,9 +85,11 @@ Features that differentiate and deepen engagement.
     unlisted team, and `frontend/index.html` no longer ships a static robots tag.
 
 ### Trip Enhancements
-- [ ] Trip stats (save in DB)
+Stored trip stats were ruled out: the totals are computed on read (ledger `API-93`).
 - [ ] Trip stage alternative routes
-- [ ] Trip view redesign + progress indicator
+- [x] Trip view redesign — mobile v2 (screen 24) and the web port
+- [ ] Trip progress indicator inside the trip view (current stage, "stage 3/7") — today only the
+      agenda and card badges say a trip is under way
 
 ---
 
@@ -147,7 +151,8 @@ Validated interest required before prioritization.
 - [ ] Dedicated mobile/Garmin/Karoo app for a team with its own domain (one store listing per
       customer — the web side is covered by domain aliases)
 - [ ] User dedicated team (personal workspace)
-- [ ] Places improvements (currently limited to 50 items)
+- [x] Places improvements — server-side search and pagination (picker and admin list); no more
+      50-item cap
 
 ---
 

@@ -232,12 +232,13 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       bootstrap avait accumulé 2 520 équipes). Sans effet à l'échelle d'un vrai compte (quelques
       dizaines de sorties par semaine), mais rien ne borne le cas. La suite e2e ne l'exerce plus
       (routes-render promeut un admin plateforme neuf).
-      **En cours côté Mantine** (depuis le 30 septembre 2026) : une issue et une PR sont en
-      préparation sur `mantinedev/mantine`. Elles remplacent le rebalayage de la semaine dans
-      `findAvailableRow` par un index d'occupation de 7 jours, soit O(7) par événement au lieu de
-      O(n), pour le même placement. La tâche se ferme quand une version corrigée de
-      `@mantine/schedule` est publiée, que `frontend/` y passe et qu'une mesure confirme le gain ;
-      noter alors ici les liens de l'issue et de la PR. **Piste écartée** : ne passer à `Schedule`
+      **Corrigé en amont, reste à mesurer** : `@mantine/schedule` 9.7.1 remplace le rebalayage de
+      la semaine (`findAvailableRow` a disparu) par un index d'occupation de 7 jours
+      (`nextRowByDay`, `reserveRow`), soit O(7) par événement au lieu de O(n), et `frontend/` y est
+      passé le 7 octobre 2026 (`8fa64c44`). La tâche se ferme quand une mesure du rendu serveur de
+      `/calendrier` à 1 000 puis 2 400 sorties sur une semaine confirme le gain
+      (`get-renderable-month-event-segments` reste un balayage par jour, linéaire mais non
+      mesuré) ; noter alors ici les liens de l'issue et de la PR `mantinedev/mantine`. **Piste écartée** : ne passer à `Schedule`
       que les événements de la grille visible, qui est déjà le cas (`getVisibleRange` borne la
       requête) et ne change rien quand tout tombe dans une même semaine. **Repli** si l'amont
       tarde : un seuil au rendu serveur (au-delà de N événements, grille vide au premier rendu et
@@ -312,8 +313,10 @@ La recette du web est automatisée par une suite Playwright depuis le 25 septemb
       `___MISSING_TRANSLATION___`, réordonnancement). Les clés météo ont été insérées à la main.
       Régler la configuration d'i18next-cli (pluriels, ordre) pour qu'une extraction n'ajoute que
       les clés nouvelles. Au passage : le mock partagé de `ResizeObserver` (`src/test/setup.ts`)
-      est une fonction fléchée, que `new` refuse avec `ScrollArea` et `SegmentedControl` de
-      Mantine — `RideWeatherSection.test.tsx` le remplace localement par `vi.stubGlobal`.
+      est une classe depuis `99de5185` (`WEB-69`), mais sept tests le remplacent encore localement,
+      certains avec un commentaire qui le dit fléché (`RideWeatherSection`, `StageWeatherSection`,
+      `CardActions`, `memberHome`, `TagPicker`, `TeamDashboard`, `NotificationPreferences`) : ces
+      remplacements sont à retirer.
 
 ### Couverture e2e — ce que l'audit du 27 septembre laisse ouvert
 
@@ -484,9 +487,9 @@ ceux du plan (`API-1`, l'URL de tuile authentifiable, est livré).
 | `API-17` | `?format=polyline` sur la géométrie de parcours | — | La géométrie stockée est déjà allégée à l'import (`API-40` : 681 points et 65 Ko pour le parcours médian) ; ~÷4 sur le poids, au prix d'un décodeur Dart. **À rouvrir seulement sur une mesure réelle** |
 | `API-18` | Voyage comme événement multi-jour au calendrier (`CalendarEventType`) | 22 | Les étapes y sont, le voyage en tant qu'objet non |
 | `API-19` | `GET /api/search?q&types=&limit` unifié | — | Plus aucune recherche transverse : `GET /api/users/search` a été **supprimé** en `3.0.0` (`API-39`). La seule recherche de personnes est celle du trombinoscope d'une équipe |
-| `API-20` | Pagination du calendrier | 22 | Fenêtre fixe −30 j / +180 j, non paginée |
 
-Le meneur de groupe (`API-41`, livré en 1.5.0) et l'URL de tuile (`API-1`) sont dans
+Le meneur de groupe (`API-41`, livré en 1.5.0), l'URL de tuile (`API-1`) et la pagination du
+calendrier (`API-20`) sont dans
 [`LEDGER_DONE.md`](LEDGER_DONE.md). Les **gabarits de sortie n'ont volontairement pas de meneur** —
 décision produit : `RideTemplateGroupRequest` reste sans champ.
 
@@ -560,6 +563,10 @@ Ce que les tests ne prouvent pas, parce qu'ils ne passent ni par Flyway ni par u
       (team_id, email) where status = 'PENDING'` — les tests construisent le schéma depuis les
       mappings JPA, qui ne savent pas exprimer un index partiel, donc c'est précisément le genre
       d'objet qu'un test vert ne prouve pas.
+      **Déjà vu en production** : Flyway a appliqué les migrations jusqu'à V67 en prod et en
+      staging le 7 octobre 2026 (`OPS-29`, lot 5 d'`API-60`), sans erreur au démarrage. Restent
+      `Migrating schema … to version 68` (ou la dernière à la date de la recette) et les contrôles
+      de schéma ci-dessus, qu'aucune recette n'a encore faits en production.
 - [ ] `OPS-2` **Les tests backend sont à lancer par le propriétaire du dépôt**, jamais par Claude
       (interdiction du projet). Le découpage par item est au §5.2 du même document. Deux gardes à
       ne jamais désactiver pour faire passer un build : les classes `…QueryCountTest` (elles
@@ -765,7 +772,7 @@ mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat d
 | ID | Priorité (audit) | Audit | Sévérité | Constat |
 |---|---|---|---|---|
 | `SEC-12` | — | L3, L10 | Faible | Voir la table des constats faibles de l'audit ; L1 et L5 à L9 sont livrés sous `SEC-20`, L12 et L13 sous `SEC-22`, L14 sous `SEC-23`, L4 sous `SEC-24` |
-| `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — partiel, `ci.yml` seulement |
+| `SEC-13` | — | L11 | Faible | Durcissement des workflows GitHub Actions — permissions minimales posées sur les quatre workflows (`09c65ecd`, `e8fbc3be`, `8bf6fa9f` ; `karoo-release.yml` limite son seul job à `contents: write`) ; reste l'épinglage des actions par SHA, à commencer par les actions tierces de `karoo-release.yml`, qui a le keystore |
 | `SEC-14` | — | Info | — | Images externes dans le markdown ; le parseur XML et le paramètre non encodé sont livrés sous `SEC-21` |
 | `SEC-31` | — | V4 (suite) | Moyenne | La CSP du site ne contraint encore ni les scripts, ni les styles, ni les origines (`SEC-30` n'a posé que `frame-ancestors`, `base-uri`, `object-src`, `form-action`) : une XSS n'y trouve aucun obstacle. `server.js` écrit à chaque requête deux scripts inline exécutables (`__REACT_QUERY_STATE__`, `__AUTH_STATE__`), et `index.html` le script de thème : poser un nonce par requête (ou passer les deux états en `<script type="application/json">`), un hash pour le thème, `getStyleNonce` de Mantine. `style-src` garde `'unsafe-inline'` (~225 attributs `style`). `connect-src`/`img-src` doivent suivre les fonds de carte de `application.properties` (surchargeables) et FCM ; les images des textes markdown viennent de n'importe quel hôte. Déployer d'abord en `Content-Security-Policy-Report-Only`. Taille : M |
 
@@ -830,6 +837,7 @@ redevient une entrée de sa section sous le même identifiant.
 | `API-32` | **Champ de contact libre sur une annonce** | Écarté au profit du relais e-mail | C'était la solution la moins chère, et elle publie une donnée personnelle **irrévocablement** à toute l'équipe (jusqu'à 1 999 personnes) : ce qui a été lu ne se dépublie pas. Retirer le champ plus tard ne répare rien |
 | `API-33` | **`GET /api/rides` et listes mono-type** | Non créées ; `/api/publications?type=RIDE` est la surface canonique | Deux surfaces = deux jeux de filtres à garder cohérents. `RideListResponse` / `TripListResponse` existent encore comme records retournés par **aucun endpoint** — les supprimer serait un MAJOR gratuit |
 | `API-34` | **`acceptTerms` obligatoire à l'inscription (contrat `4.1.0`)** | Laissé en mineure | Les builds mobiles qui n'envoient pas le champ reçoivent un 400 `VALIDATION` à l'inscription. La rupture est acceptée sans passer en `5.0.0` |
+| `API-93` | **Statistiques de voyage stockées en base** (BACKLOG « Trip stats (save in DB) ») | Non (décidé le 9 octobre 2026 avec le propriétaire) | `TripDto.totalDistance` et `totalElevationGain` (contrat `1.3.0`) sont calculés à la lecture, une requête par page (`TripSummaryRepository.loadStageAggregates`), et suffisent aux écrans web et mobile. Une colonne dénormalisée devrait suivre chaque modification d'étape ou de parcours, comme la fin stockée (`API-85`, `API-87`). À rouvrir sur une mesure réelle de coût |
 | `API-89` | **Fin stockée pendant le déploiement à chaud** | Acceptée le 6 octobre 2026 (`API-85`) | Pendant la minute où l'ancien et le nouveau backend partagent la base, une sortie ou un voyage **modifié** par l'ancien garde sa fin précédente, non nulle, que le remplissage au démarrage (`PublicationEndBackfill`, lignes vides seulement) ne corrige pas ; seules les lignes **créées** par l'ancien profitent du repli départ + 3 h. Fenêtre d'une minute, corrigée au prochain enregistrement. À rouvrir si un déploiement long ou un retour arrière le rendait visible |
 | `API-54` | **exiftool pour retirer les métadonnées des images** | Écarté le 29 septembre 2026, après mesure sur un corpus synthétique (métadonnées marquées, pixels comparés) | exiftool (micro-service ou WASM) retire ce qu'il connaît au lieu de ne garder que ce qui est autorisé : il a laissé passer un chunk PNG privé et les octets après le trailer GIF, et refusé un WebP valide. Il ne nettoie pas les PDF, il a des CVE répétées (dont CVE-2026-7580, qui touche la 13.50) et il ajoute un conteneur. En WASM (zeroperl sur Chicory), sa sortie est identique mais il prend 17 à 19 s par image. imgproxy, écarté le même jour parce qu'il n'a pas de mode sans perte, a finalement été retenu : la perte d'un réencodage a été acceptée pour un code plus simple, qui ne laisse rien passer par construction et lit aussi HEIC, AVIF, TIFF et JPEG XL (`API-43`) |
 | `API-52` | **Durcir `ImageMetadataStripper`** | Sans objet depuis le 29 septembre 2026 | Le nettoyeur maison sans perte a été supprimé : le stockage fait réencoder chaque image par imgproxy (`API-43`), qui n'écrit que les pixels. Ne pas le réintroduire pour gagner la qualité perdue : c'est lui dont les branches gardaient par défaut ce qu'elles ne connaissaient pas |
