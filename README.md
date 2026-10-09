@@ -26,7 +26,7 @@ Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX
 ### 1. Clone and Setup
 
 ```bash
-git clone git@github.com:glandais/tribly.git
+git clone git@github.com:glandais/pedalons.git
 cd tribly
 cp .env.example .env
 ```

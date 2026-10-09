@@ -26,7 +26,7 @@ import {
 import { signUpForBeta } from '@/api/endpoints/beta-signups/beta-signups'
 import { useInstallOffer } from '@/lib/install/useInstallOffer'
 
-const KAROO_RELEASES_URL = 'https://github.com/glandais/tribly/releases?q=karoo'
+const KAROO_RELEASES_URL = 'https://github.com/glandais/pedalons/releases?q=karoo'
 
 type AppStatus = 'available' | 'comingSoon' | 'installed'
 

@@ -16,7 +16,7 @@ import '../../../../keys.dart';
 import '../../data/beta_signup_repository.dart';
 
 const String _kKarooReleasesUrl =
-    'https://github.com/glandais/tribly/releases?q=karoo';
+    'https://github.com/glandais/pedalons/releases?q=karoo';
 
 class AppsPage extends ConsumerStatefulWidget {
   const AppsPage({super.key});

@@ -777,7 +777,7 @@ The checkout is read-only, shallow and sparse (5 MB, `scripts/` only):
 
 ```bash
 git clone --depth 1 --single-branch --branch develop --no-checkout \
-  https://github.com/glandais/tribly.git /opt/pedalons-scripts
+  https://github.com/glandais/pedalons.git /opt/pedalons-scripts
 cd /opt/pedalons-scripts && git sparse-checkout set --no-cone scripts && git checkout develop
 ```
 
