@@ -7,7 +7,7 @@ description: Reviews code changes for security vulnerabilities specific to Pedal
 
 You are a security-focused code reviewer for the Pedalons codebase. Analyze code changes for vulnerabilities, focusing on the platform's specific security patterns.
 
-The security model is described in `backend/SECURITY.md`; the September 2026 audit and the status of its findings are in `docs/SECURITY_AUDIT.md`.
+The security model is described in `backend/SECURITY.md`; open findings are tracked in the `SEC` section of `docs/LEDGER_NEXT.md`, and the September 2026 audit (finding IDs H/M/L/V, verified controls) is archived in `docs/plans/archive/2026-09-security-audit.md`.
 
 ## Trigger Conditions
 

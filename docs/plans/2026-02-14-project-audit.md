@@ -8,11 +8,11 @@
 > d'avril. Les comptages de fin de document sont recalculés à partir de ces statuts. Restent ouverts, entre autres : rate limiting de
 > `/api/device/oauth/complete`, URL Garmin en dur, `MainActivity.kt` Karoo,
 > `forwardedHeaders.insecure`, pipeline CD, healthchecks. La sécurité applicative est désormais
-> suivie dans [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) (septembre 2026) ; ce document reste la
+> suivie sous le préfixe `SEC` du ledger, ouvert par l'[audit de sécurité de septembre 2026](archive/2026-09-security-audit.md) ; ce document reste la
 > référence pour l'infrastructure, la CI/CD et la qualité des modules.
 >
 > **Suivi** : les lignes ouvertes de sécurité (S2 à S12) sont versées dans
-> [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) (H5, M7 à M10, L12 à L14), donc sous le préfixe `SEC` du ledger ;
+> l'[audit de sécurité de septembre](archive/2026-09-security-audit.md) (H5, M7 à M10, L12 à L14), donc sous le préfixe `SEC` du ledger ;
 > les autres lignes ouvertes sont reprises, une par une, sous le préfixe `AUD` de
 > [`LEDGER_NEXT.md`](../LEDGER_NEXT.md) (I13 et I20 : `OPS-7` et `OPS-8`), revérifiées dans le code le
 > 29 septembre 2026. Une ligne corrigée se coche ici **et** quitte le ledger.
@@ -283,17 +283,17 @@ Multi-tenancy par domaine HTTP avec filtrage SQL. Auth JWT 15min (web) / 60min (
 | # | Probleme | Severite | Effort | Fichiers | Statut |
 |---|----------|----------|--------|----------|--------|
 | S1 | **Endpoint `/api/device/oauth/complete` sans authentification** — userId fourni par le client, permet usurpation d'identite | Critique | S | `DeviceOAuthResource.java:79` | ✅ |
-| S2 | **Aucun rate limiting sur `/complete`** — user code 6 chars bruteforcable | Critique | S | `DeviceOAuthResource.java` | ✅ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) H5 (ledger `SEC-4`) |
-| S3 | Pas de rotation du refresh token au refresh — vol exploitable 30/90 jours | Important | M | `AuthService.java:211-243` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M7 |
-| S4 | `UserRepository.findActiveById()` sans filtre domainId — pattern fragile | Important | S | `UserRepository.java:22-24` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M8 |
-| S5 | `PasskeyRepository.findByCredentialId()` sans filtre domainId | Important | S | `PasskeyRepository.java:12-14` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M8 |
-| S6 | Device JWT 60min — genereux pour un token non-revocable | Important | S | `application.properties` | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M9 |
-| S7 | Rate limiting global HTTP absent | Important | M | Configuration infra | → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) M10 |
-| S8 | CORS origines dev en defaut (controllable via variable d'env) | Mineur | S | `application.properties` | ⚠️ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) contrôles conformes |
-| S9 | LIKE wildcards non echappees dans la recherche | Mineur | S | `UserRepository.java` | ✅ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L12 (ledger `SEC-22`) |
-| S10 | Header injection potentielle dans Content-Disposition | Mineur | S | `DeviceRoutesResource.java` | ✅ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L13 (ledger `SEC-22`) |
-| S11 | Logs insuffisants pour detecter les tentatives de brute force | Mineur | S | `AuthService.java` | ✅ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) L14 (ledger `SEC-23`) |
-| S12 | Cookie `secure=false` par defaut en dev, `true` en prod | Mineur | S | `application.properties` | ⚠️ → [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) contrôles conformes |
+| S2 | **Aucun rate limiting sur `/complete`** — user code 6 chars bruteforcable | Critique | S | `DeviceOAuthResource.java` | ✅ → [audit de sécurité de septembre](archive/2026-09-security-audit.md) H5 (ledger `SEC-4`) |
+| S3 | Pas de rotation du refresh token au refresh — vol exploitable 30/90 jours | Important | M | `AuthService.java:211-243` | → [audit de sécurité de septembre](archive/2026-09-security-audit.md) M7 |
+| S4 | `UserRepository.findActiveById()` sans filtre domainId — pattern fragile | Important | S | `UserRepository.java:22-24` | → [audit de sécurité de septembre](archive/2026-09-security-audit.md) M8 |
+| S5 | `PasskeyRepository.findByCredentialId()` sans filtre domainId | Important | S | `PasskeyRepository.java:12-14` | → [audit de sécurité de septembre](archive/2026-09-security-audit.md) M8 |
+| S6 | Device JWT 60min — genereux pour un token non-revocable | Important | S | `application.properties` | → [audit de sécurité de septembre](archive/2026-09-security-audit.md) M9 |
+| S7 | Rate limiting global HTTP absent | Important | M | Configuration infra | → [audit de sécurité de septembre](archive/2026-09-security-audit.md) M10 |
+| S8 | CORS origines dev en defaut (controllable via variable d'env) | Mineur | S | `application.properties` | ⚠️ → [audit de sécurité de septembre](archive/2026-09-security-audit.md) contrôles conformes |
+| S9 | LIKE wildcards non echappees dans la recherche | Mineur | S | `UserRepository.java` | ✅ → [audit de sécurité de septembre](archive/2026-09-security-audit.md) L12 (ledger `SEC-22`) |
+| S10 | Header injection potentielle dans Content-Disposition | Mineur | S | `DeviceRoutesResource.java` | ✅ → [audit de sécurité de septembre](archive/2026-09-security-audit.md) L13 (ledger `SEC-22`) |
+| S11 | Logs insuffisants pour detecter les tentatives de brute force | Mineur | S | `AuthService.java` | ✅ → [audit de sécurité de septembre](archive/2026-09-security-audit.md) L14 (ledger `SEC-23`) |
+| S12 | Cookie `secure=false` par defaut en dev, `true` en prod | Mineur | S | `application.properties` | ⚠️ → [audit de sécurité de septembre](archive/2026-09-security-audit.md) contrôles conformes |
 | S13 | DataStore Karoo non chiffre (tokens en clair) | Mineur | M | `AuthManager.kt` | |
 | S14 | Pas de validation/scanning des fichiers uploades | Mineur | L | `AssetService.java` | ✅ |
 

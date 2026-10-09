@@ -43,7 +43,7 @@ jamais un titre ni une position dans le fichier.
 | `ISSUE` | « Signaler un problème » et remontée des erreurs vers GitHub |
 | `MIG` | Migration biketeam → Pédalons |
 | `BRAND` | Charte, code couleur métier |
-| `SEC` | Suivi de l'audit de sécurité ([`SECURITY_AUDIT.md`](SECURITY_AUDIT.md)) |
+| `SEC` | Sécurité applicative — dont les suites de l'audit de septembre 2026 ([`plans/archive/2026-09-security-audit.md`](plans/archive/2026-09-security-audit.md)) |
 | `AUD` | Suivi de l'audit d'infrastructure de février ([`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md)) |
 | `LEGAL` | Politique de confidentialité, CGU, déclarations des stores |
 
@@ -54,7 +54,7 @@ Sources : [`plans/archive/`](plans/archive/) (les trois plans du 26 juillet, ave
 les plans exécutés depuis),
 [`plans/archive/audit-ux/BRIEF.md`](plans/archive/audit-ux/BRIEF.md) (l'entrant de design),
 [`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md) (audit d'infrastructure,
-encore ouvert), [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) (audit de sécurité de septembre 2026).
+encore ouvert), [`plans/archive/2026-09-security-audit.md`](plans/archive/2026-09-security-audit.md) (audit de sécurité de septembre 2026, archivé).
 
 ---
 
@@ -763,11 +763,12 @@ Le code couleur métier a une source unique depuis `BRAND-2`.
 
 ## SEC — Audit de sécurité
 
-[`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) fait foi pour les statuts et reste expurgé : cette liste ne
-fait que les suivre ici, sans détail. Quand un constat est corrigé, mettre à jour **les deux**
-fichiers (statut et commit dans l'audit, ligne déplacée dans `LEDGER_DONE.md` sous son
-identifiant). Relevé le 29 septembre 2026 : aucun commit de code n'a touché ces points depuis la
-mise à jour de l'audit. La colonne « Audit » garde l'identifiant du constat dans l'audit.
+Cette section fait seule foi pour les constats de sécurité ouverts. L'audit de septembre 2026 est
+archivé ([`plans/archive/2026-09-security-audit.md`](plans/archive/2026-09-security-audit.md), statuts figés au 9 octobre 2026) ; la colonne
+« Audit » garde l'identifiant du constat dans ce document. Le dépôt est public : une entrée ne
+porte **aucun détail exploitable** (scénario, preuve, point d'entrée) tant que le constat est
+ouvert, seulement sa sévérité et une phrase. Corrigé, il passe dans `LEDGER_DONE.md` sous son
+identifiant, avec son détail.
 
 | ID | Priorité (audit) | Audit | Sévérité | Constat |
 |---|---|---|---|---|
@@ -805,7 +806,7 @@ Deux gestes d'exploitation de l'audit sont sous `OPS` : I13 (`OPS-7`) et I20 (`O
 | `AUD-27` | Garmin | G8, G9 | Important | Pas de `slow_down` (le backend n'en émet aucun à ce jour — relevé le 30 septembre 2026 : `grep slow_down backend/` ne trouve rien ; `SEC-4` a limité `/complete` et `/verify`, pas `/token`, dont le `device_code` de 256 bits n'a rien à deviner : le point ne mordra que si `/token` est un jour freiné) ; offsets fixes dans les layouts. G6 est livré sous `AUD-31` |
 | `AUD-29` | Appareils | §9.2 | — | Reprise d'un flow d'autorisation interrompu et résilience réseau pendant le polling, à revérifier |
 
-Suivis ailleurs : les lignes de sécurité S2 à S12 sont versées dans `SECURITY_AUDIT.md`, donc sous
+Suivis ailleurs : les lignes de sécurité S2 à S12 ont été versées dans l'audit de sécurité de septembre, donc sous
 `SEC` (H5 livré sous `SEC-4`, M7 = `SEC-27`, M8 = `SEC-25`, M9 = `SEC-11`, M10 = `SEC-28`, L12 et L13 livrés sous `SEC-22`, L14 sous `SEC-23` ; S8 et S12 y sont rangées comme
 conformes). K12 (= S13, jetons Karoo en clair) est L10, dans `SEC-12` ; P2-44 (en-têtes CSP/HSTS) est
 V4, dans `SEC-16` (livré) ; F12 (sitemap) est livré sous `WEB-31`.
@@ -879,8 +880,9 @@ restent ouvertes :
 - [`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md) — audit d'infrastructure,
   CI/CD et qualité des modules, statuts rafraîchis le 29 septembre 2026. Ses lignes ouvertes sont
   suivies sous `AUD`.
-- [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) — audit de sécurité de septembre 2026 ; il fait foi pour
-  les vulnérabilités, l'audit de février pour l'infrastructure. Suivi sous `SEC`.
+- [`plans/archive/2026-09-security-audit.md`](plans/archive/2026-09-security-audit.md) — audit de sécurité de septembre 2026, archivé le
+  9 octobre 2026 ; ses ouverts sont suivis sous `SEC`, qui fait foi. L'audit de février reste la
+  référence pour l'infrastructure.
 - [`plans/2026-07-25-privacy-improvement-opportunities.md`](plans/2026-07-25-privacy-improvement-opportunities.md) —
   les options d'amélioration de la vie privée et leur justification ; ce qui en reste ouvert, le
   chiffrement des jetons Karoo, est suivi sous `SEC-12`. L'audit de juillet et la mise à jour de

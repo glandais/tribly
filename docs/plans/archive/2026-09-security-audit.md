@@ -1,5 +1,11 @@
 # Audit de sécurité Pedalons — septembre 2026
 
+> **Archivé le 9 octobre 2026** (était `docs/SECURITY_AUDIT.md`). Les statuts ci-dessous sont
+> **figés à cette date**. Les constats encore ouverts sont suivis sous le préfixe `SEC` de
+> [`LEDGER_NEXT.md`](../../LEDGER_NEXT.md), qui fait seul foi ; leur colonne « Audit » renvoie aux
+> identifiants H, M, L et V de ce document, qui restent les références citées dans le code et
+> dans l'audit de février.
+
 - **Révision auditée** : `0a4c211a` (develop, arbre propre). Statuts mis à jour le 2026-09-29 (develop, `e404330c`).
 - **Méthode** : revue statique du code source, sans rien exécuter (ni build, ni test, ni sonde réseau). Cinq revues parallèles par domaine :
   - authentification et sessions ;
@@ -43,13 +49,13 @@
 | V1–V8 | Vérifiés | Faits hors du dépôt, dont la clé JWT présente dans l'historique public | V1 non confirmé (ledger `SEC-5`) ; V2 caduc pour l'avenir ; V3 conforme par Caddy ; V4 traité sauf la CSP des scripts (`SEC-30`, `SEC-31`) ; V5 corrigé (`SEC-32`) ; V6 sans tenants voisins ; V7 non confirmé ; V8 caduc |
 
 H5, M7 à M10 et L12 à L14 viennent de l'audit d'infrastructure de février
-([`plans/2026-02-14-project-audit.md`](plans/2026-02-14-project-audit.md), lignes S2 à S11), versés ici
+([`plans/2026-02-14-project-audit.md`](../2026-02-14-project-audit.md), lignes S2 à S11), versés ici
 le 29 septembre 2026 après revérification dans le code : la sécurité applicative n'est suivie
 qu'ici. S8 et S12 de ce même audit (origines CORS et cookie non `Secure` par défaut) sont des défauts
 de développement surchargés en `%prod`, rangés dans les contrôles conformes.
 
-Les constats ouverts sont suivis, sans détail, sous le préfixe `SEC` de [`LEDGER_NEXT.md`](LEDGER_NEXT.md) (colonne « Audit ») : un
-changement de statut ici se reporte là-bas.
+Les constats ouverts sont suivis, sans détail, sous le préfixe `SEC` de [`LEDGER_NEXT.md`](../../LEDGER_NEXT.md) (colonne « Audit ») : un
+changement de statut se fait désormais là-bas seulement.
 
 **Ordre de correction conseillé** :
 1. ~~H1~~, ~~H2~~, ~~H3~~ et ~~H4~~ (corrigés).
@@ -186,7 +192,7 @@ Informationnel :
   - Aucun `badCertificateCallback`, aucune WebView.
   - Uniquement des App Links https vérifiés, sans scheme custom.
 - **Infra** :
-  - Postgres, Traefik, Mailpit, MinIO et imgproxy exposés sur loopback uniquement. Depuis le passage des hôtes à Docker Swarm (postérieur à l'audit), qui ne sait pas publier sur le loopback : sur un hôte, postgres ne publie plus rien et Traefik écoute sur toutes les interfaces, fermé par des règles `DOCKER-USER` qui ne laissent passer que Caddy ([`OPERATIONS.md`](OPERATIONS.md#only-caddy-may-reach-traefik)) ; le loopback ne vaut plus que pour un poste de travail.
+  - Postgres, Traefik, Mailpit, MinIO et imgproxy exposés sur loopback uniquement. Depuis le passage des hôtes à Docker Swarm (postérieur à l'audit), qui ne sait pas publier sur le loopback : sur un hôte, postgres ne publie plus rien et Traefik écoute sur toutes les interfaces, fermé par des règles `DOCKER-USER` qui ne laissent passer que Caddy ([`OPERATIONS.md`](../../OPERATIONS.md#only-caddy-may-reach-traefik)) ; le loopback ne vaut plus que pour un poste de travail.
   - Dashboard Traefik désactivé.
   - Origines CORS de développement et cookie non `Secure` seulement par défaut : `%prod` les surcharge (audit de février, S8 et S12).
   - `.env` jamais versionné.

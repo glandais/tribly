@@ -3075,7 +3075,8 @@ envoyé », un redémarrage renotifie tout le monde) et la purge des jetons pér
 
 ## SEC — Audit de sécurité
 
-Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md).
+Les constats corrigés avant l'ouverture du ledger sont dans l'audit de septembre 2026, archivé :
+[`plans/archive/2026-09-security-audit.md`](plans/archive/2026-09-security-audit.md).
 
 - `SEC-26` **L'édition d'une annonce ne donne la position exacte qu'au vendeur : M2 (annexe)**
   (2026-10-01, **API 9.2.1**, patch : descriptions de `AdEditDto.locationGeometry` et
@@ -3144,7 +3145,7 @@ Les constats corrigés avant l'ouverture du ledger sont dans [`SECURITY_AUDIT.md
   the LF char », puis « Mail not sent »).
 
 - `SEC-16` **Les faits hors dépôt de l'audit, V3 à V8, tous tranchés** (2026-09-30 → 2026-10-01,
-  contrat inchangé) — vérifiés sur les hôtes, chacun avec son statut dans `SECURITY_AUDIT.md` :
+  contrat inchangé) — vérifiés sur les hôtes, chacun avec son statut dans l'audit de septembre (archivé) :
   V3 conforme par Caddy (`X-Forwarded-*` forgés sans effet), avec une faille annexe, Traefik joignable
   en IPv6, fermée sous `SEC-29` ; V4 confirmé puis corrigé sous `SEC-30` (la CSP des scripts reste
   `SEC-31`) ; V5 confirmé puis corrigé sous `SEC-32` (recette `OPS-26`, alerte `OPS-27`) ; V6 sans

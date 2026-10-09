@@ -8,7 +8,7 @@ import java.util.Set;
 
 /**
  * How a file somebody uploaded is served: from the application's own origin, so it must never run
- * there as a page (docs/SECURITY_AUDIT.md H2, docs/LEDGER_*.md SEC-1).
+ * there as a page (docs/plans/archive/2026-09-security-audit.md H2, docs/LEDGER_*.md SEC-1).
  *
  * <ul>
  *   <li><b>Only what cannot carry script opens in the browser</b> — raster images and PDF. Anything
